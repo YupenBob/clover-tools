@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code 生成 - CloverTools</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 0.5rem; }
+        .desc { color: #666; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: 500; }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { height: 120px; resize: vertical; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        #qrcode {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #qrcode img { margin: 0 auto; }
+        .placeholder { color: #999; }
+        .actions { margin-top: 1rem; display: flex; gap: 0.5rem; }
+        .actions button { flex: 1; }
+        .nav { margin-bottom: 1.5rem; }
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .nav a:hover { text-decoration: underline; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../../">🏠 返回首页</a>
+        </div>
+        
+        <h1>📱 QR Code 生成</h1>
+        <p class="desc">将文本、链接等内容转换为二维码</p>
+        
+        <div class="input-group">
+            <label for="content">输入内容</label>
+            <textarea id="content" placeholder="输入文本、链接、WiFi 密码等..."></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="size">尺寸：<span id="sizeValue">256</span>px</label>
+            <input type="range" id="size" min="128" max="512" step="64" value="256">
+        </div>
+        
+        <button onclick="generate()">生成二维码</button>
+        
+        <div id="qrcode">
+            <span class="placeholder">二维码将显示在这里</span>
+        </div>
+        
+        <div class="actions" id="actions" style="display:none;">
+            <button onclick="download()">⬇️ 下载 PNG</button>
+        </div>
+    </div>
+    
+    <script>
+        const sizeSlider = document.getElementById('size');
+        const sizeValue = document.getElementById('sizeValue');
+        
+        sizeSlider.addEventListener('input', () => {
+            sizeValue.textContent = sizeSlider.value;
+        });
+        
+        function generate() {
+            const content = document.getElementById('content').value;
+            const size = parseInt(sizeSlider.value);
+            
+            if (!content.trim()) {
+                alert('请输入内容！');
+                return;
+            }
+            
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = '<span class="placeholder">生成中...</span>';
+            
+            QRCode.toDataURL(content, {
+                width: size,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }).then(url => {
+                qrcodeContainer.innerHTML = `<img src="${url}" alt="QR Code" style="max-width:100%;">`;
+                document.getElementById('actions').style.display = 'flex';
+            }).catch(err => {
+                qrcodeContainer.innerHTML = `<span class="placeholder" style="color:red;">生成失败：${err.message}</span>`;
+            });
+        }
+        
+        function download() {
+            const img = document.querySelector('#qrcode img');
+            if (img) {
+                const link = document.createElement('a');
+                link.download = 'qrcode.png';
+                link.href = img.src;
+                link.click();
+            }
+        }
+        
+        // 支持回车生成
+        document.getElementById('content').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                generate();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年龄计算器 - CloverTools</title>
+    <meta name="description" content="在线年龄计算器，精确计算年龄">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="date"] {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .age-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .age-item {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .age-value {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+
+        .age-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-label {
+            opacity: 0.9;
+        }
+
+        .detail-value {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .age-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>👶 年龄计算器</h1>
+            <p>精确计算年龄，支持多种单位</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label>出生日期：</label>
+                <input type="date" id="birthDate">
+            </div>
+
+            <div class="input-group">
+                <label>计算到（可选，默认今天）：</label>
+                <input type="date" id="targetDate">
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="calculate()">计算年龄</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="result-box" id="resultBox" style="display: none;">
+                <div>你的年龄是</div>
+                <div class="age-display">
+                    <div class="age-item">
+                        <div class="age-value" id="years">0</div>
+                        <div class="age-label">岁</div>
+                    </div>
+                    <div class="age-item">
+                        <div class="age-value" id="months">0</div>
+                        <div class="age-label">个月</div>
+                    </div>
+                    <div class="age-item">
+                        <div class="age-value" id="days">0</div>
+                        <div class="age-label">天</div>
+                    </div>
+                </div>
+                <div class="result-details">
+                    <div class="detail-item">
+                        <span class="detail-label">总月数</span>
+                        <span class="detail-value" id="totalMonths">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">总周数</span>
+                        <span class="detail-value" id="totalWeeks">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">总天数</span>
+                        <span class="detail-value" id="totalDays">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">总小时数</span>
+                        <span class="detail-value" id="totalHours">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">下一个生日</span>
+                        <span class="detail-value" id="nextBirthday">-</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">距离生日</span>
+                        <span class="detail-value" id="daysToBirthday">0 天</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 使用说明</h3>
+                <ul>
+                    <li>选择出生日期</li>
+                    <li>可选择计算到的目标日期（默认今天）</li>
+                    <li>点击"计算年龄"查看结果</li>
+                    <li>结果显示岁数、月数、天数等多种单位</li>
+                    <li>还会显示下一个生日和距离天数</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置默认日期
+        const today = new Date();
+        document.getElementById('targetDate').value = formatDate(today);
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function calculate() {
+            const birthDateStr = document.getElementById('birthDate').value;
+            let targetDateStr = document.getElementById('targetDate').value;
+
+            if (!birthDateStr) {
+                alert('请选择出生日期！');
+                return;
+            }
+
+            if (!targetDateStr) {
+                targetDateStr = formatDate(new Date());
+            }
+
+            const birthDate = new Date(birthDateStr);
+            const targetDate = new Date(targetDateStr);
+
+            if (birthDate > targetDate) {
+                alert('出生日期不能晚于目标日期！');
+                return;
+            }
+
+            // 计算年龄
+            let years = targetDate.getFullYear() - birthDate.getFullYear();
+            let months = targetDate.getMonth() - birthDate.getMonth();
+            let days = targetDate.getDate() - birthDate.getDate();
+
+            if (days < 0) {
+                months--;
+                const lastMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 0);
+                days += lastMonth.getDate();
+            }
+
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+
+            // 计算总天数
+            const diffTime = Math.abs(targetDate - birthDate);
+            const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const totalWeeks = Math.floor(totalDays / 7);
+            const totalMonths = years * 12 + months;
+            const totalHours = totalDays * 24;
+
+            // 计算下一个生日
+            const currentYear = today.getFullYear();
+            let nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+            if (nextBirthday < today) {
+                nextBirthday.setFullYear(currentYear + 1);
+            }
+            const daysToBirthday = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+
+            // 显示结果
+            document.getElementById('years').textContent = years;
+            document.getElementById('months').textContent = months;
+            document.getElementById('days').textContent = days;
+            document.getElementById('totalMonths').textContent = totalMonths.toLocaleString();
+            document.getElementById('totalWeeks').textContent = totalWeeks.toLocaleString();
+            document.getElementById('totalDays').textContent = totalDays.toLocaleString();
+            document.getElementById('totalHours').textContent = totalHours.toLocaleString();
+            document.getElementById('nextBirthday').textContent = formatDate(nextBirthday);
+            document.getElementById('daysToBirthday').textContent = `${daysToBirthday} 天`;
+
+            document.getElementById('resultBox').style.display = 'block';
+        }
+
+        function clearAll() {
+            document.getElementById('birthDate').value = '';
+            document.getElementById('targetDate').value = formatDate(new Date());
+            document.getElementById('resultBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

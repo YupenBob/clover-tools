@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>进制转换 - CloverTools</title>
+    <meta name="description" content="在线进制转换工具，支持 2/8/10/16/32/36 进制">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        select {
+            min-width: 150px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Monaco', 'Menlo', monospace;
+            word-break: break-all;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info {
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>🔢 进制转换</h1>
+            <p>支持 2/8/10/16/32/36 进制互相转换</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label>输入数值：</label>
+                <div class="input-row">
+                    <input type="text" id="input" placeholder="输入数值，例如：1010 或 FF 或 255">
+                    <select id="fromBase">
+                        <option value="2">二进制 (Base 2)</option>
+                        <option value="8">八进制 (Base 8)</option>
+                        <option value="10" selected>十进制 (Base 10)</option>
+                        <option value="16">十六进制 (Base 16)</option>
+                        <option value="32">三十二进制 (Base 32)</option>
+                        <option value="36">三十六进制 (Base 36)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="convert()">转换</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="results-grid" id="results" style="display: none;">
+                <div class="result-card">
+                    <div class="result-label">二进制</div>
+                    <div class="result-value" id="binary">-</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">八进制</div>
+                    <div class="result-value" id="octal">-</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">十进制</div>
+                    <div class="result-value" id="decimal">-</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">十六进制</div>
+                    <div class="result-value" id="hex">-</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">三十二进制</div>
+                    <div class="result-value" id="base32">-</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">三十六进制</div>
+                    <div class="result-value" id="base36">-</div>
+                </div>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 使用说明</h3>
+                <ul>
+                    <li><strong>二进制</strong>：仅包含 0 和 1，用于计算机底层</li>
+                    <li><strong>八进制</strong>：0-7，常用于文件权限</li>
+                    <li><strong>十进制</strong>：0-9，日常生活使用</li>
+                    <li><strong>十六进制</strong>：0-9 和 A-F，常用于颜色代码、内存地址</li>
+                    <li><strong>三十二进制</strong>：0-9 和 A-V，用于缩短编码长度</li>
+                    <li><strong>三十六进制</strong>：0-9 和 A-Z，最短的字母数字编码</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bases = [2, 8, 10, 16, 32, 36];
+
+        function convert() {
+            const input = document.getElementById('input').value.trim();
+            const fromBase = parseInt(document.getElementById('fromBase').value);
+
+            if (!input) {
+                alert('请输入数值！');
+                return;
+            }
+
+            try {
+                // 先转换为十进制
+                const decimal = parseInt(input, fromBase);
+                
+                if (isNaN(decimal)) {
+                    throw new Error('无效的数值');
+                }
+
+                // 转换为各种进制
+                document.getElementById('binary').textContent = decimal.toString(2).toUpperCase();
+                document.getElementById('octal').textContent = decimal.toString(8).toUpperCase();
+                document.getElementById('decimal').textContent = decimal.toString(10);
+                document.getElementById('hex').textContent = decimal.toString(16).toUpperCase();
+                document.getElementById('base32').textContent = decimal.toString(32).toUpperCase();
+                document.getElementById('base36').textContent = decimal.toString(36).toUpperCase();
+
+                document.getElementById('results').style.display = 'grid';
+            } catch (e) {
+                alert('转换失败：' + e.message);
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        // 支持 Enter 键转换
+        document.getElementById('input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                convert();
+            }
+        });
+    </script>
+</body>
+</html>

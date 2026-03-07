@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">文件格式转换器</h1>
+      <p class="text-gray-600">支持文档、图片、音视频、表格等多种格式互转</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+      <!-- 侧边栏 - 转换类别 -->
+      <div class="lg:w-1/4">
+        <div class="bg-white shadow-lg rounded-lg p-6 sticky top-6">
+          <h2 class="text-lg font-semibold text-gray-900 mb-4">转换类别</h2>
+          <div class="space-y-3">
+            <button onclick="setCategory('document')" class="w-full text-left px-4 py-2 rounded-md bg-blue-100 text-blue-800 font-medium hover:bg-blue-200 transition-colors" id="category-document">
+              📄 文档转换
+            </button>
+            <button onclick="setCategory('image')" class="w-full text-left px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors" id="category-image">
+              🖼️ 图片转换
+            </button>
+            <button onclick="setCategory('audio_video')" class="w-full text-left px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors" id="category-audio_video">
+              🎵 音视频转换
+            </button>
+            <button onclick="setCategory('spreadsheet')" class="w-full text-left px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100 transition-colors" id="category-spreadsheet">
+              📊 表格转换
+            </button>
+          </div>
+          
+          <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm text-yellow-800">
+              <strong>提示：</strong>请选择正确的转换类别，避免不兼容的格式转换（如MP4转PDF）。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主内容区域 -->
+      <div class="lg:w-3/4">
+        <div class="bg-white shadow-lg rounded-lg p-6">
+          <!-- 文件上传区域 -->
+          <div id="drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+            <div class="space-y-4">
+              <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <div>
+                <p class="text-lg font-medium text-gray-900">拖拽文件到此处</p>
+                <p class="text-sm text-gray-500">或点击选择文件</p>
+              </div>
+              <input type="file" id="file-input" class="hidden" accept="*/*">
+            </div>
+          </div>
+
+          <!-- 文件信息显示 -->
+          <div id="file-info" class="mt-4 hidden">
+            <p class="text-sm text-gray-600">已选择文件: <span id="file-name" class="font-medium"></span></p>
+          </div>
+
+          <!-- 格式选择 -->
+          <div class="mt-6" id="format-section">
+            <label for="format-select" class="block text-sm font-medium text-gray-700 mb-2">选择目标格式</label>
+            <select id="format-select" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+              <option value="">请选择目标格式</option>
+            </select>
+          </div>
+
+          <!-- 转换按钮 -->
+          <div class="mt-6">
+            <button id="convert-btn" disabled class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+              开始转换
+            </button>
+          </div>
+
+          <!-- 进度条 -->
+          <div id="progress-container" class="mt-4 hidden">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-sm font-medium text-gray-700">转换进度</span>
+              <span id="progress-text" class="text-sm text-gray-500">0%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- 下载区域 -->
+          <div id="download-container" class="mt-6 hidden">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-green-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-green-800 font-medium">转换完成！</span>
+              </div>
+              <div class="mt-3">
+                <a id="download-link" href="#" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700">
+                  📥 下载转换后的文件
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 错误信息 -->
+          <div id="error-container" class="mt-4 hidden">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div class="flex items-center">
+                <svg class="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-red-800 font-medium" id="error-message">错误信息</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 转换类别配置
+const categories = {
+  document: {
+    name: '文档转换',
+    formats: [
+      {value: 'pdf', label: 'PDF'},
+      {value: 'docx', label: 'Word (.docx)'},
+      {value: 'txt', label: '纯文本 (.txt)'},
+      {value: 'html', label: 'HTML'}
+    ],
+    extensions: ['txt', 'pdf', 'docx', 'html']
+  },
+  image: {
+    name: '图片转换',
+    formats: [
+      {value: 'jpg', label: 'JPEG (.jpg)'},
+      {value: 'png', label: 'PNG (.png)'},
+      {value: 'webp', label: 'WebP (.webp)'},
+      {value: 'svg', label: 'SVG'}
+    ],
+    extensions: ['jpg', 'jpeg', 'png', 'webp', 'svg']
+  },
+  audio_video: {
+    name: '音视频转换',
+    formats: [
+      {value: 'mp4', label: 'MP4'},
+      {value: 'avi', label: 'AVI'},
+      {value: 'mov', label: 'MOV'},
+      {value: 'mp3', label: 'MP3'},
+      {value: 'wav', label: 'WAV'}
+    ],
+    extensions: ['mp4', 'avi', 'mov', 'mp3', 'wav']
+    },
+  spreadsheet: {
+    name: '表格转换',
+    formats: [
+      {value: 'xlsx', label: 'Excel (.xlsx)'},
+      {value: 'csv', label: 'CSV'},
+      {value: 'json', label: 'JSON'}
+    ],
+    extensions: ['xlsx', 'csv', 'json']
+  }
+};
+
+let currentCategory = 'document';
+
+// 设置当前类别
+function setCategory(category) {
+  currentCategory = category;
+  
+  // 更新按钮样式
+  document.querySelectorAll('[id^="category-"]').forEach(btn => {
+    btn.classList.remove('bg-blue-100', 'text-blue-800');
+    btn.classList.add('text-gray-700');
+  });
+  document.getElementById(`category-${category}`).classList.remove('text-gray-700');
+  document.getElementById(`category-${category}`).classList.add('bg-blue-100', 'text-blue-800');
+  
+  // 更新格式选择下拉框
+  updateFormatSelect();
+}
+
+// 更新格式选择下拉框
+function updateFormatSelect() {
+  const select = document.getElementById('format-select');
+  select.innerHTML = '<option value="">请选择目标格式</option>';
+  
+  const formats = categories[currentCategory].formats;
+  formats.forEach(format => {
+    const option = document.createElement('option');
+    option.value = format.value;
+    option.textContent = format.label;
+    select.appendChild(option);
+  });
+  
+  // 如果已有文件，检查是否兼容
+  checkFileCompatibility();
+}
+
+// 检查文件兼容性
+function checkFileCompatibility() {
+  const fileInput = document.getElementById('file-input');
+  const convertBtn = document.getElementById('convert-btn');
+  const errorContainer = document.getElementById('error-container');
+  
+  if (fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const allowedExts = categories[currentCategory].extensions;
+    
+    if (!allowedExts.includes(fileExt)) {
+      showError(`文件类型不兼容！当前选择的是"${categories[currentCategory].name}"，但上传的文件是.${fileExt}格式。请切换到正确的转换类别。`);
+      convertBtn.disabled = true;
+    } else {
+      hideError();
+      convertBtn.disabled = false;
+    }
+  }
+}
+
+// 显示错误信息
+function showError(message) {
+  document.getElementById('error-message').textContent = message;
+  document.getElementById('error-container').classList.remove('hidden');
+}
+
+// 隐藏错误信息
+function hideError() {
+  document.getElementById('error-container').classList.add('hidden');
+}
+
+// 文件拖拽上传功能
+const dropArea = document.getElementById('drop-area');
+const fileInput = document.getElementById('file-input');
+const fileName = document.getElementById('file-name');
+const fileInfo = document.getElementById('file-info');
+const convertBtn = document.getElementById('convert-btn');
+const formatSelect = document.getElementById('format-select');
+
+// 初始化格式选择
+updateFormatSelect();
+
+// 点击区域触发文件选择
+dropArea.addEventListener('click', () => {
+  fileInput.click();
+});
+
+// 文件选择事件
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length > 0) {
+    const file = e.target.files[0];
+    fileName.textContent = file.name;
+    fileInfo.classList.remove('hidden');
+    checkFileCompatibility();
+  }
+});
+
+// 拖拽事件
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+  dropArea.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+['dragenter', 'dragover'].forEach(eventName => {
+  dropArea.addEventListener(eventName, highlight, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+  dropArea.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight() {
+  dropArea.classList.add('border-blue-400');
+}
+
+function unhighlight() {
+  dropArea.classList.remove('border-blue-400');
+}
+
+// 处理文件拖拽
+dropArea.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+  const dt = e.dataTransfer;
+  const files = dt.files;
+  if (files.length > 0) {
+    fileInput.files = files;
+    const file = files[0];
+    fileName.textContent = file.name;
+    fileInfo.classList.remove('hidden');
+    checkFileCompatibility();
+  }
+}
+
+// 转换按钮点击事件
+convertBtn.addEventListener('click', async () => {
+  const file = fileInput.files[0];
+  const targetFormat = formatSelect.value;
+  
+  if (!file || !targetFormat) return;
+  
+  // 验证文件类型兼容性
+  const fileExt = file.name.split('.').pop().toLowerCase();
+  const allowedExts = categories[currentCategory].extensions;
+  if (!allowedExts.includes(fileExt)) {
+    showError('文件类型不兼容！请确保选择正确的转换类别。');
+    return;
+  }
+  
+  // 隐藏之前的错误和下载区域
+  hideError();
+  document.getElementById('download-container').classList.add('hidden');
+  
+  // 显示进度条
+  document.getElementById('progress-container').classList.remove('hidden');
+  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('progress-text').textContent = '0%';
+  
+  // 创建FormData
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('target_format', targetFormat);
+  
+  try {
+    const response = await fetch('/convert', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // 更新进度到100%
+      document.getElementById('progress-bar').style.width = '100%';
+      document.getElementById('progress-text').textContent = '100%';
+      
+      // 显示下载链接
+      const downloadLink = document.getElementById('download-link');
+      downloadLink.href = result.download_url;
+      downloadLink.download = `converted_file.${targetFormat}`;
+      document.getElementById('download-container').classList.remove('hidden');
+    } else {
+      throw new Error(result.error || '转换失败');
+    }
+    
+  } catch (error) {
+    console.error('转换失败:', error);
+    showError('转换失败：' + error.message);
+    document.getElementById('progress-container').classList.add('hidden');
+  }
+});
+</script>
+{% endblock %}

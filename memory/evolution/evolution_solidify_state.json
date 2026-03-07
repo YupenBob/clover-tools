@@ -1,0 +1,69 @@
+{
+  "last_run": {
+    "run_id": "run_1772799928435",
+    "created_at": "2026-03-06T12:25:28.442Z",
+    "parent_event_id": "evt_1770478341769",
+    "selected_gene_id": "gene_gep_repair_from_errors",
+    "selected_capsule_id": "capsule_1770477654236",
+    "selector": {
+      "selected": "gene_gep_repair_from_errors",
+      "reason": [
+        "signals match gene.signals_match",
+        "capsule trigger matches signals",
+        "signals: log_error, repeated_tool_usage:exec",
+        "memory_graph: memory_prefer:gene_gep_repair_from_errors",
+        "drift_intensity: 0.577"
+      ],
+      "alternatives": []
+    },
+    "signals": [
+      "log_error",
+      "repeated_tool_usage:exec"
+    ],
+    "mutation": {
+      "type": "Mutation",
+      "id": "mut_1772799928433",
+      "category": "repair",
+      "trigger_signals": [
+        "log_error",
+        "repeated_tool_usage:exec"
+      ],
+      "target": "gene:gene_gep_repair_from_errors",
+      "expected_effect": "reduce runtime errors, increase stability, and lower failure rate",
+      "risk_level": "low"
+    },
+    "mutation_id": "mut_1772799928433",
+    "personality_state": {
+      "type": "PersonalityState",
+      "rigor": 0.7,
+      "creativity": 0.35,
+      "verbosity": 0.25,
+      "risk_tolerance": 0.4,
+      "obedience": 0.85
+    },
+    "personality_key": "rigor=0.7|creativity=0.3|verbosity=0.3|risk_tolerance=0.4|obedience=0.9",
+    "personality_known": false,
+    "personality_mutations": [],
+    "drift": false,
+    "selected_by": "memory_graph+selector",
+    "source_type": "generated",
+    "reused_asset_id": null,
+    "reused_source_node": null,
+    "reused_chain_id": null,
+    "baseline_untracked": [
+      "assets/gep/failed_capsules.json",
+      "assets/gep/genes.jsonl",
+      "evolver.pid"
+    ],
+    "baseline_git_head": "81178a92f9fc7d7a680cae7683641e5ac3d572a3",
+    "blast_radius_estimate": {
+      "files": 20,
+      "lines": 1600
+    },
+    "active_task_id": null,
+    "active_task_title": null,
+    "worker_assignment_id": null,
+    "applied_lessons": [],
+    "hub_lessons": []
+  }
+}

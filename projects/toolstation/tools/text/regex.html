@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正则表达式测试 - CloverTools</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 0.5rem; }
+        .desc { color: #666; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: 500; }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: monospace;
+            transition: border-color 0.3s;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { height: 150px; resize: vertical; }
+        .flags { display: flex; gap: 1rem; margin: 0.5rem 0; }
+        .flags label { display: flex; align-items: center; gap: 0.25rem; font-weight: normal; }
+        .flags input[type="checkbox"] { width: auto; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 0.5rem;
+        }
+        button:hover { transform: translateY(-2px); }
+        button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+        .result-box h3 { margin-bottom: 0.5rem; color: #333; }
+        .matches { 
+            font-family: monospace; 
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .match-item {
+            background: #e3f2fd;
+            padding: 0.25rem 0.5rem;
+            margin: 0.25rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .error { color: #d32f2f; }
+        .success { color: #388e3c; }
+        .stats { margin-top: 1rem; padding: 0.5rem; background: #fff3e0; border-radius: 4px; }
+        .nav { margin-bottom: 1.5rem; }
+        .nav a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .nav a:hover { text-decoration: underline; }
+        .examples { margin-top: 1.5rem; padding: 1rem; background: #f5f5f5; border-radius: 8px; }
+        .examples h4 { margin-bottom: 0.5rem; }
+        .examples code { 
+            background: #e0e0e0; 
+            padding: 0.25rem 0.5rem; 
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../../">🏠 返回首页</a>
+        </div>
+        
+        <h1>🔍 正则表达式测试</h1>
+        <p class="desc">测试正则表达式匹配、提取、替换</p>
+        
+        <div class="input-group">
+            <label for="regex">正则表达式</label>
+            <input type="text" id="regex" placeholder="例如：\d+ 或 [a-zA-Z]+">
+        </div>
+        
+        <div class="input-group">
+            <label>标志</label>
+            <div class="flags">
+                <label><input type="checkbox" id="flag-g" checked> g (全局)</label>
+                <label><input type="checkbox" id="flag-i"> i (忽略大小写)</label>
+                <label><input type="checkbox" id="flag-m"> m (多行)</label>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label for="text">测试文本</label>
+            <textarea id="text" placeholder="输入要测试的文本..."></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="replace">替换为（可选）</label>
+            <input type="text" id="replace" placeholder="例如：$1 或 replacement">
+        </div>
+        
+        <div>
+            <button onclick="test()">🔍 测试匹配</button>
+            <button class="secondary" onclick="doReplace()">🔄 执行替换</button>
+            <button class="secondary" onclick="clearAll()">🗑️ 清空</button>
+        </div>
+        
+        <div class="result-box" id="result" style="display:none;">
+            <h3>匹配结果</h3>
+            <div class="matches" id="matches"></div>
+            <div class="stats" id="stats"></div>
+        </div>
+        
+        <div class="examples">
+            <h4>💡 常用示例</h4>
+            <p><code>\d+</code> - 匹配数字</p>
+            <p><code>[a-zA-Z]+</code> - 匹配英文单词</p>
+            <p><code>\w+@\w+\.\w+</code> - 匹配邮箱</p>
+            <p><code>https?://\S+</code> - 匹配 URL</p>
+            <p><code>\d{4}-\d{2}-\d{2}</code> - 匹配日期 (YYYY-MM-DD)</p>
+        </div>
+    </div>
+    
+    <script>
+        function getFlags() {
+            let flags = '';
+            if (document.getElementById('flag-g').checked) flags += 'g';
+            if (document.getElementById('flag-i').checked) flags += 'i';
+            if (document.getElementById('flag-m').checked) flags += 'm';
+            return flags;
+        }
+        
+        function test() {
+            const regexStr = document.getElementById('regex').value;
+            const text = document.getElementById('text').value;
+            const flags = getFlags();
+            
+            if (!regexStr.trim()) {
+                alert('请输入正则表达式！');
+                return;
+            }
+            
+            try {
+                const regex = new RegExp(regexStr, flags);
+                const matches = text.match(regex);
+                
+                const resultBox = document.getElementById('result');
+                const matchesBox = document.getElementById('matches');
+                const statsBox = document.getElementById('stats');
+                
+                resultBox.style.display = 'block';
+                
+                if (matches && matches.length > 0) {
+                    matchesBox.innerHTML = matches.map(m => 
+                        `<span class="match-item">${escapeHtml(m)}</span>`
+                    ).join('');
+                    statsBox.innerHTML = `<span class="success">✅ 找到 ${matches.length} 个匹配</span>`;
+                } else {
+                    matchesBox.innerHTML = '<span class="error">❌ 未找到匹配</span>';
+                    statsBox.innerHTML = '';
+                }
+            } catch (e) {
+                const resultBox = document.getElementById('result');
+                const matchesBox = document.getElementById('matches');
+                const statsBox = document.getElementById('stats');
+                
+                resultBox.style.display = 'block';
+                matchesBox.innerHTML = `<span class="error">❌ 正则表达式错误：${e.message}</span>`;
+                statsBox.innerHTML = '';
+            }
+        }
+        
+        function doReplace() {
+            const regexStr = document.getElementById('regex').value;
+            const text = document.getElementById('text').value;
+            const replacement = document.getElementById('replace').value;
+            const flags = getFlags();
+            
+            if (!regexStr.trim()) {
+                alert('请输入正则表达式！');
+                return;
+            }
+            
+            try {
+                const regex = new RegExp(regexStr, flags);
+                const result = text.replace(regex, replacement);
+                
+                const resultBox = document.getElementById('result');
+                const matchesBox = document.getElementById('matches');
+                const statsBox = document.getElementById('stats');
+                
+                resultBox.style.display = 'block';
+                matchesBox.innerHTML = `<pre class="matches">${escapeHtml(result)}</pre>`;
+                statsBox.innerHTML = '<span class="success">✅ 替换完成</span>';
+            } catch (e) {
+                const resultBox = document.getElementById('result');
+                const matchesBox = document.getElementById('matches');
+                
+                resultBox.style.display = 'block';
+                matchesBox.innerHTML = `<span class="error">❌ 错误：${e.message}</span>`;
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('regex').value = '';
+            document.getElementById('text').value = '';
+            document.getElementById('replace').value = '';
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

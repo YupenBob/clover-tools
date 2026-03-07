@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 格式化 - CloverTools</title>
+    <meta name="description" content="在线 HTML 格式化/压缩工具">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .toolbar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            padding: 20px;
+        }
+
+        .editor-panel:first-child {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-header h3 {
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            height: 500px;
+            overflow: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output.valid {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .status-bar {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+
+        .status-text {
+            color: #48bb78;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-panel:first-child {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>🌐 HTML 格式化</h1>
+            <p>格式化或压缩 HTML 代码</p>
+        </header>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="formatHTML()">格式化</button>
+            <button class="btn btn-secondary" onclick="compressHTML()">压缩</button>
+            <button class="btn btn-success" onclick="copyOutput()">复制结果</button>
+            <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>输入 HTML</h3>
+                    <span class="char-count" id="inputCount">0 字符</span>
+                </div>
+                <textarea id="input" placeholder="<div><p>Hello World</p></div>" oninput="updateCount()"></textarea>
+            </div>
+
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>输出结果</h3>
+                    <span class="char-count" id="outputCount">0 字符</span>
+                </div>
+                <div id="output" class="output"></div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status">
+                <span class="status-dot"></span>
+                <span class="status-text" id="statusText">就绪</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const inputCount = document.getElementById('inputCount');
+        const outputCount = document.getElementById('outputCount');
+        const statusText = document.getElementById('statusText');
+
+        function updateCount() {
+            inputCount.textContent = `${input.value.length} 字符`;
+        }
+
+        function formatHTML() {
+            let html = input.value;
+            if (!html) {
+                alert('请输入 HTML！');
+                return;
+            }
+
+            let formatted = '';
+            let indent = 0;
+            const tab = '  ';
+
+            // 分割标签
+            const tags = html.split(/(<[^>]+>)/g);
+
+            tags.forEach(tag => {
+                if (!tag.trim()) return;
+
+                // 自闭合标签
+                if (tag.match(/^<[^>]+\/>$/)) {
+                    formatted += ' '.repeat(indent) + tag + '\n';
+                }
+                // 开标签
+                else if (tag.match(/^<[^>]+>$/)) {
+                    formatted += ' '.repeat(indent) + tag + '\n';
+                    // 排除自闭合和空元素
+                    if (!tag.match(/<\/[^>]+>$/) && !tag.match(/<(br|hr|img|input|meta|link|area|base|col|embed|param|source|track|wbr)[^>]*>/i)) {
+                        indent++;
+                    }
+                }
+                // 闭标签
+                else if (tag.match(/^<\//)) {
+                    indent--;
+                    formatted += ' '.repeat(Math.max(0, indent)) + tag + '\n';
+                }
+                // 文本内容
+                else {
+                    const text = tag.trim();
+                    if (text) {
+                        formatted += ' '.repeat(indent) + text + '\n';
+                    }
+                }
+            });
+
+            output.textContent = formatted;
+            output.className = 'output valid';
+            outputCount.textContent = `${formatted.length} 字符`;
+            statusText.textContent = '格式化完成';
+        }
+
+        function compressHTML() {
+            let html = input.value;
+            if (!html) {
+                alert('请输入 HTML！');
+                return;
+            }
+
+            // 移除注释
+            html = html.replace(/<!--[\s\S]*?-->/g, '');
+            // 移除多余空白
+            html = html.replace(/\s+/g, ' ');
+            // 移除标签间空白
+            html = html.replace(/>\s+</g, '><');
+            // 移除首尾空白
+            html = html.trim();
+
+            output.textContent = html;
+            output.className = 'output valid';
+            outputCount.textContent = `${html.length} 字符`;
+            statusText.textContent = '压缩完成';
+        }
+
+        function copyOutput() {
+            const text = output.textContent;
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = statusText.textContent;
+                    statusText.textContent = '已复制到剪贴板！';
+                    setTimeout(() => {
+                        statusText.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        function clearAll() {
+            input.value = '';
+            output.textContent = '';
+            output.className = 'output';
+            updateCount();
+            outputCount.textContent = '0 字符';
+            statusText.textContent = '就绪';
+        }
+    </script>
+</body>
+</html>

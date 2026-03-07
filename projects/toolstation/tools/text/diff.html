@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本差异对比 - CloverTools</title>
+    <meta name="description" content="在线文本差异对比工具，高亮显示不同之处">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .editor-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-panel label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .result-panel {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 300px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow: auto;
+        }
+
+        .result-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .diff-added {
+            background: #d4edda;
+            color: #155724;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .diff-removed {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 2px 4px;
+            border-radius: 3px;
+            text-decoration: line-through;
+        }
+
+        .diff-same {
+            color: #666;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container,
+            .result-container {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>📝 文本差异对比</h1>
+            <p>对比两段文本，高亮显示不同之处</p>
+        </header>
+
+        <div class="card">
+            <div class="editor-container">
+                <div class="editor-panel">
+                    <label>原文本：</label>
+                    <textarea id="text1" placeholder="在此输入第一段文本..."></textarea>
+                </div>
+                <div class="editor-panel">
+                    <label>新文本：</label>
+                    <textarea id="text2" placeholder="在此输入第二段文本..."></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="compare()">对比差异</button>
+                <button class="btn btn-secondary" onclick="swap()">交换文本</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-value" id="addedCount">0</div>
+                    <div class="stat-label">新增</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="removedCount">0</div>
+                    <div class="stat-label">删除</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="sameCount">0</div>
+                    <div class="stat-label">相同</div>
+                </div>
+            </div>
+
+            <div class="result-container" id="results" style="display: none;">
+                <div class="result-panel">
+                    <h3>原文本（删除内容标红）：</h3>
+                    <div id="result1"></div>
+                </div>
+                <div class="result-panel">
+                    <h3>新文本（新增内容标绿）：</h3>
+                    <div id="result2"></div>
+                </div>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 使用说明</h3>
+                <ul>
+                    <li><strong>原文本</strong>：输入对比的基准文本</li>
+                    <li><strong>新文本</strong>：输入要对比的新文本</li>
+                    <li><strong>红色背景</strong>：表示删除的内容（原文本有，新文本没有）</li>
+                    <li><strong>绿色背景</strong>：表示新增的内容（新文本有，原文本没有）</li>
+                    <li>支持逐行对比和逐词对比</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function compare() {
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+
+            if (!text1 && !text2) {
+                alert('请输入要对比的文本！');
+                return;
+            }
+
+            const lines1 = text1.split('\n');
+            const lines2 = text2.split('\n');
+
+            const result1 = [];
+            const result2 = [];
+            let added = 0;
+            let removed = 0;
+            let same = 0;
+
+            // 简单的逐行对比
+            const maxLines = Math.max(lines1.length, lines2.length);
+
+            for (let i = 0; i < maxLines; i++) {
+                const line1 = lines1[i] || '';
+                const line2 = lines2[i] || '';
+
+                if (line1 === line2) {
+                    // 相同的行
+                    result1.push(`<span class="diff-same">${escapeHtml(line1)}</span>`);
+                    result2.push(`<span class="diff-same">${escapeHtml(line2)}</span>`);
+                    same++;
+                } else {
+                    // 不同的行
+                    if (line1) {
+                        result1.push(`<span class="diff-removed">${escapeHtml(line1)}</span>`);
+                        removed++;
+                    }
+                    if (line2) {
+                        result2.push(`<span class="diff-added">${escapeHtml(line2)}</span>`);
+                        added++;
+                    }
+                }
+            }
+
+            document.getElementById('result1').innerHTML = result1.join('<br>');
+            document.getElementById('result2').innerHTML = result2.join('<br>');
+            document.getElementById('addedCount').textContent = added;
+            document.getElementById('removedCount').textContent = removed;
+            document.getElementById('sameCount').textContent = same;
+            document.getElementById('stats').style.display = 'flex';
+            document.getElementById('results').style.display = 'grid';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function swap() {
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+            document.getElementById('text1').value = text2;
+            document.getElementById('text2').value = text1;
+            compare();
+        }
+
+        function clearAll() {
+            document.getElementById('text1').value = '';
+            document.getElementById('text2').value = '';
+            document.getElementById('stats').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON → TypeScript - CloverTools</title>
+    <meta name="description" content="在线 JSON 转 TypeScript 接口工具">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .toolbar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            padding: 20px;
+        }
+
+        .editor-panel:first-child {
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-header h3 {
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            height: 500px;
+            overflow: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .output.valid {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .output.error {
+            border-color: #f56565;
+            background: #fff5f5;
+        }
+
+        .status-bar {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-dot.valid {
+            background: #48bb78;
+        }
+
+        .status-dot.error {
+            background: #f56565;
+        }
+
+        .error-message {
+            color: #f56565;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+
+            .editor-panel:first-child {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .toolbar {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>📝 JSON → TypeScript</h1>
+            <p>从 JSON 生成 TypeScript 接口定义</p>
+        </header>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="convert()">转换</button>
+            <button class="btn btn-success" onclick="copyOutput()">复制结果</button>
+            <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>输入 JSON</h3>
+                    <span class="char-count" id="inputCount">0 字符</span>
+                </div>
+                <textarea id="input" placeholder='{"name": "John", "age": 30, "active": true}' oninput="updateCount()"></textarea>
+            </div>
+
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h3>TypeScript 接口</h3>
+                    <span class="char-count" id="outputCount">0 字符</span>
+                </div>
+                <div id="output" class="output"></div>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">等待输入...</span>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const output = document.getElementById('output');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const errorMessage = document.getElementById('errorMessage');
+        const inputCount = document.getElementById('inputCount');
+        const outputCount = document.getElementById('outputCount');
+
+        function updateCount() {
+            inputCount.textContent = `${input.value.length} 字符`;
+        }
+
+        function getType(value) {
+            if (value === null) return 'any';
+            if (Array.isArray(value)) return 'any[]';
+            return typeof value;
+        }
+
+        function jsonToTs(name, obj) {
+            let ts = `interface ${name} {\n`;
+            
+            for (const key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    const value = obj[key];
+                    const type = getType(value);
+                    
+                    // 处理嵌套对象
+                    if (type === 'object' && value !== null && !Array.isArray(value)) {
+                        const nestedName = name + capitalize(key);
+                        ts += `  ${key}: ${nestedName};\n`;
+                    } else {
+                        ts += `  ${key}: ${type};\n`;
+                    }
+                }
+            }
+            
+            ts += '}\n';
+            return ts;
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function convert() {
+            const inputValue = input.value.trim();
+            if (!inputValue) {
+                alert('请输入 JSON！');
+                return;
+            }
+
+            try {
+                const json = JSON.parse(inputValue);
+                let ts = '';
+                
+                // 生成主接口
+                ts += jsonToTs('Root', json);
+                
+                // 递归处理嵌套对象
+                function processNested(obj, parentName) {
+                    for (const key in obj) {
+                        if (obj.hasOwnProperty(key)) {
+                            const value = obj[key];
+                            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                                const nestedName = parentName + capitalize(key);
+                                ts += '\n' + jsonToTs(nestedName, value);
+                                processNested(value, nestedName);
+                            }
+                        }
+                    }
+                }
+                
+                processNested(json, '');
+                
+                output.textContent = ts;
+                output.className = 'output valid';
+                statusDot.className = 'status-dot valid';
+                statusText.textContent = '转换成功';
+                errorMessage.textContent = '';
+                outputCount.textContent = `${ts.length} 字符`;
+            } catch (e) {
+                output.textContent = '';
+                output.className = 'output error';
+                statusDot.className = 'status-dot error';
+                statusText.textContent = 'JSON 无效';
+                errorMessage.textContent = e.message;
+            }
+        }
+
+        function copyOutput() {
+            const text = output.textContent;
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalText = statusText.textContent;
+                    statusText.textContent = '已复制到剪贴板！';
+                    setTimeout(() => {
+                        statusText.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        function clearAll() {
+            input.value = '';
+            output.textContent = '';
+            output.className = 'output';
+            statusDot.className = 'status-dot';
+            statusText.textContent = '等待输入...';
+            errorMessage.textContent = '';
+            updateCount();
+            outputCount.textContent = '0 字符';
+        }
+
+        // 自动转换（延迟执行）
+        let timeout;
+        input.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                if (input.value.trim()) {
+                    convert();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

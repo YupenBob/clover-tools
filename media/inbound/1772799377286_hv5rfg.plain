@@ -1,0 +1,58 @@
+# 仅 Evolver 本体：GitHub 链接 + 独立安装/部署指令
+（不含 OpenClaw 安装，纯 Evolver 引擎自身部署）
+
+## 🔗 GitHub 核心链接
+- 主仓库：https://github.com/EvoMap/evolver
+- 基因技能库扩展：https://github.com/EvoMap/evolver-skills
+
+## 📦 独立安装 & 启动命令
+### 环境要求
+- Node.js ≥ 18
+- Git
+
+### 1. 源码拉取 & 安装
+```bash
+# 克隆
+git clone https://github.com/EvoMap/evolver.git
+cd evolver
+
+# 安装依赖
+npm install --production
+```
+
+### 2. 初始化（必须）
+```bash
+git init
+git add .
+git commit -m "evolver init"
+```
+
+### 3. 启动运行（让它自动进化）
+```bash
+# 标准持续进化
+node index.js --loop
+
+# 创新模式
+node index.js --loop --strategy innovate
+
+# 安全加固模式
+node index.js --loop --strategy harden
+
+# 仅自动修复模式
+node index.js --loop --strategy repair-only
+```
+
+### 4. 技能加载（外置 Skills）
+```bash
+# 把技能目录放入 skills 文件夹即可自动加载
+mkdir -p ./skills
+# 克隆官方技能库
+git clone https://github.com/EvoMap/evolver-skills ./skills
+```
+
+## ✅ 验证运行
+出现以下日志即代表自主运行中：
+- `Evolver engine started`
+- `Scanning logs for evolution`
+- `Gene extraction running`
+

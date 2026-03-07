@@ -1,0 +1,50 @@
+name: 🦀 CloverTools - Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 📦 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 🔧 安装 Wrangler CLI
+        run: npm install -g wrangler
+      
+      - name: 🏗️ 准备构建目录
+        run: |
+          # CloverTools 是纯静态网站，直接复制
+          mkdir -p public
+          cp -r tools/* public/
+          cp index.html public/
+          echo "✅ 构建完成"
+          ls -lh public/
+      
+      - name: 🚀 部署到 Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy public --project-name=clover-tools --branch=main
+        
+      - name: 📝 输出部署信息
+        run: |
+          echo "✅ 部署成功！"
+          echo "🌐 访问地址：https://clover-tools.pages.dev"
+          echo "⚡ 响应时间：1-2 分钟"

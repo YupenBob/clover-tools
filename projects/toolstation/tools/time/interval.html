@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日期间隔计算 - CloverTools</title>
+    <meta name="description" content="在线日期间隔计算工具，计算两个日期之间的天数">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="date"], input[type="text"] {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="date"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .detail-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .quick-dates {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .quick-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .date-inputs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .result-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>📅 日期间隔计算</h1>
+            <p>计算两个日期之间的天数差</p>
+        </header>
+
+        <div class="card">
+            <div class="quick-dates">
+                <button class="quick-btn" onclick="setToday()">今天</button>
+                <button class="quick-btn" onclick="setDaysFromNow(7)">7 天后</button>
+                <button class="quick-btn" onclick="setDaysFromNow(30)">30 天后</button>
+                <button class="quick-btn" onclick="setDaysFromNow(100)">100 天后</button>
+                <button class="quick-btn" onclick="setDaysFromNow(365)">1 年后</button>
+            </div>
+
+            <div class="input-group">
+                <label>开始日期：</label>
+                <input type="date" id="startDate">
+            </div>
+
+            <div class="input-group">
+                <label>结束日期：</label>
+                <input type="date" id="endDate">
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="calculate()">计算间隔</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="result-box" id="resultBox" style="display: none;">
+                <div>两个日期相差</div>
+                <div class="result-value" id="totalDays">0 天</div>
+                <div class="result-details">
+                    <div class="detail-item">
+                        <div class="detail-label">周数</div>
+                        <div class="detail-value" id="weeks">0</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">月数 (约)</div>
+                        <div class="detail-value" id="months">0</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">年数 (约)</div>
+                        <div class="detail-value" id="years">0</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">小时数</div>
+                        <div class="detail-value" id="hours">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 使用说明</h3>
+                <ul>
+                    <li>选择开始日期和结束日期</li>
+                    <li>点击"计算间隔"按钮查看结果</li>
+                    <li>结果显示总天数、周数、月数、年数等</li>
+                    <li>可以使用快捷按钮快速设置日期</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 设置默认日期
+        const today = new Date();
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+
+        document.getElementById('startDate').value = formatDate(today);
+        document.getElementById('endDate').value = formatDate(nextWeek);
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function setToday() {
+            document.getElementById('endDate').value = formatDate(new Date());
+            calculate();
+        }
+
+        function setDaysFromNow(days) {
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            document.getElementById('endDate').value = formatDate(date);
+            calculate();
+        }
+
+        function calculate() {
+            const startDateStr = document.getElementById('startDate').value;
+            const endDateStr = document.getElementById('endDate').value;
+
+            if (!startDateStr || !endDateStr) {
+                alert('请选择日期！');
+                return;
+            }
+
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+
+            // 计算时间差（毫秒）
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            // 计算其他单位
+            const weeks = Math.floor(diffDays / 7);
+            const months = (diffDays / 30.44).toFixed(1);
+            const years = (diffDays / 365.25).toFixed(2);
+            const hours = diffDays * 24;
+
+            // 显示结果
+            document.getElementById('totalDays').textContent = `${diffDays} 天`;
+            document.getElementById('weeks').textContent = weeks;
+            document.getElementById('months').textContent = months;
+            document.getElementById('years').textContent = years;
+            document.getElementById('hours').textContent = hours.toLocaleString();
+
+            document.getElementById('resultBox').style.display = 'block';
+        }
+
+        function clearAll() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('resultBox').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

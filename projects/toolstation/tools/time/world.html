@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界各地时间 - CloverTools</title>
+    <meta name="description" content="查看世界各地时区时间">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .current-time {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .time-display {
+            font-size: 3rem;
+            font-weight: bold;
+            font-family: 'Monaco', 'Menlo', monospace;
+            margin: 15px 0;
+        }
+
+        .date-display {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .city-card {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .city-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .city-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .city-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .city-flag {
+            font-size: 1.5rem;
+        }
+
+        .city-time {
+            font-size: 1.8rem;
+            font-weight: bold;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .city-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .timezone-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .refresh-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .time-display {
+                font-size: 2rem;
+            }
+
+            .cities-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>🌍 世界各地时间</h1>
+            <p>查看全球主要城市当前时间</p>
+        </header>
+
+        <div class="card">
+            <div class="current-time">
+                <div>本地时间</div>
+                <div class="time-display" id="localTime">--:--:--</div>
+                <div class="date-display" id="localDate">----</div>
+            </div>
+
+            <button class="refresh-btn" onclick="updateAll()">刷新时间</button>
+
+            <div class="cities-grid" id="citiesGrid"></div>
+
+            <div class="info">
+                <h3>ℹ️ 说明</h3>
+                <ul>
+                    <li>显示全球主要城市的当前时间</li>
+                    <li>自动识别本地时间</li>
+                    <li>时间每秒自动更新</li>
+                    <li>支持夏令时自动调整</li>
+                    <li>所有计算均在本地完成，无需联网</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 主要城市时区列表
+        const cities = [
+            { name: '北京', timezone: 'Asia/Shanghai', flag: '🇨🇳' },
+            { name: '东京', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
+            { name: '首尔', timezone: 'Asia/Seoul', flag: '🇰🇷' },
+            { name: '新加坡', timezone: 'Asia/Singapore', flag: '🇸🇬' },
+            { name: '曼谷', timezone: 'Asia/Bangkok', flag: '🇹🇭' },
+            { name: '迪拜', timezone: 'Asia/Dubai', flag: '🇦🇪' },
+            { name: '莫斯科', timezone: 'Europe/Moscow', flag: '🇷🇺' },
+            { name: '巴黎', timezone: 'Europe/Paris', flag: '🇫🇷' },
+            { name: '伦敦', timezone: 'Europe/London', flag: '🇬🇧' },
+            { name: '柏林', timezone: 'Europe/Berlin', flag: '🇩🇪' },
+            { name: '纽约', timezone: 'America/New_York', flag: '🇺🇸' },
+            { name: '洛杉矶', timezone: 'America/Los_Angeles', flag: '🇺🇸' },
+            { name: '多伦多', timezone: 'America/Toronto', flag: '🇨🇦' },
+            { name: '悉尼', timezone: 'Australia/Sydney', flag: '🇦🇺' },
+            { name: '奥克兰', timezone: 'Pacific/Auckland', flag: '🇳🇿' },
+            { name: '圣保罗', timezone: 'America/Sao_Paulo', flag: '🇧🇷' }
+        ];
+
+        function formatTime(date, timezone) {
+            return date.toLocaleTimeString('zh-CN', {
+                timeZone: timezone,
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function formatDate(date, timezone) {
+            return date.toLocaleDateString('zh-CN', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+        }
+
+        function getOffset(timezone) {
+            const now = new Date();
+            const tzString = now.toLocaleString('en-US', { timeZone: timezone, timeZoneName: 'short' });
+            const match = tzString.match(/([A-Z]{3,4})$/);
+            return match ? match[1] : timezone;
+        }
+
+        function updateAll() {
+            const now = new Date();
+
+            // 更新本地时间
+            document.getElementById('localTime').textContent = now.toLocaleTimeString('zh-CN', { hour12: false });
+            document.getElementById('localDate').textContent = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+            // 更新各城市时间
+            const grid = document.getElementById('citiesGrid');
+            grid.innerHTML = '';
+
+            cities.forEach(city => {
+                const time = formatTime(now, city.timezone);
+                const date = formatDate(now, city.timezone);
+                const offset = getOffset(city.timezone);
+
+                const card = document.createElement('div');
+                card.className = 'city-card';
+                card.innerHTML = `
+                    <div class="city-header">
+                        <span class="city-name">${city.name}</span>
+                        <span class="city-flag">${city.flag}</span>
+                    </div>
+                    <div class="city-time">${time}</div>
+                    <div class="city-date">${date}</div>
+                    <div class="timezone-info">时区：${offset}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 初始化
+        updateAll();
+
+        // 每秒更新
+        setInterval(updateAll, 1000);
+    </script>
+</body>
+</html>

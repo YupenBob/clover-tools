@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大小写转换 - CloverTools</title>
+    <meta name="description" content="在线英文字母大小写转换工具">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 15px 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            background: white;
+            color: #667eea;
+        }
+
+        .btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 150px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            position: relative;
+        }
+
+        .result-box.has-result {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>🔤 大小写转换</h1>
+            <p>英文字母大小写互相转换工具</p>
+        </header>
+
+        <div class="card">
+            <div class="input-group">
+                <label>输入文本：</label>
+                <textarea id="input" placeholder="在此输入英文文本..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="toUpperCase()">全部大写 (UPPERCASE)</button>
+                <button class="btn btn-primary" onclick="toLowerCase()">全部小写 (lowercase)</button>
+                <button class="btn btn-primary" onclick="toCapitalize()">首字母大写 (Capitalize)</button>
+                <button class="btn btn-primary" onclick="toTitleCase()">每个单词首字母大写 (Title Case)</button>
+                <button class="btn btn-primary" onclick="toSentenceCase()">句子首字母大写 (Sentence case)</button>
+                <button class="btn btn-primary" onclick="toggleCase()">大小写切换 (tOGGLE cASE)</button>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="swap()">交换输入输出</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清空</button>
+            </div>
+
+            <div class="input-group">
+                <label>结果：</label>
+                <div class="result-box" id="result">
+                    <button class="copy-btn" onclick="copyResult()">复制</button>
+                    <span id="resultText"></span>
+                </div>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 转换说明</h3>
+                <ul>
+                    <li><strong>全部大写</strong>：HELLO WORLD</li>
+                    <li><strong>全部小写</strong>：hello world</li>
+                    <li><strong>首字母大写</strong>：Hello world（仅第一个字母）</li>
+                    <li><strong>每个单词首字母大写</strong>：Hello World（所有单词首字母）</li>
+                    <li><strong>句子首字母大写</strong>：Hello world. How are you?（每句首字母）</li>
+                    <li><strong>大小写切换</strong>：hELLO wORLD（大写变小写，小写变大写）</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const input = document.getElementById('input');
+        const resultText = document.getElementById('resultText');
+        const resultBox = document.getElementById('result');
+
+        function toUpperCase() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            resultText.textContent = text.toUpperCase();
+            resultBox.classList.add('has-result');
+        }
+
+        function toLowerCase() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            resultText.textContent = text.toLowerCase();
+            resultBox.classList.add('has-result');
+        }
+
+        function toCapitalize() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            if (text.length === 0) {
+                resultText.textContent = '';
+            } else {
+                resultText.textContent = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+            }
+            resultBox.classList.add('has-result');
+        }
+
+        function toTitleCase() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            resultText.textContent = text.replace(/\w\S*/g, (txt) => {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+            resultBox.classList.add('has-result');
+        }
+
+        function toSentenceCase() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            let result = text.toLowerCase();
+            result = result.replace(/(^\s*\w|[\.\!\?]\s*\w)/g, (c) => c.toUpperCase());
+            resultText.textContent = result;
+            resultBox.classList.add('has-result');
+        }
+
+        function toggleCase() {
+            const text = input.value;
+            if (!text) {
+                alert('请输入内容！');
+                return;
+            }
+            let result = '';
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === char.toUpperCase()) {
+                    result += char.toLowerCase();
+                } else {
+                    result += char.toUpperCase();
+                }
+            }
+            resultText.textContent = result;
+            resultBox.classList.add('has-result');
+        }
+
+        function swap() {
+            const temp = input.value;
+            input.value = resultText.textContent;
+            resultText.textContent = temp;
+            if (temp) {
+                resultBox.classList.add('has-result');
+            } else {
+                resultBox.classList.remove('has-result');
+            }
+        }
+
+        function copyResult() {
+            const text = resultText.textContent;
+            if (text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '已复制！';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        function clearAll() {
+            input.value = '';
+            resultText.textContent = '';
+            resultBox.classList.remove('has-result');
+        }
+
+        // 支持 Tab 键
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                input.value = input.value.substring(0, start) + '\t' + input.value.substring(end);
+                input.selectionStart = input.selectionEnd = start + 1;
+            }
+        });
+    </script>
+</body>
+</html>

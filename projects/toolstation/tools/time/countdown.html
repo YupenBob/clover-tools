@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线倒计时 - CloverTools</title>
+    <meta name="description" content="在线倒计时工具，支持自定义时间">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            padding: 20px 0 40px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        header a:hover {
+            opacity: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .timer-display {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .time-value {
+            font-size: 4rem;
+            font-weight: bold;
+            font-family: 'Monaco', 'Menlo', monospace;
+            margin: 20px 0;
+        }
+
+        .time-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .time-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .time-input input {
+            width: 80px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 24px;
+            text-align: center;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .time-input input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .time-input span {
+            margin-top: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .presets {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 20px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+        }
+
+        .info ul {
+            margin-left: 20px;
+            color: #2c5282;
+        }
+
+        .info li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .time-value {
+                font-size: 2.5rem;
+            }
+
+            .time-input input {
+                width: 60px;
+                padding: 10px;
+                font-size: 18px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="../../index.html">← 返回首页</a>
+            <h1>⏳ 在线倒计时</h1>
+            <p>自定义时间倒计时工具</p>
+        </header>
+
+        <div class="card">
+            <div class="timer-display">
+                <div class="time-label" id="statusLabel">设置时间</div>
+                <div class="time-value" id="timerDisplay">00:00:00</div>
+            </div>
+
+            <div class="presets">
+                <button class="preset-btn" onclick="setPreset(1)">1 分钟</button>
+                <button class="preset-btn" onclick="setPreset(5)">5 分钟</button>
+                <button class="preset-btn" onclick="setPreset(10)">10 分钟</button>
+                <button class="preset-btn" onclick="setPreset(25)">25 分钟</button>
+                <button class="preset-btn" onclick="setPreset(60)">60 分钟</button>
+            </div>
+
+            <div class="input-group">
+                <label>自定义时间：</label>
+                <div class="time-inputs">
+                    <div class="time-input">
+                        <input type="number" id="hours" min="0" max="99" value="0">
+                        <span>小时</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" id="minutes" min="0" max="59" value="5">
+                        <span>分钟</span>
+                    </div>
+                    <div class="time-input">
+                        <input type="number" id="seconds" min="0" max="59" value="0">
+                        <span>秒</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-success" id="startBtn" onclick="startTimer()">开始</button>
+                <button class="btn btn-secondary" onclick="pauseTimer()">暂停</button>
+                <button class="btn btn-danger" onclick="resetTimer()">重置</button>
+            </div>
+
+            <div class="info">
+                <h3>ℹ️ 使用说明</h3>
+                <ul>
+                    <li>选择预设时间或自定义输入小时、分钟、秒</li>
+                    <li>点击"开始"按钮启动倒计时</li>
+                    <li>点击"暂停"按钮暂停倒计时</li>
+                    <li>点击"重置"按钮重新开始</li>
+                    <li>倒计时结束时会有提示</li>
+                    <li>所有处理均在本地完成，数据不会上传服务器</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let isRunning = false;
+        let isPaused = false;
+
+        function updateDisplay() {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const display = [
+                hours.toString().padStart(2, '0'),
+                minutes.toString().padStart(2, '0'),
+                seconds.toString().padStart(2, '0')
+            ].join(':');
+
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function setPreset(minutes) {
+            pauseTimer();
+            totalSeconds = minutes * 60;
+            document.getElementById('hours').value = 0;
+            document.getElementById('minutes').value = minutes;
+            document.getElementById('seconds').value = 0;
+            updateDisplay();
+            document.getElementById('statusLabel').textContent = '已设置';
+        }
+
+        function startTimer() {
+            if (isRunning && !isPaused) {
+                return;
+            }
+
+            if (!isPaused) {
+                // 从输入框获取时间
+                const hours = parseInt(document.getElementById('hours').value) || 0;
+                const minutes = parseInt(document.getElementById('minutes').value) || 0;
+                const seconds = parseInt(document.getElementById('seconds').value) || 0;
+                totalSeconds = hours * 3600 + minutes * 60 + seconds;
+            }
+
+            if (totalSeconds <= 0) {
+                alert('请设置有效的时间！');
+                return;
+            }
+
+            isRunning = true;
+            isPaused = false;
+            document.getElementById('statusLabel').textContent = '倒计时中...';
+            document.getElementById('startBtn').textContent = '继续';
+
+            timerInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updateDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    document.getElementById('statusLabel').textContent = '时间到！';
+                    alert('时间到！');
+                }
+            }, 1000);
+
+            updateDisplay();
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                isPaused = true;
+                document.getElementById('statusLabel').textContent = '已暂停';
+                document.getElementById('startBtn').textContent = '继续';
+            }
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            totalSeconds = 0;
+            isRunning = false;
+            isPaused = false;
+            document.getElementById('hours').value = 0;
+            document.getElementById('minutes').value = 5;
+            document.getElementById('seconds').value = 0;
+            document.getElementById('statusLabel').textContent = '已重置';
+            document.getElementById('startBtn').textContent = '开始';
+            updateDisplay();
+        }
+
+        // 初始化显示
+        updateDisplay();
+    </script>
+</body>
+</html>
