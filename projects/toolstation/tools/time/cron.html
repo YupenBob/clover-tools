@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron 表达式生成 - CloverTools</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 0.5rem; }
+        .desc { color: #666; margin-bottom: 1.5rem; }
+        .field-group {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .field-group h3 { margin-bottom: 0.5rem; color: #333; font-size: 1rem; }
+        label { display: block; margin-bottom: 0.5rem; color: #555; font-weight: 500; }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: normal;
+            padding: 0.25rem 0.5rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .checkbox-group input { width: auto; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 0.5rem;
+        }
+        button:hover { transform: translateY(-2px); }
+        button.secondary { background: #f0f0f0; color: #333; }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        .result code {
+            font-size: 1.5rem;
+            color: #667eea;
+            word-break: break-all;
+        }
+        .result p { margin-top: 0.5rem; color: #666; }
+        .examples { margin-top: 1.5rem; }
+        .examples h4 { margin-bottom: 0.5rem; }
+        .example-item {
+            padding: 0.5rem;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .nav { margin-bottom: 1.5rem; }
+        .nav a { color: #667eea; text-decoration: none; font-weight: 500; }
+        .nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="../../">🏠 返回首页</a>
+        </div>
+        
+        <h1>⏰ Cron 表达式生成</h1>
+        <p class="desc">可视化生成 Linux Cron 定时任务表达式</p>
+        
+        <div class="field-group">
+            <h3>分钟</h3>
+            <select id="minute" onchange="updateCron()">
+                <option value="*">每分钟</option>
+                <option value="0">整点 (0)</option>
+                <option value="30">半点 (30)</option>
+                <option value="*/5">每 5 分钟</option>
+                <option value="*/10">每 10 分钟</option>
+                <option value="*/15">每 15 分钟</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="number" id="minuteCustom" min="0" max="59" style="display:none;" onchange="updateCron()" placeholder="0-59">
+        </div>
+        
+        <div class="field-group">
+            <h3>小时</h3>
+            <select id="hour" onchange="updateCron()">
+                <option value="*">每小时</option>
+                <option value="0">午夜 (0)</option>
+                <option value="6">早上 6 点</option>
+                <option value="9">上午 9 点</option>
+                <option value="12">中午 12 点</option>
+                <option value="18">下午 6 点</option>
+                <option value="23">晚上 11 点</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="number" id="hourCustom" min="0" max="23" style="display:none;" onchange="updateCron()" placeholder="0-23">
+        </div>
+        
+        <div class="field-group">
+            <h3>日期</h3>
+            <select id="day" onchange="updateCron()">
+                <option value="*">每天</option>
+                <option value="1">每月 1 号</option>
+                <option value="15">每月 15 号</option>
+                <option value="*/2">每隔一天</option>
+                <option value="1-15">1-15 号</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="text" id="dayCustom" style="display:none;" onchange="updateCron()" placeholder="1-31 或 */n">
+        </div>
+        
+        <div class="field-group">
+            <h3>月份</h3>
+            <select id="month" onchange="updateCron()">
+                <option value="*">每月</option>
+                <option value="1">1 月</option>
+                <option value="6">6 月</option>
+                <option value="12">12 月</option>
+                <option value="1-6">1-6 月</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="text" id="monthCustom" style="display:none;" onchange="updateCron()" placeholder="1-12 或 */n">
+        </div>
+        
+        <div class="field-group">
+            <h3>星期</h3>
+            <select id="weekday" onchange="updateCron()">
+                <option value="*">每天</option>
+                <option value="1-5">工作日 (周一 - 周五)</option>
+                <option value="0,6">周末</option>
+                <option value="1">周一</option>
+                <option value="3">周三</option>
+                <option value="5">周五</option>
+                <option value="0">周日</option>
+                <option value="custom">自定义...</option>
+            </select>
+            <input type="text" id="weekdayCustom" style="display:none;" onchange="updateCron()" placeholder="0-6 或 */n">
+        </div>
+        
+        <div class="result">
+            <code id="cronResult">* * * * *</code>
+            <p id="cronDesc">每分钟执行</p>
+        </div>
+        
+        <div class="examples">
+            <h4>💡 常用示例</h4>
+            <div class="example-item">0 2 * * * - 每天凌晨 2 点</div>
+            <div class="example-item">0 */2 * * * - 每 2 小时</div>
+            <div class="example-item">0 9-18 * * 1-5 - 工作日 9 点到 18 点每小时</div>
+            <div class="example-item">0 0 1 * * - 每月 1 号凌晨</div>
+        </div>
+    </div>
+    
+    <script>
+        function updateCron() {
+            const minute = getFieldValue('minute', 'minuteCustom', 0, 59);
+            const hour = getFieldValue('hour', 'hourCustom', 0, 23);
+            const day = getFieldValue('day', 'dayCustom', 1, 31, true);
+            const month = getFieldValue('month', 'monthCustom', 1, 12, true);
+            const weekday = getFieldValue('weekday', 'weekdayCustom', 0, 6, true);
+            
+            const cron = `${minute} ${hour} ${day} ${month} ${weekday}`;
+            document.getElementById('cronResult').textContent = cron;
+            document.getElementById('cronDesc').textContent = describeCron(minute, hour, day, month, weekday);
+        }
+        
+        function getFieldValue(selectId, customId, min, max, allowText = false) {
+            const select = document.getElementById(selectId);
+            const custom = document.getElementById(customId);
+            
+            custom.style.display = select.value === 'custom' ? 'block' : 'none';
+            
+            if (select.value === 'custom') {
+                return custom.value || '*';
+            }
+            return select.value;
+        }
+        
+        function describeCron(minute, hour, day, month, weekday) {
+            let desc = [];
+            
+            if (minute === '*' ) desc.push('每分钟');
+            else if (minute.match(/^\*\/\d+$/)) desc.push(`每${minute.split('/')[1]}分钟`);
+            else desc.push(`${minute}分`);
+            
+            if (hour === '*') desc.push('每小时');
+            else if (hour.match(/^\*\/\d+$/)) desc.push(`每${hour.split('/')[1]}小时`);
+            else desc.push(`${hour}点`);
+            
+            if (day !== '*') {
+                if (day === '1-15') desc.push('上半月');
+                else if (day.match(/^\d+$/)) desc.push(`${day}号`);
+                else desc.push(day);
+            }
+            
+            if (month !== '*') {
+                if (month.match(/^\d+$/)) desc.push(`${month}月`);
+                else desc.push(month);
+            }
+            
+            if (weekday !== '*') {
+                if (weekday === '1-5') desc.push('工作日');
+                else if (weekday === '0,6') desc.push('周末');
+                else desc.push(`星期${weekday}`);
+            }
+            
+            return desc.join(' ') + '执行';
+        }
+        
+        // 初始化
+        updateCron();
+    </script>
+</body>
+</html>
