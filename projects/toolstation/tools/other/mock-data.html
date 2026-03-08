@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据 Mock 生成器 - CloverTools</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <style>
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option-group label {
+            font-size: 14px;
+            color: #888;
+        }
+        .option-group input,
+        .option-group select {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .option-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .field-list {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .field-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .field-item input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .field-item select {
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            min-width: 120px;
+        }
+        .field-item button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .field-item button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .add-field-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 15px 0;
+            transition: transform 0.2s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .button-group button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+        .preview-table th,
+        .preview-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .preview-table th {
+            background: rgba(255,255,255,0.1);
+            font-weight: 600;
+        }
+        .preview-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../">🏠 CloverTools</a>
+        <nav>
+            <a href="../../index.html#text">文本</a>
+            <a href="../../index.html#json">JSON</a>
+            <a href="../../index.html#encrypt">加密</a>
+            <a href="../../index.html#time">时间</a>
+            <a href="../../index.html#other">其他</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>📊 数据 Mock 生成器</h1>
+        <p>生成测试用的假数据，支持多种数据类型和格式</p>
+        
+        <div class="tool-container">
+            <div class="options">
+                <div class="option-group">
+                    <label>生成数量</label>
+                    <input type="number" id="count" value="10" min="1" max="100">
+                </div>
+                <div class="option-group">
+                    <label>输出格式</label>
+                    <select id="format">
+                        <option value="json">JSON</option>
+                        <option value="csv">CSV</option>
+                        <option value="table">表格预览</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="field-list" id="fieldList">
+                <h3 style="margin-top: 0;">字段配置</h3>
+                <!-- Fields will be added here -->
+            </div>
+            <button class="add-field-btn" onclick="addField()">+ 添加字段</button>
+            
+            <button class="generate-btn" onclick="generate()">✨ 生成数据</button>
+            
+            <div class="button-group">
+                <button onclick="copyData()">📄 复制数据</button>
+                <button onclick="downloadData()">📥 下载文件</button>
+                <button onclick="clearData()">🗑️ 清空</button>
+            </div>
+            
+            <div class="preview-table" id="previewTable"></div>
+            <textarea id="output" rows="12" readonly placeholder="生成的数据将显示在这里..."></textarea>
+        </div>
+    </main>
+    
+    <script>
+        const fieldTypes = [
+            { value: 'name', label: '中文姓名' },
+            { value: 'nameEn', label: '英文姓名' },
+            { value: 'email', label: '邮箱' },
+            { value: 'phone', label: '手机号' },
+            { value: 'address', label: '地址' },
+            { value: 'company', label: '公司名' },
+            { value: 'date', label: '日期' },
+            { value: 'datetime', label: '日期时间' },
+            { value: 'number', label: '数字' },
+            { value: 'float', label: '小数' },
+            { value: 'uuid', label: 'UUID' },
+            { value: 'boolean', label: '布尔值' },
+            { value: 'gender', label: '性别' },
+            { value: 'avatar', label: '头像 URL' }
+        ];
+        
+        const chineseSurnames = ['赵', '钱', '孙', '李', '周', '吴', '郑', '王', '冯', '陈', '褚', '卫', '蒋', '沈', '韩', '杨', '朱', '秦', '尤', '许'];
+        const chineseGivenNames = ['伟', '芳', '娜', '秀英', '敏', '静', '丽', '强', '磊', '军', '洋', '勇', '艳', '杰', '娟', '涛', '明', '超', '秀兰', '霞'];
+        const englishFirstNames = ['James', 'Mary', 'John', 'Patricia', 'Robert', 'Jennifer', 'Michael', 'Linda', 'William', 'Elizabeth', 'David', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen'];
+        const englishLastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+        const domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'qq.com', '163.com', 'example.com'];
+        const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '西安', '南京', '重庆'];
+        const streets = ['中山路', '人民路', '解放路', '建设路', '和平路', '友谊路', '文化路', '光明路'];
+        const companies = ['科技', '信息', '网络', '电子', '软件', '数据', '智能', '创新', '未来', '云'];
+        
+        let fieldCount = 0;
+        
+        function init() {
+            // Add default fields
+            addField('name', '姓名');
+            addField('email', '邮箱');
+            addField('phone', '手机号');
+        }
+        
+        function addField(type = 'name', name = '') {
+            fieldCount++;
+            const fieldList = document.getElementById('fieldList');
+            const div = document.createElement('div');
+            div.className = 'field-item';
+            div.innerHTML = `
+                <input type="text" placeholder="字段名" value="${name || 'field' + fieldCount}" id="fieldName${fieldCount}">
+                <select id="fieldType${fieldCount}">
+                    ${fieldTypes.map(t => `<option value="${t.value}" ${t.value === type ? 'selected' : ''}>${t.label}</option>`).join('')}
+                </select>
+                <button onclick="this.parentElement.remove()">✕</button>
+            `;
+            fieldList.appendChild(div);
+        }
+        
+        function generate() {
+            const count = parseInt(document.getElementById('count').value);
+            const format = document.getElementById('format').value;
+            
+            // Get field configurations
+            const fields = [];
+            document.querySelectorAll('.field-item').forEach(item => {
+                const nameInput = item.querySelector('input');
+                const typeSelect = item.querySelector('select');
+                if (nameInput && typeSelect) {
+                    fields.push({
+                        name: nameInput.value.trim() || 'field',
+                        type: typeSelect.value
+                    });
+                }
+            });
+            
+            if (fields.length === 0) {
+                alert('请至少添加一个字段');
+                return;
+            }
+            
+            // Generate data
+            const data = [];
+            for (let i = 0; i < count; i++) {
+                const row = {};
+                fields.forEach(field => {
+                    row[field.name] = generateValue(field.type);
+                });
+                data.push(row);
+            }
+            
+            // Output
+            let output = '';
+            if (format === 'json') {
+                output = JSON.stringify(data, null, 2);
+            } else if (format === 'csv') {
+                const headers = fields.map(f => f.name).join(',');
+                const rows = data.map(row => 
+                    fields.map(f => {
+                        const val = String(row[f.name]);
+                        return val.includes(',') ? `"${val}"` : val;
+                    }).join(',')
+                );
+                output = [headers, ...rows].join('\n');
+            }
+            
+            document.getElementById('output').value = output;
+            
+            // Table preview
+            if (format === 'table') {
+                showTable(fields, data);
+            } else {
+                document.getElementById('previewTable').style.display = 'none';
+            }
+        }
+        
+        function generateValue(type) {
+            switch (type) {
+                case 'name':
+                    return chineseSurnames[Math.floor(Math.random() * chineseSurnames.length)] +
+                           chineseGivenNames[Math.floor(Math.random() * chineseGivenNames.length)];
+                case 'nameEn':
+                    return englishFirstNames[Math.floor(Math.random() * englishFirstNames.length)] + ' ' +
+                           englishLastNames[Math.floor(Math.random() * englishLastNames.length)];
+                case 'email':
+                    const names = ['user', 'test', 'demo', 'admin', 'contact'];
+                    return names[Math.floor(Math.random() * names.length)] + 
+                           Math.floor(Math.random() * 1000) + '@' +
+                           domains[Math.floor(Math.random() * domains.length)];
+                case 'phone':
+                    return '1' + Math.floor(3 + Math.random() * 8) + 
+                           Math.floor(Math.random() * 100000000 + 100000000);
+                case 'address':
+                    return cities[Math.floor(Math.random() * cities.length)] +
+                           streets[Math.floor(Math.random() * streets.length)] +
+                           ' ' + (Math.floor(Math.random() * 999) + 1) + '号';
+                case 'company':
+                    return cities[Math.floor(Math.random() * cities.length)] +
+                           companies[Math.floor(Math.random() * companies.length)] +
+                           '有限公司';
+                case 'date':
+                    const date = new Date(2020 + Math.floor(Math.random() * 6), 
+                                         Math.floor(Math.random() * 12), 
+                                         Math.floor(Math.random() * 28) + 1);
+                    return date.toISOString().split('T')[0];
+                case 'datetime':
+                    const dt = new Date(2020 + Math.floor(Math.random() * 6), 
+                                       Math.floor(Math.random() * 12), 
+                                       Math.floor(Math.random() * 28) + 1,
+                                       Math.floor(Math.random() * 24),
+                                       Math.floor(Math.random() * 60));
+                    return dt.toISOString().replace('T', ' ').slice(0, 19);
+                case 'number':
+                    return Math.floor(Math.random() * 10000);
+                case 'float':
+                    return (Math.random() * 1000).toFixed(2);
+                case 'uuid':
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                        const r = Math.random() * 16 | 0;
+                        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                    });
+                case 'boolean':
+                    return Math.random() > 0.5;
+                case 'gender':
+                    return Math.random() > 0.5 ? '男' : '女';
+                case 'avatar':
+                    const id = Math.floor(Math.random() * 70);
+                    return `https://i.pravatar.cc/150?img=${id}`;
+                default:
+                    return 'mock data';
+            }
+        }
+        
+        function showTable(fields, data) {
+            const table = document.getElementById('previewTable');
+            let html = '<table class="preview-table"><thead><tr>';
+            fields.forEach(f => html += `<th>${f.name}</th>`);
+            html += '</tr></thead><tbody>';
+            data.forEach(row => {
+                html += '<tr>';
+                fields.forEach(f => html += `<td>${row[f.name]}</td>`);
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            table.innerHTML = html;
+            table.style.display = 'block';
+        }
+        
+        function copyData() {
+            const output = document.getElementById('output');
+            if (!output.value.trim()) {
+                alert('没有可复制的内容');
+                return;
+            }
+            output.select();
+            document.execCommand('copy');
+            alert('✅ 已复制');
+        }
+        
+        function downloadData() {
+            const output = document.getElementById('output').value;
+            if (!output.trim()) {
+                alert('没有可下载的内容');
+                return;
+            }
+            const format = document.getElementById('format').value;
+            const ext = format === 'json' ? 'json' : 'csv';
+            const mime = format === 'json' ? 'application/json' : 'text/csv';
+            
+            const blob = new Blob([output], { type: mime });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mock-data.' + ext;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function clearData() {
+            document.getElementById('output').value = '';
+            document.getElementById('previewTable').style.display = 'none';
+        }
+        
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

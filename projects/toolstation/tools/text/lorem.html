@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lorem Ipsum 生成器 - CloverTools</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <style>
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option-group label {
+            font-size: 14px;
+            color: #888;
+        }
+        .option-group select,
+        .option-group input {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .option-group select option {
+            background: #1a1a2e;
+            color: white;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 15px 0;
+            transition: transform 0.2s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .button-group button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        textarea {
+            font-family: 'Georgia', serif;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .stats {
+            font-size: 14px;
+            color: #888;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+        .preview {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../">🏠 CloverTools</a>
+        <nav>
+            <a href="../../index.html#text">文本</a>
+            <a href="../../index.html#json">JSON</a>
+            <a href="../../index.html#encrypt">加密</a>
+            <a href="../../index.html#time">时间</a>
+            <a href="../../index.html#other">其他</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>📝 Lorem Ipsum 生成器</h1>
+        <p>生成多语言占位文本，支持拉丁文、中文、英文等</p>
+        
+        <div class="tool-container">
+            <div class="options">
+                <div class="option-group">
+                    <label>语言</label>
+                    <select id="language">
+                        <option value="latin">拉丁文 (经典 Lorem Ipsum)</option>
+                        <option value="chinese">中文 (古诗文风格)</option>
+                        <option value="english">英文 (现代文章)</option>
+                        <option value="japanese">日文 (日本語)</option>
+                        <option value="code">代码占位符</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>生成数量</label>
+                    <select id="unitType">
+                        <option value="paragraphs">段落</option>
+                        <option value="sentences">句子</option>
+                        <option value="words">单词</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>数量</label>
+                    <input type="number" id="amount" value="3" min="1" max="50">
+                </div>
+                
+                <div class="option-group">
+                    <label>选项</label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="startLorem" checked>
+                        首段包含 "Lorem ipsum..."
+                    </label>
+                </div>
+            </div>
+            
+            <button class="generate-btn" onclick="generate()">✨ 生成占位文本</button>
+            
+            <div class="button-group">
+                <button onclick="copyText()">📄 复制文本</button>
+                <button onclick="copyHTML()">📋 复制 HTML</button>
+                <button onclick="clearText()">🗑️ 清空</button>
+            </div>
+            
+            <div class="stats" id="stats" style="display: none;"></div>
+            
+            <textarea id="output" rows="12" readonly placeholder="生成的占位文本将显示在这里..."></textarea>
+            
+            <div class="preview" id="preview" style="display: none;"></div>
+        </div>
+    </main>
+    
+    <script>
+        const loremLatin = [
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+            'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.',
+            'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt.',
+            'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.',
+            'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet consectetur.',
+            'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit.'
+        ];
+        
+        const loremChinese = [
+            '天地玄黄，宇宙洪荒，日月盈昃，辰宿列张。',
+            '寒来暑往，秋收冬藏，闰余成岁，律吕调阳。',
+            '云腾致雨，露结为霜，金生丽水，玉出昆冈。',
+            '剑号巨阙，珠称夜光，果珍李柰，菜重芥姜。',
+            '海咸河淡，鳞潜羽翔，龙师火帝，鸟官人皇。',
+            '始制文字，乃服衣裳，推位让国，有虞陶唐。',
+            '吊民伐罪，周发殷汤，坐朝问道，垂拱平章。',
+            '爱育黎首，臣伏戎羌，遐迩一体，率宾归王。'
+        ];
+        
+        const loremEnglish = [
+            'In a world where technology continues to evolve at an unprecedented pace, innovation remains the driving force behind progress.',
+            'The intersection of creativity and logic gives birth to solutions that transform how we interact with the digital realm.',
+            'As we navigate through complex challenges, the tools we build today become the foundation for tomorrow\'s breakthroughs.',
+            'Quality craftsmanship in software development requires attention to detail, patience, and a deep understanding of user needs.',
+            'The beauty of elegant code lies not just in its functionality, but in its ability to communicate intent clearly.',
+            'Every great application starts with a simple idea, refined through iteration and shaped by feedback.',
+            'In the realm of digital products, user experience is the bridge between human intention and machine execution.',
+            'The best tools are those that disappear, allowing users to focus on their goals rather than the interface.'
+        ];
+        
+        const loremJapanese = [
+            '古池や蛙飛び込む水の音、閑さや岩にしみ入る蝉の声。',
+            '月見れば千尋にものも思しれるわが身ひとつに秋ぞかなしき。',
+            '春はあけぼの、やうやう白くなりゆく山際、少し明りて紫だちたる雲の細くたなびきたる。',
+            '夏は夜、月の頃はさらなり、闇もなほ、蛍のおほく飛びちがひたる。',
+            '秋は夕暮れ、夕日のさして山の端いと近うなりたるに、烏の寝どころへ行く。',
+            '冬はつとめて、雪の降りたるは言ふべきにもあらず、霜のいと白きも。',
+            '花は桜木、人は武士、世の中は道づれなきが悲しさよ。',
+            '心なき身にもあはれは知られけり、鴫立つ沢の秋の夕暮れ。'
+        ];
+        
+        const loremCode = [
+            '// TODO: Implement this function',
+            '/* FIXME: Refactor this module */',
+            'const placeholder = "data goes here";',
+            'function example() { return null; }',
+            '<!-- Content to be added -->',
+            '{ "key": "value", "data": [] }',
+            'SELECT * FROM table WHERE id = 1;',
+            'import { Component } from "framework";'
+        ];
+        
+        function generate() {
+            const language = document.getElementById('language').value;
+            const unitType = document.getElementById('unitType').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            const startLorem = document.getElementById('startLorem').checked;
+            
+            let result = '';
+            let source = [];
+            
+            switch (language) {
+                case 'latin': source = loremLatin; break;
+                case 'chinese': source = loremChinese; break;
+                case 'english': source = loremEnglish; break;
+                case 'japanese': source = loremJapanese; break;
+                case 'code': source = loremCode; break;
+            }
+            
+            if (unitType === 'paragraphs') {
+                const paragraphs = [];
+                for (let i = 0; i < amount; i++) {
+                    let paragraph = '';
+                    const sentencesCount = Math.floor(Math.random() * 3) + 2;
+                    for (let j = 0; j < sentencesCount; j++) {
+                        paragraph += source[Math.floor(Math.random() * source.length)];
+                        if (language !== 'code') paragraph += ' ';
+                    }
+                    if (i === 0 && startLorem && language === 'latin') {
+                        paragraph = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' + paragraph;
+                    }
+                    paragraphs.push(paragraph.trim());
+                }
+                result = language === 'code' ? paragraphs.join('\n') : paragraphs.join('\n\n');
+            } else if (unitType === 'sentences') {
+                const sentences = [];
+                for (let i = 0; i < amount; i++) {
+                    sentences.push(source[Math.floor(Math.random() * source.length)]);
+                }
+                result = sentences.join(language === 'code' ? '\n' : ' ');
+            } else if (unitType === 'words') {
+                const allWords = source.join(' ').split(/\s+/);
+                const words = [];
+                for (let i = 0; i < amount; i++) {
+                    words.push(allWords[Math.floor(Math.random() * allWords.length)]);
+                }
+                result = words.join(' ');
+            }
+            
+            document.getElementById('output').value = result;
+            
+            // 更新统计
+            const charCount = result.length;
+            const wordCount = result.split(/\s+/).filter(w => w.length > 0).length;
+            const lineCount = result.split('\n').length;
+            
+            document.getElementById('stats').innerHTML = `
+                <strong>统计</strong> | 
+                字符：${charCount} | 
+                单词/字：${wordCount} | 
+                行：${lineCount}
+            `;
+            document.getElementById('stats').style.display = 'block';
+            
+            // 预览
+            if (language !== 'code') {
+                document.getElementById('preview').innerHTML = result.replace(/\n\n/g, '</p><p>');
+                document.getElementById('preview').style.display = 'block';
+            } else {
+                document.getElementById('preview').style.display = 'none';
+            }
+        }
+        
+        function copyText() {
+            const output = document.getElementById('output');
+            if (!output.value.trim()) {
+                alert('没有可复制的内容');
+                return;
+            }
+            output.select();
+            document.execCommand('copy');
+            alert('✅ 已复制纯文本');
+        }
+        
+        function copyHTML() {
+            const output = document.getElementById('output').value;
+            if (!output.trim()) {
+                alert('没有可复制的内容');
+                return;
+            }
+            const html = output.split('\n\n').map(p => `<p>${p}</p>`).join('\n');
+            navigator.clipboard.writeText(html).then(() => {
+                alert('✅ 已复制 HTML');
+            });
+        }
+        
+        function clearText() {
+            document.getElementById('output').value = '';
+            document.getElementById('stats').style.display = 'none';
+            document.getElementById('preview').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

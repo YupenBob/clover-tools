@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS 压缩/格式化 - CloverTools</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <style>
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn-minify {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .btn-format {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        .btn-copy {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .button-group button:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+        .stats {
+            font-size: 14px;
+            color: #888;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+        textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .options {
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../">🏠 CloverTools</a>
+        <nav>
+            <a href="../../index.html#text">文本</a>
+            <a href="../../index.html#json">JSON</a>
+            <a href="../../index.html#encrypt">加密</a>
+            <a href="../../index.html#time">时间</a>
+            <a href="../../index.html#code">代码</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>📜 JS 压缩/格式化</h1>
+        <p>压缩 JavaScript 减小文件大小，或格式化 JS 提高可读性</p>
+        
+        <div class="tool-container">
+            <div class="options">
+                <label>
+                    <input type="checkbox" id="removeConsole" checked>
+                    移除 console.log
+                </label>
+                <label>
+                    <input type="checkbox" id="removeDebugger" checked>
+                    移除 debugger
+                </label>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-minify" onclick="minifyJS()">🗜️ 压缩 JS</button>
+                <button class="btn-format" onclick="formatJS()">📋 格式化 JS</button>
+                <button class="btn-copy" onclick="copyOutput()">📄 复制结果</button>
+            </div>
+            
+            <textarea id="input" rows="12" placeholder="粘贴 JavaScript 代码...
+例如：
+function hello(name) {
+    console.log('Hello, ' + name);
+    return 'Hi, ' + name;
+}"></textarea>
+            
+            <div class="stats" id="stats" style="display: none;"></div>
+            
+            <textarea id="output" rows="12" readonly placeholder="结果将显示在这里..."></textarea>
+        </div>
+    </main>
+    
+    <script>
+        function minifyJS() {
+            const input = document.getElementById('input').value;
+            if (!input.trim()) {
+                alert('请输入 JavaScript 代码');
+                return;
+            }
+            
+            let result = input;
+            
+            // 移除单行注释
+            result = result.replace(/\/\/.*$/gm, '');
+            
+            // 移除多行注释
+            result = result.replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            // 移除 console.log（可选）
+            if (document.getElementById('removeConsole').checked) {
+                result = result.replace(/console\.(log|warn|error|info|debug)\([^)]*\);?/g, '');
+            }
+            
+            // 移除 debugger（可选）
+            if (document.getElementById('removeDebugger').checked) {
+                result = result.replace(/debugger;?/g, '');
+            }
+            
+            // 移除多余空白
+            result = result.replace(/\s+/g, ' ');
+            
+            // 移除 { 后的空格
+            result = result.replace(/\{\s+/g, '{');
+            
+            // 移除 } 前的空格
+            result = result.replace(/\s+\}/g, '}');
+            
+            // 移除 ( 后的空格
+            result = result.replace(/\(\s+/g, '(');
+            
+            // 移除 ) 前的空格
+            result = result.replace(/\s+\)/g, ')');
+            
+            // 移除 = 前后的空格
+            result = result.replace(/\s*=\s*/g, '=');
+            
+            // 移除 , 后的空格
+            result = result.replace(/,\s+/g, ',');
+            
+            // 移除 ; 后的空格
+            result = result.replace(/;\s+/g, ';');
+            
+            // 移除 : 后的空格（对象字面量）
+            result = result.replace(/:\s+/g, ':');
+            
+            // 移除开头的空格
+            result = result.trim();
+            
+            document.getElementById('output').value = result;
+            updateStats(input, result, '压缩');
+        }
+        
+        function formatJS() {
+            const input = document.getElementById('input').value;
+            if (!input.trim()) {
+                alert('请输入 JavaScript 代码');
+                return;
+            }
+            
+            let result = input;
+            
+            // 简单的格式化逻辑
+            let formatted = '';
+            let indent = 0;
+            const tab = '    ';
+            let inString = false;
+            let stringChar = '';
+            
+            for (let i = 0; i < result.length; i++) {
+                const char = result[i];
+                const prevChar = i > 0 ? result[i - 1] : '';
+                const nextChar = i < result.length - 1 ? result[i + 1] : '';
+                
+                // 处理字符串
+                if ((char === '"' || char === "'" || char === '`') && prevChar !== '\\') {
+                    if (!inString) {
+                        inString = true;
+                        stringChar = char;
+                    } else if (char === stringChar) {
+                        inString = false;
+                    }
+                }
+                
+                if (inString) {
+                    formatted += char;
+                    continue;
+                }
+                
+                if (char === '{' || char === '[') {
+                    formatted += char + '\n';
+                    indent++;
+                    formatted += tab.repeat(indent);
+                } else if (char === '}' || char === ']') {
+                    formatted = formatted.trimEnd();
+                    formatted += '\n';
+                    indent--;
+                    formatted += tab.repeat(indent) + char;
+                    if (nextChar && nextChar !== ',' && nextChar !== ';' && nextChar !== ')' && nextChar !== '}' && nextChar !== ']') {
+                        formatted += '\n' + tab.repeat(indent);
+                    }
+                } else if (char === ';') {
+                    formatted += char + '\n' + tab.repeat(indent);
+                } else if (char === ',') {
+                    formatted += char + ' ';
+                } else if (char === ' ') {
+                    if (prevChar !== ' ' && prevChar !== '\n') {
+                        formatted += char;
+                    }
+                } else {
+                    formatted += char;
+                }
+            }
+            
+            document.getElementById('output').value = formatted.trim();
+            updateStats(input, formatted, '格式化');
+        }
+        
+        function updateStats(original, result, action) {
+            const originalSize = new Blob([original]).size;
+            const resultSize = new Blob([result]).size;
+            const ratio = ((resultSize - originalSize) / originalSize * 100).toFixed(1);
+            
+            let ratioText = '';
+            if (action === '压缩' && ratio < 0) {
+                ratioText = `📉 减小了 ${Math.abs(ratio).toFixed(1)}%`;
+            } else if (action === '格式化' && ratio > 0) {
+                ratioText = `📈 增加了 ${ratio.toFixed(1)}%（更易读）`;
+            }
+            
+            document.getElementById('stats').innerHTML = `
+                <strong>${action}结果</strong> | 
+                原始：${(originalSize / 1024).toFixed(2)} KB | 
+                结果：${(resultSize / 1024).toFixed(2)} KB | 
+                ${ratioText}
+            `;
+            document.getElementById('stats').style.display = 'block';
+        }
+        
+        function copyOutput() {
+            const output = document.getElementById('output');
+            if (!output.value.trim()) {
+                alert('没有可复制的内容');
+                return;
+            }
+            output.select();
+            document.execCommand('copy');
+            alert('✅ 已复制到剪贴板');
+        }
+    </script>
+</body>
+</html>

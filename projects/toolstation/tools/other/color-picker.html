@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>颜色提取器 - CloverTools</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <style>
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: rgba(102,126,234,0.1);
+        }
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: rgba(118,75,162,0.2);
+        }
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 20px 0;
+            display: none;
+        }
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .color-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-card:hover {
+            transform: translateY(-3px);
+        }
+        .color-preview {
+            height: 80px;
+            width: 100%;
+        }
+        .color-info {
+            padding: 12px;
+            text-align: center;
+        }
+        .color-hex {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .color-rgb {
+            font-size: 12px;
+            color: #888;
+        }
+        .options {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        .extract-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 15px 0;
+            transition: transform 0.2s;
+        }
+        .extract-btn:hover {
+            transform: translateY(-2px);
+        }
+        .extract-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .copy-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../">🏠 CloverTools</a>
+        <nav>
+            <a href="../../index.html#text">文本</a>
+            <a href="../../index.html#json">JSON</a>
+            <a href="../../index.html#encrypt">加密</a>
+            <a href="../../index.html#time">时间</a>
+            <a href="../../index.html#other">其他</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>🎨 颜色提取器</h1>
+        <p>从图片中提取主要颜色，生成精美调色板</p>
+        
+        <div class="tool-container">
+            <div class="upload-area" id="uploadArea">
+                <p>📁 点击上传图片 或 拖拽图片到此处</p>
+                <p style="font-size: 12px; color: #888;">支持 JPG, PNG, GIF, WebP</p>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            </div>
+            
+            <div class="options">
+                <label>
+                    <input type="number" id="colorCount" value="8" min="2" max="20" style="width: 60px;">
+                    提取颜色数量
+                </label>
+                <label>
+                    <input type="checkbox" id="sortBright" checked>
+                    按亮度排序
+                </label>
+            </div>
+            
+            <canvas id="imageCanvas"></canvas>
+            
+            <button class="extract-btn" id="extractBtn" onclick="extractColors()" disabled>🎨 提取颜色</button>
+            
+            <div class="palette" id="palette"></div>
+        </div>
+        
+        <div class="copy-toast" id="toast">✅ 已复制颜色代码</div>
+    </main>
+    
+    <script>
+        let uploadedImage = null;
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('imageInput');
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
+        const extractBtn = document.getElementById('extractBtn');
+        const palette = document.getElementById('palette');
+        
+        uploadArea.addEventListener('click', () => imageInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                loadImage(file);
+            }
+        });
+        
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) loadImage(file);
+        });
+        
+        function loadImage(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                uploadedImage = new Image();
+                uploadedImage.onload = () => {
+                    canvas.style.display = 'block';
+                    const maxWidth = 800;
+                    const scale = Math.min(1, maxWidth / uploadedImage.width);
+                    canvas.width = uploadedImage.width * scale;
+                    canvas.height = uploadedImage.height * scale;
+                    ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+                    extractBtn.disabled = false;
+                    uploadArea.querySelector('p').textContent = '✅ 图片已加载：' + file.name;
+                };
+                uploadedImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function extractColors() {
+            if (!uploadedImage) return;
+            
+            const colorCount = parseInt(document.getElementById('colorCount').value);
+            const sortByBright = document.getElementById('sortBright').checked;
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const colorMap = new Map();
+            
+            // 采样像素（每隔 4 个像素采样一次以提速）
+            const step = 4;
+            for (let i = 0; i < data.length; i += 4 * step) {
+                const r = Math.round(data[i] / 16) * 16;
+                const g = Math.round(data[i + 1] / 16) * 16;
+                const b = Math.round(data[i + 2] / 16) * 16;
+                const a = data[i + 3];
+                
+                if (a < 128) continue; // 跳过透明像素
+                
+                const key = `${r},${g},${b}`;
+                colorMap.set(key, (colorMap.get(key) || 0) + 1);
+            }
+            
+            // 排序并取前 N 个颜色
+            const sorted = Array.from(colorMap.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, colorCount * 2);
+            
+            // 简单的颜色去重（移除过于相似的颜色）
+            const uniqueColors = [];
+            for (const [key] of sorted) {
+                const [r, g, b] = key.split(',').map(Number);
+                const isSimilar = uniqueColors.some(([ur, ug, ub]) => {
+                    return Math.abs(ur - r) < 32 && Math.abs(ug - g) < 32 && Math.abs(ub - b) < 32;
+                });
+                if (!isSimilar) {
+                    uniqueColors.push([r, g, b]);
+                    if (uniqueColors.length >= colorCount) break;
+                }
+            }
+            
+            // 按亮度排序
+            if (sortByBright) {
+                uniqueColors.sort((a, b) => {
+                    const brightA = 0.299 * a[0] + 0.587 * a[1] + 0.114 * a[2];
+                    const brightB = 0.299 * b[0] + 0.587 * b[1] + 0.114 * b[2];
+                    return brightB - brightA;
+                });
+            }
+            
+            // 显示调色板
+            palette.innerHTML = '';
+            uniqueColors.forEach(([r, g, b]) => {
+                const hex = rgbToHex(r, g, b);
+                const rgb = `rgb(${r}, ${g}, ${b})`;
+                const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                const textColor = brightness > 128 ? '#000' : '#fff';
+                
+                const card = document.createElement('div');
+                card.className = 'color-card';
+                card.onclick = () => copyColor(hex);
+                card.innerHTML = `
+                    <div class="color-preview" style="background: ${hex};"></div>
+                    <div class="color-info" style="color: ${textColor}">
+                        <div class="color-hex">${hex}</div>
+                        <div class="color-rgb">${rgb}</div>
+                    </div>
+                `;
+                palette.appendChild(card);
+            });
+        }
+        
+        function rgbToHex(r, g, b) {
+            return '#' + [r, g, b].map(x => {
+                const hex = x.toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }).join('');
+        }
+        
+        function copyColor(hex) {
+            navigator.clipboard.writeText(hex).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                setTimeout(() => toast.style.display = 'none', 2000);
+            });
+        }
+    </script>
+</body>
+</html>
