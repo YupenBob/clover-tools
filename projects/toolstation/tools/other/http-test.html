@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP 请求测试 - CloverTools</title>
+    <link rel="stylesheet" href="../../styles/main.css">
+    <style>
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option-group label {
+            font-size: 14px;
+            color: #888;
+        }
+        .option-group input,
+        .option-group select,
+        .option-group textarea {
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .option-group textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        .url-input {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .url-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 14px;
+        }
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            white-space: nowrap;
+        }
+        .send-btn:hover {
+            opacity: 0.9;
+        }
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .response-area {
+            margin: 20px 0;
+        }
+        .response-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        .meta-item {
+            display: flex;
+            gap: 8px;
+        }
+        .meta-label {
+            color: #888;
+        }
+        .meta-value {
+            font-weight: 600;
+        }
+        .status-success {
+            color: #4CAF50;
+        }
+        .status-error {
+            color: #f44336;
+        }
+        .response-body {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            color: #a5d6a7;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            color: white;
+        }
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .warning-box {
+            padding: 15px;
+            background: rgba(255,152,0,0.2);
+            border-left: 4px solid #ff9800;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="../../">🏠 CloverTools</a>
+        <nav>
+            <a href="../../index.html#text">文本</a>
+            <a href="../../index.html#json">JSON</a>
+            <a href="../../index.html#encrypt">加密</a>
+            <a href="../../index.html#time">时间</a>
+            <a href="../../index.html#other">其他</a>
+        </nav>
+    </header>
+    
+    <main>
+        <h1>🌐 HTTP 请求测试</h1>
+        <p>发送 HTTP 请求并查看响应（受浏览器 CORS 限制）</p>
+        
+        <div class="warning-box">
+            ⚠️ <strong>注意</strong>：由于浏览器 CORS 安全策略，此工具只能访问允许跨域的 API。
+            如需测试任意 URL，请使用 Postman、curl 等桌面工具。
+        </div>
+        
+        <div class="tool-container">
+            <div class="url-input">
+                <select id="method" style="padding: 12px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+                <input type="url" id="url" placeholder="输入 URL (https://...)" value="https://jsonplaceholder.typicode.com/posts/1">
+                <button class="send-btn" onclick="sendRequest()" id="sendBtn">🚀 发送</button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('headers')">请求头</button>
+                <button class="tab" onclick="showTab('body')">请求体</button>
+            </div>
+            
+            <div class="tab-content active" id="headers-tab">
+                <div class="option-group">
+                    <label>请求头（JSON 格式）</label>
+                    <textarea id="headers" rows="4" placeholder='{"Content-Type": "application/json"}'></textarea>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="body-tab">
+                <div class="option-group">
+                    <label>请求体（仅 POST/PUT/PATCH）</label>
+                    <textarea id="body" rows="6" placeholder='{"key": "value"}'></textarea>
+                </div>
+            </div>
+            
+            <button class="send-btn" onclick="sendRequest()" id="sendBtn2" style="margin: 15px 0;">🚀 发送请求</button>
+            
+            <div class="response-area" id="responseArea" style="display: none;">
+                <div class="response-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">状态码:</span>
+                        <span class="meta-value" id="statusCode"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">耗时:</span>
+                        <span class="meta-value" id="responseTime"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">内容类型:</span>
+                        <span class="meta-value" id="contentType"></span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">内容长度:</span>
+                        <span class="meta-value" id="contentLength"></span>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px;">响应头</h3>
+                <div class="response-body" id="responseHeaders" style="min-height: 100px; font-size: 12px;"></div>
+                
+                <h3 style="margin: 20px 0 10px;">响应体</h3>
+                <div class="response-body" id="responseBody"></div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+        
+        async function sendRequest() {
+            const method = document.getElementById('method').value;
+            const url = document.getElementById('url').value.trim();
+            const headersText = document.getElementById('headers').value.trim();
+            const bodyText = document.getElementById('body').value.trim();
+            
+            if (!url) {
+                alert('请输入 URL');
+                return;
+            }
+            
+            const sendBtn = document.getElementById('sendBtn');
+            const sendBtn2 = document.getElementById('sendBtn2');
+            sendBtn.disabled = true;
+            sendBtn2.disabled = true;
+            sendBtn.textContent = '⏳ 发送中...';
+            sendBtn2.textContent = '⏳ 发送中...';
+            
+            const startTime = performance.now();
+            
+            try {
+                let headers = {};
+                if (headersText) {
+                    try {
+                        headers = JSON.parse(headersText);
+                    } catch (e) {
+                        alert('请求头 JSON 格式错误');
+                        return;
+                    }
+                }
+                
+                const options = {
+                    method,
+                    headers
+                };
+                
+                if (['POST', 'PUT', 'PATCH'].includes(method) && bodyText) {
+                    options.body = bodyText;
+                }
+                
+                const response = await fetch(url, options);
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(0);
+                
+                // Status
+                const statusEl = document.getElementById('statusCode');
+                statusEl.textContent = response.status + ' ' + response.statusText;
+                statusEl.className = 'meta-value ' + (response.ok ? 'status-success' : 'status-error');
+                
+                // Time
+                document.getElementById('responseTime').textContent = duration + ' ms';
+                
+                // Content Type
+                document.getElementById('contentType').textContent = response.headers.get('content-type') || 'N/A';
+                
+                // Content Length
+                const text = await response.text();
+                document.getElementById('contentLength').textContent = text.length + ' bytes';
+                
+                // Response Headers
+                let headersText = '';
+                response.headers.forEach((value, key) => {
+                    headersText += `${key}: ${value}\n`;
+                });
+                document.getElementById('responseHeaders').textContent = headersText || 'N/A';
+                
+                // Response Body
+                try {
+                    const json = JSON.parse(text);
+                    document.getElementById('responseBody').textContent = JSON.stringify(json, null, 2);
+                } catch (e) {
+                    document.getElementById('responseBody').textContent = text;
+                }
+                
+                document.getElementById('responseArea').style.display = 'block';
+                
+            } catch (error) {
+                alert('请求失败：' + error.message + '\n\n可能是 CORS 限制或网络问题。\n请尝试使用允许跨域的 API 测试。');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn2.disabled = false;
+                sendBtn.textContent = '🚀 发送';
+                sendBtn2.textContent = '🚀 发送请求';
+            }
+        }
+    </script>
+</body>
+</html>
