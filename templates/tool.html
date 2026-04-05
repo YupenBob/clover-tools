@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TOOL_NAME}} - CloverTools</title>
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>{{TOOL_NAME}}</h1>
+        <p class="description">{{TOOL_DESC}}</p>
+      </div>
+      <div class="tool-layout {{LAYOUT_CLASS}}">
+        {{TOOL_CONTENT}}
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    {{TOOL_SCRIPT}}
+  </script>
+</body>
+</html>

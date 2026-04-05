@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提取邮箱/手机/链接 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>提取邮箱/手机/链接</h1>
+        <p class="description">从文本中提取关键信息</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入包含邮箱、手机号、链接的文本..." style="min-height:100px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>提取结果</h3>
+        <div id="output" style="line-height:1.8;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      function extract() {
+        const text = input.value;
+        const emails = text.match(/[\w.-]+@[\w.-]+\.\w+/g) || [];
+        const phones = text.match(/1[3-9]\d{9}/g) || [];
+        const urls = text.match(/https?://[^s]+/g) || [];
+        output.innerHTML = '<b>邮箱:</b> ' + (emails.length ? emails.join(', ') : '无') + '<br><b>手机:</b> ' + (phones.length ? phones.join(', ') : '无') + '<br><b>链接:</b> ' + (urls.length ? urls.join('<br>') : '无');
+      }
+      input.addEventListener('input', extract);
+    
+  </script>
+</body>
+</html>

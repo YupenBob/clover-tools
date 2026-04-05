@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>字数统计 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>字数统计</h1>
+        <p class="description">统计字符/单词数量</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入文本统计..."></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>统计结果</h3>
+        <div id="result" style="font-size:1rem;line-height:1.8;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const result = document.getElementById('result');
+      function count() {
+        const v = input.value;
+        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\u4e00-\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\n').length);
+      }
+      input.addEventListener('input', count);
+      count();
+    
+  </script>
+</body>
+</html>

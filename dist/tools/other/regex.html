@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正则表达式测试 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>正则表达式测试</h1>
+        <p class="description">实时测试正则匹配</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>正则表达式</h3>
+        <input type="text" id="pattern" placeholder="例如: \d+" style="width:100%;padding:0.5rem;font-family:monospace;margin-bottom:0.5rem;">
+        <label>标志: <input type="text" id="flags" value="g" style="width:60px;padding:0.3rem;"></label>
+      </div>
+      <div class="tool-card">
+        <h3>测试文本</h3>
+        <textarea id="input" placeholder="输入要匹配的文本..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>匹配结果</h3>
+        <div id="output" style="line-height:1.6;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const pattern = document.getElementById('pattern');
+      const flags = document.getElementById('flags');
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      function run() {
+        try {
+          const re = new RegExp(pattern.value, flags.value);
+          if (!input.value) { output.innerHTML = ''; return; }
+          const matches = input.value.match(re);
+          if (!matches) { output.textContent = '无匹配'; return; }
+          output.innerHTML = '匹配 <b>' + matches.length + '</b> 次<br>' + matches.map(m => '<code>' + m + '</code>').join('<br>');
+        } catch(e) { output.textContent = '正则错误: ' + e.message; }
+      }
+      pattern.addEventListener('input', run);
+      flags.addEventListener('input', run);
+      input.addEventListener('input', run);
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloverTools - 轻量级开发者工具箱</title>
+  <style>
+    :root {
+      --primary: #c70039; /* 蟹钳红 */
+      --text: #333;
+      --bg: #fff;
+      --border: #eee;
+      --card-bg: #fafafa;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #e6e6e6;
+        --bg: #121212;
+        --border: #333;
+        --card-bg: #1e1e1e;
+      }
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
+    .search-box {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    #tool-search {
+      width: 100%;
+      max-width: 500px;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+    }
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .category {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .category h2 {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .category ul {
+      list-style: none;
+    }
+    .category li {
+      margin: 0.75rem 0;
+    }
+    .category a {
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .category a:hover {
+      color: var(--primary);
+    }
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .tool-output:hover .copy-btn {
+      opacity: 1;
+    }
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>CloverTools</h1>
+      <p class="subtitle">轻量、离线、无追踪的开发者工具箱</p>
+      <div class="search-box">
+        <input type="text" id="tool-search" placeholder="搜索工具（JSON/加密/时间...）">
+      </div>
+    </header>
+
+    <main id="content">
+      <!-- 工具内容将在此处注入 -->
+    </main>
+
+    <footer>
+      <p>所有数据均在本地处理 · Made with 🦀 by 小 C</p>
+    </footer>
+  </div>
+
+  <script>
+    // 离线搜索功能
+    document.getElementById('tool-search').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.category li').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(term) ? 'block' : 'none';
+      });
+    });
+
+    // 复制功能（示例）
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        console.log('Copied:', text);
+      });
+    }
+  </script>
+</body>
+</html>

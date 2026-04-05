@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>驼峰 ↔ 下划线 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>驼峰 ↔ 下划线</h1>
+        <p class="description">命名风格转换</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入 snake_case 或 camelCase..."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="toCamel">→ camelCase</button>
+          <button class="btn btn-secondary" id="fromCamel">→ snake_case</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly></textarea>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      let mode = 'toCamel';
+      function run() {
+        const v = input.value.trim();
+        if (mode === 'toCamel') output.value = v.replace(/[_\-\s]+(.)?/g, (_,c) => c ? c.toUpperCase() : '');
+        else output.value = v.replace(/[A-Z]+/g, m => '_' + m[0].toLowerCase()).replace(/^_/, '').toLowerCase();
+      }
+      document.getElementById('toCamel').onclick = () => { mode='toCamel'; run(); };
+      document.getElementById('fromCamel').onclick = () => { mode='fromCamel'; run(); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+    
+  </script>
+</body>
+</html>

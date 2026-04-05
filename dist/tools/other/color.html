@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色选择器 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>颜色选择器</h1>
+        <p class="description">RGB/HEX 颜色值转换</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>颜色选择器</h3>
+        <input type="color" id="picker" value="#c70039" style="width:100%;height:50px;border:none;cursor:pointer;">
+      </div>
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>HEX</h3>
+          <input type="text" id="hex" value="#c70039" style="width:100%;padding:0.5rem;font-family:monospace;">
+        </div>
+        <div class="tool-card">
+          <h3>RGB</h3>
+          <input type="text" id="rgb" value="199,0,57" style="width:100%;padding:0.5rem;font-family:monospace;">
+        </div>
+      </div>
+      <div id="preview" style="height:60px;border-radius:12px;margin-top:1rem;"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const hex = document.getElementById('hex');
+      const rgb = document.getElementById('rgb');
+      const picker = document.getElementById('picker');
+      const preview = document.getElementById('preview');
+      function toRgb(h) {
+        const v = h.replace('#','');
+        return {r:parseInt(v.substr(0,2),16),g:parseInt(v.substr(2,2),16),b:parseInt(v.substr(4,2),16)};
+      }
+      function toHex(r,g,b) { return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join(''); }
+      hex.addEventListener('input', () => {
+        const {r,g,b} = toRgb(hex.value);
+        rgb.value = r+','+g+','+b;
+        preview.style.background = hex.value;
+      });
+      rgb.addEventListener('input', () => {
+        const [r,g,b] = rgb.value.split(',').map(Number);
+        hex.value = toHex(r,g,b);
+        preview.style.background = toHex(r,g,b);
+      });
+      picker.addEventListener('input', () => {
+        hex.value = picker.value;
+        const {r,g,b} = toRgb(picker.value);
+        rgb.value = r+','+g+','+b;
+        preview.style.background = picker.value;
+      });
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日期间隔计算 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>日期间隔计算</h1>
+        <p class="description">计算两个日期间天数</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>开始日期</h3>
+          <input type="date" id="start" style="width:100%;padding:0.5rem;font-size:1rem;">
+        </div>
+        <div class="tool-card">
+          <h3>结束日期</h3>
+          <input type="date" id="end" style="width:100%;padding:0.5rem;font-size:1rem;">
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>间隔</h3>
+        <div id="result" style="font-size:1.1rem;padding:1rem;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const startInput = document.getElementById('start');
+      const endInput = document.getElementById('end');
+      const result = document.getElementById('result');
+      function calc() {
+        const s = new Date(startInput.value);
+        const e = new Date(endInput.value);
+        if (isNaN(s) || isNaN(e)) { result.textContent = '请选择两个日期'; return; }
+        const diff = Math.abs(e - s);
+        const days = Math.floor(diff/86400000);
+        const hours = Math.floor(diff%86400000/3600000);
+        const mins = Math.floor(diff%3600000/60000);
+        result.innerHTML = '<b>' + days + '</b>天 <b>' + hours + '</b>小时 <b>' + mins + '</b>分钟<br><b>' + (diff/86400000).toFixed(2) + '</b> 天总计';
+      }
+      startInput.addEventListener('change', calc);
+      endInput.addEventListener('change', calc);
+    
+  </script>
+</body>
+</html>

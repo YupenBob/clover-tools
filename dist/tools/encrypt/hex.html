@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>16 进制互转 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>16 进制互转</h1>
+        <p class="description">文本与十六进制转换</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入文本或十六进制（空格分隔）..."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="toHex">文本 → 十六进制</button>
+          <button class="btn btn-secondary" id="fromHex">十六进制 → 文本</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly></textarea>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      let mode = 'toHex';
+      function run() {
+        const v = input.value;
+        try {
+          if (mode === 'toHex') {
+            const arr = [...v].map(c => c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ');
+            output.value = arr;
+          } else {
+            const hex = v.trim().split(/\s+/);
+            output.value = hex.map(h => String.fromCharCode(parseInt(h,16))).join('');
+          }
+        } catch(e) { output.value = '错误: ' + e.message; }
+      }
+      document.getElementById('toHex').onclick = () => { mode='toHex'; run(); };
+      document.getElementById('fromHex').onclick = () => { mode='fromHex'; run(); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文本差异对比 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>文本差异对比</h1>
+        <p class="description">高亮显示文本差异</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>原文</h3>
+          <textarea id="input1" placeholder="输入第一段文本..."></textarea>
+        </div>
+        <div class="tool-card">
+          <h3>对比</h3>
+          <textarea id="input2" placeholder="输入第二段文本..."></textarea>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>差异</h3>
+        <div id="output" style="max-height:400px;overflow-y:auto;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input1 = document.getElementById('input1');
+      const input2 = document.getElementById('input2');
+      const output = document.getElementById('output');
+      function run() {
+        const t1 = input1.value.split('\n');
+        const t2 = input2.value.split('\n');
+        let html = '';
+        const max = Math.max(t1.length, t2.length);
+        for (let i = 0; i < max; i++) {
+          const l1 = t1[i] || '', l2 = t2[i] || '';
+          if (l1 === l2) html += '<div class="diff-line diff-same">' + escHtml(l1) + '</div>';
+          else { if (l1) html += '<div class="diff-line diff-del">- ' + escHtml(l1) + '</div>'; if (l2) html += '<div class="diff-line diff-add">+ ' + escHtml(l2) + '</div>'; }
+        }
+        output.innerHTML = '<style>.diff-line{padding:2px 8px;font-family:monospace;font-size:13px;white-space:pre-wrap}.diff-same{background:#f0f0f0}.diff-del{background:#ffe0e0;color:#c00}.diff-add{background:#e0ffe0;color:#0a0}</style>' + html;
+      }
+      function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      input1.addEventListener('input', run);
+      input2.addEventListener('input', run);
+    
+  </script>
+</body>
+</html>

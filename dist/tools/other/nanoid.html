@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nano ID 生成器 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>Nano ID 生成器</h1>
+        <p class="description">生成短唯一 ID</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="output-box">
+        <h3>Nano ID <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="font-size:1.1rem;letter-spacing:0.05em;"></textarea>
+        <div class="options-row">
+          <label>长度: <input type="number" id="length" value="21" min="1" max="100" style="width:60px;padding:0.3rem;"></label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="generate">重新生成</button>
+        </div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const output = document.getElementById('output');
+      const lenInput = document.getElementById('length');
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      function gen(size = 21) {
+        let id = '';
+        const bytes = crypto.getRandomValues(new Uint8Array(size));
+        for (let i = 0; i < size; i++) id += alphabet[bytes[i] % alphabet.length];
+        return id;
+      }
+      document.getElementById('generate').onclick = () => { output.value = gen(parseInt(lenInput.value) || 21); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      output.value = gen();
+    
+  </script>
+</body>
+</html>

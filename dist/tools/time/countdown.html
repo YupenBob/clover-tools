@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>在线倒计时 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>在线倒计时</h1>
+        <p class="description">自定义倒计时器</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>目标时间</h3>
+        <input type="datetime-local" id="target" style="width:100%;padding:0.5rem;font-size:1rem;">
+        <div class="btn-row">
+          <button class="btn btn-primary" id="start">开始倒计时</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>剩余时间</h3>
+        <div id="result" style="font-size:1.5rem;text-align:center;padding:1rem;"></div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const targetInput = document.getElementById('target');
+      const result = document.getElementById('result');
+      let interval;
+      function startCountdown() {
+        clearInterval(interval);
+        const target = new Date(targetInput.value);
+        if (isNaN(target)) { result.textContent = '请输入有效日期时间'; return; }
+        interval = setInterval(() => {
+          const diff = target - Date.now();
+          if (diff <= 0) { result.textContent = '时间到！'; clearInterval(interval); return; }
+          const d = Math.floor(diff/86400000);
+          const h = Math.floor(diff%86400000/3600000);
+          const m = Math.floor(diff%3600000/60000);
+          const s = Math.floor(diff%60000/1000);
+          result.innerHTML = '<b>' + d + '</b>天 <b>' + h + '</b>时 <b>' + m + '</b>分 <b>' + s + '</b>秒';
+        }, 1000);
+      }
+      document.getElementById('start').onclick = startCountdown;
+    
+  </script>
+</body>
+</html>

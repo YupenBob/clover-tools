@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>朋友圈九宫格分图 - CloverTools</title>
+  <style>
+    :root {
+      --primary: #c70039;
+      --text: #333;
+      --bg: #fff;
+      --border: #eee;
+      --card-bg: #fafafa;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --text: #e6e6e6;
+        --bg: #121212;
+        --border: #333;
+        --card-bg: #1e1e1e;
+      }
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .description {
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+    }
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .upload-area:hover {
+      border-color: var(--primary);
+    }
+    .upload-area.dragover {
+      background: var(--card-bg);
+      border-color: var(--primary);
+    }
+    #file-input {
+      display: none;
+    }
+    .preview-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--grid-gap, 0px);
+      margin-bottom: 1.5rem;
+    }
+    .grid-item {
+      aspect-ratio: 1/1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .controls {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: bold;
+      min-width: 120px;
+    }
+    input[type="range"] {
+      flex: 1;
+    }
+    .gap-value {
+      min-width: 40px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>朋友圈九宫格分图</h1>
+      <p class="description">上传图片自动切割为 3x3 九宫格，支持自定义间隙</p>
+    </header>
+
+    <div class="upload-area" id="drop-area">
+      <p>点击或拖拽图片到这里（支持 JPG/PNG）</p>
+      <input type="file" id="file-input" accept="image/jpeg,image/png">
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label for="gap-input">间隙大小：</label>
+        <input type="range" id="gap-input" min="0" max="20" value="0">
+        <span class="gap-value" id="gap-value">0px</span>
+      </div>
+    </div>
+
+    <div class="preview-container" id="preview-container">
+      <!-- 九宫格预览将在这里生成 -->
+    </div>
+
+    <div class="button-group">
+      <button id="process-btn" disabled>生成九宫格</button>
+      <button id="download-btn" disabled>下载全部</button>
+    </div>
+
+    <footer>
+      <p>所有处理均在本地完成 · CloverTools © 2026</p>
+    </footer>
+  </div>
+
+  <script>
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const previewContainer = document.getElementById('preview-container');
+    const processBtn = document.getElementById('process-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const gapInput = document.getElementById('gap-input');
+    const gapValue = document.getElementById('gap-value');
+    
+    let originalImage = null;
+    let gridImages = [];
+    let currentGap = 0;
+
+    // 初始化九宫格占位
+    for (let i = 0; i < 9; i++) {
+      const item = document.createElement('div');
+      item.className = 'grid-item';
+      item.innerHTML = '<span>+</span>';
+      previewContainer.appendChild(item);
+    }
+
+    // 间隙控制
+    gapInput.addEventListener('input', () => {
+      currentGap = parseInt(gapInput.value);
+      gapValue.textContent = currentGap + 'px';
+      document.documentElement.style.setProperty('--grid-gap', currentGap + 'px');
+    });
+
+    // 上传区域交互
+    dropArea.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+      dropArea.classList.add('dragover');
+    }
+
+    function unhighlight() {
+      dropArea.classList.remove('dragover');
+    }
+
+    dropArea.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length) {
+        handleFiles(files);
+      }
+    }
+
+    function handleFileSelect(e) {
+      const files = e.target.files;
+      if (files.length) {
+        handleFiles(files);
+      }
+    }
+
+    function handleFiles(files) {
+      const file = files[0];
+      if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+        alert('仅支持 JPG/PNG 格式');
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        originalImage = new Image();
+        originalImage.onload = () => {
+          processBtn.disabled = false;
+          // 显示原图预览（居中裁剪）
+          const items = previewContainer.querySelectorAll('.grid-item');
+          items.forEach(item => {
+            item.innerHTML = `<img src="${e.target.result}" style="object-position: center;">`;
+          });
+        };
+        originalImage.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 处理图片分割
+    processBtn.addEventListener('click', () => {
+      if (!originalImage) return;
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const size = Math.min(originalImage.width, originalImage.height);
+      const startX = (originalImage.width - size) / 2;
+      const startY = (originalImage.height - size) / 2;
+      
+      // 创建正方形裁剪
+      canvas.width = size;
+      canvas.height = size;
+      ctx.drawImage(originalImage, startX, startY, size, size, 0, 0, size, size);
+      
+      // 分割为3x3（含间隙）
+      gridImages = [];
+      const tileSize = size / 3;
+      const gap = currentGap;
+      const outputSize = tileSize + gap;
+      
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = outputSize;
+      tempCanvas.height = outputSize;
+      
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          tempCtx.clearRect(0, 0, outputSize, outputSize);
+          // 填充背景（透明）
+          tempCtx.fillStyle = 'rgba(0,0,0,0)';
+          tempCtx.fillRect(0, 0, outputSize, outputSize);
+          // 绘制图像部分
+          tempCtx.drawImage(canvas, 
+            col * tileSize, row * tileSize, tileSize, tileSize,
+            gap/2, gap/2, tileSize, tileSize
+          );
+          gridImages.push(tempCanvas.toDataURL('image/png'));
+        }
+      }
+      
+      // 更新预览
+      const items = previewContainer.querySelectorAll('.grid-item');
+      items.forEach((item, index) => {
+        item.innerHTML = `<img src="${gridImages[index]}">`;
+      });
+      
+      downloadBtn.disabled = false;
+    });
+
+    // 下载功能
+    downloadBtn.addEventListener('click', () => {
+      gridImages.forEach((dataUrl, index) => {
+        const link = document.createElement('a');
+        link.download = `clover-grid-${index+1}.png`;
+        link.href = dataUrl;
+        link.click();
+      });
+      alert('九宫格图片已开始下载');
+    });
+  </script>
+</body>
+</html>

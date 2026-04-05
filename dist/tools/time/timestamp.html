@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间戳转换 - CloverTools</title>
+  <link rel="stylesheet" href="../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>时间戳转换</h1>
+        <p class="description">Unix 时间戳 ↔ 日期</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>当前时间戳</h3>
+          <textarea id="nowOutput" readonly style="font-size:1.2rem;text-align:center;"></textarea>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="copyNow">复制 ms</button>
+          </div>
+        </div>
+        <div class="tool-card">
+          <h3>转换</h3>
+          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">时间戳 → 日期</label>
+          <input type="text" id="tsInput" placeholder="毫秒或秒级时间戳" style="margin-bottom:0.5rem;">
+          <button class="btn btn-primary" id="toDate" style="margin-bottom:1rem;">转换</button>
+          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">日期 → 时间戳</label>
+          <input type="text" id="dateInput" placeholder="2024-01-01 12:00:00" style="margin-bottom:0.5rem;">
+          <button class="btn btn-secondary" id="toTs">转换</button>
+        </div>
+        <div class="tool-card">
+          <h3>转换结果</h3>
+          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">毫秒</label>
+          <input type="text" id="tsOutput" readonly style="margin-bottom:1rem;">
+          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">秒</label>
+          <input type="text" id="tsOutputSec" readonly style="margin-bottom:1rem;">
+          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">日期</label>
+          <input type="text" id="dateOutput" readonly>
+        </div>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const tsInput = document.getElementById('tsInput');
+      const dateInput = document.getElementById('dateInput');
+      const nowOutput = document.getElementById('nowOutput');
+      const tsOutput = document.getElementById('tsOutput');
+      const dateOutput = document.getElementById('dateOutput');
+
+      function updateNow() {
+        const now = Date.now();
+        nowOutput.value = now + ' ms';
+        tsOutput.value = Math.floor(now / 1000) + ' s';
+        dateOutput.value = new Date(now).toLocaleString('zh-CN');
+      }
+
+      document.getElementById('toDate').onclick = () => {
+        const v = tsInput.value.trim();
+        if (!v) return;
+        const ms = v.length === 10 ? parseInt(v)*1000 : parseInt(v);
+        dateInput.value = new Date(ms).toLocaleString('zh-CN');
+      };
+      document.getElementById('toTs').onclick = () => {
+        const d = new Date(dateInput.value);
+        if (isNaN(d)) return;
+        tsInput.value = d.getTime();
+      };
+      document.getElementById('copyNow').onclick = () => copyToClipboard(nowOutput.value);
+      document.getElementById('copyTs').onclick = () => copyToClipboard(tsOutput.value);
+      updateNow();
+      setInterval(updateNow, 1000);
+    
+  </script>
+</body>
+</html>
