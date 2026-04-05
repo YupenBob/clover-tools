@@ -2126,7 +2126,7 @@ function generate() {
       pageHtml = pageHtml.replace('href="/src/shared.css"', 'href="/src/shared.css"');
       // But for tool pages nested in subdirs, we need correct path
       // Files live at dist/tools/{category}/{tool}.html (2 levels deep)
-      const depth = tool.path.split('/').length;  // json/table.html → 2 levels
+      const depth = tool.path.split('/').length - 1;  // json/table.html → 2 levels
       const relCss = '../'.repeat(depth) + 'src/shared.css';
       pageHtml = pageHtml.replace('href="/src/shared.css"', `href="${relCss}"`);
 
