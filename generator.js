@@ -772,6 +772,149 @@ function buildToolScript(tool) {
       setInterval(showTimes, 1000);
     `,
 
+    'time/world-clock': `
+      const clockZones = [
+        { city: '北京', offset: 8, flag: '🇨🇳' },
+        { city: '东京', offset: 9, flag: '🇯🇵' },
+        { city: '首尔', offset: 9, flag: '🇰🇷' },
+        { city: '新加坡', offset: 8, flag: '🇸🇬' },
+        { city: '迪拜', offset: 4, flag: '🇦🇪' },
+        { city: '莫斯科', offset: 3, flag: '🇷🇺' },
+        { city: '伦敦', offset: 0, flag: '🇬🇧' },
+        { city: '巴黎', offset: 1, flag: '🇫🇷' },
+        { city: '纽约', offset: -5, flag: '🇺🇸' },
+        { city: '洛杉矶', offset: -8, flag: '🇺🇸' },
+        { city: '旧金山', offset: -8, flag: '🇺🇸' },
+        { city: '悉尼', offset: 10, flag: '🇦🇺' },
+        { city: '曼谷', offset: 7, flag: '🇹🇭' },
+        { city: '孟买', offset: 5.5, flag: '🇮🇳' },
+        { city: '法兰克福', offset: 1, flag: '🇩🇪' },
+        { city: '多伦多', offset: -5, flag: '🇨🇦' },
+      ];
+
+      const convCities = [
+        { city: '北京时间', offset: 8 },
+        { city: '东京时间', offset: 9 },
+        { city: '伦敦时间', offset: 0 },
+        { city: '纽约时间', offset: -5 },
+        { city: '迪拜时间', offset: 4 },
+        { city: '悉尼时间', offset: 10 },
+      ];
+
+      const WEEKDAY = ['日', '一', '二', '三', '四', '五', '六'];
+      const ntpDot = document.getElementById('ntpDot');
+      const ntpLabel = document.getElementById('ntpLabel');
+      const ntpDetail = document.getElementById('ntpDetail');
+      const timeMain = document.getElementById('timeMain');
+      const timeMeta = document.getElementById('timeMeta');
+      const convTime = document.getElementById('convTime');
+      const convFromZone = document.getElementById('convFromZone');
+      const convResults = document.getElementById('convResults');
+      const clockGrid = document.getElementById('clockGrid');
+
+      // NTP simulation (browser can't do real NTP easily)
+      let ntpOnline = false;
+      let ntpOffset = 0;
+
+      function checkNTP() {
+        ntpDot.className = 'ntp-status-dot online';
+        ntpLabel.textContent = 'NTP 已同步 (网络时间)';
+        ntpDetail.textContent = '同步状态：已连接 | 精度：±50ms（网络校准）';
+        ntpOnline = true;
+      }
+
+      // Try to get network time via a lightweight fetch to a time API
+      async function tryNTP() {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000);
+          const start = Date.now();
+          // Use worldtimeapi as it's free and supports CORS
+          const res = await fetch('https://worldtimeapi.org/api/ip', { signal: controller.signal });
+          clearTimeout(timeout);
+          const data = await res.json();
+          const roundTrip = Date.now() - start;
+          const serverTime = new Date(data.datetime).getTime();
+          // Estimate one-way offset
+          ntpOffset = serverTime - Date.now() - roundTrip / 2;
+          ntpOnline = true;
+          ntpDot.className = 'ntp-status-dot online';
+          ntpLabel.textContent = 'NTP 已同步 (worldtimeapi.org)';
+          ntpDetail.textContent = '同步状态：已连接 | 往返延迟：' + roundTrip + 'ms | 系统偏移：' + (ntpOffset >= 0 ? '+' : '') + ntpOffset + 'ms';
+        } catch (e) {
+          ntpOnline = false;
+          ntpDot.className = 'ntp-status-dot offline';
+          ntpLabel.textContent = 'NTP 不可用（显示本地时间）';
+          ntpDetail.textContent = '本地时间精度：±1秒 | 建议：确保网络连接以校准标准时间';
+        }
+      }
+
+      function zeroPad(n) { return String(n).padStart(2, '0'); }
+
+      function getAdjustedNow() {
+        return new Date(Date.now() + (ntpOnline ? ntpOffset : 0));
+      }
+
+      function updateLocalTime() {
+        const now = getAdjustedNow();
+        const h = zeroPad(now.getHours());
+        const m = zeroPad(now.getMinutes());
+        const s = zeroPad(now.getSeconds());
+        const Y = now.getFullYear();
+        const Mo = zeroPad(now.getMonth() + 1);
+        const D = zeroPad(now.getDate());
+        const wd = WEEKDAY[now.getDay()];
+        timeMain.textContent = h + ':' + m + ':' + s;
+        timeMeta.textContent = Y + '年' + Mo + '月' + D + '日 星期' + wd;
+      }
+
+      function updateWorldClock() {
+        const now = getAdjustedNow();
+        clockGrid.innerHTML = clockZones.map(z => {
+          const localMs = now.getTime();
+          const zMs = localMs + (z.offset - 8) * 3600000;
+          const zDate = new Date(zMs);
+          const nextDay = zDate.getDate() !== now.getDate();
+          const h = zeroPad(zDate.getHours());
+          const m = zeroPad(zDate.getMinutes());
+          const s = zeroPad(zDate.getSeconds());
+          const offsetStr = z.offset >= 0 ? 'UTC+' + z.offset : 'UTC' + z.offset;
+          return '<div class="clock-card"><div class="city">' + z.flag + ' ' + z.city + '</div><div class="time">' + h + ':' + m + ':' + s + '</div><div class="offset">' + offsetStr + '</div></div>';
+        }).join('');
+      }
+
+      function updateConversion() {
+        const timeVal = convTime.value;
+        const fromOffset = parseFloat(convFromZone.value);
+        if (!timeVal) return;
+        const [th, tm, ts] = timeVal.split(':').map(Number);
+        // Build a date using local date but the input time
+        const now = new Date();
+        const base = new Date(now.getFullYear(), now.getMonth(), now.getDate(), th, tm, ts);
+        // Convert from source timezone to UTC, then to local
+        const asUTC = base.getTime() - fromOffset * 3600000;
+        convResults.innerHTML = convCities.map(c => {
+          const t = new Date(asUTC + c.offset * 3600000);
+          const h = zeroPad(t.getHours());
+          const m = zeroPad(t.getMinutes());
+          const s = zeroPad(t.getSeconds());
+          const diff = c.offset - fromOffset;
+          const diffStr = diff >= 0 ? '+' + diff + 'h' : diff + 'h';
+          return '<div class="conv-result-card"><div class="city">' + c.city + '</div><div class="result-time">' + h + ':' + m + ':' + s + '</div><div class="result-offset">时差 ' + diffStr + '</div></div>';
+        }).join('');
+      }
+
+      convTime.addEventListener('input', updateConversion);
+      convFromZone.addEventListener('change', updateConversion);
+
+      tryNTP();
+      updateLocalTime();
+      updateWorldClock();
+      updateConversion();
+      setInterval(updateLocalTime, 1000);
+      setInterval(updateWorldClock, 1000);
+    `,
+
     'other/hex-convert': `
       const input = document.getElementById('input');
       const base = document.getElementById('base');
@@ -1057,6 +1200,181 @@ function buildToolScript(tool) {
       }
       salaryInput.addEventListener('input', calc);
       useMinBase.addEventListener('change', calc);
+    `,
+
+    'life/zen-canvas': `
+      const canvas = document.getElementById('zenCanvas');
+      const ctx = canvas.getContext('2d');
+      const soundBtns = document.querySelectorAll('.sound-btn');
+      const textInput = document.getElementById('textInput');
+      let particles = [];
+      let hue = 200;
+      let animId;
+      let audioCtx = null;
+      let currentSound = null;
+      let idleTimer = null;
+      let lastActivity = 0;
+
+      function resize() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      function createParticle(x, y, vx, vy, color, size) {
+        particles.push({ x, y, vx, vy, color, size, alpha: 1, life: 1 });
+      }
+
+      function drawParticle(p) {
+        ctx.save();
+        ctx.globalAlpha = p.alpha * p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function animate() {
+        ctx.fillStyle = 'rgba(10,10,20,0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        hue = (hue + 0.2) % 360;
+        particles.forEach((p, i) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.05;
+          p.life -= 0.003;
+          p.alpha *= 0.99;
+          if (p.life <= 0) { particles.splice(i, 1); return; }
+          drawParticle(p);
+        });
+        animId = requestAnimationFrame(animate);
+      }
+      animate();
+
+      function burst(x, y, count = 20) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 3 + 1;
+          const color = 'hsl(' + (hue + Math.random() * 40 - 20) + ',70%,60%)';
+          createParticle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed - 1, color, Math.random() * 4 + 2);
+        }
+      }
+
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        if (Math.random() > 0.7) burst(x, y, 3);
+        resetIdle();
+      });
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        burst(e.clientX - rect.left, e.clientY - rect.top, 30);
+      });
+
+      textInput.addEventListener('input', (e) => {
+        const chars = e.target.value.split('');
+        chars.forEach(char => {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          const color = 'hsl(' + (hue + Math.random() * 60) + ',80%,65%)';
+          for (let i = 0; i < 5; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 2 + 0.5;
+            createParticle(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, color, Math.random() * 3 + 1);
+          }
+        });
+        if (e.target.value.length > 0) resetIdle();
+      });
+
+      function resetIdle() {
+        lastActivity = Date.now();
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(stopSound, 5000);
+      }
+
+      // Web Audio API sounds
+      function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      function createNoise(type) {
+        initAudio();
+        if (currentSound) { currentSound.forEach(n => { try { n.stop(); } catch(e){} }); currentSound = null; }
+        const nodes = [];
+        const bufferSize = 2 * audioCtx.sampleRate;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        if (type === 'rain') {
+          const src = audioCtx.createBufferSource();
+          src.buffer = noiseBuffer; src.loop = true;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass'; filter.frequency.value = 400;
+          const gain = audioCtx.createGain(); gain.gain.value = 0.15;
+          src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+          src.start(); nodes.push(src);
+        } else if (type === 'campfire') {
+          const src = audioCtx.createBufferSource();
+          src.buffer = noiseBuffer; src.loop = true;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'bandpass'; filter.frequency.value = 200; filter.Q.value = 0.5;
+          const gain = audioCtx.createGain(); gain.gain.value = 0.1;
+          src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+          src.start(); nodes.push(src);
+        } else if (type === 'ocean') {
+          const src = audioCtx.createBufferSource();
+          src.buffer = noiseBuffer; src.loop = true;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass'; filter.frequency.value = 300;
+          const gain = audioCtx.createGain();
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 3);
+          gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 6);
+          src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+          src.start(); nodes.push(src);
+        } else if (type === 'forest') {
+          const src = audioCtx.createBufferSource();
+          src.buffer = noiseBuffer; src.loop = true;
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'highpass'; filter.frequency.value = 2000;
+          const gain = audioCtx.createGain(); gain.gain.value = 0.05;
+          src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+          src.start(); nodes.push(src);
+        }
+        currentSound = nodes;
+      }
+
+      function stopSound() {
+        if (currentSound) {
+          currentSound.forEach(n => { try { n.stop(); } catch(e){} });
+          currentSound = null;
+        }
+      }
+
+      soundBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const sound = btn.dataset.sound;
+          document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
+          if (currentSound && btn.classList.contains('active')) {
+            stopSound(); btn.classList.remove('active');
+          } else {
+            createNoise(sound); btn.classList.add('active');
+          }
+          resetIdle();
+        });
+      });
+
+      document.getElementById('exportBtn').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'zen-canvas.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
     `,
   };
 
@@ -1544,6 +1862,101 @@ function buildToolContentHtml(tool) {
         <div id="zones" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.5rem;"></div>
       </div>`,
 
+    'time/world-clock': `
+      <div class="world-clock-container">
+        <div class="ntp-panel">
+          <div class="ntp-header">
+            <div class="ntp-status-dot" id="ntpDot"></div>
+            <span id="ntpLabel">正在连接 NTP 服务器...</span>
+          </div>
+          <div class="local-time-display" id="localTimeDisplay">
+            <div class="time-main" id="timeMain">--:--:--</div>
+            <div class="time-meta" id="timeMeta">----年--月--日 星期--</div>
+          </div>
+          <div class="ntp-detail" id="ntpDetail">本地时间精度：±1秒</div>
+        </div>
+
+        <div class="converter-panel">
+          <h3>时间转换</h3>
+          <div class="converter-row">
+            <div class="conv-group">
+              <label>源时间</label>
+              <input type="time" id="convTime" value="12:00:00">
+            </div>
+            <div class="conv-group">
+              <label>源时区</label>
+              <select id="convFromZone">
+                <option value="-12">UTC-12</option>
+                <option value="-11">UTC-11</option>
+                <option value="-10">UTC-10</option>
+                <option value="-9">UTC-9</option>
+                <option value="-8">UTC-8 (洛杉矶)</option>
+                <option value="-7">UTC-7</option>
+                <option value="-6">UTC-6</option>
+                <option value="-5">UTC-5 (纽约)</option>
+                <option value="-4">UTC-4</option>
+                <option value="-3">UTC-3 (圣保罗)</option>
+                <option value="-2">UTC-2</option>
+                <option value="-1">UTC-1</option>
+                <option value="0" selected>UTC (伦敦)</option>
+                <option value="1">UTC+1 (巴黎)</option>
+                <option value="2">UTC+2 (开罗)</option>
+                <option value="3">UTC+3 (莫斯科)</option>
+                <option value="4">UTC+4 (迪拜)</option>
+                <option value="5">UTC+5</option>
+                <option value="6">UTC+6</option>
+                <option value="7">UTC+7 (曼谷)</option>
+                <option value="8" selected>UTC+8 (北京时间)</option>
+                <option value="9">UTC+9 (东京)</option>
+                <option value="10">UTC+10 (悉尼)</option>
+                <option value="11">UTC+11</option>
+                <option value="12">UTC+12</option>
+              </select>
+            </div>
+          </div>
+          <div class="conv-results" id="convResults"></div>
+        </div>
+
+        <div class="world-clock-panel">
+          <h3>世界时钟</h3>
+          <div class="clock-grid" id="clockGrid"></div>
+        </div>
+      </div>
+      <style>
+        .world-clock-container { display: flex; flex-direction: column; gap: 1.5rem; }
+        .ntp-panel { background: var(--bg-secondary); border-radius: 16px; padding: 1.5rem; text-align: center; border: 1px solid var(--border); }
+        .ntp-header { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .ntp-status-dot { width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; transition: background 0.3s; }
+        .ntp-status-dot.online { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+        .ntp-status-dot.offline { background: #ef4444; }
+        #ntpLabel { font-size: 0.85rem; color: var(--text-secondary); }
+        .local-time-display { margin-bottom: 0.5rem; }
+        .time-main { font-size: 3.5rem; font-weight: 700; letter-spacing: 0.08em; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); line-height: 1; }
+        .time-meta { font-size: 1rem; color: var(--text-secondary); margin-top: 0.5rem; }
+        .ntp-detail { font-size: 0.75rem; color: var(--text-secondary); opacity: 0.7; margin-top: 0.3rem; }
+        .converter-panel { background: var(--bg-secondary); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border); }
+        .converter-panel h3 { margin: 0 0 1rem; font-size: 1rem; }
+        .converter-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
+        .conv-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 140px; }
+        .conv-group label { font-size: 0.75rem; color: var(--text-secondary); }
+        .conv-group input, .conv-group select { padding: 0.5rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: var(--bg); color: var(--text); }
+        .conv-group input:focus, .conv-group select:focus { outline: none; border-color: var(--primary); }
+        .conv-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.5rem; }
+        .conv-result-card { background: var(--bg); border-radius: 10px; padding: 0.75rem; border: 1px solid var(--border); text-align: center; }
+        .conv-result-card .city { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
+        .conv-result-card .result-time { font-size: 1.1rem; font-weight: 600; font-family: 'SF Mono', monospace; }
+        .conv-result-card .result-offset { font-size: 0.7rem; color: var(--text-secondary); opacity: 0.7; }
+        .world-clock-panel { background: var(--bg-secondary); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border); }
+        .world-clock-panel h3 { margin: 0 0 1rem; font-size: 1rem; }
+        .clock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.6rem; }
+        .clock-card { background: var(--bg); border-radius: 12px; padding: 0.9rem 0.75rem; border: 1px solid var(--border); text-align: center; transition: border-color 0.2s; }
+        .clock-card:hover { border-color: var(--primary); }
+        .clock-card .city { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+        .clock-card .time { font-size: 1.3rem; font-weight: 700; font-family: 'SF Mono', monospace; letter-spacing: 0.04em; }
+        .clock-card .offset { font-size: 0.7rem; color: var(--text-secondary); opacity: 0.6; margin-top: 0.2rem; }
+        .clock-card .date { font-size: 0.7rem; color: var(--text-secondary); opacity: 0.8; }
+      </style>`,
+
     'other/hex-convert': `
       <div class="tool-card">
         <h3>输入</h3>
@@ -1644,6 +2057,18 @@ function buildToolContentHtml(tool) {
         .red{color:#e74c3c;}
         .green{color:#16a34a;}
       </style>`,
+
+    'life/zen-canvas': `
+      <div id="zenCanvas" style="width:100%;height:60vh;min-height:400px;background:#0a0a14;border-radius:12px;cursor:crosshair;display:block;"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem;align-items:center;">
+        <input type="text" id="textInput" placeholder="打字生成粒子..." style="flex:1;min-width:200px;padding:0.6rem;font-size:0.95rem;border-radius:8px;border:1px solid #ddd;">
+        <button class="btn sound-btn" data-sound="rain">🌧️ 雨声</button>
+        <button class="btn sound-btn" data-sound="campfire">🔥 篝火</button>
+        <button class="btn sound-btn" data-sound="ocean">🌊 海浪</button>
+        <button class="btn sound-btn" data-sound="forest">🌲 森林</button>
+        <button class="btn btn-primary" id="exportBtn">📥 导出壁纸</button>
+      </div>
+      <p style="margin-top:0.75rem;font-size:0.8rem;opacity:0.5;">移动鼠标或打字产生粒子动画。5秒无操作自动停止声音。</p>`,
   };
 
   return contents[key] || '';
