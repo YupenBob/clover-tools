@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>税后工资计算器 - CloverTools</title>
+  <link rel="stylesheet" href="../../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>税后工资计算器</h1>
+        <p class="description">输入税前工资，扣除五险一金和个税，计算实际到手工资</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">税前工资 / 月底薪（元）</label>
+            <input type="number" id="salary" placeholder="如 20000" style="width:100%;padding:0.6rem;font-size:1rem;">
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;">
+              <input type="checkbox" id="useMinBase" style="width:16px;height:16px;">
+              五险一金按最低基数（7310元）计算
+            </label>
+            <p style="font-size:0.75rem;opacity:0.55;margin-top:0.25rem;padding-left:1.6rem;">不勾选时，按实际工资计算（超出上限 36549 元按上限）</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>计算结果</h3>
+        <div id="result" style="font-size:0.95rem;"></div>
+      </div>
+      <style>
+        .sal-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.9rem;}
+        .sal-table th,.sal-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #eee;text-align:left;}
+        .sal-table th{background:#f5f5f5;font-weight:600;opacity:0.7;font-size:0.8rem;}
+        .sal-summary{display:flex;flex-direction:column;gap:0.5rem;padding:0.8rem;background:#f0f7ff;border-radius:10px;}
+        .sal-row{display:flex;justify-content:space-between;align-items:center;gap:0.5rem;}
+        .sal-row span{font-size:0.88rem;color:var(--text-secondary);}
+        .sal-row b{font-size:0.95rem;}
+        .sal-row.highlight{background:#fff3e0;border-radius:8px;padding:0.6rem 0.8rem;margin-top:0.3rem;}
+        .sal-row.highlight span{font-weight:600;color:var(--text);}
+        .sal-note{font-size:0.72rem!important;opacity:0.65;font-weight:normal!important;}
+        .red{color:#e74c3c;}
+        .green{color:#16a34a;}
+      </style>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const salaryInput = document.getElementById('salary');
+      const useMinBase = document.getElementById('useMinBase');
+      const resultDiv = document.getElementById('result');
+      const MIN_BASE = 7310;
+      const CAP = 36549;
+      const items = [
+        { name: '养老保险', personal: 8, unit: 16 },
+        { name: '医疗保险', personal: 2, unit: 10 },
+        { name: '失业保险', personal: 0.5, unit: 0.5 },
+        { name: '工伤保险', personal: 0, unit: 0.16 },
+        { name: '生育保险', personal: 0, unit: 1 },
+        { name: '住房公积金', personal: 7, unit: 7 }
+      ];
+      const taxBrackets = [
+        { upper: 36000, rate: 0.03, deduction: 0 },
+        { upper: 144000, rate: 0.10, deduction: 2520 },
+        { upper: 300000, rate: 0.20, deduction: 16920 },
+        { upper: 420000, rate: 0.25, deduction: 31920 },
+        { upper: 660000, rate: 0.30, deduction: 52920 },
+        { upper: 960000, rate: 0.35, deduction: 85920 },
+        { upper: Infinity, rate: 0.45, deduction: 319920 }
+      ];
+      function calcTax(taxable) {
+        if (taxable <= 0) return 0;
+        const bracket = taxBrackets.find(b => taxable <= b.upper);
+        return taxable * bracket.rate - bracket.deduction;
+      }
+      function calc() {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const base = useMinBase.checked ? MIN_BASE : Math.min(salary, CAP);
+        const baseNote = useMinBase.checked ? '(按最低基数 ' + MIN_BASE + ')' : (salary > CAP ? '(已达上限)' : '');
+        let insTotal = 0;
+        const insRows = items.map(item => {
+          const amt = base * (item.personal / 100);
+          insTotal += amt;
+          return '<tr><td>' + item.name + '</td><td style="text-align:center;">' + item.personal + '%</td><td style="text-align:right;">¥' + amt.toFixed(2) + '</td></tr>';
+        }).join('');
+        const taxable = salary - insTotal - 5000;
+        const tax = calcTax(taxable);
+        const afterTax = salary - insTotal - tax;
+        resultDiv.innerHTML = '<table class="sal-table"><thead><tr><th>项目</th><th>比例</th><th>金额</th></tr></thead><tbody>' + insRows + '</tbody></table>' +
+          '<div class="sal-summary"><div class="sal-row"><span>税前工资</span><b>¥' + salary.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>五险一金扣除 <span class="sal-note">' + baseNote + '</span></span><b class="red">-¥' + insTotal.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>应纳税所得额 <span class="sal-note">(减5000起征点)</span></span><b>¥' + Math.max(taxable, 0).toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>个人所得税</span><b class="red">-¥' + tax.toFixed(2) + '</b></div>' +
+          '<div class="sal-row highlight"><span>实发工资</span><b class="green">¥' + afterTax.toFixed(2) + '</b></div></div>';
+      }
+      salaryInput.addEventListener('input', calc);
+      useMinBase.addEventListener('change', calc);
+    
+  </script>
+</body>
+</html>

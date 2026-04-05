@@ -363,6 +363,145 @@ function buildToolScript(tool) {
       input.addEventListener('input', run);
     `,
 
+    'json/table': `
+      const input = document.getElementById('input');
+      const tableContainer = document.getElementById('tableContainer');
+      const searchInput = document.getElementById('searchInput');
+      const pageInfo = document.getElementById('pageInfo');
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+
+      const PAGE_SIZE = 20;
+      let allData = [];
+      let filteredData = [];
+      let currentPage = 1;
+      let sortCol = null;
+      let sortAsc = true;
+
+      function parseJson() {
+        const val = input.value.trim();
+        if (!val) { allData = []; filteredData = []; renderTable(); return; }
+        try {
+          let data = JSON.parse(val);
+          if (!Array.isArray(data)) data = [data];
+          allData = data;
+          filteredData = [...allData];
+          if (sortCol !== null) applySort();
+          currentPage = 1;
+          renderTable();
+        } catch(e) {
+          tableContainer.innerHTML = '<div style="color:#ef4444;padding:1rem;">JSON 解析错误: ' + e.message + '</div>';
+        }
+      }
+
+      function applySort() {
+        if (sortCol === null) return;
+        filteredData.sort((a, b) => {
+          const va = a[sortCol] ?? '';
+          const vb = b[sortCol] ?? '';
+          if (va < vb) return sortAsc ? -1 : 1;
+          if (va > vb) return sortAsc ? 1 : -1;
+          return 0;
+        });
+      }
+
+      function renderTable() {
+        if (filteredData.length === 0) {
+          tableContainer.innerHTML = '<div style="color:#888;padding:1rem;text-align:center;">暂无数据，请在左侧输入 JSON 数组</div>';
+          pageInfo.textContent = '0 / 0';
+          return;
+        }
+        const cols = [...new Set(filteredData.flatMap(row => Object.keys(row)))];
+        const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const pageRows = filteredData.slice(start, start + PAGE_SIZE);
+
+        const sortIcon = col => {
+          if (sortCol !== col) return '';
+          return sortAsc ? ' ↑' : ' ↓';
+        };
+
+        let html = '<table class="json-table"><thead><tr>';
+        cols.forEach(col => {
+          html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select:none;">' + escHtml(col) + sortIcon(col) + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        pageRows.forEach(row => {
+          html += '<tr>';
+          cols.forEach(col => {
+            const val = row[col];
+            const display = val === null || val === undefined ? '<span style="opacity:0.4;">null</span>' : escHtml(String(val));
+            html += '<td>' + display + '</td>';
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        tableContainer.innerHTML = html;
+        pageInfo.textContent = filteredData.length > 0 ? currentPage + ' / ' + totalPages : '0 / 0';
+      }
+
+      function sortBy(col) {
+        if (sortCol === col) sortAsc = !sortAsc;
+        else { sortCol = col; sortAsc = true; }
+        applySort();
+        currentPage = 1;
+        renderTable();
+      }
+      window.sortBy = sortBy;
+
+      function filterData() {
+        const q = searchInput.value.toLowerCase();
+        if (!q) {
+          filteredData = [...allData];
+        } else {
+          filteredData = allData.filter(row =>
+            Object.values(row).some(v => String(v).toLowerCase().includes(q))
+          );
+        }
+        currentPage = 1;
+        renderTable();
+      }
+
+      function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      function copyTableHtml() {
+        const q = searchInput.value.toLowerCase();
+        const data = q ? allData.filter(row => Object.values(row).some(v => String(v).toLowerCase().includes(q))) : allData;
+        if (data.length === 0) { alert('表格无数据'); return; }
+        const cols = [...new Set(data.flatMap(row => Object.keys(row)))];
+        let html = '<table border="1" cellpadding="5" cellspacing="0">';
+        html += '<thead><tr>' + cols.map(c => '<th>' + escHtml(c) + '</th>').join('') + '</tr></thead>';
+        html += '<tbody>';
+        data.forEach(row => {
+          html += '<tr>' + cols.map(c => {
+            const val = row[c];
+            return '<td>' + (val === null || val === undefined ? '' : escHtml(String(val))) + '</td>';
+          }).join('') + '</tr>';
+        });
+        html += '</tbody></table>';
+        copyToClipboard(html);
+      }
+
+      input.addEventListener('input', parseJson);
+      searchInput.addEventListener('input', filterData);
+      prevBtn.addEventListener('click', () => { currentPage = Math.max(1, currentPage - 1); renderTable(); });
+      nextBtn.addEventListener('click', () => { const total = Math.ceil(filteredData.length / PAGE_SIZE); currentPage = Math.min(total, currentPage + 1); renderTable(); });
+      document.getElementById('copyTable').addEventListener('click', copyTableHtml);
+
+      // Demo data
+      input.value = JSON.stringify([
+        {"name":"张三","age":28,"city":"北京","score":92},
+        {"name":"李四","age":22,"city":"上海","score":85},
+        {"name":"王五","age":35,"city":"广州","score":78},
+        {"name":"赵六","age":30,"city":"深圳","score":95},
+        {"name":"钱七","age":26,"city":"杭州","score":88}
+      ], null, 2);
+      parseJson();
+    `,
+
     'code/html': `
       const input = document.getElementById('input');
       const output = document.getElementById('output');
@@ -425,6 +564,104 @@ function buildToolScript(tool) {
         output.value = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join('');
       });
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+    `,
+
+    'code/markdown': `
+      const input = document.getElementById('input');
+      const preview = document.getElementById('preview');
+      const htmlOutput = document.getElementById('htmlOutput');
+
+      // Simple Markdown parser
+      function parseMarkdown(text) {
+        if (!text) return '';
+        let html = text;
+
+        // Escape HTML
+        html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // Code blocks (\`\`\`...\`\`\`)
+        html = html.replace(/\`\`\`([\\s\\S]*?)\`\`\`/g, (_, code) => '<pre><code>' + code.replace(/\`/g, '&#96;') + '</code></pre>');
+        // Inline code
+        html = html.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+
+        // Headers
+        html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+        html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+        html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+        // Bold & Italic
+        html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+        // Blockquote
+        html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+        // Unordered list
+        html = html.replace(/^[\\-*+] (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\\/li>\\n?)+/g, '<ul>$&</ul>');
+
+        // Ordered list
+        html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
+
+        // Links
+        html = html.replace(/\\[([^\\]]+)\\]\\(([^)]+)\\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+        // Images
+        html = html.replace(/!\\[([^\\]]*)\\]\\(([^)]+)\\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;">');
+
+        // Horizontal rule
+        html = html.replace(/^---$/gm, '<hr>');
+        html = html.replace(/^\\*\\*\\*$/gm, '<hr>');
+
+        // Tables (simple)
+        const tableRegex = /^\\|(.+)\\|\\n\\|[\\|:- \\|]+\\|\\n((?:\\|.+\\|\\n?)+)/gm;
+        html = html.replace(tableRegex, (_, header, body) => {
+          const headers = header.split('|').filter(h => h.trim()).map(h => '<th>' + h.trim() + '</th>').join('');
+          const rows = body.trim().split('\\n').map(row => {
+            const cells = row.split('|').filter(c => c !== undefined && c.trim() !== '').map(c => '<td>' + c.trim() + '</td>').join('');
+            return '<tr>' + cells + '</tr>';
+          }).join('');
+          return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
+        });
+
+        // Paragraphs
+        const lines = html.split('\\n');
+        const result = [];
+        let inBlock = false;
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) { if (inBlock) { result.push('</p>'); inBlock = false; } continue; }
+          if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<pre') || trimmed.startsWith('<table') || trimmed.startsWith('<hr')) {
+            if (inBlock) { result.push('</p>'); inBlock = false; }
+            result.push(trimmed);
+          } else if (trimmed.startsWith('</')) {
+            result.push(trimmed);
+          } else {
+            if (!inBlock) { result.push('<p>' + trimmed); inBlock = true; }
+            else result.push(trimmed);
+          }
+        }
+        if (inBlock) result.push('</p>');
+        return result.join('\\n');
+      }
+
+      function update() {
+        const md = input.value;
+        const html = parseMarkdown(md);
+        preview.innerHTML = html;
+        htmlOutput.value = html;
+      }
+
+      input.addEventListener('input', update);
+      document.getElementById('copyHtml').addEventListener('click', () => copyToClipboard(htmlOutput.value));
+      update();
     `,
 
     'encrypt/unicode': `
@@ -619,6 +856,207 @@ function buildToolScript(tool) {
         output.innerHTML = '<b>邮箱:</b> ' + (emails.length ? emails.join(', ') : '无') + '<br><b>手机:</b> ' + (phones.length ? phones.join(', ') : '无') + '<br><b>链接:</b> ' + (urls.length ? urls.join('<br>') : '无');
       }
       input.addEventListener('input', extract);
+    `,
+
+    'life/price-compare': `
+      const container = document.getElementById('products');
+      const unitOptions = ['斤','公斤','克','升','毫升','个','件','包','瓶','罐','盒','米','平方米'].map(u => '<option value="'+u+'">'+u+'</option>').join('');
+      let nextId = 0;
+
+      function createRow(name, spec, unit, price) {
+        const id = nextId++;
+        const div = document.createElement('div');
+        div.className = 'product-row';
+        div.dataset.id = id;
+        div.innerHTML = '<div class="product-meta"><input type="text" class="p-name" placeholder="商品名称（选填）" value="'+ (name||'') +'"><button class="btn-remove" title="移除">×</button></div><div class="product-fields"><div class="field-group"><label>规格数量</label><input type="number" class="p-spec" placeholder="如 500" min="0" step="any" value="'+ (spec||'') +'"></div><div class="field-group"><label>规格单位</label><select class="p-unit">'+ unitOptions.replace('value="'+ (unit||'斤') +'"','value="'+ (unit||'斤') +'" selected') +'</select></div><div class="field-group"><label>价格（元）</label><input type="number" class="p-price" placeholder="如 9.9" min="0" step="any" value="'+ (price||'') +'"></div></div><div class="product-result"><span class="unit-price">—</span></div>';
+        div.querySelector('.p-spec').addEventListener('input', calc);
+        div.querySelector('.p-price').addEventListener('input', calc);
+        div.querySelector('.p-unit').addEventListener('change', calc);
+        div.querySelector('.btn-remove').addEventListener('click', () => { div.remove(); calc(); });
+        return div;
+      }
+
+      function calc() {
+        let best = null;
+        document.querySelectorAll('.product-row').forEach(row => {
+          row.classList.remove('winner');
+          const price = parseFloat(row.querySelector('.p-price').value);
+          const spec = parseFloat(row.querySelector('.p-spec').value);
+          const unit = row.querySelector('.p-unit').value;
+          const upEl = row.querySelector('.unit-price');
+          if (price > 0 && spec > 0) {
+            const up = price / spec;
+            upEl.textContent = up.toFixed(3) + ' 元/' + unit;
+            if (!best || up < best.up) best = { row, up };
+          } else {
+            upEl.textContent = '—';
+          }
+        });
+        document.querySelectorAll('.product-row').forEach(row => row.classList.remove('winner'));
+        if (best) { best.row.classList.add('winner'); best.row.querySelector('.unit-price').textContent += ' 🏆'; }
+      }
+
+      document.getElementById('addProduct').addEventListener('click', () => {
+        container.appendChild(createRow());
+      });
+
+      container.appendChild(createRow());
+      container.appendChild(createRow());
+    `,
+
+    'text/garble-fix': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+
+      function setOutput(text) { output.value = text; }
+
+      // UTF-8 bytes decoded as Latin1/GBK → proper UTF-8
+      function fixUtf8AsGbk() {
+        const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
+        const decoder = new TextDecoder('utf-8', { fatal: false });
+        setOutput(decoder.decode(bytes));
+      }
+
+      // GBK bytes decoded as UTF-8 → proper GBK → UTF-8
+      function fixGbkAsUtf8() {
+        try {
+          const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
+          const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
+          const encoder = new TextEncoder();
+          setOutput(encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), ''));
+        } catch(e) { setOutput('修复失败: ' + e.message); }
+      }
+
+      // Unicode escape sequences: \\u4e2d → 中
+      function fixUnicodeEscapes() {
+        setOutput(input.value.replace(/\\\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16))));
+      }
+
+      // HTML entities: &#x4e2d; → 中, &#123; → {, &amp; → &
+      function fixHtmlEntities() {
+        const textarea = input;
+        const div = document.createElement('div');
+        div.innerHTML = textarea.value;
+        setOutput(div.textContent || div.innerText || textarea.value);
+      }
+
+      // URL encoding: %E4%B8%AD → 中
+      function fixUrlEncoding() {
+        try { setOutput(decodeURIComponent(input.value)); }
+        catch(e) { try { setOutput(decodeURI(input.value)); } catch(e2) { setOutput('解码失败'); } }
+      }
+
+      // Auto-detect and fix
+      function autoFix() {
+        const v = input.value;
+        if (/%[0-9A-Fa-f]{2}/.test(v)) { fixUrlEncoding(); return; }
+        if (/\\\\u[0-9a-fA-F]{4}/i.test(v)) { fixUnicodeEscapes(); return; }
+        if (/&#[0-9]+;|&#[x][0-9a-fA-F]+;|&[a-z]+;/i.test(v)) { fixHtmlEntities(); return; }
+        // Try UTF-8 as GBK
+        const bytes = new Uint8Array([...v].map(c => c.charCodeAt(0) & 0xFF));
+        const decoded = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+        if (decoded !== v && /[\\u4e00-\\u9fa5]/.test(decoded)) { setOutput(decoded); return; }
+        // Try GBK as UTF-8
+        try {
+          const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
+          const encoder = new TextEncoder();
+          const reencoded = encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), '');
+          if (reencoded !== v) { setOutput(reencoded); return; }
+        } catch(e) {}
+        setOutput(v);
+      }
+
+      document.getElementById('autoFix').onclick = autoFix;
+      document.getElementById('fixUtf8AsGbk').onclick = fixUtf8AsGbk;
+      document.getElementById('fixGbkAsUtf8').onclick = fixGbkAsUtf8;
+      document.getElementById('fixUnicodeEscapes').onclick = fixUnicodeEscapes;
+      document.getElementById('fixHtmlEntities').onclick = fixHtmlEntities;
+      document.getElementById('fixUrlEncoding').onclick = fixUrlEncoding;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', () => { if (document.getElementById('autoOn').checked) autoFix(); });
+    `,
+
+    'life/insurance': `
+      const salaryInput = document.getElementById('salary');
+      const resultDiv = document.getElementById('result');
+      const CAP = 36549;
+      const items = [
+        { name: '养老保险', personal: 8, unit: 16 },
+        { name: '医疗保险', personal: 2, unit: 10 },
+        { name: '失业保险', personal: 0.5, unit: 0.5 },
+        { name: '工伤保险', personal: 0, unit: 0.16 },
+        { name: '生育保险', personal: 0, unit: 1 },
+        { name: '住房公积金', personal: 7, unit: 7 }
+      ];
+      function calc() {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const base = Math.min(salary, CAP);
+        let personalTotal = 0;
+        let unitTotal = 0;
+        const rows = items.map(item => {
+          const pAmt = base * (item.personal / 100);
+          const uAmt = base * (item.unit / 100);
+          personalTotal += pAmt;
+          unitTotal += uAmt;
+          const exceeded = salary > CAP;
+          return '<tr><td>' + item.name + '</td><td>' + item.personal + '%</td><td style="text-align:right;">' + (exceeded ? '<span style="opacity:0.5;">(超上限)</span> ' : '') + '¥' + pAmt.toFixed(2) + '</td><td style="text-align:right;">¥' + uAmt.toFixed(2) + '</td></tr>';
+        }).join('');
+        const afterTax = salary - personalTotal;
+        resultDiv.innerHTML = '<table class="ins-table"><thead><tr><th>项目</th><th>个人缴纳比例</th><th>个人金额</th><th>单位金额</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ins-summary"><div class="ins-item"><span>税前工资</span><b>¥' + salary.toFixed(2) + '</b></div><div class="ins-item"><span>个人总扣除</span><b style="color:#e74c3c;">-¥' + personalTotal.toFixed(2) + '</b></div><div class="ins-item highlight"><span>税后工资</span><b>¥' + afterTax.toFixed(2) + '</b></div></div>';
+      }
+      salaryInput.addEventListener('input', calc);
+    `,
+
+    'life/salary': `
+      const salaryInput = document.getElementById('salary');
+      const useMinBase = document.getElementById('useMinBase');
+      const resultDiv = document.getElementById('result');
+      const MIN_BASE = 7310;
+      const CAP = 36549;
+      const items = [
+        { name: '养老保险', personal: 8, unit: 16 },
+        { name: '医疗保险', personal: 2, unit: 10 },
+        { name: '失业保险', personal: 0.5, unit: 0.5 },
+        { name: '工伤保险', personal: 0, unit: 0.16 },
+        { name: '生育保险', personal: 0, unit: 1 },
+        { name: '住房公积金', personal: 7, unit: 7 }
+      ];
+      const taxBrackets = [
+        { upper: 36000, rate: 0.03, deduction: 0 },
+        { upper: 144000, rate: 0.10, deduction: 2520 },
+        { upper: 300000, rate: 0.20, deduction: 16920 },
+        { upper: 420000, rate: 0.25, deduction: 31920 },
+        { upper: 660000, rate: 0.30, deduction: 52920 },
+        { upper: 960000, rate: 0.35, deduction: 85920 },
+        { upper: Infinity, rate: 0.45, deduction: 319920 }
+      ];
+      function calcTax(taxable) {
+        if (taxable <= 0) return 0;
+        const bracket = taxBrackets.find(b => taxable <= b.upper);
+        return taxable * bracket.rate - bracket.deduction;
+      }
+      function calc() {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const base = useMinBase.checked ? MIN_BASE : Math.min(salary, CAP);
+        const baseNote = useMinBase.checked ? '(按最低基数 ' + MIN_BASE + ')' : (salary > CAP ? '(已达上限)' : '');
+        let insTotal = 0;
+        const insRows = items.map(item => {
+          const amt = base * (item.personal / 100);
+          insTotal += amt;
+          return '<tr><td>' + item.name + '</td><td style="text-align:center;">' + item.personal + '%</td><td style="text-align:right;">¥' + amt.toFixed(2) + '</td></tr>';
+        }).join('');
+        const taxable = salary - insTotal - 5000;
+        const tax = calcTax(taxable);
+        const afterTax = salary - insTotal - tax;
+        resultDiv.innerHTML = '<table class="sal-table"><thead><tr><th>项目</th><th>比例</th><th>金额</th></tr></thead><tbody>' + insRows + '</tbody></table>' +
+          '<div class="sal-summary"><div class="sal-row"><span>税前工资</span><b>¥' + salary.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>五险一金扣除 <span class="sal-note">' + baseNote + '</span></span><b class="red">-¥' + insTotal.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>应纳税所得额 <span class="sal-note">(减5000起征点)</span></span><b>¥' + Math.max(taxable, 0).toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>个人所得税</span><b class="red">-¥' + tax.toFixed(2) + '</b></div>' +
+          '<div class="sal-row highlight"><span>实发工资</span><b class="green">¥' + afterTax.toFixed(2) + '</b></div></div>';
+      }
+      salaryInput.addEventListener('input', calc);
+      useMinBase.addEventListener('change', calc);
     `,
   };
 
@@ -827,6 +1265,36 @@ function buildToolContentHtml(tool) {
         <textarea id="output" readonly></textarea>
       </div>`,
 
+    'json/table': `
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>JSON 数据</h3>
+          <textarea id="input" placeholder="输入 JSON 数组，如:&#10;[&#10;  {&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:20},&#10;  {&quot;name&quot;:&quot;李四&quot;,&quot;age&quot;:22}&#10;]" style="min-height:200px;font-family:monospace;font-size:0.85rem;"></textarea>
+        </div>
+        <div class="tool-card">
+          <h3>表格</h3>
+          <div class="table-toolbar">
+            <input type="text" id="searchInput" placeholder="🔍 搜索..." style="flex:1;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+            <button class="btn btn-secondary" id="copyTable" style="white-space:nowrap;">复制表格 HTML</button>
+          </div>
+          <div id="tableContainer" style="overflow:auto;max-height:500px;margin-top:0.75rem;"></div>
+          <div class="pagination">
+            <button class="btn btn-secondary" id="prevPage">上一页</button>
+            <span id="pageInfo" style="padding:0 1rem;font-size:0.9rem;"></span>
+            <button class="btn btn-secondary" id="nextPage">下一页</button>
+          </div>
+        </div>
+      </div>
+      <style>
+        .table-toolbar { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .json-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .json-table th { background: var(--primary); color: #fff; padding: 0.5rem 0.75rem; text-align: left; position: sticky; top: 0; cursor: pointer; user-select: none; }
+        .json-table th:hover { background: #3b82f6; }
+        .json-table td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .json-table tr:hover td { background: var(--bg-secondary); }
+        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 0.75rem; gap: 0.5rem; }
+      </style>`,
+
     'code/html': `
       <div class="tool-card">
         <h3>输入</h3>
@@ -868,6 +1336,42 @@ function buildToolContentHtml(tool) {
         <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="output" readonly></textarea>
       </div>`,
+
+    'code/markdown': `
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>Markdown 输入</h3>
+          <textarea id="input" placeholder="输入 Markdown 文本..." style="min-height:300px;font-family:monospace;"></textarea>
+        </div>
+        <div class="tool-card">
+          <h3>实时预览</h3>
+          <div id="preview" class="md-preview" style="min-height:300px;padding:1rem;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>HTML 代码 <button class="copy-btn" id="copyHtml">复制 HTML</button></h3>
+        <textarea id="htmlOutput" readonly style="font-family:monospace;font-size:0.85rem;"></textarea>
+      </div>
+      <style>
+        .md-preview { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; }
+        .md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4, .md-preview h5, .md-preview h6 { margin: 1em 0 0.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .md-preview h1 { font-size: 1.6rem; } .md-preview h2 { font-size: 1.4rem; } .md-preview h3 { font-size: 1.2rem; }
+        .md-preview p { margin: 0.8em 0; }
+        .md-preview ul, .md-preview ol { padding-left: 1.5em; margin: 0.8em 0; }
+        .md-preview li { margin: 0.3em 0; }
+        .md-preview blockquote { border-left: 4px solid #ddd; padding: 0.5em 1em; margin: 0.8em 0; color: #666; background: #f9f9f9; border-radius: 0 8px 8px 0; }
+        .md-preview code { background: #f0f0f0; padding: 0.15em 0.4em; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.88em; }
+        .md-preview pre { background: #1e1e1e; color: #d4d4d4; padding: 1em; border-radius: 10px; overflow-x: auto; margin: 0.8em 0; }
+        .md-preview pre code { background: none; padding: 0; color: inherit; }
+        .md-preview a { color: #4a90e2; text-decoration: none; }
+        .md-preview a:hover { text-decoration: underline; }
+        .md-preview img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
+        .md-preview table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+        .md-preview th, .md-preview td { border: 1px solid #ddd; padding: 0.5em 0.8em; text-align: left; }
+        .md-preview th { background: #f5f5f5; font-weight: 600; }
+        .md-preview hr { border: none; border-top: 2px solid #eee; margin: 1.5em 0; }
+        .md-preview strong { font-weight: 700; }
+      </style>`,
 
     'encrypt/sha': `
       <div class="tool-card">
@@ -935,6 +1439,64 @@ function buildToolContentHtml(tool) {
       <div class="tool-card">
         <h3>提取结果</h3>
         <div id="output" style="line-height:1.8;"></div>
+      </div>`,
+
+    'life/price-compare': `
+      <div class="tool-card">
+        <h3>添加商品</h3>
+        <div id="products" class="products-container"></div>
+        <button class="btn btn-primary" id="addProduct" style="margin-top:1rem;">+ 添加商品</button>
+      </div>
+      <style>
+        .products-container { display: flex; flex-direction: column; gap: 1rem; }
+        .product-row { background: var(--bg-secondary); border-radius: 12px; padding: 1rem; border: 2px solid transparent; transition: border-color 0.2s; }
+        .product-row.winner { border-color: #22c55e; background: #f0fdf4; }
+        .product-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+        .product-meta input { flex: 1; border: none; background: transparent; font-size: 1rem; font-weight: 600; color: var(--text); padding: 0; }
+        .product-meta input:focus { outline: none; }
+        .product-meta input::placeholder { color: var(--text-secondary); }
+        .btn-remove { background: none; border: none; font-size: 1.2rem; color: var(--text-secondary); cursor: pointer; padding: 0 0.5rem; }
+        .btn-remove:hover { color: #ef4444; }
+        .product-fields { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: end; }
+        .field-group { display: flex; flex-direction: column; gap: 0.25rem; }
+        .field-group label { font-size: 0.75rem; color: var(--text-secondary); }
+        .field-group input, .field-group select { padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: var(--bg); color: var(--text); }
+        .field-group input:focus, .field-group select:focus { outline: none; border-color: var(--primary); }
+        .p-unit { width: 80px; }
+        .product-result { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); text-align: center; }
+        .unit-price { font-size: 1.3rem; font-weight: 700; color: var(--primary); }
+        .winner .unit-price { color: #16a34a; }
+        @media (max-width: 600px) { .product-fields { grid-template-columns: 1fr 1fr; } .field-group:nth-child(2) { grid-column: 1 / -1; } }
+      </style>
+    `,
+
+    'text/garble-fix': `
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>乱码文本</h3>
+          <textarea id="input" placeholder="粘贴乱码文本，如: �ļ���  %E4%B8%AD  \\u4e2d  &#x4e2d;" style="min-height:120px;"></textarea>
+          <div class="btn-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
+            <button class="btn btn-primary" id="autoFix">🔍 自动修复</button>
+            <label style="font-size:0.8rem;display:flex;align-items:center;gap:0.2rem;"><input type="checkbox" id="autoOn" checked> 输入时自动</label>
+          </div>
+        </div>
+        <div class="tool-card">
+          <h3>修复结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+          <textarea id="output" readonly style="min-height:120px;" placeholder="修复后文本"></textarea>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>手动修复方式</h3>
+        <div class="btn-row" style="flex-wrap:wrap;gap:0.4rem;">
+          <button class="btn btn-secondary" id="fixUtf8AsGbk">UTF-8 当 GBK 解读</button>
+          <button class="btn btn-secondary" id="fixGbkAsUtf8">GBK 当 UTF-8 解读</button>
+          <button class="btn btn-secondary" id="fixUnicodeEscapes">Unicode 转义序列</button>
+          <button class="btn btn-secondary" id="fixHtmlEntities">HTML 实体编码</button>
+          <button class="btn btn-secondary" id="fixUrlEncoding">URL 编码</button>
+        </div>
+        <p style="font-size:0.78rem;opacity:0.6;margin-top:0.5rem;">
+          💡 自动修复会依次尝试各种编码方式，检测到有效中文即停止。如自动结果不理想，可手动选择具体编码方式。
+        </p>
       </div>`,
 
     'time/countdown': `
@@ -1024,6 +1586,64 @@ function buildToolContentHtml(tool) {
         <h3>匹配结果</h3>
         <div id="output" style="line-height:1.6;"></div>
       </div>`,
+
+    'life/insurance': `
+      <div class="tool-card">
+        <h3>输入税前工资（元）</h3>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="number" id="salary" placeholder="请输入税前工资，如 20000" style="flex:1;padding:0.6rem;font-size:1rem;">
+        </div>
+        <p style="font-size:0.8rem;opacity:0.6;margin-top:0.5rem;">💡 2024年上海标准，社保基数上限 36549 元/月</p>
+      </div>
+      <div class="tool-card">
+        <h3>计算结果</h3>
+        <div id="result" style="font-size:0.95rem;"></div>
+      </div>
+      <style>
+        .ins-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.9rem;}
+        .ins-table th,.ins-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #eee;text-align:left;}
+        .ins-table th{background:#f5f5f5;font-weight:600;opacity:0.7;font-size:0.8rem;}
+        .ins-summary{display:flex;flex-direction:column;gap:0.5rem;padding:0.8rem;background:#f0f7ff;border-radius:10px;}
+        .ins-item{display:flex;justify-content:space-between;align-items:center;}
+        .ins-item.highlight{background:#fff3e0;border-radius:8px;padding:0.5rem 0.8rem;margin-top:0.3rem;}
+        .ins-item.highlight span{font-weight:600;}
+      </style>`,
+
+    'life/salary': `
+      <div class="tool-card">
+        <h3>输入</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">税前工资 / 月底薪（元）</label>
+            <input type="number" id="salary" placeholder="如 20000" style="width:100%;padding:0.6rem;font-size:1rem;">
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;">
+              <input type="checkbox" id="useMinBase" style="width:16px;height:16px;">
+              五险一金按最低基数（7310元）计算
+            </label>
+            <p style="font-size:0.75rem;opacity:0.55;margin-top:0.25rem;padding-left:1.6rem;">不勾选时，按实际工资计算（超出上限 36549 元按上限）</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>计算结果</h3>
+        <div id="result" style="font-size:0.95rem;"></div>
+      </div>
+      <style>
+        .sal-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.9rem;}
+        .sal-table th,.sal-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #eee;text-align:left;}
+        .sal-table th{background:#f5f5f5;font-weight:600;opacity:0.7;font-size:0.8rem;}
+        .sal-summary{display:flex;flex-direction:column;gap:0.5rem;padding:0.8rem;background:#f0f7ff;border-radius:10px;}
+        .sal-row{display:flex;justify-content:space-between;align-items:center;gap:0.5rem;}
+        .sal-row span{font-size:0.88rem;color:var(--text-secondary);}
+        .sal-row b{font-size:0.95rem;}
+        .sal-row.highlight{background:#fff3e0;border-radius:8px;padding:0.6rem 0.8rem;margin-top:0.3rem;}
+        .sal-row.highlight span{font-weight:600;color:var(--text);}
+        .sal-note{font-size:0.72rem!important;opacity:0.65;font-weight:normal!important;}
+        .red{color:#e74c3c;}
+        .green{color:#16a34a;}
+      </style>`,
   };
 
   return contents[key] || '';
@@ -1080,7 +1700,8 @@ function generate() {
       // Link shared.css from dist root
       pageHtml = pageHtml.replace('href="/src/shared.css"', 'href="/src/shared.css"');
       // But for tool pages nested in subdirs, we need correct path
-      const depth = tool.path.split('/').length - 1;
+      // Files live at dist/tools/{category}/{tool}.html (2 levels deep)
+      const depth = tool.path.split('/').length;  // json/table.html → 2 levels
       const relCss = '../'.repeat(depth) + 'src/shared.css';
       pageHtml = pageHtml.replace('href="/src/shared.css"', `href="${relCss}"`);
 

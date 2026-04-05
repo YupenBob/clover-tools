@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>五险一金计算器 - CloverTools</title>
+  <link rel="stylesheet" href="../../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>五险一金计算器</h1>
+        <p class="description">计算五险一金扣除和税后工资</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入税前工资（元）</h3>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <input type="number" id="salary" placeholder="请输入税前工资，如 20000" style="flex:1;padding:0.6rem;font-size:1rem;">
+        </div>
+        <p style="font-size:0.8rem;opacity:0.6;margin-top:0.5rem;">💡 2024年上海标准，社保基数上限 36549 元/月</p>
+      </div>
+      <div class="tool-card">
+        <h3>计算结果</h3>
+        <div id="result" style="font-size:0.95rem;"></div>
+      </div>
+      <style>
+        .ins-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.9rem;}
+        .ins-table th,.ins-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #eee;text-align:left;}
+        .ins-table th{background:#f5f5f5;font-weight:600;opacity:0.7;font-size:0.8rem;}
+        .ins-summary{display:flex;flex-direction:column;gap:0.5rem;padding:0.8rem;background:#f0f7ff;border-radius:10px;}
+        .ins-item{display:flex;justify-content:space-between;align-items:center;}
+        .ins-item.highlight{background:#fff3e0;border-radius:8px;padding:0.5rem 0.8rem;margin-top:0.3rem;}
+        .ins-item.highlight span{font-weight:600;}
+      </style>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const salaryInput = document.getElementById('salary');
+      const resultDiv = document.getElementById('result');
+      const CAP = 36549;
+      const items = [
+        { name: '养老保险', personal: 8, unit: 16 },
+        { name: '医疗保险', personal: 2, unit: 10 },
+        { name: '失业保险', personal: 0.5, unit: 0.5 },
+        { name: '工伤保险', personal: 0, unit: 0.16 },
+        { name: '生育保险', personal: 0, unit: 1 },
+        { name: '住房公积金', personal: 7, unit: 7 }
+      ];
+      function calc() {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const base = Math.min(salary, CAP);
+        let personalTotal = 0;
+        let unitTotal = 0;
+        const rows = items.map(item => {
+          const pAmt = base * (item.personal / 100);
+          const uAmt = base * (item.unit / 100);
+          personalTotal += pAmt;
+          unitTotal += uAmt;
+          const exceeded = salary > CAP;
+          return '<tr><td>' + item.name + '</td><td>' + item.personal + '%</td><td style="text-align:right;">' + (exceeded ? '<span style="opacity:0.5;">(超上限)</span> ' : '') + '¥' + pAmt.toFixed(2) + '</td><td style="text-align:right;">¥' + uAmt.toFixed(2) + '</td></tr>';
+        }).join('');
+        const afterTax = salary - personalTotal;
+        resultDiv.innerHTML = '<table class="ins-table"><thead><tr><th>项目</th><th>个人缴纳比例</th><th>个人金额</th><th>单位金额</th></tr></thead><tbody>' + rows + '</tbody></table><div class="ins-summary"><div class="ins-item"><span>税前工资</span><b>¥' + salary.toFixed(2) + '</b></div><div class="ins-item"><span>个人总扣除</span><b style="color:#e74c3c;">-¥' + personalTotal.toFixed(2) + '</b></div><div class="ins-item highlight"><span>税后工资</span><b>¥' + afterTax.toFixed(2) + '</b></div></div>';
+      }
+      salaryInput.addEventListener('input', calc);
+    
+  </script>
+</body>
+</html>

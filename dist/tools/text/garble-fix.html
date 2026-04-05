@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>乱码修复 - CloverTools</title>
+  <link rel="stylesheet" href="../../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>乱码修复</h1>
+        <p class="description">自动检测和修复常见文本编码乱码</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>乱码文本</h3>
+          <textarea id="input" placeholder="粘贴乱码文本，如: �ļ���  %E4%B8%AD  \u4e2d  &#x4e2d;" style="min-height:120px;"></textarea>
+          <div class="btn-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
+            <button class="btn btn-primary" id="autoFix">🔍 自动修复</button>
+            <label style="font-size:0.8rem;display:flex;align-items:center;gap:0.2rem;"><input type="checkbox" id="autoOn" checked> 输入时自动</label>
+          </div>
+        </div>
+        <div class="tool-card">
+          <h3>修复结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+          <textarea id="output" readonly style="min-height:120px;" placeholder="修复后文本"></textarea>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>手动修复方式</h3>
+        <div class="btn-row" style="flex-wrap:wrap;gap:0.4rem;">
+          <button class="btn btn-secondary" id="fixUtf8AsGbk">UTF-8 当 GBK 解读</button>
+          <button class="btn btn-secondary" id="fixGbkAsUtf8">GBK 当 UTF-8 解读</button>
+          <button class="btn btn-secondary" id="fixUnicodeEscapes">Unicode 转义序列</button>
+          <button class="btn btn-secondary" id="fixHtmlEntities">HTML 实体编码</button>
+          <button class="btn btn-secondary" id="fixUrlEncoding">URL 编码</button>
+        </div>
+        <p style="font-size:0.78rem;opacity:0.6;margin-top:0.5rem;">
+          💡 自动修复会依次尝试各种编码方式，检测到有效中文即停止。如自动结果不理想，可手动选择具体编码方式。
+        </p>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+
+      function setOutput(text) { output.value = text; }
+
+      // UTF-8 bytes decoded as Latin1/GBK → proper UTF-8
+      function fixUtf8AsGbk() {
+        const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
+        const decoder = new TextDecoder('utf-8', { fatal: false });
+        setOutput(decoder.decode(bytes));
+      }
+
+      // GBK bytes decoded as UTF-8 → proper GBK → UTF-8
+      function fixGbkAsUtf8() {
+        try {
+          const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
+          const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
+          const encoder = new TextEncoder();
+          setOutput(encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), ''));
+        } catch(e) { setOutput('修复失败: ' + e.message); }
+      }
+
+      // Unicode escape sequences: \u4e2d → 中
+      function fixUnicodeEscapes() {
+        setOutput(input.value.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16))));
+      }
+
+      // HTML entities: &#x4e2d; → 中, &#123; → {, &amp; → &
+      function fixHtmlEntities() {
+        const textarea = input;
+        const div = document.createElement('div');
+        div.innerHTML = textarea.value;
+        setOutput(div.textContent || div.innerText || textarea.value);
+      }
+
+      // URL encoding: %E4%B8%AD → 中
+      function fixUrlEncoding() {
+        try { setOutput(decodeURIComponent(input.value)); }
+        catch(e) { try { setOutput(decodeURI(input.value)); } catch(e2) { setOutput('解码失败'); } }
+      }
+
+      // Auto-detect and fix
+      function autoFix() {
+        const v = input.value;
+        if (/%[0-9A-Fa-f]{2}/.test(v)) { fixUrlEncoding(); return; }
+        if (/\\u[0-9a-fA-F]{4}/i.test(v)) { fixUnicodeEscapes(); return; }
+        if (/&#[0-9]+;|&#[x][0-9a-fA-F]+;|&[a-z]+;/i.test(v)) { fixHtmlEntities(); return; }
+        // Try UTF-8 as GBK
+        const bytes = new Uint8Array([...v].map(c => c.charCodeAt(0) & 0xFF));
+        const decoded = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+        if (decoded !== v && /[\u4e00-\u9fa5]/.test(decoded)) { setOutput(decoded); return; }
+        // Try GBK as UTF-8
+        try {
+          const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
+          const encoder = new TextEncoder();
+          const reencoded = encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), '');
+          if (reencoded !== v) { setOutput(reencoded); return; }
+        } catch(e) {}
+        setOutput(v);
+      }
+
+      document.getElementById('autoFix').onclick = autoFix;
+      document.getElementById('fixUtf8AsGbk').onclick = fixUtf8AsGbk;
+      document.getElementById('fixGbkAsUtf8').onclick = fixGbkAsUtf8;
+      document.getElementById('fixUnicodeEscapes').onclick = fixUnicodeEscapes;
+      document.getElementById('fixHtmlEntities').onclick = fixHtmlEntities;
+      document.getElementById('fixUrlEncoding').onclick = fixUrlEncoding;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', () => { if (document.getElementById('autoOn').checked) autoFix(); });
+    
+  </script>
+</body>
+</html>

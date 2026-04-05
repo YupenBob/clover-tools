@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdown 转 HTML - CloverTools</title>
+  <link rel="stylesheet" href="../../src/shared.css">
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/">工具</a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>Markdown 转 HTML</h1>
+        <p class="description">Markdown 实时渲染为 HTML</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>Markdown 输入</h3>
+          <textarea id="input" placeholder="输入 Markdown 文本..." style="min-height:300px;font-family:monospace;"></textarea>
+        </div>
+        <div class="tool-card">
+          <h3>实时预览</h3>
+          <div id="preview" class="md-preview" style="min-height:300px;padding:1rem;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>HTML 代码 <button class="copy-btn" id="copyHtml">复制 HTML</button></h3>
+        <textarea id="htmlOutput" readonly style="font-family:monospace;font-size:0.85rem;"></textarea>
+      </div>
+      <style>
+        .md-preview { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; }
+        .md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4, .md-preview h5, .md-preview h6 { margin: 1em 0 0.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .md-preview h1 { font-size: 1.6rem; } .md-preview h2 { font-size: 1.4rem; } .md-preview h3 { font-size: 1.2rem; }
+        .md-preview p { margin: 0.8em 0; }
+        .md-preview ul, .md-preview ol { padding-left: 1.5em; margin: 0.8em 0; }
+        .md-preview li { margin: 0.3em 0; }
+        .md-preview blockquote { border-left: 4px solid #ddd; padding: 0.5em 1em; margin: 0.8em 0; color: #666; background: #f9f9f9; border-radius: 0 8px 8px 0; }
+        .md-preview code { background: #f0f0f0; padding: 0.15em 0.4em; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.88em; }
+        .md-preview pre { background: #1e1e1e; color: #d4d4d4; padding: 1em; border-radius: 10px; overflow-x: auto; margin: 0.8em 0; }
+        .md-preview pre code { background: none; padding: 0; color: inherit; }
+        .md-preview a { color: #4a90e2; text-decoration: none; }
+        .md-preview a:hover { text-decoration: underline; }
+        .md-preview img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
+        .md-preview table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+        .md-preview th, .md-preview td { border: 1px solid #ddd; padding: 0.5em 0.8em; text-align: left; }
+        .md-preview th { background: #f5f5f5; font-weight: 600; }
+        .md-preview hr { border: none; border-top: 2px solid #eee; margin: 1.5em 0; }
+        .md-preview strong { font-weight: 700; }
+      </style>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
+    }
+
+    
+      const input = document.getElementById('input');
+      const preview = document.getElementById('preview');
+      const htmlOutput = document.getElementById('htmlOutput');
+
+      // Simple Markdown parser
+      function parseMarkdown(text) {
+        if (!text) return '';
+        let html = text;
+
+        // Escape HTML
+        html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // Code blocks (```...```)
+        html = html.replace(/```([\s\S]*?)```/g, (_, code) => '<pre><code>' + code.replace(/`/g, '&#96;') + '</code></pre>');
+        // Inline code
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Headers
+        html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+        html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+        html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+        // Bold & Italic
+        html = html.replace(/***(.+?)***/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/**(.+?)**/g, '<strong>$1</strong>');
+        html = html.replace(/*(.+?)*/g, '<em>$1</em>');
+        html = html.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+        // Blockquote
+        html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+        // Unordered list
+        html = html.replace(/^[\-*+] (.+)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>{{TOOL_SCRIPT}}</ul>');
+
+        // Ordered list
+        html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+        // Links
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+        // Images
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;">');
+
+        // Horizontal rule
+        html = html.replace(/^---$/gm, '<hr>');
+        html = html.replace(/^\*\*\*$/gm, '<hr>');
+
+        // Tables (simple)
+        const tableRegex = /^\|(.+)\|\n\|[\|:- \|]+\|\n((?:\|.+\|\n?)+)/gm;
+        html = html.replace(tableRegex, (_, header, body) => {
+          const headers = header.split('|').filter(h => h.trim()).map(h => '<th>' + h.trim() + '</th>').join('');
+          const rows = body.trim().split('\n').map(row => {
+            const cells = row.split('|').filter(c => c !== undefined && c.trim() !== '').map(c => '<td>' + c.trim() + '</td>').join('');
+            return '<tr>' + cells + '</tr>';
+          }).join('');
+          return '<table><thead><tr>' + headers + '</tr></thead><tbody>' + rows + '</tbody></table>';
+        });
+
+        // Paragraphs
+        const lines = html.split('\n');
+        const result = [];
+        let inBlock = false;
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) { if (inBlock) { result.push('</p>'); inBlock = false; } continue; }
+          if (trimmed.startsWith('<h') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<pre') || trimmed.startsWith('<table') || trimmed.startsWith('<hr')) {
+            if (inBlock) { result.push('</p>'); inBlock = false; }
+            result.push(trimmed);
+          } else if (trimmed.startsWith('</')) {
+            result.push(trimmed);
+          } else {
+            if (!inBlock) { result.push('<p>' + trimmed); inBlock = true; }
+            else result.push(trimmed);
+          }
+        }
+        if (inBlock) result.push('</p>');
+        return result.join('\n');
+      }
+
+      function update() {
+        const md = input.value;
+        const html = parseMarkdown(md);
+        preview.innerHTML = html;
+        htmlOutput.value = html;
+      }
+
+      input.addEventListener('input', update);
+      document.getElementById('copyHtml').addEventListener('click', () => copyToClipboard(htmlOutput.value));
+      update();
+    
+  </script>
+</body>
+</html>
