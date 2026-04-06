@@ -32,17 +32,40 @@
       </div>
       <div class="tool-layout ">
         
-      <div class="grid-upload-area" id="dropZone" style="border:2px dashed var(--border);border-radius:12px;padding:3rem;text-align:center;cursor:pointer;transition:border-color 0.2s;">
-        <input type="file" id="imgInput" accept="image/*" style="display:none;">
-        <p style="font-size:1.1rem;margin-bottom:0.5rem;">📐 点击或拖拽上传图片</p>
-        <p style="font-size:0.8rem;opacity:0.5;">支持 JPG/PNG/WebP，自动切割为 3×3 九宫格</p>
+      <style>
+        .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; cursor: pointer; transition: border-color 0.2s; }
+        .upload-area:hover { border-color: var(--primary); }
+        .upload-area.dragover { background: var(--card-bg); border-color: var(--primary); }
+        #file-input { display: none; }
+        .preview-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--grid-gap, 0px); margin-bottom: 1.5rem; }
+        .grid-item { aspect-ratio: 1/1; background: var(--card-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--border); cursor: pointer; transition: border-color 0.2s; overflow: hidden; }
+        .grid-item:hover { border-color: var(--primary); }
+        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
+        .controls { background: var(--card-bg); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .controls label { font-size: 0.9rem; white-space: nowrap; }
+        .controls input[type="range"] { flex: 1; min-width: 120px; }
+        .gap-value { font-size: 0.85rem; color: var(--text-secondary); min-width: 35px; }
+        .button-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn { padding: 0.65rem 1.5rem; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-secondary:hover:not(:disabled) { border-color: var(--primary); }
+      </style>
+      <div class="upload-area" id="drop-area">
+        <p>点击或拖拽图片到这里（支持 JPG/PNG）</p>
+        <input type="file" id="file-input" accept="image/jpeg,image/png">
       </div>
-      <div id="previewGrid" style="display:none;margin-top:2rem;">
-        <p style="margin-bottom:1rem;font-weight:600;">切割预览（点击某格可查看大图）</p>
-        <div id="gridContainer" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:600px;margin:0 auto;"></div>
-        <div style="text-align:center;margin-top:1.5rem;">
-          <button class="btn btn-primary" id="downloadAll" style="font-size:1rem;padding:0.75rem 2rem;">📥 打包下载全部 9 张</button>
-        </div>
+      <div class="controls">
+        <label for="gap-input">间隙大小：</label>
+        <input type="range" id="gap-input" min="0" max="20" value="0">
+        <span class="gap-value" id="gap-value">0px</span>
+      </div>
+      <div class="preview-container" id="preview-container"></div>
+      <div class="button-group">
+        <button class="btn btn-primary" id="process-btn" disabled>生成九宫格</button>
+        <button class="btn btn-secondary" id="download-btn" disabled>下载全部</button>
       </div>
       </div>
     </div>
@@ -67,59 +90,94 @@
     }
 
     
-      const dropZone = document.getElementById('dropZone');
-      const imgInput = document.getElementById('imgInput');
-      const previewGrid = document.getElementById('previewGrid');
-      const gridContainer = document.getElementById('gridContainer');
-
-      dropZone.addEventListener('click', () => imgInput.click());
-      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
-      dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '');
-      dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = ''; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-      imgInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-
-      function handleFile(file) {
+      const dropArea = document.getElementById('drop-area');
+      const fileInput = document.getElementById('file-input');
+      const previewContainer = document.getElementById('preview-container');
+      const processBtn = document.getElementById('process-btn');
+      const downloadBtn = document.getElementById('download-btn');
+      const gapInput = document.getElementById('gap-input');
+      const gapValue = document.getElementById('gap-value');
+      let originalImage = null;
+      let gridImages = [];
+      let currentGap = 0;
+      for (let i = 0; i < 9; i++) {
+        const item = document.createElement('div');
+        item.className = 'grid-item';
+        item.innerHTML = '<span>+</span>';
+        previewContainer.appendChild(item);
+      }
+      gapInput.addEventListener('input', () => {
+        currentGap = parseInt(gapInput.value);
+        gapValue.textContent = currentGap + 'px';
+        document.documentElement.style.setProperty('--grid-gap', currentGap + 'px');
+      });
+      dropArea.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', handleFileSelect);
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+      });
+      ['dragenter', 'dragover'].forEach(n => dropArea.addEventListener(n, () => dropArea.classList.add('dragover'), false));
+      ['dragleave', 'drop'].forEach(n => dropArea.addEventListener(n, () => dropArea.classList.remove('dragover'), false));
+      dropArea.addEventListener('drop', e => {
+        const files = e.dataTransfer.files;
+        if (files.length) handleFiles(files);
+      }, false);
+      function handleFileSelect(e) {
+        const files = e.target.files;
+        if (files.length) handleFiles(files);
+      }
+      function handleFiles(files) {
+        const file = files[0];
+        if (!file.type.match('image/jpeg') && !file.type.match('image/png')) { alert('仅支持 JPG/PNG 格式'); return; }
         const reader = new FileReader();
         reader.onload = e => {
-          const img = new Image();
-          img.onload = () => {
-            const w = img.width, h = img.height;
-            const cols = 3, rows = 3;
-            const sw = w / cols, sh = h / rows;
-            gridContainer.innerHTML = '';
-            const parts = [];
-            for (let r = 0; r < rows; r++) {
-              for (let c = 0; c < cols; c++) {
-                const canvas = document.createElement('canvas');
-                canvas.width = sw; canvas.height = sh;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, c * sw, r * sh, sw, sh, 0, 0, sw, sh);
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                parts.push({ idx: r * cols + c + 1, url: dataUrl, canvas });
-                const div = document.createElement('div');
-                div.style.cursor = 'pointer';
-                div.innerHTML = '<img src="' + dataUrl + '" style="width:100%;display:block;">';
-                div.addEventListener('click', () => {
-                  const a = document.createElement('a');
-                  a.download = 'grid_' + (r * cols + c + 1) + '.jpg';
-                  a.href = dataUrl; a.click();
-                });
-                gridContainer.appendChild(div);
-              }
-            }
-            previewGrid.style.display = 'block';
-          };
-          img.src = e.target.result;
+          originalImage = new Image();
+          originalImage.onload = () => { processBtn.disabled = false; };
+          originalImage.src = e.target.result;
         };
         reader.readAsDataURL(file);
       }
-
-      document.getElementById('downloadAll').addEventListener('click', () => {
-        const links = gridContainer.querySelectorAll('img');
-        links.forEach((img, i) => {
-          const a = document.createElement('a');
-          a.download = 'grid_' + (i + 1) + '.jpg';
-          a.href = img.src; a.click();
+      processBtn.addEventListener('click', () => {
+        if (!originalImage) return;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const size = Math.min(originalImage.width, originalImage.height);
+        const startX = (originalImage.width - size) / 2;
+        const startY = (originalImage.height - size) / 2;
+        canvas.width = size; canvas.height = size;
+        ctx.drawImage(originalImage, startX, startY, size, size, 0, 0, size, size);
+        gridImages = [];
+        const tileSize = size / 3;
+        const gap = currentGap;
+        const outputSize = tileSize + gap;
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = outputSize; tempCanvas.height = outputSize;
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            tempCtx.clearRect(0, 0, outputSize, outputSize);
+            tempCtx.fillStyle = 'rgba(0,0,0,0)';
+            tempCtx.fillRect(0, 0, outputSize, outputSize);
+            tempCtx.drawImage(canvas, col * tileSize, row * tileSize, tileSize, tileSize, gap/2, gap/2, tileSize, tileSize);
+            gridImages.push(tempCanvas.toDataURL('image/png'));
+          }
+        }
+        const items = previewContainer.querySelectorAll('.grid-item');
+        items.forEach((item, index) => {
+          item.innerHTML = '<img src="' + gridImages[index] + '">';
+          item.onclick = () => {
+            const a = document.createElement('a');
+            a.download = 'clover-grid-' + (index + 1) + '.png';
+            a.href = gridImages[index]; a.click();
+          };
+        });
+        downloadBtn.disabled = false;
+      });
+      downloadBtn.addEventListener('click', () => {
+        gridImages.forEach((dataUrl, index) => {
+          const link = document.createElement('a');
+          link.download = 'clover-grid-' + (index + 1) + '.png';
+          link.href = dataUrl; link.click();
         });
       });
     
