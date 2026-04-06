@@ -1,0 +1,116 @@
+Implement template inheritance for CloverTools static site generator in /root/.openclaw/workspace/projects/clover-tools-v2.
+
+## Current System
+- generator.js uses a two-pass layout system
+- templates/layouts/base.html = root layout
+- templates/layouts/tool.html = tool layout with {{PAGE_STYLES}}, {{PAGE_CONTENT}}, {{PAGE_SCRIPT}}
+- renderPageFromLayout(layoutContent, pageData) renders tool pages
+
+## What to do
+
+### 1. Create templates/tool-bases/time-tool-base.html
+A base template for all time tools (time/countdown, time/interval, time/age, time/world, time/world-clock, time/timestamp).
+It should have these sections parseable by regex:
+- `<style data-base="styles">...</style>` for CSS
+- `<!-- BASE_CONTENT -->...</!-- BASE_CONTENT -->` for optional HTML
+- `<!-- BASE_SCRIPT -->...</!-- BASE_SCRIPT -->` for optional JS
+
+Include these common time tool styles:
+```html
+<style data-base="styles">
+  .time-display { font-size: 2.5rem; font-weight: 700; text-align: center; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.05em; }
+  .result-display { background: var(--bg-secondary); border-radius: 16px; padding: 2rem; text-align: center; margin: 1rem 0; }
+  .kbd-row { text-align: center; margin-top: 0.75rem; font-size: 0.82rem; opacity: 0.65; }
+  kbd.kbd { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-family: inherit; font-size: 0.8rem; }
+  .zone-card { background: var(--bg-secondary); border-radius: 10px; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+</style>
+<!-- BASE_CONTENT --><!-- /BASE_CONTENT -->
+<!-- BASE_SCRIPT --><!-- /BASE_SCRIPT -->
+```
+
+### 2. Modify generator.js in 3 places
+
+**Place A** - After the template loading section (after LAYOUTS_DIR loading), add:
+```javascript
+// Tool base templates (category inheritance)
+const TOOL_BASES_DIR = path.join(TEMPLATES_DIR, 'tool-bases');
+let timeToolBase = '';
+try {
+  timeToolBase = fs.readFileSync(path.join(TOOL_BASES_DIR, 'time-tool-base.html'), 'utf8');
+} catch(e) { timeToolBase = ''; }
+```
+
+**Place B** - Modify `renderPageFromLayout` function signature and body. Change:
+```javascript
+function renderPageFromLayout(layoutContent, pageData) {
+```
+to:
+```javascript
+function renderPageFromLayout(layoutContent, pageData, baseTemplate) {
+  baseTemplate = baseTemplate || {};
+```
+And change these 3 replacements inside the function:
+```javascript
+    .replace('{{PAGE_STYLES}}', pageStyles)
+    .replace('{{PAGE_CONTENT}}', pageContent)
+    .replace('{{PAGE_SCRIPT}}', pageScripts)
+```
+to:
+```javascript
+    .replace('{{PAGE_STYLES}}', (baseTemplate.styles || '') + pageStyles)
+    .replace('{{PAGE_CONTENT}}', (baseTemplate.content || '') + pageContent)
+    .replace('{{PAGE_SCRIPT}}', pageScripts + (baseTemplate.script || ''))
+```
+
+**Place C** - Add resolveToolBase function AND modify the tool generation loop.
+
+Add this function before the `generate()` function:
+```javascript
+function resolveToolBase(toolPath) {
+  if (!timeToolBase) return null;
+  if (toolPath.startsWith('time/')) {
+    const styleMatch = timeToolBase.match(/<style data-base="styles">([\s\S]*?)<\/style>/);
+    const contentMatch = timeToolBase.match(/<!-- BASE_CONTENT -->([\s\S]*?)<!-- \/BASE_CONTENT -->/);
+    const scriptMatch = timeToolBase.match(/<!-- BASE_SCRIPT -->([\s\S]*?)<!-- \/BASE_SCRIPT -->/);
+    return {
+      styles: styleMatch ? styleMatch[1].trim() : '',
+      content: contentMatch ? contentMatch[1].trim() : '',
+      script: scriptMatch ? scriptMatch[1].trim() : '',
+    };
+  }
+  return null;
+}
+```
+
+In the tool generation loop inside generate(), where it calls renderPageFromLayout, add baseTemplate resolution:
+Change:
+```javascript
+      const pageHtml = renderPageFromLayout(toolLayoutRendered, {
+        ogTitle: toolOgTitle,
+        ogDesc: toolOgDesc,
+        ogImage: toolOgImage,
+        canonical: toolCanonical,
+        cssPath: relCss,
+      });
+```
+To:
+```javascript
+      const baseTemplate = resolveToolBase(tool.path);
+      const pageHtml = renderPageFromLayout(toolLayoutRendered, {
+        ogTitle: toolOgTitle,
+        ogDesc: toolOgDesc,
+        ogImage: toolOgImage,
+        canonical: toolCanonical,
+        cssPath: relCss,
+      }, baseTemplate);
+```
+
+### 3. Run generator
+After all changes: `cd /root/.openclaw/workspace/projects/clover-tools-v2 && node generator.js`
+
+## Rules
+- Do NOT modify any existing tool HTML content in buildToolContentHtml
+- Do NOT modify any existing tool scripts in buildToolScript
+- Only add new infrastructure code
+- Keep all existing functionality 100% intact
+- The time-tool-base is OPTIONAL - tools that do not use it work exactly as before

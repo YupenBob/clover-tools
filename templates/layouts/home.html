@@ -1,0 +1,81 @@
+{{!-- Home page layout — provides styles/scripts for base.html --}}
+
+{{PAGE_STYLES}}
+<style>
+  /* Homepage-only styles */
+  .page-hero { padding: 3.5rem 0 2.5rem; text-align: center; }
+  .page-hero h1 { font-size: 3rem; margin-bottom: 0.75rem; }
+  .page-hero .subtitle { font-size: 1.15rem; opacity: 0.65; }
+  .categories { padding: 0 0 3rem; }
+  /* SVG icon sizing */
+  .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+  .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+  .nav-icon-link span { font-size: 0.9rem; }
+  .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
+</style>
+
+{{PAGE_CONTENT}}
+<div class="hero">
+  <h1>🍀 CloverTools</h1>
+  <p class="subtitle">轻量级开发者工具箱 · 无需后端 · 完全本地运行</p>
+  <div class="search-box">
+    <input type="text" id="tool-search" placeholder="搜索工具... (Ctrl+K)" autocomplete="off">
+  </div>
+  <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+    <button class="btn-random" id="randomToolBtn"><svg class="btn-icon" aria-hidden="true"><use href="#icon-dice"/></svg>随机工具</button>
+  </div>
+</div>
+<div class="categories" id="categories">
+  {{CATEGORIES_HTML}}
+</div>
+
+{{PAGE_SCRIPT}}
+<script>
+  // Search
+  const searchInput = document.getElementById('tool-search');
+  const categoryCards = document.querySelectorAll('.category');
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    categoryCards.forEach(card => {
+      const items = card.querySelectorAll('li');
+      let anyVisible = false;
+      items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        const show = !q || text.includes(q);
+        li.style.display = show ? '' : 'none';
+        if (show) anyVisible = true;
+      });
+      card.style.display = anyVisible ? '' : 'none';
+    });
+  });
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
+
+  // Random tool: fetch tools.json and jump to a random tool page
+  document.getElementById('randomToolBtn').addEventListener('click', function() {
+    fetch('/tools.json')
+      .then(function(res) { return res.json(); })
+      .then(function(categories) {
+        var allTools = [];
+        categories.forEach(function(cat) {
+          cat.tools.forEach(function(tool) {
+            allTools.push(tool);
+          });
+        });
+        if (allTools.length === 0) {
+          showToast('暂无可用工具');
+          return;
+        }
+        var idx = Math.floor(Math.random() * allTools.length);
+        var tool = allTools[idx];
+        window.location.href = '/tools/' + tool.path;
+      })
+      .catch(function() {
+        showToast('加载工具列表失败');
+      });
+  });
+</script>
