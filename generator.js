@@ -1376,6 +1376,64 @@ function buildToolScript(tool) {
         link.click();
       });
     `,
+
+    'life/grid-splitter': `
+      const dropZone = document.getElementById('dropZone');
+      const imgInput = document.getElementById('imgInput');
+      const previewGrid = document.getElementById('previewGrid');
+      const gridContainer = document.getElementById('gridContainer');
+
+      dropZone.addEventListener('click', () => imgInput.click());
+      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; });
+      dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '');
+      dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = ''; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+      imgInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+      function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = new Image();
+          img.onload = () => {
+            const w = img.width, h = img.height;
+            const cols = 3, rows = 3;
+            const sw = w / cols, sh = h / rows;
+            gridContainer.innerHTML = '';
+            const parts = [];
+            for (let r = 0; r < rows; r++) {
+              for (let c = 0; c < cols; c++) {
+                const canvas = document.createElement('canvas');
+                canvas.width = sw; canvas.height = sh;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, c * sw, r * sh, sw, sh, 0, 0, sw, sh);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                parts.push({ idx: r * cols + c + 1, url: dataUrl, canvas });
+                const div = document.createElement('div');
+                div.style.cursor = 'pointer';
+                div.innerHTML = '<img src="' + dataUrl + '" style="width:100%;display:block;">';
+                div.addEventListener('click', () => {
+                  const a = document.createElement('a');
+                  a.download = 'grid_' + (r * cols + c + 1) + '.jpg';
+                  a.href = dataUrl; a.click();
+                });
+                gridContainer.appendChild(div);
+              }
+            }
+            previewGrid.style.display = 'block';
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      document.getElementById('downloadAll').addEventListener('click', () => {
+        const links = gridContainer.querySelectorAll('img');
+        links.forEach((img, i) => {
+          const a = document.createElement('a');
+          a.download = 'grid_' + (i + 1) + '.jpg';
+          a.href = img.src; a.click();
+        });
+      });
+    `,
   };
 
   return scripts[key] || `// TODO: implement ${tool.path}`;
@@ -2069,6 +2127,20 @@ function buildToolContentHtml(tool) {
         <button class="btn btn-primary" id="exportBtn">📥 导出壁纸</button>
       </div>
       <p style="margin-top:0.75rem;font-size:0.8rem;opacity:0.5;">移动鼠标或打字产生粒子动画。5秒无操作自动停止声音。</p>`,
+
+    'life/grid-splitter': `
+      <div class="grid-upload-area" id="dropZone" style="border:2px dashed var(--border);border-radius:12px;padding:3rem;text-align:center;cursor:pointer;transition:border-color 0.2s;">
+        <input type="file" id="imgInput" accept="image/*" style="display:none;">
+        <p style="font-size:1.1rem;margin-bottom:0.5rem;">📐 点击或拖拽上传图片</p>
+        <p style="font-size:0.8rem;opacity:0.5;">支持 JPG/PNG/WebP，自动切割为 3×3 九宫格</p>
+      </div>
+      <div id="previewGrid" style="display:none;margin-top:2rem;">
+        <p style="margin-bottom:1rem;font-weight:600;">切割预览（点击某格可查看大图）</p>
+        <div id="gridContainer" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;max-width:600px;margin:0 auto;"></div>
+        <div style="text-align:center;margin-top:1.5rem;">
+          <button class="btn btn-primary" id="downloadAll" style="font-size:1rem;padding:0.75rem 2rem;">📥 打包下载全部 9 张</button>
+        </div>
+      </div>`,
   };
 
   return contents[key] || '';
