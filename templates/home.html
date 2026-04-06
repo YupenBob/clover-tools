@@ -3,8 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CloverTools - 轻量级开发者工具箱</title>
+  <title>{{PAGE_OG_TITLE}}</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{PAGE_OG_TITLE}}">
+  <meta property="og:description" content="{{PAGE_OG_DESC}}">
+  <meta property="og:image" content="{{PAGE_OG_IMAGE}}">
+  <meta property="og:url" content="{{PAGE_URL}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="{{PAGE_OG_TITLE}}">
+  <meta name="twitter:description" content="{{PAGE_OG_DESC}}">
+  <meta name="twitter:image" content="{{PAGE_OG_IMAGE}}">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="{{PAGE_CANONICAL_URL}}">
   <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="/src/shared.js"></script>
   <style>
     /* Homepage-only styles */
     .page-hero { padding: 3.5rem 0 2.5rem; text-align: center; }
@@ -12,20 +32,19 @@
     .page-hero .subtitle { font-size: 1.15rem; opacity: 0.65; }
     .categories { padding: 0 0 3rem; }
     footer { margin-top: auto; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <a href="/" class="site-logo">🍀 CloverTools</a>
-      <nav class="site-nav">
-        <a href="/">工具</a>
-        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
-      </nav>
-    </div>
-  </header>
+  {{SVG_SPRITE}}
+
+  {{SITE_HEADER}}
 
   <main class="page-body">
     <div class="container">
@@ -35,6 +54,9 @@
         <div class="search-box">
           <input type="text" id="tool-search" placeholder="搜索工具... (Ctrl+K)" autocomplete="off">
         </div>
+        <div class="btn-row" style="justify-content:center;margin-top:1rem;">
+          <button class="btn-random" id="randomToolBtn"><svg class="btn-icon" aria-hidden="true"><use href="#icon-dice"/></svg>随机工具</button>
+        </div>
       </div>
       <div class="categories" id="categories">
         {{CATEGORIES_HTML}}
@@ -42,13 +64,14 @@
     </div>
   </main>
 
-  <footer class="site-footer">
-    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
-  </footer>
+  {{SITE_FOOTER}}
 
   <div id="toast"></div>
 
   <script>
+    CT.initTheme();
+    CT.initKeyboardShortcuts();
+
     // Search
     const searchInput = document.getElementById('tool-search');
     const categoryCards = document.querySelectorAll('.category');
@@ -73,13 +96,29 @@
       }
     });
 
-    // Toast
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2000);
-    }
+    // Random tool: fetch tools.json and jump to a random tool page
+    document.getElementById('randomToolBtn').addEventListener('click', function() {
+      fetch('/tools.json')
+        .then(function(res) { return res.json(); })
+        .then(function(categories) {
+          var allTools = [];
+          categories.forEach(function(cat) {
+            cat.tools.forEach(function(tool) {
+              allTools.push(tool);
+            });
+          });
+          if (allTools.length === 0) {
+            CT.showToast('暂无可用工具');
+            return;
+          }
+          var idx = Math.floor(Math.random() * allTools.length);
+          var tool = allTools[idx];
+          window.location.href = '/tools/' + tool.path;
+        })
+        .catch(function() {
+          CT.showToast('加载工具列表失败');
+        });
+    });
   </script>
 </body>
 </html>

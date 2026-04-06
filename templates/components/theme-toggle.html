@@ -1,0 +1,18 @@
+<script>
+// Theme toggle
+var toggleBtn = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('clover-theme', theme);
+  toggleBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+  toggleBtn.setAttribute('title', theme === 'dark' ? '切换到亮色模式' : '切换到暗黑模式');
+}
+(function() {
+  var saved = localStorage.getItem('clover-theme') || 'light';
+  applyTheme(saved);
+})();
+toggleBtn.addEventListener('click', function() {
+  var current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+});
+</script>

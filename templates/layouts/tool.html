@@ -1,0 +1,38 @@
+{{!-- Tool page layout — provides styles/scripts for base.html --}}
+
+{{PAGE_STYLES}}
+<style>
+  /* Tool page layout - override defaults */
+  .page-body { padding: 2.5rem 0 4rem; }
+  .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+  .breadcrumb a { color: var(--primary); text-decoration: none; }
+  /* SVG icon sizing */
+  .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+  .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+  .nav-icon-link span { font-size: 0.9rem; }
+  .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+</style>
+
+{{PAGE_CONTENT}}
+<div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+<div class="tool-header">
+  <h1>{{TOOL_NAME}}</h1>
+  <p class="description">{{TOOL_DESC}}</p>
+</div>
+<div class="tool-layout {{LAYOUT_CLASS}}">
+  {{TOOL_CONTENT}}
+</div>
+
+{{PAGE_SCRIPT}}
+<script>
+  // Share: copy current URL to clipboard
+  document.getElementById('shareBtn').addEventListener('click', function() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('链接已复制！');
+    }).catch(() => {
+      showToast('复制失败，请手动复制地址栏');
+    });
+  });
+
+  {{TOOL_SCRIPT}}
+</script>

@@ -16,8 +16,15 @@ const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
 const toolsConfig = JSON.parse(fs.readFileSync(TOOLS_JSON_PATH, 'utf8'));
 
-// ============ Load shared CSS ============
+// ============ Load shared assets ============
 const sharedCss = fs.readFileSync(path.join(SRC_DIR, 'shared.css'), 'utf8');
+const sharedJs = fs.readFileSync(path.join(SRC_DIR, 'shared.js'), 'utf8');
+
+// ============ Load component partials ============
+const svgSpriteHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/svg-sprite.html'), 'utf8').trim();
+const headerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/header.html'), 'utf8').trim();
+const footerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/footer.html'), 'utf8').trim();
+const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-btn.html'), 'utf8').trim();
 
 // ============ Build categories HTML for homepage ============
 function buildCategoriesHtml() {
@@ -46,12 +53,30 @@ function buildCategoriesHtml() {
 // Each tool is defined as { name, description, category, path, layout, content: {html, script} }
 function buildToolPage(tool) {
   const toolScript = buildToolScript(tool);
+  const toolUrl = 'https://tools.xsanye.cn/tools/' + tool.path;
+  const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
+  const footerWithShare = footerHtml.replace(
+    '<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->',
+    shareBtnHtml
+  );
+
   let html = toolTemplate
-    .replace('{{TOOL_NAME}}', tool.name)
-    .replace('{{TOOL_DESC}}', tool.description || '')
+    .replace(/\{\{TOOL_NAME\}\}/g, tool.name)
+    .replace(/\{\{TOOL_DESC\}\}/g, tool.description || '')
     .replace('{{LAYOUT_CLASS}}', tool.layout || '')
-    .replace('{{TOOL_CONTENT}}', tool.contentHtml || '')
-    .replace('{{TOOL_SCRIPT}}', toolScript);
+    .replace(/\{\{TOOL_CONTENT\}\}/g, tool.contentHtml || '')
+    .replace(/\{\{TOOL_SCRIPT\}\}/g, toolScript)
+    // Component placeholders
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER_WITH_SHARE\}\}/g, footerWithShare)
+    .replace(/\{\{SHARE_BTN_SCRIPT\}\}/g, shareBtnScript)
+    // Meta tags
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - 🍀 CloverTools')
+    .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.description || tool.name)
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+    .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
 
   // Inject shared CSS inline for single-file tool pages
   // (dist already has it as a separate file)
@@ -1378,96 +1403,219 @@ function buildToolScript(tool) {
     `,
 
     'life/grid-splitter': `
-      const dropArea = document.getElementById('drop-area');
-      const fileInput = document.getElementById('file-input');
-      const previewContainer = document.getElementById('preview-container');
-      const processBtn = document.getElementById('process-btn');
-      const downloadBtn = document.getElementById('download-btn');
-      const gapInput = document.getElementById('gap-input');
-      const gapValue = document.getElementById('gap-value');
-      let originalImage = null;
-      let gridImages = [];
-      let currentGap = 0;
-      for (let i = 0; i < 9; i++) {
-        const item = document.createElement('div');
-        item.className = 'grid-item';
-        item.innerHTML = '<span>+</span>';
-        previewContainer.appendChild(item);
-      }
-      gapInput.addEventListener('input', () => {
-        currentGap = parseInt(gapInput.value);
-        gapValue.textContent = currentGap + 'px';
-        document.documentElement.style.setProperty('--grid-gap', currentGap + 'px');
+      const imageInput = document.getElementById('imageInput');
+      const uploadArea = document.getElementById('uploadArea');
+      const previewImg = document.getElementById('previewImg');
+      const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+      const splitBtn = document.getElementById('splitBtn');
+      const resultCard = document.getElementById('resultCard');
+      const gridResult = document.getElementById('gridResult');
+      let currentFile = null;
+      uploadArea.addEventListener('click', () => imageInput.click());
+      uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });
+      uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = 'var(--border)'; });
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--border)';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) loadImage(file);
       });
-      dropArea.addEventListener('click', () => fileInput.click());
-      fileInput.addEventListener('change', handleFileSelect);
-      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
-      });
-      ['dragenter', 'dragover'].forEach(n => dropArea.addEventListener(n, () => dropArea.classList.add('dragover'), false));
-      ['dragleave', 'drop'].forEach(n => dropArea.addEventListener(n, () => dropArea.classList.remove('dragover'), false));
-      dropArea.addEventListener('drop', e => {
-        const files = e.dataTransfer.files;
-        if (files.length) handleFiles(files);
-      }, false);
-      function handleFileSelect(e) {
-        const files = e.target.files;
-        if (files.length) handleFiles(files);
-      }
-      function handleFiles(files) {
-        const file = files[0];
-        if (!file.type.match('image/jpeg') && !file.type.match('image/png')) { alert('仅支持 JPG/PNG 格式'); return; }
+      imageInput.addEventListener('change', () => { if (imageInput.files[0]) loadImage(imageInput.files[0]); });
+      function loadImage(file) {
+        currentFile = file;
         const reader = new FileReader();
-        reader.onload = e => {
-          originalImage = new Image();
-          originalImage.onload = () => { processBtn.disabled = false; };
-          originalImage.src = e.target.result;
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          imagePreviewContainer.style.display = 'block';
+          resultCard.style.display = 'none';
+          gridResult.innerHTML = '';
         };
         reader.readAsDataURL(file);
       }
-      processBtn.addEventListener('click', () => {
-        if (!originalImage) return;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const size = Math.min(originalImage.width, originalImage.height);
-        const startX = (originalImage.width - size) / 2;
-        const startY = (originalImage.height - size) / 2;
-        canvas.width = size; canvas.height = size;
-        ctx.drawImage(originalImage, startX, startY, size, size, 0, 0, size, size);
-        gridImages = [];
-        const tileSize = size / 3;
-        const gap = currentGap;
-        const outputSize = tileSize + gap;
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = outputSize; tempCanvas.height = outputSize;
-        for (let row = 0; row < 3; row++) {
-          for (let col = 0; col < 3; col++) {
-            tempCtx.clearRect(0, 0, outputSize, outputSize);
-            tempCtx.fillStyle = 'rgba(0,0,0,0)';
-            tempCtx.fillRect(0, 0, outputSize, outputSize);
-            tempCtx.drawImage(canvas, col * tileSize, row * tileSize, tileSize, tileSize, gap/2, gap/2, tileSize, tileSize);
-            gridImages.push(tempCanvas.toDataURL('image/png'));
+      splitBtn.addEventListener('click', () => {
+        if (!previewImg.src || previewImg.src === window.location.href) { alert('请先上传图片'); return; }
+        const img = new Image();
+        img.onload = () => {
+          const cols = 3, rows = 3;
+          const w = img.width / cols, h = img.height / rows;
+          gridResult.innerHTML = '';
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, c * w, r * h, w, h, 0, 0, w, h);
+              const cell = document.createElement('div');
+              cell.style.cssText = 'position:relative;cursor:pointer;';
+              const imgEl = document.createElement('img');
+              imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
+              imgEl.style.cssText = 'width:100%;display:block;border-radius:4px;';
+              const badge = document.createElement('div');
+              badge.style.cssText = 'position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;font-size:0.7rem;padding:2px 5px;border-radius:4px;';
+              badge.textContent = (r * cols + c + 1);
+              cell.appendChild(imgEl);
+              cell.appendChild(badge);
+              cell.addEventListener('click', () => {
+                const a = document.createElement('a');
+                a.download = 'grid_' + (r * cols + c + 1) + '.jpg';
+                a.href = canvas.toDataURL('image/jpeg', 0.9);
+                a.click();
+              });
+              gridResult.appendChild(cell);
+            }
           }
-        }
-        const items = previewContainer.querySelectorAll('.grid-item');
-        items.forEach((item, index) => {
-          item.innerHTML = '<img src="' + gridImages[index] + '">';
-          item.onclick = () => {
+          resultCard.style.display = 'block';
+        };
+        img.src = previewImg.src;
+      });
+      document.getElementById('downloadAllBtn').addEventListener('click', () => {
+        const cells = gridResult.querySelectorAll('canvas, img');
+        cells.forEach((el, i) => {
+          if (el.tagName === 'IMG') {
             const a = document.createElement('a');
-            a.download = 'clover-grid-' + (index + 1) + '.png';
-            a.href = gridImages[index]; a.click();
-          };
-        });
-        downloadBtn.disabled = false;
-      });
-      downloadBtn.addEventListener('click', () => {
-        gridImages.forEach((dataUrl, index) => {
-          const link = document.createElement('a');
-          link.download = 'clover-grid-' + (index + 1) + '.png';
-          link.href = dataUrl; link.click();
+            a.download = 'grid_' + (i + 1) + '.jpg';
+            a.href = el.src;
+            a.click();
+          }
         });
       });
+    `,
+    'life/time-annotate': `
+      let mode = 'stopwatch';
+      let timerInterval = null;
+      let startTime = 0;
+      let pausedTime = 0;
+      let isRunning = false;
+      let pomodoroState = 'work';
+      let pomodoroTimer = null;
+      let pomodoroRemaining = 0;
+      let timeline = [];
+      const display = document.getElementById('timerDisplay');
+      const label = document.getElementById('timerLabel');
+      const startBtn = document.getElementById('startBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const annotateBtn = document.getElementById('annotateBtn');
+      const modeStopwatch = document.getElementById('modeStopwatch');
+      const modePomodoro = document.getElementById('modePomodoro');
+      const pomodoroSettings = document.getElementById('pomodoroSettings');
+      const pomodoroStatus = document.getElementById('pomodoroStatus');
+      const annotationInput = document.getElementById('annotationInput');
+      const annotationText = document.getElementById('annotationText');
+      const saveAnnotationBtn = document.getElementById('saveAnnotationBtn');
+      const timelineEl = document.getElementById('timeline');
+      const timelineEmpty = document.getElementById('timelineEmpty');
+      const timelineStats = document.getElementById('timelineStats');
+      const clearTimelineBtn = document.getElementById('clearTimelineBtn');
+
+      function formatTime(ms) {
+        const s = Math.floor(ms / 1000) % 60;
+        const m = Math.floor(ms / 60000) % 60;
+        const h = Math.floor(ms / 3600000);
+        return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      }
+      function updateDisplay() { display.textContent = formatTime(pausedTime); }
+      function startTimer() {
+        if (isRunning) return;
+        isRunning = true;
+        startTime = Date.now() - pausedTime;
+        timerInterval = setInterval(() => {
+          pausedTime = Date.now() - startTime;
+          updateDisplay();
+        }, 100);
+      }
+      function pauseTimer() {
+        if (!isRunning) return;
+        isRunning = false;
+        clearInterval(timerInterval);
+        pausedTime = Date.now() - startTime;
+      }
+      function resetTimer() {
+        isRunning = false;
+        clearInterval(timerInterval);
+        clearInterval(pomodoroTimer);
+        pausedTime = 0;
+        pomodoroState = 'work';
+        pomodoroRemaining = 0;
+        updateDisplay();
+        if (mode === 'pomodoro') { pomodoroStatus.textContent = ''; label.textContent = '番茄钟'; }
+      }
+      function addAnnotation(text) {
+        const entry = { time: pausedTime, text: text || '', ts: new Date().toLocaleTimeString('zh-CN') };
+        timeline.unshift(entry);
+        renderTimeline();
+      }
+      function renderTimeline() {
+        if (timeline.length === 0) {
+          timelineEmpty.style.display = 'block';
+          timelineStats.style.display = 'none';
+          timelineEl.innerHTML = '';
+          timelineEl.appendChild(timelineEmpty);
+          return;
+        }
+        timelineEmpty.style.display = 'none';
+        timelineStats.style.display = 'block';
+        const totalMs = timeline[0] ? timeline[0].time : 0;
+        document.getElementById('statCount').textContent = timeline.length;
+        document.getElementById('statTotal').textContent = formatTime(totalMs);
+        const avg = timeline.length > 1 ? Math.round(totalMs / (timeline.length - 1) / 1000) + 's' : '—';
+        document.getElementById('statInterval').textContent = avg;
+        let html = '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+        timeline.forEach((entry) => {
+          const tag = entry.text ? '<span style="background:var(--primary);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:10px;margin-left:0.3rem;">' + entry.text + '</span>' : '';
+          html += '<div style="display:flex;align-items:center;padding:0.4rem 0.6rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;"><span style="opacity:0.5;margin-right:0.5rem;">' + entry.ts + '</span><span style="font-weight:600;font-family:monospace;">' + formatTime(entry.time) + '</span>' + tag + '</div>';
+        });
+        html += '</div>';
+        timelineEl.innerHTML = html;
+      }
+      function startPomodoro() {
+        const workMin = parseInt(document.getElementById('workDuration').value) || 25;
+        const breakMin = parseInt(document.getElementById('breakDuration').value) || 5;
+        pomodoroState = 'work';
+        pomodoroRemaining = workMin * 60000;
+        label.textContent = '🍅 工作时间';
+        pomodoroStatus.textContent = '第 1 个番茄';
+        clearInterval(pomodoroTimer);
+        pomodoroTimer = setInterval(() => {
+          pomodoroRemaining -= 1000;
+          const mins = Math.floor(pomodoroRemaining / 60000);
+          const secs = Math.floor(pomodoroRemaining % 60000 / 1000);
+          display.textContent = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+          if (pomodoroRemaining <= 0) {
+            if (pomodoroState === 'work') {
+              pomodoroState = 'break';
+              pomodoroRemaining = breakMin * 60000;
+              label.textContent = '☕ 休息时间';
+              pomodoroStatus.textContent = '工作完成！休息一下';
+              addAnnotation('🍅 番茄完成');
+            } else {
+              pomodoroState = 'work';
+              pomodoroRemaining = workMin * 60000;
+              label.textContent = '🍅 工作时间';
+              pomodoroStatus.textContent = '休息结束，继续加油';
+              addAnnotation('☕ 休息结束');
+            }
+          }
+        }, 1000);
+      }
+      modeStopwatch.addEventListener('click', () => {
+        mode = 'stopwatch'; resetTimer();
+        modeStopwatch.className = 'btn btn-primary'; modePomodoro.className = 'btn btn-secondary';
+        pomodoroSettings.style.display = 'none'; annotationInput.style.display = 'none'; annotateBtn.style.display = 'none';
+        label.textContent = '专注计时'; display.textContent = '00:00:00';
+      });
+      modePomodoro.addEventListener('click', () => {
+        mode = 'pomodoro'; resetTimer();
+        modePomodoro.className = 'btn btn-primary'; modeStopwatch.className = 'btn btn-secondary';
+        pomodoroSettings.style.display = 'block'; annotationInput.style.display = 'block'; annotateBtn.style.display = 'inline-block';
+        display.textContent = '25:00'; label.textContent = '🍅 番茄钟';
+      });
+      startBtn.addEventListener('click', () => { if (mode === 'stopwatch') startTimer(); else startPomodoro(); });
+      pauseBtn.addEventListener('click', () => { if (mode === 'stopwatch') pauseTimer(); else { clearInterval(pomodoroTimer); } });
+      resetBtn.addEventListener('click', resetTimer);
+      annotateBtn.addEventListener('click', () => { addAnnotation(''); });
+      saveAnnotationBtn.addEventListener('click', () => { addAnnotation(annotationText.value); annotationText.value = ''; });
+      clearTimelineBtn.addEventListener('click', () => { timeline = []; renderTimeline(); });
     `,
   };
 
@@ -2164,41 +2312,79 @@ function buildToolContentHtml(tool) {
       <p style="margin-top:0.75rem;font-size:0.8rem;opacity:0.5;">移动鼠标或打字产生粒子动画。5秒无操作自动停止声音。</p>`,
 
     'life/grid-splitter': `
-      <style>
-        .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 1.5rem; cursor: pointer; transition: border-color 0.2s; }
-        .upload-area:hover { border-color: var(--primary); }
-        .upload-area.dragover { background: var(--card-bg); border-color: var(--primary); }
-        #file-input { display: none; }
-        .preview-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--grid-gap, 0px); margin-bottom: 1.5rem; }
-        .grid-item { aspect-ratio: 1/1; background: var(--card-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--border); cursor: pointer; transition: border-color 0.2s; overflow: hidden; }
-        .grid-item:hover { border-color: var(--primary); }
-        .grid-item img { width: 100%; height: 100%; object-fit: cover; }
-        .controls { background: var(--card-bg); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .controls label { font-size: 0.9rem; white-space: nowrap; }
-        .controls input[type="range"] { flex: 1; min-width: 120px; }
-        .gap-value { font-size: 0.85rem; color: var(--text-secondary); min-width: 35px; }
-        .button-group { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .btn { padding: 0.65rem 1.5rem; border-radius: 8px; border: none; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
-        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
-        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
-        .btn-secondary:hover:not(:disabled) { border-color: var(--primary); }
-      </style>
-      <div class="upload-area" id="drop-area">
-        <p>点击或拖拽图片到这里（支持 JPG/PNG）</p>
-        <input type="file" id="file-input" accept="image/jpeg,image/png">
+      <div class="tool-card">
+        <h3>上传图片</h3>
+        <div class="upload-area" id="uploadArea" style="border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s;background:var(--bg-secondary);">
+          <input type="file" id="imageInput" accept="image/*" style="display:none;">
+          <div style="font-size:2rem;margin-bottom:0.5rem;">📷</div>
+          <div style="color:var(--text-secondary);font-size:0.9rem;">点击选择图片或拖拽到此处</div>
+          <div style="color:var(--text-secondary);font-size:0.75rem;margin-top:0.3rem;opacity:0.6;">支持 JPG、PNG、GIF、WebP</div>
+        </div>
+        <div id="imagePreviewContainer" style="display:none;margin-top:1rem;">
+          <img id="previewImg" style="max-width:100%;max-height:300px;border-radius:8px;display:block;margin:0 auto;">
+        </div>
+        <div class="btn-row" style="margin-top:1rem;">
+          <button class="btn btn-primary" id="splitBtn">✂️ 切割为九宫格</button>
+        </div>
       </div>
-      <div class="controls">
-        <label for="gap-input">间隙大小：</label>
-        <input type="range" id="gap-input" min="0" max="20" value="0">
-        <span class="gap-value" id="gap-value">0px</span>
+      <div class="tool-card" id="resultCard" style="display:none;">
+        <h3>切割结果（3x3 九宫格）</h3>
+        <div id="gridResult" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:0.75rem;"></div>
+        <div class="btn-row" style="margin-top:1rem;justify-content:center;">
+          <button class="btn btn-primary" id="downloadAllBtn">📥 下载全部</button>
+        </div>
       </div>
-      <div class="preview-container" id="preview-container"></div>
-      <div class="button-group">
-        <button class="btn btn-primary" id="process-btn" disabled>生成九宫格</button>
-        <button class="btn btn-secondary" id="download-btn" disabled>下载全部</button>
-      </div>`,
+      <p style="font-size:0.8rem;opacity:0.5;margin-top:1rem;">💡 提示：长按或右键保存各格图片，也可点击单格放大后保存</p>
+    `,
+    'life/time-annotate': `
+      <div class="tool-card">
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="modeStopwatch" style="flex:1;">秒表模式</button>
+          <button class="btn btn-secondary" id="modePomodoro" style="flex:1;">番茄钟</button>
+        </div>
+        <div id="timerDisplay" style="font-size:3.5rem;font-weight:700;text-align:center;font-family:SF Mono,Fira Code,monospace;letter-spacing:0.05em;padding:1rem 0;color:var(--text);">00:00:00</div>
+        <div style="text-align:center;margin-bottom:1rem;">
+          <span id="timerLabel" style="font-size:0.85rem;color:var(--text-secondary);">专注计时</span>
+        </div>
+        <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="startBtn">▶ 开始</button>
+          <button class="btn btn-secondary" id="pauseBtn">⏸ 暂停</button>
+          <button class="btn btn-secondary" id="resetBtn">↺ 重置</button>
+          <button class="btn btn-secondary" id="annotateBtn" style="display:none;">🏷️ 标注时间点</button>
+        </div>
+        <div id="pomodoroSettings" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg-secondary);border-radius:12px;">
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:100px;">
+              <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">工作时长（分钟）</label>
+              <input type="number" id="workDuration" value="25" min="1" max="120" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid var(--border);">
+            </div>
+            <div style="flex:1;min-width:100px;">
+              <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">休息时长（分钟）</label>
+              <input type="number" id="breakDuration" value="5" min="1" max="60" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid var(--border);">
+            </div>
+          </div>
+          <div id="pomodoroStatus" style="text-align:center;margin-top:0.75rem;font-size:0.9rem;color:var(--primary);font-weight:600;"></div>
+        </div>
+        <div id="annotationInput" style="display:none;margin-top:0.75rem;">
+          <input type="text" id="annotationText" placeholder="输入标注内容（选填）..." style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);font-size:0.9rem;">
+          <button class="btn btn-primary" id="saveAnnotationBtn" style="margin-top:0.5rem;width:100%;">保存标注</button>
+        </div>
+      </div>
+      <div class="tool-card" id="timelineCard">
+        <h3>⏱️ 时间线记录</h3>
+        <div id="timeline" style="max-height:300px;overflow-y:auto;">
+          <div id="timelineEmpty" style="text-align:center;padding:1.5rem;color:var(--text-secondary);font-size:0.9rem;">暂无记录<br><span style="font-size:0.8rem;opacity:0.6;">点击「标注时间点」开始记录</span></div>
+        </div>
+        <div id="timelineStats" style="display:none;margin-top:1rem;padding:0.75rem;background:var(--bg-secondary);border-radius:10px;font-size:0.85rem;">
+          <div style="display:flex;justify-content:space-around;">
+            <div style="text-align:center;"><div id="statCount" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">标注次数</div></div>
+            <div style="text-align:center;"><div id="statTotal" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">总计时长</div></div>
+            <div style="text-align:center;"><div id="statInterval" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">平均间隔</div></div>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">🗑️ 清空记录</button>
+      </div>
+    `,
   };
 
   return contents[key] || '';
@@ -2221,13 +2407,24 @@ function generate() {
   ensureDir(path.join(DIST_DIR, 'src'));
   ensureDir(path.join(DIST_DIR, 'tools'));
 
-  // Copy shared CSS to dist
+  // Copy shared assets to dist
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.css'), sharedCss);
   console.log('  ✅ Copied shared.css');
+  fs.writeFileSync(path.join(DIST_DIR, 'src/shared.js'), sharedJs);
+  console.log('  ✅ Copied shared.js');
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
-  let homeHtml = homeTemplate.replace('{{CATEGORIES_HTML}}', categoriesHtml);
+  let homeHtml = homeTemplate
+    .replace('{{CATEGORIES_HTML}}', categoriesHtml)
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, '🍀 CloverTools - 轻量级开发者工具箱')
+    .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+    .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/');
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('  ✅ Generated index.html');
 
@@ -2245,20 +2442,35 @@ function generate() {
       const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
       ensureDir(toolDir);
 
+      const toolUrl = 'https://tools.xsanye.cn/tools/' + tool.path;
+      const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
+      const footerWithShare = footerHtml.replace(
+        '<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->',
+        shareBtnHtml
+      );
+
       let pageHtml = toolTemplate
         .replace(/\{\{TOOL_NAME\}\}/g, tool.name)
         .replace(/\{\{TOOL_DESC\}\}/g, tool.desc || '')
         .replace('{{LAYOUT_CLASS}}', tool.layout || '')
         .replace('{{TOOL_CONTENT}}', contentHtml)
-        .replace('{{TOOL_SCRIPT}}', script);
+        .replace('{{TOOL_SCRIPT}}', script)
+        // Component placeholders
+        .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+        .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+        .replace(/\{\{SITE_FOOTER_WITH_SHARE\}\}/g, footerWithShare)
+        .replace(/\{\{SHARE_BTN_SCRIPT\}\}/g, shareBtnScript)
+        // Meta tags
+        .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - 🍀 CloverTools')
+        .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
+        .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+        .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
+        .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
 
-      // Link shared.css from dist root
-      pageHtml = pageHtml.replace('href="/src/shared.css"', 'href="/src/shared.css"');
-      // But for tool pages nested in subdirs, we need correct path
-      // Files live at dist/tools/{category}/{tool}.html (2 dirs deep from root)
-      const depth = tool.path.split('/').length;  // time/timestamp.html → 2 levels up to reach dist/src/
-      const relCss = '../'.repeat(depth) + 'src/shared.css';
-      pageHtml = pageHtml.replace('href="/src/shared.css"', `href="${relCss}"`);
+      // For tool pages nested in subdirs (dist/tools/{cat}/{tool}.html),
+      // the relative path to dist/src/shared.css is "../../src/shared.css"
+      const relCss = '../../src/shared.css';
+      pageHtml = pageHtml.replace(/href="[^"]*shared\.css"/, `href="${relCss}"`);
 
       const outPath = path.join(DIST_DIR, 'tools', tool.path);
       fs.writeFileSync(outPath, pageHtml);
