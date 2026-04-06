@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>标注时间工具 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="标注时间工具 - 🍀 CloverTools">
+  <meta property="og:description" content="专注计时、添加时间标注、番茄钟模式、时间线记录">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/life/time-annotate.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="标注时间工具 - 🍀 CloverTools">
+  <meta name="twitter:description" content="专注计时、添加时间标注、番茄钟模式、时间线记录">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/life/time-annotate.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>标注时间工具</h1>
+        <p class="description">专注计时、添加时间标注、番茄钟模式、时间线记录</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="modeStopwatch" style="flex:1;">秒表模式</button>
+          <button class="btn btn-secondary" id="modePomodoro" style="flex:1;">番茄钟</button>
+        </div>
+        <div id="timerDisplay" style="font-size:3.5rem;font-weight:700;text-align:center;font-family:SF Mono,Fira Code,monospace;letter-spacing:0.05em;padding:1rem 0;color:var(--text);">00:00:00</div>
+        <div style="text-align:center;margin-bottom:1rem;">
+          <span id="timerLabel" style="font-size:0.85rem;color:var(--text-secondary);">专注计时</span>
+        </div>
+        <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="startBtn">▶ 开始</button>
+          <button class="btn btn-secondary" id="pauseBtn">⏸ 暂停</button>
+          <button class="btn btn-secondary" id="resetBtn">↺ 重置</button>
+          <button class="btn btn-secondary" id="annotateBtn" style="display:none;">🏷️ 标注时间点</button>
+        </div>
+        <div id="pomodoroSettings" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg-secondary);border-radius:12px;">
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+            <div style="flex:1;min-width:100px;">
+              <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">工作时长（分钟）</label>
+              <input type="number" id="workDuration" value="25" min="1" max="120" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid var(--border);">
+            </div>
+            <div style="flex:1;min-width:100px;">
+              <label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">休息时长（分钟）</label>
+              <input type="number" id="breakDuration" value="5" min="1" max="60" style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid var(--border);">
+            </div>
+          </div>
+          <div id="pomodoroStatus" style="text-align:center;margin-top:0.75rem;font-size:0.9rem;color:var(--primary);font-weight:600;"></div>
+        </div>
+        <div id="annotationInput" style="display:none;margin-top:0.75rem;">
+          <input type="text" id="annotationText" placeholder="输入标注内容（选填）..." style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);font-size:0.9rem;">
+          <button class="btn btn-primary" id="saveAnnotationBtn" style="margin-top:0.5rem;width:100%;">保存标注</button>
+        </div>
+      </div>
+      <div class="tool-card" id="timelineCard">
+        <h3>⏱️ 时间线记录</h3>
+        <div id="timeline" style="max-height:300px;overflow-y:auto;">
+          <div id="timelineEmpty" style="text-align:center;padding:1.5rem;color:var(--text-secondary);font-size:0.9rem;">暂无记录<br><span style="font-size:0.8rem;opacity:0.6;">点击「标注时间点」开始记录</span></div>
+        </div>
+        <div id="timelineStats" style="display:none;margin-top:1rem;padding:0.75rem;background:var(--bg-secondary);border-radius:10px;font-size:0.85rem;">
+          <div style="display:flex;justify-content:space-around;">
+            <div style="text-align:center;"><div id="statCount" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">标注次数</div></div>
+            <div style="text-align:center;"><div id="statTotal" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">总计时长</div></div>
+            <div style="text-align:center;"><div id="statInterval" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">平均间隔</div></div>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">🗑️ 清空记录</button>
+      </div>
+    
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+      let mode = 'stopwatch';
+      let timerInterval = null;
+      let startTime = 0;
+      let pausedTime = 0;
+      let isRunning = false;
+      let pomodoroState = 'work';
+      let pomodoroTimer = null;
+      let pomodoroRemaining = 0;
+      let timeline = [];
+      const display = document.getElementById('timerDisplay');
+      const label = document.getElementById('timerLabel');
+      const startBtn = document.getElementById('startBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const annotateBtn = document.getElementById('annotateBtn');
+      const modeStopwatch = document.getElementById('modeStopwatch');
+      const modePomodoro = document.getElementById('modePomodoro');
+      const pomodoroSettings = document.getElementById('pomodoroSettings');
+      const pomodoroStatus = document.getElementById('pomodoroStatus');
+      const annotationInput = document.getElementById('annotationInput');
+      const annotationText = document.getElementById('annotationText');
+      const saveAnnotationBtn = document.getElementById('saveAnnotationBtn');
+      const timelineEl = document.getElementById('timeline');
+      const timelineEmpty = document.getElementById('timelineEmpty');
+      const timelineStats = document.getElementById('timelineStats');
+      const clearTimelineBtn = document.getElementById('clearTimelineBtn');
+
+      function formatTime(ms) {
+        const s = Math.floor(ms / 1000) % 60;
+        const m = Math.floor(ms / 60000) % 60;
+        const h = Math.floor(ms / 3600000);
+        return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      }
+      function updateDisplay() { display.textContent = formatTime(pausedTime); }
+      function startTimer() {
+        if (isRunning) return;
+        isRunning = true;
+        startTime = Date.now() - pausedTime;
+        timerInterval = setInterval(() => {
+          pausedTime = Date.now() - startTime;
+          updateDisplay();
+        }, 100);
+      }
+      function pauseTimer() {
+        if (!isRunning) return;
+        isRunning = false;
+        clearInterval(timerInterval);
+        pausedTime = Date.now() - startTime;
+      }
+      function resetTimer() {
+        isRunning = false;
+        clearInterval(timerInterval);
+        clearInterval(pomodoroTimer);
+        pausedTime = 0;
+        pomodoroState = 'work';
+        pomodoroRemaining = 0;
+        updateDisplay();
+        if (mode === 'pomodoro') { pomodoroStatus.textContent = ''; label.textContent = '番茄钟'; }
+      }
+      function addAnnotation(text) {
+        const entry = { time: pausedTime, text: text || '', ts: new Date().toLocaleTimeString('zh-CN') };
+        timeline.unshift(entry);
+        renderTimeline();
+      }
+      function renderTimeline() {
+        if (timeline.length === 0) {
+          timelineEmpty.style.display = 'block';
+          timelineStats.style.display = 'none';
+          timelineEl.innerHTML = '';
+          timelineEl.appendChild(timelineEmpty);
+          return;
+        }
+        timelineEmpty.style.display = 'none';
+        timelineStats.style.display = 'block';
+        const totalMs = timeline[0] ? timeline[0].time : 0;
+        document.getElementById('statCount').textContent = timeline.length;
+        document.getElementById('statTotal').textContent = formatTime(totalMs);
+        const avg = timeline.length > 1 ? Math.round(totalMs / (timeline.length - 1) / 1000) + 's' : '—';
+        document.getElementById('statInterval').textContent = avg;
+        let html = '<div style="display:flex;flex-direction:column;gap:0.5rem;">';
+        timeline.forEach((entry) => {
+          const tag = entry.text ? '<span style="background:var(--primary);color:#fff;font-size:0.7rem;padding:2px 7px;border-radius:10px;margin-left:0.3rem;">' + entry.text + '</span>' : '';
+          html += '<div style="display:flex;align-items:center;padding:0.4rem 0.6rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;"><span style="opacity:0.5;margin-right:0.5rem;">' + entry.ts + '</span><span style="font-weight:600;font-family:monospace;">' + formatTime(entry.time) + '</span>' + tag + '</div>';
+        });
+        html += '</div>';
+        timelineEl.innerHTML = html;
+      }
+      function startPomodoro() {
+        const workMin = parseInt(document.getElementById('workDuration').value) || 25;
+        const breakMin = parseInt(document.getElementById('breakDuration').value) || 5;
+        pomodoroState = 'work';
+        pomodoroRemaining = workMin * 60000;
+        label.textContent = '🍅 工作时间';
+        pomodoroStatus.textContent = '第 1 个番茄';
+        clearInterval(pomodoroTimer);
+        pomodoroTimer = setInterval(() => {
+          pomodoroRemaining -= 1000;
+          const mins = Math.floor(pomodoroRemaining / 60000);
+          const secs = Math.floor(pomodoroRemaining % 60000 / 1000);
+          display.textContent = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+          if (pomodoroRemaining <= 0) {
+            if (pomodoroState === 'work') {
+              pomodoroState = 'break';
+              pomodoroRemaining = breakMin * 60000;
+              label.textContent = '☕ 休息时间';
+              pomodoroStatus.textContent = '工作完成！休息一下';
+              addAnnotation('🍅 番茄完成');
+            } else {
+              pomodoroState = 'work';
+              pomodoroRemaining = workMin * 60000;
+              label.textContent = '🍅 工作时间';
+              pomodoroStatus.textContent = '休息结束，继续加油';
+              addAnnotation('☕ 休息结束');
+            }
+          }
+        }, 1000);
+      }
+      modeStopwatch.addEventListener('click', () => {
+        mode = 'stopwatch'; resetTimer();
+        modeStopwatch.className = 'btn btn-primary'; modePomodoro.className = 'btn btn-secondary';
+        pomodoroSettings.style.display = 'none'; annotationInput.style.display = 'none'; annotateBtn.style.display = 'none';
+        label.textContent = '专注计时'; display.textContent = '00:00:00';
+      });
+      modePomodoro.addEventListener('click', () => {
+        mode = 'pomodoro'; resetTimer();
+        modePomodoro.className = 'btn btn-primary'; modeStopwatch.className = 'btn btn-secondary';
+        pomodoroSettings.style.display = 'block'; annotationInput.style.display = 'block'; annotateBtn.style.display = 'inline-block';
+        display.textContent = '25:00'; label.textContent = '🍅 番茄钟';
+      });
+      startBtn.addEventListener('click', () => { if (mode === 'stopwatch') startTimer(); else startPomodoro(); });
+      pauseBtn.addEventListener('click', () => { if (mode === 'stopwatch') pauseTimer(); else { clearInterval(pomodoroTimer); } });
+      resetBtn.addEventListener('click', resetTimer);
+      annotateBtn.addEventListener('click', () => { addAnnotation(''); });
+      saveAnnotationBtn.addEventListener('click', () => { addAnnotation(annotationText.value); annotationText.value = ''; });
+      clearTimelineBtn.addEventListener('click', () => { timeline = []; renderTimeline(); });
+    
+  </script>
+</body>
+</html>
