@@ -3,25 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{TOOL_NAME}} - CloverTools</title>
+  <title>{{PAGE_OG_TITLE}}</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{PAGE_OG_TITLE}}">
+  <meta property="og:description" content="{{PAGE_OG_DESC}}">
+  <meta property="og:image" content="{{PAGE_OG_IMAGE}}">
+  <meta property="og:url" content="{{PAGE_URL}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="{{PAGE_OG_TITLE}}">
+  <meta name="twitter:description" content="{{PAGE_OG_DESC}}">
+  <meta name="twitter:image" content="{{PAGE_OG_IMAGE}}">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="{{PAGE_CANONICAL_URL}}">
   <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
   <style>
     /* Tool page layout - override defaults */
     .page-body { padding: 2.5rem 0 4rem; }
     .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
     .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
   </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
-      <a href="/" class="site-logo">🍀 CloverTools</a>
-      <nav class="site-nav">
-        <a href="/">工具</a>
-        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
-      </nav>
-    </div>
-  </header>
+  {{SVG_SPRITE}}
+
+  {{SITE_HEADER}}
 
   <main class="page-body">
     <div class="container">
@@ -36,23 +55,17 @@
     </div>
   </main>
 
-  <footer class="site-footer">
-    <p>Made with 🍀 by Clover · Open Source · No tracking · No server</p>
-  </footer>
+  {{SITE_FOOTER_WITH_SHARE}}
 
   <div id="toast"></div>
 
   <script>
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2000);
-    }
+    CT.initTheme();
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('复制成功！')).catch(() => showToast('复制失败'));
-    }
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    {{SHARE_BTN_SCRIPT}}
 
     {{TOOL_SCRIPT}}
   </script>

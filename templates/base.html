@@ -6,20 +6,45 @@
   <title>CloverTools - 轻量级开发者工具箱</title>
   <style>
     :root {
-      --primary: #c70039; /* 蟹钳红 */
+      --primary: #c70039;
+      --primary-dark: #a0002e;
+      --primary-light: #ff3355;
       --text: #333;
       --bg: #fff;
+      --bg-secondary: #f5f5f5;
       --border: #eee;
       --card-bg: #fafafa;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --text: #e6e6e6;
-        --bg: #121212;
-        --border: #333;
-        --card-bg: #1e1e1e;
-      }
+    [data-theme="dark"] {
+      --primary: #8b5cf6;
+      --primary-dark: #6d3fcf;
+      --primary-light: #a78bfa;
+      --text: #f0f0f0;
+      --bg: #0f0f0f;
+      --bg-secondary: #1a1a1a;
+      --border: #2a2a2a;
+      --card-bg: #1a1a1a;
     }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .theme-toggle {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.35rem 0.55rem;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      color: var(--text);
+      transition: opacity 0.2s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { opacity: 0.7; }
     * {
       margin: 0;
       padding: 0;
@@ -122,12 +147,25 @@
       opacity: 0.7;
     }
   </style>
+  <script>
+    (function() {
+      var saved = localStorage.getItem('clover-theme');
+      if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>CloverTools</h1>
-      <p class="subtitle">轻量、离线、无追踪的开发者工具箱</p>
+      <div class="header-row">
+        <div>
+          <h1 style="margin-bottom:0.25rem;">CloverTools</h1>
+          <p class="subtitle" style="margin:0;">轻量、离线、无追踪的开发者工具箱</p>
+        </div>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+      </div>
       <div class="search-box">
         <input type="text" id="tool-search" placeholder="搜索工具（JSON/加密/时间...）">
       </div>
@@ -143,6 +181,24 @@
   </div>
 
   <script>
+    // Theme toggle
+    (function() {
+      var saved = localStorage.getItem('clover-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+      var btn = document.getElementById('themeToggle');
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('clover-theme', theme);
+        btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        btn.setAttribute('title', theme === 'dark' ? '切换到亮色模式' : '切换到暗黑模式');
+      }
+      applyTheme(saved);
+      btn.addEventListener('click', function() {
+        var current = document.documentElement.getAttribute('data-theme');
+        applyTheme(current === 'dark' ? 'light' : 'dark');
+      });
+    })();
+
     // 离线搜索功能
     document.getElementById('tool-search').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
