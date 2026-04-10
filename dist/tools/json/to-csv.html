@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>秒表 - 🍀 CloverTools</title>
+  <title>JSON 转 CSV - 🍀 CloverTools</title>
 
   <!-- Open Graph -->
-  <meta property="og:title" content="秒表 - 🍀 CloverTools">
-  <meta property="og:description" content="秒表计时、时间标注、时间线记录">
+  <meta property="og:title" content="JSON 转 CSV - 🍀 CloverTools">
+  <meta property="og:description" content="将 JSON 数组转换为 CSV 格式">
   <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
   <meta property="og:url" content="https://tools.xsanye.cn/">
   <meta property="og:type" content="website">
@@ -16,8 +16,8 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@CloverTools">
-  <meta name="twitter:title" content="秒表 - 🍀 CloverTools">
-  <meta name="twitter:description" content="秒表计时、时间标注、时间线记录">
+  <meta name="twitter:title" content="JSON 转 CSV - 🍀 CloverTools">
+  <meta name="twitter:description" content="将 JSON 数组转换为 CSV 格式">
   <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
 
   <!-- Canonical -->
@@ -57,22 +57,11 @@
     <div class="container">
       <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
       <div class="tool-header">
-        <h1>秒表</h1>
-        <p class="description">秒表计时、时间标注、时间线记录</p>
+        <h1>JSON 转 CSV</h1>
+        <p class="description">将 JSON 数组转换为 CSV 格式</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card">
-  <textarea id="input" placeholder="输入..." style="width:100%;min-height:120px;font-family:monospace;"></textarea>
-  <div class="btn-row" style="margin-top:0.5rem;">
-    <button class="btn btn-primary" id="runBtn">运行</button>
-    <button class="btn btn-secondary" id="clearBtn">清空</button>
-    <button class="btn btn-secondary" id="copyBtn">复制</button>
-  </div>
-</div>
-<div class="tool-card">
-  <h3>输出</h3>
-  <textarea id="output" readonly style="width:100%;min-height:120px;font-family:monospace;" placeholder="结果..."></textarea>
-</div>
+        <div class="tool-card"><h3>JSON 数据</h3><textarea id="input" placeholder="\u8f93\u5165 JSON \u6570\u7ec4" style="min-height:120px;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="toCsv">JSON\u2192CSV</button><button class="btn btn-secondary" id="fromCsv">CSV\u2192JSON</button></div></div><div class="output-box"><h3>\u8f93\u51fa <button class="copy-btn" id="copyOutput">\u590d\u5236</button></h3><textarea id="output" readonly style="font-family:monospace;min-height:120px;"></textarea></div>
       </div>
     </div>
   </main>
@@ -93,7 +82,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick=function(){navigator.clipboard.writeText(window.location.href).then(function(){CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01")}).catch(function(){CT.showToast("\u590d\u5236\u5931\u8d25")})};
 
-    document.getElementById('runBtn').onclick=()=>{document.getElementById('output').value=document.getElementById('input').value};document.getElementById('clearBtn').onclick=()=>{document.getElementById('input').value='';document.getElementById('output').value=''};document.getElementById('copyBtn').onclick=()=>copyToClipboard(document.getElementById('output').value)
+    const i=document.getElementById('input'),o=document.getElementById('output');function tc(){try{const t=i.value.trim();if(!t){o.value='';return;}const d=JSON.parse(t),a=Array.isArray(d)?d:[d];if(!a.length){o.value='';return;}const h=[...new Set(a.flatMap(x=>Object.keys(x)))];const csv=[h.join(','),...a.map(r=>h.map(h=>{const v=r[h]===undefined||r[h]===null?'':String(r[h]);return v.includes(',')||v.includes('"')||v.includes('\n')?'"'+v.replace(/"/g,'""')+'"':v;}).join(','))].join('\n');o.value=csv;}catch(e){o.value='Error: '+e.message;}}function fc(){try{const t=i.value.trim();if(!t){o.value='';return;}const ls=t.split('\n'),h=ls[0].split(',').map(x=>x.trim().replace(/^"|"$/g,'')),arr=ls.slice(1).filter(x=>x.trim()).map(line=>{const vals=[],q=false,cur='',j=0;while(j<line.length){const c=line[j];if(c==='"'){if(q&&line[j+1]==='"'){cur+='"';j+=2;}else{q=!q;j++;}}else if(c===','&&!q){vals.push(cur.trim());cur='';j++;}else{cur+=c;j++;}}vals.push(cur.trim());const obj={};h.forEach((h,idx)=>{obj[h]=vals[idx]||'';});return obj;});o.value=JSON.stringify(arr.length===1?arr[0]:arr,null,2);}catch(e){o.value='Error: '+e.message;}}i.addEventListener('input',tc);document.getElementById('toCsv').onclick=tc;document.getElementById('fromCsv').onclick=fc;document.getElementById('copyOutput').onclick=()=>copyToClipboard(o.value);
   </script>
 </body>
 </html>
