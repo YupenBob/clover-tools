@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>秒表 - 🍀 CloverTools</title>
+  <title>JSON 验证器 - 🍀 CloverTools</title>
 
   <!-- Open Graph -->
-  <meta property="og:title" content="秒表 - 🍀 CloverTools">
-  <meta property="og:description" content="秒表计时、时间标注、时间线记录">
+  <meta property="og:title" content="JSON 验证器 - 🍀 CloverTools">
+  <meta property="og:description" content="验证 JSON 格式是否正确并定位错误">
   <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
   <meta property="og:url" content="https://tools.xsanye.cn/">
   <meta property="og:type" content="website">
@@ -16,8 +16,8 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@CloverTools">
-  <meta name="twitter:title" content="秒表 - 🍀 CloverTools">
-  <meta name="twitter:description" content="秒表计时、时间标注、时间线记录">
+  <meta name="twitter:title" content="JSON 验证器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="验证 JSON 格式是否正确并定位错误">
   <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
 
   <!-- Canonical -->
@@ -57,22 +57,11 @@
     <div class="container">
       <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
       <div class="tool-header">
-        <h1>秒表</h1>
-        <p class="description">秒表计时、时间标注、时间线记录</p>
+        <h1>JSON 验证器</h1>
+        <p class="description">验证 JSON 格式是否正确并定位错误</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card">
-  <textarea id="input" placeholder="输入..." style="width:100%;min-height:120px;font-family:monospace;"></textarea>
-  <div class="btn-row" style="margin-top:0.5rem;">
-    <button class="btn btn-primary" id="runBtn">运行</button>
-    <button class="btn btn-secondary" id="clearBtn">清空</button>
-    <button class="btn btn-secondary" id="copyBtn">复制</button>
-  </div>
-</div>
-<div class="tool-card">
-  <h3>输出</h3>
-  <textarea id="output" readonly style="width:100%;min-height:120px;font-family:monospace;" placeholder="结果..."></textarea>
-</div>
+        <div class="tool-card"><h3>输入 JSON</h3><textarea id="input" placeholder="粘贴 JSON 数据..."></textarea></div><div class="output-box"><h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>
       </div>
     </div>
   </main>
@@ -93,7 +82,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick=function(){navigator.clipboard.writeText(window.location.href).then(function(){CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01")}).catch(function(){CT.showToast("\u590d\u5236\u5931\u8d25")})};
 
-    document.getElementById('runBtn').onclick=()=>{document.getElementById('output').value=document.getElementById('input').value};document.getElementById('clearBtn').onclick=()=>{document.getElementById('input').value='';document.getElementById('output').value=''};document.getElementById('copyBtn').onclick=()=>copyToClipboard(document.getElementById('output').value)
+    const i=document.getElementById('input'),o=document.getElementById('output');function v(){const t=i.value.trim();if(!t){o.value='';return;}try{const p=JSON.parse(t);o.value='\u2705 JSON \u683c\u5f0f\u6b63\u786e\n\n\u89e3\u6790\u7ed3\u679c\uff1a\n'+JSON.stringify(p,null,2);}catch(e){o.value='\u274c JSON \u9519\u8bef\uff1a'+e.message;}}i.addEventListener('input',v);document.getElementById('copyOutput').onclick=()=>copyToClipboard(o.value);v();
   </script>
 </body>
 </html>
