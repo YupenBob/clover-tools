@@ -2103,7 +2103,90 @@ function buildToolContentHtml(tool) {
         <div id="zones" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.5rem;"></div>
       </div>`,
 
-    'time/world-clock': `
+    
+    'time/lunar-birthday': `
+    var LUNAR_DATA = {"1900": {"leap": 8, "days": [29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30], "start": "1900-01-31"}, "1901": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30], "start": "1901-02-19"}, "1902": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "1902-02-08"}, "1903": {"leap": 5, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30], "start": "1903-01-29"}, "1904": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30], "start": "1904-02-16"}, "1905": {"leap": 0, "days": [29, 30, 30, 29, 30, 30, 29, 29, 30, 29, 30, 29], "start": "1905-02-04"}, "1906": {"leap": 4, "days": [29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "1906-01-25"}, "1907": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1907-02-13"}, "1908": {"leap": 0, "days": [29, 30, 29, 29, 30, 30, 29, 30, 29, 30, 30, 29], "start": "1908-02-02"}, "1909": {"leap": 2, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29, 30], "start": "1909-01-22"}, "1910": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30], "start": "1910-02-10"}, "1911": {"leap": 6, "days": [30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30, 30], "start": "1911-01-30"}, "1912": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "1912-02-18"}, "1913": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29], "start": "1913-02-06"}, "1914": {"leap": 5, "days": [30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "1914-01-26"}, "1915": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], "start": "1915-02-14"}, "1916": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1916-02-03"}, "1917": {"leap": 2, "days": [30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29], "start": "1917-01-23"}, "1918": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30], "start": "1918-02-11"}, "1919": {"leap": 7, "days": [29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30, 30, 30], "start": "1919-02-01"}, "1920": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "1920-02-20"}, "1921": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "1921-02-08"}, "1922": {"leap": 5, "days": [30, 29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "1922-01-28"}, "1923": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "1923-02-16"}, "1924": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "1924-02-05"}, "1925": {"leap": 4, "days": [30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1925-01-24"}, "1926": {"leap": 0, "days": [29, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1926-02-13"}, "1927": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 29, 30, 30], "start": "1927-02-02"}, "1928": {"leap": 2, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 30], "start": "1928-01-23"}, "1929": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "1929-02-10"}, "1930": {"leap": 6, "days": [29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 29], "start": "1930-01-30"}, "1931": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "1931-02-17"}, "1932": {"leap": 0, "days": [29, 30, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "1932-02-06"}, "1933": {"leap": 5, "days": [29, 30, 30, 29, 30, 30, 29, 30, 29, 30, 29, 29, 30], "start": "1933-01-26"}, "1934": {"leap": 0, "days": [29, 29, 30, 29, 30, 30, 29, 30, 29, 30, 30, 29], "start": "1934-02-14"}, "1935": {"leap": 0, "days": [29, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1935-02-04"}, "1936": {"leap": 3, "days": [30, 29, 29, 30, 29, 29, 30, 30, 29, 30, 30, 30, 29], "start": "1936-01-24"}, "1937": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30], "start": "1937-02-11"}, "1938": {"leap": 7, "days": [30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30], "start": "1938-01-31"}, "1939": {"leap": 0, "days": [29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 29], "start": "1939-02-19"}, "1940": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "1940-02-08"}, "1941": {"leap": 6, "days": [30, 30, 29, 30, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "1941-01-27"}, "1942": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], "start": "1942-02-15"}, "1943": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1943-02-05"}, "1944": {"leap": 4, "days": [30, 29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1944-01-25"}, "1945": {"leap": 0, "days": [29, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29], "start": "1945-02-13"}, "1946": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 29], "start": "1946-02-02"}, "1947": {"leap": 2, "days": [30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "1947-01-22"}, "1948": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "1948-02-10"}, "1949": {"leap": 7, "days": [30, 29, 30, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "1949-01-29"}, "1950": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 30, 29, 29, 30, 29, 30], "start": "1950-02-17"}, "1951": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], "start": "1951-02-06"}, "1952": {"leap": 5, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1952-01-27"}, "1953": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 30, 29, 30, 30, 29, 30], "start": "1953-02-14"}, "1954": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30], "start": "1954-02-03"}, "1955": {"leap": 3, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30], "start": "1955-01-24"}, "1956": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "1956-02-12"}, "1957": {"leap": 8, "days": [30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 29], "start": "1957-01-31"}, "1958": {"leap": 0, "days": [29, 30, 30, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "1958-02-18"}, "1959": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "1959-02-08"}, "1960": {"leap": 6, "days": [30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], "start": "1960-01-28"}, "1961": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29], "start": "1961-02-15"}, "1962": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1962-02-05"}, "1963": {"leap": 4, "days": [30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29], "start": "1963-01-25"}, "1964": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "1964-02-13"}, "1965": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30], "start": "1965-02-02"}, "1966": {"leap": 3, "days": [30, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "1966-01-21"}, "1967": {"leap": 0, "days": [29, 30, 30, 29, 30, 30, 29, 29, 30, 29, 30, 29], "start": "1967-02-09"}, "1968": {"leap": 7, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "1968-01-30"}, "1969": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1969-02-17"}, "1970": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29], "start": "1970-02-06"}, "1971": {"leap": 5, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29, 30], "start": "1971-01-27"}, "1972": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29], "start": "1972-02-15"}, "1973": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "1973-02-03"}, "1974": {"leap": 4, "days": [30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30], "start": "1974-01-23"}, "1975": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29], "start": "1975-02-11"}, "1976": {"leap": 8, "days": [30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "1976-01-31"}, "1977": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], "start": "1977-02-18"}, "1978": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30], "start": "1978-02-07"}, "1979": {"leap": 6, "days": [30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29], "start": "1979-01-28"}, "1980": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30], "start": "1980-02-16"}, "1981": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30], "start": "1981-02-05"}, "1982": {"leap": 4, "days": [30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30], "start": "1982-01-25"}, "1983": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "1983-02-13"}, "1984": {"leap": 10, "days": [30, 29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "1984-02-02"}, "1985": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "1985-02-20"}, "1986": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "1986-02-09"}, "1987": {"leap": 6, "days": [30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29, 29], "start": "1987-01-29"}, "1988": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1988-02-17"}, "1989": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 29, 30, 30], "start": "1989-02-06"}, "1990": {"leap": 5, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 30], "start": "1990-01-27"}, "1991": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "1991-02-15"}, "1992": {"leap": 0, "days": [29, 29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "1992-02-04"}, "1993": {"leap": 3, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "1993-01-23"}, "1994": {"leap": 0, "days": [29, 30, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "1994-02-10"}, "1995": {"leap": 8, "days": [29, 30, 30, 29, 30, 29, 30, 30, 29, 29, 30, 29, 30], "start": "1995-01-31"}, "1996": {"leap": 0, "days": [29, 29, 30, 29, 30, 30, 29, 30, 29, 30, 30, 29], "start": "1996-02-19"}, "1997": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "1997-02-07"}, "1998": {"leap": 5, "days": [30, 29, 29, 30, 29, 29, 30, 30, 29, 30, 30, 29, 30], "start": "1998-01-28"}, "1999": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30], "start": "1999-02-16"}, "2000": {"leap": 0, "days": [29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "2000-02-05"}, "2001": {"leap": 4, "days": [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "2001-01-24"}, "2002": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "2002-02-12"}, "2003": {"leap": 0, "days": [29, 30, 30, 29, 30, 30, 29, 30, 29, 29, 30, 29], "start": "2003-02-01"}, "2004": {"leap": 2, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "2004-01-22"}, "2005": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "2005-02-09"}, "2006": {"leap": 7, "days": [30, 29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "2006-01-29"}, "2007": {"leap": 0, "days": [29, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29], "start": "2007-02-18"}, "2008": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 29], "start": "2008-02-07"}, "2009": {"leap": 5, "days": [30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "2009-01-26"}, "2010": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "2010-02-14"}, "2011": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 29, 30, 29, 30], "start": "2011-02-03"}, "2012": {"leap": 4, "days": [30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29], "start": "2012-01-23"}, "2013": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2013-02-10"}, "2014": {"leap": 9, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "2014-01-31"}, "2015": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29, 30], "start": "2015-02-19"}, "2016": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30], "start": "2016-02-08"}, "2017": {"leap": 6, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30], "start": "2017-01-28"}, "2018": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "2018-02-16"}, "2019": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 29, 30], "start": "2019-02-05"}, "2020": {"leap": 4, "days": [29, 30, 30, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "2020-01-25"}, "2021": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "2021-02-12"}, "2022": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2022-02-01"}, "2023": {"leap": 2, "days": [29, 30, 29, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30], "start": "2023-01-22"}, "2024": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30], "start": "2024-02-10"}, "2025": {"leap": 6, "days": [30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29], "start": "2025-01-29"}, "2026": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 30], "start": "2026-02-17"}, "2027": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30], "start": "2027-02-06"}, "2028": {"leap": 5, "days": [30, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "2028-01-26"}, "2029": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30], "start": "2029-02-13"}, "2030": {"leap": 0, "days": [29, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30], "start": "2030-02-03"}, "2031": {"leap": 3, "days": [29, 30, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2031-01-23"}, "2032": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29], "start": "2032-02-11"}, "2033": {"leap": 11, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29, 30], "start": "2033-01-31"}, "2034": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29], "start": "2034-02-19"}, "2035": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "2035-02-08"}, "2036": {"leap": 6, "days": [30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "2036-01-28"}, "2037": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29], "start": "2037-02-15"}, "2038": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30], "start": "2038-02-04"}, "2039": {"leap": 5, "days": [30, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 29], "start": "2039-01-24"}, "2040": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 30, 29, 30], "start": "2040-02-12"}, "2041": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29], "start": "2041-02-01"}, "2042": {"leap": 2, "days": [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30], "start": "2042-01-22"}, "2043": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30], "start": "2043-02-10"}, "2044": {"leap": 7, "days": [30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30], "start": "2044-01-30"}, "2045": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "2045-02-17"}, "2046": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "2046-02-06"}, "2047": {"leap": 5, "days": [30, 29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "2047-01-26"}, "2048": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 30, 29, 30, 29, 29, 30], "start": "2048-02-14"}, "2049": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30], "start": "2049-02-02"}, "2050": {"leap": 3, "days": [29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29], "start": "2050-01-23"}, "2051": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 30, 29, 30, 30], "start": "2051-02-11"}, "2052": {"leap": 8, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 30], "start": "2052-02-01"}, "2053": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "2053-02-19"}, "2054": {"leap": 0, "days": [29, 29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "2054-02-08"}, "2055": {"leap": 6, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "2055-01-28"}, "2056": {"leap": 0, "days": [29, 30, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29], "start": "2056-02-15"}, "2057": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 30, 29, 29, 30], "start": "2057-02-04"}, "2058": {"leap": 4, "days": [30, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 29], "start": "2058-01-24"}, "2059": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 30, 30], "start": "2059-02-12"}, "2060": {"leap": 0, "days": [29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30], "start": "2060-02-02"}, "2061": {"leap": 3, "days": [30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29], "start": "2061-01-21"}, "2062": {"leap": 0, "days": [29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30], "start": "2062-02-09"}, "2063": {"leap": 7, "days": [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "2063-01-29"}, "2064": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30], "start": "2064-02-17"}, "2065": {"leap": 0, "days": [29, 30, 30, 29, 30, 30, 29, 30, 29, 29, 30, 29], "start": "2065-02-05"}, "2066": {"leap": 5, "days": [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "2066-01-26"}, "2067": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30], "start": "2067-02-14"}, "2068": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 30, 29, 30, 30, 29], "start": "2068-02-03"}, "2069": {"leap": 4, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29, 30], "start": "2069-01-23"}, "2070": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 29, 30, 29, 30, 30, 29], "start": "2070-02-11"}, "2071": {"leap": 8, "days": [30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "2071-01-31"}, "2072": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29], "start": "2072-02-19"}, "2073": {"leap": 0, "days": [29, 30, 29, 30, 30, 29, 30, 29, 29, 30, 29, 30], "start": "2073-02-07"}, "2074": {"leap": 6, "days": [30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29], "start": "2074-01-27"}, "2075": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2075-02-15"}, "2076": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 29, 30, 30, 29, 30], "start": "2076-02-05"}, "2077": {"leap": 4, "days": [30, 29, 30, 29, 29, 30, 29, 30, 30, 30, 29, 30, 29], "start": "2077-01-24"}, "2078": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30], "start": "2078-02-12"}, "2079": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30], "start": "2079-02-02"}, "2080": {"leap": 3, "days": [30, 29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 30], "start": "2080-01-22"}, "2081": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30], "start": "2081-02-09"}, "2082": {"leap": 7, "days": [29, 30, 30, 30, 29, 29, 30, 29, 30, 29, 29, 30, 30], "start": "2082-01-29"}, "2083": {"leap": 0, "days": [29, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30], "start": "2083-02-17"}, "2084": {"leap": 0, "days": [29, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2084-02-06"}, "2085": {"leap": 5, "days": [29, 30, 29, 29, 30, 30, 29, 30, 30, 29, 30, 29, 30], "start": "2085-01-26"}, "2086": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30], "start": "2086-02-14"}, "2087": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], "start": "2087-02-03"}, "2088": {"leap": 4, "days": [29, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 30, 29], "start": "2088-01-24"}, "2089": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 29, 30, 29, 30, 30], "start": "2089-02-10"}, "2090": {"leap": 8, "days": [30, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29], "start": "2090-01-30"}, "2091": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30], "start": "2091-02-18"}, "2092": {"leap": 0, "days": [29, 30, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30], "start": "2092-02-07"}, "2093": {"leap": 6, "days": [29, 30, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29], "start": "2093-01-27"}, "2094": {"leap": 0, "days": [29, 29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29], "start": "2094-02-15"}, "2095": {"leap": 0, "days": [29, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30], "start": "2095-02-05"}, "2096": {"leap": 4, "days": [30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 30, 29, 30], "start": "2096-01-25"}, "2097": {"leap": 0, "days": [29, 30, 29, 30, 29, 29, 29, 30, 29, 30, 30, 29], "start": "2097-02-12"}, "2098": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 29, 29, 30, 29, 30, 29], "start": "2098-02-01"}, "2099": {"leap": 2, "days": [30, 30, 29, 30, 30, 29, 29, 30, 29, 29, 30, 29, 30], "start": "2099-01-21"}, "2100": {"leap": 0, "days": [29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30], "start": "2100-02-09"}};
+    var _storedSolarDate = null;
+    function lunarToSolar(year, month, day, isLeap) {
+        var yd = LUNAR_DATA[String(year)];
+        if (!yd) throw new Error('年份超出范围（1900-2100）');
+        var leap = yd.leap;
+        var days = yd.days;
+        var total = day - 1;
+        if (isLeap) {
+            if (month !== leap) throw new Error('该年农历' + month + '月不是闰月');
+            for (var i = 0; i < days.length; i++) {
+                if (i + 1 === leap + 1) { total += days[i]; break; }
+                total += days[i];
+            }
+        } else {
+            var monthIdx = 0;
+            for (var i = 0; i < days.length; i++) {
+                if (leap > 0 && i + 1 === leap + 1) { continue; }
+                monthIdx++;
+                if (monthIdx === month) { total += days[i]; break; }
+                total += days[i];
+            }
+        }
+        var sp = yd.start.split('-');
+        var startDate = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+        return new Date(startDate.getTime() + total * 86400000);
+    }
+    function fmt(date) {
+        var weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+        return date.getFullYear() + ' 年 ' + (date.getMonth() + 1) + ' 月 ' + date.getDate() + ' 日（' + weekdays[date.getDay()] + '）';
+    }
+    function fmtShort(date) {
+        return date.getFullYear() + ' 年 ' + (date.getMonth() + 1) + ' 月 ' + date.getDate() + ' 日';
+    }
+    var MONTHS_CN = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+    function dayToCN(d) {
+        if (d === 10) return '初十';
+        if (d < 10) return '初' + ['一','二','三','四','五','六','七','八','九'][d-1];
+        if (d === 20) return '二十';
+        if (d === 30) return '三十';
+        if (d > 20) return '廿' + ['','一','二','三','四','五','六','七','八','九'][d-20];
+        return '十' + ['','一','二','三','四','五','六','七','八','九'][d-10];
+    }
+    document.getElementById('convertBtn').addEventListener('click', function() {
+        try {
+            var year = parseInt(document.getElementById('lunarYear').value);
+            var month = parseInt(document.getElementById('lunarMonth').value);
+            var day = parseInt(document.getElementById('lunarDay').value);
+            var isLeap = document.getElementById('leapMonth').checked;
+            var solar = lunarToSolar(year, month, day, isLeap);
+            _storedSolarDate = solar;
+            var today = new Date();
+            var age = today.getFullYear() - solar.getFullYear();
+            var md = today.getMonth() - solar.getMonth();
+            var passed = md > 0 || (md === 0 && today.getDate() >= solar.getDate());
+            if (!passed) age--;
+            var daysSince = Math.floor((today - solar) / 86400000);
+            var badge = passed ? '<span class="badge badge-passed">已过生日</span>' : '<span class="badge badge-upcoming">还没到生日</span>';
+            var leapStr = isLeap ? '（闰）' : '';
+            document.getElementById('resSolar').textContent = fmt(solar);
+            document.getElementById('resLunar').textContent = year + ' 年 ' + MONTHS_CN[month-1] + leapStr + ' ' + dayToCN(day);
+            document.getElementById('resAge').textContent = age + ' 岁';
+            document.getElementById('resBadge').innerHTML = badge;
+            document.getElementById('resDays').textContent = daysSince.toLocaleString() + ' 天';
+            document.getElementById('resultBox').style.display = 'block';
+            var fy = document.getElementById('futureYear');
+            fy.value = today.getFullYear() + 1;
+            fy.min = 1900; fy.max = 2100;
+            document.getElementById('futureResult').textContent = '';
+        } catch (e) {
+            CT.showToast(e.message || '转换失败');
+        }
+    });
+    document.getElementById('futureBtn').addEventListener('click', function() {
+        if (!_storedSolarDate) { CT.showToast('请先输入农历生日进行转换'); return; }
+        var year = parseInt(document.getElementById('futureYear').value);
+        if (!year || year < 1900 || year > 2100) { CT.showToast('请输入 1900-2100 之间的年份'); return; }
+        var target = new Date(year, _storedSolarDate.getMonth(), _storedSolarDate.getDate());
+        document.getElementById('futureResult').innerHTML = '<b>' + year + ' 年</b>对应的公历日期是 <b>' + fmtShort(target) + '</b>';
+    });
+    `,
+'time/world-clock': `
       <div class="world-clock-container">
         <div class="ntp-panel">
           <div class="ntp-header">
@@ -2198,7 +2281,217 @@ function buildToolContentHtml(tool) {
         .clock-card .date { font-size: 0.7rem; color: var(--text-secondary); opacity: 0.8; }
       </style>`,
 
-    'other/hex-convert': `
+    
+    'time/lunar-birthday': `
+      <div class="tool-card">
+        <h3>农历出生日期</h3>
+        <div class="input-row">
+          <div class="input-field">
+            <label>年份</label>
+            <select id="lunarYear"><option value="2005">2005 年</option>
+<option value="2004">2004 年</option>
+<option value="2003">2003 年</option>
+<option value="2002">2002 年</option>
+<option value="2001">2001 年</option>
+<option value="2000">2000 年</option>
+<option value="1999">1999 年</option>
+<option value="1998">1998 年</option>
+<option value="1997">1997 年</option>
+<option value="1996">1996 年</option>
+<option value="1995">1995 年</option>
+<option value="1994">1994 年</option>
+<option value="1993">1993 年</option>
+<option value="1992">1992 年</option>
+<option value="1991">1991 年</option>
+<option value="1990">1990 年</option>
+<option value="1989">1989 年</option>
+<option value="1988">1988 年</option>
+<option value="1987">1987 年</option>
+<option value="1986">1986 年</option>
+<option value="1985">1985 年</option>
+<option value="1984">1984 年</option>
+<option value="1983">1983 年</option>
+<option value="1982">1982 年</option>
+<option value="1981">1981 年</option>
+<option value="1980">1980 年</option>
+<option value="1979">1979 年</option>
+<option value="1978">1978 年</option>
+<option value="1977">1977 年</option>
+<option value="1976">1976 年</option>
+<option value="1975">1975 年</option>
+<option value="1974">1974 年</option>
+<option value="1973">1973 年</option>
+<option value="1972">1972 年</option>
+<option value="1971">1971 年</option>
+<option value="1970">1970 年</option>
+<option value="1969">1969 年</option>
+<option value="1968">1968 年</option>
+<option value="1967">1967 年</option>
+<option value="1966">1966 年</option>
+<option value="1965">1965 年</option>
+<option value="1964">1964 年</option>
+<option value="1963">1963 年</option>
+<option value="1962">1962 年</option>
+<option value="1961">1961 年</option>
+<option value="1960">1960 年</option>
+<option value="1959">1959 年</option>
+<option value="1958">1958 年</option>
+<option value="1957">1957 年</option>
+<option value="1956">1956 年</option>
+<option value="1955">1955 年</option>
+<option value="1954">1954 年</option>
+<option value="1953">1953 年</option>
+<option value="1952">1952 年</option>
+<option value="1951">1951 年</option>
+<option value="1950">1950 年</option>
+<option value="1949">1949 年</option>
+<option value="1948">1948 年</option>
+<option value="1947">1947 年</option>
+<option value="1946">1946 年</option>
+<option value="1945">1945 年</option>
+<option value="1944">1944 年</option>
+<option value="1943">1943 年</option>
+<option value="1942">1942 年</option>
+<option value="1941">1941 年</option>
+<option value="1940">1940 年</option>
+<option value="1939">1939 年</option>
+<option value="1938">1938 年</option>
+<option value="1937">1937 年</option>
+<option value="1936">1936 年</option>
+<option value="1935">1935 年</option>
+<option value="1934">1934 年</option>
+<option value="1933">1933 年</option>
+<option value="1932">1932 年</option>
+<option value="1931">1931 年</option>
+<option value="1930">1930 年</option>
+<option value="1929">1929 年</option>
+<option value="1928">1928 年</option>
+<option value="1927">1927 年</option>
+<option value="1926">1926 年</option>
+<option value="1925">1925 年</option>
+<option value="1924">1924 年</option>
+<option value="1923">1923 年</option>
+<option value="1922">1922 年</option>
+<option value="1921">1921 年</option>
+<option value="1920">1920 年</option>
+<option value="1919">1919 年</option>
+<option value="1918">1918 年</option>
+<option value="1917">1917 年</option>
+<option value="1916">1916 年</option>
+<option value="1915">1915 年</option>
+<option value="1914">1914 年</option>
+<option value="1913">1913 年</option>
+<option value="1912">1912 年</option>
+<option value="1911">1911 年</option>
+<option value="1910">1910 年</option>
+<option value="1909">1909 年</option>
+<option value="1908">1908 年</option>
+<option value="1907">1907 年</option>
+<option value="1906">1906 年</option>
+<option value="1905">1905 年</option>
+<option value="1904">1904 年</option>
+<option value="1903">1903 年</option>
+<option value="1902">1902 年</option>
+<option value="1901">1901 年</option>
+<option value="1900">1900 年</option></select>
+          </div>
+          <div class="input-field">
+            <label>月份</label>
+            <select id="lunarMonth"><option value="1">正月</option>
+<option value="2">二月</option>
+<option value="3">三月</option>
+<option value="4">四月</option>
+<option value="5">五月</option>
+<option value="6">六月</option>
+<option value="7">七月</option>
+<option value="8">八月</option>
+<option value="9">九月</option>
+<option value="10">十月</option>
+<option value="11">冬月</option>
+<option value="12">腊月</option></select>
+          </div>
+          <div class="input-field">
+            <label>日期</label>
+            <select id="lunarDay"><option value="1">初一</option>
+<option value="2">初二</option>
+<option value="3">初三</option>
+<option value="4">初四</option>
+<option value="5">初五</option>
+<option value="6">初六</option>
+<option value="7">初七</option>
+<option value="8">初八</option>
+<option value="9">初九</option>
+<option value="10">初十</option>
+<option value="11">十一</option>
+<option value="12">十二</option>
+<option value="13">十三</option>
+<option value="14">十四</option>
+<option value="15">十五</option>
+<option value="16">十六</option>
+<option value="17">十七</option>
+<option value="18">十八</option>
+<option value="19">十九</option>
+<option value="20">二十</option>
+<option value="21">廿一</option>
+<option value="22">廿二</option>
+<option value="23">廿三</option>
+<option value="24">廿四</option>
+<option value="25">廿五</option>
+<option value="26">廿六</option>
+<option value="27">廿七</option>
+<option value="28">廿八</option>
+<option value="29">廿九</option>
+<option value="30">三十</option></select>
+          </div>
+        </div>
+        <div style="margin-top: 0.75rem;">
+          <label class="leap-toggle">
+            <input type="checkbox" id="leapMonth">
+            <span>闰月</span>
+          </label>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button id="convertBtn" style="width:100%;padding:0.6rem;font-size:1rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;">转换</button>
+        </div>
+      </div>
+
+      <div class="output-box" id="resultBox" style="display:none;">
+        <h3>转换结果</h3>
+        <div>
+          <div class="result-item">
+            <span class="result-label">公历生日</span>
+            <span class="result-value" id="resSolar"></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">农历日期</span>
+            <span class="result-value" id="resLunar"></span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">当前年龄</span>
+            <span class="result-value">
+              <span class="age-big" id="resAge"></span>
+              <span id="resBadge"></span>
+            </span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">已存活</span>
+            <span class="result-value" id="resDays"></span>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <h3>查询其他年份</h3>
+          <div class="future-row">
+            <div class="input-field">
+              <label>年份</label>
+              <input type="number" id="futureYear" min="1900" max="2100" placeholder="例如 2035">
+            </div>
+            <button id="futureBtn" style="padding:0.5rem 1rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;">查询</button>
+          </div>
+          <div id="futureResult" style="margin-top:0.75rem;font-size:1rem;"></div>
+        </div>
+      </div>`,
+'other/hex-convert': `
       <div class="tool-card">
         <h3>输入</h3>
         <textarea id="input" placeholder="输入数字..." style="margin-bottom:0.5rem;"></textarea>
