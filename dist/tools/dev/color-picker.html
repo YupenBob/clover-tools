@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色选择器 - 🍀 CloverTools</title>
+  <meta name="description" content="在线颜色选择器，支持 HEX/RGB/HSL/HSV 格式互转">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="颜色选择器 - 🍀 CloverTools">
+  <meta property="og:description" content="在线颜色选择器，支持 HEX/RGB/HSL/HSV 格式互转">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/dev/color-picker.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="颜色选择器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线颜色选择器，支持 HEX/RGB/HSL/HSV 格式互转">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/dev/color-picker.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    /* Color picker layout */
+    .color-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 768px) {
+      .color-layout { grid-template-columns: 1fr; }
+    }
+
+    .picker-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+    }
+
+    /* Large color picker swatch */
+    .color-swatch-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .color-preview-swatch {
+      width: 160px;
+      height: 160px;
+      border-radius: var(--radius);
+      border: 3px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: background-color 0.15s ease;
+    }
+    #colorPickerInput {
+      width: 100%;
+      height: 56px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 4px;
+      background: var(--bg);
+    }
+    #colorPickerInput::-webkit-color-swatch-wrapper { padding: 0; }
+    #colorPickerInput::-webkit-color-swatch { border: none; border-radius: 6px; }
+
+    /* Format cards */
+    .format-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .format-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+    }
+    .format-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.55;
+      min-width: 32px;
+      color: var(--primary);
+    }
+    .format-value {
+      flex: 1;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      user-select: all;
+    }
+    .copy-format-btn {
+      font-size: 0.78rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      opacity: 0.85;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .copy-format-btn:hover { opacity: 1; }
+
+    /* Manual input section */
+    .manual-inputs {
+      margin-top: 1.25rem;
+    }
+    .manual-inputs h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+      margin-bottom: 0.75rem;
+    }
+    .manual-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .manual-row label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      min-width: 28px;
+      color: var(--text-secondary);
+    }
+    .manual-row input[type="text"],
+    .manual-row input[type="number"] {
+      flex: 1;
+      padding: 0.5rem 0.6rem;
+      font-size: 0.88rem;
+      border-radius: 6px;
+      min-height: unset;
+    }
+    .hex-input-wrap { flex: 1.2; }
+    .rgb-inputs { display: flex; gap: 0.5rem; flex: 1; }
+    .rgb-inputs input[type="number"] { width: 60px; flex: 1; }
+
+    /* Recent colors */
+    .recent-colors {
+      margin-top: 1.25rem;
+    }
+    .recent-colors h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.6;
+      margin-bottom: 0.75rem;
+    }
+    .recent-palette {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .recent-swatch {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .recent-swatch:hover {
+      transform: scale(1.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .recent-swatch.empty {
+      background: var(--bg-secondary);
+      cursor: default;
+    }
+    .recent-swatch.empty:hover { transform: none; box-shadow: none; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+    </symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>颜色选择器</h1>
+        <p class="description">在线颜色选择器，支持 HEX / RGB / HSL / HSV 格式互转</p>
+      </div>
+      <div class="color-layout">
+
+        <!-- Left: Picker + Recent -->
+        <div class="picker-card">
+          <div class="color-swatch-wrap">
+            <div class="color-preview-swatch" id="colorPreviewSwatch"></div>
+            <input type="color" id="colorPickerInput" value="#c70039">
+          </div>
+
+          <div class="recent-colors">
+            <h3>最近使用</h3>
+            <div class="recent-palette" id="recentPalette"></div>
+          </div>
+        </div>
+
+        <!-- Right: Format outputs -->
+        <div class="picker-card">
+          <div class="format-grid">
+            <div class="format-row">
+              <span class="format-label">HEX</span>
+              <span class="format-value" id="valHex">#c70039</span>
+              <button class="copy-format-btn" data-copy="valHex">复制</button>
+            </div>
+            <div class="format-row">
+              <span class="format-label">RGB</span>
+              <span class="format-value" id="valRgb">rgb(199, 0, 57)</span>
+              <button class="copy-format-btn" data-copy="valRgb">复制</button>
+            </div>
+            <div class="format-row">
+              <span class="format-label">HSL</span>
+              <span class="format-value" id="valHsl">hsl(345, 100%, 39%)</span>
+              <button class="copy-format-btn" data-copy="valHsl">复制</button>
+            </div>
+            <div class="format-row">
+              <span class="format-label">HSV</span>
+              <span class="format-value" id="valHsv">hsv(345°, 100%, 78%)</span>
+              <button class="copy-format-btn" data-copy="valHsv">复制</button>
+            </div>
+          </div>
+
+          <!-- Manual inputs -->
+          <div class="manual-inputs">
+            <h3>手动输入</h3>
+            <div class="manual-row">
+              <label>HEX</label>
+              <div class="hex-input-wrap">
+                <input type="text" id="inputHex" value="#c70039" maxlength="7" placeholder="#rrggbb">
+              </div>
+            </div>
+            <div class="manual-row">
+              <label>R</label>
+              <div class="rgb-inputs">
+                <input type="number" id="inputR" value="199" min="0" max="255" placeholder="0">
+                <input type="number" id="inputG" value="0" min="0" max="255" placeholder="0">
+                <input type="number" id="inputB" value="57" min="0" max="255" placeholder="0">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+    </div>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    // ---- Color Conversion Utils ----
+    function hexToRgb(hex) {
+      hex = hex.replace('#', '');
+      if (hex.length === 3) {
+        hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      }
+      const n = parseInt(hex, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, v = max;
+      const d = max - min;
+      s = max === 0 ? 0 : d / max;
+      if (max === min) {
+        h = 0;
+      } else {
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)];
+    }
+
+    // ---- State ----
+    let currentRgb = [199, 0, 57];
+
+    // ---- DOM refs ----
+    const colorPicker = document.getElementById('colorPickerInput');
+    const previewSwatch = document.getElementById('colorPreviewSwatch');
+    const valHex = document.getElementById('valHex');
+    const valRgb = document.getElementById('valRgb');
+    const valHsl = document.getElementById('valHsl');
+    const valHsv = document.getElementById('valHsv');
+    const inputHex = document.getElementById('inputHex');
+    const inputR = document.getElementById('inputR');
+    const inputG = document.getElementById('inputG');
+    const inputB = document.getElementById('inputB');
+    const recentPalette = document.getElementById('recentPalette');
+
+    // ---- Update UI from RGB ----
+    function updateFromRgb(r, g, b) {
+      currentRgb = [r, g, b];
+      const hex = rgbToHex(r, g, b);
+      const hsl = rgbToHsl(r, g, b);
+      const hsv = rgbToHsv(r, g, b);
+
+      previewSwatch.style.backgroundColor = hex;
+      colorPicker.value = hex;
+      valHex.textContent = hex;
+      valRgb.textContent = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+      valHsl.textContent = 'hsl(' + hsl[0] + ', ' + hsl[1] + '%, ' + hsl[2] + '%)';
+      valHsv.textContent = 'hsv(' + hsv[0] + '°, ' + hsv[1] + '%, ' + hsv[2] + '%)';
+      inputHex.value = hex;
+      inputR.value = r;
+      inputG.value = g;
+      inputB.value = b;
+    }
+
+    // ---- Parse HEX input ----
+    function parseHexInput(val) {
+      val = val.trim();
+      if (!/^#?[0-9a-fA-F]{6}$/.test(val)) return null;
+      return val;
+    }
+
+    // ---- Save to recent colors ----
+    const RECENT_KEY = 'clover-recent-colors';
+    const MAX_RECENT = 8;
+
+    function loadRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+      catch { return []; }
+    }
+
+    function saveRecent(arr) {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(arr));
+    }
+
+    function addToRecent(hex) {
+      const arr = loadRecent().filter(h => h !== hex);
+      arr.unshift(hex);
+      if (arr.length > MAX_RECENT) arr.length = MAX_RECENT;
+      saveRecent(arr);
+      renderRecent();
+    }
+
+    function renderRecent() {
+      const arr = loadRecent();
+      recentPalette.innerHTML = '';
+      for (let i = 0; i < MAX_RECENT; i++) {
+        const sw = document.createElement('div');
+        sw.className = 'recent-swatch' + (arr[i] ? '' : ' empty');
+        if (arr[i]) {
+          sw.style.backgroundColor = arr[i];
+          sw.title = arr[i];
+          sw.onclick = function() {
+            const rgb = hexToRgb(arr[i]);
+            updateFromRgb(rgb[0], rgb[1], rgb[2]);
+          };
+        }
+        recentPalette.appendChild(sw);
+      }
+    }
+
+    // ---- Event Listeners ----
+
+    // Color picker input change
+    colorPicker.addEventListener('input', function() {
+      const rgb = hexToRgb(this.value);
+      updateFromRgb(rgb[0], rgb[1], rgb[2]);
+    });
+
+    colorPicker.addEventListener('change', function() {
+      addToRecent(this.value);
+    });
+
+    // HEX manual input
+    let hexDebounce;
+    inputHex.addEventListener('input', function() {
+      clearTimeout(hexDebounce);
+      hexDebounce = setTimeout(function() {
+        const parsed = parseHexInput(inputHex.value);
+        if (parsed) {
+          const rgb = hexToRgb(parsed);
+          updateFromRgb(rgb[0], rgb[1], rgb[2]);
+        }
+      }, 300);
+    });
+
+    // RGB manual inputs
+    function handleRgbInput() {
+      const r = Math.max(0, Math.min(255, parseInt(inputR.value) || 0));
+      const g = Math.max(0, Math.min(255, parseInt(inputG.value) || 0));
+      const b = Math.max(0, Math.min(255, parseInt(inputB.value) || 0));
+      updateFromRgb(r, g, b);
+    }
+    inputR.addEventListener('input', handleRgbInput);
+    inputG.addEventListener('input', handleRgbInput);
+    inputB.addEventListener('input', handleRgbInput);
+
+    // Copy buttons
+    document.querySelectorAll('.copy-format-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-copy');
+        const text = document.getElementById(id).textContent;
+        navigator.clipboard.writeText(text).then(function() {
+          CT.showToast('复制成功！');
+        }).catch(function() {
+          CT.showToast('复制失败');
+        });
+      });
+    });
+
+    // Share button
+    document.getElementById('shareBtn').onclick = function() {
+      navigator.clipboard.writeText(window.location.href).then(function() {
+        CT.showToast('链接已复制！');
+      }).catch(function() {
+        CT.showToast('复制失败');
+      });
+    };
+
+    // Init
+    renderRecent();
+    updateFromRgb(199, 0, 57);
+  </script>
+</body>
+</html>
