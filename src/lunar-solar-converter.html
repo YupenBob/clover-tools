@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>公历农历互转器 - 🍀 CloverTools</title>
+  <meta property="og:title" content="公历农历互转器 - 🍀 CloverTools">
+  <meta property="og:description" content="公历与农历双向互转，一键快速转换">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/time/lunar-solar-converter.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="公历农历互转器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="公历与农历双向互转，一键快速转换">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+  <link rel="canonical" href="https://tools.xsanye.cn/time/lunar-solar-converter.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <script src="lunar-data.js"></script>
+  <style>
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    .tab-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .tab-btn { padding: 0.5rem 1.2rem; border: none; background: none; cursor: pointer; font-size: 0.95rem; color: var(--text); opacity: 0.6; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+    .tab-btn:hover { opacity: 1; }
+    .tab-btn.active { opacity: 1; color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .input-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+    .input-field { flex: 1; min-width: 140px; }
+    .input-field label { display: block; font-size: 0.85rem; margin-bottom: 0.4rem; opacity: 0.8; }
+    .input-field select, .input-field input { width: 100%; padding: 0.5rem; font-size: 1rem; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); }
+    .input-field select:focus, .input-field input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+    .leap-toggle { display: flex; align-items: center; gap: 0.5rem; padding-bottom: 0.15rem; }
+    .leap-toggle input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; accent-color: var(--primary); }
+
+    .convert-btn { width: 100%; padding: 0.65rem; font-size: 1rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-top: 1rem; font-weight: 600; transition: opacity 0.2s; }
+    .convert-btn:hover { opacity: 0.88; }
+
+    .result-box { margin-top: 1.5rem; padding: 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+    .result-box h3 { font-size: 1rem; margin-bottom: 0.85rem; opacity: 0.8; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { font-size: 0.88rem; opacity: 0.6; }
+    .result-value { font-weight: 600; font-size: 1.05rem; }
+    .result-highlight { color: var(--primary); font-size: 1.15rem; }
+  </style>
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+    </symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>公历农历互转器</h1>
+        <p class="description">公历与农历双向转换，支持任意日期</p>
+      </div>
+
+      <div class="tool-layout">
+        <div class="tool-card">
+          <div class="tab-bar">
+            <button class="tab-btn active" id="tabSolar">公历 → 农历</button>
+            <button class="tab-btn" id="tabLunar">农历 → 公历</button>
+          </div>
+
+          <!-- 公历 → 农历 -->
+          <div class="tab-panel active" id="panelSolar">
+            <h3>输入公历日期</h3>
+            <div class="input-row">
+              <div class="input-field">
+                <label>年份</label>
+                <input type="number" id="solarYear" value="2026" min="1900" max="2100">
+              </div>
+              <div class="input-field">
+                <label>月份</label>
+                <input type="number" id="solarMonth" value="1" min="1" max="12">
+              </div>
+              <div class="input-field">
+                <label>日期</label>
+                <input type="number" id="solarDay" value="1" min="1" max="31">
+              </div>
+            </div>
+            <button class="convert-btn" id="btnSolarToLunar">转换为农历</button>
+          </div>
+
+          <!-- 农历 → 公历 -->
+          <div class="tab-panel" id="panelLunar">
+            <h3>输入农历日期</h3>
+            <div class="input-row">
+              <div class="input-field">
+                <label>年份</label>
+                <select id="lunarYear"></select>
+              </div>
+              <div class="input-field">
+                <label>月份</label>
+                <select id="lunarMonth">
+                  <option value="1">正月</option><option value="2">二月</option><option value="3">三月</option><option value="4">四月</option><option value="5">五月</option><option value="6">六月</option><option value="7">七月</option><option value="8">八月</option><option value="9">九月</option><option value="10">十月</option><option value="11">冬月</option><option value="12">腊月</option>
+                </select>
+              </div>
+              <div class="input-field">
+                <label>日期</label>
+                <select id="lunarDay"></select>
+              </div>
+            </div>
+            <div style="margin-top: 0.75rem;">
+              <label class="leap-toggle">
+                <input type="checkbox" id="leapMonth">
+                <span>闰月</span>
+              </label>
+            </div>
+            <button class="convert-btn" id="btnLunarToSolar">转换为公历</button>
+          </div>
+
+          <div class="result-box" id="resultBox" style="display:none;">
+            <h3>转换结果</h3>
+            <div class="result-row">
+              <span class="result-label" id="resFromLabel">公历日期</span>
+              <span class="result-value" id="resFrom"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label" id="resToLabel">农历日期</span>
+              <span class="result-value result-highlight" id="resTo"></span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">星期</span>
+              <span class="result-value" id="resWeekday"></span>
+            </div>
+            <div class="result-row" id="resYearRow" style="display:none;">
+              <span class="result-label">农历年</span>
+              <span class="result-value" id="resYear"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+    </div>
+  </footer>
+  <div id="toast"></div>
+
+  <script>
+  CT.initTheme();
+  CT.initKeyboardShortcuts();
+
+  document.getElementById('shareBtn').onclick = function() {
+    navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast('链接已复制！'); }).catch(function() { CT.showToast('复制失败'); });
+  };
+
+  // ── Lunar data is loaded via lunar-data.js (shared with lunar-birthday.html) ──
+
+  var MONTHS_CN = ['正月','二月','三月','四月','五月','六月','七月','八月','九月','十月','冬月','腊月'];
+  var DAYS_CN = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+
+  function dayToCN(d) { return DAYS_CN[d - 1] || ''; }
+
+  var weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+
+  // Lunar → Solar
+  function lunarToSolar(year, month, day, isLeap) {
+    var yd = LUNAR_DATA[String(year)];
+    if (!yd) throw new Error('年份超出范围（1900-2100）');
+    var leap = yd.leap;
+    var days = yd.days;
+    var total = day - 1;
+    if (isLeap) {
+      if (month !== leap) throw new Error('该年农历' + month + '月不是闰月');
+      for (var i = 0; i < days.length; i++) {
+        if (i + 1 === leap + 1) { total += days[i]; break; }
+        total += days[i];
+      }
+    } else {
+      var monthIdx = 0;
+      for (var i = 0; i < days.length; i++) {
+        if (leap > 0 && i + 1 === leap + 1) { continue; }
+        monthIdx++;
+        if (monthIdx === month) break;
+        total += days[i];
+      }
+    }
+    var sp = yd.start.split('-');
+    var startDate = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+    return new Date(startDate.getTime() + total * 86400000);
+  }
+
+  // Solar → Lunar
+  function solarToLunar(date) {
+    var y = date.getFullYear();
+    var m = date.getMonth() + 1;
+    var d = date.getDate();
+    var result = { year: y, month: 1, day: 1, isLeap: false };
+
+    // Find the lunar year whose start falls on or before this solar date
+    var startYear = y;
+    // Try current year first
+    var ydStart = LUNAR_DATA[String(y)];
+    if (!ydStart) throw new Error('年份超出范围（1900-2100）');
+    var sp = ydStart.start.split('-');
+    var lunarYearStart = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+
+    if (date < lunarYearStart) {
+      startYear = y - 1;
+      ydStart = LUNAR_DATA[String(startYear)];
+      if (!ydStart) throw new Error('年份超出范围（1900-2100）');
+      sp = ydStart.start.split('-');
+      lunarYearStart = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+    }
+
+    var totalDays = Math.floor((date - lunarYearStart) / 86400000);
+    var days = ydStart.days;
+    var leap = ydStart.leap;
+    var isLeap = false;
+    var lunarMonth = 1;
+    var lunarDay = 1;
+
+    // If leap month exists before the current month position, we need to account for it
+    var monthIdx = 0;
+    for (var i = 0; i < days.length; i++) {
+      var mDays = days[i];
+      if (isLeap) {
+        // We're in a leap month
+        if (totalDays < mDays) {
+          lunarDay = totalDays + 1;
+          return { year: startYear, month: monthIdx, day: lunarDay, isLeap: true };
+        }
+        totalDays -= mDays;
+        isLeap = false;
+        monthIdx++;
+      } else {
+        // Normal month
+        if (leap > 0 && monthIdx + 1 === leap && !isLeap) {
+          // This is the leap month position - check if date falls in leap month
+          if (totalDays < mDays) {
+            lunarDay = totalDays + 1;
+            return { year: startYear, month: monthIdx + 1, day: lunarDay, isLeap: false };
+          }
+          totalDays -= mDays;
+          isLeap = true;
+        } else {
+          if (totalDays < mDays) {
+            lunarDay = totalDays + 1;
+            return { year: startYear, month: monthIdx + 1, day: lunarDay, isLeap: false };
+          }
+          totalDays -= mDays;
+          monthIdx++;
+        }
+      }
+    }
+    // Fallback: remaining days into last month
+    return { year: startYear, month: monthIdx, day: totalDays + 1, isLeap: isLeap };
+  }
+
+  function showResult(fromLabel, fromVal, toLabel, toVal, weekday, lunarYear) {
+    document.getElementById('resFromLabel').textContent = fromLabel;
+    document.getElementById('resFrom').textContent = fromVal;
+    document.getElementById('resToLabel').textContent = toLabel;
+    document.getElementById('resTo').textContent = toVal;
+    document.getElementById('resWeekday').textContent = weekday;
+    var yrRow = document.getElementById('resYearRow');
+    if (lunarYear !== null) {
+      yrRow.style.display = 'flex';
+      document.getElementById('resYear').textContent = lunarYear + ' 年（' + (lunarYear < 0 ? '公元前' + Math.abs(lunarYear) + '年' : lunarYear + ' 年') + '）';
+    } else {
+      yrRow.style.display = 'none';
+    }
+    document.getElementById('resultBox').style.display = 'block';
+  }
+
+  // Tab switching
+  document.getElementById('tabSolar').addEventListener('click', function() {
+    document.getElementById('tabSolar').classList.add('active');
+    document.getElementById('tabLunar').classList.remove('active');
+    document.getElementById('panelSolar').classList.add('active');
+    document.getElementById('panelLunar').classList.remove('active');
+    document.getElementById('resultBox').style.display = 'none';
+  });
+  document.getElementById('tabLunar').addEventListener('click', function() {
+    document.getElementById('tabLunar').classList.add('active');
+    document.getElementById('tabSolar').classList.remove('active');
+    document.getElementById('panelLunar').classList.add('active');
+    document.getElementById('panelSolar').classList.remove('active');
+    document.getElementById('resultBox').style.display = 'none';
+  });
+
+  // Populate year select
+  (function() {
+    var sel = document.getElementById('lunarYear');
+    var html = '';
+    for (var y = 2005; y >= 1900; y--) {
+      html += '<option value="' + y + '">' + y + ' 年</option>';
+    }
+    sel.innerHTML = html;
+
+    // Populate day select
+    var daySel = document.getElementById('lunarDay');
+    var dayHtml = '';
+    for (var d = 1; d <= 30; d++) {
+      dayHtml += '<option value="' + d + '">' + dayToCN(d) + '</option>';
+    }
+    daySel.innerHTML = dayHtml;
+  })();
+
+  // Solar → Lunar
+  document.getElementById('btnSolarToLunar').addEventListener('click', function() {
+    try {
+      var y = parseInt(document.getElementById('solarYear').value);
+      var m = parseInt(document.getElementById('solarMonth').value);
+      var d = parseInt(document.getElementById('solarDay').value);
+      if (!y || !m || !d || y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) {
+        CT.showToast('请输入有效的公历日期');
+        return;
+      }
+      var date = new Date(y, m - 1, d);
+      var lr = solarToLunar(date);
+      var leapStr = lr.isLeap ? '（闰）' : '';
+      var lunarDateStr = lr.year + ' 年 ' + MONTHS_CN[lr.month - 1] + leapStr + ' ' + dayToCN(lr.day);
+      var solarStr = y + ' 年 ' + m + ' 月 ' + d + ' 日';
+      showResult('公历日期', solarStr, '农历日期', lunarDateStr, weekdays[date.getDay()], null);
+    } catch(e) {
+      CT.showToast(e.message || '转换失败');
+    }
+  });
+
+  // Lunar → Solar
+  document.getElementById('btnLunarToSolar').addEventListener('click', function() {
+    try {
+      var year = parseInt(document.getElementById('lunarYear').value);
+      var month = parseInt(document.getElementById('lunarMonth').value);
+      var day = parseInt(document.getElementById('lunarDay').value);
+      var isLeap = document.getElementById('leapMonth').checked;
+      var solar = lunarToSolar(year, month, day, isLeap);
+      var leapStr = isLeap ? '（闰）' : '';
+      var lunarStr = year + ' 年 ' + MONTHS_CN[month - 1] + leapStr + ' ' + dayToCN(day);
+      var solarStr = solar.getFullYear() + ' 年 ' + (solar.getMonth() + 1) + ' 月 ' + solar.getDate() + ' 日';
+      showResult('农历日期', lunarStr, '公历日期', solarStr, weekdays[solar.getDay()], null);
+    } catch(e) {
+      CT.showToast(e.message || '转换失败');
+    }
+  });
+  </script>
+</body>
+</html>
