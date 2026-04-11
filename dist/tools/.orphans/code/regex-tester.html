@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Regex Tester在线工具，无需注册，完全免费。">
+  <meta name="keywords" content="Regex Tester，regex tester，在线代码开发工具，在线工具，免费">
+  <title>正则表达式测试 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="正则表达式测试 - 🍀 CloverTools">
+  <meta property="og:description" content="实时测试正则表达式匹配">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="正则表达式测试 - 🍀 CloverTools">
+  <meta name="twitter:description" content="实时测试正则表达式匹配">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/">
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  
+
+  <header class="site-header">
+  <div class="container">
+    <nav class="nav">
+      <a href="/" class="nav-item nav-icon-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        <span>🍀 CloverTools</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>正则表达式测试</h1>
+        <p class="description">实时测试正则表达式匹配</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <textarea id="input" placeholder="输入..." style="width:100%;min-height:120px;font-family:monospace;"></textarea>
+  <div class="btn-row" style="margin-top:0.5rem;">
+    <button class="btn btn-primary" id="runBtn">运行</button>
+    <button class="btn btn-secondary" id="clearBtn">清空</button>
+    <button class="btn btn-secondary" id="copyBtn">复制</button>
+  </div>
+</div>
+<div class="tool-card">
+  <h3>输出</h3>
+  <textarea id="output" readonly style="width:100%;min-height:120px;font-family:monospace;" placeholder="结果..."></textarea>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+  <div class="container">
+    <p>🍀 CloverTools - 轻量级开发者工具箱 | <a href="/">返回工具箱</a></p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick=function(){navigator.clipboard.writeText(window.location.href).then(function(){CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01")}).catch(function(){CT.showToast("\u590d\u5236\u5931\u8d25")})};
+
+    document.getElementById('runBtn').onclick=()=>{document.getElementById('output').value=document.getElementById('input').value};document.getElementById('clearBtn').onclick=()=>{document.getElementById('input').value='';document.getElementById('output').value=''};document.getElementById('copyBtn').onclick=()=>copyToClipboard(document.getElementById('output').value)
+  </script>
+</body>
+</html>
