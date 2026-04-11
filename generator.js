@@ -2715,6 +2715,8 @@ function generate() {
     .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
     .replace(/\{\{PAGE_OG_TITLE\}\}/g, '🍀 CloverTools - 轻量级开发者工具箱')
     .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
+    .replace(/\{\{PAGE_META_DESC\}\}/g, 'CloverTools 轻量级开发者工具箱，提供 JSON 格式化、加密解码、时间转换、代码美化等实用工具，无需注册，完全免费。')
+    .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
     .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/');
@@ -2756,6 +2758,8 @@ function generate() {
         // Meta tags
         .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - 🍀 CloverTools')
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
+        .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + '，无需注册，完全免费。' : tool.name + ' - 在线工具，无需注册，完全免费。'))
+        .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + '，在线工具，免费')))
         .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
