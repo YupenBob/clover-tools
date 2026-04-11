@@ -67,7 +67,12 @@ function parseData(raw) {
     if (!line.startsWith('data:')) continue;
     try {
       const json = JSON.parse(line.slice(5));
-      data[json.type] = json.payload;
+      if (json.type === 'archive') {
+        // archive payload IS the ranged data, not {payload: {...}}
+        data.archive = json.payload;
+      } else {
+        data[json.type] = json.payload;
+      }
     } catch {}
   }
   return data;
@@ -76,33 +81,48 @@ function parseData(raw) {
 function printReport(data) {
   console.log('\n======== 🍀 CloverTools 统计报告 ========\n');
   
-  const site = data.dump?.sites?.['tools.xsanye.cn'];
-  if (!site || !site.visits) {
+  const sum = (obj) => Object.values(obj || {}).reduce((a, b) => a + b, 0);
+  
+  // Check dump first (has day/yesterday breakdown)
+  const dumpSite = data.dump?.sites?.['tools.xsanye.cn'];
+  if (dumpSite?.visits?.day?.page || dumpSite?.visits?.yesterday?.page || dumpSite?.visits?.all?.page) {
+    const v = dumpSite.visits;
+    console.log('📅 今日浏览量:', sum(v.day?.page || {}));
+    console.log('📅 昨日浏览量:', sum(v.yesterday?.page || {}));
+    console.log('📅 本月浏览量:', sum(v.month?.page || {}));
+    console.log('📅 总浏览量:', sum(v.all?.page || {}));
+    console.log('');
+    console.log('🌍 设备:', JSON.stringify(v.all?.device || {}));
+    console.log('🌍 浏览器:', JSON.stringify(v.all?.browser || {}));
+    console.log('🌍 国家:', JSON.stringify(v.all?.country || {}));
+    console.log('🌍 语言:', JSON.stringify(v.all?.lang || {}));
+    console.log('🌍 页面:', JSON.stringify(v.all?.page || {}));
+    return;
+  }
+  
+  // Fall back to archive (flat structure, no time breakdown)
+  // archive is keyed by range, e.g. data.archive['-30:-2']
+  let site = null;
+  if (data.archive) {
+    site = data.archive['-30:-2']?.['tools.xsanye.cn'] 
+        || data.archive['-30:-2']?.['clover-tools.vercel.app']
+        || data.archive['-7:-2']?.['tools.xsanye.cn']
+        || data.archive['-7:-2']?.['clover-tools.vercel.app'];
+  }
+  
+  if (!site) {
     console.log('暂无访问数据');
     return;
   }
   
-  const v = site.visits;
-  const sum = (obj) => Object.values(obj || {}).reduce((a, b) => a + b, 0);
-  
-  console.log('📅 今日浏览量:', sum(v.day?.page || {}));
-  console.log('📅 昨日浏览量:', sum(v.yesterday?.page || {}));
-  console.log('📅 本月浏览量:', sum(v.month?.page || {}));
-  console.log('📅 总浏览量:', sum(v.all?.page || {}));
-  console.log('');
-  console.log('🌍 设备:', JSON.stringify(v.all?.device || {}));
-  console.log('🌍 浏览器:', JSON.stringify(v.all?.browser || {}));
-  console.log('🌍 国家:', JSON.stringify(v.all?.country || {}));
-  console.log('🌍 语言:', JSON.stringify(v.all?.lang || {}));
-  console.log('🌍 页面:', JSON.stringify(v.all?.page || {}));
-  
-  const logs = site.logs || {};
-  if (Object.keys(logs).length > 0) {
-    console.log('\n📝 原始访问日志:');
-    for (const [time, info] of Object.entries(logs)) {
-      console.log(`   ${time}: ${info}`);
-    }
-  }
+  console.log('📊 数据来源: archive（最近30天）');
+  console.log('📅 总浏览量:', sum(site.page || {}));
+  console.log('🌍 设备:', JSON.stringify(site.device || {}));
+  console.log('🌍 浏览器:', JSON.stringify(site.browser || {}));
+  console.log('🌍 国家:', JSON.stringify(site.country || {}));
+  console.log('🌍 语言:', JSON.stringify(site.lang || {}));
+  console.log('🌍 页面:', JSON.stringify(site.page || {}));
+  console.log('🌍 日期分布:', JSON.stringify(site.date || {}));
 }
 
 async function main() {

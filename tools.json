@@ -269,5 +269,541 @@
         "keywords": "正则表达式测试，Regex 测试，正则匹配，正则在线测试，在线工具"
       }
     ]
+  },
+  {
+    "category": "数学计算",
+    "tools": [
+      {
+        "name": "四则计算器",
+        "path": "math/calculator.html",
+        "desc": "支持加、减、乘、除四则运算",
+        "keywords": "四则计算器，加减乘除，计算器，数学计算，在线计算器",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "a",
+            "label": "数值 A",
+            "type": "number",
+            "placeholder": "0"
+          },
+          {
+            "id": "b",
+            "label": "数值 B",
+            "type": "number",
+            "placeholder": "0"
+          },
+          {
+            "id": "op",
+            "label": "运算",
+            "type": "select",
+            "options": [
+              {
+                "value": "+",
+                "label": "加 (+)"
+              },
+              {
+                "value": "-",
+                "label": "减 (-)"
+              },
+              {
+                "value": "*",
+                "label": "乘 (×)"
+              },
+              {
+                "value": "/",
+                "label": "除 (÷)"
+              }
+            ]
+          }
+        ],
+        "calcFn": "function(inputs) { var a=parseFloat(inputs.a),b=parseFloat(inputs.b),op=inputs.op; if(isNaN(a)||isNaN(b)) return '请输入有效数字'; if(op==='/'&&b===0) return '错误：除数不能为零'; var r; switch(op){case '+':r=a+b;break;case '-':r=a-b;break;case '*':r=a*b;break;case '/':r=a/b;break;} return a+' '+op+' '+b+' = <strong>'+r+'</strong>'; }"
+      },
+      {
+        "name": "质数判定",
+        "path": "math/prime-check.html",
+        "desc": "判断一个数是否为质数",
+        "keywords": "质数判定，质数检查，素数判定，质数测试，数学计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "n",
+            "label": "数字",
+            "type": "number",
+            "placeholder": "请输入正整数"
+          }
+        ],
+        "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<2) return '请输入大于等于 2 的正整数'; if(n===2) return n+' 是质数 ✓'; if(n%2===0) return n+' 不是质数（能被 2 整除）'; for(var i=3;i*i<=n;i+=2){if(n%i===0) return n+' 不是质数（能被 '+i+' 整除）';} return n+' 是质数 ✓'; }"
+      },
+      {
+        "name": "阶乘计算",
+        "path": "math/factorial.html",
+        "desc": "计算 n 的阶乘 (n!)",
+        "keywords": "阶乘计算，阶乘，n!，数学阶乘，排列组合",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "n",
+            "label": "数字",
+            "type": "number",
+            "placeholder": "请输入非负整数"
+          }
+        ],
+        "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<0) return '请输入非负整数'; if(n>170) return '数字过大，可能导致精度丢失'; var r=1; for(var i=2;i<=n;i++) r*=i; return n+'! = <strong>'+r.toLocaleString()+'</strong>'; }"
+      },
+      {
+        "name": "最大公约数",
+        "path": "math/gcd.html",
+        "desc": "计算两个数的最大公约数（欧几里得算法）",
+        "keywords": "最大公约数，GCD，约数，数学计算，欧几里得算法",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "a",
+            "label": "数字 A",
+            "type": "number",
+            "placeholder": "0"
+          },
+          {
+            "id": "b",
+            "label": "数字 B",
+            "type": "number",
+            "placeholder": "0"
+          }
+        ],
+        "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)) return '请输入有效整数'; while(b){var t=b;b=a%b;a=t;} return 'GCD('+inputs.a+', '+inputs.b+') = <strong>'+a+'</strong>'; }"
+      },
+      {
+        "name": "最小公倍数",
+        "path": "math/lcm.html",
+        "desc": "计算两个数的最小公倍数",
+        "keywords": "最小公倍数，LCM，公倍数，数学计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "a",
+            "label": "数字 A",
+            "type": "number",
+            "placeholder": "0"
+          },
+          {
+            "id": "b",
+            "label": "数字 B",
+            "type": "number",
+            "placeholder": "0"
+          }
+        ],
+        "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)||a===0||b===0) return '请输入非零整数'; function gcd(x,y){while(y){var t=y;y=x%y;x=t;}return x;} var g=gcd(a,b); return 'LCM('+inputs.a+', '+inputs.b+') = <strong>'+(a*b/g)+'</strong>'; }"
+      },
+      {
+        "name": "随机数生成器",
+        "path": "math/random.html",
+        "desc": "生成指定范围内的随机整数",
+        "keywords": "随机数生成器，随机数，Random，彩票随机数，在线随机数",
+        "type": "generator",
+        "fields": [
+          {
+            "id": "min",
+            "label": "最小值",
+            "type": "number",
+            "placeholder": "0"
+          },
+          {
+            "id": "max",
+            "label": "最大值",
+            "type": "number",
+            "placeholder": "100"
+          }
+        ],
+        "btnLabel": "生成随机数",
+        "generateFn": "function(inputs) { var min=parseInt(inputs.min)||0, max=parseInt(inputs.max)||100; if(min>max){var t=min;min=max;max=t;} return Math.floor(Math.random()*(max-min+1))+min; }"
+      },
+      {
+        "name": "数列求和",
+        "path": "math/sum-sequence.html",
+        "desc": "计算等差数列的前 n 项和",
+        "keywords": "数列求和，等差数列，数列计算，累加，数学计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "a1",
+            "label": "首项 (a₁)",
+            "type": "number",
+            "placeholder": "1"
+          },
+          {
+            "id": "d",
+            "label": "公差 (d)",
+            "type": "number",
+            "placeholder": "1"
+          },
+          {
+            "id": "n",
+            "label": "项数 (n)",
+            "type": "number",
+            "placeholder": "10"
+          }
+        ],
+        "calcFn": "function(inputs) { var a1=parseFloat(inputs.a1),d=parseFloat(inputs.d),n=parseInt(inputs.n); if(isNaN(a1)||isNaN(d)||isNaN(n)||n<1) return '请输入有效数字，项数需大于 0'; var last=a1+(n-1)*d; var sum=n*(a1+last)/2; return '等差数列：a₁='+a1+', d='+d+', n='+n+'<br>末项 aₙ='+last+'<br>前 '+n+' 项和 Sₙ = n×(a₁+aₙ)/2 = <strong>'+sum+'</strong>'; }"
+      },
+      {
+        "name": "平均数计算",
+        "path": "math/avg.html",
+        "desc": "计算一组数字的平均值",
+        "keywords": "平均数计算，平均值，Mean，数学平均数，统计计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "nums",
+            "label": "数字（逗号分隔）",
+            "type": "text",
+            "placeholder": "1, 2, 3, 4, 5"
+          }
+        ],
+        "calcFn": "function(inputs) { var nums=inputs.nums.value.split(/[，, ]+/).map(Number).filter(function(x){return !isNaN(x);}); if(nums.length===0) return '请输入有效数字'; var sum=nums.reduce(function(a,b){return a+b;},0); var avg=sum/nums.length; return '数字：['+nums.join(', ')+']<br>个数：'+nums.length+'<br>总和：'+sum+'<br>平均数：<strong>'+avg.toFixed(6).replace(/\\.?0+$/,'')+'</strong>'; }"
+      },
+      {
+        "name": "乘方计算器",
+        "path": "math/power.html",
+        "desc": "计算底数的指数次幂",
+        "keywords": "乘方计算，指数计算，幂运算，x^y，数学计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "base",
+            "label": "底数 (x)",
+            "type": "number",
+            "placeholder": "2"
+          },
+          {
+            "id": "exp",
+            "label": "指数 (y)",
+            "type": "number",
+            "placeholder": "3"
+          }
+        ],
+        "calcFn": "function(inputs) { var base=parseFloat(inputs.base),exp=parseFloat(inputs.exp); if(isNaN(base)||isNaN(exp)) return '请输入有效数字'; var r=Math.pow(base,exp); return base+'<sup>'+exp+'</sup> = <strong>'+r+'</strong>'; }"
+      },
+      {
+        "name": "开方计算器",
+        "path": "math/sqrt.html",
+        "desc": "计算一个数的平方根",
+        "keywords": "开方计算，平方根，根号，sqrt，数学计算",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "n",
+            "label": "数字",
+            "type": "number",
+            "placeholder": "请输入非负数"
+          }
+        ],
+        "calcFn": "function(inputs) { var n=parseFloat(inputs.n); if(isNaN(n)) return '请输入有效数字'; if(n<0) return '错误：负数没有实数平方根'; var r=Math.sqrt(n); return '√'+(Number.isInteger(n)?n:n.toFixed(6).replace(/\\.?0+$/,''))+' = <strong>'+r+'</strong>'; }"
+      }
+    ]
+  },
+  {
+    "category": "网络工具",
+    "tools": [
+      {
+        "name": "IP 地址查询",
+        "path": "network/ip-lookup.html",
+        "desc": "查询 IP 地址的地理位置信息",
+        "keywords": "IP 地址查询，IP 查询，IP 归属地，IP Geolocation，我的 IP",
+        "type": "query",
+        "searchable": true,
+        "data": [],
+        "renderFn": "function(data, search) { var html = '<div class=tool-card><h3>查询结果</h3><p id=ipResult style=color:#888;>正在查询您的 IP 地址...</p></div>'; setTimeout(function(){fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(d){var el=document.getElementById('ipResult');if(el)el.outerHTML='<div><p><strong>IP：</strong>'+(d.ip||'未知')+'</p><p><strong>城市：</strong>'+(d.city||'未知')+'</p><p><strong>地区：</strong>'+(d.region||'未知')+'</p><p><strong>国家：</strong>'+(d.country_name||'未知')+'</p><p><strong>运营商：</strong>'+(d.org||'未知')+'</p></div>';}).catch(function(){var el=document.getElementById('ipResult');if(el)el.outerHTML='<p style=color:red;>查询失败，请稍后重试</p>';});},100);return html;}"
+      },
+      {
+        "name": "DNS 查询",
+        "path": "network/dns-lookup.html",
+        "desc": "查询域名的 DNS 记录信息",
+        "keywords": "DNS 查询，DNS 记录，域名解析，DNS Lookup，DNS 信息",
+        "type": "query",
+        "searchable": true,
+        "data": [],
+        "renderFn": "function(data, search) { return '<div class=tool-card><h3>DNS 查询</h3><p style=color:#888;>请在上方搜索框输入域名进行查询（如：example.com）</p></div>'; }"
+      },
+      {
+        "name": "HTTP 状态码查询",
+        "path": "network/http-status.html",
+        "desc": "快速查询 HTTP 状态码含义及分类",
+        "keywords": "HTTP 状态码，状态码查询，HTTP Code，状态码含义，HTTP 状态",
+        "type": "query",
+        "searchable": true,
+        "data": [
+          {
+            "code": "200",
+            "name": "OK",
+            "category": "成功 2xx",
+            "desc": "请求成功"
+          },
+          {
+            "code": "201",
+            "name": "Created",
+            "category": "成功 2xx",
+            "desc": "资源创建成功"
+          },
+          {
+            "code": "204",
+            "name": "No Content",
+            "category": "成功 2xx",
+            "desc": "请求成功但无返回内容"
+          },
+          {
+            "code": "301",
+            "name": "Moved Permanently",
+            "category": "重定向 3xx",
+            "desc": "永久重定向"
+          },
+          {
+            "code": "302",
+            "name": "Found",
+            "category": "重定向 3xx",
+            "desc": "临时重定向"
+          },
+          {
+            "code": "304",
+            "name": "Not Modified",
+            "category": "重定向 3xx",
+            "desc": "资源未修改，使用缓存"
+          },
+          {
+            "code": "400",
+            "name": "Bad Request",
+            "category": "客户端错误 4xx",
+            "desc": "请求语法错误或参数错误"
+          },
+          {
+            "code": "401",
+            "name": "Unauthorized",
+            "category": "客户端错误 4xx",
+            "desc": "未授权，需要登录"
+          },
+          {
+            "code": "403",
+            "name": "Forbidden",
+            "category": "客户端错误 4xx",
+            "desc": "禁止访问，权限不足"
+          },
+          {
+            "code": "404",
+            "name": "Not Found",
+            "category": "客户端错误 4xx",
+            "desc": "资源不存在"
+          },
+          {
+            "code": "405",
+            "name": "Method Not Allowed",
+            "category": "客户端错误 4xx",
+            "desc": "请求方法不支持"
+          },
+          {
+            "code": "429",
+            "name": "Too Many Requests",
+            "category": "客户端错误 4xx",
+            "desc": "请求过于频繁，触发限流"
+          },
+          {
+            "code": "500",
+            "name": "Internal Server Error",
+            "category": "服务器错误 5xx",
+            "desc": "服务器内部错误"
+          },
+          {
+            "code": "502",
+            "name": "Bad Gateway",
+            "category": "服务器错误 5xx",
+            "desc": "网关错误，上游服务器无效响应"
+          },
+          {
+            "code": "503",
+            "name": "Service Unavailable",
+            "category": "服务器错误 5xx",
+            "desc": "服务暂时不可用"
+          },
+          {
+            "code": "504",
+            "name": "Gateway Timeout",
+            "category": "服务器错误 5xx",
+            "desc": "网关超时"
+          }
+        ],
+        "renderFn": "function(data, search) { var html='<table style=\"width:100%;border-collapse:collapse;\"><thead><tr style=\"background:var(--bg-secondary);\"><th style=\"padding:0.6rem;border:1px solid var(--border);\">状态码</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">名称</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">分类</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">说明</th></tr></thead><tbody>'; data.forEach(function(r){html+='<tr><td style=\"padding:0.5rem;border:1px solid var(--border);font-family:monospace;font-weight:bold;\">'+r.code+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);\">'+r.name+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);font-size:0.85rem;color:var(--text-secondary);\">'+r.category+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);font-size:0.9rem;\">'+r.desc+'</td></tr>';}); html+='</tbody></table>'; return html; }"
+      },
+      {
+        "name": "Cron 表达式生成器",
+        "path": "network/cron-gen.html",
+        "desc": "可视化生成 Cron 定时任务表达式",
+        "keywords": "Cron 表达式生成器，Cron 生成，定时任务表达式，Cron Job，Linux Cron",
+        "type": "generator",
+        "fields": [
+          {
+            "id": "minute",
+            "label": "分钟 (0-59)",
+            "type": "text",
+            "placeholder": "*"
+          },
+          {
+            "id": "hour",
+            "label": "小时 (0-23)",
+            "type": "text",
+            "placeholder": "*"
+          },
+          {
+            "id": "day",
+            "label": "日期 (1-31)",
+            "type": "text",
+            "placeholder": "*"
+          },
+          {
+            "id": "month",
+            "label": "月份 (1-12)",
+            "type": "text",
+            "placeholder": "*"
+          },
+          {
+            "id": "weekday",
+            "label": "星期 (0-6)",
+            "type": "text",
+            "placeholder": "*"
+          }
+        ],
+        "btnLabel": "生成 Cron 表达式",
+        "generateFn": "function(inputs) { var min=inputs.minute||'*',hr=inputs.hour||'*',day=inputs.day||'*',mon=inputs.month||'*',wd=inputs.weekday||'*';var expr=min+' '+hr+' '+day+' '+mon+' '+wd;var desc='每';if(min==='*')desc+='分钟';else desc+='第 '+min+' 分钟';if(hr==='*')desc+='每小时';else desc+='第 '+hr+' 小时';if(day==='*'&&wd==='*')desc+='每天';else if(day!=='*')desc+='第 '+day+' 天';else if(wd!=='*')desc+='星期 '+wd;return '表达式：'+expr+'\\n说明：'+desc; }"
+      },
+      {
+        "name": "URL 参数解析",
+        "path": "network/url-parse.html",
+        "desc": "解析 URL 中的查询参数，表格化展示",
+        "keywords": "URL 参数解析，URL 解析，查询参数，URL Query，URL 参数",
+        "type": "query",
+        "searchable": true,
+        "data": [],
+        "renderFn": "function(data, search) { return '<div class=tool-card><h3>URL 参数解析</h3><p style=color:#888;>在下方搜索框输入完整 URL 进行解析</p></div>'; }"
+      },
+      {
+        "name": "User-Agent 解析",
+        "path": "network/useragent.html",
+        "desc": "解析浏览器 User-Agent 字符串，识别浏览器和系统信息",
+        "keywords": "User-Agent 解析，UA 解析，浏览器识别，UserAgent，浏览器检测",
+        "type": "query",
+        "searchable": true,
+        "data": [
+          {
+            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+            "browser": "Chrome 120",
+            "os": "Windows 10/11",
+            "device": "桌面端"
+          },
+          {
+            "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1",
+            "browser": "Safari 17",
+            "os": "iOS 17",
+            "device": "iPhone"
+          },
+          {
+            "ua": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36",
+            "browser": "Chrome 120",
+            "os": "Android 14",
+            "device": "Pixel 8"
+          },
+          {
+            "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+            "browser": "Chrome 120",
+            "os": "macOS",
+            "device": "Mac"
+          },
+          {
+            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            "browser": "Firefox 121",
+            "os": "Windows 10/11",
+            "device": "桌面端"
+          },
+          {
+            "ua": "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1",
+            "browser": "Safari 17",
+            "os": "iPadOS 17",
+            "device": "iPad"
+          },
+          {
+            "ua": "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36",
+            "browser": "Chrome 120",
+            "os": "Android 13",
+            "device": "Samsung Galaxy S23 Ultra"
+          },
+          {
+            "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Edge/120.0.0.0",
+            "browser": "Edge 120",
+            "os": "Windows 10/11",
+            "device": "桌面端"
+          }
+        ],
+        "renderFn": "function(data, search) { var html='<table style=\"width:100%;border-collapse:collapse;\"><thead><tr style=\"background:var(--bg-secondary);\"><th style=\"padding:0.6rem;border:1px solid var(--border);\">User-Agent</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">浏览器</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">操作系统</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">设备</th></tr></thead><tbody>'; data.forEach(function(r){html+='<tr><td style=\"padding:0.5rem;border:1px solid var(--border);font-size:0.75rem;font-family:monospace;word-break:break-all;\">'+r.ua+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);\">'+r.browser+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);\">'+r.os+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);\">'+r.device+'</td></tr>';}); html+='</tbody></table>'; return html; }"
+      },
+      {
+        "name": "颜色代码转换",
+        "path": "network/color-convert.html",
+        "desc": "在 HEX、RGB、HSL、HSV 之间转换颜色值",
+        "keywords": "颜色代码转换，HEX RGB HSL HSV，颜色格式转换，取色器，颜色代码",
+        "type": "converter",
+        "inputPlaceholder": "输入颜色值，如 #ff6600 或 rgb(255,102,0)",
+        "options": [
+          {
+            "value": "hex",
+            "label": "HEX"
+          },
+          {
+            "value": "rgb",
+            "label": "RGB"
+          },
+          {
+            "value": "hsl",
+            "label": "HSL"
+          },
+          {
+            "value": "hsv",
+            "label": "HSV"
+          }
+        ],
+        "convertFn": "function(v,from,to){function h2r(h){var m=/^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;}function r2h(r,g,b){return'#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');}function r2hsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,s,h;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];}function r2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),v=mx,s,h;var d=mx-mn;s=mx===0?0:d/mx;if(mx===mn){h=0;}else{switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(v*100)];}function hsl2rgb(h,s,l){h/=360;s/=100;l/=100;var r,g,b;if(s===0){r=g=b=l;}else{var q=l<0.5?l*(1+s):l+s-l*s;var p=2*l-q;r=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h+1/3);g=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h);b=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}function hsv2rgb(h,s,v){h/=360;s/=100;v/=100;var r,g,b;var i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);i=i%6;switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break;}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}var rgb;if(from==='hex'){var p=h2r(v);if(!p)return'无效 HEX 值';rgb=p;}else if(from==='rgb'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 RGB 值';rgb=m.map(Number);}else if(from==='hsl'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSL 值';rgb=hsl2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}else if(from==='hsv'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSV 值';rgb=hsv2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}if(to==='hex')return r2h(rgb[0],rgb[1],rgb[2]);if(to==='rgb')return'rgb('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')';if(to==='hsl'){var h=r2hsl(rgb[0],rgb[1],rgb[2]);return'hsl('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}if(to==='hsv'){var h=r2hsv(rgb[0],rgb[1],rgb[2]);return'hsv('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}}"
+      },
+      {
+        "name": "Base64 编解码",
+        "path": "network/base64.html",
+        "desc": "Base64 字符串编码与解码",
+        "keywords": "Base64 编码，Base64 解码，Base64 转换，字符串编解码，在线工具",
+        "type": "encode-decode",
+        "forwardFn": "function(v){return btoa(unescape(encodeURIComponent(v)));}",
+        "reverseFn": "function(v){return decodeURIComponent(escape(atob(v.trim())));}",
+        "btnLabel1": "编码",
+        "btnLabel2": "解码",
+        "inputPlaceholder": "输入要编码或解码的文本..."
+      },
+      {
+        "name": "URL 编码解码",
+        "path": "network/url-encode.html",
+        "desc": "URL 特殊字符编码与解码",
+        "keywords": "URL 编码，URL 解码，百分号编码，URLEncode，URLDecode，在线工具",
+        "type": "encode-decode",
+        "forwardFn": "function(v){return encodeURIComponent(v);}",
+        "reverseFn": "function(v){return decodeURIComponent(v);}",
+        "btnLabel1": "编码",
+        "btnLabel2": "解码",
+        "inputPlaceholder": "输入要编码或解码的 URL 文本..."
+      },
+      {
+        "name": "JSON 格式化",
+        "path": "network/json-format.html",
+        "desc": "美化或压缩 JSON 数据",
+        "keywords": "JSON 格式化，JSON 美化，JSON 压缩，JSON 在线格式化，JSON 工具，在线工具",
+        "type": "encode-decode",
+        "forwardFn": "function(v){try{var p=JSON.parse(v);return JSON.stringify(p,null,2);}catch(e){return 'JSON 错误: '+e.message;}}",
+        "reverseFn": "function(v){try{var p=JSON.parse(v);return JSON.stringify(p);}catch(e){return 'JSON 错误: '+e.message;}}",
+        "btnLabel1": "格式化（美化）",
+        "btnLabel2": "压缩（Minify）",
+        "inputPlaceholder": "输入 JSON 文本..."
+      }
+    ]
   }
 ]
