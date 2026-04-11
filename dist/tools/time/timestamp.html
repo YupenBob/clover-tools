@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>时间戳转换 - 🍀 CloverTools</title>
+  <title>Unix时间戳转换 - 🍀 CloverTools</title>
 
   <!-- Open Graph -->
-  <meta property="og:title" content="时间戳转换 - 🍀 CloverTools">
-  <meta property="og:description" content="Unix 时间戳 ↔ 日期">
+  <meta property="og:title" content="Unix时间戳转换 - 🍀 CloverTools">
+  <meta property="og:description" content="时间戳与日期互转，支持秒/毫秒">
   <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
   <meta property="og:url" content="https://tools.xsanye.cn/tools/time/timestamp.html">
   <meta property="og:type" content="website">
@@ -16,8 +16,8 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@CloverTools">
-  <meta name="twitter:title" content="时间戳转换 - 🍀 CloverTools">
-  <meta name="twitter:description" content="Unix 时间戳 ↔ 日期">
+  <meta name="twitter:title" content="Unix时间戳转换 - 🍀 CloverTools">
+  <meta name="twitter:description" content="时间戳与日期互转，支持秒/毫秒">
   <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
 
   <!-- Canonical -->
@@ -26,15 +26,108 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
   <script src="../../src/shared.js"></script>
   <style>
-    /* Tool page layout - override defaults */
     .page-body { padding: 2.5rem 0 4rem; }
     .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
     .breadcrumb a { color: var(--primary); text-decoration: none; }
-    /* SVG icon sizing */
     .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
     .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
     .nav-icon-link span { font-size: 0.9rem; }
     .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 0.6rem 1.2rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .tab-btn:hover { border-color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Live clock */
+    .live-clock {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .live-clock .label { font-size: 0.8rem; color: var(--text-2); margin-bottom: 0.3rem; }
+    .live-clock .timestamp-row { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
+    .live-clock .ts-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); font-family: monospace; }
+    .live-clock .ts-unit { font-size: 0.75rem; color: var(--text-2); }
+
+    /* Input group */
+    .input-group { margin-bottom: 1rem; }
+    .input-group label { display: block; font-size: 0.85rem; color: var(--text-2); margin-bottom: 0.3rem; }
+    .input-group input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .input-group input:focus { outline: none; border-color: var(--primary); }
+
+    /* Date inputs row */
+    .date-inputs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; }
+    @media (max-width: 600px) { .date-inputs { grid-template-columns: repeat(3, 1fr); } }
+
+    /* Result box */
+    .result-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-top: 1rem;
+    }
+    .result-box .result-label { font-size: 0.8rem; color: var(--text-2); margin-bottom: 0.5rem; }
+    .result-box .result-value { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; word-break: break-all; }
+    .result-box .result-copy { margin-top: 0.5rem; }
+
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .btn {
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--primary); }
+    .btn-sm { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+
+    .copy-btn {
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      vertical-align: middle;
+    }
+    .copy-btn:hover { border-color: var(--primary); color: var(--primary); }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
@@ -53,13 +146,9 @@
     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
   </symbol>
-  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="3"/>
-    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
-    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
-    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
-    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
-    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  <symbol id="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
   </symbol>
 </svg>
 
@@ -78,39 +167,91 @@
     <div class="container">
       <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
       <div class="tool-header">
-        <h1>时间戳转换</h1>
-        <p class="description">Unix 时间戳 ↔ 日期</p>
+        <h1>Unix时间戳转换</h1>
+        <p class="description">时间戳与日期互转，支持秒/毫秒</p>
       </div>
-      <div class="tool-layout ">
-        
-      <div class="tool-layout two-col">
-        <div class="tool-card">
-          <h3>当前时间戳</h3>
-          <textarea id="nowOutput" readonly style="font-size:1.2rem;text-align:center;"></textarea>
-          <div class="btn-row">
-            <button class="btn btn-secondary" id="copyNow">复制 ms</button>
+
+      <!-- Live Clock -->
+      <div class="live-clock">
+        <div class="label">当前时间戳</div>
+        <div class="timestamp-row">
+          <div>
+            <div class="ts-value" id="liveSeconds">—</div>
+            <div class="ts-unit">秒 (s)</div>
+          </div>
+          <div>
+            <div class="ts-value" id="liveMs">—</div>
+            <div class="ts-unit">毫秒 (ms)</div>
           </div>
         </div>
-        <div class="tool-card">
-          <h3>转换</h3>
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">时间戳 → 日期</label>
-          <input type="text" id="tsInput" placeholder="毫秒或秒级时间戳" style="margin-bottom:0.5rem;">
-          <button class="btn btn-primary" id="toDate" style="margin-bottom:1rem;">转换</button>
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">日期 → 时间戳</label>
-          <input type="text" id="dateInput" placeholder="2024-01-01 12:00:00" style="margin-bottom:0.5rem;">
-          <button class="btn btn-secondary" id="toTs">转换</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" id="tabTs2Date">时间戳 → 日期</button>
+        <button class="tab-btn" id="tabDate2Ts">日期 → 时间戳</button>
+      </div>
+
+      <!-- Panel 1: Timestamp to Date -->
+      <div class="tab-panel active" id="panelTs2Date">
+        <div class="input-group">
+          <label>输入时间戳（秒或毫秒，自动识别）</label>
+          <input type="text" id="tsInput" placeholder="例如：1712832000 或 1712832000000">
         </div>
-        <div class="tool-card">
-          <h3>转换结果</h3>
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">毫秒</label>
-          <input type="text" id="tsOutput" readonly style="margin-bottom:1rem;">
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">秒</label>
-          <input type="text" id="tsOutputSec" readonly style="margin-bottom:1rem;">
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">日期</label>
-          <input type="text" id="dateOutput" readonly>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="convertTs">转换</button>
+        </div>
+        <div class="result-box" id="tsResult" style="display:none;">
+          <div class="result-label">转换结果</div>
+          <div class="result-value" id="tsLocal"></div>
+          <div class="result-value" id="tsUtc" style="font-size:0.9rem; color:var(--text-2);"></div>
+          <div class="result-copy">
+            <button class="copy-btn" id="copyTsResult">复制结果</button>
+          </div>
         </div>
       </div>
+
+      <!-- Panel 2: Date to Timestamp -->
+      <div class="tab-panel" id="panelDate2Ts">
+        <div class="date-inputs">
+          <div class="input-group">
+            <label>年</label>
+            <input type="number" id="dYear" placeholder="2024">
+          </div>
+          <div class="input-group">
+            <label>月</label>
+            <input type="number" id="dMonth" placeholder="1-12" min="1" max="12">
+          </div>
+          <div class="input-group">
+            <label>日</label>
+            <input type="number" id="dDay" placeholder="1-31" min="1" max="31">
+          </div>
+          <div class="input-group">
+            <label>时</label>
+            <input type="number" id="dHour" placeholder="0-23" min="0" max="23">
+          </div>
+          <div class="input-group">
+            <label>分</label>
+            <input type="number" id="dMin" placeholder="0-59" min="0" max="59">
+          </div>
+          <div class="input-group">
+            <label>秒</label>
+            <input type="number" id="dSec" placeholder="0-59" min="0" max="59">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="convertDate">转换</button>
+        </div>
+        <div class="result-box" id="dateResult" style="display:none;">
+          <div class="result-label">转换结果</div>
+          <div class="result-value" id="dateTsSec"></div>
+          <div class="result-value" id="dateTsMs" style="font-size:0.9rem; color:var(--text-2);"></div>
+          <div class="result-copy">
+            <button class="copy-btn" id="copyDateResult">复制结果</button>
+          </div>
+        </div>
       </div>
+
     </div>
   </main>
 
@@ -125,42 +266,116 @@
 
   <script>
     CT.initTheme();
-
     CT.initKeyboardShortcuts();
 
-    // Share: copy current URL to clipboard
-    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+    // Share
+    document.getElementById("shareBtn").onclick = function() {
+      navigator.clipboard.writeText(window.location.href).then(function() {
+        CT.showToast("链接已复制！");
+      }).catch(function() {
+        CT.showToast("复制失败");
+      });
+    };
 
-    
-      const tsInput = document.getElementById('tsInput');
-      const dateInput = document.getElementById('dateInput');
-      const nowOutput = document.getElementById('nowOutput');
-      const tsOutput = document.getElementById('tsOutput');
-      const dateOutput = document.getElementById('dateOutput');
+    // Live clock update
+    function updateLiveClock() {
+      const now = Date.now();
+      const sec = Math.floor(now / 1000);
+      const ms = now;
+      document.getElementById('liveSeconds').textContent = sec;
+      document.getElementById('liveMs').textContent = ms;
+    }
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
 
-      function updateNow() {
-        const now = Date.now();
-        nowOutput.value = now + ' ms';
-        tsOutput.value = Math.floor(now / 1000) + ' s';
-        dateOutput.value = new Date(now).toLocaleString('zh-CN');
+    // Tab switching
+    document.getElementById('tabTs2Date').onclick = function() {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('panelTs2Date').classList.add('active');
+    };
+    document.getElementById('tabDate2Ts').onclick = function() {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('panelDate2Ts').classList.add('active');
+    };
+
+    // Helper: pad zero
+    function pad(n, len) { return String(n).padStart(len, '0'); }
+
+    // Helper: format date in local timezone
+    function formatLocal(d) {
+      const y = d.getFullYear();
+      const mo = pad(d.getMonth() + 1, 2);
+      const day = pad(d.getDate(), 2);
+      const h = pad(d.getHours(), 2);
+      const mi = pad(d.getMinutes(), 2);
+      const s = pad(d.getSeconds(), 2);
+      return y + '-' + mo + '-' + day + ' ' + h + ':' + mi + ':' + s;
+    }
+
+    // Helper: format date in UTC
+    function formatUTC(d) {
+      return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1, 2) + '-' + pad(d.getUTCDate(), 2)
+        + ' ' + pad(d.getUTCHours(), 2) + ':' + pad(d.getUTCMinutes(), 2) + ':' + pad(d.getUTCSeconds(), 2) + ' UTC';
+    }
+
+    // Panel 1: Timestamp → Date
+    document.getElementById('convertTs').onclick = function() {
+      const val = document.getElementById('tsInput').value.trim();
+      if (!val) return;
+      const num = parseInt(val, 10);
+      if (isNaN(num)) { CT.showToast('请输入有效的时间戳'); return; }
+      // Auto-detect: if > 1e11 it's ms, else seconds
+      const tsMs = num > 1e11 ? num : num * 1000;
+      const d = new Date(tsMs);
+      if (isNaN(d.getTime())) { CT.showToast('时间戳无效'); return; }
+      document.getElementById('tsLocal').textContent = '本地: ' + formatLocal(d);
+      document.getElementById('tsUtc').textContent = 'UTC: ' + formatUTC(d);
+      document.getElementById('tsResult').style.display = 'block';
+    };
+
+    document.getElementById('copyTsResult').onclick = function() {
+      const local = document.getElementById('tsLocal').textContent;
+      const utc = document.getElementById('tsUtc').textContent;
+      navigator.clipboard.writeText(local + '\n' + utc).then(function() {
+        CT.showToast('已复制！');
+      }).catch(function() {
+        CT.showToast('复制失败');
+      });
+    };
+
+    // Panel 2: Date → Timestamp
+    document.getElementById('convertDate').onclick = function() {
+      const y = parseInt(document.getElementById('dYear').value, 10);
+      const mo = parseInt(document.getElementById('dMonth').value, 10);
+      const day = parseInt(document.getElementById('dDay').value, 10);
+      const h = parseInt(document.getElementById('dHour').value, 10) || 0;
+      const mi = parseInt(document.getElementById('dMin').value, 10) || 0;
+      const s = parseInt(document.getElementById('dSec').value, 10) || 0;
+      if (isNaN(y) || isNaN(mo) || isNaN(day)) {
+        CT.showToast('请填写年、月、日'); return;
       }
+      const d = new Date(y, mo - 1, day, h, mi, s);
+      if (isNaN(d.getTime())) { CT.showToast('日期无效'); return; }
+      const tsSec = Math.floor(d.getTime() / 1000);
+      const tsMs = d.getTime();
+      document.getElementById('dateTsSec').textContent = '秒: ' + tsSec;
+      document.getElementById('dateTsMs').textContent = '毫秒: ' + tsMs;
+      document.getElementById('dateResult').style.display = 'block';
+    };
 
-      document.getElementById('toDate').onclick = () => {
-        const v = tsInput.value.trim();
-        if (!v) return;
-        const ms = v.length === 10 ? parseInt(v)*1000 : parseInt(v);
-        dateInput.value = new Date(ms).toLocaleString('zh-CN');
-      };
-      document.getElementById('toTs').onclick = () => {
-        const d = new Date(dateInput.value);
-        if (isNaN(d)) return;
-        tsInput.value = d.getTime();
-      };
-      document.getElementById('copyNow').onclick = () => copyToClipboard(nowOutput.value);
-      document.getElementById('copyTs').onclick = () => copyToClipboard(tsOutput.value);
-      updateNow();
-      setInterval(updateNow, 1000);
-    
+    document.getElementById('copyDateResult').onclick = function() {
+      const sec = document.getElementById('dateTsSec').textContent;
+      const ms = document.getElementById('dateTsMs').textContent;
+      navigator.clipboard.writeText(sec + '\n' + ms).then(function() {
+        CT.showToast('已复制！');
+      }).catch(function() {
+        CT.showToast('复制失败');
+      });
+    };
   </script>
 </body>
 </html>

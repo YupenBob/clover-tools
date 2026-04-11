@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>颜色选择器 - 🍀 CloverTools</title>
+  <meta name="description" content="可视化颜色选择器，支持 HEX、RGB、HSL、HSV 等多种格式">
 
   <!-- Open Graph -->
   <meta property="og:title" content="颜色选择器 - 🍀 CloverTools">
-  <meta property="og:description" content="可视化颜色选择器">
+  <meta property="og:description" content="可视化颜色选择器，支持多种颜色格式">
   <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
-  <meta property="og:url" content="https://tools.xsanye.cn/">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/code/color-picker.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="🍀 CloverTools">
 
@@ -17,83 +18,577 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@CloverTools">
   <meta name="twitter:title" content="颜色选择器 - 🍀 CloverTools">
-  <meta name="twitter:description" content="可视化颜色选择器">
+  <meta name="twitter:description" content="可视化颜色选择器，支持多种颜色格式">
   <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
 
   <!-- Canonical -->
-  <link rel="canonical" href="https://tools.xsanye.cn/">
-  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/code/color-picker.html">
+  <link rel="stylesheet" href="../../src/shared.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
   <script src="../../src/shared.js"></script>
   <style>
-    /* Tool page layout - override defaults */
     .page-body { padding: 2.5rem 0 4rem; }
     .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
     .breadcrumb a { color: var(--primary); text-decoration: none; }
-    /* SVG icon sizing */
     .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
     .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
     .nav-icon-link span { font-size: 0.9rem; }
     .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    .color-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 768px) { .color-layout { grid-template-columns: 1fr; } }
+
+    /* Preview */
+    .color-preview-section { }
+    .color-preview-box {
+      width: 100%;
+      height: 120px;
+      border-radius: 0.75rem;
+      border: 2px solid var(--border);
+      margin-bottom: 1rem;
+      transition: background-color 0.1s;
+    }
+
+    /* Picker area */
+    .picker-section { }
+    .sat-bright-box {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      border-radius: 0.5rem;
+      cursor: crosshair;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(to right, #fff 0%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 100%), hsl(0, 100%, 50%);
+    }
+    .sat-bright-cursor {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(0,0,0,0.3);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hue-bar {
+      position: relative;
+      width: 100%;
+      height: 20px;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+    }
+    .hue-cursor {
+      position: absolute;
+      width: 6px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-radius: 3px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+      top: 0;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    /* Sliders */
+    .slider-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .slider-label { font-size: 0.8rem; color: var(--text-2); min-width: 2rem; }
+    .slider-input {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--surface-2);
+      outline: none;
+    }
+    .slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    }
+    .slider-value {
+      font-size: 0.85rem;
+      font-family: monospace;
+      min-width: 3rem;
+      text-align: right;
+      color: var(--text);
+    }
+
+    /* Format outputs */
+    .format-section { }
+    .format-grid { display: grid; gap: 0.75rem; }
+    .format-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+    }
+    .format-name { font-size: 0.75rem; color: var(--text-2); min-width: 2.5rem; }
+    .format-value {
+      flex: 1;
+      font-family: monospace;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: none;
+      border: none;
+      outline: none;
+      cursor: text;
+    }
+    .copy-btn-sm {
+      padding: 0.25rem 0.6rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.3rem;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .copy-btn-sm:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Palette */
+    .palette-section { margin-top: 1.5rem; }
+    .palette-section h3 { font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 0.4rem; }
+    .palette-swatch {
+      aspect-ratio: 1;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .palette-swatch:hover { border-color: var(--primary); transform: scale(1.1); }
+
+    /* Hex input */
+    .hex-input-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center; }
+    .hex-input-row input {
+      flex: 1;
+      padding: 0.6rem 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--surface);
+      color: var(--text);
+      font-family: monospace;
+      font-size: 1rem;
+    }
+    .hex-input-row input:focus { outline: none; border-color: var(--primary); }
+
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+    .btn {
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--primary); }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
 </head>
 <body>
-  
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+    </symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+    </symbol>
+  </svg>
 
   <header class="site-header">
-  <div class="container">
-    <nav class="nav">
-      <a href="/" class="nav-item nav-icon-link">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
-        <span>🍀 CloverTools</span>
-      </a>
-    </nav>
-  </div>
-</header>
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <nav class="site-nav">
+        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+      </nav>
+    </div>
+  </header>
 
   <main class="page-body">
     <div class="container">
       <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
       <div class="tool-header">
         <h1>颜色选择器</h1>
-        <p class="description">可视化颜色选择器</p>
+        <p class="description">可视化颜色选择器，支持 HEX、RGB、HSL、HSV 等多种格式</p>
       </div>
-      <div class="tool-layout ">
-        <div class="tool-card">
-  <textarea id="input" placeholder="输入..." style="width:100%;min-height:120px;font-family:monospace;"></textarea>
-  <div class="btn-row" style="margin-top:0.5rem;">
-    <button class="btn btn-primary" id="runBtn">运行</button>
-    <button class="btn btn-secondary" id="clearBtn">清空</button>
-    <button class="btn btn-secondary" id="copyBtn">复制</button>
-  </div>
-</div>
-<div class="tool-card">
-  <h3>输出</h3>
-  <textarea id="output" readonly style="width:100%;min-height:120px;font-family:monospace;" placeholder="结果..."></textarea>
-</div>
+
+      <div class="color-layout">
+        <div>
+          <!-- Color Preview -->
+          <div class="color-preview-box" id="colorPreview"></div>
+
+          <!-- Saturation/Brightness Picker -->
+          <div class="picker-section">
+            <div class="sat-bright-box" id="satBrightBox">
+              <div class="sat-bright-cursor" id="satBrightCursor"></div>
+            </div>
+            <div class="hue-bar" id="hueBar">
+              <div class="hue-cursor" id="hueCursor"></div>
+            </div>
+
+            <!-- Sliders -->
+            <div class="slider-row">
+              <span class="slider-label">H</span>
+              <input type="range" class="slider-input" id="hSlider" min="0" max="360" value="0">
+              <span class="slider-value" id="hValue">0°</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">S</span>
+              <input type="range" class="slider-input" id="sSlider" min="0" max="100" value="100">
+              <span class="slider-value" id="sValue">100%</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">L</span>
+              <input type="range" class="slider-input" id="lSlider" min="0" max="100" value="50">
+              <span class="slider-value" id="lValue">50%</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <!-- Hex input -->
+          <div class="hex-input-row">
+            <input type="text" id="hexInput" value="#FF0000" placeholder="#RRGGBB">
+            <button class="btn btn-primary" id="applyHex" style="padding:0.55rem 0.8rem;">应用</button>
+          </div>
+
+          <!-- Format outputs -->
+          <div class="format-section">
+            <div class="format-grid">
+              <div class="format-row">
+                <span class="format-name">HEX</span>
+                <input type="text" class="format-value" id="hexOutput" value="#FF0000" readonly>
+                <button class="copy-btn-sm" data-target="hexOutput">复制</button>
+              </div>
+              <div class="format-row">
+                <span class="format-name">RGB</span>
+                <input type="text" class="format-value" id="rgbOutput" value="rgb(255, 0, 0)" readonly>
+                <button class="copy-btn-sm" data-target="rgbOutput">复制</button>
+              </div>
+              <div class="format-row">
+                <span class="format-name">RGBA</span>
+                <input type="text" class="format-value" id="rgbaOutput" value="rgba(255, 0, 0, 1)" readonly>
+                <button class="copy-btn-sm" data-target="rgbaOutput">复制</button>
+              </div>
+              <div class="format-row">
+                <span class="format-name">HSL</span>
+                <input type="text" class="format-value" id="hslOutput" value="hsl(0, 100%, 50%)" readonly>
+                <button class="copy-btn-sm" data-target="hslOutput">复制</button>
+              </div>
+              <div class="format-row">
+                <span class="format-name">HSV</span>
+                <input type="text" class="format-value" id="hsvOutput" value="hsv(0°, 100%, 100%)" readonly>
+                <button class="copy-btn-sm" data-target="hsvOutput">复制</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="shareBtn">分享颜色</button>
+            <button class="btn btn-secondary" id="randomBtn">随机颜色</button>
+          </div>
+
+          <!-- Palette -->
+          <div class="palette-section">
+            <h3>预设颜色</h3>
+            <div class="palette-grid" id="paletteGrid"></div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
 
   <footer class="site-footer">
-  <div class="container">
-    <p>🍀 CloverTools - 轻量级开发者工具箱 | <a href="/">返回工具箱</a></p>
-  </div>
-</footer>
+    <div class="site-footer-inner">
+      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+    </div>
+  </footer>
 
   <div id="toast"></div>
 
   <script>
     CT.initTheme();
 
-    CT.initKeyboardShortcuts();
+    var h = 0, s = 100, l = 50;
 
-    // Share: copy current URL to clipboard
-    document.getElementById("shareBtn").onclick=function(){navigator.clipboard.writeText(window.location.href).then(function(){CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01")}).catch(function(){CT.showToast("\u590d\u5236\u5931\u8d25")})};
+    var satBrightBox = document.getElementById('satBrightBox');
+    var satBrightCursor = document.getElementById('satBrightCursor');
+    var hueBar = document.getElementById('hueBar');
+    var hueCursor = document.getElementById('hueCursor');
+    var colorPreview = document.getElementById('colorPreview');
+    var hSlider = document.getElementById('hSlider');
+    var sSlider = document.getElementById('sSlider');
+    var lSlider = document.getElementById('lSlider');
+    var hValue = document.getElementById('hValue');
+    var sValue = document.getElementById('sValue');
+    var lValue = document.getElementById('lValue');
+    var hexInput = document.getElementById('hexInput');
+    var hexOutput = document.getElementById('hexOutput');
+    var rgbOutput = document.getElementById('rgbOutput');
+    var rgbaOutput = document.getElementById('rgbaOutput');
+    var hslOutput = document.getElementById('hslOutput');
+    var hsvOutput = document.getElementById('hsvOutput');
+    var paletteGrid = document.getElementById('paletteGrid');
 
-    document.getElementById('runBtn').onclick=()=>{document.getElementById('output').value=document.getElementById('input').value};document.getElementById('clearBtn').onclick=()=>{document.getElementById('input').value='';document.getElementById('output').value=''};document.getElementById('copyBtn').onclick=()=>copyToClipboard(document.getElementById('output').value)
+    // HSL to RGB
+    function hslToRgb(h, s, l) {
+      s /= 100;
+      l /= 100;
+      var c = (1 - Math.abs(2 * l - 1)) * s;
+      var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      var m = l - c / 2;
+      var r = 0, g = 0, b = 0;
+      if (h < 60) { r = c; g = x; b = 0; }
+      else if (h < 120) { r = x; g = c; b = 0; }
+      else if (h < 180) { r = 0; g = c; b = x; }
+      else if (h < 240) { r = 0; g = x; b = c; }
+      else if (h < 300) { r = x; g = 0; b = c; }
+      else { r = c; g = 0; b = x; }
+      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+    }
+
+    // RGB to HEX
+    function rgbToHex(r, g, b) {
+      return '#' + [r, g, b].map(function(x) { return x.toString(16).padStart(2, '0'); }).join('').toUpperCase();
+    }
+
+    // HEX to RGB
+    function hexToRgb(hex) {
+      var h = hex.replace('#', '');
+      if (h.length === 3) h = h.split('').map(function(x) { return x + x; }).join('');
+      if (h.length !== 6) return null;
+      return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)];
+    }
+
+    // RGB to HSL
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      var max = Math.max(r, g, b), min = Math.min(r, g, b);
+      var h = 0, s = 0, l = (max + min) / 2;
+      if (max !== min) {
+        var d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+    }
+
+    // RGB to HSV
+    function rgbToHsv(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      var max = Math.max(r, g, b), min = Math.min(r, g, b);
+      var h = 0, v = max, d = max - min;
+      s = max === 0 ? 0 : d / max;
+      if (max !== min) {
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(v * 100)];
+    }
+
+    // HSV to RGB
+    function hsvToRgb(h, s, v) {
+      s /= 100; v /= 100;
+      var c = v * s;
+      var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      var m = v - c;
+      var r = 0, g = 0, b = 0;
+      if (h < 60) { r = c; g = x; b = 0; }
+      else if (h < 120) { r = x; g = c; b = 0; }
+      else if (h < 180) { r = 0; g = c; b = x; }
+      else if (h < 240) { r = 0; g = x; b = c; }
+      else if (h < 300) { r = x; g = 0; b = c; }
+      else { r = c; g = 0; b = x; }
+      return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+    }
+
+    function update() {
+      // Update saturation/brightness box background
+      satBrightBox.style.background = 'linear-gradient(to right, #fff 0%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 100%), hsl(' + h + ', 100%, 50%)';
+
+      // Update cursor positions
+      var sbRect = satBrightBox.getBoundingClientRect();
+      satBrightCursor.style.left = (s / 100 * sbRect.width) + 'px';
+      satBrightCursor.style.top = ((100 - l) / 100 * sbRect.height) + 'px';
+
+      var hbRect = hueBar.getBoundingClientRect();
+      hueCursor.style.left = (h / 360 * hbRect.width) + 'px';
+
+      // Update sliders
+      hSlider.value = h;
+      sSlider.value = s;
+      lSlider.value = l;
+      hValue.textContent = h + '°';
+      sValue.textContent = s + '%';
+      lValue.textContent = l + '%';
+
+      // Compute RGB
+      var rgb = hslToRgb(h, s, l);
+      var hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+      var hslArr = [h, s, l];
+      var hsv = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+
+      // Update preview
+      colorPreview.style.backgroundColor = hex;
+
+      // Update outputs
+      hexOutput.value = hex;
+      rgbOutput.value = 'rgb(' + rgb.join(', ') + ')';
+      rgbaOutput.value = 'rgba(' + rgb.join(', ') + ', 1)';
+      hslOutput.value = 'hsl(' + h + ', ' + s + '%, ' + l + '%)';
+      hsvOutput.value = 'hsv(' + hsv[0] + '°, ' + hsv[1] + '%, ' + hsv[2] + '%)';
+      hexInput.value = hex;
+    }
+
+    // Saturation/Brightness picker
+    var isDraggingSB = false;
+    satBrightBox.addEventListener('mousedown', function(e) {
+      isDraggingSB = true;
+      pickSB(e);
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (isDraggingSB) pickSB(e);
+    });
+    document.addEventListener('mouseup', function() { isDraggingSB = false; });
+    function pickSB(e) {
+      var rect = satBrightBox.getBoundingClientRect();
+      var x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      var y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+      s = Math.round(x * 100);
+      l = Math.round((1 - y) * 100);
+      update();
+    }
+
+    // Hue bar
+    var isDraggingHue = false;
+    hueBar.addEventListener('mousedown', function(e) {
+      isDraggingHue = true;
+      pickHue(e);
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (isDraggingHue) pickHue(e);
+    });
+    document.addEventListener('mouseup', function() { isDraggingHue = false; });
+    function pickHue(e) {
+      var rect = hueBar.getBoundingClientRect();
+      var x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      h = Math.round(x * 360);
+      update();
+    }
+
+    // Sliders
+    hSlider.addEventListener('input', function() { h = parseInt(hSlider.value); update(); });
+    sSlider.addEventListener('input', function() { s = parseInt(sSlider.value); update(); });
+    lSlider.addEventListener('input', function() { l = parseInt(lSlider.value); update(); });
+
+    // Hex input
+    document.getElementById('applyHex').addEventListener('click', function() {
+      var rgb = hexToRgb(hexInput.value);
+      if (!rgb) { CT.showToast('无效的 HEX 颜色值'); return; }
+      var hslArr = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+      h = hslArr[0]; s = hslArr[1]; l = hslArr[2];
+      update();
+    });
+    hexInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('applyHex').click();
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn-sm').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var targetId = this.dataset.target;
+        var val = document.getElementById(targetId).value;
+        navigator.clipboard.writeText(val).then(function() {
+          CT.showToast('已复制：' + val);
+        }).catch(function() {
+          CT.showToast('复制失败');
+        });
+      });
+    });
+
+    // Random color
+    document.getElementById('randomBtn').addEventListener('click', function() {
+      h = Math.floor(Math.random() * 360);
+      s = 60 + Math.floor(Math.random() * 40);
+      l = 30 + Math.floor(Math.random() * 40);
+      update();
+    });
+
+    // Share
+    document.getElementById('shareBtn').addEventListener('click', function() {
+      var url = window.location.href.split('?')[0] + '?hex=' + encodeURIComponent(hexOutput.value);
+      navigator.clipboard.writeText(url).then(function() {
+        CT.showToast('分享链接已复制！');
+      }).catch(function() {
+        CT.showToast('复制失败');
+      });
+    });
+
+    // Load from URL
+    var urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('hex')) {
+      var rgb = hexToRgb(urlParams.get('hex'));
+      if (rgb) {
+        var hslArr = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+        h = hslArr[0]; s = hslArr[1]; l = hslArr[2];
+      }
+    }
+
+    // Build palette
+    var palette = [
+      '#FF0000','#FF4500','#FFA500','#FFD700','#FFFF00','#9ACD32',
+      '#32CD32','#00FF00','#00FA9A','#00CED1','#1E90FF','#0000FF',
+      '#8A2BE2','#EE82EE','#FF69B4','#FFC0CB','#FFFFFF','#D3D3D3',
+      '#A9A9A9','#808080','#404040','#000000','#006400','#8B0000'
+    ];
+    var paletteHtml = '';
+    for (var i = 0; i < palette.length; i++) {
+      paletteHtml += '<div class="palette-swatch" style="background:' + palette[i] + '" data-hex="' + palette[i] + '" title="' + palette[i] + '"></div>';
+    }
+    paletteGrid.innerHTML = paletteHtml;
+    paletteGrid.addEventListener('click', function(e) {
+      var swatch = e.target.closest('.palette-swatch');
+      if (!swatch) return;
+      var rgb = hexToRgb(swatch.dataset.hex);
+      if (rgb) {
+        var hslArr = rgbToHsl(rgb[0], rgb[1], rgb[2]);
+        h = hslArr[0]; s = hslArr[1]; l = hslArr[2];
+        update();
+      }
+    });
+
+    update();
   </script>
 </body>
 </html>
