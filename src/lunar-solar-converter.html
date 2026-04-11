@@ -247,48 +247,37 @@
       lunarYearStart = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
     }
 
-    var totalDays = Math.floor((date - lunarYearStart) / 86400000);
+    var totalDays = Math.floor((date - lunarYearStart) / 86400000) + 1; // +1: LUNAR_DATA.start is day-0, lunar 1-1 is day-1
     var days = ydStart.days;
     var leap = ydStart.leap;
     var isLeap = false;
-    var lunarMonth = 1;
-    var lunarDay = 1;
-
-    // If leap month exists before the current month position, we need to account for it
     var monthIdx = 0;
     for (var i = 0; i < days.length; i++) {
       var mDays = days[i];
       if (isLeap) {
-        // We're in a leap month
-        if (totalDays < mDays) {
-          lunarDay = totalDays + 1;
-          return { year: startYear, month: monthIdx, day: lunarDay, isLeap: true };
+        if (totalDays <= mDays) {
+          return { year: startYear, month: monthIdx, day: totalDays, isLeap: true };
         }
         totalDays -= mDays;
         isLeap = false;
         monthIdx++;
       } else {
-        // Normal month
         if (leap > 0 && monthIdx + 1 === leap && !isLeap) {
-          // This is the leap month position - check if date falls in leap month
-          if (totalDays < mDays) {
-            lunarDay = totalDays + 1;
-            return { year: startYear, month: monthIdx + 1, day: lunarDay, isLeap: false };
+          if (totalDays <= mDays) {
+            return { year: startYear, month: monthIdx + 1, day: totalDays, isLeap: false };
           }
           totalDays -= mDays;
           isLeap = true;
         } else {
-          if (totalDays < mDays) {
-            lunarDay = totalDays + 1;
-            return { year: startYear, month: monthIdx + 1, day: lunarDay, isLeap: false };
+          if (totalDays <= mDays) {
+            return { year: startYear, month: monthIdx + 1, day: totalDays, isLeap: false };
           }
           totalDays -= mDays;
           monthIdx++;
         }
       }
     }
-    // Fallback: remaining days into last month
-    return { year: startYear, month: monthIdx, day: totalDays + 1, isLeap: isLeap };
+    return { year: startYear, month: monthIdx, day: totalDays, isLeap: isLeap };
   }
 
   function showResult(fromLabel, fromVal, toLabel, toVal, weekday, lunarYear) {
