@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点击速度测试 - 在线工具</title>
+  <meta name="description" content="测试你的鼠标点击速度！10秒内看你能点击多少次，计算 CPS（每秒点击数）。">
+  <meta name="keywords" content="点击速度测试,鼠标点击,CPS,测试,在线工具">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; margin: 0; }
+    .title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); }
+    #btn { width: 220px; height: 220px; border-radius: 50%; background: var(--primary); color: #fff; border: none; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.05s, background 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; }
+    #btn:active { transform: scale(0.95); }
+    #btn.running { background: #dc2626; }
+    #btn.done { background: #16a34a; }
+    .big { font-size: 3rem; font-weight: 900; }
+    .stats { margin-top: 1.5rem; text-align: center; width: 320px; }
+    .result { font-size: 2.5rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
+    .sub { font-size: 0.85rem; color: var(--text-secondary); margin: 0.25rem 0; }
+    .cps-row { display: flex; gap: 1rem; justify-content: center; margin-top: 0.5rem; }
+    .cps-box { background: var(--bg); border-radius: 12px; padding: 0.75rem 1.2rem; text-align: center; flex: 1; }
+    .cps-val { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+    .cps-label { font-size: 0.75rem; color: var(--text-secondary); }
+    .btn { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 0.75rem; }
+  </style>
+</head>
+<body>
+  <div class="title">🖱️ 点击速度测试</div>
+  <button id="btn" onclick="handleClick()">
+    <span class="big" id="countText">0</span>
+    <span id="btnLabel">点击开始</span>
+  </button>
+  <div class="stats">
+    <div class="result" id="result">0 次</div>
+    <div class="sub" id="timer">准备就绪</div>
+    <div class="cps-row">
+      <div class="cps-box">
+        <div class="cps-val" id="cps">0.0</div>
+        <div class="cps-label">CPS</div>
+      </div>
+      <div class="cps-box">
+        <div class="cps-val" id="maxCps">0</div>
+        <div class="cps-label">最快1秒</div>
+      </div>
+    </div>
+    <button class="btn" id="resetBtn" onclick="reset()" style="display:none">再试一次</button>
+  </div>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const countText = document.getElementById('countText');
+    const btnLabel = document.getElementById('btnLabel');
+    const result = document.getElementById('result');
+    const timer = document.getElementById('timer');
+    const cpsEl = document.getElementById('cps');
+    const maxCpsEl = document.getElementById('maxCps');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const DURATION = 10; // seconds
+    let clicks = 0;
+    let interval = null;
+    let timerInterval = null;
+    let startTime = 0;
+    let running = false;
+    let clickTimes = []; // for max CPS calculation
+
+    function handleClick() {
+      if (!running && clicks === 0) {
+        startGame();
+        return;
+      }
+      if (!running) return;
+      clicks++;
+      clickTimes.push(Date.now());
+      countText.textContent = clicks;
+      updateCPS();
+    }
+
+    function startGame() {
+      running = true;
+      clicks = 0;
+      clickTimes = [];
+      startTime = Date.now();
+      btn.className = 'running';
+      countText.textContent = '0';
+      btnLabel.textContent = '快！';
+      result.textContent = '0 次';
+      timer.textContent = `${DURATION}s`;
+      cpsEl.textContent = '0.0';
+      maxCpsEl.textContent = '0';
+      resetBtn.style.display = 'none';
+
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const left = DURATION - elapsed;
+        timer.textContent = `${Math.max(0, left)}s`;
+        if (left <= 0) {
+          endGame();
+        }
+      }, 100);
+    }
+
+    function updateCPS() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const cps = clicks / elapsed;
+      cpsEl.textContent = cps.toFixed(1);
+
+      // 计算最快1秒
+      const now = Date.now();
+      const lastSecond = clickTimes.filter(t => now - t < 1000).length;
+      maxCpsEl.textContent = lastSecond;
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(timerInterval);
+      btn.className = 'done';
+      btnLabel.textContent = '结束！';
+      timer.textContent = '0s';
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      const cps = clicks / elapsed;
+      result.textContent = `${clicks} 次`;
+
+      let rating = '';
+      if (cps >= 10) rating = '⚡ 手速惊人！';
+      else if (cps >= 7) rating = '🌟 非常快！';
+      else if (cps >= 5) rating = '👍 不错！';
+      else if (cps >= 3) rating = '😐 一般';
+      else rating = '😴 还需练习';
+
+      timer.textContent = rating;
+      resetBtn.style.display = 'inline-block';
+    }
+
+    function reset() {
+      clicks = 0;
+      running = false;
+      clickTimes = [];
+      btn.className = '';
+      countText.textContent = '0';
+      btnLabel.textContent = '点击开始';
+      result.textContent = '0 次';
+      timer.textContent = '准备就绪';
+      cpsEl.textContent = '0.0';
+      maxCpsEl.textContent = '0';
+      resetBtn.style.display = 'none';
+      clearInterval(timerInterval);
+    }
+  </script>
+</body>
+</html>
