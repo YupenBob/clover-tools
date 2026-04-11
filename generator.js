@@ -83,11 +83,175 @@ function buildToolPage(tool) {
   return html;
 }
 
+
+// ============ Tool Type Template Registry ============
+// New tools only need to add entries in tools.json with a "type" field.
+// No code changes needed in generator.js for standard tool types.
+
+const TOOL_TYPE_REGISTRY = {
+  // type: "encode-decode" → textarea input + encode/decode buttons + output
+  'encode-decode': {
+    description: '双向编码/解码工具',
+    html: function(tool) {
+      const btn1 = tool.btnLabel1 || '编码';
+      const btn2 = tool.btnLabel2 || '解码';
+      const inputPlaceholder = tool.inputPlaceholder || '输入要编码/解码的文本...';
+      return `
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="${inputPlaceholder}"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="action1">${btn1}</button>
+          <button class="btn btn-secondary" id="action2">${btn2}</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly></textarea>
+      </div>`;
+    },
+    script: function(tool) {
+      return `
+      var mode = 'forward';
+      var fwd = ${JSON.stringify(tool.forwardFn || 'function(v){return v;}')};
+      var rev = ${JSON.stringify(tool.reverseFn || 'function(v){return v;}')};
+      var fwdLabel = ${JSON.stringify(tool.btnLabel1 || '编码')};
+      var revLabel = ${JSON.stringify(tool.btnLabel2 || '解码')};
+      function run() {
+        var v = document.getElementById('input').value;
+        try {
+          document.getElementById('output').value = (mode === 'forward') ? fwd(v) : rev(v);
+        } catch(e) { document.getElementById('output').value = '错误: ' + e.message; }
+      }
+      document.getElementById('action1').onclick = function() { mode = 'forward'; run(); };
+      document.getElementById('action2').onclick = function() { mode = 'reverse'; run(); };
+      document.getElementById('copyOutput').onclick = function() { copyToClipboard(document.getElementById('output').value); };
+      document.getElementById('input').addEventListener('input', run);
+      `;
+    }
+  },
+
+  // type: "calculate" → number inputs + calculate button + result div
+  'calculate': {
+    description: '计算器类型工具',
+    html: function(tool) {
+      let fields = '';
+      if (tool.fields && tool.fields.length) {
+        tool.fields.forEach(function(f) {
+          if (f.type === 'select') {
+            const opts = f.options.map(function(o) {
+              return '<option value="' + o.value + '">' + o.label + '</option>';
+            }).join('');
+            fields += '<div class="input-field"><label>' + f.label + '</label><select id="' + f.id + '">' + opts + '</select></div>';
+          } else {
+            fields += '<div class="input-field"><label>' + f.label + '</label><input type="number" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+          }
+        });
+      }
+      return '<div class="tool-card"><h3>输入参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div><div class="btn-row"><button class="btn btn-primary" id="calcBtn">计算</button></div></div><div class="tool-card"><h3>计算结果</h3><div id="result" style="font-size:1.1rem;padding:1rem;line-height:1.8;"></div></div>';
+    },
+    script: function(tool) {
+      const fn = tool.calcFn || 'function(inputs){return "请实现计算逻辑";}';
+      // Escape single quotes so fn can be safely embedded in single-quoted string
+      const fnEscaped = fn.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const initPart = tool.initFn || '';
+      const autoCalcPart = tool.autoCalc ? 'document.getElementById("calcBtn").onclick();' : '';
+      const fieldParts = (tool.fields || []).map(function(f) {
+        return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;\n  inputs["' + f.id + '_el"] = document.getElementById("' + f.id + '");';
+      });
+      const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
+      return 'var calcFn = \'' + fnEscaped + '\';\n' + initPart + '\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = calcFn(inputs);\n  document.getElementById("result").innerHTML = result;\n};\n' + autoCalcPart;
+    }
+  },
+
+  // type: "converter" → input + select (from/to) + output
+  'converter': {
+    description: '格式转换工具',
+    html: function(tool) {
+      const opts = (tool.options || []).map(function(o) {
+        return '<option value="' + o.value + '">' + o.label + '</option>';
+      }).join('');
+      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="' + (tool.inputPlaceholder || '输入...') + '" style="min-height:100px;"></textarea><div class="input-row" style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;"><span>从</span><select id="fromBase" style="padding:0.4rem;">' + opts + '</select><span>转换为</span><select id="toBase" style="padding:0.4rem;">' + opts + '</select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">转换</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+    },
+    script: function(tool) {
+      const conv = tool.convertFn || 'function(v,from,to){return v;}';
+      const convEscaped = conv.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      return "var convertFn = '" + convEscaped + "';\ndocument.getElementById(\"convertBtn\").onclick = function() {\n  var v = document.getElementById(\"input\").value;\n  var from = document.getElementById(\"fromBase\").value;\n  var to = document.getElementById(\"toBase\").value;\n  try { document.getElementById(\"output\").value = convertFn(v, from, to); }\n  catch(e) { document.getElementById(\"output\").value = \"错误: \" + e.message; }\n};\ndocument.getElementById(\"copyOutput\").onclick = function() { copyToClipboard(document.getElementById(\"output\").value); };\ndocument.getElementById(\"input\").addEventListener(\"input\", function() {\n  if (document.getElementById(\"autoConvert\") && document.getElementById(\"autoConvert\").checked) document.getElementById(\"convertBtn\").click();\n});";
+    }
+  },
+
+  // type: "query" → search/select input + reference table display
+  'query': {
+    description: '查询参考工具',
+    html: function(tool) {
+      let searchBar = '';
+      if (tool.searchable) {
+        searchBar = '<input type="text" id="searchInput" placeholder="🔍 搜索..." style="width:100%;padding:0.5rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;">';
+      }
+      return '<div class="tool-card"><h3>' + (tool.searchLabel || '查询') + '</h3>' + searchBar + '<div id="resultArea" style="max-height:500px;overflow-y:auto;"></div></div>';
+    },
+    script: function(tool) {
+      const data = JSON.stringify(tool.data || []);
+      const render = tool.renderFn || 'function(data, search) { return "<pre>" + JSON.stringify(data, null, 2) + "</pre>"; }';
+      const renderEscaped = render.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const searchablePart = tool.searchable ? 'document.getElementById("searchInput").addEventListener("input", function() { doRender(this.value); });\n' : '';
+      return "var TOOL_DATA = " + data + ";\nvar renderFn = '" + renderEscaped + "';\nfunction doRender(search) {\n  var filtered = search ? TOOL_DATA.filter(function(item) {\n    return JSON.stringify(item).toLowerCase().includes(search.toLowerCase());\n  }) : TOOL_DATA;\n  document.getElementById(\"resultArea\").innerHTML = renderFn(filtered, search);\n}\n" + searchablePart + "doRender();";
+    }
+  },
+
+  // type: "generator" → optional input fields + generate button + output
+  'generator': {
+    description: '生成器工具',
+    html: function(tool) {
+      let fields = '';
+      if (tool.fields && tool.fields.length) {
+        tool.fields.forEach(function(f) {
+          if (f.type === 'select') {
+            const opts = f.options.map(function(o) {
+              return '<option value="' + o.value + '">' + o.label + '</option>';
+            }).join('');
+            fields += '<div class="input-field"><label>' + f.label + '</label><select id="' + f.id + '">' + opts + '</select></div>';
+          } else {
+            fields += '<div class="input-field"><label>' + f.label + '</label><input type="' + (f.type || 'text') + '" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+          }
+        });
+      }
+      const btnLabel = tool.btnLabel || '生成';
+      return '<div class="tool-card">' + (fields ? '<h3>参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div>' : '') + '<div class="btn-row"><button class="btn btn-primary" id="genBtn">' + btnLabel + '</button></div></div><div class="output-box"><h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+    },
+    script: function(tool) {
+      const genFn = tool.generateFn || 'function(inputs){ return "请实现生成逻辑"; }';
+      const genFnEscaped = genFn.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const fieldParts = (tool.fields || []).map(function(f) {
+        return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;';
+      });
+      const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
+      const autoGenPart = tool.autoGenerate ? 'document.getElementById("genBtn").onclick();' : '';
+      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = genFn(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
+    }
+  }
+};
+
+// Get tool config from tools.json by path
+function getToolConfig(toolPath) {
+  for (var i = 0; i < toolsConfig.length; i++) {
+    var cat = toolsConfig[i];
+    for (var j = 0; j < cat.tools.length; j++) {
+      if (cat.tools[j].path === toolPath) return cat.tools[j];
+    }
+  }
+  return null;
+}
+
 // ============ Tool Implementations ============
 function stripExt(p) { return p.replace(/\.html$/, ''); }
 
 function buildToolScript(tool) {
   const key = stripExt(tool.path);
+  // NEW: Check registry first for auto-generated tools
+  if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
+    return TOOL_TYPE_REGISTRY[tool.type].script(tool);
+  }
   const scripts = {
     'json/formatter': `
       const input = document.getElementById('input');
@@ -1625,6 +1789,10 @@ function buildToolScript(tool) {
 // ============ Tool content HTML builders ============
 function buildToolContentHtml(tool) {
   const key = stripExt(tool.path);
+  // NEW: Check registry first for auto-generated tools
+  if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
+    return TOOL_TYPE_REGISTRY[tool.type].html(tool);
+  }
   const contents = {
     'json/formatter': `
       <div class="tool-card">
