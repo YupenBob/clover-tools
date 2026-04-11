@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>反应力测试 - 在线工具</title>
+  <meta name="description" content="测试你的反应速度！屏幕变绿后立即点击，记录反应时间，5轮取平均值。">
+  <meta name="keywords" content="反应力测试,反应速度,测试,在线工具">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg-secondary); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; margin: 0; }
+    .title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text-primary); }
+    #area { width: 320px; height: 200px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600; color: #fff; cursor: pointer; user-select: none; transition: background 0.1s; background: #ef4444; }
+    #area.waiting { background: #6b7280; cursor: not-allowed; }
+    #area.ready { background: #22c55e; }
+    #area.too-early { background: #f59e0b; }
+    .stats { margin-top: 1.5rem; text-align: center; width: 320px; }
+    .result { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 0.5rem 0; }
+    .sub { font-size: 0.85rem; color: var(--text-secondary); margin: 0.25rem 0; }
+    .rounds { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+    .btn { background: var(--primary); color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-top: 0.5rem; }
+    .btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="title">⚡ 反应力测试</div>
+  <div id="area" class="waiting">点击开始测试</div>
+  <div class="stats">
+    <div class="result" id="result">— ms</div>
+    <div class="sub" id="sub">5轮取平均</div>
+    <div class="rounds" id="rounds">最快: — | 最慢: —</div>
+    <button class="btn" id="resetBtn" style="display:none" onclick="reset()">重新开始</button>
+  </div>
+  <script>
+    const area = document.getElementById('area');
+    const result = document.getElementById('result');
+    const sub = document.getElementById('sub');
+    const roundsEl = document.getElementById('rounds');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let times = [];
+    let timeout = null;
+    let startTime = 0;
+    let round = 0;
+    const totalRounds = 5;
+
+    area.onclick = () => {
+      if (area.classList.contains('waiting')) {
+        startRound();
+      } else if (area.classList.contains('ready')) {
+        const elapsed = Date.now() - startTime;
+        times.push(elapsed);
+        round++;
+        updateDisplay();
+        if (round >= totalRounds) {
+          endGame();
+        } else {
+          setTimeout(startRound, 800);
+        }
+      } else if (area.classList.contains('too-early')) {
+        // 点太快了，重置这一轮
+        clearTimeout(timeout);
+        area.className = 'waiting';
+        area.textContent = '太心急了！点击重新开始';
+      }
+    };
+
+    function startRound() {
+      area.className = 'waiting';
+      area.textContent = `第 ${round + 1}/${totalRounds} 轮 - 等待变绿...`;
+      const delay = 1500 + Math.random() * 3000;
+      timeout = setTimeout(() => {
+        area.className = 'ready';
+        area.textContent = '🔥 快点！';
+        startTime = Date.now();
+      }, delay);
+    }
+
+    function updateDisplay() {
+      const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+      result.textContent = avg + ' ms';
+      sub.textContent = `已完成 ${round}/${totalRounds} 轮`;
+      const fastest = Math.min(...times);
+      const slowest = Math.max(...times);
+      roundsEl.textContent = `最快: ${fastest}ms | 最慢: ${slowest}ms`;
+    }
+
+    function endGame() {
+      const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+      area.className = 'waiting';
+      area.textContent = '测试完成！';
+      sub.textContent = '🎉 5轮平均反应时间';
+      resetBtn.style.display = 'inline-block';
+      // 评价
+      let rating = '';
+      if (avg < 200) rating = '⚡ 神级反应！';
+      else if (avg < 250) rating = '🌟 优秀！';
+      else if (avg < 300) rating = '👍 良好';
+      else if (avg < 400) rating = '😐 一般';
+      else rating = '😴 还需锻炼';
+      sub.textContent = rating + ' 平均 ' + avg + 'ms';
+    }
+
+    function reset() {
+      times = [];
+      round = 0;
+      result.textContent = '— ms';
+      sub.textContent = '5轮取平均';
+      roundsEl.textContent = '最快: — | 最慢: —';
+      area.className = 'waiting';
+      area.textContent = '点击开始测试';
+      resetBtn.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
