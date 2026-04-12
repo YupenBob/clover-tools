@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cron 表达式测试 - 🍀 CloverTools</title>
-  <meta name="description" content="Cron 表达式解析工具，验证 Cron 表达式并可视化展示下次执行时间，适合定时任务配置。">
-  <meta name="keywords" content="Cron 解析，Cron 表达式测试，Cron 在线工具，定时任务调度，Crontab，在线工具">
+  <meta name="description" content="解析 Cron 表达式，可视化展示下次执行时间，无需注册，完全免费。">
+  <meta name="keywords" content="Cron 表达式测试，Cron 解析，Cron 在线测试，定时任务调度，在线工具">
 
   <!-- Open Graph -->
   <meta property="og:title" content="Cron 表达式测试 - 🍀 CloverTools">
-  <meta property="og:description" content="在线 Cron 表达式解析器，可视化展示下次执行时间">
+  <meta property="og:description" content="解析 Cron 表达式，可视化展示下次执行时间">
   <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
   <meta property="og:url" content="https://tools.xsanye.cn/tools/code/cron-parser.html">
   <meta property="og:type" content="website">
@@ -19,7 +19,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@CloverTools">
   <meta name="twitter:title" content="Cron 表达式测试 - 🍀 CloverTools">
-  <meta name="twitter:description" content="在线 Cron 表达式解析器，可视化展示下次执行时间">
+  <meta name="twitter:description" content="解析 Cron 表达式，可视化展示下次执行时间">
   <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
 
   <!-- Canonical -->
@@ -28,149 +28,53 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
   <script src="../../src/shared.js"></script>
   <style>
+    /* Tool page layout - override defaults */
     .page-body { padding: 2.5rem 0 4rem; }
     .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
     .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
     .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
     .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
     .nav-icon-link span { font-size: 0.9rem; }
     .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
-
-    /* Cron input */
-    .cron-input-wrap { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; }
-    .cron-input-wrap input {
-      flex: 1;
-      min-width: 200px;
-      padding: 0.7rem 1rem;
-      border: 2px solid var(--border);
-      border-radius: 0.6rem;
-      background: var(--surface);
-      color: var(--text);
-      font-size: 1.1rem;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      letter-spacing: 0.05em;
-    }
-    .cron-input-wrap input:focus { outline: none; border-color: var(--primary); }
-    .cron-input-wrap input.error { border-color: #ef4444; }
-    .cron-input-wrap input.valid { border-color: #22c55e; }
-
-    /* Presets */
-    .presets { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-    .preset-btn {
-      padding: 0.35rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 2rem;
-      background: var(--surface);
-      color: var(--text-2);
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .preset-btn:hover { border-color: var(--primary); color: var(--primary); }
-
-    /* Description box */
-    .desc-box {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 0.75rem;
-      padding: 1rem 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-    .desc-box .desc-label { font-size: 0.75rem; color: var(--text-2); margin-bottom: 0.4rem; }
-    .desc-box .desc-text { font-size: 1rem; color: var(--text); line-height: 1.5; }
-    .desc-box .desc-text.error { color: #ef4444; }
-    .desc-box .desc-text.ok { color: #22c55e; }
-
-    /* Fields breakdown */
-    .fields-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-    .field-card {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 0.6rem;
-      padding: 0.75rem 1rem;
-    }
-    .field-card .field-label { font-size: 0.7rem; color: var(--text-2); margin-bottom: 0.25rem; }
-    .field-card .field-value { font-size: 0.95rem; font-weight: 600; font-family: monospace; color: var(--primary); word-break: break-all; }
-
-    /* Next runs */
-    .next-runs { margin-top: 1.5rem; }
-    .next-runs h3 { font-size: 1rem; margin-bottom: 0.75rem; }
-    .run-list { list-style: none; padding: 0; margin: 0; }
-    .run-list li {
-      padding: 0.5rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.9rem;
-      font-family: monospace;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .run-list li:last-child { border-bottom: none; }
-    .run-list li .run-num { color: var(--text-2); font-size: 0.75rem; min-width: 2rem; }
-    .run-list li .run-date { color: var(--text); }
-    .run-list li .run-relative { color: var(--text-2); font-size: 0.8rem; }
-
-    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
-    .btn {
-      padding: 0.55rem 1.2rem;
-      border: none;
-      border-radius: 0.5rem;
-      font-size: 0.95rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-primary:hover { opacity: 0.85; }
-    .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:hover { border-color: var(--primary); }
-
-    /* Help section */
-    .help-section {
-      margin-top: 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-    .help-section h3 { font-size: 1rem; margin-bottom: 1rem; }
-    .help-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .help-table th { text-align: left; padding: 0.4rem 0.75rem; background: var(--surface-2); border: 1px solid var(--border); }
-    .help-table td { padding: 0.4rem 0.75rem; border: 1px solid var(--border); font-family: monospace; }
-    .help-table td:first-child { font-weight: 600; color: var(--primary); }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
 </head>
 <body>
-  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-      <polyline points="9 22 9 12 15 12 15 22"/>
-    </symbol>
-    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-    </symbol>
-    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
-      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
-    </symbol>
-  </svg>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
 
   <header class="site-header">
-    <div class="container">
-      <a href="/" class="site-logo">🍀 CloverTools</a>
-      <nav class="site-nav">
-        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
-        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
-        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
-      </nav>
-    </div>
-  </header>
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
 
   <main class="page-body">
     <div class="container">
@@ -179,339 +83,107 @@
         <h1>Cron 表达式测试</h1>
         <p class="description">解析 Cron 表达式，可视化展示下次执行时间</p>
       </div>
-
-      <!-- Cron input -->
-      <div class="cron-input-wrap">
-        <input type="text" id="cronInput" value="* * * * *" placeholder="* * * * *">
-        <button class="btn btn-primary" id="parseBtn">解析</button>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>Cron 表达式</h3>
+        <input type="text" id="cronInput" value="* * * * *" style="width:100%;padding:0.5rem;font-size:1rem;font-family:monospace;" placeholder="分 时 日 月 周">
+        <select id="examples" style="margin-top:0.5rem;width:100%;padding:0.4rem;">
+          <option value="">--- 常用示例 ---</option>
+          <option value="* * * * *">每分钟</option>
+          <option value="0 * * * *">每小时整点</option>
+          <option value="0 9 * * *">每天 9:00</option>
+          <option value="0 9 * * 1-5">工作日 9:00</option>
+          <option value="*/5 * * * *">每 5 分钟</option>
+          <option value="0 */2 * * *">每 2 小时</option>
+        </select>
       </div>
-
-      <!-- Presets -->
-      <div class="presets">
-        <button class="preset-btn" data-cron="* * * * *">每分钟</button>
-        <button class="preset-btn" data-cron="0 * * * *">每小时</button>
-        <button class="preset-btn" data-cron="0 0 * * *">每天午夜</button>
-        <button class="preset-btn" data-cron="0 0 * * 0">每周日</button>
-        <button class="preset-btn" data-cron="0 0 1 * *">每月1号</button>
-        <button class="preset-btn" data-cron="*/5 * * * *">每5分钟</button>
-        <button class="preset-btn" data-cron="0 */2 * * *">每2小时</button>
-        <button class="preset-btn" data-cron="0 9 * * 1-5">工作日9点</button>
-        <button class="preset-btn" data-cron="0 0 */3 * *">每3天</button>
-        <button class="preset-btn" data-cron="30 4 * * *">每天4:30</button>
+      <div class="tool-card">
+        <h3>验证结果</h3>
+        <div id="result" style="padding:0.5rem;font-size:1rem;"></div>
       </div>
-
-      <!-- Description -->
-      <div class="desc-box">
-        <div class="desc-label">表达式含义</div>
-        <div class="desc-text" id="cronDesc">—</div>
+      <div class="output-box">
+        <h3>未来 5 次执行时间</h3>
+        <ul id="nextRuns" style="padding-left:1.2rem;line-height:1.8;"></ul>
       </div>
-
-      <!-- Fields breakdown -->
-      <div class="fields-grid" id="fieldsGrid"></div>
-
-      <!-- Next runs -->
-      <div class="next-runs">
-        <h3>接下来 10 次执行时间</h3>
-        <ul class="run-list" id="runList"></ul>
-      </div>
-
-      <div class="btn-row">
-        <button class="btn btn-secondary" id="copyBtn">复制表达式</button>
-        <button class="btn btn-secondary" id="shareBtn">分享</button>
-      </div>
-
-      <!-- Help -->
-      <div class="help-section">
-        <h3>字段说明</h3>
-        <table class="help-table">
-          <thead>
-            <tr><th>字段</th><th>允许值</th><th>特殊字符</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>分钟</td><td>0-59</td><td>* , - /</td></tr>
-            <tr><td>小时</td><td>0-23</td><td>* , - /</td></tr>
-            <tr><td>日期</td><td>1-31</td><td>* , - /</td></tr>
-            <tr><td>月份</td><td>1-12</td><td>* , - /</td></tr>
-            <tr><td>星期</td><td>0-6 (0=周日)</td><td>* , - /</td></tr>
-          </tbody>
-        </table>
-        <p style="font-size:0.85rem; color:var(--text-2); margin-top:1rem;">
-          <strong>特殊字符：</strong>* 任意值 · , 列举 · - 范围 · / 步长<br>
-          例如：<code>*/15</code> 每15分钟 · <code>1-5</code> 1到5 · <code>0,30</code> 第0和30分钟
-        </p>
       </div>
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="site-footer-inner">
-      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
-    </div>
-  </footer>
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
 
   <div id="toast"></div>
 
   <script>
     CT.initTheme();
 
-    var FIELD_NAMES = ['分钟', '小时', '日期', '月份', '星期'];
-    var FIELD_RANGES = [[0,59],[0,23],[1,31],[1,12],[0,6]];
-    var FIELD_KEYS = ['minute','hour','day','month','weekday'];
+    CT.initKeyboardShortcuts();
 
-    var cronInput = document.getElementById('cronInput');
-    var parseBtn = document.getElementById('parseBtn');
-    var cronDesc = document.getElementById('cronDesc');
-    var fieldsGrid = document.getElementById('fieldsGrid');
-    var runList = document.getElementById('runList');
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    // Parse a single field, returns array of values or null on error
-    function parseField(field, min, max) {
-      if (field === '*') {
-        var vals = [];
-        for (var i = min; i <= max; i++) vals.push(i);
-        return vals;
+    
+      var cronInput = document.getElementById('cronInput');
+      var result = document.getElementById('result');
+      var nextRuns = document.getElementById('nextRuns');
+      function parseCron(cron) {
+        var parts = cron.trim().split(/s+/);
+        if (parts.length < 5) return null;
+        return { min: parts[0], hour: parts[1], day: parts[2], month: parts[3], dow: parts[4] };
       }
-      var result = [];
-      var parts = field.split(',');
-      for (var pi = 0; pi < parts.length; pi++) {
-        var p = parts[pi];
-        if (p.indexOf('/') !== -1) {
-          var stepParts = p.split('/');
-          var range = stepParts[0];
-          var step = parseInt(stepParts[1], 10);
-          if (isNaN(step) || step <= 0) return null;
-          var start = min, end = max;
-          if (range !== '*') {
-            if (range.indexOf('-') !== -1) {
-              var rangeParts = range.split('-');
-              start = parseInt(rangeParts[0], 10);
-              end = parseInt(rangeParts[1], 10);
-            } else {
-              start = parseInt(range, 10);
-            }
-          }
-          for (var i = start; i <= end; i += step) result.push(i);
-        } else if (p.indexOf('-') !== -1) {
-          var rangeParts = p.split('-');
-          var s = parseInt(rangeParts[0], 10);
-          var e = parseInt(rangeParts[1], 10);
-          if (isNaN(s) || isNaN(e) || s > e || s < min || e > max) return null;
-          for (var i = s; i <= e; i++) result.push(i);
-        } else {
-          var v = parseInt(p, 10);
-          if (isNaN(v) || v < min || v > max) return null;
-          result.push(v);
+      function matches(val, field) {
+        if (field === '*') return true;
+        var parts = field.split(',');
+        for (var p of parts) {
+          if (p.indexOf('/') !== -1) {
+            var step = parseInt(p.split('/')[1]);
+            var range = p.split('/')[0];
+            if (range === '*') { if (val % step === 0) return true; }
+            else { var r = range.split('-'); for (var i = parseInt(r[0]); i <= parseInt(r[1]); i += step) { if (i === val) return true; } }
+          } else if (p.indexOf('-') !== -1) {
+            var r = p.split('-');
+            if (val >= parseInt(r[0]) && val <= parseInt(r[1])) return true;
+          } else { if (parseInt(p) === val) return true; }
         }
+        return false;
       }
-      return result.length > 0 ? result : null;
-    }
-
-    // Human readable descriptions for each field
-    var FIELD_HELP = {
-      0: { '*': '每分钟', '0': '第0分钟', '*/5': '每5分钟', '*/15': '每15分钟', '*/30': '每30分钟' },
-      1: { '*': '每小时', '0': '第0小时（午夜）', '*/2': '每2小时', '*/6': '每6小时', '9-17': '每天9点到17点' },
-      2: { '*': '每天', '1': '每月1号', '15': '每月15号', '1,15': '每月1号和15号', '*/3': '每3天' },
-      3: { '*': '每月', '1': '1月', '6': '6月', '*/3': '每3个月', '1-6': '1月到6月' },
-      4: { '*': '每天', '0': '周日', '1-5': '周一到周五', '0,6': '周末', '1': '周一' }
-    };
-
-    function describeField(idx, val) {
-      if (val === '*') return '每' + FIELD_NAMES[idx];
-      if (val.indexOf && val.indexOf('*/') !== -1) {
-        var step = val.split('/')[1];
-        return '每' + step + FIELD_NAMES[idx];
-      }
-      return val;
-    }
-
-    // Validate and parse cron expression
-    function validateCron(expr) {
-      var parts = expr.trim().split(/\s+/);
-      if (parts.length !== 5) return null;
-      var parsed = [];
-      for (var i = 0; i < 5; i++) {
-        var fieldVals = parseField(parts[i], FIELD_RANGES[i][0], FIELD_RANGES[i][1]);
-        if (!fieldVals) return null;
-        parsed.push(fieldVals);
-      }
-      return parsed;
-    }
-
-    // Describe cron expression in plain Chinese
-    function describeCron(parts) {
-      var descs = [];
-      var hour = parts[1];
-      var min = parts[0];
-      var day = parts[2];
-      var month = parts[3];
-      var weekday = parts[4];
-
-      // Common patterns
-      if (min.length === 1 && min[0] === 0 && hour.length === 1 && hour[0] === 0 && day[0] === 1 && month[0] === 1 && weekday[0] === 0) {
-        return '每年1月1日周日午夜 00:00 执行';
-      }
-      if (min.length === 1 && min[0] === 0 && day[0] === 1 && month[0] === 1) {
-        return '每年1月1日 00:00 执行';
-      }
-      if (min.length === 1 && min[0] === 0 && day[0] === 1 && weekday[0] === 0) {
-        return '每月1日周日 00:00 执行';
-      }
-      if (min.length === 1 && min[0] === 0 && day[0] === 1) {
-        return '每月1日 00:00 执行';
-      }
-      if (min.length === 1 && min[0] === 0 && weekday[0] === 0) {
-        return '每周日 00:00 执行';
-      }
-      if (min.length === 1 && min[0] === 0 && hour[0] === 9 && weekday[0] === 1) {
-        return '每周一到周五 09:00 执行';
-      }
-
-      // Generic description
-      var minDesc = min.length <= 3 ? '第 ' + min.slice(0,3).join(',') + ' 分钟' : '每分钟';
-      var hourDesc = hour.length <= 3 ? '第 ' + hour.slice(0,3).join(',') + ' 小时' : '每小时';
-      var dayDesc = day.length <= 3 ? '每月第 ' + day.slice(0,3).join(',') + ' 天' : '每天';
-      var monthDesc = month.length <= 3 ? month.slice(0,3).join(',') + ' 月' : '每月';
-      var weekdayNames = ['周日','周一','周二','周三','周四','周五','周六'];
-      var weekdayDesc = weekday.length <= 3 ? weekday.map(function(w){ return weekdayNames[w]; }).join(',') : '每天';
-
-      if (parts[0].length === 1 && parts[1].length === 1) {
-        return '每天 ' + String(parts[1][0]).padStart(2,'0') + ':' + String(parts[0][0]).padStart(2,'0') + ' 执行';
-      }
-
-      return minDesc + ' · ' + hourDesc + ' · ' + dayDesc + ' · ' + monthDesc + ' · ' + weekdayDesc;
-    }
-
-    // Get next N execution times
-    function getNextRuns(parsed, count) {
-      var now = new Date();
-      var runs = [];
-      var d = new Date(now);
-      d.setSeconds(0);
-      d.setMilliseconds(0);
-      d.setMinutes(d.getMinutes() + 1);
-
-      var maxIterations = 525600; // 1 year of minutes
-      var iterations = 0;
-
-      while (runs.length < count && iterations < maxIterations) {
-        iterations++;
-        var match = true;
-        var m = d.getMonth() + 1;
-        var dayOfMonth = d.getDate();
-        var dayOfWeek = d.getDay();
-        var h = d.getHours();
-        var mi = d.getMinutes();
-
-        if (parsed[3].indexOf(m) === -1) { d.setMonth(d.getMonth()+1); d.setDate(1); d.setHours(0); d.setMinutes(0); continue; }
-        if (parsed[2].indexOf(dayOfMonth) === -1) { d.setDate(d.getDate()+1); d.setHours(0); d.setMinutes(0); continue; }
-        if (parsed[4].indexOf(dayOfWeek) === -1) { d.setDate(d.getDate()+1); d.setHours(0); d.setMinutes(0); continue; }
-        if (parsed[1].indexOf(h) === -1) { d.setHours(d.getHours()+1); d.setMinutes(0); continue; }
-        if (parsed[0].indexOf(mi) === -1) { d.setMinutes(d.getMinutes()+1); continue; }
-
-        runs.push(new Date(d));
-        d.setMinutes(d.getMinutes() + 1);
-      }
-      return runs;
-    }
-
-    function formatDate(d) {
-      var y = d.getFullYear();
-      var mo = String(d.getMonth()+1).padStart(2,'0');
-      var day = String(d.getDate()).padStart(2,'0');
-      var h = String(d.getHours()).padStart(2,'0');
-      var mi = String(d.getMinutes()).padStart(2,'0');
-      var s = String(d.getSeconds()).padStart(2,'0');
-      return y+'-'+mo+'-'+day+' '+h+':'+mi+':'+s;
-    }
-
-    function timeUntil(d) {
-      var now = new Date();
-      var diff = d - now;
-      if (diff < 0) return '已过';
-      var totalSec = Math.floor(diff / 1000);
-      var days = Math.floor(totalSec / 86400);
-      var hours = Math.floor((totalSec % 86400) / 3600);
-      var mins = Math.floor((totalSec % 3600) / 60);
-      if (days > 0) return days + ' 天 ' + hours + ' 小时后';
-      if (hours > 0) return hours + ' 小时 ' + mins + ' 分钟后';
-      return mins + ' 分钟后';
-    }
-
-    function render() {
-      var expr = cronInput.value.trim();
-      var parsed = validateCron(expr);
-
-      cronInput.classList.remove('error', 'valid');
-      if (!parsed) {
-        cronInput.classList.add('error');
-        cronDesc.textContent = '表达式格式错误，请检查各字段是否在有效范围内';
-        cronDesc.className = 'desc-text error';
-        fieldsGrid.innerHTML = '';
-        runList.innerHTML = '<li style="color:var(--text-2);">无效表达式</li>';
-        return;
-      }
-
-      cronInput.classList.add('valid');
-      cronDesc.textContent = describeCron(parsed);
-      cronDesc.className = 'desc-text ok';
-
-      // Render fields
-      var fieldsHtml = '';
-      for (var i = 0; i < 5; i++) {
-        var vals = parsed[i];
-        var display = vals.length <= 5 ? vals.join(', ') : vals.length + ' 个值';
-        fieldsHtml += '<div class="field-card"><div class="field-label">' + FIELD_NAMES[i] + '</div><div class="field-value">' + cronInput.value.trim().split(/\s+/)[i] + '</div></div>';
-      }
-      fieldsGrid.innerHTML = fieldsHtml;
-
-      // Render next runs
-      var runs = getNextRuns(parsed, 10);
-      if (runs.length === 0) {
-        runList.innerHTML = '<li style="color:var(--text-2);">无最近执行时间</li>';
-      } else {
-        var listHtml = '';
-        for (var j = 0; j < runs.length; j++) {
-          listHtml += '<li><span class="run-num">#' + (j+1) + '</span><span class="run-date">' + formatDate(runs[j]) + '</span><span class="run-relative">' + timeUntil(runs[j]) + '</span></li>';
+      function nextExec(cron, from) {
+        var p = parseCron(cron);
+        if (!p) return null;
+        var d = from ? new Date(from) : new Date();
+        d.setSeconds(0, 0);
+        for (var i = 0; i < 100; i++) {
+          d.setMinutes(d.getMinutes() + 1);
+          var min = d.getMinutes(), hour = d.getHours(), day = d.getDate(), month = d.getMonth() + 1, dow = d.getDay();
+          if (matches(min, p.min) && matches(hour, p.hour) && matches(day, p.day) && matches(month, p.month) && matches(dow, p.dow)) return new Date(d);
         }
-        runList.innerHTML = listHtml;
+        return null;
       }
-    }
-
-    cronInput.addEventListener('input', render);
-    parseBtn.addEventListener('click', render);
-
-    // Presets
-    document.querySelectorAll('.preset-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        cronInput.value = this.dataset.cron;
-        render();
-      });
-    });
-
-    document.getElementById('copyBtn').addEventListener('click', function() {
-      navigator.clipboard.writeText(cronInput.value).then(function() {
-        CT.showToast('已复制！');
-      }).catch(function() {
-        CT.showToast('复制失败');
-      });
-    });
-
-    document.getElementById('shareBtn').addEventListener('click', function() {
-      navigator.clipboard.writeText(window.location.href.split('?')[0] + '?cron=' + encodeURIComponent(cronInput.value)).then(function() {
-        CT.showToast('分享链接已复制！');
-      }).catch(function() {
-        CT.showToast('复制失败');
-      });
-    });
-
-    // Handle URL parameter
-    var urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('cron')) {
-      cronInput.value = urlParams.get('cron');
-    }
-
-    // Initial render
-    render();
+      function run() {
+        var cron = cronInput.value.trim();
+        if (!cron) { result.textContent = '请输入 Cron 表达式'; nextRuns.innerHTML = ''; return; }
+        var p = parseCron(cron);
+        if (!p) { result.textContent = '格式错误（正确格式：分 时 日 月 周）'; nextRuns.innerHTML = ''; return; }
+        result.textContent = '✓ 格式正确';
+        var runs = [];
+        var from = null;
+        for (var i = 0; i < 5; i++) {
+          var next = nextExec(cron, from);
+          if (!next) break;
+          runs.push(next.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}));
+          from = next;
+        }
+        nextRuns.innerHTML = runs.length ? '<li>' + runs.join('</li><li>') + '</li>' : '<li>无未来执行时间</li>';
+      }
+      cronInput.addEventListener('input', run);
+      document.getElementById('examples').addEventListener('change', function() { cronInput.value = this.value; run(); });
+      run();
+    
   </script>
 </body>
 </html>

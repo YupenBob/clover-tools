@@ -26,6 +26,8 @@
   <link rel="canonical" href="https://tools.xsanye.cn/">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script src="/src/shared.js"></script>
   <style>
     /* Homepage-only styles */
@@ -39,6 +41,11 @@
     .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
     .nav-icon-link span { font-size: 0.9rem; }
     .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
+    /* Tool list icons (Bootstrap Icons) */
+    .category li a { display: flex; align-items: center; gap: 0.35rem; }
+    .category li a i[class^="bi-"] { font-size: 1.05rem; color: var(--primary); flex-shrink: 0; }
+    .category li a .tool-name { flex-shrink: 0; }
+    .category li a .tool-desc { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
@@ -97,54 +104,63 @@
       <ul>
       <li>
         <a href="/tools/format-conversion/jpg2pdf.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">JPG 转 PDF</span>
           <span class="tool-desc">将 JPG 图片转换为 PDF 文档</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/pdf2txt.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">PDF 转 TXT</span>
           <span class="tool-desc">从 PDF 文件中提取文本内容</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/webp2jpg.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">WEBP 转 JPG</span>
           <span class="tool-desc">将 WEBP 图片转换为 JPG 格式</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/svg2png.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">SVG 转 PNG</span>
           <span class="tool-desc">将 SVG 矢量图转换为 PNG 位图</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/jpg2webp.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">JPG 转 WEBP</span>
           <span class="tool-desc">将 JPG 图片转换为 WEBP 格式</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/png2webp.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">PNG 转 WEBP</span>
           <span class="tool-desc">将 PNG 图片转换为 WEBP 格式</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/file-analyzer.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">文件分析器</span>
           <span class="tool-desc">分析文件元信息、MIME类型、字节内容，支持图片预览</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/pdf2jpg.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">PDF 转 JPG</span>
           <span class="tool-desc">将 PDF 第1页转换为 JPG 图片</span>
         </a>
       </li>
       <li>
         <a href="/tools/format-conversion/pdf2html.html">
+          <i class="bi bi-file-earning-fill"></i>
           <span class="tool-name">PDF 转 HTML</span>
           <span class="tool-desc">将 PDF 文本提取并渲染为 HTML 页面</span>
         </a>
@@ -155,126 +171,147 @@
       <ul>
       <li>
         <a href="/tools/json/formatter.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 格式化</span>
           <span class="tool-desc">美化/压缩 JSON 数据</span>
         </a>
       </li>
       <li>
         <a href="/tools/json/yaml.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON ↔ YAML</span>
           <span class="tool-desc">互相转换格式</span>
         </a>
       </li>
       <li>
         <a href="/tools/json/xml.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON ↔ XML</span>
           <span class="tool-desc">结构化数据转换</span>
         </a>
       </li>
       <li>
         <a href="/tools/json/table.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转表格</span>
           <span class="tool-desc">JSON 数组数据转为易读的 HTML 表格</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/html.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">HTML 格式化</span>
           <span class="tool-desc">整理 HTML 代码</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/css.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">CSS 格式化</span>
           <span class="tool-desc">优化 CSS 样式表</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/javascript.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JS 格式化</span>
           <span class="tool-desc">美化 JavaScript 代码</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/markdown.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">Markdown 转 HTML</span>
           <span class="tool-desc">Markdown 实时渲染为 HTML</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/cron-parser.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">Cron 表达式测试</span>
           <span class="tool-desc">解析 Cron 表达式，可视化展示下次执行时间</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/color-picker.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">可视化颜色选择器</span>
           <span class="tool-desc">可视化颜色选择器，支持 HEX、RGB、HSL、HSV 等多种格式</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/http-test.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">Http 接口测试</span>
           <span class="tool-desc">测试 REST API 接口，支持多种 HTTP 方法</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/websocket-test.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">Websocket 接口测试</span>
           <span class="tool-desc">连接 WebSocket 服务器并测试收发消息</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json-validator.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 校验格式化</span>
           <span class="tool-desc">校验 JSON 格式，美化或压缩 JSON</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json2ts.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转 TypeScript</span>
           <span class="tool-desc">根据 JSON 数据生成 TypeScript 接口定义</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json2java.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转 Java 实体类</span>
           <span class="tool-desc">根据 JSON 数据生成 Java 实体类（含 Lombok 注解）</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json2csharp.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转 C# 实体类</span>
           <span class="tool-desc">根据 JSON 数据生成 C# 实体类（含 System.Text.Json 注解）</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json2go.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转 Golang Struct</span>
           <span class="tool-desc">根据 JSON 数据生成 Go 语言 struct 定义（含 json tag）</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/json2sql.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSON 转 SQL</span>
           <span class="tool-desc">将 JSON 数组转换为 INSERT INTO SQL 语句</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/jsonpath.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">JSONPath 解析器</span>
           <span class="tool-desc">使用 JSONPath 表达式查询 JSON 数据</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/html-formatter.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">HTML 格式化</span>
           <span class="tool-desc">格式化或压缩 HTML 代码</span>
         </a>
       </li>
       <li>
         <a href="/tools/code/xml-formatter.html">
+          <i class="bi bi-code-slash"></i>
           <span class="tool-name">XML 压缩格式化</span>
           <span class="tool-desc">格式化或压缩 XML 代码</span>
         </a>
@@ -285,24 +322,28 @@
       <ul>
       <li>
         <a href="/tools/encrypt/sha.html">
+          <i class="bi bi-shield-lock-fill"></i>
           <span class="tool-name">SHA 加密</span>
           <span class="tool-desc">支持 SHA1/256/512</span>
         </a>
       </li>
       <li>
         <a href="/tools/encrypt/url.html">
+          <i class="bi bi-shield-lock-fill"></i>
           <span class="tool-name">URL 编解码</span>
           <span class="tool-desc">处理 URL 特殊字符</span>
         </a>
       </li>
       <li>
         <a href="/tools/encrypt/unicode.html">
+          <i class="bi bi-shield-lock-fill"></i>
           <span class="tool-name">Unicode 互转</span>
           <span class="tool-desc">中文与 Unicode 转换</span>
         </a>
       </li>
       <li>
         <a href="/tools/encrypt/hex.html">
+          <i class="bi bi-shield-lock-fill"></i>
           <span class="tool-name">16 进制互转</span>
           <span class="tool-desc">文本与十六进制转换</span>
         </a>
@@ -313,48 +354,56 @@
       <ul>
       <li>
         <a href="/tools/text/case.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">大小写转换</span>
           <span class="tool-desc">快速切换字母大小写</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/count.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">字数统计</span>
           <span class="tool-desc">统计字符/单词数量</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/diff.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">文本差异对比</span>
           <span class="tool-desc">高亮显示文本差异</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/pinyin.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">汉字转拼音</span>
           <span class="tool-desc">中文转拼音标注</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/camel.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">驼峰 ↔ 下划线</span>
           <span class="tool-desc">命名风格转换</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/extract.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">提取邮箱/手机/链接</span>
           <span class="tool-desc">从文本中提取关键信息</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/garble-fix.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">乱码修复</span>
           <span class="tool-desc">自动检测和修复常见文本编码乱码</span>
         </a>
       </li>
       <li>
         <a href="/tools/text/jianfan.html">
+          <i class="bi bi-body-text"></i>
           <span class="tool-name">简繁体转换</span>
           <span class="tool-desc">简体中文与繁体中文一键互转</span>
         </a>
@@ -365,48 +414,56 @@
       <ul>
       <li>
         <a href="/tools/time/timestamp.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">时间戳转换</span>
           <span class="tool-desc">Unix 时间戳 ↔ 日期</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/countdown.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">在线倒计时</span>
           <span class="tool-desc">自定义倒计时器</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/interval.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">日期间隔计算</span>
           <span class="tool-desc">计算两个日期间天数</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/age.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">年龄计算器</span>
           <span class="tool-desc">根据生日计算年龄</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/world.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">世界各地时间</span>
           <span class="tool-desc">查看全球主要城市时间</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/world-clock.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">标准时间</span>
           <span class="tool-desc">世界时钟、时间转换、NTP 校准</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/lunar-birthday.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">农历生日转换器</span>
           <span class="tool-desc">农历出生日期转公历，计算年龄</span>
         </a>
       </li>
       <li>
         <a href="/tools/time/lunar-solar-converter.html">
+          <i class="bi bi-clock-fill"></i>
           <span class="tool-name">公历农历互转器</span>
           <span class="tool-desc">公历与农历日期互相转换</span>
         </a>
@@ -417,78 +474,91 @@
       <ul>
       <li>
         <a href="/tools/life/grid-splitter.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">朋友圈九宫格分图</span>
           <span class="tool-desc">图片自动切割为3x3九宫格</span>
         </a>
       </li>
       <li>
         <a href="/tools/life/price-compare.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">商品比价</span>
           <span class="tool-desc">比较不同商品单位价格，找出最划算的那个</span>
         </a>
       </li>
       <li>
         <a href="/tools/life/insurance.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">五险一金计算器</span>
           <span class="tool-desc">计算五险一金扣除和税后工资</span>
         </a>
       </li>
       <li>
         <a href="/tools/life/salary.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">税后工资计算器</span>
           <span class="tool-desc">输入税前工资，扣除五险一金和个税，计算实际到手工资</span>
         </a>
       </li>
       <li>
         <a href="/tools/life/zen-canvas.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">专注白噪音画板</span>
           <span class="tool-desc">打字生成粒子艺术，伴随白噪音</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/password.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">密码生成器</span>
           <span class="tool-desc">生成高强度随机密码</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/uuid.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">UUID 生成器</span>
           <span class="tool-desc">创建标准 UUID</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/nanoid.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">Nano ID 生成器</span>
           <span class="tool-desc">生成短唯一 ID</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/hex-convert.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">进制转换</span>
           <span class="tool-desc">二/八/十/十六进制转换</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/color.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">颜色选择器</span>
           <span class="tool-desc">RGB/HEX 颜色值转换</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/reaction-test.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">反应力测试</span>
           <span class="tool-desc">测试你的反应速度，5轮取平均值</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/click-speed.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">点击速度测试</span>
           <span class="tool-desc">10秒内疯狂点击，测试手速</span>
         </a>
       </li>
       <li>
         <a href="/tools/other/regex.html">
+          <i class="bi bi-house-heart-fill"></i>
           <span class="tool-name">正则表达式测试</span>
           <span class="tool-desc">实时测试正则匹配</span>
         </a>
@@ -499,60 +569,70 @@
       <ul>
       <li>
         <a href="/tools/math/calculator.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">四则计算器</span>
           <span class="tool-desc">支持加、减、乘、除四则运算</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/prime-check.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">质数判定</span>
           <span class="tool-desc">判断一个数是否为质数</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/factorial.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">阶乘计算</span>
           <span class="tool-desc">计算 n 的阶乘 (n!)</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/gcd.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">最大公约数</span>
           <span class="tool-desc">计算两个数的最大公约数（欧几里得算法）</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/lcm.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">最小公倍数</span>
           <span class="tool-desc">计算两个数的最小公倍数</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/random.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">随机数生成器</span>
           <span class="tool-desc">生成指定范围内的随机整数</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/sum-sequence.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">数列求和</span>
           <span class="tool-desc">计算等差数列的前 n 项和</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/avg.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">平均数计算</span>
           <span class="tool-desc">计算一组数字的平均值</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/power.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">乘方计算器</span>
           <span class="tool-desc">计算底数的指数次幂</span>
         </a>
       </li>
       <li>
         <a href="/tools/math/sqrt.html">
+          <i class="bi bi-calculator"></i>
           <span class="tool-name">开方计算器</span>
           <span class="tool-desc">计算一个数的平方根</span>
         </a>
@@ -563,60 +643,70 @@
       <ul>
       <li>
         <a href="/tools/network/ip-lookup.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">IP 地址查询</span>
           <span class="tool-desc">查询 IP 地址的地理位置信息</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/dns-lookup.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">DNS 查询</span>
           <span class="tool-desc">查询域名的 DNS 记录信息</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/http-status.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">HTTP 状态码查询</span>
           <span class="tool-desc">快速查询 HTTP 状态码含义及分类</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/cron-gen.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">Cron 表达式生成器</span>
           <span class="tool-desc">可视化生成 Cron 定时任务表达式</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/url-parse.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">URL 参数解析</span>
           <span class="tool-desc">解析 URL 中的查询参数，表格化展示</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/useragent.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">User-Agent 解析</span>
           <span class="tool-desc">解析浏览器 User-Agent 字符串，识别浏览器和系统信息</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/color-convert.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">颜色代码转换</span>
           <span class="tool-desc">在 HEX、RGB、HSL、HSV 之间转换颜色值</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/base64.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">Base64 编解码</span>
           <span class="tool-desc">Base64 字符串编码与解码</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/url-encode.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">URL 编码解码</span>
           <span class="tool-desc">URL 特殊字符编码与解码</span>
         </a>
       </li>
       <li>
         <a href="/tools/network/json-format.html">
+          <i class="bi bi-globe2"></i>
           <span class="tool-name">JSON 格式化</span>
           <span class="tool-desc">美化或压缩 JSON 数据</span>
         </a>
