@@ -35,6 +35,7 @@ function buildCategoriesHtml() {
       itemsHtml += `
       <li>
         <a href="/tools/${tool.path}">
+          ${tool.icon ? `<i class="${tool.icon}"></i>` : ''}
           <span class="tool-name">${tool.name}</span>
           <span class="tool-desc">${tool.desc}</span>
         </a>
