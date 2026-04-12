@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 转 HTML - 🍀 CloverTools</title>
+  <meta name="description" content="将 PDF 文本提取并渲染为 HTML 页面，无需注册，完全免费。">
+  <meta name="keywords" content="PDF转HTML，PDF提取文本，PDF渲染，PDF预览，在线工具">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PDF 转 HTML - 🍀 CloverTools">
+  <meta property="og:description" content="将 PDF 文本提取并渲染为 HTML 页面">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/format-conversion/pdf2html.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="PDF 转 HTML - 🍀 CloverTools">
+  <meta name="twitter:description" content="将 PDF 文本提取并渲染为 HTML 页面">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/format-conversion/pdf2html.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>PDF 转 HTML</h1>
+        <p class="description">将 PDF 文本提取并渲染为 HTML 页面</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" accept="application/pdf" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:0.5rem;font-size:0.85rem;display:none;"></div><div class="input-row" style="margin-top:0.5rem;"><select id="outputFormat" style="padding:0.4rem;"><option value="html">HTML</option></select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">转换</button></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>输出 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview" style="text-align:center;padding:1rem;"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    var uploadArea = document.getElementById('uploadArea');
+var fileInput = document.getElementById('fileInput');
+var fileInfo = document.getElementById('fileInfo');
+var outputFormat = document.getElementById('outputFormat');
+var convertBtn = document.getElementById('convertBtn');
+var outputBox = document.getElementById('outputBox');
+var outputPreview = document.getElementById('outputPreview');
+var currentFileName = '';
+uploadArea.addEventListener('click', function() { fileInput.click(); });
+uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });
+uploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });
+uploadArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadArea.style.borderColor = 'var(--border)';
+  if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; handleFile(e.dataTransfer.files[0]); }
+});
+fileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+function handleFile(file) {
+  currentFileName = file.name;
+  fileInfo.style.display = 'block';
+  fileInfo.innerHTML = '<b>' + escHtml(file.name) + '</b> (' + (file.size / 1024).toFixed(1) + ' KB, ' + (file.type || '未知') + ')';
+}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function downloadDataUrl(dataUrl, filename) {
+  var a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  a.click();
+}
+function imgToPdf(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width, h = img.height;
+      var canv = document.createElement('canvas');
+      canv.width = w; canv.height = h;
+      var ctx = canv.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0);
+      var imgData = canv.toDataURL('image/jpeg', 0.95);
+      var newName = currentFileName.replace(/\.[^.]+$/, '') + '.pdf';
+      // jsPDF approach
+      if (typeof window.jspdf !== 'undefined') {
+        var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });
+        pdf.addImage(imgData, 'JPEG', 0, 0, w, h);
+        pdf.save(newName);
+        callback({ dataUrl: null, filename: newName, preview: '<img src="' + imgData + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+      } else {
+        // Load jspdf from CDN
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = function() {
+          var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });
+          pdf.addImage(imgData, 'JPEG', 0, 0, w, h);
+          pdf.save(newName);
+          callback({ dataUrl: null, filename: newName, preview: '<img src="' + imgData + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+        };
+        script.onerror = function() {
+          // Fallback: HTML printable page
+          var blob = new Blob(['<!DOCTYPE html><html><head><meta charset="utf-8"><title>', escHtml(newName), '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh;object-fit:contain;background:#fff}@media print{body{background:none}img{max-height:none}}</style></head><body><img src="', imgData, '" onload="window.print()"></body></html>'], { type: 'text/html' });
+          var url = URL.createObjectURL(blob);
+          callback({ dataUrl: url, filename: newName, preview: '<img src="' + imgData + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+        };
+        document.head.appendChild(script);
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function pdfToText(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var go = function() {
+      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {
+        var promises = [];
+        for (var i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+          promises.push(pdf.getPage(i).then(function(p) { return p.getTextContent().then(function(c) { return c.items.map(function(it) { return it.str; }).join(' '); }); }));
+        }
+        Promise.all(promises).then(function(pages) {
+          var text = pages.join('\n\n');
+          var blob = new Blob([text], { type: 'text/plain' });
+          var newName = currentFileName.replace(/\.[^.]+$/, '') + '.txt';
+          callback({ dataUrl: URL.createObjectURL(blob), filename: newName, preview: '<div style="text-align:left;max-height:400px;overflow:auto;background:var(--bg);padding:1rem;border-radius:8px;font-family:monospace;white-space:pre-wrap;word-break:break-all;">' + escHtml(text) + '</div>' });
+        });
+      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">PDF 解析错误: ' + escHtml(err.message) + '</div>' }); });
+    };
+    if (window.pdfjsLib) { go(); }
+    else {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function() {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        go();
+      };
+      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">PDF.js 加载失败，请检查网络</div>' }); };
+      document.head.appendChild(s);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function imgToImg(file, mimeOut, extOut, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canv = document.createElement('canvas');
+      canv.width = img.width; canv.height = img.height;
+      var ctx = canv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      canv.toBlob(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var newName = currentFileName.replace(/\.[^.]+$/, '') + '.' + extOut;
+        callback({ dataUrl: url, filename: newName, preview: '<img src="' + url + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+      }, mimeOut, 0.95);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function svgToPng(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var svgData = e.target.result;
+    var img = new Image();
+    img.onload = function() {
+      var canv = document.createElement('canvas');
+      canv.width = img.width || 800; canv.height = img.height || 600;
+      var ctx = canv.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      canv.toBlob(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var newName = currentFileName.replace(/\.[^.]+$/, '') + '.png';
+        callback({ dataUrl: url, filename: newName, preview: '<img src="' + url + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+      }, 'image/png');
+    };
+    img.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">SVG 解析失败</div>' }); };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  };
+  reader.readAsText(file);
+}
+function pdfToImg(file, mimeOut, extOut, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var go = function() {
+      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {
+        pdf.getPage(1).then(function(page) {
+          var vpt = page.getViewport({ scale: 2 });
+          var canv = document.createElement('canvas');
+          canv.width = vpt.width; canv.height = vpt.height;
+          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {
+            var dataUrl = canv.toDataURL(mimeOut, 0.95);
+            var newName = currentFileName.replace(/\.[^.]+$/, '') + '_page1.' + extOut;
+            callback({ dataUrl: dataUrl, filename: newName, preview: '<img src="' + dataUrl + '" style="max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;">' });
+          });
+        });
+      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">PDF 渲染错误: ' + escHtml(err.message) + '</div>' }); });
+    };
+    if (window.pdfjsLib) { go(); }
+    else {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };
+      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">PDF.js 加载失败</div>' }); };
+      document.head.appendChild(s);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function pdfToHtml(file, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var go = function() {
+      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {
+        pdf.getPage(1).then(function(page) {
+          var vpt = page.getViewport({ scale: 2 });
+          var canv = document.createElement('canvas');
+          canv.width = vpt.width; canv.height = vpt.height;
+          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {
+            var dataUrl = canv.toDataURL('image/png');
+            callback({ dataUrl: null, filename: currentFileName.replace(/\.[^.]+$/, '') + '.html', preview: '<div style="text-align:center;padding:1rem;"><img src="' + dataUrl + '" style="max-width:100%;border:1px solid #ddd;border-radius:8px;"></div>' });
+          });
+        });
+      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">' + escHtml(err.message) + '</div>' }); });
+    };
+    if (window.pdfjsLib) { go(); }
+    else {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };
+      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style="color:#ef4444;">PDF.js 加载失败</div>' }); };
+      document.head.appendChild(s);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+convertBtn.onclick = function() {
+  if (!fileInput.files || fileInput.files.length === 0) { outputBox.style.display = 'none'; if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }
+  var file = fileInput.files[0];
+  var outFmt = outputFormat.value;
+  var isJpg2pdf = toolPath.indexOf('jpg2pdf') !== -1;
+  var isPdf2txt = toolPath.indexOf('pdf2txt') !== -1;
+  var isWebp2jpg = toolPath.indexOf('webp2jpg') !== -1;
+  var isSvg2png = toolPath.indexOf('svg2png') !== -1;
+  var isJpg2webp = toolPath.indexOf('jpg2webp') !== -1;
+  var isPng2webp = toolPath.indexOf('png2webp') !== -1;
+  var isPdf2jpg = toolPath.indexOf('pdf2jpg') !== -1;
+  var isPdf2html = toolPath.indexOf('pdf2html') !== -1;
+  var onDone = function(result) {
+    outputPreview.innerHTML = result.preview || '';
+    outputBox.style.display = 'block';
+    window._fcResult = result;
+  };
+  if (isJpg2pdf) imgToPdf(file, onDone);
+  else if (isPdf2txt) pdfToText(file, onDone);
+  else if (isWebp2jpg) imgToImg(file, 'image/jpeg', 'jpg', onDone);
+  else if (isSvg2png) svgToPng(file, onDone);
+  else if (isJpg2webp) imgToImg(file, 'image/webp', 'webp', onDone);
+  else if (isPng2webp) imgToImg(file, 'image/webp', 'webp', onDone);
+  else if (isPdf2jpg) pdfToImg(file, outFmt === 'png' ? 'image/png' : 'image/jpeg', outFmt === 'png' ? 'png' : 'jpg', onDone);
+  else if (isPdf2html) pdfToHtml(file, onDone);
+};
+document.getElementById('downloadOutput').onclick = function() {
+  var r = window._fcResult;
+  if (!r) return;
+  if (r.dataUrl) { downloadDataUrl(r.dataUrl, r.filename); }
+  else if (r.filename && r.preview) {
+    var w = window.open('');
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + escHtml(r.filename) + '</title><style>body{margin:2rem;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh}@media print{body{background:none}}</style></head><body>' + r.preview + '<script>window.onload=function(){window.print()};</script></body></html>');
+    w.document.close();
+  } else { if (window.CT && CT.showToast) CT.showToast('暂不支持此格式下载'); }
+};
+
+  </script>
+</body>
+</html>

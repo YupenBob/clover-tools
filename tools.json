@@ -1,5 +1,133 @@
 [
   {
+    "category": "格式转换",
+    "tools": [
+      {
+        "name": "JPG 转 PDF",
+        "path": "format-conversion/jpg2pdf.html",
+        "desc": "将 JPG 图片转换为 PDF 文档",
+        "keywords": "JPG转PDF，图片转PDF，JPEG PDF，图片转文档，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "image/jpeg,image/jpg",
+        "outputFormats": [
+          {
+            "value": "pdf",
+            "label": "PDF"
+          }
+        ]
+      },
+      {
+        "name": "PDF 转 TXT",
+        "path": "format-conversion/pdf2txt.html",
+        "desc": "从 PDF 文件中提取文本内容",
+        "keywords": "PDF转TXT，PDF文本提取，PDF读取，PDF解析，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "application/pdf",
+        "outputFormats": [
+          {
+            "value": "txt",
+            "label": "TXT"
+          }
+        ]
+      },
+      {
+        "name": "WEBP 转 JPG",
+        "path": "format-conversion/webp2jpg.html",
+        "desc": "将 WEBP 图片转换为 JPG 格式",
+        "keywords": "WEBP转JPG，WEBP转换，图片格式转换，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "image/webp",
+        "outputFormats": [
+          {
+            "value": "jpg",
+            "label": "JPG"
+          }
+        ]
+      },
+      {
+        "name": "SVG 转 PNG",
+        "path": "format-conversion/svg2png.html",
+        "desc": "将 SVG 矢量图转换为 PNG 位图",
+        "keywords": "SVG转PNG，矢量图转位图，SVG转换，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "image/svg+xml",
+        "outputFormats": [
+          {
+            "value": "png",
+            "label": "PNG"
+          }
+        ]
+      },
+      {
+        "name": "JPG 转 WEBP",
+        "path": "format-conversion/jpg2webp.html",
+        "desc": "将 JPG 图片转换为 WEBP 格式",
+        "keywords": "JPG转WEBP，图片压缩，WEBP转换，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "image/jpeg,image/jpg",
+        "outputFormats": [
+          {
+            "value": "webp",
+            "label": "WebP"
+          }
+        ]
+      },
+      {
+        "name": "PNG 转 WEBP",
+        "path": "format-conversion/png2webp.html",
+        "desc": "将 PNG 图片转换为 WEBP 格式",
+        "keywords": "PNG转WEBP，图片压缩，WEBP转换，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "image/png",
+        "outputFormats": [
+          {
+            "value": "webp",
+            "label": "WebP"
+          }
+        ]
+      },
+      {
+        "name": "文件分析器",
+        "path": "format-conversion/file-analyzer.html",
+        "desc": "分析文件元信息、MIME类型、字节内容，支持图片预览",
+        "keywords": "文件分析，文件信息，文件类型分析，HEX查看，在线工具",
+        "type": "file-analyzer"
+      },
+      {
+        "name": "PDF 转 JPG",
+        "path": "format-conversion/pdf2jpg.html",
+        "desc": "将 PDF 第1页转换为 JPG 图片",
+        "keywords": "PDF转JPG，PDF转图片，PDF转换，PDF图片提取，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "application/pdf",
+        "outputFormats": [
+          {
+            "value": "jpg",
+            "label": "JPG"
+          },
+          {
+            "value": "png",
+            "label": "PNG"
+          }
+        ]
+      },
+      {
+        "name": "PDF 转 HTML",
+        "path": "format-conversion/pdf2html.html",
+        "desc": "将 PDF 文本提取并渲染为 HTML 页面",
+        "keywords": "PDF转HTML，PDF提取文本，PDF渲染，PDF预览，在线工具",
+        "type": "format-convert",
+        "acceptTypes": "application/pdf",
+        "outputFormats": [
+          {
+            "value": "html",
+            "label": "HTML"
+          }
+        ]
+      }
+    ]
+  },
+  {
     "category": "开发工具",
     "tools": [
       {
@@ -61,6 +189,83 @@
         "path": "code/color-picker.html",
         "desc": "可视化颜色选择器，支持 HEX、RGB、HSL、HSV 等多种格式",
         "keywords": "颜色选择器，颜色转换，HEX RGB HSL HSV 转换，取色器，在线工具"
+      },
+      {
+        "name": "Http 接口测试",
+        "path": "code/http-test.html",
+        "desc": "测试 REST API 接口，支持多种 HTTP 方法",
+        "keywords": "HTTP测试，API测试，接口测试，POST GET PUT DELETE，REST API，在线工具",
+        "type": "http-test"
+      },
+      {
+        "name": "Websocket 接口测试",
+        "path": "code/websocket-test.html",
+        "desc": "连接 WebSocket 服务器并测试收发消息",
+        "keywords": "WebSocket测试，WS测试，WebSocket客户端，实时通信，在线工具",
+        "type": "websocket-test"
+      },
+      {
+        "name": "JSON 校验格式化",
+        "path": "code/json-validator.html",
+        "desc": "校验 JSON 格式，美化或压缩 JSON",
+        "keywords": "JSON校验，JSON格式化，JSON压缩，JSON验证，在线工具",
+        "type": "formatter"
+      },
+      {
+        "name": "JSON 转 TypeScript",
+        "path": "code/json2ts.html",
+        "desc": "根据 JSON 数据生成 TypeScript 接口定义",
+        "keywords": "JSON转TypeScript，TS类型生成，JSON接口，TypeScript定义，在线工具",
+        "type": "json-generate"
+      },
+      {
+        "name": "JSON 转 Java 实体类",
+        "path": "code/json2java.html",
+        "desc": "根据 JSON 数据生成 Java 实体类（含 Lombok 注解）",
+        "keywords": "JSON转Java，Java实体类，Lombok，JSON转类，Java POJO，在线工具",
+        "type": "json-generate"
+      },
+      {
+        "name": "JSON 转 C# 实体类",
+        "path": "code/json2csharp.html",
+        "desc": "根据 JSON 数据生成 C# 实体类（含 System.Text.Json 注解）",
+        "keywords": "JSON转C#，C#实体类，DataContract，C# POJO，JSON转类，在线工具",
+        "type": "json-generate"
+      },
+      {
+        "name": "JSON 转 Golang Struct",
+        "path": "code/json2go.html",
+        "desc": "根据 JSON 数据生成 Go 语言 struct 定义（含 json tag）",
+        "keywords": "JSON转Go，Go struct，Golang类型，JSON转结构体，在线工具",
+        "type": "json-generate"
+      },
+      {
+        "name": "JSON 转 SQL",
+        "path": "code/json2sql.html",
+        "desc": "将 JSON 数组转换为 INSERT INTO SQL 语句",
+        "keywords": "JSON转SQL，JSON转INSERT，SQL生成，数据导出，批量插入，在线工具",
+        "type": "json-generate"
+      },
+      {
+        "name": "JSONPath 解析器",
+        "path": "code/jsonpath.html",
+        "desc": "使用 JSONPath 表达式查询 JSON 数据",
+        "keywords": "JSONPath，JSON查询，JSONPath解析，XPath JSON，JSON路径，在线工具",
+        "type": "jsonpath-query"
+      },
+      {
+        "name": "HTML 格式化",
+        "path": "code/html-formatter.html",
+        "desc": "格式化或压缩 HTML 代码",
+        "keywords": "HTML格式化，HTML压缩，HTML美化，HTML整理，在线工具",
+        "type": "formatter"
+      },
+      {
+        "name": "XML 压缩格式化",
+        "path": "code/xml-formatter.html",
+        "desc": "格式化或压缩 XML 代码",
+        "keywords": "XML格式化，XML压缩，XML美化，XML整理，在线工具",
+        "type": "formatter"
       }
     ]
   },
