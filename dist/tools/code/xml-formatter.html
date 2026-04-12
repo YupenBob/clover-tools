@@ -113,8 +113,8 @@ function detectFormat(text) {
   var t = text.trim();
   if (t.startsWith('{') || t.startsWith('[')) return 'json';
   if (t.startsWith('<')) {
-    if (/<!DOCTYPE\s+html/i.test(t) || /<html/i.test(t)) return 'html';
-    if (/<\?xml/i.test(t)) return 'xml';
+    if (/<!DOCTYPE\\s+html/i.test(t) || /<html/i.test(t)) return 'html';
+    if (/<\\?xml/i.test(t)) return 'xml';
     return 'html';
   }
   return 'text';
@@ -131,7 +131,7 @@ function run() {
       var doc = new DOMParser().parseFromString(val, fmt === 'html' ? 'text/html' : 'application/xml');
       if (fmt === 'xml' && doc.querySelector('parsererror')) throw new Error('XML 解析错误');
       var formatted = doc.documentElement.outerHTML;
-      output.value = mode === 'minify' ? formatted.replace(/>\s+</g, '><').trim() : formatted;
+      output.value = mode === 'minify' ? formatted.replace(/>\\s+</g, '><').trim() : formatted;
     } else {
       output.value = val;
     }

@@ -119,7 +119,7 @@ function jp(query, obj) {
 </body>
 </html>
  + query;
-  var parts = query.split(/\.(?![^\[]*\])/);
+  var parts = query.split(/\\.(?![^\\[]*\\])/);
   function walk(node, path) {
     if (path.length === 0) { result.push(node); return; }
     var seg = path[0];
@@ -134,7 +134,7 @@ function jp(query, obj) {
       else if (typeof node === 'object' && node !== null) Object.values(node).forEach(function(v) { walk(v, rest); });
       return;
     }
-    var bracketMatch = seg.match(/^([^\[]+)\[(-?\d+|\*|'[^\']+')\]$/);
+    var bracketMatch = seg.match(/^([^\\[]+)\\[(-?\\d+|\\*|'[^\\']+')\\]$/);
     if (bracketMatch) {
       var key = bracketMatch[1] || '';
       var idx = bracketMatch[2];

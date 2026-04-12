@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var genFn = 'function(inputs) { var min=inputs.minute||\'*\',hr=inputs.hour||\'*\',day=inputs.day||\'*\',mon=inputs.month||\'*\',wd=inputs.weekday||\'*\';var expr=min+\' \'+hr+\' \'+day+\' \'+mon+\' \'+wd;var desc=\'每\';if(min===\'*\')desc+=\'分钟\';else desc+=\'第 \'+min+\' 分钟\';if(hr===\'*\')desc+=\'每小时\';else desc+=\'第 \'+hr+\' 小时\';if(day===\'*\'&&wd===\'*\')desc+=\'每天\';else if(day!==\'*\')desc+=\'第 \'+day+\' 天\';else if(wd!==\'*\')desc+=\'星期 \'+wd;return \'表达式：\'+expr+\'\\n说明：\'+desc; }';
+    var genFn = 'function(inputs) { var min=inputs.minute||\\'*\\',hr=inputs.hour||\\'*\\',day=inputs.day||\\'*\\',mon=inputs.month||\\'*\\',wd=inputs.weekday||\\'*\\';var expr=min+\\' \\'+hr+\\' \\'+day+\\' \\'+mon+\\' \\'+wd;var desc=\\'每\\';if(min===\\'*\\')desc+=\\'分钟\\';else desc+=\\'第 \\'+min+\\' 分钟\\';if(hr===\\'*\\')desc+=\\'每小时\\';else desc+=\\'第 \\'+hr+\\' 小时\\';if(day===\\'*\\'&&wd===\\'*\\')desc+=\\'每天\\';else if(day!==\\'*\\')desc+=\\'第 \\'+day+\\' 天\\';else if(wd!==\\'*\\')desc+=\\'星期 \\'+wd;return \\'表达式：\\'+expr+\\'\\\\n说明：\\'+desc; }';
 document.getElementById("genBtn").onclick = function() {
   var inputs = {};
   inputs["minute"] = document.getElementById("minute").value;

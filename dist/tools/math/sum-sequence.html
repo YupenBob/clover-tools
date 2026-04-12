@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var calcFn = 'function(inputs) { var a1=parseFloat(inputs.a1),d=parseFloat(inputs.d),n=parseInt(inputs.n); if(isNaN(a1)||isNaN(d)||isNaN(n)||n<1) return \'请输入有效数字，项数需大于 0\'; var last=a1+(n-1)*d; var sum=n*(a1+last)/2; return \'等差数列：a₁=\'+a1+\', d=\'+d+\', n=\'+n+\'<br>末项 aₙ=\'+last+\'<br>前 \'+n+\' 项和 Sₙ = n×(a₁+aₙ)/2 = <strong>\'+sum+\'</strong>\'; }';
+    var calcFn = 'function(inputs) { var a1=parseFloat(inputs.a1),d=parseFloat(inputs.d),n=parseInt(inputs.n); if(isNaN(a1)||isNaN(d)||isNaN(n)||n<1) return \\'请输入有效数字，项数需大于 0\\'; var last=a1+(n-1)*d; var sum=n*(a1+last)/2; return \\'等差数列：a₁=\\'+a1+\\', d=\\'+d+\\', n=\\'+n+\\'<br>末项 aₙ=\\'+last+\\'<br>前 \\'+n+\\' 项和 Sₙ = n×(a₁+aₙ)/2 = <strong>\\'+sum+\\'</strong>\\'; }';
 
 document.getElementById("calcBtn").onclick = function() {
   var inputs = {};

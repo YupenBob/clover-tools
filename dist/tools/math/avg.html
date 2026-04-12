@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var calcFn = 'function(inputs) { var nums=inputs.nums.value.split(/[，, ]+/).map(Number).filter(function(x){return !isNaN(x);}); if(nums.length===0) return \'请输入有效数字\'; var sum=nums.reduce(function(a,b){return a+b;},0); var avg=sum/nums.length; return \'数字：[\'+nums.join(\', \')+\']<br>个数：\'+nums.length+\'<br>总和：\'+sum+\'<br>平均数：<strong>\'+avg.toFixed(6).replace(/\\.?0+$/,\'\')+\'</strong>\'; }';
+    var calcFn = 'function(inputs) { var nums=inputs.nums.value.split(/[，, ]+/).map(Number).filter(function(x){return !isNaN(x);}); if(nums.length===0) return \\'请输入有效数字\\'; var sum=nums.reduce(function(a,b){return a+b;},0); var avg=sum/nums.length; return \\'数字：[\\'+nums.join(\\', \\')+\\']<br>个数：\\'+nums.length+\\'<br>总和：\\'+sum+\\'<br>平均数：<strong>\\'+avg.toFixed(6).replace(/\\\\.?0+$/,\\'\\')+\\'</strong>\\'; }';
 
 document.getElementById("calcBtn").onclick = function() {
   var inputs = {};

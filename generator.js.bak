@@ -3310,7 +3310,7 @@ function generate() {
   let generated = 0;
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
-      const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/script>');
+      const contentHtml = buildToolContentHtml(tool);
       if (!contentHtml) {
         console.log(`  ️  No template for: ${tool.path}`);
         return;

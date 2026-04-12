@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var calcFn = 'function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)||a===0||b===0) return \'请输入非零整数\'; function gcd(x,y){while(y){var t=y;y=x%y;x=t;}return x;} var g=gcd(a,b); return \'LCM(\'+inputs.a+\', \'+inputs.b+\') = <strong>\'+(a*b/g)+\'</strong>\'; }';
+    var calcFn = 'function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)||a===0||b===0) return \\'请输入非零整数\\'; function gcd(x,y){while(y){var t=y;y=x%y;x=t;}return x;} var g=gcd(a,b); return \\'LCM(\\'+inputs.a+\\', \\'+inputs.b+\\') = <strong>\\'+(a*b/g)+\\'</strong>\\'; }';
 
 document.getElementById("calcBtn").onclick = function() {
   var inputs = {};

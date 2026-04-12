@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var calcFn = 'function(inputs) { var n=parseFloat(inputs.n); if(isNaN(n)) return \'请输入有效数字\'; if(n<0) return \'错误：负数没有实数平方根\'; var r=Math.sqrt(n); return \'√\'+(Number.isInteger(n)?n:n.toFixed(6).replace(/\\.?0+$/,\'\'))+\' = <strong>\'+r+\'</strong>\'; }';
+    var calcFn = 'function(inputs) { var n=parseFloat(inputs.n); if(isNaN(n)) return \\'请输入有效数字\\'; if(n<0) return \\'错误：负数没有实数平方根\\'; var r=Math.sqrt(n); return \\'√\\'+(Number.isInteger(n)?n:n.toFixed(6).replace(/\\\\.?0+$/,\\'\\'))+\\' = <strong>\\'+r+\\'</strong>\\'; }';
 
 document.getElementById("calcBtn").onclick = function() {
   var inputs = {};
