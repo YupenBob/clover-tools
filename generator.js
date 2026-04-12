@@ -1863,6 +1863,224 @@ function buildToolScript(tool) {
       annotateBtn.addEventListener('click', () => { addAnnotation(''); });
       saveAnnotationBtn.addEventListener('click', () => { addAnnotation(annotationText.value); annotationText.value = ''; });
       clearTimelineBtn.addEventListener('click', () => { timeline = []; renderTimeline(); });
+    `,    'code/cron-parser': `
+      var cronInput = document.getElementById('cronInput');
+      var result = document.getElementById('result');
+      var nextRuns = document.getElementById('nextRuns');
+      function parseCron(cron) {
+        var parts = cron.trim().split(/\s+/);
+        if (parts.length < 5) return null;
+        return { min: parts[0], hour: parts[1], day: parts[2], month: parts[3], dow: parts[4] };
+      }
+      function matches(val, field) {
+        if (field === '*') return true;
+        var parts = field.split(',');
+        for (var p of parts) {
+          if (p.indexOf('/') !== -1) {
+            var step = parseInt(p.split('/')[1]);
+            var range = p.split('/')[0];
+            if (range === '*') { if (val % step === 0) return true; }
+            else { var r = range.split('-'); for (var i = parseInt(r[0]); i <= parseInt(r[1]); i += step) { if (i === val) return true; } }
+          } else if (p.indexOf('-') !== -1) {
+            var r = p.split('-');
+            if (val >= parseInt(r[0]) && val <= parseInt(r[1])) return true;
+          } else { if (parseInt(p) === val) return true; }
+        }
+        return false;
+      }
+      function nextExec(cron) {
+        var p = parseCron(cron);
+        if (!p) return null;
+        var d = new Date();
+        d.setSeconds(0, 0);
+        for (var i = 0; i < 100; i++) {
+          d.setMinutes(d.getMinutes() + 1);
+          var min = d.getMinutes(), hour = d.getHours(), day = d.getDate(), month = d.getMonth() + 1, dow = d.getDay();
+          if (matches(min, p.min) && matches(hour, p.hour) && matches(day, p.day) && matches(month, p.month) && matches(dow, p.dow)) return new Date(d);
+        }
+        return null;
+      }
+      function run() {
+        var cron = cronInput.value.trim();
+        if (!cron) { result.textContent = '请输入 Cron 表达式'; nextRuns.innerHTML = ''; return; }
+        var p = parseCron(cron);
+        if (!p) { result.textContent = '格式错误（正确格式：分 时 日 月 周）'; nextRuns.innerHTML = ''; return; }
+        result.textContent = '✓ 格式正确';
+        var runs = [];
+        for (var i = 0; i < 5; i++) {
+          var next = nextExec(cron);
+          if (!next) break;
+          runs.push(next.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}));
+        }
+        nextRuns.innerHTML = runs.length ? '<li>' + runs.join('</li><li>') + '</li>' : '<li>无未来执行时间</li>';
+      }
+      cronInput.addEventListener('input', run);
+      document.getElementById('examples').addEventListener('change', function() { cronInput.value = this.value; run(); });
+      run();
+    `,    'code/color-picker': `
+      var colorInput = document.getElementById('colorInput');
+      var preview = document.getElementById('preview');
+      var hexOut = document.getElementById('hexOut');
+      var rgbOut = document.getElementById('rgbOut');
+      var hslOut = document.getElementById('hslOut');
+      function update(c) {
+        preview.style.background = c;
+        hexOut.value = c;
+        var r = parseInt(c.slice(1,3), 16);
+        var g = parseInt(c.slice(3,5), 16);
+        var b = parseInt(c.slice(5,7), 16);
+        rgbOut.value = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+        var max = Math.max(r,g,b)/255, min = Math.min(r,g,b)/255;
+        var l = (max+min)/2, s = 0, h = 0;
+        if (max !== min) {
+          var d = max - min;
+          s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+          var rr=r/255, gg=g/255, bb=b/255;
+          if (rr===max) h = ((gg-bb)/d + (gg<bb?6:0))/6;
+          else if (gg===max) h = ((bb-rr)/d + 2)/6;
+          else h = ((rr-gg)/d + 4)/6;
+        }
+        hslOut.value = 'hsl(' + Math.round(h*360) + ', ' + Math.round(s*100) + '%, ' + Math.round(l*100) + '%)';
+      }
+      colorInput.addEventListener('input', function() { update(this.value); });
+      update('#4a90e2');
+      document.getElementById('copyHex').onclick = function() { navigator.clipboard.writeText(hexOut.value); if (window.CT && CT.showToast) CT.showToast('已复制 HEX'); };
+      document.getElementById('copyRgb').onclick = function() { navigator.clipboard.writeText(rgbOut.value); if (window.CT && CT.showToast) CT.showToast('已复制 RGB'); };
+      document.getElementById('copyHsl').onclick = function() { navigator.clipboard.writeText(hslOut.value); if (window.CT && CT.showToast) CT.showToast('已复制 HSL'); };
+    `,
+    'text/jianfan': `
+      var input = document.getElementById('input');
+      var output = document.getElementById('output');
+      var UNICODE_OFFSET = 0x4E00 - 0x3400;
+      function t2s(t) {
+        return t.replace(/[\u3400-\u9FFF]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) + UNICODE_OFFSET); });
+      }
+      function s2t(s) {
+        return s.replace(/[\u4E00-\u9FFF]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - UNICODE_OFFSET); });
+      }
+      function run() { output.value = input.value; }
+      document.getElementById('toSimple').onclick = function() { output.value = t2s(input.value); };
+      document.getElementById('toTraditional').onclick = function() { output.value = s2t(input.value); };
+      document.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };
+      input.addEventListener('input', run);
+    `,
+    'time/lunar-solar-converter': `
+      var solarInput = document.getElementById('solarInput');
+      var lunarOutput = document.getElementById('lunarOutput');
+      var LUNAR_INFO = [384, 354, 355, 383, 354, 355, 384, 354, 355, 354, 383, 354, 355, 383, 353, 355, 384, 354, 384, 354, 354, 384, 354, 353, 354, 384, 353, 354, 384, 354, 355, 384, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 383, 354, 354, 384, 354, 355, 383, 354, 355, 383, 354, 355, 384, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 354, 383, 354, 355, 384, 354, 355, 383, 354, 354, 384, 354, 355, 384, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 383, 354, 354, 384, 354, 355, 383, 354, 355, 384, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 383, 354, 354, 384, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 383, 354, 355, 384, 354, 355, 384, 354, 354, 384, 354, 355, 383];
+      var BASE_SOLAR_DATE = new Date(1900, 0, 31);
+      function solarToLunar(year, month, day) {
+        var daysBetween = Math.floor((new Date(year, month-1, day) - BASE_SOLAR_DATE) / 86400000);
+        var lunarDay, lunarMonth, lunarYear = 1900;
+        var acc = 0;
+        for (var i = 0; i < LUNAR_INFO.length; i++) {
+          if (acc + LUNAR_INFO[i] > daysBetween) {
+            lunarDay = daysBetween - acc + 1;
+            lunarMonth = i + 1;
+            lunarYear = 1900 + Math.floor(i / 12);
+            break;
+          }
+          acc += LUNAR_INFO[i];
+        }
+        var MONTHS_CN = ['正','二','三','四','五','六','七','八','九','十','冬','腊'];
+        var DAYS_CN = ['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十','廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+        return lunarYear + '年 ' + MONTHS_CN[lunarMonth-1] + '月 ' + DAYS_CN[lunarDay-1];
+      }
+      function run() {
+        var parts = solarInput.value.split('-');
+        if (parts.length === 3) {
+          var y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+          if (y >= 1900 && y <= 2100) {
+            lunarOutput.textContent = solarToLunar(y, m, d);
+            return;
+          }
+        }
+        lunarOutput.textContent = '请输入有效日期 (1900-2100)';
+      }
+      solarInput.addEventListener('input', run);
+      run();
+    `,
+    'other/reaction-test': `
+      var state = 'waiting';
+      var startTime = 0;
+      var box = document.getElementById('reactionBox');
+      var result = document.getElementById('result');
+      var bestResult = document.getElementById('bestResult');
+      var bestTime = Infinity;
+      function reset() {
+        state = 'waiting';
+        box.style.background = 'var(--bg-secondary)';
+        box.style.cursor = 'default';
+        box.textContent = '点击开始';
+        result.textContent = '';
+      }
+      box.onclick = function() {
+        if (state === 'waiting') {
+          state = 'ready';
+          box.style.background = '#ef4444';
+          box.style.cursor = 'pointer';
+          box.textContent = '等待变绿...';
+          var delay = 1000 + Math.random() * 2000;
+          setTimeout(function() {
+            if (state === 'ready') {
+              state = 'green';
+              startTime = Date.now();
+              box.style.background = '#22c55e';
+              box.textContent = '点击！';
+            }
+          }, delay);
+        } else if (state === 'ready') {
+          state = 'too-early';
+          box.style.background = '#f59e0b';
+          box.textContent = '太早了！点击重试';
+        } else if (state === 'green') {
+          var elapsed = Date.now() - startTime;
+          state = 'done';
+          box.textContent = '你的反应时间: ' + elapsed + ' ms';
+          result.textContent = '本次: ' + elapsed + ' ms';
+          if (elapsed < bestTime) { bestTime = elapsed; bestResult.textContent = '最佳: ' + bestTime + ' ms'; }
+        } else if (state === 'too-early' || state === 'done') {
+          reset();
+        }
+      };
+      reset();
+    `,
+    'other/click-speed': `
+      var clicks = 0;
+      var totalTime = 10000;
+      var timeLeft = totalTime;
+      var timer = null;
+      var btn = document.getElementById('clickBtn');
+      var result = document.getElementById('result');
+      var counter = document.getElementById('counter');
+      var timerDisplay = document.getElementById('timerDisplay');
+      function start() {
+        clicks = 0;
+        timeLeft = totalTime;
+        btn.disabled = true;
+        counter.textContent = '0';
+        timerDisplay.textContent = (totalTime/1000).toFixed(1) + 's';
+        timer = setInterval(function() {
+          timeLeft -= 100;
+          timerDisplay.textContent = (timeLeft/1000).toFixed(1) + 's';
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.textContent = '开始';
+            counter.textContent = clicks;
+            var cps = (clicks / (totalTime/1000)).toFixed(1);
+            result.textContent = clicks + ' 次点击 / 10秒 = ' + cps + ' 次/秒';
+          }
+        }, 100);
+      }
+      btn.onclick = function() { start(); };
+      counter.textContent = '0';
+      document.getElementById('clickArea').onclick = function() {
+        if (timeLeft > 0 && timeLeft < totalTime) {
+          clicks++;
+          counter.textContent = clicks;
+        }
+      };
     `,
   };
 
@@ -2928,7 +3146,102 @@ function buildToolContentHtml(tool) {
         </div>
         <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">🗑️ 清空记录</button>
       </div>
-    `,
+    `,    'code/cron-parser': `
+      <div class="tool-card">
+        <h3>Cron 表达式</h3>
+        <input type="text" id="cronInput" value="* * * * *" style="width:100%;padding:0.5rem;font-size:1rem;font-family:monospace;" placeholder="分 时 日 月 周">
+        <select id="examples" style="margin-top:0.5rem;width:100%;padding:0.4rem;">
+          <option value="">--- 常用示例 ---</option>
+          <option value="* * * * *">每分钟</option>
+          <option value="0 * * * *">每小时整点</option>
+          <option value="0 9 * * *">每天 9:00</option>
+          <option value="0 9 * * 1-5">工作日 9:00</option>
+          <option value="*/5 * * * *">每 5 分钟</option>
+          <option value="0 */2 * * *">每 2 小时</option>
+        </select>
+      </div>
+      <div class="tool-card">
+        <h3>验证结果</h3>
+        <div id="result" style="padding:0.5rem;font-size:1rem;"></div>
+      </div>
+      <div class="output-box">
+        <h3>未来 5 次执行时间</h3>
+        <ul id="nextRuns" style="padding-left:1.2rem;line-height:1.8;"></ul>
+      </div>`,    'code/color-picker': `
+      <div class="tool-card">
+        <h3>选择颜色</h3>
+        <input type="color" id="colorInput" value="#4a90e2" style="width:100%;height:50px;border:none;cursor:pointer;">
+      </div>
+      <div class="tool-card">
+        <div id="preview" style="height:80px;background:#4a90e2;border-radius:10px;margin-bottom:1rem;"></div>
+        <div style="display:grid;gap:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <label style="width:50px;">HEX</label>
+            <input type="text" id="hexOut" readonly style="flex:1;padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;">
+            <button class="btn btn-secondary" id="copyHex" style="padding:0.4rem 0.6rem;">复制</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <label style="width:50px;">RGB</label>
+            <input type="text" id="rgbOut" readonly style="flex:1;padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;">
+            <button class="btn btn-secondary" id="copyRgb" style="padding:0.4rem 0.6rem;">复制</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <label style="width:50px;">HSL</label>
+            <input type="text" id="hslOut" readonly style="flex:1;padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;">
+            <button class="btn btn-secondary" id="copyHsl" style="padding:0.4rem 0.6rem;">复制</button>
+          </div>
+        </div>
+      </div>`,
+    'text/jianfan': `
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入简体或繁体文字..." style="min-height:100px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>转换结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:100px;"></textarea>
+        <div class="btn-row" style="margin-top:1rem;">
+          <button class="btn btn-primary" id="toSimple">转简体</button>
+          <button class="btn btn-secondary" id="toTraditional">转繁体</button>
+        </div>
+      </div>`,
+    'time/lunar-solar-converter': `
+      <div class="tool-card">
+        <h3>公历日期</h3>
+        <input type="date" id="solarInput" style="width:100%;padding:0.5rem;font-size:1rem;">
+      </div>
+      <div class="output-box">
+        <h3>农历日期</h3>
+        <div id="lunarOutput" style="font-size:1.3rem;text-align:center;padding:1rem;"></div>
+      </div>
+      <p style="font-size:0.8rem;opacity:0.6;text-align:center;margin-top:1rem;">基于简化农历算法（1900-2100）</p>`,
+    'other/reaction-test': `
+      <div class="tool-card">
+        <h3>反应力测试</h3>
+        <div id="reactionBox" style="height:200px;background:var(--bg-secondary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:background 0.1s;"></div>
+      </div>
+      <div class="output-box">
+        <h3>结果</h3>
+        <div id="result" style="font-size:1.1rem;text-align:center;"></div>
+        <div id="bestResult" style="font-size:0.9rem;text-align:center;margin-top:0.5rem;opacity:0.7;"></div>
+      </div>
+      <p style="font-size:0.8rem;opacity:0.6;text-align:center;margin-top:1rem;">点击方块开始，等待变绿后尽快点击</p>`,
+    'other/click-speed': `
+      <div class="tool-card">
+        <h3>点击速度测试 - 10秒内能点多少次？</h3>
+        <div id="clickArea" style="height:150px;background:var(--bg-secondary);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:3px dashed var(--border);">
+          <span style="font-size:1.2rem;opacity:0.5;">点击区域</span>
+        </div>
+        <div style="text-align:center;margin-top:1rem;">
+          <div id="counter" style="font-size:3rem;font-weight:700;color:var(--primary);">0</div>
+          <div id="timerDisplay" style="font-size:1.5rem;margin-top:0.5rem;">10.0s</div>
+        </div>
+        <button class="btn btn-primary" id="clickBtn" style="width:100%;margin-top:1rem;padding:0.75rem;font-size:1.1rem;">开始</button>
+      </div>
+      <div class="output-box">
+        <h3>结果</h3>
+        <div id="result" style="font-size:1rem;text-align:center;padding:1rem;"></div>
+      </div>`,
   };
 
   return contents[key] || '';
