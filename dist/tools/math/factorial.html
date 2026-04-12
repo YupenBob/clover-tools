@@ -106,7 +106,7 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var calcFn = 'function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<0) return \'请输入非负整数\'; if(n>170) return \'数字过大，可能导致精度丢失\'; var r=1; for(var i=2;i<=n;i++) r*=i; return n+\'! = <strong>\'+r.toLocaleString()+\'</strong>\'; }';
+    var calcFn = 'function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<0) return \\'请输入非负整数\\'; if(n>170) return \\'数字过大，可能导致精度丢失\\'; var r=1; for(var i=2;i<=n;i++) r*=i; return n+\\'! = <strong>\\'+r.toLocaleString()+\\'</strong>\\'; }';
 
 document.getElementById("calcBtn").onclick = function() {
   var inputs = {};

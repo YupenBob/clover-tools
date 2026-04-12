@@ -110,7 +110,7 @@
 var output = document.getElementById('output');
 var langSelect = document.getElementById('langSelect');
 var genBtn = document.getElementById('genBtn');
-function esc(s) { return s.replace(/'/g, "\\'"); }
+function esc(s) { return s.replace(/'/g, "\\\\'"); }
 function upperFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 function toTypeScript(obj, name) {
   var lines = ['interface ' + upperFirst(name) + ' {'];
@@ -121,7 +121,7 @@ function toTypeScript(obj, name) {
     lines.push('  ' + k + ': ' + t + ';');
   });
   lines.push('}');
-  return lines.join('\n');
+  return lines.join('\\n');
 }
 function toJava(obj, name) {
   var lines = ['public class ' + upperFirst(name) + ' {'];
@@ -134,7 +134,7 @@ function toJava(obj, name) {
     lines.push('  public void set' + upperFirst(k) + '(' + t + ' ' + k + ') { this.' + k + ' = ' + k + '; }');
   });
   lines.push('}');
-  return lines.join('\n');
+  return lines.join('\\n');
 }
 function toCSharp(obj, name) {
   var lines = ['public class ' + upperFirst(name) + ' {'];
@@ -145,7 +145,7 @@ function toCSharp(obj, name) {
     lines.push('  public ' + t + ' ' + upperFirst(k) + ' { get; set; }');
   });
   lines.push('}');
-  return lines.join('\n');
+  return lines.join('\\n');
 }
 function toGo(obj, name) {
   var lines = ['type ' + upperFirst(name) + ' struct {'];
@@ -156,14 +156,14 @@ function toGo(obj, name) {
     lines.push('  ' + upperFirst(k) + ' ' + t + ' `json:"' + k + '"`');
   });
   lines.push('}');
-  return lines.join('\n');
+  return lines.join('\\n');
 }
 function toSQL(obj, name) {
   var table = upperFirst(name).replace(/[^a-zA-Z0-9_]/g, '');
   var keys = Object.keys(obj);
   if (keys.length === 0) return '-- Empty object';
-  var cols = keys.map(function(k) { return '  ' + k.replace(/[^a-zA-Z0-9_]/g, '_') + ' TEXT'; }).join(',\n');
-  return 'CREATE TABLE ' + table + ' (\n' + cols + '\n);\n\nINSERT INTO ' + table + ' (' + keys.map(function(k) { return k.replace(/[^a-zA-Z0-9_]/g, '_'); }).join(', ') + ') VALUES\n(' + keys.map(function() { return '?'; }).join(', ') + ');';
+  var cols = keys.map(function(k) { return '  ' + k.replace(/[^a-zA-Z0-9_]/g, '_') + ' TEXT'; }).join(',\\n');
+  return 'CREATE TABLE ' + table + ' (\\n' + cols + '\\n);\\n\\nINSERT INTO ' + table + ' (' + keys.map(function(k) { return k.replace(/[^a-zA-Z0-9_]/g, '_'); }).join(', ') + ') VALUES\\n(' + keys.map(function() { return '?'; }).join(', ') + ');';
 }
 genBtn.onclick = function() {
   try {

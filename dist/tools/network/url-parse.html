@@ -107,7 +107,7 @@
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
     var TOOL_DATA = [];
-var renderFn = 'function(data, search) { return \'<div class=tool-card><h3>URL 参数解析</h3><p style=color:#888;>在下方搜索框输入完整 URL 进行解析</p></div>\'; }';
+var renderFn = 'function(data, search) { return \\'<div class=tool-card><h3>URL 参数解析</h3><p style=color:#888;>在下方搜索框输入完整 URL 进行解析</p></div>\\'; }';
 function doRender(search) {
   var filtered = search ? TOOL_DATA.filter(function(item) {
     return JSON.stringify(item).toLowerCase().includes(search.toLowerCase());

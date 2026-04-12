@@ -334,13 +334,8 @@ function buildToolScript(tool) {
   const key = stripExt(tool.path);
   // NEW: Check registry first for auto-generated tools
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
-    const raw = TOOL_TYPE_REGISTRY[tool.type].script(tool);
-    // Escape for safe embedding in HTML script tag:
-    // 1. Backslash → \\ (must be first!)
-    // 2. </script> → <\/script> (prevents HTML parser from closing script tag early)
-    // NO quote escaping needed - script tag content doesn't use HTML attribute rules
-    const escaped = raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
-    return escaped;
+    // Escape real newlines so they don't break JS string literals when embedded in HTML
+    const r = TOOL_TYPE_REGISTRY[tool.type].script(tool).replace(/\n/g, '\\n'); console.log('DEBUG buildToolScript for jsonpath, first 100 chars:', JSON.stringify(r.substring(0,100))); return r;
   }
   const scripts = {
     'json/formatter': `
@@ -3310,7 +3305,7 @@ function generate() {
   let generated = 0;
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
-      const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/script>');
+      const contentHtml = buildToolContentHtml(tool);
       if (!contentHtml) {
         console.log(`  ️  No template for: ${tool.path}`);
         return;
