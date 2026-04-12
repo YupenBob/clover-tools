@@ -613,7 +613,7 @@
             "placeholder": "请输入正整数"
           }
         ],
-        "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<2) return '请输入大于等于 2 的正整数'; if(n===2) return n+' 是质数 ✓'; if(n%2===0) return n+' 不是质数（能被 2 整除）'; for(var i=3;i*i<=n;i+=2){if(n%i===0) return n+' 不是质数（能被 '+i+' 整除）';} return n+' 是质数 ✓'; }",
+        "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<2) return '请输入大于等于 2 的正整数'; if(n===2) return n+' 是质数'; if(n%2===0) return n+' 不是质数（能被 2 整除）'; for(var i=3;i*i<=n;i+=2){if(n%i===0) return n+' 不是质数（能被 '+i+' 整除）';} return n+' 是质数'; }",
         "icon": "bi bi-calculator"
       },
       {

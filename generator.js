@@ -187,7 +187,7 @@ const TOOL_TYPE_REGISTRY = {
     html: function(tool) {
       let searchBar = '';
       if (tool.searchable) {
-        searchBar = '<input type="text" id="searchInput" placeholder="🔍 搜索..." style="width:100%;padding:0.5rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;">';
+        searchBar = '<input type="text" id="searchInput" placeholder=" 搜索..." style="width:100%;padding:0.5rem;margin-bottom:1rem;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;">';
       }
       return '<div class="tool-card"><h3>' + (tool.searchLabel || '查询') + '</h3>' + searchBar + '<div id="resultArea" style="max-height:500px;overflow-y:auto;"></div></div>';
     },
@@ -1319,7 +1319,7 @@ function buildToolScript(tool) {
           }
         });
         document.querySelectorAll('.product-row').forEach(row => row.classList.remove('winner'));
-        if (best) { best.row.classList.add('winner'); best.row.querySelector('.unit-price').textContent += ' 🏆'; }
+        if (best) { best.row.classList.add('winner'); best.row.querySelector('.unit-price').textContent += ' '; }
       }
 
       document.getElementById('addProduct').addEventListener('click', () => {
@@ -1831,7 +1831,7 @@ function buildToolScript(tool) {
         const breakMin = parseInt(document.getElementById('breakDuration').value) || 5;
         pomodoroState = 'work';
         pomodoroRemaining = workMin * 60000;
-        label.textContent = '🍅 工作时间';
+        label.textContent = ' 工作时间';
         pomodoroStatus.textContent = '第 1 个番茄';
         clearInterval(pomodoroTimer);
         pomodoroTimer = setInterval(() => {
@@ -1843,15 +1843,15 @@ function buildToolScript(tool) {
             if (pomodoroState === 'work') {
               pomodoroState = 'break';
               pomodoroRemaining = breakMin * 60000;
-              label.textContent = '☕ 休息时间';
+              label.textContent = ' 休息时间';
               pomodoroStatus.textContent = '工作完成！休息一下';
-              addAnnotation('🍅 番茄完成');
+              addAnnotation(' 番茄完成');
             } else {
               pomodoroState = 'work';
               pomodoroRemaining = workMin * 60000;
-              label.textContent = '🍅 工作时间';
+              label.textContent = ' 工作时间';
               pomodoroStatus.textContent = '休息结束，继续加油';
-              addAnnotation('☕ 休息结束');
+              addAnnotation(' 休息结束');
             }
           }
         }, 1000);
@@ -1866,7 +1866,7 @@ function buildToolScript(tool) {
         mode = 'pomodoro'; resetTimer();
         modePomodoro.className = 'btn btn-primary'; modeStopwatch.className = 'btn btn-secondary';
         pomodoroSettings.style.display = 'block'; annotationInput.style.display = 'block'; annotateBtn.style.display = 'inline-block';
-        display.textContent = '25:00'; label.textContent = '🍅 番茄钟';
+        display.textContent = '25:00'; label.textContent = ' 番茄钟';
       });
       startBtn.addEventListener('click', () => { if (mode === 'stopwatch') startTimer(); else startPomodoro(); });
       pauseBtn.addEventListener('click', () => { if (mode === 'stopwatch') pauseTimer(); else { clearInterval(pomodoroTimer); } });
@@ -1916,7 +1916,7 @@ function buildToolScript(tool) {
         if (!cron) { result.textContent = '请输入 Cron 表达式'; nextRuns.innerHTML = ''; return; }
         var p = parseCron(cron);
         if (!p) { result.textContent = '格式错误（正确格式：分 时 日 月 周）'; nextRuns.innerHTML = ''; return; }
-        result.textContent = '✓ 格式正确';
+        result.textContent = ' 格式正确';
         var runs = [];
         var from = null;
         for (var i = 0; i < 5; i++) {
@@ -2315,7 +2315,7 @@ function buildToolContentHtml(tool) {
         <div class="tool-card">
           <h3>表格</h3>
           <div class="table-toolbar">
-            <input type="text" id="searchInput" placeholder="🔍 搜索..." style="flex:1;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+            <input type="text" id="searchInput" placeholder=" 搜索..." style="flex:1;padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
             <button class="btn btn-secondary" id="copyTable" style="white-space:nowrap;">复制表格 HTML</button>
           </div>
           <div id="tableContainer" style="overflow:auto;max-height:500px;margin-top:0.75rem;"></div>
@@ -2517,7 +2517,7 @@ function buildToolContentHtml(tool) {
           <h3>乱码文本</h3>
           <textarea id="input" placeholder="粘贴乱码文本，如: �ļ���  %E4%B8%AD  \\u4e2d  &#x4e2d;" style="min-height:120px;"></textarea>
           <div class="btn-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.5rem;">
-            <button class="btn btn-primary" id="autoFix">🔍 自动修复</button>
+            <button class="btn btn-primary" id="autoFix"> 自动修复</button>
             <label style="font-size:0.8rem;display:flex;align-items:center;gap:0.2rem;"><input type="checkbox" id="autoOn" checked> 输入时自动</label>
           </div>
         </div>
@@ -2536,7 +2536,7 @@ function buildToolContentHtml(tool) {
           <button class="btn btn-secondary" id="fixUrlEncoding">URL 编码</button>
         </div>
         <p style="font-size:0.78rem;opacity:0.6;margin-top:0.5rem;">
-          💡 自动修复会依次尝试各种编码方式，检测到有效中文即停止。如自动结果不理想，可手动选择具体编码方式。
+           自动修复会依次尝试各种编码方式，检测到有效中文即停止。如自动结果不理想，可手动选择具体编码方式。
         </p>
       </div>`,
 
@@ -3022,7 +3022,7 @@ function buildToolContentHtml(tool) {
         <div style="display:flex;gap:0.5rem;align-items:center;">
           <input type="number" id="salary" placeholder="请输入税前工资，如 20000" style="flex:1;padding:0.6rem;font-size:1rem;">
         </div>
-        <p style="font-size:0.8rem;opacity:0.6;margin-top:0.5rem;">💡 2024年上海标准，社保基数上限 36549 元/月</p>
+        <p style="font-size:0.8rem;opacity:0.6;margin-top:0.5rem;"> 2024年上海标准，社保基数上限 36549 元/月</p>
       </div>
       <div class="tool-card">
         <h3>计算结果</h3>
@@ -3078,11 +3078,11 @@ function buildToolContentHtml(tool) {
       <div id="zenCanvas" style="width:100%;height:60vh;min-height:400px;background:#0a0a14;border-radius:12px;cursor:crosshair;display:block;"></div>
       <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:1rem;align-items:center;">
         <input type="text" id="textInput" placeholder="打字生成粒子..." style="flex:1;min-width:200px;padding:0.6rem;font-size:0.95rem;border-radius:8px;border:1px solid #ddd;">
-        <button class="btn sound-btn" data-sound="rain">🌧️ 雨声</button>
-        <button class="btn sound-btn" data-sound="campfire">🔥 篝火</button>
-        <button class="btn sound-btn" data-sound="ocean">🌊 海浪</button>
-        <button class="btn sound-btn" data-sound="forest">🌲 森林</button>
-        <button class="btn btn-primary" id="exportBtn">📥 导出壁纸</button>
+        <button class="btn sound-btn" data-sound="rain">️ 雨声</button>
+        <button class="btn sound-btn" data-sound="campfire"> 篝火</button>
+        <button class="btn sound-btn" data-sound="ocean"> 海浪</button>
+        <button class="btn sound-btn" data-sound="forest"> 森林</button>
+        <button class="btn btn-primary" id="exportBtn"> 导出壁纸</button>
       </div>
       <p style="margin-top:0.75rem;font-size:0.8rem;opacity:0.5;">移动鼠标或打字产生粒子动画。5秒无操作自动停止声音。</p>`,
 
@@ -3091,7 +3091,7 @@ function buildToolContentHtml(tool) {
         <h3>上传图片</h3>
         <div class="upload-area" id="uploadArea" style="border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s;background:var(--bg-secondary);">
           <input type="file" id="imageInput" accept="image/*" style="display:none;">
-          <div style="font-size:2rem;margin-bottom:0.5rem;">📷</div>
+          <div style="font-size:2rem;margin-bottom:0.5rem;"></div>
           <div style="color:var(--text-secondary);font-size:0.9rem;">点击选择图片或拖拽到此处</div>
           <div style="color:var(--text-secondary);font-size:0.75rem;margin-top:0.3rem;opacity:0.6;">支持 JPG、PNG、GIF、WebP</div>
         </div>
@@ -3099,17 +3099,17 @@ function buildToolContentHtml(tool) {
           <img id="previewImg" style="max-width:100%;max-height:300px;border-radius:8px;display:block;margin:0 auto;">
         </div>
         <div class="btn-row" style="margin-top:1rem;">
-          <button class="btn btn-primary" id="splitBtn">✂️ 切割为九宫格</button>
+          <button class="btn btn-primary" id="splitBtn">️ 切割为九宫格</button>
         </div>
       </div>
       <div class="tool-card" id="resultCard" style="display:none;">
         <h3>切割结果（3x3 九宫格）</h3>
         <div id="gridResult" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:0.75rem;"></div>
         <div class="btn-row" style="margin-top:1rem;justify-content:center;">
-          <button class="btn btn-primary" id="downloadAllBtn">📥 下载全部</button>
+          <button class="btn btn-primary" id="downloadAllBtn"> 下载全部</button>
         </div>
       </div>
-      <p style="font-size:0.8rem;opacity:0.5;margin-top:1rem;">💡 提示：长按或右键保存各格图片，也可点击单格放大后保存</p>
+      <p style="font-size:0.8rem;opacity:0.5;margin-top:1rem;"> 提示：长按或右键保存各格图片，也可点击单格放大后保存</p>
     `,
     'life/time-annotate': `
       <div class="tool-card">
@@ -3125,7 +3125,7 @@ function buildToolContentHtml(tool) {
           <button class="btn btn-primary" id="startBtn">▶ 开始</button>
           <button class="btn btn-secondary" id="pauseBtn">⏸ 暂停</button>
           <button class="btn btn-secondary" id="resetBtn">↺ 重置</button>
-          <button class="btn btn-secondary" id="annotateBtn" style="display:none;">🏷️ 标注时间点</button>
+          <button class="btn btn-secondary" id="annotateBtn" style="display:none;">️ 标注时间点</button>
         </div>
         <div id="pomodoroSettings" style="display:none;margin-top:1rem;padding:1rem;background:var(--bg-secondary);border-radius:12px;">
           <div style="display:flex;gap:1rem;flex-wrap:wrap;">
@@ -3157,7 +3157,7 @@ function buildToolContentHtml(tool) {
             <div style="text-align:center;"><div id="statInterval" style="font-size:1.3rem;font-weight:700;color:var(--primary);">0</div><div style="opacity:0.6;font-size:0.75rem;">平均间隔</div></div>
           </div>
         </div>
-        <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">🗑️ 清空记录</button>
+        <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">️ 清空记录</button>
       </div>
     `,    'code/cron-parser': `
       <div class="tool-card">
@@ -3270,7 +3270,7 @@ function copyFile(src, dst) {
 }
 
 function generate() {
-  console.log('🔧 CloverTools Generator starting...');
+  console.log(' CloverTools Generator starting...');
 
   // Ensure dist structure
   ensureDir(DIST_DIR);
@@ -3279,9 +3279,9 @@ function generate() {
 
   // Copy shared assets to dist
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.css'), sharedCss);
-  console.log('  ✅ Copied shared.css');
+  console.log('   Copied shared.css');
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.js'), sharedJs);
-  console.log('  ✅ Copied shared.js');
+  console.log('   Copied shared.js');
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
@@ -3298,7 +3298,7 @@ function generate() {
     .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/');
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
-  console.log('  ✅ Generated index.html');
+  console.log('   Generated index.html');
 
   // Generate each tool page
   let generated = 0;
@@ -3306,7 +3306,7 @@ function generate() {
     cat.tools.forEach(tool => {
       const contentHtml = buildToolContentHtml(tool);
       if (!contentHtml) {
-        console.log(`  ⚠️  No template for: ${tool.path}`);
+        console.log(`  ️  No template for: ${tool.path}`);
         return;
       }
 
@@ -3352,7 +3352,7 @@ function generate() {
     });
   });
 
-  console.log(`  ✅ Generated ${generated} tool pages`);
+  console.log(`   Generated ${generated} tool pages`);
 
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
@@ -3365,9 +3365,9 @@ function generate() {
   });
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
-  console.log('  ✅ Generated sitemap.xml');
+  console.log('   Generated sitemap.xml');
 
-  console.log('🎉 Done! Output in dist/');
+  console.log(' Done! Output in dist/');
 }
 
 generate();
