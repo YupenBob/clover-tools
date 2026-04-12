@@ -164,7 +164,7 @@
           <h1 style="margin-bottom:0.25rem;">CloverTools</h1>
           <p class="subtitle" style="margin:0;">轻量、离线、无追踪的开发者工具箱</p>
         </div>
-        <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+        <button class="theme-toggle" id="themeToggle" title="切换主题">日</button>
       </div>
       <div class="search-box">
         <input type="text" id="tool-search" placeholder="搜索工具（JSON/加密/时间...）">
@@ -189,7 +189,7 @@
       function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('clover-theme', theme);
-        btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        btn.textContent = theme === 'dark' ? '夜' : '日';
         btn.setAttribute('title', theme === 'dark' ? '切换到亮色模式' : '切换到暗黑模式');
       }
       applyTheme(saved);

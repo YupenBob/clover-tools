@@ -4,7 +4,7 @@ var toggleBtn = document.getElementById('themeToggle');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('clover-theme', theme);
-  toggleBtn.textContent = theme === 'dark' ? '🌙' : '☀️';
+  toggleBtn.textContent = theme === 'dark' ? '夜' : '日';
   toggleBtn.setAttribute('title', theme === 'dark' ? '切换到亮色模式' : '切换到暗黑模式');
 }
 (function() {
