@@ -1278,12 +1278,22 @@ function buildToolScript(tool) {
       const unitOptions = ['斤','公斤','克','升','毫升','个','件','包','瓶','罐','盒','米','平方米'].map(u => '<option value="'+u+'">'+u+'</option>').join('');
       let nextId = 0;
 
+      function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, function(c) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+      }
+
       function createRow(name, spec, unit, price) {
         const id = nextId++;
         const div = document.createElement('div');
         div.className = 'product-row';
         div.dataset.id = id;
-        div.innerHTML = '<div class="product-meta"><input type="text" class="p-name" placeholder="商品名称（选填）" value="'+ (name||'') +'"><button class="btn-remove" title="移除">×</button></div><div class="product-fields"><div class="field-group"><label>规格数量</label><input type="number" class="p-spec" placeholder="如 500" min="0" step="any" value="'+ (spec||'') +'"></div><div class="field-group"><label>规格单位</label><select class="p-unit">'+ unitOptions.replace('value="'+ (unit||'斤') +'"','value="'+ (unit||'斤') +'" selected') +'</select></div><div class="field-group"><label>价格（元）</label><input type="number" class="p-price" placeholder="如 9.9" min="0" step="any" value="'+ (price||'') +'"></div></div><div class="product-result"><span class="unit-price">—</span></div>';
+        const escName = escapeHtml(name || '');
+        const escSpec = escapeHtml(spec || '');
+        const escUnit = escapeHtml(unit || '斤');
+        const escPrice = escapeHtml(price || '');
+        div.innerHTML = '<div class="product-meta"><input type="text" class="p-name" placeholder="商品名称（选填）" value="'+ escName +'"><button class="btn-remove" title="移除">×</button></div><div class="product-fields"><div class="field-group"><label>规格数量</label><input type="number" class="p-spec" placeholder="如 500" min="0" step="any" value="'+ escSpec +'"></div><div class="field-group"><label>规格单位</label><select class="p-unit">'+ unitOptions.replace('value="'+ escUnit +'"','value="'+ escUnit +'" selected') +'</select></div><div class="field-group"><label>价格（元）</label><input type="number" class="p-price" placeholder="如 9.9" min="0" step="any" value="'+ escPrice +'"></div></div><div class="product-result"><span class="unit-price">—</span></div>';
         div.querySelector('.p-spec').addEventListener('input', calc);
         div.querySelector('.p-price').addEventListener('input', calc);
         div.querySelector('.p-unit').addEventListener('change', calc);
@@ -1888,10 +1898,10 @@ function buildToolScript(tool) {
         }
         return false;
       }
-      function nextExec(cron) {
+      function nextExec(cron, from) {
         var p = parseCron(cron);
         if (!p) return null;
-        var d = new Date();
+        var d = from ? new Date(from) : new Date();
         d.setSeconds(0, 0);
         for (var i = 0; i < 100; i++) {
           d.setMinutes(d.getMinutes() + 1);
@@ -1907,10 +1917,12 @@ function buildToolScript(tool) {
         if (!p) { result.textContent = '格式错误（正确格式：分 时 日 月 周）'; nextRuns.innerHTML = ''; return; }
         result.textContent = '✓ 格式正确';
         var runs = [];
+        var from = null;
         for (var i = 0; i < 5; i++) {
-          var next = nextExec(cron);
+          var next = nextExec(cron, from);
           if (!next) break;
           runs.push(next.toLocaleString('zh-CN', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}));
+          from = next;
         }
         nextRuns.innerHTML = runs.length ? '<li>' + runs.join('</li><li>') + '</li>' : '<li>无未来执行时间</li>';
       }
