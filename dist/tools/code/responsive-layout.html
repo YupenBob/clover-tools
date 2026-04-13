@@ -84,7 +84,7 @@
         <p class="description">检测当前视口尺寸、所在响应式断点、设备类型，并显示所有 CSS 媒体查询的匹配状态</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>响应式布局检测</h3><p style="color:var(--text-secondary);font-size:0.9rem;">检测当前视口尺寸、所在响应式断点、设备类型，并显示所有 CSS 媒体查询的匹配状态</p></div>
+        <div class="tool-card"><h3>视口信息</h3><div id="viewportInfo" style="font-size:0.9rem;line-height:1.8;"></div></div><div class="tool-card" style="margin-top:1rem;"><h3>响应式断点</h3><div id="breakpointInfo" style="font-size:0.9rem;"></div></div><div class="tool-card" style="margin-top:1rem;"><h3>媒体查询状态</h3><div id="mqInfo" style="font-size:0.82rem;line-height:1.5;"></div></div>
       </div>
     </div>
   </main>
@@ -106,8 +106,24 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    // Static tool - no additional script needed
-
+    var BPS=[{n:'xs',a:0,b:575,d:'超小屏(手机)'},{n:'sm',a:576,b:767,d:'小屏(平板竖)'},{n:'md',a:768,b:991,d:'中屏(平板横)'},{n:'lg',a:992,b:1199,d:'大屏(笔记本)'},{n:'xl',a:1200,b:1399,d:'超大屏(桌面)'},{n:'xxl',a:1400,b:1/0,d:'最大屏'}];
+var MQS=['(max-width:575px)','(min-width:576px)','(max-width:767px)','(min-width:768px)','(max-width:991px)','(min-width:992px)','(max-width:1199px)','(min-width:1200px)','(max-width:1399px)','(min-width:1400px)','(orientation:portrait)','(orientation:landscape)','(prefers-color-scheme:dark)','(prefers-color-scheme:light)','(hover:hover)','(pointer:fine)','(pointer:coarse)','(min-resolution:2dppx)','(max-resolution:2dppx)'];
+function update() {
+  var w=window.innerWidth,h=window.innerHeight,dpr=window.devicePixelRatio||1;
+  document.getElementById('viewportInfo').innerHTML='<div style="display:grid;gap:0.4rem;"><div><b>视口宽度</b>: <span style="color:var(--primary);font-size:1.3rem;font-weight:700;">'+w+'px</span></div><div><b>视口高度</b>: '+h+'px</div><div><b>物理像素</b>: '+Math.round(w*dpr)+'px</div><div><b>像素比</b>: '+dpr+'x</div><div><b>DPI</b>: ~'+Math.round(96*dpr)+'</div></div>';
+  var bp=document.getElementById('breakpointInfo'),bh='<div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.8rem;">';
+  BPS.forEach(function(b){var on=w>=b.a&&w<=b.b;bh+='<span style="padding:0.25rem 0.7rem;border-radius:20px;font-size:0.75rem;'+(on?'background:var(--primary);color:#fff;font-weight:700;':'background:var(--bg-secondary);color:var(--text-secondary);')+'">'+b.n.toUpperCase()+'('+b.a+(b.b==1/0?'+':'-'+b.b)+'px)</span>';});
+  bh+='</div>';
+  var cur=BPS.filter(function(b){return w>=b.a&&w<=b.b;});
+  if(cur.length)bh+='<div><b>当前</b>: <span style="color:var(--primary);font-weight:700;">'+cur[0].n.toUpperCase()+'</span> - '+cur[0].d+'</div>';
+  bp.innerHTML=bh;
+  var mq=document.getElementById('mqInfo'),mh='<div style="display:grid;gap:0.2rem;">';
+  MQS.forEach(function(q){try{var m=window.matchMedia(q).matches;mh+='<div style="display:flex;align-items:center;gap:0.5rem;padding:0.2rem 0.4rem;border-radius:6px;'+(m?'background:#dcfce7;':'background:var(--bg-secondary);')+'"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;'+(m?'background:#22c55e;':'background:#ccc;')+'"></span><code style="font-size:0.76rem;flex:1;">'+escHtml(q)+'</code><span style="font-size:0.7rem;color:'+(m?'#16a34a':'var(--text-secondary)')+'">'+(m?'匹配':'不匹配')+'</span></div>';}catch(e){}});
+  mq.innerHTML=mh+'</div>';
+}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+update();
+window.addEventListener('resize',update);
   </script>
 </body>
 </html>

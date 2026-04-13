@@ -315,38 +315,127 @@ const TOOL_TYPE_REGISTRY = {
     }
   },
 
-  // type: "tool-static" → Static display tool (just the tool name/desc, no special UI)
+  // type: "tool-static" → Static display tool (supports action button with result display)
+  // tools.json: { type: "tool-static", actionLabel: "获取信息", actionFn: "function() { return navigator.userAgent; }", resultTarget: "result-div" }
   'tool-static': {
-    description: '静态展示工具',
+    description: '静态展示工具（支持按钮触发信息展示）',
     html: function(tool) {
-      return '<div class="tool-card"><h3>' + tool.name + '</h3><p style="color:var(--text-secondary);font-size:0.9rem;">' + tool.desc + '</p></div>';
+      var actionLabel = tool.actionLabel || null;
+      var resultTarget = tool.resultTarget || null;
+      var resultDiv = resultTarget ? '<div id="' + resultTarget + '" style="margin-top:1rem;padding:1rem;background:var(--bg-secondary);border-radius:8px;font-size:0.9rem;word-break:break-all;"></div>' : '';
+      var actionBtn = actionLabel ? '<div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="actionBtn">' + actionLabel + '</button></div>' : '';
+      return '<div class="tool-card"><h3>' + tool.name + '</h3><p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:0.5rem;">' + tool.desc + '</p>' + actionBtn + resultDiv + '</div>';
     },
     script: function(tool) {
-      return "// Static tool - no additional script needed\n";
+      var actionFn = tool.actionFn || 'function() { return "未定义 actionFn"; }';
+      var resultTarget = tool.resultTarget || null;
+      var actionFnEscaped = actionFn.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var resultPart = resultTarget
+        ? 'var result = actionFn(); document.getElementById("' + resultTarget + '").innerHTML = result;'
+        : '';
+      return 'var actionFn = \'' + actionFnEscaped + '\';\nvar actionBtn = document.getElementById("actionBtn");\nif (actionBtn) { actionBtn.onclick = function() { ' + resultPart + ' }; }\n';
     }
   },
 
-  // type: "tool-upload" → File upload tool with generic file processing UI
+  // type: "tool-upload" → File upload tool with configurable processing function
+  // tools.json: { type: "tool-upload", acceptTypes: "image/*", processFn: "function(file, callback) { ... }" }
   'tool-upload': {
-    description: '文件上传处理工具',
+    description: '文件上传处理工具（支持自定义处理函数）',
     html: function(tool) {
-      return '<div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:1rem;display:none;"></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>结果 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview"></div></div>';
+      var accept = tool.acceptTypes || '*';
+      var extraFields = '';
+      if (tool.extraFields && tool.extraFields.length) {
+        tool.extraFields.forEach(function(f) {
+          if (f.type === 'select') {
+            var opts = f.options.map(function(o) { return '<option value="' + o.value + '">' + o.label + '</option>'; }).join('');
+            extraFields += '<div class="input-field" style="margin-top:0.5rem;"><label style="font-size:0.85rem;color:var(--text-secondary);">' + f.label + '</label><select id="' + f.id + '" style="padding:0.4rem;width:100%;">' + opts + '</select></div>';
+          } else {
+            extraFields += '<div class="input-field" style="margin-top:0.5rem;"><label style="font-size:0.85rem;color:var(--text-secondary);">' + f.label + '</label><input type="' + (f.type || 'text') + '" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="padding:0.4rem;width:100%;"></div>';
+          }
+        });
+      }
+      return '<div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" accept="' + accept + '" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:0.5rem;display:none;"></div>' + extraFields + '<div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="processBtn">开始处理</button></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>结果 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview"></div></div>';
     },
     script: function(tool) {
-      return "var uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }\nfunction handleFile(file) {\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<div style=\"font-size:0.9rem;line-height:1.8;\"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';\n  outputBox.style.display = 'block';\n  outputPreview.innerHTML = '<p style=\"color:var(--text-secondary);font-size:0.9rem;\">文件已加载，processing...（请在 HTML 中实现具体处理逻辑）</p>';\n}\n";
+      var processFn = tool.processFn || "function(file, callback) { callback({ dataUrl: null, filename: file.name, preview: '<p style=\"color:var(--text-secondary);\">处理函数未定义</p>' }); }";
+      var processFnEscaped = processFn.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var extraFieldParts = (tool.extraFields || []).map(function(f) {
+        return '  extra["' + f.id + '"] = document.getElementById("' + f.id + '") ? document.getElementById("' + f.id + '").value : undefined;';
+      });
+      var extraFieldCode = extraFieldParts.length > 0 ? '\n  var extra = {};\n' + extraFieldParts.join('\n') + '\n' : '\n  var extra = {};\n';
+      return "var uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFileName = '';\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }\nfunction downloadDataUrl(dataUrl, filename) { var a = document.createElement('a'); a.href = dataUrl; a.download = filename; a.click(); }\nfunction handleFile(file) {\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<div style=\"font-size:0.9rem;line-height:1.8;\"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';\n  outputBox.style.display = 'block';\n  outputPreview.innerHTML = '<p style=\"color:var(--text-secondary);font-size:0.9rem;\">文件已加载，正在处理...</p>';\n" + extraFieldCode + "  var onDone = function(result) {\n    outputPreview.innerHTML = result.preview || '';\n    window._uploadResult = result;\n  };\n  try {\n    var processUserFn = " + processFnEscaped + ";\n    processUserFn(file, onDone);\n  } catch(e) {\n    outputPreview.innerHTML = '<p style=\"color:#ef4444;\">处理错误: ' + escHtml(e.message) + '</p>';\n  }\n}\ndocument.getElementById('processBtn').onclick = function() {\n  if (!fileInput.files || !fileInput.files[0]) { if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }\n  handleFile(fileInput.files[0]);\n};\ndocument.getElementById('downloadOutput').onclick = function() {\n  var r = window._uploadResult;\n  if (!r || !r.dataUrl) { if (window.CT && CT.showToast) CT.showToast('无可下载内容'); return; }\n  downloadDataUrl(r.dataUrl, r.filename || currentFileName);\n};\n";
     }
   },
 
-  // type: "tool-formatter" → Text input + format/transform buttons + output
+  // type: "tool-formatter" → Text input + configurable buttons + output
+  // tools.json: { type: "tool-formatter", buttons: [{"label": "编码", "action": "forward"}], processFn: "function(v, action) { return encodeURIComponent(v); }" }
   'tool-formatter': {
-    description: '文本格式化转换工具',
+    description: '文本格式化转换工具（支持自定义按钮和处理函数）',
     html: function(tool) {
-      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="输入内容..." style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="processBtn">处理</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>';
+      var inputPlaceholder = tool.inputPlaceholder || '输入内容...';
+      var buttons = tool.buttons || [{ label: '处理', action: 'process' }];
+      var btnHtml = buttons.map(function(b) {
+        var cls = b.action === 'process' || !b.action ? 'btn-primary' : 'btn-secondary';
+        return '<button class="btn ' + cls + '" id="btn_' + b.action + '">' + b.label + '</button>';
+      }).join('');
+      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="' + inputPlaceholder + '" style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;">' + btnHtml + '</div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>';
     },
     script: function(tool) {
-      return "var input = document.getElementById('input');\nvar output = document.getElementById('output');\nvar processBtn = document.getElementById('processBtn');\nprocessBtn.onclick = function() {\n  var val = input.value;\n  // Placeholder: implement specific transformation in HTML or override\n  output.value = val;\n};\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\ninput.addEventListener('input', function() { if (input.value.trim() === '') output.value = ''; });\n";
+      var processFn = tool.processFn || "function(v, action) { return v; }";
+      var processFnEscaped = processFn.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var buttons = tool.buttons || [{ action: 'process' }];
+      var btnHandlers = buttons.map(function(b) {
+        return 'document.getElementById("btn_' + b.action + '").onclick = function() { mode = "' + b.action + '"; run(); };';
+      }).join('\n');
+      return "var mode = 'process';\nvar input = document.getElementById('input');\nvar output = document.getElementById('output');\nvar processFn = " + processFnEscaped + ";\nfunction run() {\n  try {\n    var val = input.value;\n    if (!val) { output.value = ''; return; }\n    output.value = processFn(val, mode);\n  } catch(e) { output.value = '错误: ' + e.message; }\n}\n" + btnHandlers + "\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\ninput.addEventListener('input', function() { if (input.value.trim() === '') output.value = ''; });\n";
     }
-  }
+  },
+
+  // type: "tool-custom" → Completely custom tool via customHtml/customScript (highest priority over registry)
+  // tools.json: { type: "tool-custom", customHtml: "...", customScript: "..." }
+  // NOTE: customHtml and customScript are handled at the top of buildToolContentHtml/buildToolScript
+  // so this registry entry is just a placeholder/description for the type
+  'tool-custom': {
+    description: '完全自定义工具（通过 tools.json 的 customHtml/customScript 定义，无需改 generator.js）',
+    html: function(tool) {
+      return '<!-- tool-custom: HTML 由 tools.json 的 customHtml 提供 -->';
+    },
+    script: function(tool) {
+      return '// tool-custom: JS 由 tools.json 的 customScript 提供\n';
+    }
+  },
+
+  // type: "tool-generator" → optional input fields + generate button + output (enhanced)
+  // tools.json: { type: "generator", generatorFn: "function(inputs) { return result; }", outputLabel: "UUID", fields: [...] }
+  'tool-generator': {
+    description: '生成器工具（支持 outputLabel 自定义输出区标题）',
+    html: function(tool) {
+      var fields = '';
+      if (tool.fields && tool.fields.length) {
+        tool.fields.forEach(function(f) {
+          if (f.type === 'select') {
+            var opts = f.options.map(function(o) { return '<option value="' + o.value + '">' + o.label + '</option>'; }).join('');
+            fields += '<div class="input-field"><label>' + f.label + '</label><select id="' + f.id + '">' + opts + '</select></div>';
+          } else {
+            fields += '<div class="input-field"><label>' + f.label + '</label><input type="' + (f.type || 'text') + '" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+          }
+        });
+      }
+      var btnLabel = tool.btnLabel || '生成';
+      var outputLabel = tool.outputLabel || '结果';
+      return '<div class="tool-card">' + (fields ? '<h3>参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div>' : '') + '<div class="btn-row"><button class="btn btn-primary" id="genBtn">' + btnLabel + '</button></div></div><div class="output-box"><h3>' + outputLabel + ' <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+    },
+    script: function(tool) {
+      var genFn = tool.generateFn || 'function(inputs){ return "请实现生成逻辑"; }';
+      var genFnEscaped = genFn.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var fieldParts = (tool.fields || []).map(function(f) {
+        return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;\n  inputs["' + f.id + '_el"] = document.getElementById("' + f.id + '");';
+      });
+      var fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
+      var autoGenPart = tool.autoGenerate ? 'document.getElementById("genBtn").onclick();' : '';
+      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = genFn(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
+    }
+  },
 };
 
 // Get tool config from tools.json by path
@@ -364,6 +453,10 @@ function getToolConfig(toolPath) {
 function stripExt(p) { return p.replace(/\.html$/, ''); }
 
 function buildToolScript(tool) {
+  // HIGHEST PRIORITY: customScript — complete JS customization, no template logic
+  if (tool.customScript) {
+    return tool.customScript.replace(/<\/script>/gi, '<\\/script>');
+  }
   const key = stripExt(tool.path);
   // NEW: Check registry first for auto-generated tools
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
@@ -2141,6 +2234,10 @@ function buildToolScript(tool) {
 
 // ============ Tool content HTML builders ============
 function buildToolContentHtml(tool) {
+  // HIGHEST PRIORITY: customHtml — complete HTML customization, no template logic
+  if (tool.customHtml) {
+    return tool.customHtml;
+  }
   const key = stripExt(tool.path);
   // NEW: Check registry first for auto-generated tools
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
