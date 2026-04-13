@@ -3447,8 +3447,13 @@ function generate() {
 
   // Generate each tool page
   let generated = 0;
+  const generatedPaths = new Set(); // Deduplicate: keep first occurrence (skip duplicates)
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
+      if (generatedPaths.has(tool.path)) {
+        return; // Skip duplicate - already generated
+      }
+      generatedPaths.add(tool.path);
       const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/script>');
       if (!contentHtml) {
         console.log(`  ️  No template for: ${tool.path}`);
