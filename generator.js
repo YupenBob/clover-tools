@@ -228,7 +228,7 @@ const TOOL_TYPE_REGISTRY = {
       });
       const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
       const autoGenPart = tool.autoGenerate ? 'document.getElementById("genBtn").onclick();' : '';
-      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = genFn(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
+      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var genFnObj = new Function(\'return \' + genFn)();\n  var result = genFnObj(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
     }
   },
 
@@ -433,7 +433,7 @@ const TOOL_TYPE_REGISTRY = {
       });
       var fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
       var autoGenPart = tool.autoGenerate ? 'document.getElementById("genBtn").onclick();' : '';
-      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = genFn(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
+      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var genFnObj = new Function(\'return \' + genFn)();\n  var result = genFnObj(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
     }
   },
 };
