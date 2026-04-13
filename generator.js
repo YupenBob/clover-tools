@@ -995,7 +995,7 @@ function buildToolScript(tool) {
         html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
 
         // Bold & Italic
         html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
@@ -2531,8 +2531,8 @@ function buildToolContentHtml(tool) {
       </div>
       <style>
         .md-preview { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; }
-        .md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4, .md-preview h5, .md-preview h6 { margin: 1em 0 0.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
-        .md-preview h1 { font-size: 1.6rem; } .md-preview h2 { font-size: 1.4rem; } .md-preview h3 { font-size: 1.2rem; }
+        .md-preview h2, .md-preview h3, .md-preview h4, .md-preview h5, .md-preview h6 { margin: 1em 0 0.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+        .md-preview h2 { font-size: 1.6rem; } .md-preview h3 { font-size: 1.4rem; } .md-preview h4 { font-size: 1.2rem; }
         .md-preview p { margin: 0.8em 0; }
         .md-preview ul, .md-preview ol { padding-left: 1.5em; margin: 0.8em 0; }
         .md-preview li { margin: 0.3em 0; }
@@ -3232,7 +3232,7 @@ function buildToolContentHtml(tool) {
           <div style="color:var(--text-secondary);font-size:0.75rem;margin-top:0.3rem;opacity:0.6;">支持 JPG、PNG、GIF、WebP</div>
         </div>
         <div id="imagePreviewContainer" style="display:none;margin-top:1rem;">
-          <img id="previewImg" style="max-width:100%;max-height:300px;border-radius:8px;display:block;margin:0 auto;">
+          <img id="previewImg" alt="图片预览" style="max-width:100%;max-height:300px;border-radius:8px;display:block;margin:0 auto;">
         </div>
         <div class="btn-row" style="margin-top:1rem;">
           <button class="btn btn-primary" id="splitBtn">️ 切割为九宫格</button>
@@ -3436,6 +3436,15 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
+  // Build a map of tool name → list of categories (for disambiguating duplicate titles)
+  const nameCategoryMap = {};
+  toolsConfig.forEach(cat => {
+    cat.tools.forEach(tool => {
+      if (!nameCategoryMap[tool.name]) nameCategoryMap[tool.name] = [];
+      nameCategoryMap[tool.name].push(cat.category);
+    });
+  });
+
   // Generate each tool page
   let generated = 0;
   toolsConfig.forEach(cat => {
@@ -3468,11 +3477,11 @@ function generate() {
         .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
         .replace(/\{\{SITE_FOOTER_WITH_SHARE\}\}/g, footerWithShare)
         .replace(/\{\{SHARE_BTN_SCRIPT\}\}/g, shareBtnScript)
-        // Meta tags
-        .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - 🍀 CloverTools')
+        // Meta tags (add category suffix for tools with duplicate names)
+        .replace(/\{\{PAGE_OG_TITLE\}\}/g, (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? tool.name + ' (' + cat.category + ') - 🍀 CloverTools' : tool.name + ' - 🍀 CloverTools'))
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
-        .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + '，无需注册，完全免费。' : tool.name + ' - 在线工具，无需注册，完全免费。'))
-        .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + '，在线工具，免费')))
+        .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + '，无需注册，完全免费。' : tool.name + ' - 在线工具，无需注册，完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
+        .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + '，在线工具，免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? '，' + cat.category : ''))
         .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
