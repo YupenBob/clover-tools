@@ -496,6 +496,39 @@
         "icon": "bi bi-code-slash",
         "customHtml": "<div class=\"tool-card\"><h3>阶乘计算</h3><div style=\"display:flex;gap:0.5rem;align-items:center;\"><input type=\"number\" id=\"numInput\" value=\"20\" placeholder=\"输入非负整数...\" style=\"flex:1;padding:0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;\"><span style=\"font-size:1.2rem;font-weight:700;color:var(--primary);\">!</span><button class=\"btn btn-primary\" id=\"calcBtn\">计算</button></div></div><div class=\"tool-card\" style=\"margin-top:1rem;\"><h3>计算结果 <button class=\"copy-btn\" id=\"copyResult\">复制</button></h3><div id=\"factorialResult\" style=\"font-family:monospace;font-size:0.82rem;line-height:1.8;word-break:break-all;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;min-height:60px;\"></div></div><div class=\"tool-card\" style=\"margin-top:1rem;\"><h3>结果位数</h3><div id=\"digitCount\" style=\"font-size:0.9rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;\"></div></div>",
         "customScript": "function bigFactorial(n){if(n<0)return null;if(n===0||n===1)return'1';var result='1';for(var i=2;i<=n;i++){var carry=0,t=result.length-1;result=result.split('').reverse();for(var j=0;j<=t;j++){var v=(parseInt(result[j])||0)*i+carry;result[j]=(v%10).toString();carry=Math.floor(v/10);}while(carry>0){result.push((carry%10).toString());carry=Math.floor(carry/10);}result.reverse();result=result.join('');}return result;}\ndocument.getElementById('calcBtn').onclick=function(){var n=parseInt(document.getElementById('numInput').value);if(isNaN(n)||n<0){if(window.CT&&CT.showToast)CT.showToast('请输入非负整数');return;}if(n>3000){if(window.CT&&CT.showToast)CT.showToast('数字过大，请输入 3000 以内');return;}var result=bigFactorial(n);document.getElementById('factorialResult').innerHTML='<div style=\"word-break:break-all;\"><b>'+n+'!</b> = <span style=\"color:var(--primary);font-weight:600;\">'+result+'</span></div>';document.getElementById('digitCount').innerHTML='结果共 <b style=\"color:var(--primary);\">'+result.length+'</b> 位数字';};\ndocument.getElementById('copyResult').onclick=function(){copyToClipboard(document.getElementById('factorialResult').innerText);if(window.CT&&CT.showToast)CT.showToast('已复制');};\ndocument.getElementById('calcBtn').click();"
+      },
+      {
+        "name": "UUID生成器",
+        "path": "other/uuid.html",
+        "desc": "生成符合 RFC 4122 标准的 UUID v4",
+        "keywords": "UUID生成器，UUID v4，随机UUID，全球唯一标识符，在线工具",
+        "type": "tool-generator",
+        "icon": "bi bi-braille",
+        "generateFn": "function(){return \"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\".replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c===\"x\"?r:(r&0x3|0x8)).toString(16);});}",
+        "btnLabel": "生成UUID"
+      },
+      {
+        "name": "Nano ID生成器",
+        "path": "other/nanoid.html",
+        "desc": "生成指定长度和字符集的 Nano ID",
+        "keywords": "Nano ID，NanoID，随机ID，自定义字符集ID，在线工具",
+        "type": "tool-generator",
+        "icon": "bi bi-braille",
+        "fields": [
+          {
+            "id": "length",
+            "label": "长度",
+            "type": "number",
+            "placeholder": "21"
+          },
+          {
+            "id": "alphabet",
+            "label": "字符集",
+            "placeholder": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+          }
+        ],
+        "generateFn": "function(i){var len=parseInt(i.length)||21;var alp=i.alphabet||\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\";var id=\"\";var bytes=crypto.getRandomValues(new Uint8Array(len));for(var j=0;j<len;j++)id+=alp[bytes[j]%alp.length];return id;}",
+        "btnLabel": "生成Nano ID"
       }
     ]
   },
