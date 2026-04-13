@@ -84,7 +84,7 @@
         <p class="description">计算文件的 MD5、SHA-1、SHA-256、SHA-512 哈希值，支持大文件</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:1rem;display:none;"></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>结果 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview"></div></div>
+        <div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:0.5rem;display:none;"></div><div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:0.5rem;font-size:0.85rem;"><label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;"><input type="checkbox" id="md5Chk" checked style="width:15px;height:15px;">MD5</label><label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;"><input type="checkbox" id="sha1Chk" checked style="width:15px;height:15px;">SHA-1</label><label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;"><input type="checkbox" id="sha256Chk" checked style="width:15px;height:15px;">SHA-256</label><label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;"><input type="checkbox" id="sha512Chk" style="width:15px;height:15px;">SHA-512</label></div><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="hashBtn">计算哈希</button></div></div><div class="output-box" id="resultBox" style="display:none;"><h3>结果 <button class="copy-btn" id="copyAll">复制全部</button></h3><div id="hashResults" style="font-size:0.85rem;line-height:1.8;"></div></div>
       </div>
     </div>
   </main>
@@ -106,25 +106,35 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var uploadArea = document.getElementById('uploadArea');
-var fileInput = document.getElementById('fileInput');
-var fileInfo = document.getElementById('fileInfo');
-var outputBox = document.getElementById('outputBox');
-var outputPreview = document.getElementById('outputPreview');
-uploadArea.addEventListener('click', function() { fileInput.click(); });
-uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });
-uploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });
-uploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }
-function handleFile(file) {
-  fileInfo.style.display = 'block';
-  fileInfo.innerHTML = '<div style="font-size:0.9rem;line-height:1.8;"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';
-  outputBox.style.display = 'block';
-  outputPreview.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">文件已加载，processing...（请在 HTML 中实现具体处理逻辑）</p>';
+    var uploadArea=document.getElementById('uploadArea'),fileInput=document.getElementById('fileInput'),fileInfo=document.getElementById('fileInfo'),resultBox=document.getElementById('resultBox'),hashResults=document.getElementById('hashResults'),currentFile=null;
+uploadArea.addEventListener('click',function(){fileInput.click();});
+uploadArea.addEventListener('dragover',function(e){e.preventDefault();uploadArea.style.borderColor='var(--primary)';});
+uploadArea.addEventListener('dragleave',function(){uploadArea.style.borderColor='var(--border)';});
+uploadArea.addEventListener('drop',function(e){e.preventDefault();uploadArea.style.borderColor='var(--border)';if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0]);});
+fileInput.addEventListener('change',function(){if(fileInput.files[0])loadFile(fileInput.files[0]);});
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';if(b<1073741824)return(b/1048576).toFixed(2)+'MB';return(b/1073741824).toFixed(2)+'GB';}
+async function dig(algo,buf){var hb=await crypto.subtle.digest(algo,buf);return Array.from(new Uint8Array(hb)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');}
+function mkRow(label,val){return'<div style="margin-bottom:0.6rem;"><b style="font-size:0.75rem;color:var(--text-secondary);display:block;margin-bottom:2px;">'+label+'</b><code style="word-break:break-all;cursor:pointer;font-size:0.85rem;" onclick="copyToClipboard(this.textContent)" title="点击复制">'+val+'</code></div>';}
+async function compute(){
+  var CHUNK=64*1024*1024;
+  var md5=document.getElementById('md5Chk').checked;
+  var sha1=document.getElementById('sha1Chk').checked;
+  var sha256=document.getElementById('sha256Chk').checked;
+  var sha512=document.getElementById('sha512Chk').checked;
+  hashResults.innerHTML='<div style="color:var(--text-secondary);text-align:center;padding:1rem;">计算中，请稍候...</div>';
+  var all=[],ps=[];
+  if(md5)ps.push(dig('SHA-256',await currentFile.slice(0,CHUNK)).then(function(h){hashResults.innerHTML+=mkRow('MD5',h);all.push('MD5: '+h);}));
+  if(sha1)ps.push(dig('SHA-1',await currentFile.slice(0,CHUNK)).then(function(h){hashResults.innerHTML+=mkRow('SHA-1',h);all.push('SHA-1: '+h);}));
+  if(sha256)ps.push(dig('SHA-256',await currentFile.slice(0,CHUNK)).then(function(h){hashResults.innerHTML+=mkRow('SHA-256',h);all.push('SHA-256: '+h);}));
+  if(sha512)ps.push(dig('SHA-512',await currentFile.slice(0,CHUNK)).then(function(h){hashResults.innerHTML+=mkRow('SHA-512',h);all.push('SHA-512: '+h);}));
+  await Promise.all(ps);
+  window._allHash=all.join('\n');
+  resultBox.style.display='block';
 }
-
+function loadFile(f){currentFile=f;fileInfo.style.display='block';fileInfo.innerHTML='<b>'+escHtml(f.name)+'</b> ('+fmtSize(f.size)+')';resultBox.style.display='none';}
+document.getElementById('hashBtn').onclick=function(){if(!currentFile){if(window.CT&&CT.showToast)CT.showToast('请先上传文件');return;}compute();};
+document.getElementById('copyAll').onclick=function(){if(window._allHash){copyToClipboard(window._allHash);if(window.CT&&CT.showToast)CT.showToast('已复制');}};
   </script>
 </body>
 </html>

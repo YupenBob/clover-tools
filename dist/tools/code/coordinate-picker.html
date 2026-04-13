@@ -84,7 +84,7 @@
         <p class="description">在画布上点击拾取坐标点，查看 clientX/Y、pageX/Y、screenX/Y 等多种坐标系统的值，支持屏幕坐标转换</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>拾取坐标/坐标转换</h3><p style="color:var(--text-secondary);font-size:0.9rem;">在画布上点击拾取坐标点，查看 clientX/Y、pageX/Y、screenX/Y 等多种坐标系统的值，支持屏幕坐标转换</p></div>
+        <div class="tool-card"><h3>坐标拾取</h3><p style="font-size:0.8rem;color:var(--text-secondary);margin:0.2rem 0 0.5rem;">在下方画布上点击或移动鼠标查看坐标：</p><div style="overflow:auto;border-radius:8px;border:1px solid var(--border);max-width:100%;"><canvas id="coordCanvas" style="display:block;max-width:100%;background:#1a1a2e;cursor:crosshair;"></canvas></div><div style="margin-top:0.5rem;display:grid;grid-template-columns:repeat(2,1fr);gap:0.5rem;"><div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;font-size:0.82rem;"><b style="color:var(--text-secondary);">clientX/Y</b><br><span id="clientCoord" style="font-family:monospace;">-</span></div><div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;font-size:0.82rem;"><b style="color:var(--text-secondary);">pageX/Y</b><br><span id="pageCoord" style="font-family:monospace;">-</span></div><div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;font-size:0.82rem;"><b style="color:var(--text-secondary);">screenX/Y</b><br><span id="screenCoord" style="font-family:monospace;">-</span></div><div style="background:var(--bg-secondary);padding:0.5rem;border-radius:8px;font-size:0.82rem;"><b style="color:var(--text-secondary);">offsetX/Y</b><br><span id="offsetCoord" style="font-family:monospace;">-</span></div></div><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="clearBtn">清空</button></div></div><div class="output-box"><h3>坐标记录 <button class="copy-btn" id="copyCoords">复制</button></h3><div id="coordLog" style="font-family:monospace;font-size:0.8rem;line-height:1.6;max-height:200px;overflow:auto;white-space:pre-wrap;word-break:break-all;"></div></div>
       </div>
     </div>
   </main>
@@ -106,8 +106,19 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    // Static tool - no additional script needed
-
+    var canvas=document.getElementById('coordCanvas');
+var ctx=canvas.getContext('2d');
+var points=[];
+var w,h;
+function resize(){w=Math.min(800,canvas.offsetWidth||800);h=200;canvas.width=w;canvas.height=h;drawBg();}
+function drawBg(){ctx.clearRect(0,0,w,h);ctx.fillStyle='#1a1a2e';ctx.fillRect(0,0,w,h);for(var x=0;x<w;x+=50){ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}for(var y=0;y<h;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}points.forEach(function(p){ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle=p.c;ctx.fill();ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='10px monospace';ctx.fillText(p.x+','+p.y,p.x+8,p.y-5);});}
+function updateCoords(e){var r=canvas.getBoundingClientRect();var ox=e.offsetX||(e.clientX-r.left);var oy=e.offsetY||(e.clientY-r.top);document.getElementById('clientCoord').textContent=e.clientX+', '+e.clientY;document.getElementById('pageCoord').textContent=e.pageX+', '+e.pageY;document.getElementById('screenCoord').textContent=e.screenX+', '+e.screenY;document.getElementById('offsetCoord').textContent=Math.round(ox)+', '+Math.round(oy);}
+canvas.addEventListener('mousemove',updateCoords);
+canvas.addEventListener('click',function(e){var r=canvas.getBoundingClientRect();var x=e.offsetX||(e.clientX-r.left);var y=e.offsetY||(e.clientY-r.top);var c='#'+(0x1000000*Math.random()|0).toString(16).slice(1);points.push({x:x,y:y,c:c});drawBg();var log=document.getElementById('coordLog');log.textContent=points.map(function(p){return'clientX='+p.x+', clientY='+p.y;}).join('\n');});
+document.getElementById('clearBtn').onclick=function(){points=[];drawBg();document.getElementById('coordLog').textContent='';};
+document.getElementById('copyCoords').onclick=function(){copyToClipboard(document.getElementById('coordLog').textContent);if(window.CT&&CT.showToast)CT.showToast('已复制');};
+window.addEventListener('resize',resize);
+resize();
   </script>
 </body>
 </html>

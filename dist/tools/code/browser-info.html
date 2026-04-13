@@ -84,7 +84,7 @@
         <p class="description">检测当前浏览器的详细信息，包括 User-Agent、CPU 核心数、内存、屏幕分辨率、GPU、时区等</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>获取浏览器信息</h3><p style="color:var(--text-secondary);font-size:0.9rem;">检测当前浏览器的详细信息，包括 User-Agent、CPU 核心数、内存、屏幕分辨率、GPU、时区等</p></div>
+        <div class="tool-card"><h3>浏览器信息</h3><div id="browserInfo" style="font-size:0.9rem;line-height:1.8;word-break:break-all;"></div><div class="btn-row" style="margin-top:1rem;"><button class="btn btn-primary" id="refreshBtn">刷新信息</button><button class="btn btn-secondary" id="copyBtn">复制全部</button></div></div><div class="tool-card" style="margin-top:1rem;"><h3>屏幕信息</h3><div id="screenInfo" style="font-size:0.9rem;line-height:1.8;"></div></div>
       </div>
     </div>
   </main>
@@ -106,8 +106,71 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    // Static tool - no additional script needed
-
+    function getBrowserInfo() {
+  var ua = navigator.userAgent;
+  var langs = navigator.languages ? navigator.languages.join(', ') : (navigator.language || '未知');
+  var plat = navigator.platform || '未知';
+  var cores = navigator.hardwareConcurrency || '未知';
+  var mem = navigator.deviceMemory ? navigator.deviceMemory + ' GB' : '不支持';
+  var gpu = '检测中...';
+  var canvas = document.createElement('canvas');
+  var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (gl && gl.getParameter) {
+    var di = gl.getExtension('WEBGL_debug_renderer_info');
+    gpu = di ? gl.getParameter(di.UNMASKED_RENDERER_WEBGL) : 'WebGL可用但信息受限';
+  }
+  var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  var connInfo = conn ? (conn.effectiveType || '未知') + ' / 下行:' + (conn.downlink || '?') + 'Mbps' : '不支持';
+  var dnt = navigator.doNotTrack === '1' ? '开启' : navigator.doNotTrack === '0' ? '关闭' : '未设置';
+  var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  var docLang = document.documentElement.lang || '未知';
+  var pdfViewer = navigator.pdfViewerEnabled !== undefined ? (navigator.pdfViewerEnabled ? '是' : '否') : '未知';
+  var bi = document.getElementById('browserInfo');
+  bi.innerHTML = '<div style="display:grid;gap:0.5rem;">' +
+    '<div><b>User-Agent</b>:<br><code style="font-size:0.75rem;word-break:break-all;background:var(--bg-secondary);padding:4px 8px;border-radius:6px;display:block;margin-top:4px;">' + escHtml(ua) + '</code></div>' +
+    '<div><b>语言</b>: ' + escHtml(langs) + '</div>' +
+    '<div><b>平台</b>: ' + escHtml(plat) + '</div>' +
+    '<div><b>CPU核心数</b>: ' + cores + '</div>' +
+    '<div><b>设备内存</b>: ' + escHtml(mem) + '</div>' +
+    '<div><b>GPU</b>: ' + escHtml(gpu) + '</div>' +
+    '<div><b>网络类型</b>: ' + escHtml(connInfo) + '</div>' +
+    '<div><b>时区</b>: ' + escHtml(tz) + '</div>' +
+    '<div><b>文档语言</b>: ' + escHtml(docLang) + '</div>' +
+    '<div><b>Cookie启用</b>: ' + (navigator.cookieEnabled ? '是' : '否') + '</div>' +
+    '<div><b>PDF查看器</b>: ' + pdfViewer + '</div>' +
+    '<div><b>DoNotTrack</b>: ' + escHtml(dnt) + '</div>' +
+    '<div id="batRow"><b>电池</b>: <span style="color:var(--text-secondary);">检测中...</span></div>' +
+    '</div>';
+  if (navigator.getBattery) {
+    navigator.getBattery().then(function(b) {
+      var bch = b.charging ? '充电中' : '未充电';
+      var lvl = Math.round(b.level * 100) + '%';
+      var tStr = b.charging ? (b.chargingTime === Infinity ? '已充满' : '充满:' + Math.round(b.chargingTime/60) + 'min') : (b.dischargingTime === Infinity ? '计算中' : '剩余:' + Math.round(b.dischargingTime/3600) + 'h');
+      var el = document.getElementById('batRow');
+      if (el) el.innerHTML = '<b>电池</b>: ' + bch + ' ' + lvl + ' (' + tStr + ')';
+    }).catch(function() {});
+  }
+  var sw = screen.width, sh = screen.height;
+  var aw = window.innerWidth, ah = window.innerHeight;
+  var dpr = window.devicePixelRatio || 1;
+  var si = document.getElementById('screenInfo');
+  si.innerHTML = '<div style="display:grid;gap:0.5rem;">' +
+    '<div><b>屏幕分辨率</b>: ' + sw + ' x ' + sh + ' px</div>' +
+    '<div><b>视口大小</b>: ' + aw + ' x ' + ah + ' px</div>' +
+    '<div><b>物理像素宽度</b>: ' + Math.round(aw * dpr) + ' px</div>' +
+    '<div><b>设备像素比</b>: ' + dpr + 'x</div>' +
+    '<div><b>颜色深度</b>: ' + (screen.colorDepth || '未知') + ' bit</div>' +
+    '<div><b>可用窗口</b>: ' + screen.availWidth + ' x ' + screen.availHeight + ' px</div>' +
+    '<div><b>缩放比例</b>: ' + Math.round(dpr * 100) + '%</div>' +
+    '</div>';
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+document.getElementById('refreshBtn').onclick = getBrowserInfo;
+document.getElementById('copyBtn').onclick = function() {
+  copyToClipboard('User-Agent: ' + navigator.userAgent + '\n语言: ' + (navigator.languages ? navigator.languages.join(',') : navigator.language) + '\n平台: ' + (navigator.platform||'未知') + '\n屏幕: ' + screen.width + 'x' + screen.height + '\n视口: ' + window.innerWidth + 'x' + window.innerHeight + '\n时区: ' + Intl.DateTimeFormat().resolvedOptions().timeZone);
+  if (window.CT && CT.showToast) CT.showToast('已复制');
+};
+getBrowserInfo();
   </script>
 </body>
 </html>

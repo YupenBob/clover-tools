@@ -84,7 +84,7 @@
         <p class="description">上传文件夹或文件列表，生成可视化的目录树结构图</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:1rem;display:none;"></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>结果 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview"></div></div>
+        <div class="tool-card"><h3>输入目录结构</h3><p style="font-size:0.8rem;color:var(--text-secondary);margin:0.2rem 0 0.5rem;">每行一个路径，用/分隔层级（末尾/表示文件夹）：</p><textarea id="inputPaths" placeholder="my-project/&#10;  src/&#10;    components/&#10;      Button.js&#10;  public/&#10;  package.json" style="width:100%;min-height:150px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="genBtn">生成目录树</button><button class="btn btn-secondary" id="sampleBtn">加载示例</button></div></div><div class="tool-card" style="margin-top:1rem;"><h3>目录树预览</h3><div id="treePreview" style="font-family:monospace;font-size:0.85rem;line-height:1.7;white-space:pre;overflow:auto;max-height:450px;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;"></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyTree">复制Tree</button> <button class="btn btn-secondary" id="copyJson" style="padding:0.2rem 0.5rem;font-size:0.75rem;">JSON</button></h3><textarea id="treeOutput" readonly style="width:100%;min-height:80px;padding:0.5rem;font-size:0.82rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>
       </div>
     </div>
   </main>
@@ -106,25 +106,14 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var uploadArea = document.getElementById('uploadArea');
-var fileInput = document.getElementById('fileInput');
-var fileInfo = document.getElementById('fileInfo');
-var outputBox = document.getElementById('outputBox');
-var outputPreview = document.getElementById('outputPreview');
-uploadArea.addEventListener('click', function() { fileInput.click(); });
-uploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });
-uploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });
-uploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }
-function handleFile(file) {
-  fileInfo.style.display = 'block';
-  fileInfo.innerHTML = '<div style="font-size:0.9rem;line-height:1.8;"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';
-  outputBox.style.display = 'block';
-  outputPreview.innerHTML = '<p style="color:var(--text-secondary);font-size:0.9rem;">文件已加载，processing...（请在 HTML 中实现具体处理逻辑）</p>';
-}
-
+    var SAMPLE='my-project/\n  src/\n    components/\n      Button.js\n      Modal.jsx\n      Header.jsx\n    pages/\n      Home.jsx\n      About.jsx\n    utils/\n      helpers.js\n      api.js\n    App.jsx\n    index.js\n  public/\n    index.html\n    favicon.ico\n  package.json\n  README.md\n  .gitignore';
+document.getElementById('sampleBtn').onclick=function(){document.getElementById('inputPaths').value=SAMPLE;};
+function buildTree(lines){var root={name:'',children:{}};lines.forEach(function(line){var parts=line.replace(/\\/g,'/').replace(/\/$/,'').split('/').filter(function(p){return p.trim();});var node=root;parts.forEach(function(part){if(!node.children[part])node.children[part]={name:part,children:{}};node=node.children[part];});});return root;}
+function renderLines(node,prefix,isLast){var out=[],keys=Object.keys(node.children).sort();keys.forEach(function(key,i){var last=i===keys.length-1,child=node.children[key],hasCh=Object.keys(child.children).length>0;out.push(prefix+(last?'\u2514\u2500\u2500 ':'\u251c\u2500\u2500 ')+key+(hasCh?'/':''));if(hasCh)out=out.concat(renderLines(child,prefix+(last?'    ':'\u2502   '),last));});return out;}
+function toJson(node){var keys=Object.keys(node.children).sort();return keys.map(function(k){var c=node.children[k];if(Object.keys(c.children).length===0)return{name:k,type:'file'};return{name:k,type:'folder',children:toJson(c)};});}
+document.getElementById('genBtn').onclick=function(){var raw=document.getElementById('inputPaths').value;if(!raw.trim()){if(window.CT&&CT.showToast)CT.showToast('请输入目录结构');return;}var lines=raw.split('\n').map(function(l){return l.replace(/^\s+/,'');}).filter(function(l){return l.trim();});var tree=buildTree(lines),lines2=renderLines(tree,'',true),treeStr=lines2.join('\n');document.getElementById('treePreview').textContent=treeStr||'(空)';document.getElementById('treeOutput').value=treeStr;window._treeJson=JSON.stringify(toJson(tree),null,2);};
+document.getElementById('copyTree').onclick=function(){copyToClipboard(document.getElementById('treeOutput').value);if(window.CT&&CT.showToast)CT.showToast('已复制');};
+document.getElementById('copyJson').onclick=function(){if(!window._treeJson){if(window.CT&&CT.showToast)CT.showToast('先生成目录树');return;}copyToClipboard(window._treeJson);if(window.CT&&CT.showToast)CT.showToast('JSON已复制');};
   </script>
 </body>
 </html>

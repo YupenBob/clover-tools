@@ -84,7 +84,7 @@
         <p class="description">在 JSON 对象和 URL 查询参数字符串之间相互转换</p>
       </div>
       <div class="tool-layout ">
-        <div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="输入内容..." style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="processBtn">处理</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>
+        <div class="tool-card"><h3>输入</h3><textarea id="input" placeholder='{"name": "测试", "age": 18}&#10;或&#10;name=%E6%B5%8B%E8%AF%95&age=18' style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="jsonToUrl">JSON → URL参数</button><button class="btn btn-secondary" id="urlToJson">URL参数 → JSON</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>
       </div>
     </div>
   </main>
@@ -106,17 +106,11 @@
     // Share: copy current URL to clipboard
     document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
 
-    var input = document.getElementById('input');
-var output = document.getElementById('output');
-var processBtn = document.getElementById('processBtn');
-processBtn.onclick = function() {
-  var val = input.value;
-  // Placeholder: implement specific transformation in HTML or override
-  output.value = val;
-};
-document.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };
-input.addEventListener('input', function() { if (input.value.trim() === '') output.value = ''; });
-
+    function jsonToUrlParams(jsonStr){try{var obj=JSON.parse(jsonStr);var params=[];for(var k in obj)params.push(encodeURIComponent(k)+'='+encodeURIComponent(String(obj[k])));return params.join('&');}catch(e){return'JSON解析错误: '+e.message;}}
+function urlParamsToJson(paramsStr){try{var obj={};paramsStr.split('&').forEach(function(pair){var idx=pair.indexOf('=');if(idx<0){obj[decodeURIComponent(pair)]='';return;}var k=decodeURIComponent(pair.slice(0,idx));var v=decodeURIComponent(pair.slice(idx+1));obj[k]=v;});return JSON.stringify(obj,null,2);}catch(e){return'URL参数解析错误: '+e.message;}}
+document.getElementById('jsonToUrl').onclick=function(){var v=document.getElementById('input').value.trim();if(!v){document.getElementById('output').value='';return;}document.getElementById('output').value=jsonToUrlParams(v);};
+document.getElementById('urlToJson').onclick=function(){var v=document.getElementById('input').value.trim();if(!v){document.getElementById('output').value='';return;}document.getElementById('output').value=urlParamsToJson(v);};
+document.getElementById('copyOutput').onclick=function(){copyToClipboard(document.getElementById('output').value);if(window.CT&&CT.showToast)CT.showToast('已复制');};
   </script>
 </body>
 </html>
