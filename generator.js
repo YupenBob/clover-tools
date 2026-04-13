@@ -26,6 +26,25 @@ const headerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/header.h
 const footerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/footer.html'), 'utf8').trim();
 const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-btn.html'), 'utf8').trim();
 
+
+const PATH_TO_TYPE_FALLBACK = {
+    'code/css': 'formatter',
+    'code/html': 'formatter',
+    'code/javascript': 'formatter',
+    'encrypt/base64': 'encode-decode',
+    'encrypt/hex': 'converter',
+    'encrypt/url': 'encode-decode',
+    'json/formatter': 'formatter',
+    'json/xml': 'converter',
+    'json/yaml': 'converter',
+    'other/hex-convert': 'converter',
+    'other/nanoid': 'generator',
+    'other/password': 'generator',
+    'other/uuid': 'generator',
+    'text/jianfan': 'converter'
+};
+
+
 // ============ Build categories HTML for homepage ============
 function buildCategoriesHtml() {
   let html = '';
@@ -467,6 +486,13 @@ function buildToolScript(tool) {
     // NO quote escaping needed - script tag content doesn't use HTML attribute rules
     const escaped = raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
     return escaped;
+  }
+  // Try type inference via PATH_TO_TYPE_FALLBACK
+  const effectiveType = PATH_TO_TYPE_FALLBACK[stripExt(tool.path)];
+  if (effectiveType && TOOL_TYPE_REGISTRY[effectiveType]) {
+    const raw2 = TOOL_TYPE_REGISTRY[effectiveType].script(tool);
+    const escaped2 = raw2.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
+    return escaped2;
   }
   const scripts = {
     'json/formatter': `
