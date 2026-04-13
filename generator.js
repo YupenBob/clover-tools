@@ -313,6 +313,39 @@ const TOOL_TYPE_REGISTRY = {
     script: function(tool) {
       return "// Simple JSONPath implementation\nfunction jp(query, obj) {\n  var result = [];\n  query = query.trim();\n  if (!query.startsWith('$')) query = '$' + query;\n  var parts = query.split(/\\.(?![^\\[]*\\])/);\n  function walk(node, path) {\n    if (path.length === 0) { result.push(node); return; }\n    var seg = path[0];\n    var rest = path.slice(1);\n    if (seg === '$') { walk(node, rest); return; }\n    if (seg === '*') {\n      if (Array.isArray(node)) node.forEach(function(item) { walk(item, rest); });\n      else if (typeof node === 'object' && node !== null) Object.values(node).forEach(function(v) { walk(v, rest); });\n      return;\n    }\n    var bracketMatch = seg.match(/^([^\\[]+)\\[(-?\\d+|\\*|'[^\\']+')\\]$/);\n    if (bracketMatch) {\n      var key = bracketMatch[1] || '';\n      var idx = bracketMatch[2];\n      var target = key ? (Array.isArray(node) ? node : (typeof node === 'object' && node !== null ? node[key] : undefined)) : node;\n      if (target === undefined || target === null) return;\n      if (idx === '*') {\n        if (Array.isArray(target)) target.forEach(function(item) { walk(item, rest); });\n        else if (typeof target === 'object' && target !== null) Object.values(target).forEach(function(v) { walk(v, rest); });\n      } else if (idx.startsWith(\"'\")) {\n        var k = idx.slice(1, -1);\n        if (typeof target === 'object' && target !== null && k in target) walk(target[k], rest);\n      } else {\n        var i = parseInt(idx, 10);\n        if (Array.isArray(target) && i < target.length) walk(target[i < 0 ? target.length + i : i], rest);\n      }\n      return;\n    }\n    if (typeof node === 'object' && node !== null && seg in node) { walk(node[seg], rest); return; }\n    if (Array.isArray(node)) {\n      var found = false;\n      for (var i = 0; i < node.length; i++) {\n        if (typeof node[i] === 'object' && node[i] !== null && seg in node[i]) { walk(node[i][seg], rest); found = true; }\n      }\n      if (!found && !isNaN(parseInt(seg))) walk(node[parseInt(seg)], rest);\n    }\n  }\n  walk(obj, parts);\n  return result;\n}\nvar jsonInput = document.getElementById('jsonInput');\nvar jpExpr = document.getElementById('jpExpr');\nvar output = document.getElementById('output');\nvar execBtn = document.getElementById('execBtn');\nfunction run() {\n  try {\n    var doc = JSON.parse(jsonInput.value.trim());\n    var query = jpExpr.value.trim() || '$.';\n    var res = jp(query, doc);\n    output.value = JSON.stringify(res.length === 1 && res.length !== doc.length ? res[0] : res, null, 2);\n  } catch(e) { output.value = '错误: ' + e.message; }\n}\nexecBtn.onclick = run;\njpExpr.addEventListener('keydown', function(e) { if (e.key === 'Enter') run(); });\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\n";
     }
+  },
+
+  // type: "tool-static" → Static display tool (just the tool name/desc, no special UI)
+  'tool-static': {
+    description: '静态展示工具',
+    html: function(tool) {
+      return '<div class="tool-card"><h3>' + tool.name + '</h3><p style="color:var(--text-secondary);font-size:0.9rem;">' + tool.desc + '</p></div>';
+    },
+    script: function(tool) {
+      return "// Static tool - no additional script needed\n";
+    }
+  },
+
+  // type: "tool-upload" → File upload tool with generic file processing UI
+  'tool-upload': {
+    description: '文件上传处理工具',
+    html: function(tool) {
+      return '<div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" style="display:none;"><div class="upload-hint">点击或拖拽上传文件</div></div><div id="fileInfo" style="margin-top:1rem;display:none;"></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>结果 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview"></div></div>';
+    },
+    script: function(tool) {
+      return "var uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }\nfunction handleFile(file) {\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<div style=\"font-size:0.9rem;line-height:1.8;\"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';\n  outputBox.style.display = 'block';\n  outputPreview.innerHTML = '<p style=\"color:var(--text-secondary);font-size:0.9rem;\">文件已加载，processing...（请在 HTML 中实现具体处理逻辑）</p>';\n}\n";
+    }
+  },
+
+  // type: "tool-formatter" → Text input + format/transform buttons + output
+  'tool-formatter': {
+    description: '文本格式化转换工具',
+    html: function(tool) {
+      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="输入内容..." style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="btn-row" style="margin-top:0.5rem;"><button class="btn btn-primary" id="processBtn">处理</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>';
+    },
+    script: function(tool) {
+      return "var input = document.getElementById('input');\nvar output = document.getElementById('output');\nvar processBtn = document.getElementById('processBtn');\nprocessBtn.onclick = function() {\n  var val = input.value;\n  // Placeholder: implement specific transformation in HTML or override\n  output.value = val;\n};\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\ninput.addEventListener('input', function() { if (input.value.trim() === '') output.value = ''; });\n";
+    }
   }
 };
 
