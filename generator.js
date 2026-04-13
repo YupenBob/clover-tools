@@ -161,7 +161,7 @@ const TOOL_TYPE_REGISTRY = {
         return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;\n  inputs["' + f.id + '_el"] = document.getElementById("' + f.id + '");';
       });
       const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
-      return 'var calcFn = \'' + fnEscaped + '\';\n' + initPart + '\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var result = calcFn(inputs);\n  document.getElementById("result").innerHTML = result;\n};\n' + autoCalcPart;
+      return 'var calcFn = \'' + fnEscaped + '\';\n' + initPart + '\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var calcFnObj = new Function(\'return \' + calcFn)();\n  var result = calcFnObj(inputs);\n  document.getElementById("result").innerHTML = result;\n};\n' + autoCalcPart;
     }
   },
 
@@ -177,7 +177,7 @@ const TOOL_TYPE_REGISTRY = {
     script: function(tool) {
       const conv = tool.convertFn || 'function(v,from,to){return v;}';
       const convEscaped = conv.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-      return "var convertFn = '" + convEscaped + "';\ndocument.getElementById(\"convertBtn\").onclick = function() {\n  var v = document.getElementById(\"input\").value;\n  var from = document.getElementById(\"fromBase\").value;\n  var to = document.getElementById(\"toBase\").value;\n  try { document.getElementById(\"output\").value = convertFn(v, from, to); }\n  catch(e) { document.getElementById(\"output\").value = \"错误: \" + e.message; }\n};\ndocument.getElementById(\"copyOutput\").onclick = function() { copyToClipboard(document.getElementById(\"output\").value); };\ndocument.getElementById(\"input\").addEventListener(\"input\", function() {\n  if (document.getElementById(\"autoConvert\") && document.getElementById(\"autoConvert\").checked) document.getElementById(\"convertBtn\").click();\n});";
+      return "var convertFn = '" + convEscaped + "';\ndocument.getElementById(\"convertBtn\").onclick = function() {\n  var v = document.getElementById(\"input\").value;\n  var from = document.getElementById(\"fromBase\").value;\n  var to = document.getElementById(\"toBase\").value;\n  var convertFnObj = new Function('return ' + convertFn)();\n  try { document.getElementById(\"output\").value = convertFnObj(v, from, to); }\n  catch(e) { document.getElementById(\"output\").value = \"错误: \" + e.message; }\n};\ndocument.getElementById(\"copyOutput\").onclick = function() { copyToClipboard(document.getElementById(\"output\").value); };\ndocument.getElementById(\"input\").addEventListener(\"input\", function() {\n  if (document.getElementById(\"autoConvert\") && document.getElementById(\"autoConvert\").checked) document.getElementById(\"convertBtn\").click();\n});";
     }
   },
 
