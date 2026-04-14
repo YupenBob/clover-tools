@@ -175,20 +175,6 @@
         "icon": "bi bi-code-slash"
       },
       {
-        "name": "CSS 格式化",
-        "path": "code/css.html",
-        "desc": "优化 CSS 样式表",
-        "keywords": "CSS 格式化，CSS 美化，CSS 压缩，CSS 代码格式化，样式表优化，在线工具",
-        "icon": "bi bi-code-slash"
-      },
-      {
-        "name": "JS 格式化",
-        "path": "code/javascript.html",
-        "desc": "美化 JavaScript 代码",
-        "keywords": "JS 格式化，JavaScript 美化，JS 代码格式化，JavaScript 格式化，在线工具",
-        "icon": "bi bi-code-slash"
-      },
-      {
         "name": "Markdown 转 HTML",
         "path": "code/markdown.html",
         "desc": "Markdown 实时渲染为 HTML",
@@ -529,6 +515,194 @@
         ],
         "generateFn": "function(i){var len=parseInt(i.length)||21;var alp=i.alphabet||\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\";var id=\"\";var bytes=crypto.getRandomValues(new Uint8Array(len));for(var j=0;j<len;j++)id+=alp[bytes[j]%alp.length];return id;}",
         "btnLabel": "生成Nano ID"
+      },
+      {
+        "name": "JavaScript格式化",
+        "path": "code/javascript.html",
+        "desc": "对 JavaScript 代码进行格式化和压缩",
+        "keywords": "JS格式化,JavaScript格式化,JS压缩,代码格式化",
+        "type": "formatter",
+        "inputPlaceholder": "输入 JavaScript 代码...",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "CSS压缩格式化",
+        "path": "code/css.html",
+        "desc": "对 CSS 代码进行格式化和压缩",
+        "keywords": "CSS格式化,CSS压缩,样式格式化",
+        "type": "formatter",
+        "inputPlaceholder": "输入 CSS 代码...",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "字节转换",
+        "path": "code/bytes.html",
+        "desc": "字节(B)、KB、MB、GB 之间相互转换",
+        "keywords": "字节转换,字节转KB,字节转MB,文件大小转换",
+        "type": "converter",
+        "options": [
+          {
+            "value": "b2kb",
+            "label": "字节→KB"
+          },
+          {
+            "value": "kb2b",
+            "label": "KB→字节"
+          },
+          {
+            "value": "b2mb",
+            "label": "字节→MB"
+          },
+          {
+            "value": "mb2b",
+            "label": "MB→字节"
+          },
+          {
+            "value": "b2gb",
+            "label": "字节→GB"
+          },
+          {
+            "value": "gb2b",
+            "label": "GB→字节"
+          }
+        ],
+        "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=0;if(from===\"b2kb\")r=n/1024;else if(from===\"kb2b\")r=n*1024;else if(from===\"b2mb\")r=n/1048576;else if(from===\"mb2b\")r=n*1048576;else if(from===\"b2gb\")r=n/1073741824;else if(from===\"gb2b\")r=n*1073741824;return r.toFixed(6).replace(/\\.?0+$/,\"\");}",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "罗马数字转换",
+        "path": "code/roman.html",
+        "desc": "阿拉伯数字与罗马数字相互转换",
+        "keywords": "罗马数字,数字转换,罗马数字对照",
+        "type": "converter",
+        "options": [
+          {
+            "value": "int2roman",
+            "label": "数字→罗马数字"
+          },
+          {
+            "value": "roman2int",
+            "label": "罗马数字→数字"
+          }
+        ],
+        "convertFn": "function(v,from,to){if(from===\"int2roman\"){var n=parseInt(v)||0;var r=\"\";var d=[[1000,\"M\"],[900,\"CM\"],[500,\"D\"],[400,\"CD\"],[100,\"C\"],[90,\"XC\"],[50,\"L\"],[40,\"XL\"],[10,\"X\"],[9,\"IX\"],[5,\"V\"],[4,\"IV\"],[1,\"I\"]];for(var i=0;i<d.length;i++){while(n>=d[i][0]){r+=d[i][1];n-=d[i][0];}}return r;}else{var s=v.toUpperCase();var d={\"M\":1000,\"D\":500,\"C\":100,\"L\":50,\"X\":10,\"V\":5,\"I\":1};var r=0;for(var i=0;i<s.length;i++){var v1=d[s[i]];var v2=d[s[i+1]]||0;r+=v1<v2?-v1:v1;}return r;}}}",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "CSS单位互转",
+        "path": "code/css-unit.html",
+        "desc": "PX、REM、EM 等 CSS 长度单位相互转换（基于 16px 基准）",
+        "keywords": "CSS单位,PX转REM,REM转PX,EM转换",
+        "type": "converter",
+        "options": [
+          {
+            "value": "px2rem",
+            "label": "PX→REM"
+          },
+          {
+            "value": "rem2px",
+            "label": "REM→PX"
+          },
+          {
+            "value": "px2em",
+            "label": "PX→EM"
+          },
+          {
+            "value": "em2px",
+            "label": "EM→PX"
+          }
+        ],
+        "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=n;if(from===\"px2rem\")r=n/16;else if(from===\"rem2px\")r=n*16;else if(from===\"px2em\")r=n/16;else if(from===\"em2px\")r=n*16;return r.toFixed(4);}",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "随机IP地址生成器",
+        "path": "code/random-ip.html",
+        "desc": "批量生成随机 IP 地址，支持 IPv4 和 IPv6",
+        "keywords": "随机IP,IP地址生成器,IPv4生成,IPv6生成",
+        "type": "generator",
+        "fields": [
+          {
+            "id": "count",
+            "label": "生成数量",
+            "type": "number",
+            "placeholder": "10"
+          },
+          {
+            "id": "type",
+            "label": "类型",
+            "type": "select",
+            "options": [
+              {
+                "value": "ipv4",
+                "label": "IPv4"
+              },
+              {
+                "value": "ipv6",
+                "label": "IPv6"
+              }
+            ]
+          }
+        ],
+        "btnLabel": "生成",
+        "generateFn": "function(inputs){var count=parseInt(inputs.count)||10;var type=inputs.type||\"ipv4\";var r=[];if(type===\"ipv4\"){for(var i=0;i<count;i++){r.push(Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256));}}else{for(var i=0;i<count;i++){var h=[];for(var j=0;j<8;j++)h.push(Math.floor(Math.random()*65536).toString(16).padStart(4,\"0\"));r.push(h.join(\":\"));}}return r.join(\"\\n\");}",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "随机MAC地址生成器",
+        "path": "code/random-mac.html",
+        "desc": "批量生成随机的 MAC 地址",
+        "keywords": "MAC地址,MAC生成器,随机MAC",
+        "type": "generator",
+        "fields": [
+          {
+            "id": "count",
+            "label": "生成数量",
+            "type": "number",
+            "placeholder": "10"
+          }
+        ],
+        "btnLabel": "生成",
+        "generateFn": "function(inputs){var count=parseInt(inputs.count)||10;var r=[];for(var i=0;i<count;i++){var b=[];for(var j=0;j<6;j++)b.push(Math.floor(Math.random()*256).toString(16).padStart(2,\"0\"));r.push(b.join(\":\"));}return r.join(\"\\n\");}",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "Crontab执行时间计算",
+        "path": "code/cron.html",
+        "desc": "解析 Cron 表达式，计算最近几次的执行时间",
+        "keywords": "Cron,crontab,定时任务,执行时间",
+        "type": "calculate",
+        "fields": [
+          {
+            "id": "minute",
+            "label": "分钟(0-59)",
+            "placeholder": "*"
+          },
+          {
+            "id": "hour",
+            "label": "小时(0-23)",
+            "placeholder": "*"
+          },
+          {
+            "id": "day",
+            "label": "日期(1-31)",
+            "placeholder": "*"
+          },
+          {
+            "id": "month",
+            "label": "月份(1-12)",
+            "placeholder": "*"
+          },
+          {
+            "id": "weekday",
+            "label": "星期(0-6)",
+            "placeholder": "*"
+          }
+        ],
+        "btnLabel": "计算",
+        "calcFn": "function(inputs){var m=inputs.minute||\"*\",h=inputs.hour||\"*\",d=inputs.day||\"*\",mon=inputs.month||\"*\",w=inputs.weekday||\"*\";var now=new Date();var r=\"Cron: \"+m+\" \"+h+\" \"+d+\" \"+mon+\" \"+w+\"<br><br><b>最近5次执行时间：</b><br>\";for(var i=1;i<=5;i++){var dt=new Date(now.getTime()+i*60000);r+=dt.toLocaleString(\"zh-CN\")+\"<br>\";}return r;}",
+        "autoCalc": true,
+        "icon": "bi bi-code-slash"
       }
     ]
   },
@@ -536,31 +710,128 @@
     "category": "编码/加密",
     "tools": [
       {
-        "name": "SHA 加密",
+        "name": "MD5加密",
+        "path": "encrypt/md5.html",
+        "desc": "计算字符串的 MD5 哈希值",
+        "keywords": "MD5,MD5加密,MD5哈希,密码加密,在线MD5",
+        "type": "encode-decode",
+        "btnLabel1": "MD5加密",
+        "btnLabel2": "",
+        "forwardFn": "function md5(s){function R(n,t,r){return(n<<t)|(n>>>32-r)}function J(n){var c='',x='';for(var i=0;i<=3;i++){x='0'+((n>>>i*8)&255).toString(16);c+=x.substr(x.length-2,2)}return c}var a=1732584193,b=-271733879,c=-1732584194,d=271733878;for(var i=0,k=[];i<s.length;i++)k[i>>2]|=(s.charCodeAt(i)&255)<<(i%4<<3);k[k.length>>2]|=128<<((k.length>>2)%4);k.push(0,0);var l=s.length+8,n=l-(l%64),x=[],o=0;for(var i=0;i<n;i+=64){for(var j=0;j<16;j++)x[j]=k[i+j];for(var j=0;j<64;j++){var g=i+j,A=(a&b)+((a&c)+(a&d))+x[g-(g>>2&63)]+1518500249+(a=R(a,2,30))+b;b=(b<<25)+(b>>>7);c=R(c,12,19);d=R(d,17,15);a+=g}}return J(a)+J(b)+J(c)+J(d);}(function(v){var s=unescape(encodeURIComponent(v));return md5(s);})(v)",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "Base64加密/解密",
+        "path": "encrypt/base64.html",
+        "desc": "将字符串进行 Base64 编码或解码",
+        "keywords": "Base64,Base64编码,Base64解码,字符串编码",
+        "type": "encode-decode",
+        "btnLabel1": "Base64编码",
+        "btnLabel2": "Base64解码",
+        "forwardFn": "function(v){return btoa(unescape(encodeURIComponent(v)));}",
+        "reverseFn": "function(v){return decodeURIComponent(escape(atob(v.trim())));}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "SHA加密",
         "path": "encrypt/sha.html",
-        "desc": "支持 SHA1/256/512",
-        "keywords": "SHA 加密，SHA1 SHA256 SHA512，字符串加密，密码哈希，在线加密工具",
+        "desc": "计算字符串的 SHA-1/SHA-256 哈希值",
+        "keywords": "SHA,SHA256,SHA1,哈希,加密",
+        "type": "encode-decode",
+        "btnLabel1": "SHA-256",
+        "btnLabel2": "SHA-1",
+        "forwardFn": "(function(v){var s=unescape(encodeURIComponent(v));function rotl(n,b){return(n<<b)|(n>>>32-b);}var h=[1732584193,4023233417,2562383102,271733878,3285377520];for(var i=0;i<s.length;i++){h[0]=((h[0]+((h[1]^h[2]^h[3]^h[4])+s.charCodeAt(i))))&0xffffffff;var t=((h[0]>>>17)^(h[0]<<<15)^(h[0]>>>19)^(h[0]<<<13));h[0]=h[1];h[1]=h[2];h[2]=h[3];h[3]=h[4];h[4]=t;}function toHex(n){var r=\"\";for(var j=0;j<4;j++)r+=((n>>>(j*8))&255).toString(16).padStart(2,\"0\");return r;}return toHex(h[0])+toHex(h[1])+toHex(h[2])+toHex(h[3]);})(v)",
         "icon": "bi bi-shield-lock-fill"
       },
       {
-        "name": "URL 编解码",
+        "name": "URL编码解码",
         "path": "encrypt/url.html",
-        "desc": "处理 URL 特殊字符",
-        "keywords": "URL 编解码，URL 编码，URL 解码，URL 特殊字符，百分号编码，在线工具",
+        "desc": "对 URL 特殊字符进行编码或解码",
+        "keywords": "URL编码,URL解码,encodeURI,URI编码",
+        "type": "encode-decode",
+        "btnLabel1": "URL编码",
+        "btnLabel2": "URL解码",
+        "forwardFn": "function(v){return encodeURIComponent(v);}",
+        "reverseFn": "function(v){try{return decodeURIComponent(v);}catch(e){return v;}}",
         "icon": "bi bi-shield-lock-fill"
       },
       {
-        "name": "Unicode 互转",
-        "path": "encrypt/unicode.html",
-        "desc": "中文与 Unicode 转换",
-        "keywords": "Unicode 转换，中文 Unicode，Unicode 编码，中文字符编码，在线工具",
-        "icon": "bi bi-shield-lock-fill"
-      },
-      {
-        "name": "16 进制互转",
+        "name": "16进制转字符串",
         "path": "encrypt/hex.html",
-        "desc": "文本与十六进制转换",
-        "keywords": "16 进制转换，文本转十六进制，Hex 转换，十六进制编码，在线工具",
+        "desc": "HEX 十六进制与字符串相互转换",
+        "keywords": "HEX,十六进制,字符串转换,ASCII",
+        "type": "converter",
+        "options": [
+          {
+            "value": "hex2str",
+            "label": "HEX → 字符串"
+          },
+          {
+            "value": "str2hex",
+            "label": "字符串 → HEX"
+          }
+        ],
+        "convertFn": "function(v,from,to){if(from===\"hex2str\"){try{var s=\"\";for(var i=0;i<v.length;i+=2)s+=String.fromCharCode(parseInt(v.substr(i,2),16));return s;}catch(e){return\"错误: \"+e.message;}}else{var s=\"\";for(var i=0;i<v.length;i++)s+=v.charCodeAt(i).toString(16).padStart(2,\"0\");return s;}}}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "Unicode中文互转",
+        "path": "encrypt/unicode.html",
+        "desc": "中文与 Unicode 编码相互转换",
+        "keywords": "Unicode,中文Unicode,UTF-16,编码转换",
+        "type": "encode-decode",
+        "btnLabel1": "中文→Unicode",
+        "btnLabel2": "Unicode→中文",
+        "forwardFn": "function(v){var r=\"\";for(var i=0;i<v.length;i++)r+=\"\\u\"+v.charCodeAt(i).toString(16).padStart(4,\"0\");return r;}",
+        "reverseFn": "function(v){return v.replace(/\\u([0-9a-f]{4})/gi,function(m,p){return String.fromCharCode(parseInt(p,16));});}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "摩斯密码加密/解密",
+        "path": "encrypt/morse.html",
+        "desc": "将文字转换为摩斯密码，或将摩斯密码还原为文字",
+        "keywords": "摩斯密码,Morse,MorseCode,密码,加密",
+        "type": "encode-decode",
+        "btnLabel1": "加密",
+        "btnLabel2": "解密",
+        "forwardFn": "function(v){var m={\"A\":\".-\",\"B\":\"-...\",\"C\":\"-.-.\",\"D\":\"-..\",\"E\":\".\",\"F\":\"..-.\",\"G\":\"--.\",\"H\":\"....\",\"I\":\"..\",\"J\":\".---\",\"K\":\"-.-\",\"L\":\".-..\",\"M\":\"--\",\"N\":\"-.\",\"O\":\"---\",\"P\":\".--.\",\"Q\":\"--.-\",\"R\":\".-.\",\"S\":\"...\",\"T\":\"-\",\"U\":\"..-\",\"V\":\"...-\",\"W\":\".--\",\"X\":\"-..-\",\"Y\":\"-.--\",\"Z\":\"--..\",\"0\":\"-----\",\"1\":\".----\",\"2\":\"..---\",\"3\":\"...--\",\"4\":\"....-\",\"5\":\".....\",\"6\":\"-....\",\"7\":\"--...\",\"8\":\"---..\",\"9\":\"----.\"};return v.toUpperCase().split(\"\").map(function(c){return m[c]||c;}).join(\" \");}",
+        "reverseFn": "function(v){var m={\".-\":\"A\",\"-...\":\"B\",\"-.-.\":\"C\",\"-..\":\"D\",\".\":\"E\",\"..-.\":\"F\",\"--.\":\"G\",\"....\":\"H\",\"..\":\"I\",\".---\":\"J\",\"-.-\":\"K\",\".-..\":\"L\",\"--\":\"M\",\"-.\":\"N\",\"---\":\"O\",\".--.\":\"P\",\"--.-\":\"Q\",\".-.\":\"R\",\"...\":\"S\",\"-\":\"T\",\"..-\":\"U\",\"...-\":\"V\",\".--\":\"W\",\"-..-\":\"X\",\"-.--\":\"Y\",\"--..\":\"Z\",\"-----\":\"0\",\".----\":\"1\",\"..---\":\"2\",\"...--\":\"3\",\"....-\":\"4\",\".....\":\"5\",\"-....\":\"6\",\"--...\":\"7\",\"---..\":\"8\",\"----.\":\"9\"};return v.split(\" \").map(function(w){return m[w]||w;}).join(\"\");}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "JWT解密",
+        "path": "encrypt/jwt.html",
+        "desc": "解码 JWT token，查看 Header 和 Payload 内容（不验证签名）",
+        "keywords": "JWT,JWT解码,JSON Web Token,Token解析",
+        "type": "encode-decode",
+        "btnLabel1": "解码JWT",
+        "btnLabel2": "清空",
+        "forwardFn": "function(v){try{var parts=v.split(\".\");if(parts.length!==3)return\"无效JWT格式，请确保包含 header.payload.signature 三部分\";var header=JSON.parse(atob(parts[0].replace(/-/g,\"+\").replace(/_/g,\"/\")));var payload=JSON.parse(atob(parts[1].replace(/-/g,\"+\").replace(/_/g,\"/\")));return\"Header:\n\"+JSON.stringify(header,null,2)+\"\n\nPayload:\n\"+JSON.stringify(payload,null,2);}catch(e){return\"解码错误: \"+e.message;}}",
+        "reverseFn": "function(v){return v;}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "Punycode编码/解码",
+        "path": "encrypt/punycode.html",
+        "desc": "将中文域名转换为 Punycode 格式，或进行反向转换",
+        "keywords": "Punycode,域名编码,中文域名,IDN",
+        "type": "encode-decode",
+        "btnLabel1": "Punycode编码",
+        "btnLabel2": "Punycode解码",
+        "forwardFn": "function(v){try{return punycode.toASCII(v);}catch(e){return v;}}",
+        "reverseFn": "function(v){try{return punycode.toUnicode(v);}catch(e){return v;}}",
+        "icon": "bi bi-shield-lock-fill"
+      },
+      {
+        "name": "文字隐藏加密/解密",
+        "path": "encrypt/text-hide.html",
+        "desc": "将文字加密为不可见的零宽字符，嵌入任意文本中",
+        "keywords": "零宽字符,文字加密,隐写术,文字隐藏",
+        "type": "encode-decode",
+        "btnLabel1": "加密（零宽字符）",
+        "btnLabel2": "解密",
+        "forwardFn": "function(v){var zw={\"0\":\"\\u200B\",\"1\":\"\\u200C\",\"2\":\"\\u200D\"};var b=[];for(var i=0;i<v.length;i++){var c=v.charCodeAt(i).toString(2);b.push(c);}var s=b.join(\"1\");var r=\"\";for(var i=0;i<s.length;i++){r+=s[i]===\"0\"?zw[\"0\"]:zw[\"1\"];}return r;}",
+        "reverseFn": "function(v){var zw={\"\\u200B\":\"0\",\"\\u200C\":\"1\",\"\\u200D\":\"\"};var b=\"\";for(var i=0;i<v.length;i++){if(zw[v[i]]!==undefined)b+=zw[v[i]];}var r=\"\";for(var i=0;i<b.length;i+=8)r+=String.fromCharCode(parseInt(b.substr(i,8),2));return r;}",
         "icon": "bi bi-shield-lock-fill"
       }
     ]
@@ -733,20 +1004,6 @@
         "icon": "bi bi-house-heart-fill"
       },
       {
-        "name": "UUID 生成器",
-        "path": "other/uuid.html",
-        "desc": "创建标准 UUID",
-        "keywords": "UUID 生成器，UUID 生成，唯一标识符，GUID 生成，在线工具",
-        "icon": "bi bi-house-heart-fill"
-      },
-      {
-        "name": "Nano ID 生成器",
-        "path": "other/nanoid.html",
-        "desc": "生成短唯一 ID",
-        "keywords": "Nano ID 生成器，Nanoid，短 ID 生成，唯一 ID，在线工具",
-        "icon": "bi bi-house-heart-fill"
-      },
-      {
         "name": "进制转换",
         "path": "other/hex-convert.html",
         "desc": "二/八/十/十六进制转换",
@@ -785,6 +1042,53 @@
         "name": "专注计时器",
         "path": "life/time-annotate.html",
         "desc": "秒表计时+番茄工作法，专注25分钟休息5分钟"
+      },
+      {
+        "name": "键盘按键测试",
+        "path": "life/keyboard-test.html",
+        "desc": "测试键盘按键，查看按键对应的键码和 key 值",
+        "keywords": "键盘测试,按键测试,keyCode,键盘按键码",
+        "type": "query",
+        "searchable": true,
+        "data": [
+          {
+            "key": "A-Z, 0-9",
+            "code": "键码 = keyCode，字符 = key"
+          },
+          {
+            "key": "功能键",
+            "code": "F1-F12 = 123-134"
+          },
+          {
+            "key": "方向键",
+            "code": "上37 下39 左38 右40"
+          },
+          {
+            "key": "控制键",
+            "code": "Ctrl=17 Shift=16 Alt=18"
+          }
+        ],
+        "renderFn": "function(data,search){if(!data||!data.length)return\"<div style=padding:1rem;color:#999;>无匹配结果</div>\";var h=\"<table style=width:100%;border-collapse:collapse;font-size:0.9rem;><tr style=background:var(--primary);color:#fff;><th style=padding:0.5rem;text-align:left;>按键</th><th style=padding:0.5rem;text-align:left;>说明</th></tr>\";data.forEach(function(item){h+=\"<tr style=border-bottom:1px solid var(--border);><td style=padding:0.5rem;font-family:monospace;>\"+item.key+\"</td><td style=padding:0.5rem;>\"+item.code+\"</td></tr>\";});h+=\"</table>\";return h;}",
+        "searchLabel": "搜索按键",
+        "icon": "bi bi-house-heart-fill"
+      },
+      {
+        "name": "年会抽奖工具",
+        "path": "life/lottery.html",
+        "desc": "随机从名单中抽取中奖者，适用于年会抽奖等活动",
+        "keywords": "抽奖,随机抽取,年会抽奖,抽奖工具",
+        "type": "generator",
+        "fields": [
+          {
+            "id": "names",
+            "label": "参与者名单（每行一个）",
+            "type": "text",
+            "placeholder": "张三\n李四\n王五\n赵六"
+          }
+        ],
+        "btnLabel": "开始抽奖",
+        "generateFn": "function(inputs){var names=inputs.names.split(\"\\n\").filter(function(n){return n.trim();});if(names.length===0)return\"请输入参与者名单\";var winner=names[Math.floor(Math.random()*names.length)];return\"🎉 恭喜！中奖者：\"+winner;}",
+        "icon": "bi bi-house-heart-fill"
       }
     ]
   },
