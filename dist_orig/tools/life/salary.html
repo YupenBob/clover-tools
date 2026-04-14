@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>税后工资计算器 - 🍀 CloverTools</title>
+  <meta name="description" content="输入税前工资，扣除五险一金和个税，计算实际到手工资，无需注册，完全免费。">
+  <meta name="keywords" content="税后工资计算器，工资计算器，个税计算，税后工资，在线工具">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="税后工资计算器 - 🍀 CloverTools">
+  <meta property="og:description" content="输入税前工资，扣除五险一金和个税，计算实际到手工资">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/life/salary.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="税后工资计算器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="输入税前工资，扣除五险一金和个税，计算实际到手工资">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/life/salary.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">日</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>税后工资计算器</h1>
+        <p class="description">输入税前工资，扣除五险一金和个税，计算实际到手工资</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入</h3>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">税前工资 / 月底薪（元）</label>
+            <input type="number" id="salary" placeholder="如 20000" style="width:100%;padding:0.6rem;font-size:1rem;">
+          </div>
+          <div>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;">
+              <input type="checkbox" id="useMinBase" style="width:16px;height:16px;">
+              五险一金按最低基数（7310元）计算
+            </label>
+            <p style="font-size:0.75rem;opacity:0.55;margin-top:0.25rem;padding-left:1.6rem;">不勾选时，按实际工资计算（超出上限 36549 元按上限）</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>计算结果</h3>
+        <div id="result" style="font-size:0.95rem;"></div>
+      </div>
+      <style>
+        .sal-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.9rem;}
+        .sal-table th,.sal-table td{padding:0.5rem 0.6rem;border-bottom:1px solid #eee;text-align:left;}
+        .sal-table th{background:#f5f5f5;font-weight:600;opacity:0.7;font-size:0.8rem;}
+        .sal-summary{display:flex;flex-direction:column;gap:0.5rem;padding:0.8rem;background:#f0f7ff;border-radius:10px;}
+        .sal-row{display:flex;justify-content:space-between;align-items:center;gap:0.5rem;}
+        .sal-row span{font-size:0.88rem;color:var(--text-secondary);}
+        .sal-row b{font-size:0.95rem;}
+        .sal-row.highlight{background:#fff3e0;border-radius:8px;padding:0.6rem 0.8rem;margin-top:0.3rem;}
+        .sal-row.highlight span{font-weight:600;color:var(--text);}
+        .sal-note{font-size:0.72rem!important;opacity:0.65;font-weight:normal!important;}
+        .red{color:#e74c3c;}
+        .green{color:#16a34a;}
+      </style>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+      const salaryInput = document.getElementById('salary');
+      const useMinBase = document.getElementById('useMinBase');
+      const resultDiv = document.getElementById('result');
+      const MIN_BASE = 7310;
+      const CAP = 36549;
+      const items = [
+        { name: '养老保险', personal: 8, unit: 16 },
+        { name: '医疗保险', personal: 2, unit: 10 },
+        { name: '失业保险', personal: 0.5, unit: 0.5 },
+        { name: '工伤保险', personal: 0, unit: 0.16 },
+        { name: '生育保险', personal: 0, unit: 1 },
+        { name: '住房公积金', personal: 7, unit: 7 }
+      ];
+      const taxBrackets = [
+        { upper: 36000, rate: 0.03, deduction: 0 },
+        { upper: 144000, rate: 0.10, deduction: 2520 },
+        { upper: 300000, rate: 0.20, deduction: 16920 },
+        { upper: 420000, rate: 0.25, deduction: 31920 },
+        { upper: 660000, rate: 0.30, deduction: 52920 },
+        { upper: 960000, rate: 0.35, deduction: 85920 },
+        { upper: Infinity, rate: 0.45, deduction: 319920 }
+      ];
+      function calcTax(taxable) {
+        if (taxable <= 0) return 0;
+        const bracket = taxBrackets.find(b => taxable <= b.upper);
+        return taxable * bracket.rate - bracket.deduction;
+      }
+      function calc() {
+        const salary = parseFloat(salaryInput.value) || 0;
+        const base = useMinBase.checked ? MIN_BASE : Math.min(salary, CAP);
+        const baseNote = useMinBase.checked ? '(按最低基数 ' + MIN_BASE + ')' : (salary > CAP ? '(已达上限)' : '');
+        let insTotal = 0;
+        const insRows = items.map(item => {
+          const amt = base * (item.personal / 100);
+          insTotal += amt;
+          return '<tr><td>' + item.name + '</td><td style="text-align:center;">' + item.personal + '%</td><td style="text-align:right;">¥' + amt.toFixed(2) + '</td></tr>';
+        }).join('');
+        const taxable = salary - insTotal - 5000;
+        const tax = calcTax(taxable);
+        const afterTax = salary - insTotal - tax;
+        resultDiv.innerHTML = '<table class="sal-table"><thead><tr><th>项目</th><th>比例</th><th>金额</th></tr></thead><tbody>' + insRows + '</tbody></table>' +
+          '<div class="sal-summary"><div class="sal-row"><span>税前工资</span><b>¥' + salary.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>五险一金扣除 <span class="sal-note">' + baseNote + '</span></span><b class="red">-¥' + insTotal.toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>应纳税所得额 <span class="sal-note">(减5000起征点)</span></span><b>¥' + Math.max(taxable, 0).toFixed(2) + '</b></div>' +
+          '<div class="sal-row"><span>个人所得税</span><b class="red">-¥' + tax.toFixed(2) + '</b></div>' +
+          '<div class="sal-row highlight"><span>实发工资</span><b class="green">¥' + afterTax.toFixed(2) + '</b></div></div>';
+      }
+      salaryInput.addEventListener('input', calc);
+      useMinBase.addEventListener('change', calc);
+    
+  </script>
+</body>
+</html>
