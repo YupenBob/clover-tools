@@ -47,11 +47,22 @@
     .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
     .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
     .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
     .related-list li a::before { content: '→ '; color: var(--primary); }
   </style>
 </head>
 <body>
-  <div class="container">
+  {{SVG_SPRITE}}
+  <div class="container"></parameter>
+
     {{SITE_HEADER}}
     <div class="article-header">
       <span class="article-category"><span class="cat-label">{{ARTICLE_CATEGORY}}</span></span>
