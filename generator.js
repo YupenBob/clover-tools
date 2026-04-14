@@ -3573,15 +3573,24 @@ function generateBlogIndex() {
 
   let itemsHtml = '';
   Object.keys(byCategory).sort().forEach(cat => {
-    itemsHtml += `<h2 style="margin:2rem 0 1rem;font-size:1.2rem;">${cat}</h2>\n<ul style="list-style:none;padding:0;">`;
-    byCategory[cat].forEach(kw => {
+    const catTools = byCategory[cat];
+    itemsHtml += `<div class="blog-cat-section">
+      <div class="blog-cat-header">
+        <h2>${cat}</h2>
+        <span class="count">${catTools.length} 篇</span>
+      </div>
+      <div class="blog-grid">`;
+    catTools.forEach(kw => {
       const toolInfo = resolveTool(kw);
-      itemsHtml += `<li style="margin-bottom:0.8rem;padding:0.8rem;background:var(--bg-secondary);border-radius:8px;">
-        <a href="/blog/${kw.slug}" style="color:var(--primary);text-decoration:none;font-weight:600;">${kw.keyword}</a>
-        ${toolInfo ? `<span style="font-size:0.8rem;opacity:0.6;margin-left:0.5rem;">→ <a href="/tools/${toolInfo.path}">${toolInfo.name}</a></span>` : ''}
-      </li>`;
+      itemsHtml += `<a href="/blog/${kw.slug}" class="blog-card">
+        <div class="blog-card-title">${kw.keyword}</div>
+        <div class="blog-card-meta">
+          <span class="blog-card-cat">${cat}</span>
+          ${toolInfo ? `<span class="blog-card-tool">🔧 ${toolInfo.name}</span>` : ''}
+        </div>
+      </a>`;
     });
-    itemsHtml += '</ul>';
+    itemsHtml += `</div></div>`;
   });
 
   const blogIndexHtml = `
@@ -3594,31 +3603,104 @@ function generateBlogIndex() {
   <meta name="description" content="开发者常见问题解决指南，JSON错误、编码问题、文件限制等实际问题的解决方案。">
   <link rel="canonical" href="https://tools.xsanye.cn/blog/">
   <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="/src/shared.js"></script>
   <style>
-    .blog-header { text-align: center; padding: 2rem 0 1rem; }
-    .blog-header h1 { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
-    .blog-header p { opacity: 0.7; max-width: 600px; margin: 0 auto; }
-    .blog-list { max-width: 800px; margin: 2rem auto; }
-    .back-home { text-align: center; margin-top: 2rem; }
-    .back-home a { color: var(--primary); }
+    .blog-hero { text-align: center; padding: 3.5rem 0 2.5rem; }
+    .blog-hero h1 { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .blog-hero .subtitle { font-size: 1.1rem; opacity: 0.65; max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.7; }
+    .blog-hero .stats { display: flex; justify-content: center; gap: 2rem; margin-top: 1rem; }
+    .blog-hero .stat { text-align: center; }
+    .blog-hero .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+    .blog-hero .stat-label { font-size: 0.8rem; opacity: 0.6; }
+    .blog-categories { padding: 0 0 2rem; }
+    .blog-cat-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
+    .blog-cat-header h2 { font-size: 1.1rem; color: var(--text); }
+    .blog-cat-header .count { font-size: 0.75rem; background: var(--bg-secondary); padding: 0.15rem 0.5rem; border-radius: 10px; opacity: 0.7; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 0; }
+    .blog-card { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.2rem; text-decoration: none; color: var(--text); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+    .blog-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); border-color: var(--primary); }
+    .blog-card-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; line-height: 1.4; }
+    .blog-card-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .blog-card-cat { font-size: 0.72rem; background: var(--primary); color: #fff; padding: 0.15rem 0.5rem; border-radius: 10px; }
+    .blog-card-tool { font-size: 0.78rem; color: var(--primary); opacity: 0.8; display: flex; align-items: center; gap: 0.2rem; }
+    .blog-card-tool:hover { opacity: 1; text-decoration: underline; }
+    .back-home { text-align: center; margin: 2rem 0 3rem; }
+    .back-home a { color: var(--primary); text-decoration: none; font-size: 0.95rem; }
+    .back-home a:hover { text-decoration: underline; }
+    footer { margin-top: auto; }
+    /* search */
+    .blog-search { max-width: 480px; margin: 0 auto 2rem; }
+    .blog-search input { width: 100%; padding: 0.65rem 1rem; border: 1.5px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--text); font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .blog-search input:focus { border-color: var(--primary); }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="blog-header">
-      <h1>🍀 开发者问题解决博客</h1>
-      <p>遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具。</p>
+  {{SVG_SPRITE}}
+  {{SITE_HEADER}}
+  <main class="page-body">
+    <div class="container">
+      <div class="blog-hero">
+        <h1>🍀 开发者问题解决博客</h1>
+        <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，无需注册，打开即用。</p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-num">${keywordsConfig.length}</div>
+            <div class="stat-label">篇文章</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">${Object.keys(byCategory).length}</div>
+            <div class="stat-label">个分类</div>
+          </div>
+        </div>
+      </div>
+      <div class="blog-search">
+        <input type="text" id="blog-search" placeholder="搜索文章... (Ctrl+K)" autocomplete="off">
+      </div>
+      <div class="blog-categories" id="blog-categories">
+        ${itemsHtml}
+      </div>
+      <div class="back-home">
+        <a href="/">← 返回工具首页</a>
+      </div>
     </div>
-    <div class="blog-list">
-      ${itemsHtml}
-    </div>
-    <div class="back-home">
-      <a href="/">← 返回工具首页</a>
-    </div>
-  </div>
+  </main>
+  {{SITE_FOOTER}}
+  <div id="toast"></div>
+  <script>
+    CT.initTheme();
+    // Blog search
+    const blogSearch = document.getElementById('blog-search');
+    const blogCards = document.querySelectorAll('.blog-card');
+    const blogCatSections = document.querySelectorAll('.blog-cat-section');
+    blogSearch.addEventListener('input', () => {
+      const q = blogSearch.value.trim().toLowerCase();
+      blogCatSections.forEach(section => {
+        const cards = section.querySelectorAll('.blog-card');
+        let anyVisible = false;
+        cards.forEach(card => {
+          const text = card.textContent.toLowerCase();
+          const show = !q || text.includes(q);
+          card.style.display = show ? '' : 'none';
+          if (show) anyVisible = true;
+        });
+        section.style.display = anyVisible ? '' : 'none';
+      });
+    });
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        blogSearch.focus();
+      }
+    });
+  </script>
 </body>
 </html>`;
-  fs.writeFileSync(path.join(DIST_DIR, 'blog', 'index.html'), blogIndexHtml);
+  const blogIndexHtmlFinal = blogIndexHtml
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
+  fs.writeFileSync(path.join(DIST_DIR, 'blog', 'index.html'), blogIndexHtmlFinal);
 }
 
 function generateBlogPosts() {
@@ -3642,7 +3724,7 @@ function generateBlogPosts() {
       .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
       .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
-      .replace('{{ARTICLE_TITLE}}', kw.keyword)
+      .replace(/\{\{ARTICLE_TITLE\}\}/g, kw.keyword)
       .replace('{{ARTICLE_DATE}}', today)
       .replace('{{ARTICLE_CONTENT}}', articleContent)
       .replace('{{TOOL_LINKS}}', toolLinks)
