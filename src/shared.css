@@ -40,6 +40,10 @@ body {
 /* ==================== Layout ==================== */
 .container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
 
+@media (max-width: 480px) {
+  .container { padding: 0 1rem; }
+}
+
 /* ==================== Header ==================== */
 .site-header {
   background: var(--card-bg);
@@ -113,6 +117,41 @@ body {
   transition: var(--transition);
 }
 #tool-search:focus { border-color: var(--primary); }
+
+/* ==================== Quick Tools Row (mobile-friendly) ==================== */
+.quick-tools-row {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+}
+.quick-tool-card {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 2rem 1rem 1.5rem; }
+  .hero h1 { font-size: 2rem; }
+  .hero .subtitle { font-size: 0.95rem; }
+  .search-box { max-width: 100%; }
+  .page-hero { padding: 2rem 0 1.5rem; }
+  .stats-bar { gap: 0.75rem; }
+  .stats-bar li { font-size: 0.9rem; }
+  .stats-bar li .stats-num { font-size: 1.1rem; }
+  .stats-bar li .stats-label { font-size: 0.78rem; }
+  .stats-bar li + li::before { display: none; }
+  .quick-tools { margin: 1.5rem auto 0; }
+}
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.7rem; }
+  .quick-tools-row { gap: 0.5rem; }
+  .quick-tool-card { padding: 0.5rem 0.8rem; font-size: 0.82rem; }
+}
 
 /* ==================== Category Grid ==================== */
 .categories {
