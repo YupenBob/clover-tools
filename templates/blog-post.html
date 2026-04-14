@@ -37,15 +37,26 @@
     .breadcrumb a { color: var(--primary); text-decoration: none; }
     .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
     .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
   </style>
 </head>
 <body>
   <div class="container">
     {{SITE_HEADER}}
     <div class="article-header">
-      <span class="article-category">{{ARTICLE_CATEGORY}}</span>
+      <span class="article-category"><span class="cat-label">{{ARTICLE_CATEGORY}}</span></span>
       <h1 class="article-title">{{ARTICLE_TITLE}}</h1>
-      <div class="article-meta">📅 {{ARTICLE_DATE}} · 👤 CloverTools · 🔧 问题解决</div>
+      <div class="article-meta">{{ARTICLE_DATE}} · CloverTools · 问题解决</div>
     </div>
     <div class="article-body">
       <div class="breadcrumb">
@@ -62,9 +73,11 @@
       </div>
 
       <div class="faq">
-        <h2>❓ 常见问题</h2>
+        <h2>常见问题</h2>
         {{FAQ_CONTENT}}
       </div>
+
+      {{RELATED_QUESTIONS}}
     </div>
     {{SITE_FOOTER}}
   </div>

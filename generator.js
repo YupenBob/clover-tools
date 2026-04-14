@@ -3441,113 +3441,184 @@ function resolveTool(keywordEntry) {
   return toolNameMap[keywordEntry.tool] || null;
 }
 
-// Build article content based on keyword intent
-function buildBlogContent(keyword, intent, toolInfo) {
-  const t = toolInfo ? `<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a>` : '';
+// ============ Helper: get related keywords from same category ============
+function getRelatedKeywords(kwEntry, count = 5) {
+  const sameCat = keywordsConfig.filter(k =>
+    k.category === kwEntry.category &&
+    k.slug !== kwEntry.slug
+  );
+  // Prefer same intent within category, fill with other intent
+  const sameIntent = sameCat.filter(k => k.intent === kwEntry.intent);
+  const others = sameCat.filter(k => k.intent !== kwEntry.intent);
+  const merged = [...sameIntent, ...others];
+  return merged.slice(0, count);
+}
 
-  // Template by intent type
+// ============ Helper: build keyword expansion block ============
+function buildKeywordBlock(keyword, kwEntry) {
+  const related = getRelatedKeywords(kwEntry, 5);
+  if (!related.length) return '';
+  const tags = related.map(k =>
+    `<a href="/blog/${k.slug}">${k.keyword}</a>`
+  ).join('');
+  return `<div class="keyword-block">
+  <p>你可能还在搜：</p>
+  <div class="keyword-tags">${tags}</div>
+</div>`;
+}
+
+// ============ Helper: build related questions (bottom inner links) ============
+function buildRelatedQuestions(kwEntry, count = 6) {
+  const sameCat = keywordsConfig.filter(k =>
+    k.category === kwEntry.category && k.slug !== kwEntry.slug
+  );
+  const sameIntent = sameCat.filter(k => k.intent === kwEntry.intent);
+  const others = sameCat.filter(k => k.intent !== kwEntry.intent);
+  const items = [...sameIntent, ...others].slice(0, count);
+  if (!items.length) return '';
+  const listItems = items.map(k =>
+    `<li><a href="/blog/${k.slug}">${k.keyword}</a></li>`
+  ).join('\n');
+  return `<div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list">${listItems}</ul>
+</div>`;
+}
+
+// ============ Build article content based on keyword intent ============
+function buildBlogContent(keyword, intent, toolInfo, kwEntry) {
+  const t = toolInfo ? `<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a>` : '';
+  const kwBlock = buildKeywordBlock(keyword, kwEntry);
+
+  // Template by intent type — upgraded with concrete error scenarios + keyword block at top
   const templates = {
     'error-fix': `
-<h2>🔍 问题描述</h2>
-<p>在日常开发中，你可能遇到过类似的错误提示，这个问题很常见，但原因可能有多种。本文帮你快速定位并解决。</p>
-<h2>⚙️ 常见原因</h2>
+${kwBlock}
+<h2>问题描述</h2>
+<p>遇到 <strong>${keyword}</strong>？这个报错在开发过程中非常常见，通常在你向 API 发送请求或处理返回数据时触发。本文用真实场景帮你快速定位根因并给出具体修复方案。</p>
+<h2>常见原因</h2>
 <ul>
-  <li><strong>格式不规范</strong>：JSON/编码/参数格式不符合预期标准</li>
-  <li><strong>字符集问题</strong>：UTF-8 和 GBK 混用导致乱码</li>
-  <li><strong>特殊字符转义</strong>：未正确处理特殊字符导致解析失败</li>
-  <li><strong>接口返回异常</strong>：后端数据未做标准化处理</li>
+  <li><strong>数据格式不符</strong>：发送的 JSON 多了一个逗号、少了引号，或键名用了单引号而非双引号</li>
+  <li><strong>编码不统一</strong>：后端返回 GBK 编码，但前端按 UTF-8 解析，导致解析失败</li>
+  <li><strong>特殊字符未转义</strong>：字符串中含有 <code>&</code>、<code>&lt;</code>、换行等特殊字符，直接拼接导致格式破坏</li>
+  <li><strong>请求参数类型错误</strong>：接口要求数字但传了字符串，或要求数组但传了对象</li>
+  <li><strong>接口返回异常数据</strong>：后端在某些边界情况下返回了非标准格式</li>
 </ul>
-<h2>✅ 解决方法</h2>
-<p>按照以下步骤逐一排查：</p>
+<h2>解决方法</h2>
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键验证和修复大多数格式问题。</p>` : ''}
 <ol>
-  <li>使用工具 ${t ? `检查输入格式是否规范` : `检查输入内容`}</li>
-  <li>确认字符编码是否为 UTF-8</li>
-  <li>检查特殊字符是否正确转义</li>
-  <li>如果是接口问题，联系后端确认返回数据格式</li>
-</ol>
-<p>如果需要处理具体的格式转换或编解码操作，直接使用上面的工具即可一键完成。</p>`,
+  <li>用工具 ${t || '在线工具'} 检查输入数据格式是否规范</li>
+  <li>确认请求头中 <code>Content-Type: application/json</code> 和字符集为 UTF-8</li>
+  <li>检查 JSON 中所有字符串值是否正确转义（特别是 <code>"</code>、<code>\n</code>、<code>\t</code>）</li>
+  <li>验证接口文档中每个字段的类型要求，确保传参匹配</li>
+  <li>如果是第三方 API，查看其官方错误码文档定位具体问题</li>
+</ol>`,
 
     'encoding': `
-<h2>🔍 问题描述</h2>
-<p>字符编码不一致导致的乱码或解码失败，是开发者经常遇到的问题。这个问题看似简单，但排查起来往往耗时。</p>
-<h2>⚙️ 常见原因</h2>
+${kwBlock}
+<h2>问题描述</h2>
+<p><strong>${keyword}</strong> 是开发中常见的数据处理问题。字符编码不一致会导致乱码、解码失败或数据无法正常使用。这类问题排查起来往往耗时，因为根源不一定在出错的地方。</p>
+<h2>常见原因</h2>
 <ul>
-  <li><strong>编码不一致</strong>：发送端和接收端使用不同字符集</li>
-  <li><strong>URL编码问题</strong>：特殊字符未做URL编码或解码方式错误</li>
-  <li><strong>Base64头尾</strong>：Data URL格式不正确导致图片无法显示</li>
+  <li><strong>编码混用</strong>：文件或接口明明声明了 UTF-8，但实际内容是 GBK，两边对不上</li>
+  <li><strong>URL 编码不一致</strong>：前端用了 <code>encodeURIComponent</code>，后端却用 <code>urllib.parse.unquote</code> 处理方式不对</li>
+  <li><strong>Base64 格式错误</strong>：缺少前缀（如 <code>data:image/png;base64,</code>）、多余空格或使用了非标准字符集</li>
+  <li><strong>字节序 BOM 头</strong>：UTF-8 文件开头多了 <code>EF BB BF</code> 三个字节，导致解析器误判</li>
 </ul>
-<h2>✅ 解决方法</h2>
-<p>最直接的方式是使用编码转换工具 ${t ? '（如上面的 ' + t.name + '）' : ''} 进行标准化处理：</p>
+<h2>解决方法</h2>
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键完成编解码转换。</p>` : ''}
 <ol>
-  <li>确定源数据的原始编码</li>
-  <li>统一转换为 UTF-8 或目标编码格式</li>
-  <li>使用工具验证转换结果是否正确</li>
+  <li>用工具 ${t || '在线工具'} 确定源数据编码格式</li>
+  <li>统一转换为 UTF-8（大多数系统的默认编码）</li>
+  <li>Base64 类型数据确保添加正确前缀 <code>data:image/xxx;base64,</code></li>
+  <li>如果是文件，用十六进制编辑器检查 BOM 头并去除</li>
 </ol>`,
 
     'limit-fix': `
-<h2>🔍 问题描述</h2>
-<p>平台对文件大小、图片尺寸等有限制，上传时经常遇到"文件过大"等报错。这个问题非常普遍，尤其是处理用户上传时。</p>
-<h2>⚙️ 常见原因</h2>
+${kwBlock}
+<h2>问题描述</h2>
+<p><strong>${keyword}</strong> 是文件上传和处理中的高频问题。几乎所有平台（微信、微博、GitHub、各大云服务）对上传内容都有明确的大小限制，超限就会直接被拒绝。</p>
+<h2>常见原因</h2>
 <ul>
-  <li><strong>平台限制</strong>：大多数平台对单文件大小有明确限制（1MB-5MB）</li>
-  <li><strong>格式体积差</strong>：PNG转JPG后反而变大（无损vs有损压缩）</li>
-  <li><strong>未压缩</strong>：原图是未压缩的高清图，体积巨大</li>
+  <li><strong>平台硬限制</strong>：微信公众号图片限制 2MB，GitHub 单文件 100MB，各平台规则不一</li>
+  <li><strong>格式选错</strong>：PNG 是无损压缩，同尺寸下体积远大于 JPG；有些场景用 WebP 可以缩小 30%-60%</li>
+  <li><strong>未做有损压缩</strong>：原图是 4K 分辨率直接上传，文件体积自然爆炸</li>
+  <li><strong>PDF 内嵌字体</strong>：即使只有一页，嵌入完整字体后文件也能超过 5MB</li>
+  <li><strong>批量上传总和超限</strong>：单文件没超，但一次上传多个文件总大小超出了平台限制</li>
 </ul>
-<h2>✅ 解决方法</h2>
-<p>使用 ${t ? '工具压缩：' + t : '对应工具'}处理：</p>
+<h2>解决方法</h2>
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键压缩到目标大小以内。</p>` : ''}
 <ol>
-  <li>压缩图片：降低质量或调整尺寸到限制范围内</li>
-  <li>转换格式：JPG转PNG或反之，根据实际需求选择体积更小的格式</li>
-  <li>如果是PDF，先尝试图片压缩，仍超限再做格式转换</li>
+  <li>用工具 ${t || '在线工具'} 压缩图片：质量降到 70-80%，肉眼几乎无差异</li>
+  <li>转换格式：PNG 转 JPG、静态 GIF 转 MP4 等，选择体积更小的等价格式</li>
+  <li>调整尺寸：宽高超过 2000px 的图片先缩放，再压缩</li>
+  <li>PDF 先用图片压缩工具处理，仍超限再做格式转换（PDF 转 JPG）</li>
+  <li>如果无法压缩，联系平台申请大文件上传权限</li>
 </ol>`,
 
     'guide': `
-<h2>🔍 问题说明</h2>
-<p>这类问题属于工具使用类需求，搞清楚原理能让你事半功倍。</p>
-<h2>⚙️ 核心概念</h2>
+${kwBlock}
+<h2>问题说明</h2>
+<p><strong>${keyword}</strong> 属于工具使用类需求。与其死记硬背，不如真正理解工具的工作原理，这样遇到变体问题时也能举一反三。</p>
+<h2>核心概念</h2>
 <ul>
-  <li>理解基本原理，而不是死记硬背</li>
-  <li>善用工具提高效率，避免重复劳动</li>
-  <li>遇到问题学会分层排查</li>
+  <li>理解工具的输入输出格式，知道哪些场景适合用、哪些场景不适合</li>
+  <li>学会分层排查：先用简单数据验证工具是否正常，再处理真实数据</li>
+  <li>善用工具链：多个工具配合使用往往比一个复杂工具更高效</li>
+  <li>了解工具的边界情况，避免在不支持的输入格式上浪费时间</li>
 </ul>
-<h2>✅ 实践建议</h2>
-<p>使用 ${t ? "工具 " + t + " 进行实际操作练习：" : "进行实际操作练习："}</p>
+<h2>实践建议</h2>
+${toolInfo ? `<p><strong>动手试试</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a></p>` : ''}
 <ol>
-  <li>了解工具的输入输出格式</li>
-  <li>用简单示例验证功能是否正常</li>
-  <li>应用到实际项目中</li>
+  <li>用最简单的数据（空字符串、单个字符）验证工具基本功能</li>
+  <li>逐步增加数据复杂度，观察工具在边界情况下的表现</li>
+  <li>将工具用法记录到自己的知识库，下次遇到同类问题直接调用</li>
+  <li>结合实际项目场景，思考工具如何嵌入你的工作流</li>
 </ol>`,
 
     'info': `
-<h2>🔍 问题说明</h2>
-<p>这是一个常见的技术疑问，很多人都会问到。答案其实很明确。</p>
-<h2>⚙️ 技术原理</h2>
-<p>在计算机科学中，UUID/随机数等都有明确的设计原理和碰撞概率。理解原理才能正确使用。</p>
-<h2>✅ 结论</h2>
-${t ? '<p>实际使用 ' + t + '，不必担心重复问题。在实际工程中碰撞概率可以忽略不计。</p>' : '<p>这类问题在工程实践中不必过度担心。</p>'}`,
+${kwBlock}
+<h2>问题说明</h2>
+<p><strong>${keyword}</strong> 是很多人会疑惑的技术问题，答案其实很明确。下面从原理层面做解释，让你知其然也知其所以然。</p>
+<h2>技术原理</h2>
+<p>这类问题的答案由底层算法和协议规范决定，不是约定俗成的习惯，而是有明确定义的数学性质或技术标准。</p>
+<h2>结论</h2>
+${toolInfo ? `<p>实际使用 <a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 即可，在实际工程中完全不用担心问题。</p>` : '<p>理解原理后，在工程实践中完全可以放心使用，不需要过度担忧。</p>'}`,
   };
 
   return templates[intent] || templates['error-fix'];
 }
 
-// Build FAQ section for each article
+// ============ Build FAQ section for each article (3-5 questions) ============
 function buildFaq(keyword, intent) {
   const faqs = {
     'error-fix': [
-      { q: '为什么会报这个错误？', a: '通常是格式不规范、字符转义错误或编码不一致导致。' },
-      { q: '这个错误会影响功能吗？', a: '会的，格式错误会导致数据无法正常解析，影响程序运行。' },
-      { q: '有没有自动修复的方法？', a: '使用对应的工具可以自动修复大部分格式问题。' },
+      { q: `遇到 ${keyword}，是什么原因导致的？`, a: '常见原因有：数据格式不符合规范（如 JSON 多了逗号或少了引号）、字符编码不统一（UTF-8 和 GBK 混用）、特殊字符未正确转义，或接口返回了非标准数据。先用工具验证格式是最快的排查方式。' },
+      { q: `${keyword} 会影响程序正常运行吗？`, a: '会的。格式错误会导致数据无法正常解析，轻则功能异常，重则程序崩溃。尤其是涉及支付、用户输入等关键流程时，这类问题必须第一时间修复。' },
+      { q: `${keyword} 有没有自动修复的办法？`, a: '大多数格式问题可以用在线工具自动修复。如果是自己生成的 JSON/编码数据，修复后再重新提交即可；如果是第三方接口返回的格式问题，则需要联系对方修正或做容错处理。' },
+      { q: '修复后还需要注意什么？', a: '建议增加格式校验环节，在数据提交前或接收后先做格式验证（用 JSON.parse 或对应工具），避免再次出现同样问题。同时统一前后端编码规范，从源头减少这类错误。' },
     ],
     'encoding': [
-      { q: 'UTF-8和GBK有什么区别？', a: 'UTF-8支持全球字符，GBK只支持中文，混用会导致乱码。' },
-      { q: 'Base64图片打不开怎么办？', a: '检查是否有正确的前缀格式（data:image/png;base64,），以及是否为有效的Base64字符串。' },
+      { q: `什么是 ${keyword}，和 UTF-8 有什么区别？`, a: '不同编码格式是字符在计算机中的不同存储方式。UTF-8 是目前最通用的编码，支持全球所有文字；GBK 主要支持中文和少量字符。如果混用就会出现乱码。判断编码最简单的方法是用十六进制工具查看字节序列。' },
+      { q: 'Base64 图片打不开是什么原因？', a: '最常见的原因是缺少前缀（如 <code>data:image/png;base64,</code>），或者是编码过程中引入了空格和换行。另一个可能是使用了 URL-safe Base64 字符（+ / 变成 - _）但没有正确还原。' },
+      { q: '为什么解码出来的内容是乱码？', a: '乱码通常意味着编码格式不匹配——数据是 A 编码生成的，但用 B 编码去解析。解决方法：确认原始数据的编码，用同一编码进行解码。如果是网页内容，浏览器开发者工具的 Network 面板可以看到实际编码。' },
+      { q: '如何避免编码问题？', a: '统一使用 UTF-8 编码是最佳实践。所有文件保存为 UTF-8，所有接口声明 UTF-8，所有数据库连接也使用 UTF-8。建立团队编码规范，从源头杜绝混用问题。' },
     ],
     'limit-fix': [
-      { q: '压缩后图片会变模糊吗？', a: '适当压缩在70%-80%质量下肉眼看不出区别，但体积能减少50%-70%。' },
-      { q: '平台限制无法突破怎么办？', a: '可以分片上传，或联系平台申请更大额度。' },
+      { q: `${keyword}，压缩后图片会变模糊吗？`, a: '适当压缩（质量 70%-80%）肉眼看不出明显区别，但文件体积能减少 50%-70%。如果质量降到 50% 以下才会出现可察觉的模糊。推荐先压 75%，根据实际效果再调整。' },
+      { q: '平台限制无法突破怎么办？', a: '如果压缩后仍超限，可以尝试：1) 换格式（PNG→JPG 或 JPG→WebP）；2) 降低分辨率；3) 联系平台申请更大额度；4) 分片上传（将大文件拆分成多个小文件分别上传）。' },
+      { q: '为什么 PNG 转 JPG 反而变大了？', a: 'PNG 是无损压缩，适合图标、截图、透明背景图；JPG 是有损压缩，适合照片。如果原图是简单色块或图标类图片，JPG 的压缩效果反而不如 PNG。建议根据图片内容类型选择格式。' },
+      { q: 'PDF 文件太大怎么压缩？', a: '先用图片压缩工具将 PDF 转为图片再压缩（JPG 或 PNG）；如果 PDF 内嵌了字体，可以尝试用工具去掉嵌入或子集化字体；仍超限的话，考虑分页上传或使用云存储直传。' },
     ],
-    'error-fix': [
-      { q: '等等，这个错误是怎么产生的？', a: '大多数是因为JSON/编码格式不规范，或者接口返回了异常数据。' },
+    'guide': [
+      { q: `如何使用 ${keyword} 相关工具？`, a: '这类工具一般有明确的输入框和输出框，按提示输入内容，点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常，再处理实际数据。' },
+      { q: `${keyword} 适合在什么场景使用？`, a: '根据具体工具类型决定。格式转换工具适合处理第三方数据，编码工具适合加密传输，压缩工具适合文件上传前处理。多积累工具使用经验，遇到问题时能快速判断用哪个工具解决。' },
+      { q: '有没有更好的替代工具？', a: '不同工具有不同侧重，重点是理解原理。可以同时安装多个类似工具，实际使用中对比效果，选择最顺手的一个。随着使用经验增加，你也能判断工具的好坏。' },
+    ],
+    'info': [
+      { q: `${keyword} 的原理是什么？`, a: '这类问题的答案由底层算法决定，有明确的技术标准。与其死记硬背结论，不如理解原理，这样遇到变体问题也能推理出正确答案。' },
+      { q: `${keyword} 在实际项目中如何应用？`, a: '根据具体场景来用。理论问题理解即可，实际项目中关注的是如何正确使用工具处理你的业务数据。' },
+      { q: '我需要担心这个问题吗？', a: '在工程实践中，这类问题的风险是可控的。理解原理、正确使用工具、不做过度设计即可。' },
     ],
   };
 
@@ -3708,9 +3779,10 @@ function generateBlogPosts() {
 
   keywordsConfig.forEach(kw => {
     const toolInfo = resolveTool(kw);
-    const articleContent = buildBlogContent(kw.keyword, kw.intent, toolInfo);
+    const articleContent = buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
+    const relatedQuestions = buildRelatedQuestions(kw, 6);
     const blogUrl = 'https://tools.xsanye.cn/blog/' + kw.slug;
     const today = new Date().toISOString().split('T')[0];
 
@@ -3729,6 +3801,7 @@ function generateBlogPosts() {
       .replace('{{ARTICLE_CONTENT}}', articleContent)
       .replace('{{TOOL_LINKS}}', toolLinks)
       .replace('{{FAQ_CONTENT}}', faqContent)
+      .replace('{{RELATED_QUESTIONS}}', relatedQuestions)
       .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
       .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
       .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
@@ -3738,6 +3811,140 @@ function generateBlogPosts() {
 
   generateBlogIndex();
   console.log(`   Generated ${keywordsConfig.length} blog posts + index`);
+}
+
+// ============ Generate Fix Hub Pages (/fix/json-errors etc.) ============
+const FIX_HUB_CONFIG = [
+  {
+    path: 'json-errors',
+    title: 'JSON / API 报错修复',
+    desc: 'JSON 格式错误、API 返回异常、数据解析失败的常见原因和解决方案。',
+    hubKeyword: 'JSON报错修复',
+    categories: ['JSON / API报错', 'JSON / 数据处理'],
+    intents: ['error-fix', 'encoding'],
+  },
+  {
+    path: 'file-limits',
+    title: '文件 / 图片 / PDF 限制处理',
+    desc: '文件过大、图片超限、PDF 体积爆炸等上传失败问题的解决办法。',
+    hubKeyword: '文件限制处理',
+    categories: ['文件 / 图片 / PDF', '文件 / 图片限制'],
+    intents: ['limit-fix'],
+  },
+  {
+    path: 'encoding',
+    title: '编码 / Base64 / 乱码处理',
+    desc: '字符编码不一致、Base64 编解码失败、乱码等问题的根本原因和修复方法。',
+    hubKeyword: '编码问题解决',
+    categories: ['编码 / Base64', '编码 / Base64 / 转换'],
+    intents: ['encoding'],
+  },
+  {
+    path: 'frontend',
+    title: '前端 / JS 报错修复',
+    desc: '前端开发中常见的 JavaScript 报错、类型错误、异步问题等解决方案。',
+    hubKeyword: '前端报错修复',
+    categories: ['前端 / JS 报错', '前端 / JS报错'],
+    intents: ['error-fix', 'guide'],
+  },
+  {
+    path: 'ai-api',
+    title: 'AI / API / GPT 报错处理',
+    desc: '调用 OpenAI API、GPT 接口、AI 服务时报错的常见原因和解决方案。',
+    hubKeyword: 'AI API报错处理',
+    categories: ['AI / API / GPT', 'AI / API报错'],
+    intents: ['error-fix', 'limit-fix'],
+  },
+  {
+    path: 'tools',
+    title: '时间 / 加密 / 工具使用指南',
+    desc: '时间戳转换、加密解密、随机数生成等工具类问题的使用方法。',
+    hubKeyword: '工具使用指南',
+    categories: ['工具延伸', '时间 / 加密 / 工具类'],
+    intents: ['guide', 'info'],
+  },
+];
+
+function generateFixHubPages() {
+  const hubBaseDir = path.join(DIST_DIR, 'fix');
+  ensureDir(hubBaseDir);
+
+  FIX_HUB_CONFIG.forEach(hub => {
+    const hubKeywords = keywordsConfig.filter(kw =>
+      hub.categories.includes(kw.category)
+    );
+
+    const toolInfo = resolveTool({ tool: hubKeywords[0] && hubKeywords[0].tool });
+
+    const articlesHtml = hubKeywords.map(kw => {
+      const kwTool = resolveTool(kw);
+      return `<a href="/blog/${kw.slug}" class="blog-card">
+        <div class="blog-card-title">${kw.keyword}</div>
+        <div class="blog-card-meta">
+          <span class="blog-card-cat">${kw.category}</span>
+          ${kwTool ? `<span class="blog-card-tool">${kwTool.name}</span>` : ''}
+        </div>
+      </a>`;
+    }).join('\n');
+
+    const hubHtml = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${hub.title} - 🍀 CloverTools</title>
+  <meta name="description" content="${hub.desc}">
+  <link rel="canonical" href="https://tools.xsanye.cn/fix/${hub.path}/">
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="/src/shared.js"></script>
+  <style>
+    .hub-hero { text-align: center; padding: 3rem 0 2rem; }
+    .hub-hero h1 { font-size: 2rem; margin-bottom: 0.75rem; }
+    .hub-hero .subtitle { font-size: 1rem; opacity: 0.65; max-width: 560px; margin: 0 auto 1rem; line-height: 1.7; }
+    .hub-hero .stat-num { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+    .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; padding: 0 0 2rem; }
+    .hub-back { text-align: center; margin: 1rem 0 2rem; }
+    .hub-back a { color: var(--primary); text-decoration: none; font-size: 0.9rem; }
+    .hub-back a:hover { text-decoration: underline; }
+    footer { margin-top: auto; }
+  </style>
+</head>
+<body>
+  {{SVG_SPRITE}}
+  {{SITE_HEADER}}
+  <main class="page-body">
+    <div class="container">
+      <div class="hub-hero">
+        <h1>${hub.title}</h1>
+        <p class="subtitle">${hub.desc}</p>
+        <div class="stat-num">${hubKeywords.length} 篇解决方案</div>
+      </div>
+      <div class="hub-grid">
+        ${articlesHtml}
+      </div>
+      <div class="hub-back">
+        <a href="/blog/">← 返回博客首页</a>
+      </div>
+    </div>
+  </main>
+  {{SITE_FOOTER}}
+  <div id="toast"></div>
+  <script>CT.initTheme();</script>
+</body>
+</html>`;
+
+    const finalHtml = hubHtml
+      .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+      .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+      .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
+
+    const hubDir = path.join(hubBaseDir, hub.path);
+    ensureDir(hubDir);
+    fs.writeFileSync(path.join(hubDir, 'index.html'), finalHtml);
+  });
+
+  console.log(`   Generated ${FIX_HUB_CONFIG.length} fix hub pages`);
 }
 
 // ============ Main generator ============
@@ -3851,6 +4058,9 @@ function generate() {
   // Generate blog SEO posts
   generateBlogPosts();
 
+  // Generate fix hub pages
+  generateFixHubPages();
+
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
@@ -3865,6 +4075,11 @@ function generate() {
     urls.push(`<url><loc>${baseUrl}/blog/${kw.slug}</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
   });
   urls.push(`<url><loc>${baseUrl}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
+
+  // Add fix hub pages to sitemap
+  FIX_HUB_CONFIG.forEach(hub => {
+    urls.push(`<url><loc>${baseUrl}/fix/${hub.path}/</loc><lastmod>${today}</lastmod><priority>0.6</priority></url>`);
+  });
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
