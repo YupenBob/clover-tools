@@ -46,6 +46,90 @@
     .category li a i[class^="bi-"] { font-size: 1.05rem; color: var(--primary); flex-shrink: 0; }
     .category li a .tool-name { flex-shrink: 0; }
     .category li a .tool-desc { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 1.25rem auto 0;
+      padding: 0;
+      list-style: none;
+      flex-wrap: wrap;
+    }
+    .stats-bar li {
+      font-size: 1.05rem;
+      color: var(--primary);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .stats-bar li .stats-num {
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    .stats-bar li .stats-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0.75;
+    }
+    .stats-bar li + li::before {
+      content: '·';
+      color: var(--text-secondary);
+      opacity: 0.4;
+      margin-right: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
+
+    /* Quick tools row */
+    .quick-tools {
+      margin: 2rem auto 0;
+      max-width: 700px;
+    }
+    .quick-tools-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.5;
+      text-align: center;
+      margin-bottom: 0.9rem;
+      font-weight: 600;
+    }
+    .quick-tools-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .quick-tool-card {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.1rem;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      box-shadow: var(--card-shadow);
+    }
+    .quick-tool-card i[class^="bi-"] {
+      font-size: 1.1rem;
+      color: var(--primary);
+      flex-shrink: 0;
+    }
+    .quick-tool-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
@@ -59,12 +143,31 @@
     <div class="container">
       <div class="hero">
         <h1>🍀 CloverTools</h1>
-        <p class="subtitle">轻量级开发者工具箱 · 无需后端 · 完全本地运行</p>
+        <p class="subtitle">开发者的瑞士军刀 · 随手即用，无需注册</p>
         <div class="search-box">
           <input type="text" id="tool-search" placeholder="搜索工具... (Ctrl+K)" autocomplete="off">
         </div>
         <div class="btn-row" style="justify-content:center;margin-top:1rem;">
           <button class="btn-random" id="randomToolBtn"><svg class="btn-icon" aria-hidden="true"><use href="#icon-dice"/></svg>随机工具</button>
+        </div>
+
+        <!-- Stats bar -->
+        <ul class="stats-bar">
+          <li><span class="stats-num">118</span><span class="stats-label">个在线工具</span></li>
+          <li><span class="stats-num">220</span><span class="stats-label">篇解决文章</span></li>
+          <li><span class="stats-num" id="helpCount">0</span><span class="stats-label">次帮助</span></li>
+        </ul>
+
+        <!-- Quick tools -->
+        <div class="quick-tools">
+          <div class="quick-tools-title">热门工具 · 随取随用</div>
+          <div class="quick-tools-row">
+            <a href="/tools/network/json-format.html" class="quick-tool-card"><i class="bi bi-braces"></i>JSON 格式化</a>
+            <a href="/tools/encrypt/base64.html" class="quick-tool-card"><i class="bi bi-lock"></i>Base64 编解码</a>
+            <a href="/tools/code/regex-tester.html" class="quick-tool-card"><i class="bi bi-code-slash"></i>正则测试</a>
+            <a href="/tools/encrypt/url.html" class="quick-tool-card"><i class="bi bi-link-45deg"></i>URL 编码</a>
+            <a href="/tools/time/timestamp.html" class="quick-tool-card"><i class="bi bi-clock"></i>时间戳转换</a>
+          </div>
         </div>
       </div>
       <div class="categories" id="categories">
@@ -128,6 +231,30 @@
           CT.showToast('加载工具列表失败');
         });
     });
+
+    // Help counter: stored in localStorage, max 10 increments per day per browser
+    (function() {
+      var key = 'ct_help_count';
+      var dayKey = 'ct_help_day';
+      var today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      var storedDay = localStorage.getItem(dayKey) || '';
+      var count = parseInt(localStorage.getItem(key) || '0', 10);
+
+      if (storedDay !== today) {
+        // New day, reset
+        localStorage.setItem(dayKey, today);
+        localStorage.setItem(key, '0');
+        count = 0;
+      }
+
+      if (count < 10) {
+        count += 1;
+        localStorage.setItem(key, String(count));
+      }
+
+      var el = document.getElementById('helpCount');
+      if (el) el.textContent = count;
+    })();
   </script>
 </body>
 </html>
