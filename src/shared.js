@@ -30,8 +30,13 @@
     localStorage.setItem('clover-theme', theme);
     var btn = document.getElementById('themeToggle');
     if (btn) {
-      btn.textContent = theme === 'dark' ? '\ud83c\udf19' : '\u2600\ufe0f';
-      btn.setAttribute('title', theme === 'dark' ? '\u5207\u6362\u5230\u4eae\u8272\u6a21\u5f0f' : '\u5207\u6362\u5230\u6697\u9ed1\u6a21\u5f0f');
+      var sunIcon = btn.querySelector('.icon-sun');
+      var moonIcon = btn.querySelector('.icon-moon');
+      if (sunIcon && moonIcon) {
+        sunIcon.style.display = theme === 'dark' ? 'none' : '';
+        moonIcon.style.display = theme === 'dark' ? '' : 'none';
+      }
+      btn.setAttribute('title', theme === 'dark' ? '切换到亮色模式' : '切换到暗黑模式');
     }
   }
 
