@@ -26,25 +26,6 @@ const headerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/header.h
 const footerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/footer.html'), 'utf8').trim();
 const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-btn.html'), 'utf8').trim();
 
-
-const PATH_TO_TYPE_FALLBACK = {
-    'code/css': 'formatter',
-    'code/html': 'formatter',
-    'code/javascript': 'formatter',
-    'encrypt/base64': 'encode-decode',
-    'encrypt/hex': 'converter',
-    'encrypt/url': 'encode-decode',
-    'json/formatter': 'formatter',
-    'json/xml': 'converter',
-    'json/yaml': 'converter',
-    'other/hex-convert': 'converter',
-    'other/nanoid': 'generator',
-    'other/password': 'generator',
-    'other/uuid': 'generator',
-    'text/jianfan': 'converter'
-};
-
-
 // ============ Build categories HTML for homepage ============
 function buildCategoriesHtml() {
   let html = '';
@@ -486,13 +467,6 @@ function buildToolScript(tool) {
     // NO quote escaping needed - script tag content doesn't use HTML attribute rules
     const escaped = raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
     return escaped;
-  }
-  // Try type inference via PATH_TO_TYPE_FALLBACK
-  const effectiveType = PATH_TO_TYPE_FALLBACK[stripExt(tool.path)];
-  if (effectiveType && TOOL_TYPE_REGISTRY[effectiveType]) {
-    const raw2 = TOOL_TYPE_REGISTRY[effectiveType].script(tool);
-    const escaped2 = raw2.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
-    return escaped2;
   }
   const scripts = {
     'json/formatter': `
@@ -3422,242 +3396,6 @@ function buildToolContentHtml(tool) {
   return contents[key] || '';
 }
 
-// ============ Blog SEO Generator ============
-const blogTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'blog-post.html'), 'utf8');
-const KEYWORDS_JSON_PATH = path.join(BASE, 'keywords.json');
-const keywordsConfig = JSON.parse(fs.readFileSync(KEYWORDS_JSON_PATH, 'utf8'));
-
-// Tool name lookup for CTA links
-const toolNameMap = {};
-toolsConfig.forEach(cat => {
-  cat.tools.forEach(tool => {
-    toolNameMap[tool.path] = { name: tool.name, path: tool.path, desc: tool.desc || '' };
-  });
-});
-
-// Resolve tool info from keyword entry
-function resolveTool(keywordEntry) {
-  if (!keywordEntry.tool) return null;
-  return toolNameMap[keywordEntry.tool] || null;
-}
-
-// Build article content based on keyword intent
-function buildBlogContent(keyword, intent, toolInfo) {
-  const t = toolInfo ? `<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a>` : '';
-
-  // Template by intent type
-  const templates = {
-    'error-fix': `
-<h2>🔍 问题描述</h2>
-<p>在日常开发中，你可能遇到过类似的错误提示，这个问题很常见，但原因可能有多种。本文帮你快速定位并解决。</p>
-<h2>⚙️ 常见原因</h2>
-<ul>
-  <li><strong>格式不规范</strong>：JSON/编码/参数格式不符合预期标准</li>
-  <li><strong>字符集问题</strong>：UTF-8 和 GBK 混用导致乱码</li>
-  <li><strong>特殊字符转义</strong>：未正确处理特殊字符导致解析失败</li>
-  <li><strong>接口返回异常</strong>：后端数据未做标准化处理</li>
-</ul>
-<h2>✅ 解决方法</h2>
-<p>按照以下步骤逐一排查：</p>
-<ol>
-  <li>使用工具 ${t ? `检查输入格式是否规范` : `检查输入内容`}</li>
-  <li>确认字符编码是否为 UTF-8</li>
-  <li>检查特殊字符是否正确转义</li>
-  <li>如果是接口问题，联系后端确认返回数据格式</li>
-</ol>
-<p>如果需要处理具体的格式转换或编解码操作，直接使用上面的工具即可一键完成。</p>`,
-
-    'encoding': `
-<h2>🔍 问题描述</h2>
-<p>字符编码不一致导致的乱码或解码失败，是开发者经常遇到的问题。这个问题看似简单，但排查起来往往耗时。</p>
-<h2>⚙️ 常见原因</h2>
-<ul>
-  <li><strong>编码不一致</strong>：发送端和接收端使用不同字符集</li>
-  <li><strong>URL编码问题</strong>：特殊字符未做URL编码或解码方式错误</li>
-  <li><strong>Base64头尾</strong>：Data URL格式不正确导致图片无法显示</li>
-</ul>
-<h2>✅ 解决方法</h2>
-<p>最直接的方式是使用编码转换工具 ${t ? '（如上面的 ' + t.name + '）' : ''} 进行标准化处理：</p>
-<ol>
-  <li>确定源数据的原始编码</li>
-  <li>统一转换为 UTF-8 或目标编码格式</li>
-  <li>使用工具验证转换结果是否正确</li>
-</ol>`,
-
-    'limit-fix': `
-<h2>🔍 问题描述</h2>
-<p>平台对文件大小、图片尺寸等有限制，上传时经常遇到"文件过大"等报错。这个问题非常普遍，尤其是处理用户上传时。</p>
-<h2>⚙️ 常见原因</h2>
-<ul>
-  <li><strong>平台限制</strong>：大多数平台对单文件大小有明确限制（1MB-5MB）</li>
-  <li><strong>格式体积差</strong>：PNG转JPG后反而变大（无损vs有损压缩）</li>
-  <li><strong>未压缩</strong>：原图是未压缩的高清图，体积巨大</li>
-</ul>
-<h2>✅ 解决方法</h2>
-<p>使用 ${t ? '工具压缩：' + t : '对应工具'}处理：</p>
-<ol>
-  <li>压缩图片：降低质量或调整尺寸到限制范围内</li>
-  <li>转换格式：JPG转PNG或反之，根据实际需求选择体积更小的格式</li>
-  <li>如果是PDF，先尝试图片压缩，仍超限再做格式转换</li>
-</ol>`,
-
-    'guide': `
-<h2>🔍 问题说明</h2>
-<p>这类问题属于工具使用类需求，搞清楚原理能让你事半功倍。</p>
-<h2>⚙️ 核心概念</h2>
-<ul>
-  <li>理解基本原理，而不是死记硬背</li>
-  <li>善用工具提高效率，避免重复劳动</li>
-  <li>遇到问题学会分层排查</li>
-</ul>
-<h2>✅ 实践建议</h2>
-<p>使用 ${t ? "工具 " + t + " 进行实际操作练习：" : "进行实际操作练习："}</p>
-<ol>
-  <li>了解工具的输入输出格式</li>
-  <li>用简单示例验证功能是否正常</li>
-  <li>应用到实际项目中</li>
-</ol>`,
-
-    'info': `
-<h2>🔍 问题说明</h2>
-<p>这是一个常见的技术疑问，很多人都会问到。答案其实很明确。</p>
-<h2>⚙️ 技术原理</h2>
-<p>在计算机科学中，UUID/随机数等都有明确的设计原理和碰撞概率。理解原理才能正确使用。</p>
-<h2>✅ 结论</h2>
-${t ? '<p>实际使用 ' + t + '，不必担心重复问题。在实际工程中碰撞概率可以忽略不计。</p>' : '<p>这类问题在工程实践中不必过度担心。</p>'}`,
-  };
-
-  return templates[intent] || templates['error-fix'];
-}
-
-// Build FAQ section for each article
-function buildFaq(keyword, intent) {
-  const faqs = {
-    'error-fix': [
-      { q: '为什么会报这个错误？', a: '通常是格式不规范、字符转义错误或编码不一致导致。' },
-      { q: '这个错误会影响功能吗？', a: '会的，格式错误会导致数据无法正常解析，影响程序运行。' },
-      { q: '有没有自动修复的方法？', a: '使用对应的工具可以自动修复大部分格式问题。' },
-    ],
-    'encoding': [
-      { q: 'UTF-8和GBK有什么区别？', a: 'UTF-8支持全球字符，GBK只支持中文，混用会导致乱码。' },
-      { q: 'Base64图片打不开怎么办？', a: '检查是否有正确的前缀格式（data:image/png;base64,），以及是否为有效的Base64字符串。' },
-    ],
-    'limit-fix': [
-      { q: '压缩后图片会变模糊吗？', a: '适当压缩在70%-80%质量下肉眼看不出区别，但体积能减少50%-70%。' },
-      { q: '平台限制无法突破怎么办？', a: '可以分片上传，或联系平台申请更大额度。' },
-    ],
-    'error-fix': [
-      { q: '等等，这个错误是怎么产生的？', a: '大多数是因为JSON/编码格式不规范，或者接口返回了异常数据。' },
-    ],
-  };
-
-  const faqList = faqs[intent] || faqs['error-fix'];
-  return faqList.map(f => `<div class="faq-item"><strong>Q: ${f.q}</strong><br>A: ${f.a}</div>`).join('\n');
-}
-
-// Build tool CTA links
-function buildToolLinks(toolInfo) {
-  if (!toolInfo) return '<a href="/">浏览所有工具</a>';
-  return `<a href="/tools/${toolInfo.path}">${toolInfo.name}</a>`;
-}
-
-// Generate blog index page
-function generateBlogIndex() {
-  // Group by category
-  const byCategory = {};
-  keywordsConfig.forEach(kw => {
-    const cat = kw.category || '其他';
-    if (!byCategory[cat]) byCategory[cat] = [];
-    byCategory[cat].push(kw);
-  });
-
-  let itemsHtml = '';
-  Object.keys(byCategory).sort().forEach(cat => {
-    itemsHtml += `<h2 style="margin:2rem 0 1rem;font-size:1.2rem;">${cat}</h2>\n<ul style="list-style:none;padding:0;">`;
-    byCategory[cat].forEach(kw => {
-      const toolInfo = resolveTool(kw);
-      itemsHtml += `<li style="margin-bottom:0.8rem;padding:0.8rem;background:var(--bg-secondary);border-radius:8px;">
-        <a href="/blog/${kw.slug}" style="color:var(--primary);text-decoration:none;font-weight:600;">${kw.keyword}</a>
-        ${toolInfo ? `<span style="font-size:0.8rem;opacity:0.6;margin-left:0.5rem;">→ <a href="/tools/${toolInfo.path}">${toolInfo.name}</a></span>` : ''}
-      </li>`;
-    });
-    itemsHtml += '</ul>';
-  });
-
-  const blogIndexHtml = `
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>开发者问题解决博客 - 🍀 CloverTools</title>
-  <meta name="description" content="开发者常见问题解决指南，JSON错误、编码问题、文件限制等实际问题的解决方案。">
-  <link rel="canonical" href="https://tools.xsanye.cn/blog/">
-  <link rel="stylesheet" href="/src/shared.css">
-  <style>
-    .blog-header { text-align: center; padding: 2rem 0 1rem; }
-    .blog-header h1 { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
-    .blog-header p { opacity: 0.7; max-width: 600px; margin: 0 auto; }
-    .blog-list { max-width: 800px; margin: 2rem auto; }
-    .back-home { text-align: center; margin-top: 2rem; }
-    .back-home a { color: var(--primary); }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="blog-header">
-      <h1>🍀 开发者问题解决博客</h1>
-      <p>遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具。</p>
-    </div>
-    <div class="blog-list">
-      ${itemsHtml}
-    </div>
-    <div class="back-home">
-      <a href="/">← 返回工具首页</a>
-    </div>
-  </div>
-</body>
-</html>`;
-  fs.writeFileSync(path.join(DIST_DIR, 'blog', 'index.html'), blogIndexHtml);
-}
-
-function generateBlogPosts() {
-  ensureDir(path.join(DIST_DIR, 'blog'));
-
-  keywordsConfig.forEach(kw => {
-    const toolInfo = resolveTool(kw);
-    const articleContent = buildBlogContent(kw.keyword, kw.intent, toolInfo);
-    const faqContent = buildFaq(kw.keyword, kw.intent);
-    const toolLinks = buildToolLinks(toolInfo);
-    const blogUrl = 'https://tools.xsanye.cn/blog/' + kw.slug;
-    const today = new Date().toISOString().split('T')[0];
-
-    let pageHtml = blogTemplate
-      .replace(/\{\{PAGE_TITLE\}\}/g, kw.keyword + ' - 🍀 CloverTools')
-      .replace(/\{\{PAGE_DESC\}\}/g, `详细解决${kw.keyword}的方法，提供在线工具，无需注册即可使用。`)
-      .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + '，开发者工具，问题解决')
-      .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
-      .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - 🍀 CloverTools')
-      .replace(/\{\{PAGE_OG_DESC\}\}/g, `详细解决${kw.keyword}的方法，` + (toolInfo ? `配合${toolInfo.name}工具使用` : '配合CloverTools在线工具'))
-      .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
-      .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
-      .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
-      .replace('{{ARTICLE_TITLE}}', kw.keyword)
-      .replace('{{ARTICLE_DATE}}', today)
-      .replace('{{ARTICLE_CONTENT}}', articleContent)
-      .replace('{{TOOL_LINKS}}', toolLinks)
-      .replace('{{FAQ_CONTENT}}', faqContent)
-      .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
-      .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
-      .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
-
-    fs.writeFileSync(path.join(DIST_DIR, 'blog', kw.slug + '.html'), pageHtml);
-  });
-
-  generateBlogIndex();
-  console.log(`   Generated ${keywordsConfig.length} blog posts + index`);
-}
-
 // ============ Main generator ============
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -3766,9 +3504,6 @@ function generate() {
 
   console.log(`   Generated ${generated} tool pages`);
 
-  // Generate blog SEO posts
-  generateBlogPosts();
-
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
@@ -3778,12 +3513,6 @@ function generate() {
       urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`);
     });
   });
-  // Add blog posts to sitemap
-  keywordsConfig.forEach(kw => {
-    urls.push(`<url><loc>${baseUrl}/blog/${kw.slug}</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
-  });
-  urls.push(`<url><loc>${baseUrl}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
-
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
   console.log('   Generated sitemap.xml');
