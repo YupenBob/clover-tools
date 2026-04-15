@@ -93,7 +93,7 @@ function buildToolPage(tool) {
     .replace(/\{\{SITE_FOOTER_WITH_SHARE\}\}/g, footerWithShare)
     .replace(/\{\{SHARE_BTN_SCRIPT\}\}/g, shareBtnScript)
     // Meta tags
-    .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - 🍀 CloverTools')
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - CloverTools')
     .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.description || tool.name)
     .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
@@ -3682,7 +3682,7 @@ function generateBlogIndex() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>开发者问题解决博客 - 🍀 CloverTools</title>
+  <title>开发者问题解决博客 - CloverTools</title>
   <meta name="description" content="开发者常见问题解决指南，JSON错误、编码问题、文件限制等实际问题的解决方案。">
   <link rel="canonical" href="https://tools.xsanye.cn/blog/">
   <link rel="stylesheet" href="/src/shared.css">
@@ -3799,11 +3799,11 @@ function generateBlogPosts() {
     const today = new Date().toISOString().split('T')[0];
 
     let pageHtml = blogTemplate
-      .replace(/\{\{PAGE_TITLE\}\}/g, kw.keyword + ' - 🍀 CloverTools')
+      .replace(/\{\{PAGE_TITLE\}\}/g, kw.keyword + ' - CloverTools')
       .replace(/\{\{PAGE_DESC\}\}/g, `详细解决${kw.keyword}的方法，提供在线工具，无需注册即可使用。`)
       .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + '，开发者工具，问题解决')
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
-      .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - 🍀 CloverTools')
+      .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
       .replace(/\{\{PAGE_OG_DESC\}\}/g, `详细解决${kw.keyword}的方法，` + (toolInfo ? `配合${toolInfo.name}工具使用` : '配合CloverTools在线工具'))
       .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
@@ -3904,7 +3904,7 @@ function generateFixHubPages() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${hub.title} - 🍀 CloverTools</title>
+  <title>${hub.title} - CloverTools</title>
   <meta name="description" content="${hub.desc}">
   <link rel="canonical" href="https://tools.xsanye.cn/fix/${hub.path}/">
   <link rel="stylesheet" href="/src/shared.css">
@@ -3992,7 +3992,7 @@ function generate() {
     .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
     .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
     .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
-    .replace(/\{\{PAGE_OG_TITLE\}\}/g, '🍀 CloverTools - 轻量级开发者工具箱')
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, 'CloverTools - 轻量级开发者工具箱')
     .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
     .replace(/\{\{PAGE_META_DESC\}\}/g, 'CloverTools 轻量级开发者工具箱，提供 JSON 格式化、加密解码、时间转换、代码美化等实用工具，无需注册，完全免费。')
     .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
@@ -4049,7 +4049,7 @@ function generate() {
         .replace(/\{\{SITE_FOOTER_WITH_SHARE\}\}/g, footerWithShare)
         .replace(/\{\{SHARE_BTN_SCRIPT\}\}/g, shareBtnScript)
         // Meta tags (add category suffix for tools with duplicate names)
-        .replace(/\{\{PAGE_OG_TITLE\}\}/g, (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? tool.name + ' (' + cat.category + ') - 🍀 CloverTools' : tool.name + ' - 🍀 CloverTools'))
+        .replace(/\{\{PAGE_OG_TITLE\}\}/g, (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? tool.name + ' (' + cat.category + ') - CloverTools' : tool.name + ' - CloverTools'))
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
         .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + '，无需注册，完全免费。' : tool.name + ' - 在线工具，无需注册，完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
         .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + '，在线工具，免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? '，' + cat.category : ''))
