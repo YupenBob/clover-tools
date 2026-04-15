@@ -806,6 +806,224 @@ function buildToolScript(tool) {
       input.addEventListener('input', run);
     `,
 
+    'code/knowledge-graph': `
+      (function(){
+        var svg=document.getElementById('kgSvg'),empty=document.getElementById('kgEmpty'),stats=document.getElementById('kgStats');
+        var nodes=[],edges=[],gType='entity';
+        var COLORS={fn:'#6366f1',cls:'#f59e0b',mod:'#10b981',prop:'#8b5cf6',val:'#ec4899',noun:'#3b82f6',default:'#64748b'};
+        function uid(){return Math.random().toString(36).substr(2,9);}
+        function kw(w){return/^(if|else|for|while|return|function|class|const|let|var|import|export|default|async|await|new|this|true|false|null|undefined|of|in|try|catch|throw|finally|switch|case|break|continue|typeof|instanceof)$/.test(w);}
+        function detectType(text){
+          var t=text.trim();
+          if(t.startsWith('{')||t.startsWith('[')){try{JSON.parse(t);return'json';}catch(e){}}
+          if(/^(import|const|let|var|function|class|export|require)\\s/m.test(t))return'code';
+          return'text';
+        }
+        function extractJSON(text){
+          var ns=[],es=[];
+          function getType(v){if(v===null)return'val';if(Array.isArray(v))return'val';var t=typeof v;return(t==='number'||t==='boolean'||t==='string')?'val':'prop';}
+          function trav(v,k,p){
+            var id=uid(),ty=getType(v),lb=k||'root';
+            ns.push({id:id,label:lb,type:ty});
+            if(p!==null)es.push({source:p,target:id,label:k?'key':''});
+            if(typeof v==='object'&&v!==null){
+              if(Array.isArray(v))v.forEach(function(it,i){trav(it,String(i),id);});
+              else Object.keys(v).forEach(function(k2){trav(v[k2],k2,id);});
+            }
+          }
+          try{trav(JSON.parse(text),null,null);}catch(e){}
+          return{nodes:ns,edges:es};
+        }
+        function extractCode(text){
+          var ns=[],es=[];
+          var lines=text.split('\\n');
+          var curFn=null,curCls=null;
+          var fnRe=/(?:function\\s+(\\w+)|(?:const|let|var)\\s+(\\w+)\\s*=\\s*(?:async\\s*)?(?:function|\\(|=>)|(\\w+)\\s*[:=]\\s*(?:async\\s*)?\\(|class\\s+(\\w+))/g;
+          var clsRe=/class\\s+(\\w+)/g;
+          var impRe=/(?:import|require)\\s*(?:\\{[^}]*\\}|\\*\\s*as\\s+\\w+|[^;'"\`]+)/g;
+          lines.forEach(function(line){
+            var m;
+            while((m=fnRe.exec(line))!==null){
+              var nm=m[1]||m[2]||m[3];
+              if(nm&&nm.length>1&&!kw(nm)){
+                var id=uid();ns.push({id:id,label:nm,type:'fn'});
+                if(curCls)es.push({source:curCls,target:id,label:'method'});else if(curFn)es.push({source:curFn,target:id,label:'nested'});
+                curFn=id;
+              }
+              fnRe.lastIndex=0;
+            }
+            while((m=clsRe.exec(line))!==null){
+              var cn=m[1];var cid=uid();ns.push({id:cid,label:cn,type:'cls'});
+              if(curCls)es.push({source:curCls,target:cid,label:'extends'});
+              curCls=cid;curFn=null;clsRe.lastIndex=0;
+            }
+            while((m=impRe.exec(line))!==null){
+              var imp=m[0].replace(/import\\s+/,'').replace(/require\\s*\\(/,'').replace(/['"\`;]/g,'').trim().split(',')[0].trim();
+              if(imp&&imp.length>1&&imp!=='*'){
+                var iid=uid();ns.push({id:iid,label:imp.split('/').pop().split('\\.').shift(),type:'mod'});
+                if(curCls)es.push({source:curCls,target:iid,label:'import'});else if(curFn)es.push({source:curFn,target:iid,label:'import'});
+              }
+              impRe.lastIndex=0;
+            }
+          });
+          return{nodes:ns.slice(0,60),edges:es.slice(0,80)};
+        }
+        function extractText(text){
+          var ns=[],es=[];
+          var cnRe=/[\\u4e00-\\u9fa5]{2,}/g,enRe=/\\b[A-Z][a-zA-Z0-9]{2,}\\b/g;
+          var all=[];
+          var m;
+          while((m=cnRe.exec(text))!==null)all.push({w:m[0]});
+          while((m=enRe.exec(text))!==null)all.push({w:m[0]});
+          var uniq={};
+          all.forEach(function(it){if(!uniq[it.w]){uniq[it.w]=true;ns.push({id:uid(),label:it.w,type:'noun'});}});
+          var sents=text.split(/[.。!！?？;；\\n]+/);
+          sents.forEach(function(sent){
+            var wr=/\\b[a-z][a-z0-9]{2,}\\b/gi;
+            var wrds=sent.match(wr)||[];
+            var cnwrds=sent.match(cnRe)||[];
+            var allwrds=[...wrds.map(function(w){return w.toLowerCase();}),...cnwrds].filter(function(w){return w.length>2;});
+            for(var i=0;i<allwrds.length;i++){
+              for(var j=i+1;j<allwrds.length;j++){
+                if(allwrds[i]!==allwrds[j]){
+                  var src=ns.find(function(n){return n.label.toLowerCase()===allwrds[i]||n.label===allwrds[i];});
+                  var tgt=ns.find(function(n){return n.label.toLowerCase()===allwrds[j]||n.label===allwrds[j];});
+                  if(src&&tgt&&src.id!==tgt.id){
+                    var ex=es.find(function(e){return e.source===src.id&&e.target===tgt.id;});
+                    if(!ex)es.push({source:src.id,target:tgt.id,label:'co-occur'});
+                  }
+                }
+              }
+            }
+          });
+          return{nodes:ns.slice(0,50),edges:es.slice(0,80)};
+        }
+        function buildGraph(input,type){
+          var t=detectType(input);
+          var result;
+          if(t==='json')result=extractJSON(input);
+          else if(t==='code')result=extractCode(input);
+          else result=extractText(input);
+          if(type==='mindmap'){
+            var root=result.nodes[0]||{id:uid(),label:'中心',type:'default'};
+            var es2=result.nodes.slice(1).map(function(n){return{source:root.id,target:n.id,label:''};});
+            return{nodes:[root,...result.nodes.slice(1)],edges:es2};
+          }else if(type==='concept'){
+            if(result.edges.length===0&&result.nodes.length>1){
+              result.nodes.forEach(function(n,i){if(i>0)result.edges.push({source:result.nodes[0].id,target:n.id,label:'relates'});});
+            }
+          }
+          return result;
+        }
+        function layoutNodes(ns,es,W,H){
+          var ITER=120,K=80,DAMP=0.85;
+          ns.forEach(function(n){n.x=Math.random()*W;n.y=Math.random()*H;n.vx=0;n.vy=0;n.fx=0;n.fy=0;});
+          for(var it=0;it<ITER;it++){
+            ns.forEach(function(n1){
+              ns.forEach(function(n2){
+                if(n1.id===n2.id)return;
+                var dx=n2.x-n1.x,dy=n2.y-n1.y;
+                var dist=Math.sqrt(dx*dx+dy*dy)||1;
+                var rep=500/(dist*dist);
+                n1.fx-=(dx/dist)*rep;n1.fy-=(dy/dist)*rep;
+              });
+            });
+            es.forEach(function(e){
+              var s=ns.find(function(n){return n.id===e.source;});
+              var t2=ns.find(function(n){return n.id===e.target;});
+              if(!s||!t2)return;
+              var dx=t2.x-s.x,dy=t2.y-s.y;
+              var dist=Math.sqrt(dx*dx+dy*dy)||1;
+              var force=K*dist;
+              s.fx+=(dx/dist)*force;s.fy+=(dy/dist)*force;
+            });
+            ns.forEach(function(n){
+              n.fx+=(W/2-n.x)*0.005;n.fy+=(H/2-n.y)*0.005;
+              n.vx=(n.vx+n.fx)*DAMP;n.vy=(n.vy+n.fy)*DAMP;
+              n.x=Math.max(40,Math.min(W-40,n.x));n.y=Math.max(40,Math.min(H-40,n.y));
+            });
+          }
+          return ns;
+        }
+        function render(ns,es){
+          var W=svg.clientWidth||800,H=500;
+          svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.innerHTML='';
+          var bg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+          bg.setAttribute('width','100%');bg.setAttribute('height','100%');bg.setAttribute('fill','#0f172a');
+          svg.appendChild(bg);
+          var gg=document.createElementNS('http://www.w3.org/2000/svg','g');
+          es.forEach(function(e){
+            var s=ns.find(function(n){return n.id===e.source;});
+            var t=ns.find(function(n){return n.id===e.target;});
+            if(!s||!t)return;
+            var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+            ln.setAttribute('x1',s.x);ln.setAttribute('y1',s.y);
+            ln.setAttribute('x2',t.x);ln.setAttribute('y2',t.y);
+            ln.setAttribute('stroke','#475569');ln.setAttribute('stroke-width','1.5');ln.setAttribute('stroke-opacity','0.7');
+            gg.appendChild(ln);
+          });
+          svg.appendChild(gg);
+          var ng=document.createElementNS('http://www.w3.org/2000/svg','g');
+          ns.forEach(function(n){
+            var color=COLORS[n.type]||COLORS.default;
+            var r=n.type==='default'?24:20;
+            var cl=document.createElementNS('http://www.w3.org/2000/svg','circle');
+            cl.setAttribute('cx',n.x);cl.setAttribute('cy',n.y);cl.setAttribute('r',r);
+            cl.setAttribute('fill',color);cl.setAttribute('opacity','0.92');
+            ng.appendChild(cl);
+            var txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+            txt.setAttribute('x',n.x);txt.setAttribute('y',n.y+4);
+            txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','11');
+            txt.setAttribute('fill','#fff');txt.setAttribute('font-weight','600');
+            txt.setAttribute('pointer-events','none');
+            var lb=n.label.length>12?n.label.substr(0,11)+'…':n.label;
+            txt.textContent=lb;
+            ng.appendChild(txt);
+          });
+          svg.appendChild(ng);empty.style.display='none';
+        }
+        document.getElementById('kgBuild').onclick=function(){
+          var input=document.getElementById('kgInput').value.trim();
+          if(!input){if(window.CT&&CT.showToast)CT.showToast('请输入内容');return;}
+          var type=document.getElementById('kgType').value;gType=type;
+          var result=buildGraph(input,type);nodes=result.nodes;edges=result.edges;
+          if(nodes.length===0){if(window.CT&&CT.showToast)CT.showToast('未检测到实体，请检查输入格式');return;}
+          var W=svg.clientWidth||800,H=500;
+          var laid=layoutNodes(nodes,edges,W,H);render(laid,edges);
+          stats.textContent='节点: '+nodes.length+' | 边: '+edges.length+' | 输入类型: '+detectType(input);
+          if(window.CT&&CT.showToast)CT.showToast('构建完成: '+nodes.length+' 节点, '+edges.length+' 条边');
+        };
+        document.getElementById('kgExportPng').onclick=function(){
+          if(nodes.length===0){if(window.CT&&CT.showToast)CT.showToast('请先构建图谱');return;}
+          var W=svg.clientWidth||800,H=500,scale=2;
+          var c=document.createElement('canvas');c.width=W*scale;c.height=H*scale;
+          var ctx=c.getContext('2d');ctx.scale(scale,scale);ctx.fillStyle='#0f172a';ctx.fillRect(0,0,W,H);
+          var svgData=new XMLSerializer().serializeToString(svg);
+          var img=new Image();
+          img.onload=function(){ctx.drawImage(img,0,0,W,H);
+            var a=document.createElement('a');a.download='knowledge-graph.png';a.href=c.toDataURL('image/png');a.click();
+            if(window.CT&&CT.showToast)CT.showToast('PNG 已导出');
+          };
+          img.onerror=function(){if(window.CT&&CT.showToast)CT.showToast('导出失败');};
+          img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgData);
+        };
+        document.getElementById('kgExportSvg').onclick=function(){
+          if(nodes.length===0){if(window.CT&&CT.showToast)CT.showToast('请先构建图谱');return;}
+          var W=svg.clientWidth||800,H=500;
+          var ns=document.createElementNS('http://www.w3.org/2000/svg','svg');
+          ns.setAttribute('xmlns','http://www.w3.org/2000/svg');ns.setAttribute('viewBox','0 0 '+W+' '+H);
+          ns.setAttribute('width',W);ns.setAttribute('height',H);
+          ns.innerHTML='<rect width="100%" height="100%" fill="#0f172a"/>'+svg.innerHTML;
+          var blob=new Blob([ns.outerHTML],{type:'image/svg+xml'});
+          var a=document.createElement('a');a.download='knowledge-graph.svg';a.href=URL.createObjectURL(blob);a.click();
+          if(window.CT&&CT.showToast)CT.showToast('SVG 已导出');
+        };
+        document.getElementById('kgReset').onclick=function(){
+          document.getElementById('kgInput').value='';svg.innerHTML='';empty.style.display='flex';nodes=[];edges=[];stats.textContent='';
+        };
+      })();
+    `,
+
     'json/table': `
       const input = document.getElementById('input');
       const tableContainer = document.getElementById('tableContainer');
@@ -2479,6 +2697,29 @@ function buildToolContentHtml(tool) {
         <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="output" readonly></textarea>
       </div>`,
+
+    'code/knowledge-graph': `
+      <div class="tool-card">
+        <h3>输入内容</h3>
+        <textarea id="kgInput" placeholder="粘贴 JSON、代码或任意文本...&#10;&#10;示例 JSON:&#10{&#10;  "name": "Alice",&#10;  "age": 30,&#10;  "friends": ["Bob", "Charlie"]&#10;}" style="min-height:160px;resize:vertical;font-family:monospace;font-size:0.85rem;"></textarea>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin:0.75rem 0;">
+          <label style="font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;">图谱类型: <select id="kgType" style="padding:0.4rem 0.6rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);"><option value="entity">实体关系图</option><option value="mindmap">思维导图</option><option value="concept">概念图</option></select></label>
+          <button class="btn btn-primary" id="kgBuild">构建图谱</button>
+        </div>
+      </div>
+      <div id="kgViz" style="background:#0f172a;border-radius:16px;min-height:400px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:0.9rem;margin-top:0.5rem;">
+        <svg id="kgSvg" width="100%" height="500" style="display:block;"></svg>
+        <div id="kgEmpty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0.5rem;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/><line x1="5" y1="19" x2="19" y2="19"/></svg>
+          输入内容后点击「构建图谱」
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:0.75rem;">
+        <button class="btn btn-secondary" id="kgExportPng">导出 PNG</button>
+        <button class="btn btn-secondary" id="kgExportSvg">导出 SVG</button>
+        <button class="btn btn-secondary" id="kgReset">重置</button>
+      </div>
+      <div id="kgStats" style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-secondary);"></div>`,
 
     'json/table': `
       <div class="tool-layout two-col">
