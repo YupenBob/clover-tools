@@ -3878,7 +3878,7 @@ function generateAboutPage() {
           <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.3rem;">YupenBob（别名）</div>
         </div>
         <div class="creator">
-          <img src="/src/clover-avatar.png" alt="Clover" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
+          <img src="/src/clover-avatar.svg" alt="Clover" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
           <div class="creator-name">Clover 🍀</div>
           <div class="creator-role">AI Assistant · OpenClaw</div>
         </div>
@@ -4067,9 +4067,9 @@ function generate() {
   const yorkAvatar = fs.readFileSync(path.join(SRC_DIR, 'york-avatar.png'), 'utf8');
   fs.writeFileSync(path.join(DIST_DIR, 'src/york-avatar.png'), yorkAvatar);
   console.log('   Copied york-avatar.png');
-  const cloverAvatar = fs.readFileSync(path.join(SRC_DIR, 'clover-avatar.png'), 'utf8');
-  fs.writeFileSync(path.join(DIST_DIR, 'src/clover-avatar.png'), cloverAvatar);
-  console.log('   Copied clover-avatar.png');
+  const cloverAvatar = fs.readFileSync(path.join(SRC_DIR, 'clover-avatar.svg'), 'utf8');
+  fs.writeFileSync(path.join(DIST_DIR, 'src/clover-avatar.svg'), cloverAvatar);
+  console.log('   Copied clover-avatar.svg');
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
