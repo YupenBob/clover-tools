@@ -176,7 +176,7 @@
         <ul class="stats-bar">
           <li><span class="stats-num">118</span><span class="stats-label">个在线工具</span></li>
           <li><span class="stats-num">220</span><span class="stats-label">篇解决文章</span></li>
-          <li><span class="stats-num" id="helpCount">0</span><span class="stats-label">次帮助</span></li>
+          <li><span class="stats-num" id="busuanzi_value_site_pv">0</span><span class="stats-label">次帮助</span></li>
         </ul>
 
         <!-- Quick tools -->
@@ -253,29 +253,8 @@
         });
     });
 
-    // Help counter: stored in localStorage, max 10 increments per day per browser
-    (function() {
-      var key = 'ct_help_count';
-      var dayKey = 'ct_help_day';
-      var today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-      var storedDay = localStorage.getItem(dayKey) || '';
-      var count = parseInt(localStorage.getItem(key) || '0', 10);
 
-      if (storedDay !== today) {
-        // New day, reset
-        localStorage.setItem(dayKey, today);
-        localStorage.setItem(key, '0');
-        count = 0;
-      }
-
-      if (count < 10) {
-        count += 1;
-        localStorage.setItem(key, String(count));
-      }
-
-      var el = document.getElementById('helpCount');
-      if (el) el.textContent = count;
-    })();
   </script>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
