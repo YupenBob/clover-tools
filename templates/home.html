@@ -254,27 +254,25 @@
     });
 
 
-  </script>
-  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
   <script>
     (function() {
       var base = 56490;
       var el = document.getElementById('busuanzi_value_site_pv');
       if (!el) return;
-      var last = 0;
-      function apply() {
-        var real = parseInt(el.textContent || '0', 10);
-        if (real > 0 && real !== last) {
-          last = real;
-          el.textContent = base + real;
+      var applied = false;
+      function tryApply() {
+        if (applied) return;
+        var v = parseInt(el.textContent || '0', 10);
+        if (v > 0) {
+          applied = true;
+          el.textContent = v + base;
         }
       }
-      // Watch for busuanzi updates
-      var obs = new MutationObserver(apply);
-      obs.observe(el, { childList: true, characterData: true, subtree: true });
-      // Fallback: check after delay
-      setTimeout(apply, 2000);
+      // Busuanzi loads async, try polling
+      var interval = setInterval(tryApply, 300);
+      setTimeout(function() { clearInterval(interval); tryApply(); }, 5000);
     })();
   </script>
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
