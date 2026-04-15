@@ -3981,6 +3981,9 @@ function generate() {
   console.log('   Copied shared.css');
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.js'), sharedJs);
   console.log('   Copied shared.js');
+  const cloverLogoSvg = fs.readFileSync(path.join(SRC_DIR, 'clover-logo.svg'), 'utf8');
+  fs.writeFileSync(path.join(DIST_DIR, 'src/clover-logo.svg'), cloverLogoSvg);
+  console.log('   Copied clover-logo.svg');
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
@@ -3993,7 +3996,7 @@ function generate() {
     .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
     .replace(/\{\{PAGE_META_DESC\}\}/g, 'CloverTools 轻量级开发者工具箱，提供 JSON 格式化、加密解码、时间转换、代码美化等实用工具，无需注册，完全免费。')
     .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/src/clover-logo.svg')
     .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/');
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
