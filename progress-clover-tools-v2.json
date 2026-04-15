@@ -1,0 +1,1135 @@
+{
+  "project": "clover-tools-v2",
+  "created": "2026-04-07T00:00:00+08:00",
+  "description": "CloverTools 工具站扩展项目 - 从215工具扩展到1000+",
+  "currentTools": 255,
+  "targetTools": 1000,
+  "totalSubtasks": 800,
+  "completed": 61,
+  "todayQuota": 20,
+  "todayCompleted": 20,
+  "avgQualityScore": 0,
+  "deadline": "2026-06-30T23:59:59+08:00",
+  "phase": 1,
+  "qualityThreshold": 0.8,
+  "retryList": [],
+  "history": [
+    {
+      "date": "2026-04-11",
+      "completed": 20,
+      "avgScore": 0.9,
+      "notes": "20 tools (10 math + 10 network) via TOOL_TYPE_REGISTRY"
+    },
+    {
+      "date": "2026-04-11",
+      "completed": 40,
+      "avgScore": 0.9,
+      "notes": "40 tools total today: 20 math/network + 20 format-convert/dev tools"
+    },
+    {
+      "date": "2026-04-12",
+      "completed": 1,
+      "avgScore": 0.9,
+      "passed": [
+        "JSON格式化"
+      ],
+      "failed": []
+    },
+    {
+      "date": "2026-04-13",
+      "completed": 20,
+      "avgScore": 0.92,
+      "notes": "20 dev tools: Http/WebSocket/JSON APIs, JSON converters, formatters, UUID/NanoID",
+      "passed": [
+        "Http接口测试",
+        "Websocket接口测试",
+        "JSON校验格式化",
+        "JSON转TypeScript",
+        "JSON转Java实体类",
+        "JSON转C#实体类",
+        "JSON转Golang Struct",
+        "JSON转SQL",
+        "JSONPath解析器",
+        "HTML格式化",
+        "XML压缩格式化",
+        "UUID生成器",
+        "Nano ID生成器"
+      ],
+      "failed": []
+    }
+  ],
+  "generatorInsight": {
+    "mechanism": "generator.js reads tools.json, uses buildToolScript + buildToolContentHtml map for existing tools, generates index.html + each tool HTML",
+    "keyConstraint": "Each new tool requires adding BOTH tools.json entry AND buildToolScript/buildToolContentHtml functions in generator.js (1:1 hand-coding)",
+    "scalabilityFixNeeded": "Refactor generator.js to support template-based tool types (type: 'encode-decode', 'format-minify', 'generate', 'calculate', etc.) so tools.json alone drives generation"
+  },
+  "currentDistribution": {
+    "code": 63,
+    "encrypt": 31,
+    "json": 16,
+    "life": 41,
+    "math": 10,
+    "network": 10,
+    "other": 6,
+    "text": 40,
+    "time": 18
+  },
+  "phases": {
+    "phase1": {
+      "name": "填补空白 + 系统重构",
+      "period": "2026-04-11 至 2026-04-30",
+      "target": 400,
+      "gaps": [
+        "math(0→80)",
+        "network(0→60)"
+      ],
+      "generatorRefactor": "重构generator.js支持模板化工具类型，tools.json定义即可生成页面",
+      "seoPass": "所有工具页面补充 keywords/description/meta，优化标题格式",
+      "dailyTarget": "20个工具/天 × 20天 = 400工具",
+      "exampleTools": [
+        {
+          "name": "数学计算器",
+          "category": "math",
+          "path": "math/calculator",
+          "type": "calculate"
+        },
+        {
+          "name": "质数判定",
+          "category": "math",
+          "path": "math/prime-check",
+          "type": "calculate"
+        },
+        {
+          "name": "阶乘计算",
+          "category": "math",
+          "path": "math/factorial",
+          "type": "calculate"
+        },
+        {
+          "name": "最大公约数",
+          "category": "math",
+          "path": "math/gcd",
+          "type": "calculate"
+        },
+        {
+          "name": "最小公倍数",
+          "category": "math",
+          "path": "math/lcm",
+          "type": "calculate"
+        },
+        {
+          "name": "随机数生成器",
+          "category": "math",
+          "path": "math/random",
+          "type": "generate"
+        },
+        {
+          "name": "数列求和",
+          "category": "math",
+          "path": "math/sum-sequence",
+          "type": "calculate"
+        },
+        {
+          "name": "IP 地址查询",
+          "category": "network",
+          "path": "network/ip-lookup",
+          "type": "query"
+        },
+        {
+          "name": "端口扫描",
+          "category": "network",
+          "path": "network/port-scan",
+          "type": "check"
+        },
+        {
+          "name": "DNS 查询",
+          "category": "network",
+          "path": "network/dns-lookup",
+          "type": "query"
+        },
+        {
+          "name": "HTTP 状态码查询",
+          "category": "network",
+          "path": "network/http-status",
+          "type": "query"
+        },
+        {
+          "name": "Cron 表达式生成器",
+          "category": "network",
+          "path": "network/cron-gen",
+          "type": "generate"
+        },
+        {
+          "name": "URL 参数解析",
+          "category": "network",
+          "path": "network/url-parse",
+          "type": "parse"
+        },
+        {
+          "name": "JSON 压缩",
+          "category": "json",
+          "path": "json/minify",
+          "type": "minify"
+        },
+        {
+          "name": "JSON 美化",
+          "category": "json",
+          "path": "json/beautify",
+          "type": "format"
+        },
+        {
+          "name": "JSON 差异对比",
+          "category": "json",
+          "path": "json/diff",
+          "type": "diff"
+        },
+        {
+          "name": "JSON 视图",
+          "category": "json",
+          "path": "json/viewer",
+          "type": "view"
+        },
+        {
+          "name": "随机密码生成",
+          "category": "code",
+          "path": "code/password-gen",
+          "type": "generate"
+        },
+        {
+          "name": "哈希值计算",
+          "category": "code",
+          "path": "code/hash-gen",
+          "type": "calculate"
+        },
+        {
+          "name": "进制转换器",
+          "category": "code",
+          "path": "code/base-convert",
+          "type": "convert"
+        }
+      ]
+    },
+    "phase2": {
+      "name": "高频工具扩展",
+      "period": "2026-05-01 至 2026-05-31",
+      "target": 700,
+      "gaps": [
+        "code(63→150)",
+        "text(40→120)",
+        "encrypt(31→80)",
+        "life(41→80)"
+      ],
+      "dailyTarget": "10个工具/天 × 31天 = 310工具",
+      "exampleTools": {
+        "code": [
+          {
+            "name": "正则表达式测试",
+            "path": "code/regex-tester",
+            "type": "test"
+          },
+          {
+            "name": "SQL 格式化",
+            "path": "code/sql-format",
+            "type": "format"
+          },
+          {
+            "name": "Python 格式化",
+            "path": "code/python-format",
+            "type": "format"
+          },
+          {
+            "name": "TypeScript 格式化",
+            "path": "code/typescript-format",
+            "type": "format"
+          },
+          {
+            "name": "Java 格式化",
+            "path": "code/java-format",
+            "type": "format"
+          },
+          {
+            "name": "SQL 压缩",
+            "path": "code/sql-minify",
+            "type": "minify"
+          },
+          {
+            "name": "JSON Schema 验证",
+            "path": "code/json-schema",
+            "type": "validate"
+          },
+          {
+            "name": "GraphQL 格式化",
+            "path": "code/graphql-format",
+            "type": "format"
+          },
+          {
+            "name": "YAML 格式化",
+            "path": "code/yaml-format",
+            "type": "format"
+          },
+          {
+            "name": "TOML 格式化",
+            "path": "code/toml-format",
+            "type": "format"
+          },
+          {
+            "name": "INI 解析器",
+            "path": "code/ini-parse",
+            "type": "parse"
+          },
+          {
+            "name": "XML 格式化",
+            "path": "code/xml-format",
+            "type": "format"
+          },
+          {
+            "name": "XML 压缩",
+            "path": "code/xml-minify",
+            "type": "minify"
+          },
+          {
+            "name": "JWT 解码器",
+            "path": "code/jwt-decode",
+            "type": "decode"
+          },
+          {
+            "name": "JWT 生成器",
+            "path": "code/jwt-gen",
+            "type": "generate"
+          },
+          {
+            "name": "UUID v7 生成",
+            "path": "code/uuid-v7",
+            "type": "generate"
+          },
+          {
+            "name": "Nano ID 自定义",
+            "path": "code/nanoid-custom",
+            "type": "generate"
+          },
+          {
+            "name": "哈希文件上传",
+            "path": "code/file-hash",
+            "type": "upload"
+          },
+          {
+            "name": "色盲模拟器",
+            "path": "code/colorblind",
+            "type": "simulate"
+          },
+          {
+            "name": "颜色渐变生成",
+            "path": "code/color-gradient",
+            "type": "generate"
+          }
+        ],
+        "text": [
+          {
+            "name": "全文检索替换",
+            "path": "text/find-replace",
+            "type": "transform"
+          },
+          {
+            "name": "行去重排序",
+            "path": "text/unique-sort",
+            "type": "transform"
+          },
+          {
+            "name": "行号添加",
+            "path": "text/add-line-numbers",
+            "type": "transform"
+          },
+          {
+            "name": "空白行删除",
+            "path": "text/remove-blank-lines",
+            "type": "transform"
+          },
+          {
+            "name": "字母频率统计",
+            "path": "text/letter-frequency",
+            "type": "analyze"
+          },
+          {
+            "name": "中文分词",
+            "path": "text/word-segment",
+            "type": "analyze"
+          },
+          {
+            "name": "关键词提取",
+            "path": "text/keyword-extract",
+            "type": "analyze"
+          },
+          {
+            "name": "随机文本生成",
+            "path": "text/lorem-ipsum",
+            "type": "generate"
+          },
+          {
+            "name": "Markdown 表格生成",
+            "path": "text/md-table-gen",
+            "type": "generate"
+          },
+          {
+            "name": "进制转换文本",
+            "path": "text/number-bases",
+            "type": "convert"
+          },
+          {
+            "name": "标点符号转换",
+            "path": "text/punctuation-convert",
+            "type": "convert"
+          },
+          {
+            "name": "全角半角转换",
+            "path": "text/fullhalf-convert",
+            "type": "convert"
+          },
+          {
+            "name": "字符串差异高亮",
+            "path": "text/string-diff",
+            "type": "diff"
+          },
+          {
+            "name": "XML 转 JSON",
+            "path": "text/xml-to-json",
+            "type": "convert"
+          },
+          {
+            "name": "YAML 转 TOML",
+            "path": "text/yaml-to-toml",
+            "type": "convert"
+          },
+          {
+            "name": "CSV 转 JSON",
+            "path": "text/csv-to-json",
+            "type": "convert"
+          },
+          {
+            "name": "JSON 转 CSV",
+            "path": "text/json-to-csv",
+            "type": "convert"
+          },
+          {
+            "name": "表格提取",
+            "path": "text/table-extract",
+            "type": "extract"
+          },
+          {
+            "name": "代码对比",
+            "path": "text/code-diff",
+            "type": "diff"
+          },
+          {
+            "name": "JSONPath 查询",
+            "path": "text/jsonpath",
+            "type": "query"
+          }
+        ],
+        "encrypt": [
+          {
+            "name": "AES 加密",
+            "path": "encrypt/aes",
+            "type": "encrypt"
+          },
+          {
+            "name": "DES 加密",
+            "path": "encrypt/des",
+            "type": "encrypt"
+          },
+          {
+            "name": "TripleDES 加密",
+            "path": "encrypt/tripledes",
+            "type": "encrypt"
+          },
+          {
+            "name": "Rabbit 加密",
+            "path": "encrypt/rabbit",
+            "type": "encrypt"
+          },
+          {
+            "name": "RC4 加密",
+            "path": "encrypt/rc4",
+            "type": "encrypt"
+          },
+          {
+            "name": "Base32 编码",
+            "path": "encrypt/base32",
+            "type": "encode"
+          },
+          {
+            "name": "Base58 编码",
+            "path": "encrypt/base58",
+            "type": "encode"
+          },
+          {
+            "name": "Base91 编码",
+            "path": "encrypt/base91",
+            "type": "encode"
+          },
+          {
+            "name": "HTML 实体编码",
+            "path": "encrypt/html-entity",
+            "type": "encode"
+          },
+          {
+            "name": "Unicode 正规化",
+            "path": "encrypt/unicode-normalize",
+            "type": "normalize"
+          },
+          {
+            "name": "凯撒密码",
+            "path": "encrypt/caesar",
+            "type": "cipher"
+          },
+          {
+            "name": "Atbash 密码",
+            "path": "encrypt/atbash",
+            "type": "cipher"
+          },
+          {
+            "name": "Vigenere 密码",
+            "path": "encrypt/vigenere",
+            "type": "cipher"
+          },
+          {
+            "name": "摩斯密码",
+            "path": "encrypt/morse",
+            "type": "cipher"
+          },
+          {
+            "name": "Brainfuck 工具",
+            "path": "encrypt/brainfuck",
+            "type": "cipher"
+          },
+          {
+            "name": "Ook! 工具",
+            "path": "encrypt/ook",
+            "type": "cipher"
+          },
+          {
+            "name": "Tapcode 工具",
+            "path": "encrypt/tapcode",
+            "type": "cipher"
+          },
+          {
+            "name": "二维码生成",
+            "path": "encrypt/qrcode-gen",
+            "type": "generate"
+          },
+          {
+            "name": "二维码解析",
+            "path": "encrypt/qrcode-parse",
+            "type": "parse"
+          },
+          {
+            "name": "条形码生成",
+            "path": "encrypt/barcode",
+            "type": "generate"
+          }
+        ],
+        "life": [
+          {
+            "name": "BMI 计算器",
+            "path": "life/bmi",
+            "type": "calculate"
+          },
+          {
+            "name": "基础代谢率",
+            "path": "life/bmr",
+            "type": "calculate"
+          },
+          {
+            "name": "房贷计算器",
+            "path": "life/mortgage",
+            "type": "calculate"
+          },
+          {
+            "name": "个税计算器",
+            "path": "life/income-tax",
+            "type": "calculate"
+          },
+          {
+            "name": "折扣计算器",
+            "path": "life/discount",
+            "type": "calculate"
+          },
+          {
+            "name": "日期天数计算",
+            "path": "life/date-calc",
+            "type": "calculate"
+          },
+          {
+            "name": "睡眠周期计算",
+            "path": "life/sleep-cycle",
+            "type": "calculate"
+          },
+          {
+            "name": "卡路里计算",
+            "path": "life/calorie",
+            "type": "calculate"
+          },
+          {
+            "name": "图片压缩",
+            "path": "life/image-compress",
+            "type": "process"
+          },
+          {
+            "name": "图片格式转换",
+            "path": "life/image-convert",
+            "type": "convert"
+          },
+          {
+            "name": "图片加水印",
+            "path": "life/image-watermark",
+            "type": "process"
+          },
+          {
+            "name": "图片圆角裁剪",
+            "path": "life/image-rounded",
+            "type": "process"
+          },
+          {
+            "name": "图片等比缩放",
+            "path": "life/image-resize",
+            "type": "process"
+          },
+          {
+            "name": "GIF 分解",
+            "path": "life/gif-explode",
+            "type": "process"
+          },
+          {
+            "name": "ICO 图标生成",
+            "path": "life/ico-generator",
+            "type": "generate"
+          },
+          {
+            "name": "Lorem Picsum 占位图",
+            "path": "life/placeholder",
+            "type": "generate"
+          },
+          {
+            "name": "emoji 放大镜",
+            "path": "life/emoji-picker",
+            "type": "pick"
+          },
+          {
+            "name": "颜色代码转换",
+            "path": "life/hex-rgb",
+            "type": "convert"
+          },
+          {
+            "name": "HSL 转换",
+            "path": "life/hsl-convert",
+            "type": "convert"
+          },
+          {
+            "name": "投资回报计算",
+            "path": "life/roi-calc",
+            "type": "calculate"
+          }
+        ]
+      }
+    },
+    "phase3": {
+      "name": "长尾词工具扩展",
+      "period": "2026-06-01 至 2026-06-30+",
+      "target": 1000,
+      "focus": "SEO长尾关键词工具、高度细分的垂直工具",
+      "dailyTarget": "10个工具/天 × 30天 = 300工具",
+      "categories": {
+        "math": {
+          "tools": [
+            "质数表生成",
+            "斐波那契数列",
+            "杨辉三角",
+            "随机数序列",
+            "圆周率查询",
+            "完美数判定",
+            "水仙花数",
+            "回文数判定",
+            "数字罗马数字互转",
+            "数字中文大写互转",
+            "进制算术运算",
+            "复数计算器",
+            "矩阵计算器",
+            "向量计算器",
+            "角度弧度互转",
+            "三角函数计算",
+            "对数计算",
+            "指数计算",
+            "开方计算",
+            "绝对值计算"
+          ],
+          "seoTerms": [
+            "数学计算器",
+            "质数判断",
+            "斐波那契",
+            "阶乘计算器",
+            "最大公约数",
+            "最小公倍数",
+            "根号计算"
+          ]
+        },
+        "network": {
+          "tools": [
+            "User-Agent 解析",
+            "浏览器指纹",
+            "SSL 证书查看",
+            "CORS 测试",
+            "网页截图",
+            "Ping 测试",
+            "Traceroute",
+            "Whois 查询",
+            "MDN 参考链接",
+            "HTTP 头查看",
+            "WebSocket 测试",
+            "GraphQL Playground",
+            "API 格式化",
+            "JSON RPC 测试",
+            "SOAP 测试",
+            "Webhook 测试"
+          ],
+          "seoTerms": [
+            "IP查询",
+            "DNS查询",
+            "端口扫描",
+            "HTTP状态码",
+            "UserAgent解析",
+            "SSL证书查看"
+          ]
+        },
+        "text": {
+          "tools": [
+            "OCR 文字识别",
+            "图片文字提取",
+            "手写字体生成",
+            "艺术字生成",
+            "文字云生成",
+            "Base64 图片互转",
+            "敏感词检测",
+            "违禁词检测",
+            "字数检测",
+            "阅读时间估算",
+            "打字速度测试",
+            "字符编码检测",
+            "段落重排",
+            "对齐工具",
+            "缩进工具"
+          ],
+          "seoTerms": [
+            "文字识别",
+            "OCR",
+            "Base64图片",
+            "敏感词检测",
+            "违禁词检测",
+            "字数统计"
+          ]
+        },
+        "code": {
+          "tools": [
+            "CSS 单位换算",
+            "EM/REM 转换",
+            "PX/REM 转换",
+            "颜色透明度计算",
+            "CSS 阴影生成",
+            "CSS 动画生成",
+            "Flexbox 布局生成",
+            "Grid 布局生成",
+            "JSON 压缩",
+            "YAML 验证",
+            "XML 验证",
+            "HTML 实体互转",
+            "URL 编码大全",
+            "Unicode 编码查询",
+            "ASCII 码表"
+          ],
+          "seoTerms": [
+            "CSS格式化",
+            "SQL格式化",
+            "正则表达式",
+            "JWT解码",
+            "颜色代码",
+            "色值转换"
+          ]
+        },
+        "encrypt": {
+          "tools": [
+            "MD5 查询库",
+            "彩虹表",
+            "密码强度检测",
+            "密码泄露检测",
+            "熵计算器",
+            "密钥生成器",
+            "PGP 工具",
+            "OpenSSL 命令生成"
+          ],
+          "seoTerms": [
+            "MD5加密",
+            "AES加密",
+            "Base64编码",
+            "URL编码",
+            "Unicode编码",
+            "摩斯密码",
+            "二维码生成"
+          ]
+        },
+        "life": {
+          "tools": [
+            "单位换算大全",
+            "长度换算",
+            "重量换算",
+            "温度换算",
+            "面积换算",
+            "体积换算",
+            "速度换算",
+            "时间换算",
+            "功率换算",
+            "数据换算",
+            "油耗计算",
+            "血型遗传",
+            "密码锁破解模拟",
+            "幸运数字",
+            "每日幸运色"
+          ],
+          "seoTerms": [
+            "单位换算",
+            "温度换算",
+            "长度换算",
+            "重量换算",
+            "房贷计算",
+            "个税计算",
+            "BMI计算"
+          ]
+        }
+      }
+    }
+  },
+  "architectureChanges": {
+    "priority": "CRITICAL - 必须先重构 generator.js",
+    "reason": "当前generator.js每个工具需要手写buildToolScript+buildToolContentHtml，无法扩展到1000+",
+    "newApproach": "generator.js新增工具类型注册系统",
+    "toolTypes": [
+      {
+        "type": "formatter",
+        "input": "textarea",
+        "output": "textarea",
+        "buttons": [
+          "格式化",
+          "压缩",
+          "复制"
+        ]
+      },
+      {
+        "type": "encoder",
+        "input": "textarea",
+        "output": "textarea",
+        "buttons": [
+          "编码",
+          "解码",
+          "复制"
+        ]
+      },
+      {
+        "type": "generator",
+        "output": "textarea/generate-btn",
+        "buttons": [
+          "生成",
+          "复制"
+        ]
+      },
+      {
+        "type": "calculator",
+        "inputs": [
+          "number/select"
+        ],
+        "output": "div",
+        "buttons": [
+          "计算"
+        ]
+      },
+      {
+        "type": "converter",
+        "input": "textarea/select",
+        "output": "textarea",
+        "buttons": [
+          "转换",
+          "复制"
+        ]
+      },
+      {
+        "type": "diff",
+        "input": "2xtextarea",
+        "output": "div",
+        "buttons": [
+          "对比",
+          "复制"
+        ]
+      },
+      {
+        "type": "visual",
+        "canvas/svg": true,
+        "interactive": true
+      }
+    ]
+  },
+  "seoStrategy": {
+    "titleFormat": "{工具名} - 在线免费工具 | 🍀 CloverTools",
+    "metaDesc": "使用{工具名}在线工具，免费、快速、无需注册。{一句话功能描述}。",
+    "keywords": "{工具名}, 在线{工具类型}, 免费工具, CloverTools, 开发者工具",
+    "longTailKeywords": [
+      "在线 xxx 工具",
+      "xxx 在线免费",
+      "xxx 生成器",
+      "xxx 计算器",
+      "xxx 转换器"
+    ],
+    "contentRequirements": [
+      "每工具≥200字说明",
+      "使用场景描述",
+      "常见问题FAQ",
+      "相关工具推荐"
+    ]
+  },
+  "todayTasks": {
+    "date": "2026-04-13",
+    "items": [
+      {
+        "name": "Http接口测试",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "fetch API + 原生WebSocket",
+        "source": "",
+        "reason": "纯前端HTTP/WS客户端，无需后端",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "Websocket接口测试",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "fetch API + 原生WebSocket",
+        "source": "",
+        "reason": "纯前端HTTP/WS客户端，无需后端",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON校验格式化",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JSON.parse/stringify",
+        "source": "",
+        "reason": "原生JS解析，无需任何库",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON转TypeScript",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS字符串模板",
+        "source": "",
+        "reason": "纯字符串模板替换，无计算需求",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON转Java实体类",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS字符串模板",
+        "source": "",
+        "reason": "纯字符串模板替换，无计算需求",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON转C#实体类",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS字符串模板",
+        "source": "",
+        "reason": "纯字符串模板替换，无计算需求",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON转Golang Struct",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS字符串模板",
+        "source": "",
+        "reason": "纯字符串模板替换，无计算需求",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSON转SQL",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS字符串模板",
+        "source": "",
+        "reason": "纯字符串模板替换，无计算需求",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "JSONPath解析器",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "jsonpath-plus (纯JS)",
+        "source": "",
+        "reason": "纯JS库，可静态运行",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "HTML格式化",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS DOMParser / XMLSerializer",
+        "source": "",
+        "reason": "DOMParser是浏览器内置",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "Xml压缩格式化",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS DOMParser / XMLSerializer",
+        "source": "",
+        "reason": "DOMParser是浏览器内置",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "获取浏览器信息",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "navigator.userAgent + matchMedia",
+        "source": "",
+        "reason": "原生Browser API，无任何外部依赖",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "响应式布局检测",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "navigator.userAgent + matchMedia",
+        "source": "",
+        "reason": "原生Browser API，无任何外部依赖",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "UUID生成器",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "crypto.randomUUID()",
+        "source": "",
+        "reason": "原生Crypto API",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "Nano ID生成器",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "nanoid (纯JS)",
+        "source": "",
+        "reason": "nanoid是纯JS库，<1KB",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "文件Hash计算",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "crypto.subtle.digest (MD5/SHA)",
+        "source": "",
+        "reason": "原生Web Crypto API",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "目录树生成",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "FileSystem API / FileReader递归",
+        "source": "",
+        "reason": "FileReader递归遍历目录树，纯前端",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "CSS渐变生成器",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS",
+        "source": "",
+        "reason": "纯数学/字符串计算，无需任何外部依赖",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "Json与Url参数互转",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS",
+        "source": "",
+        "reason": "纯数学/字符串计算，无需任何外部依赖",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      },
+      {
+        "name": "拾取坐标/坐标转换",
+        "category": "开发工具",
+        "difficulty": "easy",
+        "tech": "原生JS",
+        "source": "",
+        "reason": "纯数学/字符串计算，无需任何外部依赖",
+        "status": "pending",
+        "isRetry": false,
+        "warning": ""
+      }
+    ],
+    "generatedAt": "2026-04-13T17:10:34+08:00"
+  },
+  "lastDispatch": "2026-04-13T17:10:34+08:00",
+  "lastVerification": {
+    "date": "2026-04-13T09:17:50.566Z",
+    "git": {
+      "ok": true,
+      "commit": "ad3147e2ff1e5ff8b1f400b972911faa983dae65 feat: add UUID and Nano ID generators + update competitor-tools"
+    },
+    "website": {
+      "ok": true,
+      "status": 200,
+      "time": 1.537048,
+      "deployed": true
+    },
+    "allOk": true
+  }
+}

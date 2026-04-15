@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色选择器 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="颜色选择器 - 🍀 CloverTools">
+  <meta property="og:description" content="颜色盘选择，支持 HEX/RGB/HSL 互转">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/life/color-picker.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="颜色选择器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="颜色盘选择，支持 HEX/RGB/HSL 互转">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/life/color-picker.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>颜色选择器</h1>
+        <p class="description">颜色盘选择，支持 HEX/RGB/HSL 互转</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>颜色选择</h3>
+        <input type="color" id="colorPicker" value="#5b8dee" style="width:100%;height:60px;border:none;border-radius:10px;cursor:pointer;margin-bottom:0.75rem;" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <div>
+            <label style="font-size:0.8rem;opacity:0.7;">HEX</label>
+            <input type="text" id="hexInput" value="#5B8DEE" readonly style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);font-family:monospace;font-size:0.9rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div>
+            <label style="font-size:0.8rem;opacity:0.7;">RGB</label>
+            <input type="text" id="rgbInput" readonly style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);font-family:monospace;font-size:0.9rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div>
+            <label style="font-size:0.8rem;opacity:0.7;">HSL</label>
+            <input type="text" id="hslInput" readonly style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);font-family:monospace;font-size:0.9rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="btn btn-primary" id="copyOutput" style="width:100%;">复制 HEX</button>
+          </div>
+        </div>
+        <div id="colorPreview" style="margin-top:0.75rem;height:60px;border-radius:10px;background:#5B8DEE;border:1px solid var(--border);"></div>
+      </div>
+    
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+      const picker = document.getElementById('colorPicker');
+      const hexInput = document.getElementById('hexInput');
+      const rgbInput = document.getElementById('rgbInput');
+      const hslInput = document.getElementById('hslInput');
+      const preview = document.getElementById('colorPreview');
+      const copyBtn = document.getElementById('copyOutput');
+      function rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        if (max === min) { h = s = 0; }
+        else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+            case g: h = ((b - r) / d + 2) / 6; break;
+            case b: h = ((r - g) / d + 4) / 6; break;
+          }
+        }
+        return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+      }
+      function hexToRgb(hex) {
+        const h = hex.replace('#', '');
+        const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+        return [parseInt(full.substr(0, 2), 16), parseInt(full.substr(2, 2), 16), parseInt(full.substr(4, 2), 16)];
+      }
+      function update() {
+        const hex = picker.value.toUpperCase();
+        const [r, g, b] = hexToRgb(hex);
+        const [h, s, l] = rgbToHsl(r, g, b);
+        hexInput.value = hex;
+        rgbInput.value = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+        hslInput.value = 'hsl(' + h + ', ' + s + '%, ' + l + '%)';
+        preview.style.background = hex;
+        copyBtn.onclick = () => { copyToClipboard(hex); CT.showToast('已复制 ' + hex); };
+      }
+      picker.addEventListener('input', update);
+      update();
+    
+  </script>
+</body>
+</html>
