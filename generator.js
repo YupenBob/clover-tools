@@ -3867,17 +3867,20 @@ function generateAboutPage() {
       </div>
       <h1>CloverTools</h1>
       <div class="about-desc">
-        <p>轻量级开发者工具箱，无需注册，无需后端，完全在浏览器本地运行。</p>
+        <p>由 York（YupenBob）和 AI 助手 Clover 共同打造。</p>
         <p>告别繁琐，专注创造。用完即走，不留痕迹。</p>
       </div>
       <div class="about-creators">
         <div class="creator">
+          <img src="/src/york-avatar.png" alt="York" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
           <div class="creator-name">York</div>
-          <div class="creator-role">Founder &amp; Developer</div>
+          <div class="creator-role"><a href="https://github.com/YupenBob" target="_blank" style="color:var(--primary)">@YupenBob</a></div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.3rem;">YupenBob（别名）</div>
         </div>
         <div class="creator">
-          <div class="creator-name">YupenBob</div>
-          <div class="creator-role">Co-Founder</div>
+          <img src="/src/clover-avatar.png" alt="Clover" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
+          <div class="creator-name">Clover 🍀</div>
+          <div class="creator-role">AI Assistant · OpenClaw</div>
         </div>
       </div>
       <div class="about-links">
