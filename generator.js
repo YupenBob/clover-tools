@@ -4064,7 +4064,7 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'src/clover-logo.svg'), cloverLogoSvg);
   console.log('   Copied clover-logo.svg');
   // Copy avatar files
-  const yorkAvatar = fs.readFileSync(path.join(SRC_DIR, 'york-avatar.png'), 'utf8');
+  const yorkAvatar = fs.readFileSync(path.join(SRC_DIR, 'york-avatar.png'));
   fs.writeFileSync(path.join(DIST_DIR, 'src/york-avatar.png'), yorkAvatar);
   console.log('   Copied york-avatar.png');
   const cloverAvatar = fs.readFileSync(path.join(SRC_DIR, 'clover-avatar.svg'), 'utf8');
