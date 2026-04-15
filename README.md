@@ -1,4 +1,4 @@
-# 🍀 CloverTools
+# <img src="https://raw.githubusercontent.com/YupenBob/clover-tools/main/src/clover-logo.svg" width="32" height="32" align="center" /> CloverTools
 
 [🌐 在线工具箱](https://tools.xsanye.cn) · [📂 GitHub](https://github.com/YupenBob/clover-tools) · [🐛 Issues](https://github.com/YupenBob/clover-tools/issues)
 
