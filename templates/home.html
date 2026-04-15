@@ -176,7 +176,7 @@
         <ul class="stats-bar">
           <li><span class="stats-num">118</span><span class="stats-label">个在线工具</span></li>
           <li><span class="stats-num">220</span><span class="stats-label">篇解决文章</span></li>
-          <li><span class="stats-num" id="busuanzi_value_site_pv">56490</span><!--(这都被你发现了)--><span class="stats-label">次帮助</span></li>
+          <li><span class="stats-num" id="busuanzi_value_site_pv" data-base="56490">56490</span><span class="stats-label">次帮助</span></li>
         </ul>
 
         <!-- Quick tools -->
@@ -256,5 +256,25 @@
 
   </script>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script>
+    (function() {
+      var base = 56490;
+      var el = document.getElementById('busuanzi_value_site_pv');
+      if (!el) return;
+      var last = 0;
+      function apply() {
+        var real = parseInt(el.textContent || '0', 10);
+        if (real > 0 && real !== last) {
+          last = real;
+          el.textContent = base + real;
+        }
+      }
+      // Watch for busuanzi updates
+      var obs = new MutationObserver(apply);
+      obs.observe(el, { childList: true, characterData: true, subtree: true });
+      // Fallback: check after delay
+      setTimeout(apply, 2000);
+    })();
+  </script>
 </body>
 </html>
