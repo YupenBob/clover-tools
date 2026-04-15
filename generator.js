@@ -3897,8 +3897,8 @@ function generateAboutPage() {
 </html>`;
 
   const pageHtml = aboutHtml
-    .replace(/\{\{\{SITE_HEADER\}\}\}/g, headerHtml)
-    .replace(/\{\{\{SITE_FOOTER\}\}\}/g, footerHtml);
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
 
   fs.writeFileSync(path.join(DIST_DIR, 'about.html'), pageHtml);
   console.log('   Generated about.html');
@@ -4063,6 +4063,13 @@ function generate() {
   const cloverLogoSvg = fs.readFileSync(path.join(SRC_DIR, 'clover-logo.svg'), 'utf8');
   fs.writeFileSync(path.join(DIST_DIR, 'src/clover-logo.svg'), cloverLogoSvg);
   console.log('   Copied clover-logo.svg');
+  // Copy avatar files
+  const yorkAvatar = fs.readFileSync(path.join(SRC_DIR, 'york-avatar.png'), 'utf8');
+  fs.writeFileSync(path.join(DIST_DIR, 'src/york-avatar.png'), yorkAvatar);
+  console.log('   Copied york-avatar.png');
+  const cloverAvatar = fs.readFileSync(path.join(SRC_DIR, 'clover-avatar.png'), 'utf8');
+  fs.writeFileSync(path.join(DIST_DIR, 'src/clover-avatar.png'), cloverAvatar);
+  console.log('   Copied clover-avatar.png');
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
