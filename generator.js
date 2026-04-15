@@ -3724,7 +3724,7 @@ function generateBlogIndex() {
   <main class="page-body">
     <div class="container">
       <div class="blog-hero">
-        <h1 style="display:flex;flex-direction:column;align-items:center;gap:0.3em;"><img src="/src/clover-logo.svg" alt="🍀" style="height:4em;margin:0;">开发者问题解决博客</h1>
+        <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题解决博客</h1>
         <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，无需注册，打开即用。</p>
         <div class="stats">
           <div class="stat">
