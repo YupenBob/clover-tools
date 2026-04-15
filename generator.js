@@ -3825,6 +3825,82 @@ function generateBlogPosts() {
   console.log(`   Generated ${keywordsConfig.length} blog posts + index`);
 }
 
+function generateAboutPage() {
+  const aboutHtml = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于 - CloverTools</title>
+  <meta name="description" content="CloverTools 由 York 和 YupenBob 创建，是一款轻量级开发者工具箱，无需注册，完全本地运行。">
+  <link rel="canonical" href="https://tools.xsanye.cn/about">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/shared.css">
+  <script src="/src/shared.js"></script>
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1; max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .about-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem; text-align: center; }
+    .about-logo { margin-bottom: 2rem; }
+    .about-logo img { height: 120px; }
+    h1 { font-size: 2rem; color: var(--text); margin-bottom: 1.5rem; }
+    .about-desc { color: var(--text-secondary); line-height: 1.8; font-size: 1.05rem; margin-bottom: 2rem; }
+    .about-desc p { margin-bottom: 1rem; }
+    .about-creators { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; }
+    .creator { background: var(--bg-secondary); border-radius: 12px; padding: 1.5rem 2rem; text-align: center; }
+    .creator-name { font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
+    .creator-role { font-size: 0.85rem; color: var(--text-secondary); }
+    .about-links { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; }
+    .about-links a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .about-links a:hover { text-decoration: underline; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 2rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  {{SITE_HEADER}}
+  <main>
+    <a href="/" class="back-link">← 返回工具首页</a>
+    <div class="about-card">
+      <div class="about-logo">
+        <img src="/src/clover-logo.svg" alt="CloverTools Logo">
+      </div>
+      <h1>CloverTools</h1>
+      <div class="about-desc">
+        <p>轻量级开发者工具箱，无需注册，无需后端，完全在浏览器本地运行。</p>
+        <p>告别繁琐，专注创造。用完即走，不留痕迹。</p>
+      </div>
+      <div class="about-creators">
+        <div class="creator">
+          <div class="creator-name">York</div>
+          <div class="creator-role">Founder &amp; Developer</div>
+        </div>
+        <div class="creator">
+          <div class="creator-name">YupenBob</div>
+          <div class="creator-role">Co-Founder</div>
+        </div>
+      </div>
+      <div class="about-links">
+        <a href="/">工具首页</a>
+        <span style="opacity:0.3">|</span>
+        <a href="/blog/">问题博客</a>
+        <span style="opacity:0.3">|</span>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </main>
+  {{SITE_FOOTER}}
+</body>
+</html>`;
+
+  const pageHtml = aboutHtml
+    .replace(/\{\{\{SITE_HEADER\}\}\}/g, headerHtml)
+    .replace(/\{\{\{SITE_FOOTER\}\}\}/g, footerHtml);
+
+  fs.writeFileSync(path.join(DIST_DIR, 'about.html'), pageHtml);
+  console.log('   Generated about.html');
+}
+
 // ============ Generate Fix Hub Pages (/fix/json-errors etc.) ============
 const FIX_HUB_CONFIG = [
   {
@@ -4075,6 +4151,8 @@ function generate() {
 
   // Generate fix hub pages
   generateFixHubPages();
+
+  generateAboutPage();
 
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
