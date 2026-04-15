@@ -252,25 +252,22 @@
           CT.showToast('加载工具列表失败');
         });
     });
-
-
+  </script>
   <script>
     (function() {
       var base = 56490;
       var el = document.getElementById('busuanzi_value_site_pv');
       if (!el) return;
-      var applied = false;
-      function tryApply() {
-        if (applied) return;
+      function addBase() {
         var v = parseInt(el.textContent || '0', 10);
         if (v > 0) {
-          applied = true;
           el.textContent = v + base;
+          observer.disconnect();
         }
       }
-      // Busuanzi loads async, try polling
-      var interval = setInterval(tryApply, 300);
-      setTimeout(function() { clearInterval(interval); tryApply(); }, 5000);
+      addBase();
+      var observer = new MutationObserver(addBase);
+      observer.observe(el, { childList: true, characterData: true, subtree: true });
     })();
   </script>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
