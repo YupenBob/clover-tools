@@ -3686,7 +3686,7 @@ function generateBlogIndex() {
   <meta name="description" content="开发者常见问题解决指南，JSON错误、编码问题、文件限制等实际问题的解决方案。">
   <link rel="canonical" href="https://tools.xsanye.cn/blog/">
   <link rel="stylesheet" href="/src/shared.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <link rel="icon" href="/src/clover-logo.svg">
   <script src="/src/shared.js"></script>
   <style>
     .blog-hero { text-align: center; padding: 3.5rem 0 2.5rem; }
@@ -3724,7 +3724,7 @@ function generateBlogIndex() {
   <main class="page-body">
     <div class="container">
       <div class="blog-hero">
-        <h1>🍀 开发者问题解决博客</h1>
+        <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题解决博客</h1>
         <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，无需注册，打开即用。</p>
         <div class="stats">
           <div class="stat">
@@ -3908,7 +3908,7 @@ function generateFixHubPages() {
   <meta name="description" content="${hub.desc}">
   <link rel="canonical" href="https://tools.xsanye.cn/fix/${hub.path}/">
   <link rel="stylesheet" href="/src/shared.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <link rel="icon" href="/src/clover-logo.svg">
   <script src="/src/shared.js"></script>
   <style>
     .hub-hero { text-align: center; padding: 3rem 0 2rem; }
