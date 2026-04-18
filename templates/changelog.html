@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PAGE_OG_TITLE}}</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="{{PAGE_OG_TITLE}}">
+  <meta property="og:description" content="{{PAGE_OG_DESC}}">
+  <meta property="og:image" content="{{PAGE_OG_IMAGE}}">
+  <meta property="og:url" content="{{PAGE_URL}}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="{{PAGE_OG_TITLE}}">
+  <meta name="twitter:description" content="{{PAGE_OG_DESC}}">
+  <meta name="twitter:image" content="{{PAGE_OG_IMAGE}}">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="{{PAGE_CANONICAL_URL}}">
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="/src/shared.js"></script>
+  <style>
+    .changelog-header { padding: 3rem 0 2rem; text-align: center; }
+    .changelog-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .changelog-header .subtitle { font-size: 1rem; opacity: 0.65; }
+    .changelog-list { padding: 0 0 3rem; }
+    .changelog-date-group { margin-bottom: 2rem; }
+    .changelog-date { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--primary); }
+    .changelog-commit { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+    .changelog-commit:last-child { border-bottom: none; }
+    .commit-hash { display: inline-block; font-family: monospace; font-size: 0.8rem; padding: 0.15rem 0.5rem; border-radius: 6px; text-decoration: none; flex-shrink: 0; }
+    .commit-hash.feat { background: #d1fae5; color: #065f46; }
+    .commit-hash.fix { background: #fee2e2; color: #991b1b; }
+    .commit-hash.refactor { background: #ede9fe; color: #5b21b6; }
+    .commit-hash.chore { background: #f3f4f6; color: #374151; }
+    .commit-hash.perf { background: #dbeafe; color: #1e40af; }
+    .commit-hash.docs { background: #fef3c7; color: #92400e; }
+    [data-theme="dark"] .commit-hash.feat { background: #064e3b; color: #6ee7b7; }
+    [data-theme="dark"] .commit-hash.fix { background: #7f1d1d; color: #fca5a5; }
+    [data-theme="dark"] .commit-hash.refactor { background: #2e1065; color: #c4b5fd; }
+    [data-theme="dark"] .commit-hash.chore { background: #1f2937; color: #9ca3af; }
+    [data-theme="dark"] .commit-hash.perf { background: #1e3a8a; color: #93c5fd; }
+    [data-theme="dark"] .commit-hash.docs { background: #78350f; color: #fcd34d; }
+    .commit-msg { font-size: 0.95rem; flex: 1; }
+    .commit-date { font-size: 0.8rem; color: var(--text-secondary); flex-shrink: 0; }
+    footer { margin-top: auto; }
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  {{SVG_SPRITE}}
+
+  {{SITE_HEADER}}
+
+  <main class="page-body">
+    <div class="container">
+      <div class="changelog-header">
+        <h1>📝 更新日志</h1>
+        <p class="subtitle">CloverTools 开发历程 · 基于 Git 提交记录自动生成</p>
+      </div>
+      <div class="changelog-list">
+        {{CHANGELOG_ENTRIES}}
+      </div>
+    </div>
+  </main>
+
+  {{SITE_FOOTER}}
+
+  <div id="toast"></div>
+  <script>
+    CT.initTheme();
+  </script>
+</body>
+</html>
