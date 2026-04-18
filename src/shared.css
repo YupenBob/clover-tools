@@ -403,3 +403,82 @@ textarea { min-height: 200px; }
 .nav-text-link:hover { color: var(--primary); }
 .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
 .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+/* ==================== Mobile Sidebar ==================== */
+.site-nav-desktop { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0.3rem;
+  border-radius: 6px;
+}
+.hamburger-btn:hover { background: var(--border); }
+
+.mobile-sidebar {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+.mobile-sidebar.open { display: block; }
+.mobile-sidebar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+}
+.mobile-sidebar-panel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 260px;
+  max-width: 80vw;
+  background: var(--bg);
+  box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.2s ease;
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.mobile-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.mobile-sidebar-title { font-weight: 700; font-size: 1rem; }
+.mobile-sidebar-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+.mobile-sidebar-close:hover { background: var(--border); }
+.mobile-sidebar-links { padding: 0.75rem 0; flex: 1; overflow-y: auto; }
+.mobile-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.2rem;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.15s;
+}
+.mobile-sidebar-link:hover { background: var(--border); }
+.mobile-sidebar-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+.aiti-mobile-link { color: #F59E0B; font-weight: 700; }
+
+@media (max-width: 768px) {
+  .site-nav-desktop { display: none !important; }
+  .hamburger-btn { display: flex !important; }
+}
