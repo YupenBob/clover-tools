@@ -4,6 +4,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const BASE = __dirname;
 const TEMPLATES_DIR = path.join(BASE, 'templates');
@@ -14,6 +15,7 @@ const TOOLS_JSON_PATH = path.join(BASE, 'tools.json');
 // ============ Load templates ============
 const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf8');
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
+const changelogTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'changelog.html'), 'utf8');
 const toolsConfig = JSON.parse(fs.readFileSync(TOOLS_JSON_PATH, 'utf8'));
 
 // ============ Load shared assets ============
@@ -4329,6 +4331,36 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
+  // ============ Generate changelog page ============
+  const gitLog = execSync('git log --format="%h|%ci|%s" --date=short').toString().trim();
+  function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  const entriesHtml = gitLog.split('\n').map(line => {
+    const [hash, date, ...msgParts] = line.split('|');
+    const msg = msgParts.join('|');
+    const type = (msg.match(/^(feat|fix|refactor|chore|perf|docs)/) || ['chore'])[1];
+    const shortMsg = msg.replace(/^(feat|fix|refactor|chore|perf|docs)(\([^)]*\))?:\s*/, '');
+    const githubUrl = 'https://github.com/YupenBob/clover-tools/commit/' + hash;
+    return '        <div class="changelog-commit">' +
+      '<a href="' + githubUrl + '" target="_blank" class="commit-hash ' + type + '">' + hash + '</a>' +
+      '<span class="commit-msg">' + escHtml(shortMsg) + '</span>' +
+      '<span class="commit-date">' + date + '</span></div>';
+  }).join('\n');
+
+  let changelogHtml = changelogTemplate
+    .replace('{{CHANGELOG_ENTRIES}}', entriesHtml)
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, '📝 更新日志 - 🍀 CloverTools')
+    .replace(/\{\{PAGE_OG_DESC\}\}/g, 'CloverTools 开发历程，基于 Git 提交记录自动生成')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/src/clover-logo.svg')
+    .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/changelog')
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/changelog');
+
+  fs.writeFileSync(path.join(DIST_DIR, 'changelog.html'), changelogHtml);
+  console.log('   Generated changelog.html');
+
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
   toolsConfig.forEach(cat => {
@@ -4409,6 +4441,7 @@ function generate() {
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
   let urls = [`<url><loc>${baseUrl}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`];
+  urls.push(`<url><loc>${baseUrl}/changelog</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>`);
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`);
