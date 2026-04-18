@@ -1926,6 +1926,202 @@ function buildToolScript(tool) {
       document.getElementById('copyOutput').addEventListener('click', () => copyToClipboard(output.value));
       input.addEventListener('input', run);
     `,
+
+    // ============ New tools 2026-04-18 ============
+    'code/sql-format': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      function formatSQL(sql) {
+        if (!sql.trim()) return '';
+        return sql
+          .replace(/\\s+/g, ' ')
+          .replace(/,\\s*/g, ',\\n  ')
+          .replace(/\\(\\s*/g, '(\\n  ')
+          .replace(/\\s*\\)/g, '\\n)')
+          .replace(/\\bSELECT\\b/gi, 'SELECT')
+          .replace(/\\bFROM\\b/gi, '\\nFROM')
+          .replace(/\\bWHERE\\b/gi, '\\nWHERE')
+          .replace(/\\bAND\\b/gi, '\\n  AND')
+          .replace(/\\bOR\\b/gi, '\\n  OR')
+          .replace(/\\bJOIN\\b/gi, '\\nJOIN')
+          .replace(/\\bLEFT JOIN\\b/gi, '\\nLEFT JOIN')
+          .replace(/\\bRIGHT JOIN\\b/gi, '\\nRIGHT JOIN')
+          .replace(/\\bINNER JOIN\\b/gi, '\\nINNER JOIN')
+          .replace(/\\bON\\b/gi, ' ON')
+          .replace(/\\bGROUP BY\\b/gi, '\\nGROUP BY')
+          .replace(/\\bORDER BY\\b/gi, '\\nORDER BY')
+          .replace(/\\bHAVING\\b/gi, '\\nHAVING')
+          .replace(/\\bLIMIT\\b/gi, '\\nLIMIT')
+          .trim();
+      }
+      function minifySQL(sql) {
+        if (!sql.trim()) return '';
+        return sql.replace(/\\s+/g, ' ').replace(/\\s*,\\s*/g, ',').replace(/\\s*\\(\\s*/g, '(').replace(/\\s*\\)\\s*/g, ')').trim();
+      }
+      function run() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        try { output.value = formatSQL(v); }
+        catch(e) { output.value = '错误: ' + e.message; }
+      }
+      document.getElementById('format').onclick = run;
+      document.getElementById('minify').onclick = () => { output.value = minifySQL(input.value); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+    `,
+
+    'encrypt/base16': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      let mode = 'encode';
+      function run() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        try {
+          if (mode === 'encode') {
+            output.value = [...v].map(c => c.charCodeAt(0).toString(16).padStart(2,'0')).join(' ').toUpperCase();
+          } else {
+            const hex = v.trim().split(/\\s+/);
+            output.value = hex.map(h => String.fromCharCode(parseInt(h,16))).join('');
+          }
+        } catch(e) { output.value = '错误: ' + e.message; }
+      }
+      document.getElementById('encode').onclick = () => { mode='encode'; run(); };
+      document.getElementById('decode').onclick = () => { mode='decode'; run(); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+    `,
+
+    'text/indent': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const spacesInput = document.getElementById('spacesInput');
+      let mode = 'spaces';
+      function run() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        const spaces = parseInt(spacesInput.value) || 2;
+        try {
+          if (mode === 'spaces') {
+            output.value = v.replace(/^(\\t+)/gm, (m) => ' '.repeat(m.length * spaces));
+          } else {
+            output.value = v.replace(new RegExp('^ {' + spaces + '}','gm'), '\\t');
+          }
+        } catch(e) { output.value = '错误: ' + e.message; }
+      }
+      document.getElementById('toSpaces').onclick = () => { mode='spaces'; run(); };
+      document.getElementById('toTabs').onclick = () => { mode='tabs'; run(); };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+      spacesInput.addEventListener('input', run);
+    `,
+
+    'text/reverse': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      function run() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        output.value = v.split('').reverse().join('');
+      }
+      function runLines() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        output.value = v.split('\\n').map(l => l.split('').reverse().join('')).join('\\n');
+      }
+      function runWords() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        output.value = v.split(/\\s+/).map(w => w.split('').reverse().join('')).join(' ');
+      }
+      document.getElementById('reverse').onclick = run;
+      document.getElementById('reverseLines').onclick = runLines;
+      document.getElementById('reverseWords').onclick = runWords;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+    `,
+
+    'text/repeat': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const countInput = document.getElementById('countInput');
+      const sepInput = document.getElementById('sepInput');
+      function run() {
+        const v = input.value;
+        const count = parseInt(countInput.value) || 1;
+        const sep = sepInput.value || '';
+        if (!v) { output.value = ''; return; }
+        const arr = [];
+        for (let i = 0; i < count; i++) arr.push(v);
+        output.value = arr.join(sep);
+      }
+      document.getElementById('genBtn').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+      countInput.addEventListener('input', run);
+      sepInput.addEventListener('input', run);
+    `,
+
+    'math/lcm': `
+      function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { const t = b; b = a % b; a = t; } return a; }
+      function lcm(a, b) { return Math.abs(a * b) / gcd(a, b); }
+      const inputA = document.getElementById('inputA');
+      const inputB = document.getElementById('inputB');
+      const output = document.getElementById('output');
+      const steps = document.getElementById('steps');
+      function calc() {
+        const a = parseInt(inputA.value);
+        const b = parseInt(inputB.value);
+        if (isNaN(a) || isNaN(b)) { output.textContent = '请输入有效整数'; steps.textContent = ''; return; }
+        const g = gcd(a, b);
+        const l = lcm(a, b);
+        output.textContent = l;
+        steps.textContent = 'GCD(' + a + ', ' + b + ') = ' + g + '\\nLCM = |' + a + ' × ' + b + '| ÷ GCD = ' + l;
+      }
+      document.getElementById('calcBtn').onclick = calc;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.textContent);
+      inputA.addEventListener('input', calc);
+      inputB.addEventListener('input', calc);
+    `,
+
+    'math/power': `
+      const baseInput = document.getElementById('baseInput');
+      const expInput = document.getElementById('expInput');
+      const output = document.getElementById('output');
+      function calc() {
+        const base = parseFloat(baseInput.value);
+        const exp = parseFloat(expInput.value);
+        if (isNaN(base) || isNaN(exp)) { output.textContent = '请输入有效数字'; return; }
+        const result = Math.pow(base, exp);
+        output.textContent = Number.isInteger(result) ? result.toLocaleString() : result.toPrecision(15);
+      }
+      document.getElementById('calcBtn').onclick = calc;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.textContent);
+      baseInput.addEventListener('input', calc);
+      expInput.addEventListener('input', calc);
+    `,
+
+    'text/extract-url': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const filterInput = document.getElementById('filterInput');
+      function run() {
+        const v = input.value;
+        if (!v) { output.value = ''; return; }
+        const filter = filterInput.value.trim();
+        const urlPattern = /https?:\\/\\/[^\\s"'<>]+/gi;
+        let urls = v.match(urlPattern) || [];
+        if (filter) {
+          const lcFilter = filter.toLowerCase();
+          urls = urls.filter(u => u.toLowerCase().includes(lcFilter));
+        }
+        output.value = [...new Set(urls)].join('\\n');
+      }
+      document.getElementById('extractBtn').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+      filterInput.addEventListener('input', run);
+    `,
   };
 
   return scripts[key] || `// TODO: implement ${tool.path}`;
@@ -2873,6 +3069,149 @@ function buildToolContentHtml(tool) {
       <div class="output-box">
         <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="output" readonly style="min-height:120px;word-break:break-all;"></textarea>
+      </div>
+    `,
+
+    // ============ New tools 2026-04-18 ============
+    'code/sql-format': `
+      <div class="tool-card">
+        <h3>输入 SQL</h3>
+        <textarea id="input" placeholder="粘贴 SQL 语句..." style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="format">格式化</button>
+          <button class="btn btn-secondary" id="minify">压缩</button>
+          <button class="btn btn-secondary" id="copyOutput">复制</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出</h3>
+        <textarea id="output" readonly style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;" placeholder="格式化结果..."></textarea>
+      </div>
+    `,
+
+    'encrypt/base16': `
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入要编码或解码的文本" style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="encode">编码 → Base16</button>
+          <button class="btn btn-secondary" id="decode">解码 ← Base16</button>
+          <button class="btn btn-secondary" id="copyOutput">复制</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出</h3>
+        <textarea id="output" readonly style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+      </div>
+    `,
+
+    'text/indent': `
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入包含缩进的文本（Tab 或空格）..." style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem;">
+          <label style="font-size:0.85rem;">空格数:</label>
+          <input type="number" id="spacesInput" value="2" min="1" max="8" style="width:60px;padding:0.4rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);" />
+        </div>
+        <div class="btn-row" style="margin-top:0.5rem;">
+          <button class="btn btn-primary" id="toSpaces">Tab → 空格</button>
+          <button class="btn btn-secondary" id="toTabs">空格 → Tab</button>
+          <button class="btn btn-secondary" id="copyOutput">复制</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出</h3>
+        <textarea id="output" readonly style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;" placeholder="转换结果..."></textarea>
+      </div>
+    `,
+
+    'text/reverse': `
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入要反转的文本..." style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="reverse">反转字符</button>
+          <button class="btn btn-secondary" id="reverseLines">反转行</button>
+          <button class="btn btn-secondary" id="reverseWords">反转单词</button>
+          <button class="btn btn-secondary" id="copyOutput">复制</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出</h3>
+        <textarea id="output" readonly style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+      </div>
+    `,
+
+    'text/repeat': `
+      <div class="tool-card">
+        <h3>输入基础文本</h3>
+        <textarea id="input" placeholder="输入要重复的文本..." style="width:100%;min-height:80px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem;">
+          <div>
+            <label style="font-size:0.8rem;opacity:0.7;">重复次数</label>
+            <input type="number" id="countInput" value="5" min="1" max="1000" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div>
+            <label style="font-size:0.8rem;opacity:0.7;">分隔符（可选）</label>
+            <input type="text" id="sepInput" placeholder="如换行输入\\n" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);" />
+          </div>
+        </div>
+        <button class="btn btn-primary" id="genBtn" style="margin-top:0.75rem;width:100%;">生成</button>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;word-break:break-all;"></textarea>
+      </div>
+    `,
+
+    'math/lcm': `
+      <div class="tool-card">
+        <h3>输入两个整数</h3>
+        <input type="number" id="inputA" placeholder="整数 A" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);margin-bottom:0.5rem;" />
+        <input type="number" id="inputB" placeholder="整数 B" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);" />
+        <button class="btn btn-primary" id="calcBtn" style="margin-top:0.75rem;width:100%;">计算最小公倍数</button>
+      </div>
+      <div class="output-box">
+        <h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <div id="output" style="padding:1rem;font-size:1.2rem;font-weight:700;"></div>
+        <div id="steps" style="padding:0.75rem;font-size:0.85rem;color:var(--text-secondary);margin-top:0.5rem;"></div>
+      </div>
+    `,
+
+    'math/power': `
+      <div class="tool-card">
+        <h3>幂运算计算器</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;">底数 (base)</label>
+            <input type="number" id="baseInput" placeholder="如 2" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;">指数 (exp)</label>
+            <input type="number" id="expInput" placeholder="如 10" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+        </div>
+        <button class="btn btn-primary" id="calcBtn" style="width:100%;">计算</button>
+      </div>
+      <div class="output-box">
+        <h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <div id="output" style="padding:1rem;font-size:1.2rem;font-weight:700;"></div>
+      </div>
+    `,
+
+    'text/extract-url': `
+      <div class="tool-card">
+        <h3>输入文本</h3>
+        <textarea id="input" placeholder="输入包含 URL 的文本..." style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        <div style="margin-top:0.5rem;">
+          <label style="font-size:0.85rem;opacity:0.7;">关键词过滤（可选）</label>
+          <input type="text" id="filterInput" placeholder="只保留含关键词的 URL" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);" />
+        </div>
+        <button class="btn btn-primary" id="extractBtn" style="margin-top:0.5rem;width:100%;">提取 URL</button>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="width:100%;min-height:150px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.85rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;" placeholder="提取到的 URL..."></textarea>
       </div>
     `,
   };
