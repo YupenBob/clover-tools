@@ -1,7 +1,7 @@
 <header class="site-header">
   <div class="container">
     <a href="/" class="site-logo">CloverTools</a>
-    <nav class="site-nav">
+    <nav class="site-nav site-nav-desktop">
       <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
       <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
       <a href="https://aiti-git-newbranch-yopenbob.vercel.app" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
@@ -17,5 +17,58 @@
         <svg class="icon-moon"><use href="#icon-moon"/></svg>
       </button>
     </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
   </div>
 </header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti-git-newbranch-yopenbob.vercel.app" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">☘️</span> AITI 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+      <a href="/changelog" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>更新日志</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
