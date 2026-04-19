@@ -236,8 +236,9 @@
         "desc": "对 JSON 文本进行格式化（美化缩进）或压缩（Minify），支持一键复制结果，帮助开发者快速整理凌乱的 JSON 数据或精简请求体大小。",
         "keywords": "JSON 格式化，JSON 美化，JSON 压缩，JSON 格式化工具，JSON Minify，JSON 在线格式化，JSON 整理",
         "icon": "bi bi-code-slash",
-        "type": "formatter",
-        "title": "JSON 格式化 - JSON 数据美化与压缩工具"
+        "type": "tool-custom",
+        "title": "JSON 格式化 - JSON 数据美化与压缩工具",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>JSON 格式化 - 在线JSON格式化/压缩/校验工具</title>\n<meta name=\"description\" content=\"在线JSON格式化工具，对JSON文本进行格式化（美化缩进）或压缩（Minify），支持实时校验JSON正确性、一键复制结果。\">\n<meta name=\"keywords\" content=\"JSON格式化,JSON压缩,JSON校验,JSON美化,JSON解析,在线JSON,json formatter,json compress\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 格式转换 / JSON格式化</div>\n<h1 style=\"font-size:1.5rem;margin-bottom:.4rem\">JSON 格式化</h1>\n<p style=\"color:var(--text-secondary);font-size:.9rem;margin-bottom:1.5rem\">输入 JSON 文本，格式化（美化）或压缩（Minify），支持实时校验正确性。</p>\n\n<div class=\"tool-card\">\n<h3>输入 JSON</h3>\n<textarea id=\"input\" placeholder=\"在此粘贴 JSON 内容...\" style=\"min-height:180px;width:100%;padding:.75rem;font-size:.95rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"format()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button onclick=\"compress()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n<button onclick=\"minify()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">Minify</button>\n<button onclick=\"copyOutput()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制</button>\n</div>\n<div id=\"errorMsg\" style=\"color:#e74c3c;font-size:.85rem;margin-top:.5rem;display:none\"></div>\n</div>\n\n<div class=\"output-box\">\n<h3>输出结果 <span id=\"statusTag\" style=\"font-size:.75rem;color:var(--text-secondary);font-weight:400;margin-left:.5rem\"></span></h3>\n<textarea id=\"output\" readonly style=\"min-height:180px;width:100%;padding:.75rem;font-size:.95rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div id=\"stats\" style=\"font-size:.8rem;color:var(--text-secondary);margin-top:.5rem\"></div>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nvar inp=document.getElementById('input'),out=document.getElementById('output'),err=document.getElementById('errorMsg');\ninp.addEventListener('input',function(){try{JSON.parse(inp.value);err.style.display='none';}catch(e){}});\nfunction format(){try{var o=JSON.parse(inp.value);out.value=JSON.stringify(o,null,2);err.style.display='none';document.getElementById('statusTag').textContent='格式化成功';showStats();}catch(e){err.textContent='JSON 错误: '+e.message;err.style.display='block';}}\nfunction compress(){try{var o=JSON.parse(inp.value);out.value=JSON.stringify(o);err.style.display='none';document.getElementById('statusTag').textContent='已压缩';showStats();}catch(e){err.textContent='JSON 错误: '+e.message;err.style.display='block';}}\nfunction minify(){compress();}\nfunction copyOutput(){navigator.clipboard.writeText(out.value);}\nfunction showStats(){var txt=out.value;document.getElementById('stats').textContent='字符数: '+txt.length+' | 行数: '+(txt.match(/\\n/g)||[]).length+' | 字节: '+new Blob([txt]).size;}\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "JSON ↔ YAML",
@@ -285,8 +286,9 @@
         "desc": "将 JSON 数组数据快速转换为易读的 HTML 表格视图，支持嵌套对象展开、多层级字段展平、排序和筛选功能，适合展示 API 返回的列表类数据，一目了然。",
         "keywords": "JSON 转表格，JSON 数组转表格，数据可视化，JSON 表格，JSON 数据展示，JSON 预览",
         "icon": "bi bi-code-slash",
-        "type": "formatter",
-        "title": "JSON 转表格 - JSON数组可视化展示"
+        "type": "tool-custom",
+        "title": "JSON 转表格 - JSON数组可视化展示",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>JSON 转表格 - 将JSON数组数据转换为HTML表格视图</title>\n<meta name=\"description\" content=\"在线JSON转表格工具，将JSON数组数据快速转换为易读的HTML表格视图，支持嵌套对象展开、多层级解析。\">\n<meta name=\"keywords\" content=\"JSON转表格,JSON转CSV,JSON表格,JSON可视化,json2table,json to table\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 格式转换 / JSON转表格</div>\n<h1 style=\"font-size:1.5rem;margin-bottom:.4rem\">JSON 转表格</h1>\n<p style=\"color:var(--text-secondary);font-size:.9rem;margin-bottom:1.5rem\">将 JSON 数组转换为可读的表格视图。</p>\n\n<div class=\"tool-card\">\n<h3>输入 JSON 数组</h3>\n<textarea id=\"input\" placeholder='例如：[{\"name\":\"张三\",\"age\":25},{\"name\":\"李四\",\"age\":30}]' style=\"min-height:120px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"margin-top:.75rem\">\n<button onclick=\"convert()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">转换为表格</button>\n<button onclick=\"downloadCSV()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">下载 CSV</button>\n</div>\n<div id=\"errorMsg\" style=\"color:#e74c3c;font-size:.85rem;margin-top:.5rem;display:none\"></div>\n</div>\n\n<div class=\"output-box\" id=\"resultBox\" style=\"display:none\">\n<h3>表格预览</h3>\n<div style=\"overflow-x:auto\">\n<table id=\"tableOut\" style=\"width:100%;border-collapse:collapse;font-size:.88rem\">\n</table>\n</div>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nwindow.convert=function(){\nvar v=document.getElementById('input').value.trim();\nif(!v){return;}\ntry{\nvar data=JSON.parse(v);\nif(!Array.isArray(data)){data=[data];}\nvar cols={};\ndata.forEach(function(row){\nObject.keys(row).forEach(function(k){\nif(typeof row[k]==='object'&&row[k]!==null){\ncols[k]=cols[k]||'obj';\n}else{\ncols[k]=cols[k]||'str';\n}\n});\n});\nvar ths=Object.keys(cols).map(function(c){return '<th style=\"padding:.6rem;border-bottom:2px solid var(--border);text-align:left;background:var(--result-bg);white-space:nowrap\">'+c+'</th>';}).join('');\nvar rows=data.map(function(row){\nreturn '<tr>'+Object.keys(cols).map(function(c){\nvar v=row[c];\nvar display=typeof v==='object'&&v!==null?JSON.stringify(v):(v===undefined||v===null?'':String(v));\nreturn '<td style=\"padding:.5rem;border-bottom:1px solid var(--border);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\" title=\"'+display.replace(/\"/g,'&quot;')+'\">'+display+'</td>';\n}).join('')+'</tr>';\n}).join('');\ndocument.getElementById('tableOut').innerHTML='<thead><tr>'+ths+'</tr></thead><tbody>'+rows+'</tbody>';\ndocument.getElementById('resultBox').style.display='block';\ndocument.getElementById('errorMsg').style.display='none';\n}catch(e){\ndocument.getElementById('errorMsg').textContent='JSON 解析错误: '+e.message;\ndocument.getElementById('errorMsg').style.display='block';\n}\n};\nwindow.downloadCSV=function(){\nvar v=document.getElementById('input').value.trim();\nif(!v)return;\ntry{\nvar data=JSON.parse(v);\nif(!Array.isArray(data))data=[data];\nvar cols=Object.keys(data[0]||{});\nvar csv=cols.join(',')+'\\n';\ndata.forEach(function(row){\ncsv+=cols.map(function(c){\nvar v=(row[c]===undefined||row[c]===null)?'':String(row[c]||'');\nreturn '\"'+v.replace(/\"/g,'\"\"')+'\"';\n}).join(',')+'\\n';\n});\nvar blob=new Blob([csv],{type:'text/csv'});\nvar a=document.createElement('a');\na.href=URL.createObjectURL(blob);\na.download='data.csv';\na.click();\n}catch(e){\nalert('导出失败: '+e.message);\n}\n};\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "Markdown 转 HTML",
@@ -294,8 +296,9 @@
         "desc": "将 Markdown 文档内容实时渲染为标准 HTML 网页，支持标题、列表、代码块、表格、链接图片等常用语法，提供多种主题样式切换，写完即看，方便撰写技术文档与博客文章。",
         "keywords": "Markdown 转 HTML，Markdown 渲染，Markdown 在线预览，MD 转 HTML，Markdown 编辑器，Markdown 实时预览",
         "icon": "bi bi-code-slash",
-        "type": "formatter",
-        "title": "Markdown 转 HTML - Markdown实时渲染预览"
+        "type": "tool-custom",
+        "title": "Markdown 转 HTML - Markdown实时渲染预览",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Markdown转HTML - 在线Markdown渲染预览工具</title>\n<meta name=\"description\" content=\"在线Markdown转HTML工具，输入Markdown内容后实时渲染为HTML预览，支持标题、加粗、斜体、代码等格式。\">\n<meta name=\"keywords\" content=\"Markdown转HTML,Markdown渲染,Markdown预览,md转html,在线markdown\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / Markdown转HTML</div>\n<h1>Markdown 转 HTML</h1>\n<p>输入 Markdown 内容，实时渲染为 HTML 预览。</p>\n<div class=\"tool-card\">\n<h3>输入 Markdown</h3>\n<textarea id=\"input\" placeholder=\"输入 Markdown 内容，如：\\n## 标题\\n**加粗** `代码`\" style=\"min-height:180px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"render()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">渲染预览</button>\n<button onclick=\"copyHtml()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制 HTML</button>\n</div>\n</div>\n<div class=\"output-box\">\n<h3>HTML 预览</h3>\n<div id=\"preview\" style=\"padding:1rem;background:var(--result-bg);border-radius:8px;line-height:1.7;min-height:100px;font-size:.95rem\"></div>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction renderMd(md){\nmd=md.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nmd=md.replace(/^######\\s+(.+)$/gm,'<h6>$1</h6>');\nmd=md.replace(/^#####\\s+(.+)$/gm,'<h5>$1</h5>');\nmd=md.replace(/^####\\s+(.+)$/gm,'<h4>$1</h4>');\nmd=md.replace(/^###\\s+(.+)$/gm,'<h3>$1</h3>');\nmd=md.replace(/^##\\s+(.+)$/gm,'<h2>$1</h2>');\nmd=md.replace(/^#\\s+(.+)$/gm,'<h1>$1</h1>');\nmd=md.replace(/\\*\\*(.+?)\\*\\*/g,'<b>$1</b>');\nmd=md.replace(/\\*(.+?)\\*/g,'<i>$1</i>');\nmd=md.replace(/`([^`]+)`/g,function(m,code){return '<code style=\"background:rgba(0,0,0,.06);padding:.1rem .3rem;border-radius:3px;font-family:monospace\">'+code+'</code>';});\nmd=md.replace(/```([\\s\\S]*?)```/g,'<pre style=\"background:var(--result-bg);padding:1rem;border-radius:8px;overflow-x:auto\"><code>$1</code></pre>');\nmd=md.replace(/^\\*\\s+(.+)$/gm,'<li>$1</li>');\nmd=md.replace(/^\\d+\\.\\s+(.+)$/gm,'<li>$1</li>');\nmd=md.replace(/\\n\\n/g,'</p><p style=\"margin:1rem 0\">');\nmd='<p style=\"margin:.5rem 0\">'+md+'</p>';\nmd=md.replace(/<p style=\"margin:.5rem 0\"><(h[1-6]|pre|ul|ol|li)/g,'<$1');\nmd=md.replace(/<\\/(h[1-6]|pre|ul|ol|li)><\\/p>/g,'</$1>');\nreturn md;\n}\nwindow.render=function(){\nvar md=document.getElementById('input').value;\ndocument.getElementById('preview').innerHTML=renderMd(md);\n};\nwindow.copyHtml=function(){\nnavigator.clipboard.writeText(document.getElementById('preview').innerHTML);\n};\ndocument.getElementById('input').addEventListener('input',function(){\ndocument.getElementById('preview').innerHTML=renderMd(this.value);\n});\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "Cron 表达式测试",
@@ -303,7 +306,7 @@
         "desc": "解析 Cron 表达式并可视化展示未来多次执行时间，支持 5 段式到 7 段式多种 Cron 格式，提供人类可读的自然语言描述，帮助运维和开发者快速验证定时任务调度规则是否正确。",
         "keywords": "Cron 表达式测试，Cron 解析，Cron 在线测试，定时任务调度，Cron 可视化，Cron 格式",
         "icon": "bi bi-code-slash",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "Cron 表达式测试 - 可视化解析执行时间"
       },
       {
@@ -312,7 +315,7 @@
         "desc": "可视化颜色选择器，支持 HEX、RGB、RGBA、HSL、HSV 等多种格式的实时互转与复制，提供调色板、渐变色生成、色值历史记录及色盲模拟模式，适用于 UI 设计与前端开发场景。",
         "keywords": "颜色选择器，颜色转换，HEX RGB HSL HSV，颜色代码，取色器，调色板，前端颜色",
         "icon": "bi bi-code-slash",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "可视化颜色选择器 - 多格式颜色值互转"
       },
       {
@@ -338,9 +341,10 @@
         "path": "code/json-validator.html",
         "desc": "在线校验 JSON 格式的正确性，支持一键美化（格式化）提升可读性，或压缩 JSON 减少体积，适用于前后端接口调试与数据处理",
         "keywords": "JSON校验，JSON格式化，JSON压缩，JSON美化，JSON验证",
-        "type": "formatter",
+        "type": "tool-custom",
         "icon": "bi bi-code-slash",
-        "title": "JSON 校验格式化 - 验证并美化 JSON 数据"
+        "title": "JSON 校验格式化 - 验证并美化 JSON 数据",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>JSON校验格式化 - 在线JSON正确性校验工具</title>\n<meta name=\"description\" content=\"在线JSON校验工具，校验JSON格式的正确性，支持一键美化（格式化）提升可读性，或压缩JSON。\">\n<meta name=\"keywords\" content=\"JSON校验,JSON验证,JSON格式化,json validator,json校验,json格式检查\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / JSON校验格式化</div>\n<h1>JSON 校验格式化</h1>\n<p>校验 JSON 正确性，并一键美化或压缩。</p>\n<div class=\"tool-card\">\n<h3>输入 JSON</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要校验的 JSON 内容...\" style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"validate()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">校验 JSON</button>\n<button onclick=\"clearAll()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">清空</button>\n</div>\n<div id=\"resultBox\" style=\"margin-top:.75rem;padding:.75rem;border-radius:8px;font-size:.9rem;display:none\"></div>\n</div>\n<div class=\"output-box\" id=\"beautifyBox\" style=\"display:none\">\n<h3>美化输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:120px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nwindow.validate=function(){\nvar v=document.getElementById('input').value.trim();\nvar box=document.getElementById('resultBox');\nvar bBox=document.getElementById('beautifyBox');\nif(!v){box.style.display='none';bBox.style.display='none';return;}\ntry{\nvar parsed=JSON.parse(v);\nvar keys=Object.keys(parsed);\nbox.style.display='block';\nbox.style.background='rgba(81,207,102,.1)';\nbox.style.border='1px solid #51cf66';\nbox.innerHTML='<b style=\"color:#40c057\">✓ 有效的 JSON</b>，共 '+keys.length+' 个键';\nbBox.style.display='block';\ndocument.getElementById('output').value=JSON.stringify(parsed,null,2);\n}catch(e){\nbox.style.display='block';\nbox.style.background='rgba(231,76,60,.1)';\nbox.style.border='1px solid #e74c3c';\nbox.innerHTML='<b style=\"color:#e74c3c\">✗ 无效 JSON</b><br><br>错误: <span style=\"color:var(--text)\">'+e.message+'</span>';\nbBox.style.display='none';\n}\n};\nwindow.clearAll=function(){\ndocument.getElementById('input').value='';\ndocument.getElementById('output').value='';\ndocument.getElementById('resultBox').style.display='none';\ndocument.getElementById('beautifyBox').style.display='none';\n};\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "JSON 转 TypeScript",
@@ -410,18 +414,20 @@
         "path": "code/html-formatter.html",
         "desc": "对 HTML 源代码进行格式化（美化缩进）或压缩（去除空格换行），支持代码高亮展示，一键切换查看模式，适用于前端开发调试与页面性能优化",
         "keywords": "HTML格式化，HTML压缩，HTML美化，HTML整理，前端工具",
-        "type": "formatter",
+        "type": "tool-custom",
         "icon": "bi bi-code-slash",
-        "title": "HTML 格式化 - 美化或压缩 HTML 代码"
+        "title": "HTML 格式化 - 美化或压缩 HTML 代码",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>HTML格式化 - 在线HTML格式化/压缩工具</title>\n<meta name=\"description\" content=\"在线HTML格式化工具，对HTML源代码进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持代码高亮展示。\">\n<meta name=\"keywords\" content=\"HTML格式化,HTML压缩,html formatter,html beautify,html minify\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / HTML格式化</div>\n<h1>HTML 格式化</h1>\n<p>对 HTML 源代码进行格式化或压缩。</p>\n<div class=\"tool-card\">\n<h3>输入 HTML</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要格式化的 HTML 代码...\" style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"beautify()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button onclick=\"minify()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n<button onclick=\"copyOutput()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制</button>\n</div>\n</div>\n<div class=\"output-box\">\n<h3>输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction indentHtml(html){\nvar res='',indent=0;\nvar tokens=html.match(/<[^>]+>|[^<]+/g)||[];\ntokens.forEach(function(t){\nif(t.match(/^<\\/(div|p|span|ul|ol|li|h[1-6]|table|tr|td|th|thead|tbody|style|script|body|html|head)/i)){\nindent=Math.max(0,indent-2);\nres+='\\n'+' '.repeat(indent)+t;\n}else if(t.match(/^<(div|p|span|ul|ol|li|h[1-6]|table|tr|td|th|style|script|body|html|head)/i)){\nres+='\\n'+' '.repeat(indent)+t;\nindent+=2;\n}else{\nvar trimm=t.trim();\nif(trimm)res+=trimm;\n}\n});\nreturn res.trim();\n}\nfunction beautify(){\nvar v=document.getElementById('input').value;\ndocument.getElementById('output').value=indentHtml(v);\n}\nfunction minify(){\nvar v=document.getElementById('input').value;\ndocument.getElementById('output').value=v.replace(/\\s+/g,' ').replace(/>\\s+</g,'><').trim();\n}\nfunction copyOutput(){navigator.clipboard.writeText(document.getElementById('output').value);}\nwindow.beautify=beautify;window.minify=minify;window.copyOutput=copyOutput;\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "XML 压缩格式化",
         "path": "code/xml-formatter.html",
         "desc": "对 XML 文档进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持格式切换与代码高亮，适用于 XML 数据传输优化与阅读分析",
         "keywords": "XML格式化，XML压缩，XML美化，XML整理，XML解析",
-        "type": "formatter",
+        "type": "tool-custom",
         "icon": "bi bi-code-slash",
-        "title": "XML 压缩格式化 - 美化或压缩 XML 代码"
+        "title": "XML 压缩格式化 - 美化或压缩 XML 代码",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>XML格式化压缩 - 在线XML压缩格式化工具</title>\n<meta name=\"description\" content=\"在线XML格式化工具，对XML文档进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持格式校验。\">\n<meta name=\"keywords\" content=\"XML格式化,XML压缩,xml formatter,xml beautify,xml minify\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / XML格式化</div>\n<h1>XML 格式化压缩</h1>\n<p>对 XML 文档进行格式化或压缩。</p>\n<div class=\"tool-card\">\n<h3>输入 XML</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要格式化的 XML 内容...\" style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"format()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button onclick=\"minify()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n</div>\n<div id=\"errorMsg\" style=\"color:#e74c3c;font-size:.85rem;margin-top:.5rem;display:none\"></div>\n</div>\n<div class=\"output-box\">\n<h3>输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction format(){\ntry{\nvar v=document.getElementById('input').value;\nvar parser=new DOMParser();\nvar doc=parser.parseFromString(v,'text/xml');\nvar errNode=doc.querySelector('parsererror');\nif(errNode){\ndocument.getElementById('errorMsg').textContent='XML 错误: '+errNode.textContent.split('\\n')[0];\ndocument.getElementById('errorMsg').style.display='block';\nreturn;\n}\nvar serializer=new XMLSerializer();\nvar str=serializer.serializeToString(doc);\ndocument.getElementById('output').value=str;\ndocument.getElementById('errorMsg').style.display='none';\n}catch(e){\ndocument.getElementById('errorMsg').textContent=e.message;\ndocument.getElementById('errorMsg').style.display='block';\n}\n}\nfunction minify(){\nvar v=document.getElementById('input').value;\ndocument.getElementById('output').value=v.replace(/\\s+/g,' ').replace(/>\\s+</g,'><').trim();\n}\nwindow.format=format;window.minify=minify;\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "获取浏览器信息",
@@ -692,20 +698,22 @@
         "path": "code/javascript.html",
         "desc": "对混乱或压缩的 JavaScript 代码一键美化缩进、添加注释格式化，同时支持将格式化代码压缩回单行，有效减少文件体积用于生产环境。",
         "keywords": "JavaScript格式化，JS美化，JS压缩，代码美化，代码压缩，前端开发",
-        "type": "formatter",
+        "type": "tool-custom",
         "inputPlaceholder": "输入 JavaScript 代码...",
         "icon": "bi bi-code-slash",
-        "title": "JavaScript格式化 - 一键美化或压缩JS代码"
+        "title": "JavaScript格式化 - 一键美化或压缩JS代码",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>JavaScript格式化 - 在线JS格式化/压缩工具</title>\n<meta name=\"description\" content=\"在线JavaScript格式化工具，对混乱或压缩的JavaScript代码一键美化缩进、添加注释格式化，同时支持压缩模式。\">\n<meta name=\"keywords\" content=\"JavaScript格式化,JS压缩,js formatter,js beautify,js minify\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / JavaScript格式化</div>\n<h1>JavaScript 格式化</h1>\n<p>对 JavaScript 代码进行格式化或压缩。</p>\n<div class=\"tool-card\">\n<h3>输入 JavaScript</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要格式化的 JavaScript 代码...\" style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"beautify()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button onclick=\"minify()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n<button onclick=\"copyOutput()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制</button>\n</div>\n<div id=\"errorMsg\" style=\"color:#e74c3c;font-size:.85rem;margin-top:.5rem;display:none\"></div>\n</div>\n<div class=\"output-box\">\n<h3>输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction beautify(){\ntry{\nvar v=document.getElementById('input').value;\nvar result=[];\nvar indent=0;\nvar parts=v.replace(/\\}\\s*\\(/g,'}(').split(/([\\{\\}\\(\\)\\;])/);\nparts.forEach(function(p){\np=p.replace(/^\\s+/,'').replace(/\\s+$/,'');\nif(p==='{'||p==='('){\nresult.push(p);\nindent+=2;\n}else if(p==='}'||p===');'){\nindent-=2;\nresult.push('\\n'+' '.repeat(Math.max(0,indent))+p);\n}else if(p===''){\n\n}else if(p===';'){\nresult.push(';\\n'+' '.repeat(indent));\n}else{\nresult.push(' '.repeat(indent)+p);\n}\n});\ndocument.getElementById('output').value=result.join(' ').replace(/;\\n+/g,';\\n').replace(/\\n+/g,'\\n').trim();\ndocument.getElementById('errorMsg').style.display='none';\n}catch(e){document.getElementById('errorMsg').textContent='错误: '+e.message;document.getElementById('errorMsg').style.display='block';}\n}\nfunction minify(){\nvar v=document.getElementById('input').value;\ndocument.getElementById('output').value=v.replace(/\\s+/g,' ').replace(/\\s*([\\{\\}\\(\\)\\;,])\\s*/g,'$1').trim();\ndocument.getElementById('errorMsg').style.display='none';\n}\nfunction copyOutput(){navigator.clipboard.writeText(document.getElementById('output').value);}\nwindow.beautify=beautify;window.minify=minify;window.copyOutput=copyOutput;\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "CSS压缩格式化",
         "path": "code/css.html",
         "desc": "对 CSS 源代码进行美化缩进和格式化，方便阅读和调试；同时支持压缩模式，移除空白和换行以减小文件体积，提升网页加载速度。",
         "keywords": "CSS格式化，CSS压缩，CSS美化，样式压缩，前端开发，网页优化",
-        "type": "formatter",
+        "type": "tool-custom",
         "inputPlaceholder": "输入 CSS 代码...",
         "icon": "bi bi-code-slash",
-        "title": "CSS压缩格式化 - 美化或压缩CSS样式代码"
+        "title": "CSS压缩格式化 - 美化或压缩CSS样式代码",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>CSS格式化压缩 - 在线CSS格式化/压缩工具</title>\n<meta name=\"description\" content=\"在线CSS格式化工具，对CSS源代码进行美化缩进和格式化，方便阅读和调试；同时支持压缩模式，移除空行空字符。\">\n<meta name=\"keywords\" content=\"CSS格式化,CSS压缩,css formatter,css beautify,css minify\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 开发工具 / CSS格式化</div>\n<h1>CSS 格式化压缩</h1>\n<p>对 CSS 代码进行格式化或压缩。</p>\n<div class=\"tool-card\">\n<h3>输入 CSS</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要格式化的 CSS 代码...\" style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\">\n<button onclick=\"beautify()\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button onclick=\"compress()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n<button onclick=\"copyOutput()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制</button>\n</div>\n</div>\n<div class=\"output-box\">\n<h3>输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:150px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction beautify(){\nvar v=document.getElementById('input').value;\nvar beautified=v.replace(/\\s*([{}:;,])\\s*/g,'$1').replace(/;\\s*}/g,';}').replace(/\\{\\s*/g,'{\\n  ').replace(/\\}\\s*/g,'\\n}\\n').replace(/\\n\\s+/g,'\\n  ').replace(/:\\s+/g,': ');\ndocument.getElementById('output').value=beautified.trim();\n}\nfunction compress(){\nvar v=document.getElementById('input').value;\nvar compressed=v.replace(/\\s*([{}:;,])\\s*/g,'$1').replace(/;}/g,'}').replace(/\\n/g,' ').replace(/\\s{2,}/g,' ');\ndocument.getElementById('output').value=compressed;\n}\nfunction copyOutput(){navigator.clipboard.writeText(document.getElementById('output').value);}\nwindow.beautify=beautify;window.compress=compress;window.copyOutput=copyOutput;\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "字节转换",
@@ -1034,7 +1042,7 @@
         "desc": "支持将英文字母在大小写之间快速转换，可选择全部转为大写、全部转为小写或首字母大写等多种模式，适用于文本格式规范化处理。",
         "keywords": "大小写转换，英文大小写，字母大小写转换，Case 转换，英文格式化，字符串转换，在线工具",
         "icon": "bi bi-body-text",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "大小写转换 - 英文字母大小写一键切换"
       },
       {
@@ -1063,7 +1071,7 @@
         "desc": "左右分栏对比两段文本内容，自动标注出增加、删除和修改的部分，直观呈现文本差异，广泛用于代码比对、文档修订等场景。",
         "keywords": "文本差异对比，文本比对，Diff 对比，文本比较，文本差异，代码比对，文档修订，在线工具",
         "icon": "bi bi-body-text",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "文本差异对比 - 高亮显示两段文本的不同"
       },
       {
@@ -1082,7 +1090,7 @@
         "desc": "在驼峰命名法（CamelCase）和下划线命名法（snake_case）之间进行一键互转，支持变量名、函数名、类名等程序员常用命名风格的快速转换。",
         "keywords": "驼峰下划线转换，命名风格转换，CamelCase，snake_case，变量命名，代码格式化，程序员工具，在线工具",
         "icon": "bi bi-body-text",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "驼峰与下划线转换 - 程序员命名风格互转"
       },
       {
@@ -1091,7 +1099,7 @@
         "desc": "从大段文本或网页内容中自动识别并提取邮箱地址、手机号码、URL 链接等信息，支持一键复制提取结果，适用于数据整理和信息采集。",
         "keywords": "提取邮箱，提取手机号，提取链接，正则提取，文本信息提取，数据采集，信息提取，在线工具",
         "icon": "bi bi-body-text",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "提取邮箱/手机/链接 - 从文本中批量提取关键信息"
       },
       {
@@ -1100,7 +1108,7 @@
         "desc": "自动检测文本乱码类型（如 UTF-8、GBK、Latin-1 等编码混淆导致的乱码），智能推断原始编码并还原为正常文字，修复网页抓取和文件传输中的乱码问题。",
         "keywords": "乱码修复，文本乱码修复，编码修复，乱码转换，编码检测，UTF-8乱码，GBK乱码，在线工具",
         "icon": "bi bi-body-text",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "乱码修复 - 自动检测和修复常见文本编码乱码"
       },
       {
@@ -1134,7 +1142,7 @@
         "desc": "Unix 时间戳与北京时间、UTC 时间之间的互相转换工具，支持十位和十三位时间戳格式，适用于程序员调试和日志分析场景。",
         "keywords": "时间戳转换，Unix 时间戳，UTC 时间转换，时间戳互转，毫秒时间戳，程序员工具，日志时间转换",
         "icon": "bi bi-clock-fill",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "时间戳转换 - Unix时间戳与日期互转"
       },
       {
@@ -1143,7 +1151,7 @@
         "desc": "在线倒计时器，支持设定目标时间或自定义时长，实时显示剩余的日、时、分、秒，适用于活动报名、考试、赛事等需要精确把握时间的场景。",
         "keywords": "在线倒计时，倒计时器，倒计时工具，计时器，活动倒计时，考试倒计时，会议计时，目标时间",
         "icon": "bi bi-clock-fill",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "在线倒计时 - 自定义目标时间倒计时"
       },
       {
@@ -1152,7 +1160,7 @@
         "desc": "计算两个日期之间相隔的天数，支持从开始日期到结束日期的精确天数统计，可用于项目工期规划、合同期限计算或旅行计划安排。",
         "keywords": "日期间隔计算，日期计算器，天数计算器，日期间隔，日期相差天数，项目工期计算，旅行天数计算",
         "icon": "bi bi-clock-fill",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "日期间隔计算 - 两个日期之间天数计算"
       },
       {
@@ -1161,7 +1169,7 @@
         "desc": "根据输入的出生日期精确计算周岁、虚岁和具体天数，同时显示距离下一个生日的倒计时，帮助用户了解自己的精确年龄和生命历程。",
         "keywords": "年龄计算器，周岁计算，虚岁计算，生日计算，年龄计算，出生日期计算，下一个生日倒计时",
         "icon": "bi bi-clock-fill",
-        "type": "formatter",
+        "type": "tool-custom",
         "title": "年龄计算器 - 根据生日精确计算年龄"
       },
       {
@@ -1315,8 +1323,9 @@
         "desc": "通过色盘可视化为网页设计师和开发人员快速选取颜色，并实时转换RGB颜色值与HEX十六进制颜色码。",
         "keywords": "颜色选择器，RGB HEX转换，颜色代码，取色器，网页配色，在线工具",
         "icon": "bi bi-house-heart-fill",
-        "type": "formatter",
-        "title": "颜色选择器 - RGB与HEX颜色值转换取色工具"
+        "type": "tool-custom",
+        "title": "颜色选择器 - RGB与HEX颜色值转换取色工具",
+        "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>颜色选择器 - 可视化颜色选择工具支持HEX RGB HSL格式</title>\n<meta name=\"description\" content=\"可视化颜色选择器，支持HEX、RGB、RGBA、HSL、HSV等多种格式的实时转换和复制。\">\n<meta name=\"keywords\" content=\"颜色选择器,颜色转换,HEX转换,RGB转换,HSL转换,颜色工具,取色器\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 生活工具 / 颜色选择器</div>\n<h1>颜色选择器</h1>\n<p>通过色盘可视化选择颜色，支持多种格式转换和复制。</p>\n<div class=\"tool-card\">\n<h3>颜色选择</h3>\n<div style=\"display:flex;gap:1rem;align-items:center;flex-wrap:wrap\">\n<input type=\"color\" id=\"colorPicker\" value=\"#3498db\" style=\"width:60px;height:40px;border:none;cursor:pointer;border-radius:6px\" onchange=\"update()\">\n<input type=\"text\" id=\"colorInput\" placeholder=\"#3498db\" style=\"flex:1;min-width:120px;padding:.5rem;font-size:1rem;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text)\" oninput=\"updateFromInput()\">\n</div>\n</div>\n<div class=\"output-box\">\n<h3>颜色值</h3>\n<div style=\"display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem\" id=\"colorResults\"></div>\n<div style=\"margin-top:1rem\"><button onclick=\"copyAll()\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制全部</button></div>\n</div>\n<div class=\"tool-card\">\n<h3>颜色预览</h3>\n<div id=\"colorPreview\" style=\"height:80px;border-radius:8px;transition:background .2s;border:1px solid var(--border)\"></div>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nfunction hexToRgb(hex){\nvar m=hex.match(/^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i);\nreturn m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;\n}\nfunction rgbToHex(r,g,b){return'#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');}\nfunction rgbToHsl(r,g,b){\nr/=255;g/=255;b/=255;\nvar max=Math.max(r,g,b),min=Math.min(r,g,b);\nvar h,s,l=(max+min)/2;\nif(max===min){h=s=0;}\nelse{var d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;}h/=6;}\nreturn[h*360,s,l];\n}\nfunction showColor(hex){\nvar rgb=hexToRgb(hex)||[];\nvar r=rgb[0],g=rgb[1],b=rgb[2];\nvar hsl=rgbToHsl(r,g,b);\nvar html='<div style=\"background:var(--result-bg);border-radius:8px;padding:.75rem\"><div style=\"font-weight:600;margin-bottom:.3rem\">HEX</div><div>'+hex+'</div></div>';\nhtml+='<div style=\"background:var(--result-bg);border-radius:8px;padding:.75rem\"><div style=\"font-weight:600;margin-bottom:.3rem\">RGB</div><div>rgb('+r+', '+g+', '+b+')</div></div>';\nhtml+='<div style=\"background:var(--result-bg);border-radius:8px;padding:.75rem\"><div style=\"font-weight:600;margin-bottom:.3rem\">RGBA</div><div>rgba('+r+', '+g+', '+b+', 1)</div></div>';\nhtml+='<div style=\"background:var(--result-bg);border-radius:8px;padding:.75rem\"><div style=\"font-weight:600;margin-bottom:.3rem\">HSL</div><div>hsl('+Math.round(hsl[0])+', '+Math.round(hsl[1]*100)+'%, '+Math.round(hsl[2]*100)+'%)</div></div>';\ndocument.getElementById('colorResults').innerHTML=html;\ndocument.getElementById('colorPreview').style.background=hex;\n}\nwindow.update=function(){\nvar hex=document.getElementById('colorPicker').value;\ndocument.getElementById('colorInput').value=hex;\nshowColor(hex);\n};\nwindow.updateFromInput=function(){\nvar v=document.getElementById('colorInput').value.trim();\nif(/^#[0-9a-f]{6}$/i.test(v)){\ndocument.getElementById('colorPicker').value=v;\nshowColor(v);\n}else{\nvar m=v.match(/rgb\\((\\d+),\\s*(\\d+),\\s*(\\d+)\\)/);\nif(m){\nvar h='#'+[+m[1],+m[2],+m[3]].map(function(x){return x.toString(16).padStart(2,'0');}).join('');\ndocument.getElementById('colorPicker').value=h;\nshowColor(h);\n}\n}\n};\nwindow.copyAll=function(){\nvar hex=document.getElementById('colorPicker').value;\nvar rgb=hexToRgb(hex)||[];\nvar r=rgb[0],g=rgb[1],b=rgb[2];\nnavigator.clipboard.writeText('HEX: '+hex+'\\nRGB: rgb('+r+', '+g+', '+b+')\\nRGBA: rgba('+r+', '+g+', '+b+', 1)');\n};\nwindow.addEventListener('load',update);\n})();\n</script>\n</body>\n</html>"
       },
       {
         "name": "反应力测试",
