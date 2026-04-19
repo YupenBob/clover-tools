@@ -29,68 +29,6 @@ const footerHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/footer.h
 const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-btn.html'), 'utf8').trim();
 
 
-const PATH_TO_TYPE_FALLBACK = {
-  // --- Tools with explicit type in tools.json (already covered by registry) ---
-  // --- Path-based fallback for tools that rely on path → type inference ---
-  // Formatter / text processing tools
-  'code/css': 'formatter',
-  'code/html': 'formatter',
-  'code/javascript': 'formatter',
-  'code/markdown': 'formatter',
-  'json/formatter': 'formatter',
-  'json/table': 'formatter',
-  'text/case': 'formatter',
-  'text/count': 'formatter',
-  'text/camel': 'formatter',
-  'text/diff': 'formatter',
-  'text/garble-fix': 'formatter',
-  'text/pinyin': 'formatter',
-  'text/extract': 'formatter',
-  'code/color-picker': 'formatter',
-  'code/cron-parser': 'formatter',
-  'other/color': 'formatter',
-  'other/regex': 'formatter',
-  // Encode/decode tools
-  'encrypt/base64': 'encode-decode',
-  'encrypt/url': 'encode-decode',
-  'encrypt/hex': 'converter',
-  'encrypt/md5': 'encode-decode',
-  'encrypt/sha': 'encode-decode',
-  'encrypt/unicode': 'encode-decode',
-  'encrypt/morse': 'encode-decode',
-  'encrypt/jwt': 'encode-decode',
-  'encrypt/punycode': 'encode-decode',
-  'encrypt/text-hide': 'encode-decode',
-  // Converter tools
-  'json/xml': 'converter',
-  'json/yaml': 'converter',
-  'other/hex-convert': 'converter',
-  'text/jianfan': 'converter',
-  // Time tools
-  'time/countdown': 'formatter',
-  'time/interval': 'formatter',
-  'time/age': 'formatter',
-  'time/world': 'formatter',
-  'time/world-clock': 'formatter',
-  'time/lunar-solar-converter': 'formatter',
-  // Life/utility tools
-  'life/insurance': 'formatter',
-  'life/salary': 'formatter',
-  'life/price-compare': 'formatter',
-  'life/grid-splitter': 'formatter',
-  // Generator tools
-  'other/nanoid': 'generator',
-  'other/password': 'generator',
-  'other/uuid': 'generator',
-  // HTTP test
-  'network/request-tester': 'http-test',
-  // Custom / static tools (no generic type fits their UI)
-  'code/knowledge-graph': 'tool-static',
-  'life/zen-canvas': 'tool-static',
-  'life/time-annotate': 'tool-static',
-  'other/reaction-test': 'tool-static',
-  'other/click-speed': 'tool-static',
-};
 
 
 // ============ Build categories HTML for homepage ============
@@ -528,8 +466,6 @@ function getToolConfig(toolPath) {
 }
 
 // ============ Tool Implementations ============
-function stripExt(p) { return p.replace(/\.html$/, ''); }
-
 function buildToolScript(tool) {
   // HIGHEST PRIORITY: customScript — complete JS customization, no template logic
   if (tool.customScript) {
@@ -540,16 +476,10 @@ function buildToolScript(tool) {
     const raw = TOOL_TYPE_REGISTRY[tool.type].script(tool);
     return raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
   }
-  // Check PATH_TO_TYPE_FALLBACK for path-based type inference
-  const effectiveType = PATH_TO_TYPE_FALLBACK[stripExt(tool.path)];
-  if (effectiveType && TOOL_TYPE_REGISTRY[effectiveType]) {
-    const raw2 = TOOL_TYPE_REGISTRY[effectiveType].script(tool);
-    return raw2.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
-  }
-  // Ultimate fallback: use 'formatter' type to auto-generate script
+  // Fallback: use formatter type for any unhandled types
   if (TOOL_TYPE_REGISTRY['formatter']) {
-    const raw3 = TOOL_TYPE_REGISTRY['formatter'].script(tool);
-    return raw3.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
+    const raw = TOOL_TYPE_REGISTRY['formatter'].script(tool);
+    return raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
   }
   return '// No script available for ' + tool.path;
 }
@@ -564,12 +494,7 @@ function buildToolContentHtml(tool) {
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
     return TOOL_TYPE_REGISTRY[tool.type].html(tool);
   }
-  // Check PATH_TO_TYPE_FALLBACK for path-based type inference
-  const effectiveType = PATH_TO_TYPE_FALLBACK[stripExt(tool.path)];
-  if (effectiveType && TOOL_TYPE_REGISTRY[effectiveType]) {
-    return TOOL_TYPE_REGISTRY[effectiveType].html(tool);
-  }
-  // Ultimate fallback: use 'formatter' type to auto-generate HTML
+  // Fallback: use formatter type for any unhandled types
   if (TOOL_TYPE_REGISTRY['formatter']) {
     return TOOL_TYPE_REGISTRY['formatter'].html(tool);
   }
