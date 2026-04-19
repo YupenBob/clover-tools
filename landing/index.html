@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>xsanye.cn — 让工具成为运气</title>
+  <meta name="description" content="xsanye.cn 品牌首页，CloverTools 工具站与技术博客，让工具成为运气。">
+  <meta property="og:title" content="xsanye.cn — 让工具成为运气">
+  <meta property="og:description" content="CloverTools 工具站与博客，用工具创造幸运。">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-start: #080808;
+      --bg-end: #111111;
+      --surface: #161616;
+      --surface-hover: #1f1f1f;
+      --gold: #D4AF37;
+      --gold-light: #E8C65A;
+      --gold-dim: rgba(212, 175, 55, 0.12);
+      --text-primary: #f5f5f5;
+      --text-secondary: #888888;
+      --text-tertiary: #555555;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-gold: rgba(212, 175, 55, 0.25);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: "Inter", "SF Pro Display", system-ui, sans-serif;
+      background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(8, 8, 8, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.3px;
+    }
+
+    .nav-logo .emoji {
+      font-size: 22px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(80px);
+      animation: breathe 10s ease-in-out infinite;
+    }
+
+    .hero-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation-delay: 0s;
+    }
+
+    .hero-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+      bottom: 100px;
+      right: -100px;
+      animation-delay: -3s;
+    }
+
+    .hero-orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.06) 0%, transparent 70%);
+      top: 200px;
+      left: -80px;
+      animation-delay: -6s;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      background: var(--gold-dim);
+      border: 1px solid var(--border-gold);
+      font-size: 13px;
+      color: var(--gold);
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.6s ease-out 0.1s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(40px, 8vw, 72px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.6s ease-out 0.25s forwards;
+    }
+
+    .hero-title .gold {
+      color: var(--gold);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 560px;
+      margin: 0 auto 48px;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.6s ease-out 0.4s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: fadeUp 0.6s ease-out 0.55s forwards;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #080808;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold-light);
+      transform: scale(1.02);
+      box-shadow: 0 0 24px rgba(212, 175, 55, 0.3);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+      transform: scale(1.02);
+    }
+
+    /* ── Stats ── */
+    .stats-section {
+      padding: 0 24px 120px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 32px 48px;
+      background: rgba(22, 22, 22, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .stats-bar:hover {
+      border-color: var(--border-gold);
+      box-shadow: 0 0 40px rgba(212, 175, 55, 0.06);
+    }
+
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 24px;
+    }
+
+    .stat-item + .stat-item {
+      border-left: 1px solid var(--border);
+    }
+
+    .stat-number {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── Products ── */
+    .products-section {
+      padding: 0 24px 120px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .section-eyebrow {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.04) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover {
+      transform: scale(1.02);
+      border-color: var(--border-gold);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.1);
+    }
+
+    .product-card:hover::before {
+      opacity: 1;
+    }
+
+    .product-icon {
+      font-size: 40px;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .product-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .product-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .product-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .tag {
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      border: 1px solid var(--border-gold);
+    }
+
+    .product-card .btn {
+      padding: 12px 24px;
+      font-size: 14px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 48px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
+      position: relative;
+    }
+
+    .footer-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--text-primary);
+      transform: scaleX(0);
+      transition: transform 0.2s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    .footer-links a:hover::after {
+      transform: scaleX(1);
+    }
+
+    .footer-social {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .footer-social a {
+      color: var(--text-tertiary);
+      font-size: 20px;
+      transition: color 0.2s ease, transform 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .footer-social a:hover {
+      color: var(--gold);
+      transform: scale(1.1);
+    }
+
+    .footer-bottom {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-tertiary);
+      line-height: 1.8;
+    }
+
+    /* ── Scroll Animations ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .nav {
+        padding: 0 20px;
+      }
+
+      .nav-links {
+        gap: 20px;
+      }
+
+      .hero {
+        padding: 100px 20px 60px;
+      }
+
+      .hero-orb-1 {
+        width: 350px;
+        height: 350px;
+      }
+
+      .stats-section,
+      .products-section {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-bottom: 80px;
+      }
+
+      .stats-bar {
+        flex-direction: column;
+        gap: 0;
+        padding: 24px;
+      }
+
+      .stat-item {
+        width: 100%;
+        padding: 16px;
+      }
+
+      .stat-item + .stat-item {
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+
+      .products-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .product-card {
+        padding: 28px;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .footer-links {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <a href="https://xsanye.cn" class="nav-logo">
+      <span class="emoji">☘️</span>
+      <span>xsanye.cn</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="https://clovers.tools" target="_blank">工具站</a></li>
+      <li><a href="https://blog.xsanye.cn" target="_blank">博客</a></li>
+      <li><a href="#">关于</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-content">
+      <div class="hero-badge">☘️ Clover · 让工具成为运气</div>
+      <h1 class="hero-title">Build with<br><span class="gold">Clover ☘️</span></h1>
+      <p class="hero-subtitle">
+        打造高效工具，记录技术思考。<br>
+        在这里，每一件工具都是幸运的开始。
+      </p>
+      <div class="hero-actions">
+        <a href="https://clovers.tools" target="_blank" class="btn btn-primary">
+          访问工具站
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="https://blog.xsanye.cn" target="_blank" class="btn btn-ghost">
+          阅读博客
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section reveal">
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-number" data-target="128">0</div>
+        <div class="stat-label">工具数量</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="64">0</div>
+        <div class="stat-label">博客文章</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="10000" data-suffix="+">0</div>
+        <div class="stat-label">月访问量</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section class="products-section">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">核心产品</div>
+      <h2 class="section-title">探索更多可能</h2>
+      <p class="section-desc">两个平台，一个目标：让工具创造效率，让内容传递价值。</p>
+    </div>
+    <div class="products-grid">
+      <div class="product-card reveal">
+        <span class="product-icon">🛠️</span>
+        <h3 class="product-title">CloverTools</h3>
+        <p class="product-desc">收录超过百款精选在线工具，覆盖开发、设计、效率等多个场景。无需注册，即开即用。</p>
+        <div class="product-tags">
+          <span class="tag">工具站</span>
+          <span class="tag">开发者</span>
+          <span class="tag">效率</span>
+        </div>
+        <a href="https://clovers.tools" target="_blank" class="btn btn-ghost">
+          立即访问
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="product-card reveal">
+        <span class="product-icon">📝</span>
+        <h3 class="product-title">技术博客</h3>
+        <p class="product-desc">记录技术踩坑、工具评测与开发心得。深入浅出，实战为主，为你省下宝贵时间。</p>
+        <div class="product-tags">
+          <span class="tag">博客</span>
+          <span class="tag">技术</span>
+          <span class="tag">分享</span>
+        </div>
+        <a href="https://blog.xsanye.cn" target="_blank" class="btn btn-ghost">
+          开始阅读
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span>☘️</span>
+        <span>xsanye.cn</span>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://clovers.tools" target="_blank">工具站</a></li>
+        <li><a href="https://blog.xsanye.cn" target="_blank">博客</a></li>
+        <li><a href="#">关于</a></li>
+        <li><a href="#">隐私政策</a></li>
+      </ul>
+      <div class="footer-social">
+        <a href="https://github.com/xsanye" target="_blank" title="GitHub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+        <a href="#" title="微信">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.87l-.406-.012zm-1.834 2.994c.536 0 .97.44.97.983a.976.976 0 01-.97.983.976.976 0 01-.97-.983c0-.542.434-.983.97-.983zm4.857 0c.536 0 .97.44.97.983a.976.976 0 01-.97.983.976.976 0 01-.97-.983c0-.542.434-.983.97-.983z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 xsanye.cn · 用工具创造幸运 ☘️</p>
+      <p>津ICP备xxxxxxxx号</p>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll Reveal ──
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => revealObserver.observe(el));
+
+    // ── Stats Counter Animation ──
+    const counters = document.querySelectorAll('.stat-number[data-target]');
+    let countersAnimated = false;
+
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target, 10);
+      const suffix = el.dataset.suffix || '';
+      const duration = 1800;
+      const start = performance.now();
+
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const current = Math.floor(ease * target);
+        el.textContent = current.toLocaleString() + suffix;
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !countersAnimated) {
+          countersAnimated = true;
+          counters.forEach(c => animateCounter(c));
+          statsObserver.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+
+    const statsBar = document.querySelector('.stats-bar');
+    if (statsBar) statsObserver.observe(statsBar);
+
+    // ── Subtle orb parallax ──
+    document.addEventListener('mousemove', (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 20;
+      document.querySelectorAll('.hero-orb').forEach((orb, i) => {
+        const factor = (i + 1) * 0.5;
+        orb.style.transform = `translateX(calc(-50% + ${x * factor}px)) translateY(${y * factor}px)`;
+      });
+    });
+  </script>
+</body>
+</html>
