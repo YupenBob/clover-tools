@@ -134,6 +134,7 @@ body {
 }
 
 @media (max-width: 768px) {
+  .categories { column-count: 1 !important; }
   .hero { padding: 2rem 1rem 1.5rem; }
   .hero h1 { font-size: 2rem; }
   .hero .subtitle { font-size: 0.95rem; }
@@ -155,9 +156,9 @@ body {
 
 /* ==================== Category Grid ==================== */
 .categories {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem;
+  column-count: auto;
+  column-width: 320px;
+  column-gap: 1.5rem;
   margin-top: 2rem;
 }
 .category {
@@ -166,6 +167,9 @@ body {
   padding: 1.5rem;
   box-shadow: var(--card-shadow);
   transition: var(--transition);
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 1.5rem;
 }
 .category:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
 .category h2 {
