@@ -1290,6 +1290,17 @@ function generate() {
 
   generateAboutPage();
 
+  // Copy landing page to dist
+  const landingSrcDir = path.join(ROOT_DIR, 'landing');
+  const landingDstDir = path.join(DIST_DIR, 'landing');
+  if (fs.existsSync(landingSrcDir)) {
+    ensureDir(landingDstDir);
+    fs.readdirSync(landingSrcDir).forEach(file => {
+      fs.copyFileSync(path.join(landingSrcDir, file), path.join(landingDstDir, file));
+    });
+    console.log('   Copied landing page to dist');
+  }
+
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
