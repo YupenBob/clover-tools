@@ -1291,7 +1291,7 @@ function generate() {
   generateAboutPage();
 
   // Copy landing page to dist
-  const landingSrcDir = path.join(ROOT_DIR, 'landing');
+  const landingSrcDir = path.join(BASE, 'landing');
   const landingDstDir = path.join(DIST_DIR, 'landing');
   if (fs.existsSync(landingSrcDir)) {
     ensureDir(landingDstDir);
