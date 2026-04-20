@@ -1001,9 +1001,17 @@ function generateAboutPage() {
       </div>
       <div class="about-links">
         <a href="/">工具首页</a>
-        <span style="opacity:0.3">|</span>
-        <a href="/blog/">问题博客</a>
-        <span style="opacity:0.3">|</span>
+        <span style="opacity:0.3">·</span>
+        <a href="https://dev.xsanye.cn" target="_blank">开发者导航</a>
+        <span style="opacity:0.3">·</span>
+        <a href="https://api.xsanye.cn" target="_blank">API速查</a>
+        <span style="opacity:0.3">·</span>
+        <a href="https://cheat.xsanye.cn" target="_blank">速查表</a>
+        <span style="opacity:0.3">·</span>
+        <a href="https://blog.xsanye.cn" target="_blank">技术博客</a>
+        <span style="opacity:0.3">·</span>
+        <a href="https://aiti.xsanye.cn" target="_blank">AITI</a>
+        <span style="opacity:0.3">·</span>
         <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
       </div>
       <div style="margin-top: 3rem;">
