@@ -15,7 +15,6 @@ const TOOLS_JSON_PATH = path.join(BASE, 'tools.json');
 // ============ Load templates ============
 const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf8');
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
-const changelogTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'changelog.html'), 'utf8');
 const toolsConfig = JSON.parse(fs.readFileSync(TOOLS_JSON_PATH, 'utf8'));
 
 // ============ Load shared assets ============
@@ -921,6 +920,27 @@ function generateBlogPosts() {
   console.log(`   Generated ${keywordsConfig.length} blog posts + index`);
 }
 
+// ============ Git changelog entries for about page ============
+function generateAboutChangelogEntries() {
+  try {
+    const gitLog = execSync('git log --format="%h|%ci|%s" --date=short -n 15').toString().trim();
+    if (!gitLog) return '';
+    const entries = gitLog.split('\n').map(line => {
+      const [hash, date, ...msgParts] = line.split('|');
+      const msg = msgParts.join('|');
+      const shortMsg = msg.replace(/^(feat|fix|refactor|chore|perf|docs)(\([^)]*\))?:\s*/, '');
+      const githubUrl = 'https://github.com/YupenBob/clover-tools/commit/' + hash;
+      return '<div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.75rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;line-height:1.5;">' +
+        '<a href="' + githubUrl + '" target="_blank" style="color:var(--primary);font-family:monospace;font-size:0.8rem;flex-shrink:0;text-decoration:none;">' + hash + '</a>' +
+        '<span style="flex:1;color:var(--text);">' + shortMsg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
+        '<span style="color:var(--text-secondary);font-size:0.78rem;flex-shrink:0;">' + date + '</span></div>';
+    });
+    return entries.join('');
+  } catch (e) {
+    return '';
+  }
+}
+
 function generateAboutPage() {
   const aboutHtml = `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -986,6 +1006,13 @@ function generateAboutPage() {
         <span style="opacity:0.3">|</span>
         <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
       </div>
+      <div style="margin-top: 3rem;">
+        <h2 style="font-size:1.5rem;margin-bottom:1rem;">📝 开发日志</h2>
+        <p style="font-size:0.9rem;opacity:0.6;margin-bottom:1.5rem;">基于 Git 提交记录自动生成</p>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          {{ABOUT_CHANGELOG_ENTRIES}}
+        </div>
+      </div>
     </div>
   </main>
   {{SITE_FOOTER}}
@@ -994,7 +1021,8 @@ function generateAboutPage() {
 
   const pageHtml = aboutHtml
     .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
-    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
+    .replace('{{ABOUT_CHANGELOG_ENTRIES}}', generateAboutChangelogEntries());
 
   fs.writeFileSync(path.join(DIST_DIR, 'about.html'), pageHtml);
   console.log('   Generated about.html');
@@ -1184,41 +1212,6 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
-  // ============ Generate changelog page ============
-  let gitLog = '';
-  try {
-    gitLog = execSync('git log --format="%h|%ci|%s" --date=short').toString().trim();
-  } catch (e) {
-    gitLog = ''; // Fallback: no git info available
-  }
-  function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  const entriesHtml = gitLog.split('\n').map(line => {
-    const [hash, date, ...msgParts] = line.split('|');
-    const msg = msgParts.join('|');
-    const type = (msg.match(/^(feat|fix|refactor|chore|perf|docs)/) || ['chore'])[1];
-    const shortMsg = msg.replace(/^(feat|fix|refactor|chore|perf|docs)(\([^)]*\))?:\s*/, '');
-    const githubUrl = 'https://github.com/YupenBob/clover-tools/commit/' + hash;
-    return '        <div class="changelog-commit">' +
-      '<a href="' + githubUrl + '" target="_blank" class="commit-hash ' + type + '">' + hash + '</a>' +
-      '<span class="commit-msg">' + escHtml(shortMsg) + '</span>' +
-      '<span class="commit-date">' + date + '</span></div>';
-  }).join('\n');
-
-  let changelogHtml = changelogTemplate
-    .replace('{{CHANGELOG_ENTRIES}}', entriesHtml)
-    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
-    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
-    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
-    .replace(/\{\{PAGE_OG_TITLE\}\}/g, '📝 更新日志 - 🍀 CloverTools')
-    .replace(/\{\{PAGE_OG_DESC\}\}/g, 'CloverTools 开发历程，基于 Git 提交记录自动生成')
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/src/clover-logo.svg')
-    .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/changelog')
-    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/changelog');
-
-  fs.writeFileSync(path.join(DIST_DIR, 'changelog.html'), changelogHtml);
-  console.log('   Generated changelog.html');
-
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
   toolsConfig.forEach(cat => {
@@ -1310,7 +1303,7 @@ function generate() {
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
   let urls = [`<url><loc>${baseUrl}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`];
-  urls.push(`<url><loc>${baseUrl}/changelog</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>`);
+  urls.push(`<url><loc>${baseUrl}/about</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>`);
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`);
