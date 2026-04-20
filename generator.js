@@ -923,7 +923,7 @@ function generateBlogPosts() {
 // ============ Git changelog entries for about page ============
 function generateAboutChangelogEntries() {
   try {
-    const gitLog = execSync('git log --format="%h|%ci|%s" --date=short -n 15').toString().trim();
+    const gitLog = execSync('git log --format="%h|%ci|%s" --date=short -n 15', {cwd: BASE}).toString().trim();
     if (!gitLog) return '';
     const entries = gitLog.split('\n').map(line => {
       const [hash, date, ...msgParts] = line.split('|');
@@ -971,6 +971,16 @@ function generateAboutPage() {
     .about-links a:hover { text-decoration: underline; }
     .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 2rem; font-size: 0.9rem; }
     .back-link:hover { text-decoration: underline; }
+    @media (max-width: 600px) {
+      main { padding: 2rem 1rem !important; }
+      .about-card { padding: 1.5rem !important; }
+      .about-logo img { height: 80px !important; }
+      .about-creators { flex-direction: column !important; gap: 1rem !important; }
+      .creator { padding: 1rem !important; }
+      h1 { font-size: 1.5rem !important; }
+      .about-links { flex-wrap: wrap !important; gap: 0.5rem !important; }
+      .about-links span { display: none !important; }
+    }
   </style>
 </head>
 <body>
