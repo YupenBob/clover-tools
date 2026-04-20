@@ -1185,7 +1185,12 @@ function generate() {
   console.log('   Generated index.html');
 
   // ============ Generate changelog page ============
-  const gitLog = execSync('git log --format="%h|%ci|%s" --date=short').toString().trim();
+  let gitLog = '';
+  try {
+    gitLog = execSync('git log --format="%h|%ci|%s" --date=short').toString().trim();
+  } catch (e) {
+    gitLog = ''; // Fallback: no git info available
+  }
   function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   const entriesHtml = gitLog.split('\n').map(line => {
