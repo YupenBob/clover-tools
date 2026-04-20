@@ -984,20 +984,82 @@ function generateAboutPage() {
       position: relative;
       overflow: hidden;
     }
+    /* Background radial glow */
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
       background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 70%);
       pointer-events: none;
+      z-index: 0;
+    }
+    /* Grain texture overlay - tiny SVG noise tiled */
+    .hero-grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+    /* Floating gradient orbs */
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-orb-1 {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%);
+      top: -80px;
+      left: -100px;
+      animation: floatOrb1 12s ease-in-out infinite;
+    }
+    .hero-orb-2 {
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(240,171,252,0.5) 0%, transparent 70%);
+      top: 80px;
+      right: -80px;
+      animation: floatOrb2 15s ease-in-out infinite;
+    }
+    .hero-orb-3 {
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(251,191,36,0.4) 0%, transparent 70%);
+      bottom: 80px;
+      left: 15%;
+      animation: floatOrb3 10s ease-in-out infinite;
+    }
+    @keyframes floatOrb1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, 25px) scale(1.08); }
+      66% { transform: translate(-15px, 40px) scale(0.96); }
+    }
+    @keyframes floatOrb2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      40% { transform: translate(-40px, -25px) scale(1.05); }
+      70% { transform: translate(25px, 30px) scale(0.92); }
+    }
+    @keyframes floatOrb3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, -30px) scale(1.12); }
     }
     .hero-logo-wrap {
       margin-bottom: 3rem;
       position: relative;
+      z-index: 2;
+      animation: logoFloat 4s ease-in-out infinite;
     }
     .hero-logo-wrap img {
       height: 140px;
-      filter: drop-shadow(0 0 40px rgba(139,92,246,0.35));
+      filter: drop-shadow(0 0 40px rgba(139,92,246,0.55)) drop-shadow(0 0 90px rgba(167,139,250,0.25));
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
     .hero-eyebrow {
       font-size: 0.72rem;
@@ -1006,17 +1068,22 @@ function generateAboutPage() {
       color: var(--primary-light);
       margin-bottom: 1.2rem;
       font-weight: 600;
+      position: relative;
+      z-index: 2;
     }
     .hero-title {
       font-size: clamp(3.2rem, 8vw, 7rem);
       font-weight: 800;
       line-height: 0.95;
       letter-spacing: -0.04em;
-      background: linear-gradient(135deg, #f0f0f0 0%, #a78bfa 60%, #c0392b 100%);
+      background: linear-gradient(135deg, #c084fc 0%, #a78bfa 25%, #f0abfc 55%, #fbbf24 85%, #f59e0b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
       margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 0 80px rgba(167,139,250,0.25);
     }
     .hero-sub {
       font-size: 1.05rem;
@@ -1024,6 +1091,8 @@ function generateAboutPage() {
       max-width: 520px;
       line-height: 1.8;
       margin-bottom: 3rem;
+      position: relative;
+      z-index: 2;
     }
     .hero-tags {
       display: flex;
@@ -1031,6 +1100,8 @@ function generateAboutPage() {
       flex-wrap: wrap;
       justify-content: center;
       margin-bottom: 4rem;
+      position: relative;
+      z-index: 2;
     }
     .hero-tag {
       padding: 0.35rem 1rem;
@@ -1045,6 +1116,7 @@ function generateAboutPage() {
       bottom: 2.5rem;
       left: 50%;
       transform: translateX(-50%);
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1316,6 +1388,10 @@ function generateAboutPage() {
 
   <!-- Hero -->
   <section class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grain"></div>
     <div class="hero-logo-wrap">
       <img src="/src/clover-logo.svg" alt="CloverTools Logo">
     </div>
@@ -1340,7 +1416,7 @@ function generateAboutPage() {
   <!-- Our Story -->
   <section class="story reveal">
     <div class="section-label">Our Story</div>
-    <h2 class="section-title">一个工具箱的诞生</h2>
+    <h2 class="section-title">🎯 一个工具箱的诞生</h2>
     <div class="story-grid">
       <div class="story-text">
         <p>
@@ -1355,15 +1431,15 @@ function generateAboutPage() {
       </div>
       <div class="story-stats">
         <div class="stat-card">
-          <div class="stat-num">50+</div>
+          <div class="stat-num">🛠️ 50+</div>
           <div class="stat-label">在线工具</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">2024</div>
+          <div class="stat-num">🚀 2024</div>
           <div class="stat-label">项目启动</div>
         </div>
         <div class="stat-card">
-          <div class="stat-num">2</div>
+          <div class="stat-num">👥 2</div>
           <div class="stat-label">联合创造者</div>
         </div>
         <div class="stat-card">
@@ -1378,7 +1454,7 @@ function generateAboutPage() {
   <section class="creators">
     <div class="creators-inner">
       <div class="section-label">The Team</div>
-      <h2 class="section-title">创造者</h2>
+      <h2 class="section-title">👥 创造者</h2>
       <div class="creators-grid">
         <div class="creator-card">
           <img class="creator-avatar" src="/src/york-avatar.png" alt="York">
@@ -1403,7 +1479,7 @@ function generateAboutPage() {
   <!-- Links -->
   <section class="links-section reveal">
     <div class="section-label">Explore More</div>
-    <h2 class="section-title">探索更多</h2>
+    <h2 class="section-title">🚀 探索更多</h2>
     <div class="links-nav">
       <a class="link-pill" href="/">🧰 工具首页</a>
       <a class="link-pill" href="https://dev.xsanye.cn" target="_blank">🧭 开发者导航</a>
@@ -1418,7 +1494,7 @@ function generateAboutPage() {
   <!-- Changelog -->
   <section class="changelog reveal">
     <div class="section-label">Changelog</div>
-    <h2 class="section-title">开发日志</h2>
+    <h2 class="section-title">📝 开发日志</h2>
     <div class="changelog-layout">
       <div class="changelog-heading-block">
         <div class="section-label" style="margin-bottom:0.5rem;">Based on Git Log</div>
@@ -1616,6 +1692,8 @@ function generate() {
   console.log('   Copied shared.css');
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.js'), sharedJs);
   console.log('   Copied shared.js');
+  fs.copyFileSync(TOOLS_JSON_PATH, path.join(DIST_DIR, 'tools.json'));
+  console.log('   Copied tools.json');
   const cloverLogoSvg = fs.readFileSync(path.join(SRC_DIR, 'clover-logo.svg'), 'utf8');
   fs.writeFileSync(path.join(DIST_DIR, 'src/clover-logo.svg'), cloverLogoSvg);
   console.log('   Copied clover-logo.svg');
@@ -1629,8 +1707,10 @@ function generate() {
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
+  const toolCount = toolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
   let homeHtml = homeTemplate
     .replace('{{CATEGORIES_HTML}}', categoriesHtml)
+    .replace('{{TOOL_COUNT}}', String(toolCount))
     .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
     .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
     .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
