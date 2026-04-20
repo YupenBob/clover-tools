@@ -930,10 +930,10 @@ function generateAboutChangelogEntries() {
       const msg = msgParts.join('|');
       const shortMsg = msg.replace(/^(feat|fix|refactor|chore|perf|docs)(\([^)]*\))?:\s*/, '');
       const githubUrl = 'https://github.com/YupenBob/clover-tools/commit/' + hash;
-      return '<div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.75rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;line-height:1.5;">' +
-        '<a href="' + githubUrl + '" target="_blank" style="color:var(--primary);font-family:monospace;font-size:0.8rem;flex-shrink:0;text-decoration:none;">' + hash + '</a>' +
-        '<span style="flex:1;color:var(--text);">' + shortMsg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
-        '<span style="color:var(--text-secondary);font-size:0.78rem;flex-shrink:0;">' + date + '</span></div>';
+      return '<div class="changelog-entry">' +
+        '<a class="changelog-hash" href="' + githubUrl + '" target="_blank">' + hash + '</a>' +
+        '<span class="changelog-msg">' + shortMsg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</span>' +
+        '<span class="changelog-date">' + date + '</span></div>';
     });
     return entries.join('');
   } catch (e) {
@@ -948,92 +948,506 @@ function generateAboutPage() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>关于 - CloverTools</title>
-  <meta name="description" content="CloverTools 由 York 和 YupenBob 创建，是一款轻量级开发者工具箱，无需注册，完全本地运行。">
+  <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造，是一款轻量级开发者工具箱，无需注册，完全本地运行。">
   <link rel="canonical" href="https://tools.xsanye.cn/about">
   <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/shared.css">
   <script src="/src/shared.js"></script>
   <style>
-    body { min-height: 100vh; display: flex; flex-direction: column; }
-    main { flex: 1; max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
-    .about-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 3rem; text-align: center; }
-    .about-logo { margin-bottom: 2rem; }
-    .about-logo img { height: 120px; }
-    h1 { font-size: 2rem; color: var(--text); margin-bottom: 1.5rem; }
-    .about-desc { color: var(--text-secondary); line-height: 1.8; font-size: 1.05rem; margin-bottom: 2rem; }
-    .about-desc p { margin-bottom: 1rem; }
-    .about-creators { display: flex; justify-content: center; gap: 2rem; margin-top: 2rem; }
-    .creator { background: var(--bg-secondary); border-radius: 12px; padding: 1.5rem 2rem; text-align: center; }
-    .creator-name { font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.3rem; }
-    .creator-role { font-size: 0.85rem; color: var(--text-secondary); }
-    .about-links { margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; }
-    .about-links a { color: var(--primary); text-decoration: none; font-weight: 600; }
-    .about-links a:hover { text-decoration: underline; }
-    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 2rem; font-size: 0.9rem; }
-    .back-link:hover { text-decoration: underline; }
-    @media (max-width: 600px) {
-      main { padding: 2rem 1rem !important; }
-      .about-card { padding: 1.5rem !important; }
-      .about-logo img { height: 80px !important; }
-      .about-creators { flex-direction: column !important; gap: 1rem !important; }
-      .creator { padding: 1rem !important; }
-      h1 { font-size: 1.5rem !important; }
-      .about-links { flex-wrap: wrap !important; gap: 0.5rem !important; }
-      .about-links span { display: none !important; }
+    /* ── Base reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Scroll fade-in ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.7s cubic-bezier(.22,1,.36,1), transform 0.7s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-logo-wrap {
+      margin-bottom: 3rem;
+      position: relative;
+    }
+    .hero-logo-wrap img {
+      height: 140px;
+      filter: drop-shadow(0 0 40px rgba(139,92,246,0.35));
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 1.2rem;
+      font-weight: 600;
+    }
+    .hero-title {
+      font-size: clamp(3.2rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #f0f0f0 0%, #a78bfa 60%, #c0392b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 3rem;
+    }
+    .hero-tags {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 4rem;
+    }
+    .hero-tag {
+      padding: 0.35rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+    }
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      opacity: 0.5;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ── Story Section ── */
+    .story {
+      padding: 8rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+      margin-top: 4rem;
+    }
+    .story-text p {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+    .story-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color 0.3s;
+    }
+    .stat-card:hover { border-color: var(--primary); }
+    .stat-num {
+      font-size: 2.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ── Creators ── */
+    .creators {
+      padding: 6rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .creators-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .creators-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .creator-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .creator-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+    }
+    .creator-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .creator-info { flex: 1; }
+    .creator-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .creator-link {
+      display: inline-block;
+      font-size: 0.82rem;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+    .creator-link:hover { text-decoration: underline; }
+    .creator-bio {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── Links ── */
+    .links-section {
+      padding: 6rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .links-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 2.5rem;
+    }
+    .link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.88rem;
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+    }
+    .link-pill:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(139,92,246,0.08);
+    }
+
+    /* ── Changelog ── */
+    .changelog {
+      padding: 6rem 2rem 8rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .changelog-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 5rem;
+      align-items: start;
+      margin-top: 3rem;
+    }
+    .changelog-heading-block {
+      position: sticky;
+      top: 6rem;
+    }
+    .changelog-heading-block .section-title { font-size: 2rem; }
+    .changelog-heading-block p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-top: 1rem;
+    }
+    .changelog-list { display: flex; flex-direction: column; gap: 0; }
+    .changelog-entry {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: start;
+      gap: 1rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .changelog-entry:last-child { border-bottom: none; }
+    .changelog-entry:hover { background: rgba(139,92,246,0.03); }
+    .changelog-hash {
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.78rem;
+      color: var(--primary-light);
+      text-decoration: none;
+      padding-top: 0.1rem;
+      white-space: nowrap;
+    }
+    .changelog-hash:hover { color: var(--primary); }
+    .changelog-msg {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .changelog-date {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      padding-top: 0.1rem;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+      padding: 0 2rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .back-link:hover { color: var(--primary); }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .hero { min-height: 80vh; padding: 5rem 1.5rem 3rem; }
+      .hero-logo-wrap img { height: 100px; }
+      .story { padding: 5rem 1.5rem; }
+      .story-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .story-stats { grid-template-columns: 1fr 1fr; }
+      .creators { padding: 4rem 1.5rem; }
+      .creators-grid { grid-template-columns: 1fr; }
+      .links-section { padding: 4rem 1.5rem; }
+      .changelog { padding: 4rem 1.5rem 5rem; }
+      .changelog-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .changelog-heading-block { position: static; }
+      .changelog-entry { grid-template-columns: 60px 1fr auto; gap: 0.75rem; }
+      .creators-inner { max-width: 100%; }
+      .story, .changelog, .back-link { max-width: 100%; padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    @media (max-width: 480px) {
+      .hero-tags { gap: 0.5rem; }
+      .story-stats { grid-template-columns: 1fr; }
+      .creator-card { flex-direction: column; align-items: center; text-align: center; }
     }
   </style>
 </head>
 <body>
   {{SITE_HEADER}}
-  <main>
-    <a href="/" class="back-link">← 返回工具首页</a>
-    <div class="about-card">
-      <div class="about-logo">
-        <img src="/src/clover-logo.svg" alt="CloverTools Logo">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-logo-wrap">
+      <img src="/src/clover-logo.svg" alt="CloverTools Logo">
+    </div>
+    <div class="hero-eyebrow">Developer Toolkit · Est. 2024</div>
+    <h1 class="hero-title">CloverTools</h1>
+    <p class="hero-sub">
+      由 York 与 AI 助手 Clover 共同打造。<br>
+      告别繁琐，专注创造。用完即走，不留痕迹。
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">⚡ 轻量级</span>
+      <span class="hero-tag">🔒 本地运行</span>
+      <span class="hero-tag">🚫 无需注册</span>
+      <span class="hero-tag">🍀 开源免费</span>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>scroll</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </section>
+
+  <!-- Our Story -->
+  <section class="story reveal">
+    <div class="section-label">Our Story</div>
+    <h2 class="section-title">一个工具箱的诞生</h2>
+    <div class="story-grid">
+      <div class="story-text">
+        <p>
+          CloverTools 起源于 2024 年，York 在日常开发中发现自己在各个网站之间来回切换——JSON 格式化要用一个站，Base64 编解码要用另一个站，cron 表达式又要找第三个。于是他决定做一个自己的工具箱，把所有常用的功能聚在一起。
+        </p>
+        <p>
+          后来，AI 助手 Clover 加入，成为这个项目的联合创造者。她帮助设计了架构，优化了工具分类逻辑，并持续为工具箱注入新的功能。
+        </p>
+        <p>
+          今天，CloverTools 已经拥有 50+ 工具，目标是一个拥有 1000+ 工具的开发者生态平台。每一次提交、每一个新工具，都是为了让"用完即走"变得更优雅。
+        </p>
       </div>
-      <h1>CloverTools</h1>
-      <div class="about-desc">
-        <p>由 York（YupenBob）和 AI 助手 Clover 共同打造。</p>
-        <p>告别繁琐，专注创造。用完即走，不留痕迹。</p>
-      </div>
-      <div class="about-creators">
-        <div class="creator">
-          <img src="/src/york-avatar.png" alt="York" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
-          <div class="creator-name">York</div>
-          <div class="creator-role"><a href="https://github.com/YupenBob" target="_blank" style="color:var(--primary)">@YupenBob</a></div>
-          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.3rem;">YupenBob（别名）</div>
+      <div class="story-stats">
+        <div class="stat-card">
+          <div class="stat-num">50+</div>
+          <div class="stat-label">在线工具</div>
         </div>
-        <div class="creator">
-          <img src="/src/clover-avatar.png" alt="Clover" style="width:80px;height:80px;border-radius:50%;margin-bottom:0.5rem;object-fit:cover;">
-          <div class="creator-name">Clover 🍀</div>
-          <div class="creator-role">AI Assistant · OpenClaw</div>
+        <div class="stat-card">
+          <div class="stat-num">2024</div>
+          <div class="stat-label">项目启动</div>
         </div>
-      </div>
-      <div class="about-links">
-        <a href="/">工具首页</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://dev.xsanye.cn" target="_blank">开发者导航</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://api.xsanye.cn" target="_blank">API速查</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://cheat.xsanye.cn" target="_blank">速查表</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://blog.xsanye.cn" target="_blank">技术博客</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://aiti.xsanye.cn" target="_blank">AITI</a>
-        <span style="opacity:0.3">·</span>
-        <a href="https://github.com/YupenBob/clover-tools" target="_blank">GitHub</a>
-      </div>
-      <div style="margin-top: 3rem;">
-        <h2 style="font-size:1.5rem;margin-bottom:1rem;">📝 开发日志</h2>
-        <p style="font-size:0.9rem;opacity:0.6;margin-bottom:1.5rem;">基于 Git 提交记录自动生成</p>
-        <div style="display:flex;flex-direction:column;gap:0.5rem;">
-          {{ABOUT_CHANGELOG_ENTRIES}}
+        <div class="stat-card">
+          <div class="stat-num">2</div>
+          <div class="stat-label">联合创造者</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">工具目标</div>
         </div>
       </div>
     </div>
-  </main>
+  </section>
+
+  <!-- Creators -->
+  <section class="creators">
+    <div class="creators-inner">
+      <div class="section-label">The Team</div>
+      <h2 class="section-title">创造者</h2>
+      <div class="creators-grid">
+        <div class="creator-card">
+          <img class="creator-avatar" src="/src/york-avatar.png" alt="York">
+          <div class="creator-info">
+            <div class="creator-name">York</div>
+            <a class="creator-link" href="https://github.com/YupenBob" target="_blank">@YupenBob</a>
+            <div class="creator-bio">YupenBob（别名），CloverTools 发起者。从 6 岁开始学编程，2024 年开始构建 CloverTools，想做自己的开发者工具生态。</div>
+          </div>
+        </div>
+        <div class="creator-card">
+          <img class="creator-avatar" src="/src/clover-avatar.png" alt="Clover">
+          <div class="creator-info">
+            <div class="creator-name">Clover 🍀</div>
+            <a class="creator-link" href="https://github.com/YupenBob/clover-tools" target="_blank">OpenClaw AI</a>
+            <div class="creator-bio">AI 助手，CloverTools 联合创造者。帮助设计架构、优化分类逻辑、持续注入新工具，让工具箱越来越智能。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links -->
+  <section class="links-section reveal">
+    <div class="section-label">Explore More</div>
+    <h2 class="section-title">探索更多</h2>
+    <div class="links-nav">
+      <a class="link-pill" href="/">🧰 工具首页</a>
+      <a class="link-pill" href="https://dev.xsanye.cn" target="_blank">🧭 开发者导航</a>
+      <a class="link-pill" href="https://api.xsanye.cn" target="_blank">⚡ API速查</a>
+      <a class="link-pill" href="https://cheat.xsanye.cn" target="_blank">📋 速查表</a>
+      <a class="link-pill" href="https://blog.xsanye.cn" target="_blank">✍️ 技术博客</a>
+      <a class="link-pill" href="https://aiti.xsanye.cn" target="_blank">🤖 AITI</a>
+      <a class="link-pill" href="https://github.com/YupenBob/clover-tools" target="_blank">⭐ GitHub</a>
+    </div>
+  </section>
+
+  <!-- Changelog -->
+  <section class="changelog reveal">
+    <div class="section-label">Changelog</div>
+    <h2 class="section-title">开发日志</h2>
+    <div class="changelog-layout">
+      <div class="changelog-heading-block">
+        <div class="section-label" style="margin-bottom:0.5rem;">Based on Git Log</div>
+        <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:0.75rem;">每一次提交<br>都在让工具箱更好</h3>
+        <p>以下是根据 Git 提交记录自动生成的历史变更列表，每一次 commit 都是一个进化的印记。</p>
+      </div>
+      <div class="changelog-list">
+        {{ABOUT_CHANGELOG_ENTRIES}}
+      </div>
+    </div>
+  </section>
+
+  <a href="/" class="back-link">← 返回工具首页</a>
+
   {{SITE_FOOTER}}
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => io.observe(el));
+  </script>
 </body>
 </html>`;
 
