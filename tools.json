@@ -870,6 +870,284 @@
         "autoCalc": true,
         "icon": "bi bi-code-slash",
         "title": "Crontab执行时间计算 - 计算Cron表达式最近执行时间"
+      },
+      {
+        "name": "UUID生成器",
+        "path": "dev-tools/uuid-generator.html",
+        "desc": "快速生成符合RFC 4122标准的UUID v4随机码，支持批量生成、大小写切换",
+        "keywords": "UUID生成器,UUID,v4,随机,唯一标识符,批量生成,RFC4122",
+        "type": "dev-tools",
+        "icon": "bi bi-upc",
+        "title": "UUID生成器 - 快速生成RFC 4122标准UUID",
+        "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var uid=crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var v=Math.random()*16|0;return(c==='x'?v:(v&0x3|0x8).toString(16));});r.push(inputs.uppercase?uid.toUpperCase():uid);}return{result:r.join('\\n')};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "count",
+              "label": "生成数量",
+              "type": "number",
+              "placeholder": "1",
+              "default": "1",
+              "min": 1,
+              "max": 100
+            },
+            {
+              "name": "uppercase",
+              "label": "大写",
+              "type": "checkbox",
+              "default": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "UUID结果"
+            }
+          ]
+        }
+      },
+      {
+        "name": "罗马数字转换",
+        "path": "dev-tools/roman-numeral.html",
+        "desc": "阿拉伯数字与罗马数字互相转换，支持1-3999范围",
+        "keywords": "罗马数字,转换,arabic,roman,number,数字",
+        "type": "dev-tools",
+        "icon": "bi bi-roman",
+        "title": "罗马数字转换器",
+        "genFn": "function(inputs){var toR=function(n){var t=['','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];var d=[1000,900,500,400,100,90,50,40,10,9,5,4,1];var r='';for(var i=0;i<d.length;i++){while(n>=d[i]){r+=t[i];n-=d[i];}}return r;};var fromR=function(s){var m={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000};var r=0;for(var i=0;i<s.length;i++){var cur=m[s[i]];var next=m[s[i+1]];r+=cur<next?-cur:cur;}return r;};var v=inputs.value.trim();var result=/^\\d+$/.test(v)?toR(parseInt(v)):fromR(v.toUpperCase()).toString();return{result:result};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "value",
+              "label": "输入数字或罗马数字",
+              "type": "text",
+              "placeholder": "2026 或 MMXXVI"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "转换结果"
+            }
+          ]
+        }
+      },
+      {
+        "name": "字节转换器",
+        "path": "dev-tools/byte-converter.html",
+        "desc": "字节、B、KB、MB、GB、TB 单位互相转换",
+        "keywords": "字节转换,byte,KB,MB,GB,TB,存储单位,单位转换",
+        "type": "dev-tools",
+        "icon": "bi bi-memory",
+        "title": "字节单位转换器",
+        "genFn": "function(inputs){var u={B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776};var v=parseFloat(inputs.value)||0;var result=(v*u[inputs.from]/u[inputs.to]).toFixed(6).replace(/\\.?0+$/,'');return{result:result+' '+inputs.to};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "value",
+              "label": "数值",
+              "type": "number",
+              "placeholder": "1024"
+            },
+            {
+              "name": "from",
+              "label": "从",
+              "type": "select",
+              "default": "KB",
+              "options": [
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB"
+              ]
+            },
+            {
+              "name": "to",
+              "label": "转换为",
+              "type": "select",
+              "default": "MB",
+              "options": [
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "结果"
+            }
+          ]
+        }
+      },
+      {
+        "name": "CSS单位转换",
+        "path": "dev-tools/css-unit-converter.html",
+        "desc": "px、em、rem、%、vw、vh 单位互相转换，前端开发必备",
+        "keywords": "CSS单位,px,em,rem,%,vw,vh,转换,前端,响应式",
+        "type": "dev-tools",
+        "icon": "bi bi-rulers",
+        "title": "CSS单位转换器",
+        "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var b=parseFloat(inputs.baseline)||16;var m={'px':1,'em':b,'rem':b,'%':b/100,'vw':window.innerWidth/100,'vh':window.innerHeight/100};var r={};for(var u of ['px','em','rem','%','vw','vh']){r[u]=(v*m[inputs.from]/m[u]).toFixed(4);}return{result:Object.entries(r).map(([u,val])=>val+' '+u).join('\\n')};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "value",
+              "label": "数值",
+              "type": "number",
+              "placeholder": "16"
+            },
+            {
+              "name": "from",
+              "label": "从",
+              "type": "select",
+              "default": "px",
+              "options": [
+                "px",
+                "em",
+                "rem",
+                "%",
+                "vw",
+                "vh"
+              ]
+            },
+            {
+              "name": "基准",
+              "label": "基准值(px)",
+              "type": "number",
+              "placeholder": "16",
+              "default": "16"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "各单果结果"
+            }
+          ]
+        }
+      },
+      {
+        "name": "随机MAC地址",
+        "path": "dev-tools/random-mac.html",
+        "desc": "生成随机MAC地址，支持批量生成、大小写切换",
+        "keywords": "MAC地址,生成,随机,网卡,硬件地址,批量",
+        "type": "dev-tools",
+        "icon": "bi bi-ethernet",
+        "title": "随机MAC地址生成器",
+        "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var b=Array(6).fill().map(()=>Math.floor(Math.random()*256));var mac=b.map(v=>(inputs.uppercase?v.toString(16).padStart(2,'0').toUpperCase():v.toString(16).padStart(2,'0'))).join(':');r.push(mac);}return{result:r.join('\\n')};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "count",
+              "label": "数量",
+              "type": "number",
+              "default": "5",
+              "min": 1,
+              "max": 100
+            },
+            {
+              "name": "uppercase",
+              "label": "大写",
+              "type": "checkbox",
+              "default": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "MAC地址"
+            }
+          ]
+        }
+      },
+      {
+        "name": "随机IP地址",
+        "path": "dev-tools/random-ip.html",
+        "desc": "生成随机IPv4地址，可选私有IP或公有IP",
+        "keywords": "IP生成,随机IP,IPv4,私有IP,公有IP,地址生成",
+        "type": "dev-tools",
+        "icon": "bi bi-wifi",
+        "title": "随机IP地址生成器",
+        "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var ip;if(inputs.private){var p=[[10,1],[172,16],[192,168]];var x=p[Math.floor(Math.random()*p.length)];if(x[0]===10)ip='10.'+rand(256)+'.'+rand(256)+'.'+rand(256);else if(x[0]===172)ip='172.'+(x[1]+rand(16))+'.'+rand(256)+'.'+rand(256);else ip='192.168.'+rand(256)+'.'+rand(256);}else{ip=Array(4).fill().map(()=>Math.floor(Math.random()*256)).join('.');}r.push(ip);}function rand(m){return Math.floor(Math.random()*m);}return{result:r.join('\\n')};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "count",
+              "label": "数量",
+              "type": "number",
+              "default": "5",
+              "min": 1,
+              "max": 100
+            },
+            {
+              "name": "private",
+              "label": "仅私有IP",
+              "type": "checkbox",
+              "default": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "IP地址"
+            }
+          ]
+        }
+      },
+      {
+        "name": "进制转换",
+        "path": "dev-tools/base-converter.html",
+        "desc": "二进制、八进制、十进制、十六进制互相转换",
+        "keywords": "进制转换,binary,octal,decimal,hex,16进制,10进制,转换",
+        "type": "dev-tools",
+        "icon": "bi bi-calculator",
+        "title": "进制转换器",
+        "genFn": "function(inputs){var v=inputs.value.trim();var r=parseInt(v,parseInt(inputs.fromBase)).toString(parseInt(inputs.toBase)).toUpperCase();return{result:r};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "value",
+              "label": "数值",
+              "type": "text",
+              "placeholder": "255"
+            },
+            {
+              "name": "fromBase",
+              "label": "从",
+              "type": "select",
+              "default": "10",
+              "options": [
+                "2",
+                "8",
+                "10",
+                "16"
+              ]
+            },
+            {
+              "name": "toBase",
+              "label": "转换为",
+              "type": "select",
+              "default": "16",
+              "options": [
+                "2",
+                "8",
+                "10",
+                "16"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "结果"
+            }
+          ]
+        }
       }
     ]
   },
@@ -1493,6 +1771,101 @@
         "generateFn": "function(inputs){var names=inputs.names.split(\"\\n\").filter(function(n){return n.trim();});if(names.length===0)return\"请输入参与者名单\";var winner=names[Math.floor(Math.random()*names.length)];return\"🎉 恭喜！中奖者：\"+winner;}",
         "icon": "bi bi-house-heart-fill",
         "title": "年会抽奖工具 - 从名单中随机抽取中奖者适用于年会活动"
+      },
+      {
+        "name": "人民币大写转换",
+        "path": "life/rmb-uppercase.html",
+        "desc": "数字金额转换为中文大写，支持角、分、整",
+        "keywords": "人民币大写,金额转换,中文大写,财务,会计,金额",
+        "type": "life",
+        "icon": "bi bi-currency-yen",
+        "title": "人民币大写转换器",
+        "genFn": "function(inputs){var m=parseFloat(inputs.money)||0;var d=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];var fix=function(s){return s.replace(/零角零分$/,'整').replace(/零角/g,'零').replace(/零分/g,'');};var i=Math.floor(m);var dec=Math.round((m-i)*100);var whole='';if(i>0){var gs=['','','元'],gs2=['仟','佰','拾',''];var gi=String(i).padStart(4,'0');for(var j=0;j<4;j++){var v=parseInt(gi[j]);if(v)whole+=d[v]+gs2[j];}whole+=gs[gi.length-4]||'元';}var parts=[];if(dec>0){parts.push(d[Math.floor(dec/10)]+'角');if(dec%10>0)parts.push(d[dec%10]+'分');}return{result:(whole+parts.join('')+'整')||'零元整'};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "money",
+              "label": "金额",
+              "type": "number",
+              "placeholder": "12345.67"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "大写金额"
+            }
+          ]
+        }
+      },
+      {
+        "name": "BMI计算器",
+        "path": "life/bmi-calculator.html",
+        "desc": "身体质量指数计算，支持中国成人BMI参考标准",
+        "keywords": "BMI,计算,身体质量,身高,体重,健康指数",
+        "type": "life",
+        "icon": "bi bi-heart-pulse",
+        "title": "BMI计算器",
+        "genFn": "function(inputs){var h=parseFloat(inputs.height)/100;var w=parseFloat(inputs.weight);if(!h||!w)return{result:'请输入有效身高和体重'};var bmi=(w/(h*h)).toFixed(1);var cat=bmi<18.5?'偏瘦':bmi<24?'正常':bmi<28?'偏胖':'肥胖';var sug=cat==='正常'?'继续保持！':cat==='偏瘦'?'注意营养均衡':'建议适当运动控制饮食';return{result:'BMI: '+bmi+'\\n分类: '+cat+'\\n建议: '+sug+'\\n\\n参考: 18.5-23.9为正常范围'};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "height",
+              "label": "身高(cm)",
+              "type": "number",
+              "placeholder": "170"
+            },
+            {
+              "name": "weight",
+              "label": "体重(kg)",
+              "type": "number",
+              "placeholder": "65"
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "BMI结果"
+            }
+          ]
+        }
+      },
+      {
+        "name": "温度转换",
+        "path": "life/temperature-converter.html",
+        "desc": "摄氏度、华氏度、开尔文温度互相转换",
+        "keywords": "温度转换,celsius,fahrenheit,kelvin,℃,℉,K,摄氏,华氏",
+        "type": "life",
+        "icon": "bi bi-thermometer",
+        "title": "温度单位转换器",
+        "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var r={};if(inputs.from==='C')r={'C':v,'F':(v*9/5+32).toFixed(2),'K':(v+273.15).toFixed(2)};else if(inputs.from==='F')r={'F':v,'C':((v-32)*5/9).toFixed(2),'K':((v-32)*5/9+273.15).toFixed(2)};else r={'K':v,'C':(v-273.15).toFixed(2),'F':((v-273.15)*9/5+32).toFixed(2)};return{result:Object.entries(r).map(([u,val])=>val+'°'+u).join('\\n')};}",
+        "args": {
+          "inputs": [
+            {
+              "name": "value",
+              "label": "数值",
+              "type": "number",
+              "placeholder": "100"
+            },
+            {
+              "name": "from",
+              "label": "从",
+              "type": "select",
+              "default": "C",
+              "options": [
+                "C",
+                "F",
+                "K"
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "name": "result",
+              "label": "转换结果"
+            }
+          ]
+        }
       }
     ]
   },
