@@ -139,12 +139,23 @@ a{color:inherit;text-decoration:none}
 @media(max-width:480px){.contrast-stats-grid{grid-template-columns:1fr}}
 
 
-  .story-section { padding: 6rem 2rem; background: #0a0a0f; }
-  .story-content { max-width: 700px; margin: 3rem auto 0; display: flex; flex-direction: column; gap: 2rem; }
-  .story-item { display: flex; gap: 1.5rem; align-items: flex-start; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid rgba(212,175,55,0.15); }
-  .story-year { font-size: 0.8rem; color: #D4AF37; font-weight: 700; min-width: 70px; padding-top: 0.2rem; }
-  .story-text { font-size: 0.95rem; color: rgba(255,255,255,0.75); line-height: 1.8; }
-  .story-text strong { color: #F0C90A; }
+  .story-section { padding: 8rem 2rem; background: #0a0a0f; position: relative; overflow: hidden; }
+  .story-section::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 600px; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent); }
+  .story-section::after { content: '✦'; position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); color: rgba(212,175,55,0.2); font-size: 1.5rem; }
+  .story-timeline { position: relative; max-width: 800px; margin: 3rem auto 0; padding-left: 3rem; }
+  .story-timeline::before { content: ''; position: absolute; left: 0; top: 0.5rem; bottom: 0; width: 1px; background: linear-gradient(180deg, rgba(212,175,55,0.6), rgba(212,175,55,0.1)); }
+  .story-item { position: relative; margin-bottom: 3.5rem; opacity: 0; transform: translateY(20px); animation: storyFadeIn 0.7s ease forwards; }
+  .story-item::before { content: ''; position: absolute; left: -3.35rem; top: 0.6rem; width: 10px; height: 10px; border-radius: 50%; background: #D4AF37; box-shadow: 0 0 12px rgba(212,175,55,0.8), 0 0 24px rgba(212,175,55,0.4); }
+  .story-item:nth-child(1) { animation-delay: 0.1s; }
+  .story-item:nth-child(2) { animation-delay: 0.3s; }
+  .story-item:nth-child(3) { animation-delay: 0.5s; }
+  .story-item:nth-child(4) { animation-delay: 0.7s; }
+  @keyframes storyFadeIn { to { opacity: 1; transform: translateY(0); } }
+  .story-year { font-family: 'Courier New', monospace; font-size: 0.75rem; color: #D4AF37; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .story-text { font-size: 1rem; color: rgba(255,255,255,0.8); line-height: 1.9; font-weight: 300; }
+  .story-text strong { color: #F0C90A; font-weight: 600; display: block; font-size: 1.1rem; margin-bottom: 0.4rem; letter-spacing: 0.02em; }
+  .story-text em { color: rgba(212,175,55,0.7); font-style: normal; }
+  .story-ornament { color: rgba(212,175,55,0.3); margin-right: 0.5rem; }
   </style>
 </head>
 <body>
@@ -292,40 +303,40 @@ a{color:inherit;text-decoration:none}
 
 <section class="story-section">
   <div class="section-header reveal">
-    <div class="section-eyebrow">关于 xsanye</div>
-    <h2 class="section-title">☘️ 我们的故事</h2>
-    <p class="section-desc">从零开始，用代码和想法，一点一点搭建起这套工具生态。</p>
+    <div class="section-eyebrow">Our Journey</div>
+    <h2 class="section-title">✦ The Story So Far ✦</h2>
+    <p class="section-desc">Every tool has a heartbeat. Every line of code, a memory.</p>
   </div>
-  <div class="story-content reveal">
+  <div class="story-timeline">
     <div class="story-item">
-      <div class="story-year">2026.02</div>
+      <div class="story-year">✧ February 2026</div>
       <div class="story-text">
-        <strong>Clover 诞生 ☘️</strong><br/>
-        一个人的实验室，从一个工具箱开始。第一个工具是 JSON 格式化，没有设计稿，没有用户调研，只有"我想用"的心情。
+        <strong>Clover was born ☘️</strong>
+        A quiet February night. One person. One terminal. One question: <em>"What if I built the tool I've always wanted?"</em> The first tool was JSON formatter — ugly, bare, functional. It didn't need to be beautiful. It just needed to exist.
       </div>
     </div>
     <div class="story-item">
-      <div class="story-year">2026.03</div>
+      <div class="story-year">✧ March 2026</div>
       <div class="story-text">
-        <strong>工具站上线</strong><br/>
-        超过 120 个工具，覆盖开发、生活、SEO。SEO 战略转型，从工具堆量转向"问题流量"打法。博客上线，开始写真正有用的技术内容。
+        <strong>The ecosystem begins</strong>
+        120+ tools later. A strategic pivot from <em>"tool stockpile"</em> to <em>"answer-first content."</em> The blog launched — not to impress, but to document the real problems and the real solutions behind each build.
       </div>
     </div>
     <div class="story-item">
-      <div class="story-year">2026.04</div>
+      <div class="story-year">✧ April 2026</div>
       <div class="story-text">
-        <strong>生态扩张</strong><br/>
-        开发者导航站 dev.xsanye.cn 上线，聚合 41 个开发者必备资源。<br/>
-        API 速查站 api.xsanye.cn 上线，35 个真实免费 API。<br/>
-        开发者速查表 cheat.xsanye.cn 上线，Git/SQL/正则速查。<br/>
-        工具总数突破 144 个，博客文章超 260 篇。
+        <strong>Beyond the toolshed</strong>
+        dev.xsanye.cn — a curated compass for developers.<br/>
+        api.xsanye.cn — 35 real APIs, zero friction.<br/>
+        cheat.xsanye.cn — Git, SQL, Regex, at your fingertips.<br/>
+        <em>144 tools. 260 articles. And this landing page you're reading right now.</em>
       </div>
     </div>
     <div class="story-item">
-      <div class="story-year">持续进行中</div>
+      <div class="story-year">✧ Ongoing</div>
       <div class="story-text">
-        <strong>故事还在写</strong><br/>
-        每个工具背后都有踩坑，每个页面都有迭代。这不是终点，是起点。感谢你看到这里。
+        <strong>The best chapters aren't written yet</strong>
+        Every bug is a lesson. Every deployment, a small victory. This isn't a finished story — it's an open repository. <em>And you're reading it, one scroll at a time.</em>
       </div>
     </div>
   </div>
