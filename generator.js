@@ -1800,16 +1800,8 @@ function generate() {
 
   generateAboutPage();
 
-  // Copy landing page to dist
-  const landingSrcDir = path.join(BASE, 'landing');
-  const landingDstDir = path.join(DIST_DIR, 'landing');
-  if (fs.existsSync(landingSrcDir)) {
-    ensureDir(landingDstDir);
-    fs.readdirSync(landingSrcDir).forEach(file => {
-      fs.copyFileSync(path.join(landingSrcDir, file), path.join(landingDstDir, file));
-    });
-    console.log('   Copied landing page to dist');
-  }
+  // Landing page moved to separate repo: https://github.com/YupenBob/xsanye-landing
+  // xsanye.cn now uses its own Vercel project
 
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
