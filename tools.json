@@ -184,6 +184,27 @@
         ],
         "icon": "bi bi-file-zip-fill",
         "title": "压缩包修复 - 修复损坏的ZIP压缩包"
+      },
+      {
+        "name": "XLSX转JSON",
+        "path": "format-conversion/xlsx2json.html",
+        "desc": "在线将Excel文件（.xlsx/.xls）转换为JSON格式数据，支持自定义工作表选择、键名行配置与预览下载。无需上传到服务器，纯浏览器本地处理，保护数据隐私。",
+        "keywords": "XLSX转JSON，Excel转JSON，XLS转JSON，Excel转换，SheetJS，表格转JSON，CSV转JSON，在线转换",
+        "type": "format-convert",
+        "icon": "bi bi-file-earmark-arrow-down"
+      }
+    ]
+  },
+  {
+    "category": "图片工具",
+    "tools": [
+      {
+        "name": "二维码生成器",
+        "path": "image/qrcode.html",
+        "desc": "在线二维码生成器，支持文本、URL、邮箱、电话等内容的二维码即时生成，可自定义尺寸、颜色与纠错级别，一键下载PNG图片，完全免费无需注册。",
+        "keywords": "二维码生成，QR码，QRCode，二维码制作，二维码下载，URL二维码，手机扫码",
+        "type": "image",
+        "icon": "bi bi-qr-code"
       }
     ]
   },
@@ -1148,6 +1169,38 @@
             }
           ]
         }
+      },
+      {
+        "name": "UUID v7生成器",
+        "path": "code/uuid7.html",
+        "desc": "在线生成符合RFC 9562标准的UUID v7（基于时间的有序UUID）。UUIDv7使用Unix时间戳毫秒作为时间组件，保证全局唯一性的同时支持按时间排序，适合数据库主键、日志追踪等场景。",
+        "keywords": "UUID v7，UUID生成器，RFC 9562，GUID，UUID v7生成，数据库主键，有序UUID，时间排序UUID",
+        "type": "code",
+        "icon": "bi bi-hash"
+      },
+      {
+        "name": "JSON压缩/格式化",
+        "path": "code/json-compress.html",
+        "desc": "JSON压缩与格式化工具，一键压缩JSON（去除空格换行）用于生产环境，也可格式化压缩后的JSON用于调试阅读，支持语法校验与错误定位，完全免费无需注册。",
+        "keywords": "JSON压缩，JSON格式化，JSON压缩器，JSON格式化工具，JSON压缩格式化，JSON在线压缩，JSON在线格式化",
+        "type": "code",
+        "icon": "bi bi-braces"
+      },
+      {
+        "name": "XML格式化/压缩",
+        "path": "code/xml-format.html",
+        "desc": "XML格式化工具，一键美化压缩XML数据，支持语法校验与错误提示，可自定义缩进级别。适合XML配置文件编辑、API响应查看与数据传输场景。",
+        "keywords": "XML格式化，XML压缩，XML美化，XML在线格式化，XML压缩工具，XML语法校验，XML编辑",
+        "type": "code",
+        "icon": "bi bi-code-slash"
+      },
+      {
+        "name": "正则表达式生成器",
+        "path": "code/regex-generator.html",
+        "desc": "通过自然语言描述或示例文本自动生成正则表达式，支持常用模式库（手机号、邮箱、身份证、URL等），一键复制生成的RegExp，零基础也能快速写出正确的正则表达式。",
+        "keywords": "正则表达式生成器，RegExp生成，正则自动生成，正则表达式工具，正则匹配，邮箱正则，手机号正则，身份证正则",
+        "type": "code",
+        "icon": "bi bi-lightning-charge"
       }
     ]
   },
@@ -1288,6 +1341,14 @@
         "reverseFn": "function(v){var zw={\"\\u200B\":\"0\",\"\\u200C\":\"1\",\"\\u200D\":\"\"};var b=\"\";for(var i=0;i<v.length;i++){if(zw[v[i]]!==undefined)b+=zw[v[i]];}var r=\"\";for(var i=0;i<b.length;i+=8)r+=String.fromCharCode(parseInt(b.substr(i,8),2));return r;}",
         "icon": "bi bi-shield-lock-fill",
         "title": "文字隐藏加密/解密 - 利用零宽字符隐藏信息的工具"
+      },
+      {
+        "name": "AES加密/解密",
+        "path": "encrypt/aes.html",
+        "desc": "AES（高级加密标准）是目前最广泛使用的对称加密算法之一，支持AES-128/AES-192/AES-256三种密钥长度。本工具支持CBC模式下的加密解密，可自定义IV向量，一键完成数据加解密，完全免费无需注册。",
+        "keywords": "AES加密，AES解密，AES-128，AES-256，CBC模式，对称加密，数据加密，密码学",
+        "type": "encrypt",
+        "icon": "bi bi-lock-fill"
       }
     ]
   },
@@ -1591,6 +1652,14 @@
         "type": "tool-custom",
         "title": "公历农历互转器 - 公历与农历日期双向转换",
         "customHtml": "<!DOCTYPE html>\n<html lang=\"zh-CN\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>公历农历互转器 - 在线公历农历日期转换</title>\n<meta name=\"description\" content=\"在线公历农历互转工具，输入公历日期，一键转换为对应的农历日期。\">\n<meta name=\"keywords\" content=\"公历农历互转,农历转换,公历转农历,日期转换\">\n<link rel=\"stylesheet\" href=\"../../src/shared.css\">\n<link rel=\"icon\" href=\"/src/clover-logo.svg\" type=\"image/svg+xml\">\n<script src=\"../../src/shared.js\"></script>\n</head>\n<body>\n<nav class=\"navbar\"></nav>\n<div class=\"page-container\">\n<div class=\"page-body\">\n<div class=\"breadcrumb\">首页 / 时间工具 / 公历农历互转</div>\n<h1>公历农历互转</h1>\n<p>输入公历日期，转换为农历日期。</p>\n<div class=\"tool-card\">\n<label style=\"font-size:.9rem;color:var(--text-secondary);display:block;margin-bottom:.5rem\">公历日期</label>\n<input type=\"date\" id=\"solarDate\" style=\"width:100%;padding:.6rem;border:1px solid var(--border);border-radius:8px;font-size:1rem;background:var(--input-bg);color:var(--text);box-sizing:border-box\">\n<button onclick=\"convert()\" style=\"margin-top:.75rem;padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.9rem\">转换为农历</button>\n<div id=\"result\" style=\"margin-top:.75rem;padding:.75rem;background:var(--result-bg);border-radius:8px;font-size:1.1rem;line-height:1.8\"></div>\n</div>\n</div>\n</div>\n<footer class=\"footer\"></footer>\n<script>\n(function(){\nif(typeof CT==='undefined'){\ndocument.querySelector('.navbar').innerHTML='<div class=\"nav-inner\"><a href=\"/\">CloverTools</a></div>';\ndocument.querySelector('.footer').innerHTML='<div>2026 <a href=\"/\">CloverTools</a></div>';\n}\nvar info=[19416,32896,33536,34880,38960,45024,55968,60352,63424,69904,72320,97280,106272,105632,113760,123200,120960,132720,120000,111440,110880,112400,110880,102760,92160,108160,120720,104800,114080,115984,109760,123136,122400,121600,128160];\nfunction lunarYearDays(y){var d=info[y-1900]>>12&15?30:29;for(var i=1;i<=(info[y-1900]>>12&15);i++)d+=info[y-1900]>>(12-i)&1?30:29;return d;}\nfunction s2l(y,m,d){var off=new Date(y,m,d)-new Date(1900,0,31);var days=Math.floor(off/86400000),y=1900,m=0;while(y<2100&&days>lunarYearDays(y)){days-=lunarYearDays(y++);}var leap=(info[y-1900]>>16)&15;for(m=1;m<13&&days>0;m++){var md=leap&&m===leap+1?30:(info[y-1900]>>(12-m)&1)?30:29;if(days<md)break;days-=md;}if(m===leap+1)leap=0;return{y:y,m:m,d:days+1};}\nfunction fmtLunar(y,m,d){var mN=[\"正\",\"二\",\"三\",\"四\",\"五\",\"六\",\"七\",\"八\",\"九\",\"十\",\"冬\",\"腊\"];var dN=[\"初一\",\"初二\",\"初三\",\"初四\",\"初五\",\"初六\",\"初七\",\"初八\",\"初九\",\"初十\",\"十一\",\"十二\",\"十三\",\"十四\",\"十五\",\"十六\",\"十七\",\"十八\",\"十九\",\"二十\",\"廿一\",\"廿二\",\"廿三\",\"廿四\",\"廿五\",\"廿六\",\"廿七\",\"廿八\",\"廿九\",\"三十\"];return y+\"年\"+mN[m-1]+\"月\"+dN[d-1];}\nwindow.convert=function(){var v=document.getElementById(\"solarDate\").value;if(!v)return;var d=new Date(v);var l=s2l(d.getFullYear(),d.getMonth()+1,d.getDate());document.getElementById(\"result\").innerHTML=\"<b style=\\\"color:var(--primary);font-size:1.2rem\\\">\"+fmtLunar(l.y,l.m,l.d)+\"</b>\";};\n})();\n</script>\n</body>\n</html>"
+      },
+      {
+        "name": "在线万年历",
+        "path": "time/calendar.html",
+        "desc": "在线万年历，支持1900年至2100年任意公历日期查询，显示公历、农历、星期、节气、节假日信息。界面简洁美观，适合日程规划与历史日期查询。",
+        "keywords": "万年历，在线万年历，公历农历，农历查询，日历，节气，节假日，日期查询，历史日历",
+        "type": "time",
+        "icon": "bi bi-calendar3-fill"
       }
     ]
   },
