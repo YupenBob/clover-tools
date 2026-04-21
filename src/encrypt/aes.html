@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AES加密/解密 - CloverTools</title>
+  <meta name="description" content="AES（高级加密标准）是目前最广泛使用的对称加密算法之一，支持AES-128/AES-192/AES-256三种密钥长度。本工具支持CBC模式下的加密解密，可自定义IV向量，一键完成数据加解密，完全免费无需注册。">
+  <meta name="keywords" content="AES加密，AES解密，AES-128，AES-256，CBC模式，对称加密，数据加密，密码学">
+
+  <meta property="og:title" content="AES加密/解密 - CloverTools">
+  <meta property="og:description" content="AES（高级加密标准）是目前最广泛使用的对称加密算法之一，支持AES-128/AES-192/AES-256三种密钥长度。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/encrypt/aes.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="AES加密/解密 - CloverTools">
+  <meta name="twitter:description" content="AES（高级加密标准）是目前最广泛使用的对称加密算法之一。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/encrypt/aes.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    .tool-card { background: var(--card-bg); border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--card-shadow); margin-bottom: 1.5rem; }
+    .section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.85rem; opacity: 0.8; }
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+    .field { flex: 1; min-width: 140px; }
+    .field label { display: block; font-size: 0.82rem; margin-bottom: 0.4rem; opacity: 0.7; }
+    .field select, .field input, .field textarea { width: 100%; padding: 0.6rem; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-family: monospace; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field select:focus, .field input:focus, .field textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    .btn { padding: 0.6rem 1.5rem; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.2s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: var(--bg-secondary); color: var(--text); }
+    .btn-secondary:hover { opacity: 0.8; }
+    .btn-group { display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap; }
+    .result-box { margin-top: 1.25rem; padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .result-box h3 { font-size: 0.9rem; margin-bottom: 0.6rem; opacity: 0.7; }
+    .result-text { font-family: monospace; font-size: 0.9rem; word-break: break-all; background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px; min-height: 60px; }
+    .error-msg { color: var(--primary); font-size: 0.88rem; margin-top: 0.5rem; }
+    .info-box { background: var(--bg-secondary); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.85rem; opacity: 0.75; margin-bottom: 1rem; line-height: 1.5; }
+    .info-box code { background: var(--border); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.82rem; }
+  </style>
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="13"/></symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/></symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">CloverTools</a>
+      <nav class="site-nav site-nav-desktop">
+        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+        <button class="theme-toggle" id="themeToggle" title="切换主题"><svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg><svg class="icon-moon"><use href="#icon-moon"/></svg></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>AES加密/解密</h1>
+        <p class="description">AES对称加密算法，支持AES-128/AES-192/AES-256，CBC模式，支持PKCS7填充</p>
+      </div>
+
+      <div class="tool-layout">
+        <div class="tool-card">
+          <div class="info-box">
+            <strong>模式说明：</strong>AES-CBC需要相同的密钥和IV（初始化向量）才能正确加解密。请妥善保管密钥，切勿泄露。
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>密钥长度</label>
+              <select id="keySize">
+                <option value="128">AES-128（16字节密钥）</option>
+                <option value="192">AES-192（24字节密钥）</option>
+                <option value="256">AES-256（32字节密钥）</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>输出格式</label>
+              <select id="outputFmt">
+                <option value="hex">Hex（十六进制）</option>
+                <option value="base64">Base64</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row" style="margin-top:1rem;">
+            <div class="field" style="flex:2;">
+              <label>密钥（Password / Key）</label>
+              <input type="text" id="keyInput" placeholder="输入加密密钥，如：your-secret-key" />
+            </div>
+            <div class="field" style="flex:1;">
+              <label>IV向量（可选，默认自动生成）</label>
+              <input type="text" id="ivInput" placeholder="16字节HEX或留空" />
+            </div>
+          </div>
+
+          <div style="margin-top:1rem;">
+            <label class="section-title">输入文本</label>
+            <textarea id="plainText" placeholder="输入待加密或待解密的文本..."></textarea>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btnEncrypt">🔒 加密</button>
+            <button class="btn btn-secondary" id="btnDecrypt">🔓 解密</button>
+            <button class="btn btn-secondary" id="btnClear">清空</button>
+          </div>
+
+          <div class="result-box" id="ivBox" style="display:none;">
+            <h3>本次使用的IV向量（解密时需保持一致）</h3>
+            <div class="result-text" id="ivResult"></div>
+          </div>
+
+          <div class="result-box" id="resultBox" style="display:none;">
+            <h3 id="resultLabel">结果</h3>
+            <div class="result-text" id="resultText"></div>
+            <div style="margin-top:0.5rem; display:flex; gap:0.5rem;">
+              <button class="btn btn-secondary" id="btnCopy" style="font-size:0.85rem; padding:0.4rem 1rem;">📋 复制</button>
+            </div>
+          </div>
+
+          <div class="error-msg" id="errorMsg" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+    </div>
+  </footer>
+  <div id="toast"></div>
+
+  <script>
+  CT.initTheme();
+  CT.initKeyboardShortcuts();
+  document.getElementById('shareBtn').onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast('链接已复制！'); }).catch(function() { CT.showToast('复制失败'); }); };
+
+  function showError(msg) {
+    var el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.style.display = 'block';
+    document.getElementById('resultBox').style.display = 'none';
+    document.getElementById('ivBox').style.display = 'none';
+  }
+  function clearError() { document.getElementById('errorMsg').style.display = 'none'; }
+  function showResult(label, text) {
+    document.getElementById('resultLabel').textContent = label;
+    document.getElementById('resultText').textContent = text;
+    document.getElementById('resultBox').style.display = 'block';
+  }
+  function showIV(iv) {
+    document.getElementById('ivResult').textContent = iv;
+    document.getElementById('ivBox').style.display = 'block';
+  }
+
+  function strToBytes(str) { return new TextEncoder().encode(str); }
+  function bytesToHex(bytes) { return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(''); }
+  function hexToBytes(hex) { var bytes = new Uint8Array(hex.length / 2); for (var i = 0; i < bytes.length; i++) bytes[i] = parseInt(hex.substr(i * 2, 2), 16); return bytes; }
+
+  async function deriveKey(password, keySize) {
+    var keyMaterial = await crypto.subtle.importKey('raw', strToBytes(password), 'PBKDF2', false, ['deriveKey']);
+    var salt = new Uint8Array(8);
+    crypto.getRandomValues(salt);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-CBC', length: parseInt(keySize) },
+      false,
+      ['encrypt', 'decrypt']
+    ).then(function(key) { return { key: key, salt: salt }; });
+  }
+
+  async function doEncrypt() {
+    clearError();
+    var keySize = document.getElementById('keySize').value;
+    var outputFmt = document.getElementById('outputFmt').value;
+    var password = document.getElementById('keyInput').value.trim();
+    var ivHex = document.getElementById('ivInput').value.trim();
+    var plainText = document.getElementById('plainText').value;
+
+    if (!password) { showError('请输入密钥'); return; }
+    if (!plainText) { showError('请输入待加密文本'); return; }
+
+    try {
+      var ivBytes = ivHex ? hexToBytes(ivHex) : new Uint8Array(16);
+      crypto.getRandomValues(ivBytes.slice(0, 0));
+      if (!ivHex) crypto.getRandomValues(ivBytes);
+
+      var result = await deriveKey(password, keySize);
+      var key = result.key;
+      var salt = new Uint8Array([1,2,3,4,5,6,7,8]);
+
+      var encrypted = await crypto.subtle.encrypt({ name: 'AES-CBC', iv: ivBytes }, key, strToBytes(plainText));
+      var encryptedBytes = new Uint8Array(encrypted);
+
+      var output;
+      if (outputFmt === 'hex') {
+        var combined = new Uint8Array(salt.length + ivBytes.length + encryptedBytes.length);
+        combined.set(salt, 0);
+        combined.set(ivBytes, salt.length);
+        combined.set(encryptedBytes, salt.length + ivBytes.length);
+        output = bytesToHex(combined);
+        showIV(bytesToHex(ivBytes));
+      } else {
+        var combined = new Uint8Array(salt.length + ivBytes.length + encryptedBytes.length);
+        combined.set(salt, 0);
+        combined.set(ivBytes, salt.length);
+        combined.set(encryptedBytes, salt.length + ivBytes.length);
+        output = btoa(String.fromCharCode.apply(null, combined));
+        showIV(bytesToHex(ivBytes));
+      }
+
+      showResult('加密结果（Base64格式）', output);
+    } catch (e) { showError('加密失败：' + e.message); }
+  }
+
+  async function doDecrypt() {
+    clearError();
+    var outputFmt = document.getElementById('outputFmt').value;
+    var password = document.getElementById('keyInput').value.trim();
+    var ivHex = document.getElementById('ivInput').value.trim();
+    var cipherText = document.getElementById('plainText').value.trim();
+
+    if (!password) { showError('请输入密钥'); return; }
+    if (!cipherText) { showError('请输入密文'); return; }
+
+    try {
+      var combined, salt, ivBytes, encryptedBytes;
+
+      if (outputFmt === 'hex') {
+        combined = hexToBytes(cipherText);
+        salt = combined.slice(0, 8);
+        ivBytes = combined.slice(8, 24);
+        encryptedBytes = combined.slice(24);
+      } else {
+        var binary = atob(cipherText);
+        combined = new Uint8Array(binary.length);
+        for (var i = 0; i < binary.length; i++) combined[i] = binary.charCodeAt(i);
+        salt = combined.slice(0, 8);
+        ivBytes = combined.slice(8, 24);
+        encryptedBytes = combined.slice(24);
+      }
+
+      if (ivBytes.length !== 16) { showError('IV长度无效，应为16字节'); return; }
+      if (!ivHex) { document.getElementById('ivInput').value = bytesToHex(ivBytes); showIV(bytesToHex(ivBytes)); }
+
+      var keyMaterial = await crypto.subtle.importKey('raw', strToBytes(password), 'PBKDF2', false, ['deriveKey']);
+      var key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-CBC', length: 256 },
+        false,
+        ['decrypt']
+      );
+
+      var decrypted = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: ivBytes }, key, encryptedBytes);
+      var plain = new TextDecoder().decode(decrypted);
+      showResult('解密结果（原文）', plain);
+    } catch (e) { showError('解密失败：密钥或IV不正确，或密文格式有误 (' + e.message + ')'); }
+  }
+
+  document.getElementById('btnEncrypt').addEventListener('click', doEncrypt);
+  document.getElementById('btnDecrypt').addEventListener('click', doDecrypt);
+  document.getElementById('btnClear').addEventListener('click', function() {
+    document.getElementById('plainText').value = '';
+    document.getElementById('errorMsg').style.display = 'none';
+    document.getElementById('resultBox').style.display = 'none';
+    document.getElementById('ivBox').style.display = 'none';
+  });
+  document.getElementById('btnCopy').addEventListener('click', function() {
+    var text = document.getElementById('resultText').textContent;
+    navigator.clipboard.writeText(text).then(function() { CT.showToast('已复制！'); }).catch(function() { CT.showToast('复制失败'); });
+  });
+  </script>
+</body>
+</html>

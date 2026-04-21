@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UUID v7生成器 - CloverTools</title>
+  <meta name="description" content="在线生成符合RFC 9562标准的UUID v7（基于时间的有序UUID）。UUIDv7使用Unix时间戳毫秒作为时间组件，保证全局唯一性的同时支持按时间排序，适合数据库主键、日志追踪等场景。">
+  <meta name="keywords" content="UUID v7，UUID生成器，RFC 9562，GUID，UUID v7生成，数据库主键，有序UUID，时间排序UUID">
+
+  <meta property="og:title" content="UUID v7生成器 - CloverTools">
+  <meta property="og:description" content="在线生成符合RFC 9562标准的UUID v7，使用Unix时间戳毫秒作为时间组件，支持按时间排序。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/code/uuid7.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="UUID v7生成器 - CloverTools">
+  <meta name="twitter:description" content="在线生成符合RFC 9562标准的UUID v7，使用Unix时间戳毫秒作为时间组件，支持按时间排序。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/code/uuid7.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+
+    .tool-card { background: var(--card-bg); border-radius: var(--radius); padding: 1.75rem; box-shadow: var(--card-shadow); margin-bottom: 1.5rem; }
+    .info-box { background: var(--bg-secondary); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.88rem; line-height: 1.6; opacity: 0.8; margin-bottom: 1.25rem; }
+    .info-box code { background: var(--border); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.82rem; }
+    .result-display { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-family: 'Courier New', monospace; font-size: 1.05rem; letter-spacing: 0.05em; word-break: break-all; cursor: pointer; transition: border-color 0.2s; min-height: 56px; display: flex; align-items: center; }
+    .result-display:hover { border-color: var(--primary); }
+    .btn { padding: 0.55rem 1.4rem; font-size: 0.92rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.2s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-secondary { background: var(--bg-secondary); color: var(--text); }
+    .btn-secondary:hover { opacity: 0.8; }
+    .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .section-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.6rem; opacity: 0.8; }
+    .table-info { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+    .table-info td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--border); }
+    .table-info td:first-child { opacity: 0.6; font-weight: 600; }
+    .field { margin-top: 0.85rem; }
+    .field label { display: block; font-size: 0.82rem; margin-bottom: 0.35rem; opacity: 0.7; }
+    .field input { width: 100%; padding: 0.55rem; font-size: 0.92rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); }
+    .field input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    .history-list { list-style: none; max-height: 200px; overflow-y: auto; }
+    .history-list li { padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 0.88rem; cursor: pointer; transition: background 0.15s; display: flex; justify-content: space-between; align-items: center; }
+    .history-list li:hover { background: var(--bg-secondary); padding-left: 0.5rem; border-radius: 4px; }
+    .history-list li .uuid-text { word-break: break-all; }
+    .history-list li .uuid-time { font-size: 0.75rem; opacity: 0.5; white-space: nowrap; margin-left: 0.5rem; }
+  </style>
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
+    <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></symbol>
+    <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="13"/></symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1z"/></symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></symbol>
+  </svg>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-logo">CloverTools</a>
+      <nav class="site-nav site-nav-desktop">
+        <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+        <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+        <button class="theme-toggle" id="themeToggle" title="切换主题"><svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg><svg class="icon-moon"><use href="#icon-moon"/></svg></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>UUID v7 生成器</h1>
+        <p class="description">基于Unix时间戳的有序UUID（RFC 9562），支持按时间排序</p>
+      </div>
+
+      <div class="tool-layout">
+        <div class="tool-card">
+          <div class="info-box">
+            <strong>UUID v7 格式说明</strong><br>
+            UUIDv7 = 48位时间戳（毫秒） + 16位随机数 + 64位随机数<br>
+            示例：<code>0191a2b3-c800-7xxx-xxxx-xxxxxxxxxxxx</code>
+            <br>时间部分（<code>0191a2b3-c800</code>）可直接提取Unix毫秒时间戳。
+          </div>
+
+          <div class="field">
+            <label>自定义时间戳（可选，留空则使用当前时间）</label>
+            <input type="datetime-local" id="customTime">
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" id="btnGenerate">🎲 生成 UUID v7</button>
+            <button class="btn btn-secondary" id="btnBatch">📦 批量生成</button>
+          </div>
+        </div>
+
+        <div class="tool-card">
+          <div class="section-title">生成结果</div>
+          <div class="result-display" id="resultDisplay" title="点击复制" onclick="copyResult()">点击「生成」获取 UUID v7</div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="btnCopy">📋 复制</button>
+            <button class="btn btn-secondary" id="btnClearHistory">🗑 清空历史</button>
+          </div>
+        </div>
+
+        <div class="tool-card" id="historyCard" style="display:none;">
+          <div class="section-title">历史记录</div>
+          <ul class="history-list" id="historyList"></ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+    </div>
+  </footer>
+  <div id="toast"></div>
+
+  <script>
+  CT.initTheme();
+  CT.initKeyboardShortcuts();
+  document.getElementById('shareBtn').onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast('链接已复制！'); }).catch(function() { CT.showToast('复制失败'); }); };
+
+  var history = [];
+
+  function getRand12() {
+    var arr = new Uint8Array(12);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+  function getRand8() {
+    var arr = new Uint8Array(8);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  function unixMsToUuidBytes(ms) {
+    var hex = Math.floor(ms).toString(16).padStart(12, '0');
+    // First 48 bits = time (ms), last 16 bits of first 48 = version 7 + 12 bits rand
+    var versioned = hex.slice(0, 12); // 12 hex = 48 bits
+    // Replace last 4 bits with version 7 (0111 = 7)
+    var timeHigh12 = versioned.slice(0, 11); // 11 hex chars = 44 bits
+    var timeLow4 = parseInt(versioned.charAt(11), 16);
+    timeLow4 = (timeLow4 & 0x03) | 0x07; // top 2 bits 01, bottom 2 bits = version 7
+    var v7TimeHigh = timeHigh12 + timeLow4.toString(16);
+    // version 7 format: xxxxxxxx-xxxx-7xxx-xxxx-xxxxxxxxxxxx
+    // First 12 hex chars (48 bits): tttttttt-ttt(t) -> first 11 hex = 44 bits time, last hex char's top 4 bits = 7
+    return v7TimeHigh;
+  }
+
+  function generateUUIDv7(customMs) {
+    var ms = customMs || Date.now();
+    var msHex = Math.floor(ms).toString(16).padStart(12, '0');
+    // Structure: time_low(8 hex) - time_mid(4 hex) - version7(4 hex) + 12 bits - clock_seq(4 hex) - node(12 hex)
+    // Simplified: first 48 bits of timestamp (ms) + rand
+    var timeHigh48 = msHex.slice(0, 12); // 12 hex = 48 bits
+    // Set version bits (4 bits at position 12)
+    var first11 = timeHigh48.slice(0, 11); // 11 hex = 44 bits
+    var lastChar = parseInt(timeHigh48.charAt(11), 16);
+    lastChar = (lastChar & 0x0F) | 0x70; // top 4 bits = 7 (UUID v7)
+    var timeWithVersion = first11 + lastChar.toString(16); // 12 hex with version 7
+
+    var rand12 = getRand12();
+    var rand8 = getRand8();
+
+    var uuid = timeWithVersion.slice(0,8) + '-' + timeWithVersion.slice(8,12) + '-' + rand12.slice(0,4) + '-' + rand12.slice(4,8) + '-' + rand8;
+    return uuid.toLowerCase();
+  }
+
+  function showResult(uuid, ts) {
+    var el = document.getElementById('resultDisplay');
+    el.textContent = uuid;
+
+    history.unshift({ uuid: uuid, ts: ts || Date.now() });
+    if (history.length > 20) history = history.slice(0, 20);
+    renderHistory();
+    document.getElementById('historyCard').style.display = 'block';
+  }
+
+  function renderHistory() {
+    var list = document.getElementById('historyList');
+    list.innerHTML = history.map(function(item, i) {
+      var d = new Date(item.ts);
+      var timeStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+      return '<li onclick="useHistoryItem(' + i + ')"><span class="uuid-text">' + item.uuid + '</span><span class="uuid-time">' + timeStr + '</span></li>';
+    }).join('');
+  }
+
+  function useHistoryItem(idx) {
+    var item = history[idx];
+    document.getElementById('resultDisplay').textContent = item.uuid;
+    navigator.clipboard.writeText(item.uuid).then(function() { CT.showToast('已复制！'); });
+  }
+
+  function copyResult() {
+    var text = document.getElementById('resultDisplay').textContent;
+    if (text.indexOf('点击') === 0) return;
+    navigator.clipboard.writeText(text).then(function() { CT.showToast('已复制！'); }).catch(function() { CT.showToast('复制失败'); });
+  }
+
+  document.getElementById('btnGenerate').addEventListener('click', function() {
+    var customInput = document.getElementById('customTime').value;
+    var customMs = null;
+    if (customInput) customMs = new Date(customInput).getTime();
+    var uuid = generateUUIDv7(customMs);
+    showResult(uuid);
+  });
+
+  document.getElementById('btnBatch').addEventListener('click', function() {
+    var count = prompt('输入要生成的数量（1-100）', '10');
+    count = parseInt(count);
+    if (isNaN(count) || count < 1 || count > 100) return;
+    var uuids = [];
+    for (var i = 0; i < count; i++) uuids.push(generateUUIDv7());
+    var text = uuids.join('\n');
+    navigator.clipboard.writeText(text).then(function() {
+      CT.showToast('已复制 ' + count + ' 个UUID到剪贴板！');
+      if (count > 0) showResult(uuids[0]);
+    });
+  });
+
+  document.getElementById('btnCopy').addEventListener('click', copyResult);
+  document.getElementById('btnClearHistory').addEventListener('click', function() {
+    history = [];
+    document.getElementById('historyCard').style.display = 'none';
+  });
+
+  // Auto-generate on load
+  (function() {
+    var uuid = generateUUIDv7();
+    showResult(uuid);
+  })();
+  </script>
+</body>
+</html>
