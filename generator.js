@@ -81,7 +81,10 @@ function buildToolPage(tool) {
     .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.description || tool.name)
     .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
-    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl)
+    // SEO meta — derived from tools.json fields
+    .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.description || tool.name || '').slice(0, 160))
+    .replace(/\{\{PAGE_KEYWORDS\}\}/g, Array.isArray(tool.keywords) ? tool.keywords.join(',') : '');
 
   // Inject shared CSS inline for single-file tool pages
   // (dist already has it as a separate file)
