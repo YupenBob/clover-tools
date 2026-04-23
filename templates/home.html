@@ -96,6 +96,69 @@
       margin: 2rem auto 0;
       max-width: 700px;
     }
+    /* Category grid */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.75rem;
+      max-width: 750px;
+      margin: 2rem auto 0;
+      padding: 0 0.5rem;
+    }
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 1rem 0.5rem;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--card-shadow);
+      font-size: 0.8rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .cat-btn i[class^="bi-"] {
+      font-size: 1.6rem;
+      color: var(--primary);
+    }
+    .cat-btn em {
+      font-style: normal;
+      font-size: 0.7rem;
+      opacity: 0.55;
+    }
+    .cat-btn:hover, .cat-btn.active {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    .cat-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .cat-btn.active i[class^="bi-"] {
+      color: #fff;
+    }
+    .cat-btn.active em {
+      color: rgba(255,255,255,0.7);
+    }
+    @media (max-width: 600px) {
+      .cat-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+      .cat-btn {
+        padding: 0.7rem 0.25rem;
+        font-size: 0.7rem;
+      }
+      .cat-btn i[class^="bi-"] {
+        font-size: 1.3rem;
+      }
+    }
+
     .quick-tools-title {
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -196,6 +259,10 @@
           </div>
         </div>
       </div>
+
+      <!-- Category icon grid -->
+      {{CATEGORY_GRID_HTML}}
+
       <div class="categories" id="categories">
         {{CATEGORIES_HTML}}
       </div>
@@ -209,6 +276,26 @@
   <script>
     CT.initTheme();
     CT.initKeyboardShortcuts();
+
+    // Category grid filter
+    const catBtns = document.querySelectorAll('.cat-btn');
+    const categoryCards = document.querySelectorAll('.category');
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cat = btn.dataset.cat;
+        const isActive = btn.classList.contains('active');
+        catBtns.forEach(b => b.classList.remove('active'));
+        if (!isActive) {
+          btn.classList.add('active');
+          categoryCards.forEach(card => {
+            const h2 = card.querySelector('h2');
+            card.style.display = h2 && h2.textContent === cat ? '' : 'none';
+          });
+        } else {
+          categoryCards.forEach(card => card.style.display = '');
+        }
+      });
+    });
 
     // Search
     const searchInput = document.getElementById('tool-search');
