@@ -31,6 +31,34 @@ const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-
 
 
 // ============ Build categories HTML for homepage ============
+const CAT_ICONS = {
+  '格式转换': 'bi-arrow-left-right',
+  '图片工具': 'bi-image',
+  '开发工具': 'bi-code-slash',
+  '编码/加密': 'bi-shield-lock',
+  '文本工具': 'bi-file-earmark-text',
+  '文本处理': 'bi-text-left',
+  '时间工具': 'bi-clock',
+  '生活实用': 'bi-tools',
+  '数学计算': 'bi-calculator',
+  '网络工具': 'bi-globe',
+};
+
+function buildCategoryGridHtml() {
+  let html = '<div class="cat-grid">';
+  toolsConfig.forEach(cat => {
+    const icon = CAT_ICONS[cat.category] || 'bi-grid';
+    html += `
+    <button class="cat-btn" data-cat="${cat.category}">
+      <i class="bi ${icon}"></i>
+      <span>${cat.category}</span>
+      <em>${cat.tools.length}</em>
+    </button>`;
+  });
+  html += '</div>';
+  return html;
+}
+
 function buildCategoriesHtml() {
   let html = '';
   toolsConfig.forEach(cat => {
@@ -1710,8 +1738,10 @@ function generate() {
 
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
+  const categoryGridHtml = buildCategoryGridHtml();
   const toolCount = toolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
   let homeHtml = homeTemplate
+    .replace('{{CATEGORY_GRID_HTML}}', categoryGridHtml)
     .replace('{{CATEGORIES_HTML}}', categoriesHtml)
     .replace('{{TOOL_COUNT}}', String(toolCount))
     .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
