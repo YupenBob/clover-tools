@@ -1757,6 +1757,13 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
+  // Copy demo homepage as /demo
+  const demoSrc = path.join(TEMPLATES_DIR, 'home-demo.html');
+  if (fs.existsSync(demoSrc)) {
+    fs.copyFileSync(demoSrc, path.join(DIST_DIR, 'demo.html'));
+    console.log('   Copied demo.html');
+  }
+
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
   toolsConfig.forEach(cat => {
