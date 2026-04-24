@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloverTools - 实用工具箱</title>
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --primary: #c70039;
+      --primary-hover: #a80030;
+      --text: #1a1a2e;
+      --text-secondary: #6c757d;
+      --bg: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-card: #ffffff;
+      --border: #e9ecef;
+      --shadow: rgba(0,0,0,0.06);
+      --shadow-hover: rgba(0,0,0,0.12);
+      --radius: 10px;
+      --header-h: 60px;
+    }
+    [data-theme="dark"] {
+      --text: #e8e8e8;
+      --text-secondary: #9ca3af;
+      --bg: #0f1117;
+      --bg-secondary: #161b22;
+      --bg-card: #1c2128;
+      --border: #2d333b;
+      --shadow: rgba(0,0,0,0.3);
+      --shadow-hover: rgba(0,0,0,0.5);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--text); }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--primary); }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 60px 20px 48px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .hero p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
+    .search-wrap {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .search-wrap .bi-search {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+    #hero-search {
+      width: 100%;
+      padding: 13px 16px 13px 44px;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #hero-search::placeholder { color: var(--text-secondary); }
+    #hero-search:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(199,0,57,0.1);
+    }
+
+    /* Section */
+    .section { padding: 48px 20px; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Tool Cards */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    @media (max-width: 520px) {
+      .tools-grid { grid-template-columns: 1fr; }
+    }
+    .tool-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .tool-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--shadow-hover);
+      border-color: var(--primary);
+    }
+    .tool-card .t-icon {
+      font-size: 1.6rem;
+      color: var(--primary);
+      flex-shrink: 0;
+      width: 40px;
+      text-align: center;
+    }
+    .tool-card .t-info { flex: 1; min-width: 0; }
+    .tool-card .t-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tool-card .t-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tool-card .t-tag {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-top: 3px;
+      display: inline-block;
+    }
+    .tool-card .t-arrow {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .tool-card:hover .t-arrow {
+      color: var(--primary);
+      transform: translateX(3px);
+    }
+
+    /* Category Grid */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 16px 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+      cursor: pointer;
+    }
+    .cat-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 4px 12px var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+    .cat-btn i { font-size: 1.5rem; }
+    .cat-btn .cat-count {
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+    .cat-btn:hover .cat-count { color: var(--primary); opacity: 1; }
+
+    /* Footer */
+    .site-footer {
+      text-align: center;
+      padding: 24px 20px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+{{SITE_HEADER}}
+
+<!-- Hero -->
+<section class="hero">
+  <h1>CloverTools 实用工具箱</h1>
+  <p>极简高效，随用即走</p>
+  <div class="search-wrap">
+    <i class="bi bi-search"></i>
+    <input
+      id="hero-search"
+      type="text"
+      placeholder="搜索工具..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+  </div>
+</section>
+
+<!-- Hot Tools -->
+<section class="section">
+  <div class="section-title">热门工具</div>
+  <div class="tools-grid">
+
+    <a class="tool-card" href="/tools/network/json-format.html">
+      <i class="bi bi-braces t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">JSON 格式化</div>
+        <div class="t-desc">美化 / 压缩 / 校验</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/encrypt/base64.html">
+      <i class="bi bi-lock t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">Base64 编解码</div>
+        <div class="t-desc">文本与 Base64 互转</div>
+        <span class="t-tag">编码/加密</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/regex-tester.html">
+      <i class="bi bi-code-slash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">正则测试</div>
+        <div class="t-desc">实时匹配与验证</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/encrypt/url.html">
+      <i class="bi bi-link-45deg t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">URL 编码</div>
+        <div class="t-desc">URL 安全编码解码</div>
+        <span class="t-tag">编码/加密</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/time/timestamp.html">
+      <i class="bi bi-clock t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">时间戳转换</div>
+        <div class="t-desc">时间与时间戳互转</div>
+        <span class="t-tag">时间工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/cron-parser.html">
+      <i class="bi bi-code-slash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">Cron 表达式测试</div>
+        <div class="t-desc">解析与下一次执行时间</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/color-picker.html">
+      <i class="bi bi-palette2 t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">颜色选择器</div>
+        <div class="t-desc">颜色值互转与预览</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/format-conversion/image-resize.html">
+      <i class="bi bi-image t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">图片压缩</div>
+        <div class="t-desc">压缩图片减小文件大小</div>
+        <span class="t-tag">格式转换</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/image/qrcode.html">
+      <i class="bi bi-qr-code t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">二维码生成</div>
+        <div class="t-desc">文本 / 链接生成二维码</div>
+        <span class="t-tag">图片工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/bytes.html">
+      <i class="bi bi-hash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">字节转换</div>
+        <div class="t-desc">字节与单位互转</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+  </div>
+</section>
+
+<!-- Category Grid -->
+<section class="section" style="padding-top: 0;">
+  <div class="section-title">全部分类</div>
+  <div class="cat-grid">
+
+    <a class="cat-btn" href="/category/format-conversion.html">
+      <i class="bi bi-arrow-left-right"></i>
+      <span>格式转换</span>
+      <span class="cat-count" data-cat="format-conversion">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/image.html">
+      <i class="bi bi-image"></i>
+      <span>图片工具</span>
+      <span class="cat-count" data-cat="image">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/code.html">
+      <i class="bi bi-code-slash"></i>
+      <span>开发工具</span>
+      <span class="cat-count" data-cat="code">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/encrypt.html">
+      <i class="bi bi-shield-lock"></i>
+      <span>编码/加密</span>
+      <span class="cat-count" data-cat="encrypt">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/text.html">
+      <i class="bi bi-file-earmark-text"></i>
+      <span>文本工具</span>
+      <span class="cat-count" data-cat="text">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/text-processing.html">
+      <i class="bi bi-text-left"></i>
+      <span>文本处理</span>
+      <span class="cat-count" data-cat="text-processing">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/time.html">
+      <i class="bi bi-clock"></i>
+      <span>时间工具</span>
+      <span class="cat-count" data-cat="time">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/life.html">
+      <i class="bi bi-tools"></i>
+      <span>生活实用</span>
+      <span class="cat-count" data-cat="life">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/math.html">
+      <i class="bi bi-calculator"></i>
+      <span>数学计算</span>
+      <span class="cat-count" data-cat="math">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/network.html">
+      <i class="bi bi-globe"></i>
+      <span>网络工具</span>
+      <span class="cat-count" data-cat="network">0 个</span>
+    </a>
+
+  </div>
+</section>
+
+{{SITE_FOOTER}}
+
+{{SVG_SPRITE}}
+
+<script>
+(function () {
+  // Tools registry — populated by generator.js
+  var TOOLS = {{TOOL_COUNT}};
+
+  // Search handler
+  var searchInput = document.getElementById('hero-search');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var q = searchInput.value.trim().toLowerCase();
+      if (!q) return;
+      var match = TOOLS.find(function (t) {
+        return t.name.toLowerCase().includes(q) ||
+               (t.tags && t.tags.some(function (tag) { return tag.toLowerCase().includes(q); }));
+      });
+      if (match) {
+        window.location.href = match.path;
+      } else {
+        searchInput.style.borderColor = 'var(--primary)';
+        setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
+      }
+    });
+  }
+
+  // Populate category counts
+  var catCountMap = {};
+  TOOLS.forEach(function (t) {
+    if (t.category) {
+      catCountMap[t.category] = (catCountMap[t.category] || 0) + 1;
+    }
+  });
+  document.querySelectorAll('[data-cat]').forEach(function (el) {
+    var cat = el.getAttribute('data-cat');
+    var count = catCountMap[cat] || 0;
+    el.textContent = count + ' 个';
+  });
+})();
+</script>
+
+</body>
+</html>
