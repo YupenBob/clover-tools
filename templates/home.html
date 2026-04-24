@@ -280,7 +280,10 @@
     // Category grid filter
     const catBtns = document.querySelectorAll('.cat-btn');
     const categoryCards = document.querySelectorAll('.category');
+    
     catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        
       btn.addEventListener('click', () => {
         const cat = btn.dataset.cat;
         const isActive = btn.classList.contains('active');
@@ -299,7 +302,6 @@
 
     // Search
     const searchInput = document.getElementById('tool-search');
-    const categoryCards = document.querySelectorAll('.category');
     searchInput.addEventListener('input', () => {
       const q = searchInput.value.trim().toLowerCase();
       categoryCards.forEach(card => {
