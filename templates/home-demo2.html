@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloverTools — 让工具回归工具</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    :root {
+      --bg: #070710;
+      --bg-2: #0d0d1a;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.07);
+      --border-bright: rgba(212,168,16,0.35);
+      --gold: #D4A810;
+      --gold-bright: #F0C90A;
+      --gold-dim: rgba(212,168,16,0.15);
+      --gold-glow: rgba(212,168,16,0.35);
+      --text: #EDEDF0;
+      --text-muted: rgba(237,237,240,0.45);
+      --text-dim: rgba(237,237,240,0.25);
+      --radius: 16px;
+      --radius-lg: 24px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(212,168,16,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+    .ambient-orb {
+      position: fixed;
+      top: -30vh;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80vw;
+      height: 80vw;
+      max-width: 900px;
+      max-height: 900px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center,
+        rgba(212,168,16,0.08) 0%,
+        rgba(212,168,16,0.03) 35%,
+        transparent 70%
+      );
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 12s ease-in-out infinite;
+    }
+    .ambient-orb-2 {
+      position: fixed;
+      bottom: -20vh;
+      right: -20vw;
+      width: 60vw;
+      height: 60vw;
+      max-width: 700px;
+      max-height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center,
+        rgba(100,80,200,0.04) 0%,
+        transparent 65%
+      );
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat2 18s ease-in-out infinite;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+      33% { transform: translateX(-50%) translateY(-3vh) scale(1.03); }
+      66% { transform: translateX(-50%) translateY(2vh) scale(0.98); }
+    }
+    @keyframes orbFloat2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-3vw, -5vh) scale(1.05); }
+    }
+    .page-wrap { position: relative; z-index: 1; }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+    }
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 2.5rem;
+      filter: drop-shadow(0 0 30px rgba(212,168,16,0.4));
+      animation: logoGlow 4s ease-in-out infinite;
+    }
+    @keyframes logoGlow {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(212,168,16,0.3)); }
+      50% { filter: drop-shadow(0 0 50px rgba(212,168,16,0.6)); }
+    }
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #fff 30%, var(--gold-bright) 70%, #fff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleShine 6s ease-in-out infinite;
+    }
+    @keyframes titleShine {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .hero-tagline {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-bottom: 3rem;
+      max-width: 520px;
+    }
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 620px;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 0.85rem 1.25rem 0.85rem 3rem;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .search-box input::placeholder { color: var(--text-dim); }
+    .search-box input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-dim);
+    }
+    .search-box i {
+      position: absolute;
+      left: 1.1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 1.1rem;
+    }
+    .btn-random {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.8rem;
+      background: var(--gold);
+      color: #070710;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: 100px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+    }
+    .btn-random:hover {
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(212,168,16,0.4);
+    }
+    .btn-random:active { transform: translateY(0); }
+    .hero-cta-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2.2rem;
+      background: transparent;
+      border: 1.5px solid var(--border-bright);
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 100px;
+      transition: all 0.3s;
+      margin-top: 1.5rem;
+    }
+    .hero-cta-text:hover {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+    }
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-dim);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      animation: scrollBounce 2.5s ease-in-out infinite;
+    }
+    .hero-scroll-hint i { font-size: 1.2rem; }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+      50% { transform: translateX(-50%) translateY(6px); opacity: 0.8; }
+    }
+
+    .stats-ribbon {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 1.8rem 2rem;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.5rem 3.5rem;
+      position: relative;
+    }
+    .stat-item + .stat-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 40%;
+      background: var(--border);
+    }
+    .stat-number {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 7rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    .section-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+    .section-eyebrow::before, .section-eyebrow::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--gold-glow);
+    }
+    .section-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+      font-weight: 300;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 1024px) { .categories-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px) { .categories-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .cat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      padding: 1px;
+      background: linear-gradient(135deg, transparent 30%, var(--gold-dim) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .cat-card:hover {
+      background: var(--surface-hover);
+      transform: translateY(-6px);
+      border-color: var(--border-bright);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(212,168,16,0.08);
+    }
+    .cat-card:hover::before { opacity: 1; }
+    .cat-card.active {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+    }
+    .cat-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      display: block;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: transform 0.4s;
+    }
+    .cat-card:hover .cat-icon { transform: scale(1.15); }
+    .cat-name { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .cat-count { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.05em; }
+
+    .all-tools-section {
+      padding: 7rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .all-tools-header { text-align: center; margin-bottom: 3rem; }
+    .all-tools-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 1024px) { .all-tools-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .all-tools-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .all-tools-grid { grid-template-columns: 1fr; } }
+
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .tool-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .tool-card:hover {
+      background: var(--surface-hover);
+      transform: translateY(-4px);
+      border-color: var(--border-bright);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 30px rgba(212,168,16,0.07);
+    }
+    .tool-card:hover::after { opacity: 1; }
+    .tool-card.hidden { display: none; }
+    .tool-card-icon { font-size: 1.6rem; color: var(--gold); display: block; }
+    .tool-card-name { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+    .tool-card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tool-card-meta { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.3rem; }
+    .tool-card-cat {
+      font-size: 0.68rem;
+      color: var(--gold);
+      background: var(--gold-dim);
+      padding: 0.15rem 0.6rem;
+      border-radius: 100px;
+      letter-spacing: 0.05em;
+    }
+    .tool-card-link { margin-left: auto; font-size: 0.8rem; color: var(--text-dim); transition: color 0.3s; }
+    .tool-card:hover .tool-card-link { color: var(--gold); }
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-dim);
+      font-size: 1.1rem;
+    }
+    .no-results i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.3; }
+
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .footer-inner { max-width: 1200px; margin: 0 auto; }
+    .footer-logo { width: 36px; height: 36px; margin: 0 auto 1rem; opacity: 0.6; }
+    .footer-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .footer-links a { font-size: 0.85rem; color: var(--text-muted); transition: color 0.3s; }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-copy { font-size: 0.75rem; color: var(--text-dim); }
+    .footer-copy span { color: var(--gold); }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.5;
+    }
+
+    .section-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--gold);
+      color: #070710;
+      padding: 0.7rem 1.8rem;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 10000;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 44px;
+      height: 44px;
+      background: var(--gold);
+      color: #070710;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(212,168,16,0.3);
+    }
+    .back-to-top.visible { opacity: 1; }
+    .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(212,168,16,0.5); }
+  </style>
+</head>
+<body>
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb-2"></div>
+  <div class="page-wrap">
+
+    <section class="hero">
+      <img src="/src/clover-logo.svg" alt="CloverTools" class="hero-logo" onerror="this.style.display='none'" />
+      <h1 class="hero-title">CloverTools</h1>
+      <p class="hero-tagline">161 个精选工具 · 让效率回归本质 · 每一行代码都为流畅体验而生</p>
+      <div class="search-wrap">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" id="searchInput" placeholder="搜索工具... (Ctrl+K)" autocomplete="off" />
+        </div>
+        <button class="btn-random" id="randomBtn">
+          <i class="bi bi-shuffle"></i>随机工具
+        </button>
+      </div>
+      <a href="#all-tools" class="hero-cta-text">
+        <i class="bi bi-lightning-charge-fill"></i>探索全部工具
+      </a>
+      <div class="hero-scroll-hint">
+        <span>scroll</span>
+        <i class="bi bi-chevron-down"></i>
+      </div>
+    </section>
+
+    <div class="stats-ribbon">
+      <div class="stat-item">
+        <span class="stat-number" id="busuanzi_value_site_pv">—</span>
+        <span class="stat-label">总访问量</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">161</span>
+        <span class="stat-label">在线工具</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">10</span>
+        <span class="stat-label">工具分类</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">220</span>
+        <span class="stat-label">博客文章</span>
+      </div>
+    </div>
+
+    <section class="section" id="categories">
+      <div class="section-header reveal">
+        <div class="section-eyebrow">工具分类</div>
+        <h2 class="section-title">十大领域 · 全面覆盖</h2>
+        <p class="section-sub">从文件转换到开发调试，从文本处理到生活百态——找到属于你的那把瑞士军刀。</p>
+      </div>
+      <div class="categories-grid" id="categoriesGrid">
+        <div class="cat-card reveal reveal-delay-1" data-cat="格式转换">
+          <i class="bi bi-shuffle cat-icon"></i>
+          <div class="cat-name">格式转换</div>
+          <div class="cat-count">13 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-2" data-cat="图片工具">
+          <i class="bi bi-image-fill cat-icon"></i>
+          <div class="cat-name">图片工具</div>
+          <div class="cat-count">1 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-3" data-cat="开发工具">
+          <i class="bi bi-code-slash cat-icon"></i>
+          <div class="cat-name">开发工具</div>
+          <div class="cat-count">65 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-4" data-cat="编码/加密">
+          <i class="bi bi-lock-fill cat-icon"></i>
+          <div class="cat-name">编码/加密</div>
+          <div class="cat-count">15 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-5" data-cat="文本工具">
+          <i class="bi bi-fonts cat-icon"></i>
+          <div class="cat-name">文本工具</div>
+          <div class="cat-count">12 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-1" data-cat="文本处理">
+          <i class="bi bi-pen-fill cat-icon"></i>
+          <div class="cat-name">文本处理</div>
+          <div class="cat-count">10 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-2" data-cat="时间工具">
+          <i class="bi bi-clock-fill cat-icon"></i>
+          <div class="cat-name">时间工具</div>
+          <div class="cat-count">9 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-3" data-cat="生活实用">
+          <i class="bi bi-house-fill cat-icon"></i>
+          <div class="cat-name">生活实用</div>
+          <div class="cat-count">16 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-4" data-cat="数学计算">
+          <i class="bi bi-calculator cat-icon"></i>
+          <div class="cat-name">数学计算</div>
+          <div class="cat-count">10 个工具</div>
+        </div>
+        <div class="cat-card reveal reveal-delay-5" data-cat="网络工具">
+          <i class="bi bi-wifi cat-icon"></i>
+          <div class="cat-name">网络工具</div>
+          <div class="cat-count">10 个工具</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <section class="all-tools-section" id="all-tools">
+      <div class="all-tools-header reveal">
+        <div class="section-eyebrow">全部工具</div>
+        <h2 class="section-title">161 个工具 · 即点即用</h2>
+        <p class="section-sub">点击任意卡片即可直达工具，所有工具均运行在本地浏览器，无需注册。</p>
+      </div>
+      <div class="all-tools-grid" id="allToolsGrid">
+        <div class="tool-card reveal reveal-delay-1" data-name="文件分析器" data-desc="全面分析文件的元信息、mime 类型、字节内容及文件结构，支持图片缩略图预览，帮助快速识别未知文件格式与内容，适合文件校验与安全审查。" data-keywords="文件分析，文件信息，文件类型分析，hex查看，mime类型，缩略图预览" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/file-analyzer.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">文件分析器</div>
+          <div class="tool-card-desc">全面分析文件的元信息、MIME 类型、字节内容及文件结构，支持图片缩略图预览，帮助快速识别未知文件格式与内容，适合文件校验与安全审查。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="图片压缩/调整尺寸" data-desc="批量压缩图片体积或自由调整图片像素尺寸，支持按比例缩放与固定宽高输出，适用于社交媒体发布、网页加载优化以及移动端适配等多种使用场景。" data-keywords="图片压缩，图片尺寸调整，图片大小压缩，图片缩放，批量处理，图像优化" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/image-resize.html'">
+          <i class="bi bi-image tool-card-icon"></i>
+          <div class="tool-card-name">图片压缩/调整尺寸</div>
+          <div class="tool-card-desc">批量压缩图片体积或自由调整图片像素尺寸，支持按比例缩放与固定宽高输出，适用于社交媒体发布、网页加载优化以及移动端适配等多种使用场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="jpg 转 pdf" data-desc="将 jpg 图片文件快速转换为 pdf 文档，支持批量处理，可自定义页面布局与尺寸，适用于报告整理、电子邮件附件发送等办公场景。" data-keywords="jpg转pdf，图片转pdf，jpeg转pdf，批量转换，文档生成，办公效率" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/jpg2pdf.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">JPG 转 PDF</div>
+          <div class="tool-card-desc">将 JPG 图片文件快速转换为 PDF 文档，支持批量处理，可自定义页面布局与尺寸，适用于报告整理、电子邮件附件发送等办公场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="jpg 转 webp" data-desc="将传统 jpg 图片转换为新一代 webp 格式，大幅压缩文件体积同时保持良好画质，有效节省存储空间并提升网页加载速度与带宽利用率。" data-keywords="jpg转webp，图片压缩，webp转换，文件压缩，网页优化，带宽节省" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/jpg2webp.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">JPG 转 WEBP</div>
+          <div class="tool-card-desc">将传统 JPG 图片转换为新一代 WebP 格式，大幅压缩文件体积同时保持良好画质，有效节省存储空间并提升网页加载速度与带宽利用率。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="pdf 压缩" data-desc="压缩 pdf 文件体积，支持多级压缩质量调节，在保持文档可读性的前提下显著减小文件大小，方便上传、发送和归档存储，节省传输时间与磁盘空间。" data-keywords="pdf压缩，pdf压缩工具，pdf大小压缩，pdf体积减小，pdf在线压缩，文件优化" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/pdf-compress.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">PDF 压缩</div>
+          <div class="tool-card-desc">压缩 PDF 文件体积，支持多级压缩质量调节，在保持文档可读性的前提下显著减小文件大小，方便上传、发送和归档存储，节省传输时间与磁盘空间。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="pdf 转 html" data-desc="将 pdf 文档中的文本内容提取并渲染为标准 html 网页格式，保留基本排版结构，方便在浏览器中直接查看、复制文字或嵌入到网站中。" data-keywords="pdf转html，pdf提取文本，pdf渲染，pdf预览，网页转换，内容提取" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/pdf2html.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">PDF 转 HTML</div>
+          <div class="tool-card-desc">将 PDF 文档中的文本内容提取并渲染为标准 HTML 网页格式，保留基本排版结构，方便在浏览器中直接查看、复制文字或嵌入到网站中。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="pdf 转 jpg" data-desc="将 pdf 文件的指定页面快速转换为 jpg 或 png 图片格式，支持自定义分辨率与输出质量，适合从 pdf 中提取图像、制作封面或进行演示分享。" data-keywords="pdf转jpg，pdf转图片，pdf转换，pdf图片提取，页面截图，图像导出" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/pdf2jpg.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">PDF 转 JPG</div>
+          <div class="tool-card-desc">将 PDF 文件的指定页面快速转换为 JPG 或 PNG 图片格式，支持自定义分辨率与输出质量，适合从 PDF 中提取图像、制作封面或进行演示分享。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="pdf 转 txt" data-desc="从 pdf 文件中精准提取文本内容，支持纯文本导出，方便进行内容编辑、搜索和归档，无需安装专业 pdf 阅读软件即可使用。" data-keywords="pdf转txt，pdf文本提取，pdf读取，pdf解析，内容导出，文本提取" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/pdf2txt.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">PDF 转 TXT</div>
+          <div class="tool-card-desc">从 PDF 文件中精准提取文本内容，支持纯文本导出，方便进行内容编辑、搜索和归档，无需安装专业 PDF 阅读软件即可使用。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="png 转 webp" data-desc="将 png 图片转换为高效的 webp 格式，实现显著的文件体积压缩，适用于网页图片优化，可大幅降低带宽消耗并提升页面加载体验。" data-keywords="png转webp，图片压缩，webp转换，文件体积优化，网页性能，图像压缩" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/png2webp.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">PNG 转 WEBP</div>
+          <div class="tool-card-desc">将 PNG 图片转换为高效的 WebP 格式，实现显著的文件体积压缩，适用于网页图片优化，可大幅降低带宽消耗并提升页面加载体验。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="svg 转 png" data-desc="将 svg 矢量图无损转换为 png 位图格式，支持自定义输出分辨率与尺寸，方便在不支持矢量图的环境中使用，如社交媒体发布或打印输出。" data-keywords="svg转png，矢量图转位图，svg转换，png转换，图像渲染，位图导出" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/svg2png.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">SVG 转 PNG</div>
+          <div class="tool-card-desc">将 SVG 矢量图无损转换为 PNG 位图格式，支持自定义输出分辨率与尺寸，方便在不支持矢量图的环境中使用，如社交媒体发布或打印输出。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="webp 转 jpg" data-desc="将 webp 格式图片转换为广泛兼容的 jpg 格式，解决部分平台和应用不支持 webp 的问题，保留高质量图像同时提升兼容性。" data-keywords="webp转jpg，webp转换，图片格式转换，图片兼容性，图像转换" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/webp2jpg.html'">
+          <i class="bi bi-file-earning-fill tool-card-icon"></i>
+          <div class="tool-card-name">WEBP 转 JPG</div>
+          <div class="tool-card-desc">将 WEBP 格式图片转换为广泛兼容的 JPG 格式，解决部分平台和应用不支持 WEBP 的问题，保留高质量图像同时提升兼容性。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="xlsx转json" data-desc="在线将excel文件（.xlsx/.xls）转换为json格式数据，支持自定义工作表选择、键名行配置与预览下载。无需上传到服务器，纯浏览器本地处理，保护数据隐私。" data-keywords="xlsx转json，excel转json，xls转json，excel转换，sheetjs，表格转json，csv转json，在线转换" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/xlsx2json.html'">
+          <i class="bi bi-file-earmark-arrow-down tool-card-icon"></i>
+          <div class="tool-card-name">XLSX转JSON</div>
+          <div class="tool-card-desc">在线将Excel文件（.xlsx/.xls）转换为JSON格式数据，支持自定义工作表选择、键名行配置与预览下载。无需上传到服务器，纯浏览器本地处理，保护数据隐私。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="压缩包修复" data-desc="检测并修复损坏的 zip 压缩包，恢复可读取的文件内容，支持修复因下载中断、存储故障或传输损坏导致的各种 zip 异常情况。" data-keywords="zip修复，压缩包修复，zip损坏修复，压缩包损坏修复，zip repair，数据恢复" data-cat="格式转换" onclick="window.location.href='/tools/format-conversion/zip-repair.html'">
+          <i class="bi bi-file-zip-fill tool-card-icon"></i>
+          <div class="tool-card-name">压缩包修复</div>
+          <div class="tool-card-desc">检测并修复损坏的 ZIP 压缩包，恢复可读取的文件内容，支持修复因下载中断、存储故障或传输损坏导致的各种 ZIP 异常情况。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">格式转换</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="二维码生成器" data-desc="在线二维码生成器，支持文本、url、邮箱、电话等内容的二维码即时生成，可自定义尺寸、颜色与纠错级别，一键下载png图片，完全免费无需注册。" data-keywords="二维码生成，qr码，qrcode，二维码制作，二维码下载，url二维码，手机扫码" data-cat="图片工具" onclick="window.location.href='/tools/image/qrcode.html'">
+          <i class="bi bi-qr-code tool-card-icon"></i>
+          <div class="tool-card-name">二维码生成器</div>
+          <div class="tool-card-desc">在线二维码生成器，支持文本、URL、邮箱、电话等内容的二维码即时生成，可自定义尺寸、颜色与纠错级别，一键下载PNG图片，完全免费无需注册。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">图片工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="ascii 艺术字生成" data-desc="输入任意文字或数字，自动将其转换为由 ascii 字符拼成的艺术字 banner 效果，支持大小写字母与常见符号，适合生成个性标题与趣味图片。" data-keywords="ascii艺术字，ascii艺术，文字艺术，ascii banner，艺术字生成，字符画，ascii字符画，banner生成" data-cat="开发工具" onclick="window.location.href='/tools/code/ascii-art.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">ASCII 艺术字生成</div>
+          <div class="tool-card-desc">输入任意文字或数字，自动将其转换为由 ASCII 字符拼成的艺术字 Banner 效果，支持大小写字母与常见符号，适合生成个性标题与趣味图片。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="获取浏览器信息" data-desc="检测当前浏览器的详细信息，包括 user-agent、cpu 核心数、内存、屏幕分辨率、gpu、时区、电池状态、网络类型等核心环境参数" data-keywords="浏览器信息，useragent，浏览器检测，屏幕分辨率，gpu检测，电池状态，网络信息" data-cat="开发工具" onclick="window.location.href='/tools/code/browser-info.html'">
+          <i class="bi bi-browser-chrome tool-card-icon"></i>
+          <div class="tool-card-name">获取浏览器信息</div>
+          <div class="tool-card-desc">检测当前浏览器的详细信息，包括 User-Agent、CPU 核心数、内存、屏幕分辨率、GPU、时区、电池状态、网络类型等核心环境参数</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="字节转换" data-desc="在字节（b）、千字节（kb）、兆字节（mb）、吉字节（gb）四种单位之间任意互转，输入数值后一键得到转换结果，适合前端文件大小展示与后端存储计算。" data-keywords="字节转换，kb转换，mb转换，gb转换，文件大小，单位换算" data-cat="开发工具" onclick="window.location.href='/tools/code/bytes.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">字节转换</div>
+          <div class="tool-card-desc">在字节（B）、千字节（KB）、兆字节（MB）、吉字节（GB）四种单位之间任意互转，输入数值后一键得到转换结果，适合前端文件大小展示与后端存储计算。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="可视化颜色选择器" data-desc="可视化颜色选择器，支持 hex、rgb、rgba、hsl、hsv 等多种格式的实时互转与复制，提供调色板、渐变色生成、色值历史记录及色盲模拟模式，适用于 ui 设计与前端开发场景。" data-keywords="颜色选择器，颜色转换，hex rgb hsl hsv，颜色代码，取色器，调色板，前端颜色" data-cat="开发工具" onclick="window.location.href='/tools/code/color-picker.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">可视化颜色选择器</div>
+          <div class="tool-card-desc">可视化颜色选择器，支持 HEX、RGB、RGBA、HSL、HSV 等多种格式的实时互转与复制，提供调色板、渐变色生成、色值历史记录及色盲模拟模式，适用于 UI 设计与前端开发场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="拾取坐标/坐标转换" data-desc="在画布上点击拾取坐标点，实时查看 clientx/y、pagex/y、screenx/y、offsetx/y 等多种坐标系统的数值并记录" data-keywords="坐标拾取，clientx，pagex，screenx，坐标转换，鼠标位置，多坐标系，offsetx，offsety" data-cat="开发工具" onclick="window.location.href='/tools/code/coordinate-picker.html'">
+          <i class="bi bi-crosshair tool-card-icon"></i>
+          <div class="tool-card-name">拾取坐标/坐标转换</div>
+          <div class="tool-card-desc">在画布上点击拾取坐标点，实时查看 clientX/Y、pageX/Y、screenX/Y、offsetX/Y 等多种坐标系统的数值并记录</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="cron 表达式测试" data-desc="解析 cron 表达式并可视化展示未来多次执行时间，支持 5 段式到 7 段式多种 cron 格式，提供人类可读的自然语言描述，帮助运维和开发者快速验证定时任务调度规则是否正确。" data-keywords="cron 表达式测试，cron 解析，cron 在线测试，定时任务调度，cron 可视化，cron 格式" data-cat="开发工具" onclick="window.location.href='/tools/code/cron-parser.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Cron 表达式测试</div>
+          <div class="tool-card-desc">解析 Cron 表达式并可视化展示未来多次执行时间，支持 5 段式到 7 段式多种 Cron 格式，提供人类可读的自然语言描述，帮助运维和开发者快速验证定时任务调度规则是否正确。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="crontab执行时间计算" data-desc="输入标准5段式cron表达式，解析并计算最近5次预计执行时间，支持分钟、小时、日期、月份、星期五个时间字段的任意组合配置" data-keywords="cron表达式，crontab，定时任务，执行时间计算，时间字段解析，最近执行时间" data-cat="开发工具" onclick="window.location.href='/tools/code/cron.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Crontab执行时间计算</div>
+          <div class="tool-card-desc">输入标准5段式Cron表达式，解析并计算最近5次预计执行时间，支持分钟、小时、日期、月份、星期五个时间字段的任意组合配置</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="css渐变生成器" data-desc="可视化配置 css 渐变，支持线性渐变、径向渐变和锥形渐变三种类型，实时预览并生成可复制的 css 代码" data-keywords="css渐变，linear-gradient，radial-gradient，渐变生成器，conic-gradient，色彩过渡，css背景" data-cat="开发工具" onclick="window.location.href='/tools/code/css-gradient.html'">
+          <i class="bi bi-palette2 tool-card-icon"></i>
+          <div class="tool-card-name">CSS渐变生成器</div>
+          <div class="tool-card-desc">可视化配置 CSS 渐变，支持线性渐变、径向渐变和锥形渐变三种类型，实时预览并生成可复制的 CSS 代码</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="css单位互转" data-desc="以 16px 为基准在 px、rem、em 等常用 css 长度单位之间相互转换，帮助前端开发者快速在像素精确设计与相对单位可访问性之间切换，确保多浏览器和辅助技术兼容性。" data-keywords="css单位互转，px转rem，rem转px，em转px，css长度单位，前端开发" data-cat="开发工具" onclick="window.location.href='/tools/code/css-unit.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">CSS单位互转</div>
+          <div class="tool-card-desc">以 16px 为基准在 PX、REM、EM 等常用 CSS 长度单位之间相互转换，帮助前端开发者快速在像素精确设计与相对单位可访问性之间切换，确保多浏览器和辅助技术兼容性。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="css压缩格式化" data-desc="对 css 源代码进行美化缩进和格式化，方便阅读和调试；同时支持压缩模式，移除空白和换行以减小文件体积，提升网页加载速度。" data-keywords="css格式化，css压缩，css美化，样式压缩，前端开发，网页优化" data-cat="开发工具" onclick="window.location.href='/tools/code/css.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">CSS压缩格式化</div>
+          <div class="tool-card-desc">对 CSS 源代码进行美化缩进和格式化，方便阅读和调试；同时支持压缩模式，移除空白和换行以减小文件体积，提升网页加载速度。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="目录树生成" data-desc="输入文本形式的目录结构，自动生成美观的树形可视化图，支持 ascii 树和 json 两种格式导出" data-keywords="目录树，文件夹结构，文件树，树形图，目录可视化，结构生成，ascii树，json结构" data-cat="开发工具" onclick="window.location.href='/tools/code/directory-tree.html'">
+          <i class="bi bi-folder-tree tool-card-icon"></i>
+          <div class="tool-card-name">目录树生成</div>
+          <div class="tool-card-desc">输入文本形式的目录结构，自动生成美观的树形可视化图，支持 ASCII 树和 JSON 两种格式导出</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="斐波那契数列生成" data-desc="设置要生成的斐波那契数列项数后，一键生成完整数列，同时显示第 n 项的具体数值与整个数列的总和，适用于数学学习与算法验证。" data-keywords="斐波那契数列，fibonacci，兔子数列，数列生成，数学计算，递归算法，数列总和，数学学习" data-cat="开发工具" onclick="window.location.href='/tools/code/fibonacci.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">斐波那契数列生成</div>
+          <div class="tool-card-desc">设置要生成的斐波那契数列项数后，一键生成完整数列，同时显示第 N 项的具体数值与整个数列的总和，适用于数学学习与算法验证。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="文件hash计算" data-desc="支持 md5、sha-1、sha-256、sha-512 等多种哈希算法，采用分片流式处理，适合计算大文件的完整性校验值" data-keywords="文件hash，md5，sha，哈希计算，文件校验，完整性验证，sha-256，sha-512" data-cat="开发工具" onclick="window.location.href='/tools/code/file-hash.html'">
+          <i class="bi bi-file-earmark-check tool-card-icon"></i>
+          <div class="tool-card-name">文件Hash计算</div>
+          <div class="tool-card-desc">支持 MD5、SHA-1、SHA-256、SHA-512 等多种哈希算法，采用分片流式处理，适合计算大文件的完整性校验值</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="html 实体编码/解码" data-desc="将 html 中的特殊字符（如 < > & " '）转换为对应的实体代码（&lt; &gt; &amp; 等），也可反向将实体还原为普通字符，轻松实现双向转换与数据脱敏。" data-keywords="html实体编码，html实体解码，html转义，反转义，特殊字符转换，xss防御，数据脱敏，字符实体" data-cat="开发工具" onclick="window.location.href='/tools/code/html-entity.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">HTML 实体编码/解码</div>
+          <div class="tool-card-desc">将 HTML 中的特殊字符（如 < > & " '）转换为对应的实体代码（&lt; &gt; &amp; 等），也可反向将实体还原为普通字符，轻松实现双向转换与数据脱敏。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="html 格式化" data-desc="对 html 源代码进行格式化（美化缩进）或压缩（去除空格换行），支持代码高亮展示，一键切换查看模式，适用于前端开发调试与页面性能优化" data-keywords="html格式化，html压缩，html美化，html整理，前端工具" data-cat="开发工具" onclick="window.location.href='/tools/code/html-formatter.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">HTML 格式化</div>
+          <div class="tool-card-desc">对 HTML 源代码进行格式化（美化缩进）或压缩（去除空格换行），支持代码高亮展示，一键切换查看模式，适用于前端开发调试与页面性能优化</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="http 请求头查看器" data-desc="输入任意 url 并发起 head 请求，获取服务器的完整响应头信息，包括状态码、content-type、cors 等关键字段" data-keywords="http请求头，响应头，header查看，http头部，api调试，cors，content-type，cache-control" data-cat="开发工具" onclick="window.location.href='/tools/code/http-headers.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">HTTP 请求头查看器</div>
+          <div class="tool-card-desc">输入任意 URL 并发起 HEAD 请求，获取服务器的完整响应头信息，包括状态码、Content-Type、CORS 等关键字段</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="http 接口测试" data-desc="在线调试 http rest api 接口的工具，支持 get、post、put、delete、patch 等多种请求方法，可自定义请求头、查询参数、请求体（json/form），实时查看响应状态码、响应头与响应体内容。" data-keywords="http 测试，api 测试，接口测试，rest api，post get put delete，http 请求，api 调试" data-cat="开发工具" onclick="window.location.href='/tools/code/http-test.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Http 接口测试</div>
+          <div class="tool-card-desc">在线调试 HTTP REST API 接口的工具，支持 GET、POST、PUT、DELETE、PATCH 等多种请求方法，可自定义请求头、查询参数、请求体（JSON/Form），实时查看响应状态码、响应头与响应体内容。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="javascript格式化" data-desc="对混乱或压缩的 javascript 代码一键美化缩进、添加注释格式化，同时支持将格式化代码压缩回单行，有效减少文件体积用于生产环境。" data-keywords="javascript格式化，js美化，js压缩，代码美化，代码压缩，前端开发" data-cat="开发工具" onclick="window.location.href='/tools/code/javascript.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JavaScript格式化</div>
+          <div class="tool-card-desc">对混乱或压缩的 JavaScript 代码一键美化缩进、添加注释格式化，同时支持将格式化代码压缩回单行，有效减少文件体积用于生产环境。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="json压缩/格式化" data-desc="json压缩与格式化工具，一键压缩json（去除空格换行）用于生产环境，也可格式化压缩后的json用于调试阅读，支持语法校验与错误定位，完全免费无需注册。" data-keywords="json压缩，json格式化，json压缩器，json格式化工具，json压缩格式化，json在线压缩，json在线格式化" data-cat="开发工具" onclick="window.location.href='/tools/code/json-compress.html'">
+          <i class="bi bi-braces tool-card-icon"></i>
+          <div class="tool-card-name">JSON压缩/格式化</div>
+          <div class="tool-card-desc">JSON压缩与格式化工具，一键压缩JSON（去除空格换行）用于生产环境，也可格式化压缩后的JSON用于调试阅读，支持语法校验与错误定位，完全免费无需注册。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="json 数据对比" data-desc="输入两个 json 对象，秒级高亮显示新增、删除、修改的键值对，直观对比 api 响应、配置文件和数据结构差异。" data-keywords="json对比，json差异，json diff，json比较，json对比工具，数据对比，api调试，配置对比" data-cat="开发工具" onclick="window.location.href='/tools/code/json-diff.html'">
+          <i class="bi bi-file-diff-fill tool-card-icon"></i>
+          <div class="tool-card-name">JSON 数据对比</div>
+          <div class="tool-card-desc">输入两个 JSON 对象，秒级高亮显示新增、删除、修改的键值对，直观对比 API 响应、配置文件和数据结构差异。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="json schema 验证" data-desc="使用 json schema 标准校验 json 数据的结构和格式合法性，支持类型检查、必需字段、正则匹配等常用规则" data-keywords="json schema验证，json schema校验，json验证，schema检查，数据校验，类型校验，格式验证，json-lint" data-cat="开发工具" onclick="window.location.href='/tools/code/json-schema.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON Schema 验证</div>
+          <div class="tool-card-desc">使用 JSON Schema 标准校验 JSON 数据的结构和格式合法性，支持类型检查、必需字段、正则匹配等常用规则</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="json与url参数互转" data-desc="在 json 对象与 url 查询参数字符串之间相互转换，一键完成序列化与反序列化，并自动处理中文编码" data-keywords="json，url参数，参数转换，query string，encodeuricomponent，序列化，反序列化" data-cat="开发工具" onclick="window.location.href='/tools/code/json-url.html'">
+          <i class="bi bi-arrow左-right tool-card-icon"></i>
+          <div class="tool-card-name">Json与Url参数互转</div>
+          <div class="tool-card-desc">在 JSON 对象与 URL 查询参数字符串之间相互转换，一键完成序列化与反序列化，并自动处理中文编码</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="json 校验格式化" data-desc="在线校验 json 格式的正确性，支持一键美化（格式化）提升可读性，或压缩 json 减少体积，适用于前后端接口调试与数据处理" data-keywords="json校验，json格式化，json压缩，json美化，json验证" data-cat="开发工具" onclick="window.location.href='/tools/code/json-validator.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 校验格式化</div>
+          <div class="tool-card-desc">在线校验 JSON 格式的正确性，支持一键美化（格式化）提升可读性，或压缩 JSON 减少体积，适用于前后端接口调试与数据处理</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="json 转 c# 实体类" data-desc="根据 json 数据自动生成 c# 实体类，支持 system.text.json 或 newtonsoft.json 注解，快速构建 .net 项目中的数据模型，提升序列化开发效率" data-keywords="json转c#，c#实体类，datacontract，system.text.json，c# pojo，json转类" data-cat="开发工具" onclick="window.location.href='/tools/code/json2csharp.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转 C# 实体类</div>
+          <div class="tool-card-desc">根据 JSON 数据自动生成 C# 实体类，支持 System.Text.Json 或 Newtonsoft.Json 注解，快速构建 .NET 项目中的数据模型，提升序列化开发效率</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="json 转 golang struct" data-desc="根据 json 数据自动生成 go 语言 struct 定义，并附带 json tag，自动推断字段类型，快速构建 go 项目中的数据结构，支持 gomod 规范命名" data-keywords="json转go，go struct，golang类型，json转结构体，json tag" data-cat="开发工具" onclick="window.location.href='/tools/code/json2go.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转 Golang Struct</div>
+          <div class="tool-card-desc">根据 JSON 数据自动生成 Go 语言 struct 定义，并附带 json tag，自动推断字段类型，快速构建 Go 项目中的数据结构，支持 gomod 规范命名</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="json 转 java 实体类" data-desc="根据 json 数据自动生成 java 实体类，支持 lombok 注解（如 @data、@builder）生成 getter/setter，帮助快速构建 java 项目中的数据模型" data-keywords="json转java，java实体类，lombok，json转类，java pojo，jackson注解" data-cat="开发工具" onclick="window.location.href='/tools/code/json2java.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转 Java 实体类</div>
+          <div class="tool-card-desc">根据 JSON 数据自动生成 Java 实体类，支持 Lombok 注解（如 @Data、@Builder）生成 Getter/Setter，帮助快速构建 Java 项目中的数据模型</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="json 转 sql" data-desc="将 json 数组数据转换为标准 insert into sql 语句，可自定义表名和字段映射，一键生成批量插入语句，大幅提升数据导入数据库的效率" data-keywords="json转sql，insert语句生成，json转insert，sql生成，数据导出，批量插入" data-cat="开发工具" onclick="window.location.href='/tools/code/json2sql.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转 SQL</div>
+          <div class="tool-card-desc">将 JSON 数组数据转换为标准 INSERT INTO SQL 语句，可自定义表名和字段映射，一键生成批量插入语句，大幅提升数据导入数据库的效率</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="json 转 typescript" data-desc="粘贴 json 数据即可自动生成对应的 typescript 接口 / 类型定义，避免手动编写，提升开发效率与类型安全性，适用于前后端联调场景" data-keywords="json转typescript，ts类型生成，json接口，typescript定义，json类型推断" data-cat="开发工具" onclick="window.location.href='/tools/code/json2ts.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转 TypeScript</div>
+          <div class="tool-card-desc">粘贴 JSON 数据即可自动生成对应的 TypeScript 接口 / 类型定义，避免手动编写，提升开发效率与类型安全性，适用于前后端联调场景</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="jsonpath 解析器" data-desc="通过编写 jsonpath 表达式对 json 数据进行灵活查询与过滤，类似 xpath 操作 xml 的方式，支持返回匹配节点，大幅简化 json 数据的提取过程" data-keywords="jsonpath，json查询，json路径，xpath json，json过滤，json提取" data-cat="开发工具" onclick="window.location.href='/tools/code/jsonpath.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSONPath 解析器</div>
+          <div class="tool-card-desc">通过编写 JSONPath 表达式对 JSON 数据进行灵活查询与过滤，类似 XPath 操作 XML 的方式，支持返回匹配节点，大幅简化 JSON 数据的提取过程</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="知识图谱构建器" data-desc="在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。" data-keywords="知识图谱,实体识别,关系抽取,知识构建,文本分析,实体关系图,知识可视化,ai知识库" data-cat="开发工具" onclick="window.location.href='/tools/code/knowledge-graph.html'">
+          <i class="bi bi-diagram-3 tool-card-icon"></i>
+          <div class="tool-card-name">知识图谱构建器</div>
+          <div class="tool-card-desc">在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="markdown 转 html" data-desc="将 markdown 文档内容实时渲染为标准 html 网页，支持标题、列表、代码块、表格、链接图片等常用语法，提供多种主题样式切换，写完即看，方便撰写技术文档与博客文章。" data-keywords="markdown 转 html，markdown 渲染，markdown 在线预览，md 转 html，markdown 编辑器，markdown 实时预览" data-cat="开发工具" onclick="window.location.href='/tools/code/markdown.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Markdown 转 HTML</div>
+          <div class="tool-card-desc">将 Markdown 文档内容实时渲染为标准 HTML 网页，支持标题、列表、代码块、表格、链接图片等常用语法，提供多种主题样式切换，写完即看，方便撰写技术文档与博客文章。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="随机密码生成器" data-desc="在线随机密码生成器，可自定义密码长度、字符类型（大写/小写/数字/符号），一键生成多个强密码，支持复制。" data-keywords="密码生成器,随机密码,强密码生成,安全密码,密码工具" data-cat="开发工具" onclick="window.location.href='/tools/code/password-generator.html'">
+          <i class="bi bi-shield-lock tool-card-icon"></i>
+          <div class="tool-card-name">随机密码生成器</div>
+          <div class="tool-card-desc">在线随机密码生成器，可自定义密码长度、字符类型（大写/小写/数字/符号），一键生成多个强密码，支持复制。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="提示词优化器" data-desc="输入原始提示词，ai自动优化为结构更清晰、上下文更丰富、约束更明确的版本，显著提升chatgpt、claude等ai的回复质量。" data-keywords="提示词优化,prompt优化,ai提示词,chatgpt提示词,claude提示词,提示词工程" data-cat="开发工具" onclick="window.location.href='/tools/code/prompt-optimizer.html'">
+          <i class="bi bi-lightning-charge tool-card-icon"></i>
+          <div class="tool-card-name">提示词优化器</div>
+          <div class="tool-card-desc">输入原始提示词，AI自动优化为结构更清晰、上下文更丰富、约束更明确的版本，显著提升ChatGPT、Claude等AI的回复质量。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="python 代码格式化" data-desc="将凌乱的 python 代码整理为统一风格，自动修正缩进空白、统一函数与类之间的空行数量，让代码结构更清晰、符合 pep 8 规范。" data-keywords="python格式化，python代码格式化，python美化，python整理，pep8规范，代码缩进，python空行，代码规范" data-cat="开发工具" onclick="window.location.href='/tools/code/python-formatter.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Python 代码格式化</div>
+          <div class="tool-card-desc">将凌乱的 Python 代码整理为统一风格，自动修正缩进空白、统一函数与类之间的空行数量，让代码结构更清晰、符合 PEP 8 规范。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="简易 qr 码生成" data-desc="输入文本内容后，使用纯 javascript canvas api 即时绘制生成 qr 码，无需任何外部依赖，支持预览与 png 图片下载，方便快捷。" data-keywords="qr码生成，二维码生成，qr code，canvas qr，无依赖二维码，qr码下载，手机扫码，二维码预览" data-cat="开发工具" onclick="window.location.href='/tools/code/qrcode.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">简易 QR 码生成</div>
+          <div class="tool-card-desc">输入文本内容后，使用纯 JavaScript Canvas API 即时绘制生成 QR 码，无需任何外部依赖，支持预览与 PNG 图片下载，方便快捷。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="随机ip地址生成器" data-desc="批量生成随机 ip 地址，支持纯 ipv4 格式（x.x.x.x）或完整 ipv6 格式，可自定义生成数量，适用于网络测试、mock 数据填充、白名单测试等开发场景。" data-keywords="随机ip生成，ip地址生成器，ipv4生成，ipv6生成，网络测试，mock数据" data-cat="开发工具" onclick="window.location.href='/tools/code/random-ip.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">随机IP地址生成器</div>
+          <div class="tool-card-desc">批量生成随机 IP 地址，支持纯 IPv4 格式（x.x.x.x）或完整 IPv6 格式，可自定义生成数量，适用于网络测试、Mock 数据填充、白名单测试等开发场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="随机mac地址生成器" data-desc="按指定数量批量生成格式规范的随机 mac 地址，输出冒号分隔的六字节形式（如 aa:bb:cc:dd:ee:ff），可用于网络设备模拟、虚拟机配置、局域网测试等场景。" data-keywords="mac地址生成器，随机mac，mac批量生成，网络设备配置，虚拟机mac" data-cat="开发工具" onclick="window.location.href='/tools/code/random-mac.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">随机MAC地址生成器</div>
+          <div class="tool-card-desc">按指定数量批量生成格式规范的随机 MAC 地址，输出冒号分隔的六字节形式（如 aa:bb:cc:dd:ee:ff），可用于网络设备模拟、虚拟机配置、局域网测试等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="正则表达式生成器" data-desc="通过自然语言描述或示例文本自动生成正则表达式，支持常用模式库（手机号、邮箱、身份证、url等），一键复制生成的regexp，零基础也能快速写出正确的正则表达式。" data-keywords="正则表达式生成器，regexp生成，正则自动生成，正则表达式工具，正则匹配，邮箱正则，手机号正则，身份证正则" data-cat="开发工具" onclick="window.location.href='/tools/code/regex-generator.html'">
+          <i class="bi bi-lightning-charge tool-card-icon"></i>
+          <div class="tool-card-name">正则表达式生成器</div>
+          <div class="tool-card-desc">通过自然语言描述或示例文本自动生成正则表达式，支持常用模式库（手机号、邮箱、身份证、URL等），一键复制生成的RegExp，零基础也能快速写出正确的正则表达式。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="正则表达式测试器" data-desc="在线正则表达式测试器，输入正则表达式和测试文本，实时高亮显示所有匹配结果。支持正则标志（g/i/m/s）切换，提供常用正则表达式模板。" data-keywords="正则表达式测试,regex测试器,正则调试,在线regex,正则匹配" data-cat="开发工具" onclick="window.location.href='/tools/code/regex-tester.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">正则表达式测试器</div>
+          <div class="tool-card-desc">在线正则表达式测试器，输入正则表达式和测试文本，实时高亮显示所有匹配结果。支持正则标志（g/i/m/s）切换，提供常用正则表达式模板。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="响应式布局检测" data-desc="实时检测当前视口尺寸和所在响应式断点，支持 xs、sm、md、lg、xl、xxl 等断点状态一目了然" data-keywords="响应式，媒体查询，断点，布局检测，viewport，移动端适配，css断点" data-cat="开发工具" onclick="window.location.href='/tools/code/responsive-layout.html'">
+          <i class="bi bi-grid-3x3 tool-card-icon"></i>
+          <div class="tool-card-name">响应式布局检测</div>
+          <div class="tool-card-desc">实时检测当前视口尺寸和所在响应式断点，支持 xs、sm、md、lg、xl、xxl 等断点状态一目了然</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="罗马数字转换" data-desc="在阿拉伯数字（1-3999）与罗马数字（i, iv, mcmxc 等）之间双向转换，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。" data-keywords="罗马数字转换，阿拉伯数字转换，罗马数字对照，数字转罗马数字，章节编号" data-cat="开发工具" onclick="window.location.href='/tools/code/roman.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">罗马数字转换</div>
+          <div class="tool-card-desc">在阿拉伯数字（1-3999）与罗马数字（I, IV, MCMXC 等）之间双向转换，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="sql 格式化" data-desc="对 sql 语句进行格式化、美化或压缩处理，支持关键字自动大写、语句分行动能，并提供智能缩进，让凌乱的 sql 一键变得整洁易读。" data-keywords="sql格式化，sql美化，sql压缩，sql关键字大写，sql分行动能，sql缩进，sql整理，数据库查询" data-cat="开发工具" onclick="window.location.href='/tools/code/sql-formatter.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">SQL 格式化</div>
+          <div class="tool-card-desc">对 SQL 语句进行格式化、美化或压缩处理，支持关键字自动大写、语句分行动能，并提供智能缩进，让凌乱的 SQL 一键变得整洁易读。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="sqlite查看器" data-desc="在线sqlite数据库查看器，无需安装任何软件，上传.db或.sqlite文件即可浏览数据表结构、查看记录内容、导出数据为csv，纯浏览器本地处理。" data-keywords="sqlite查看器,sqlite浏览器,sqlite阅读器,db文件,sqlite文件,数据库查看,在线sqlite,csv导出" data-cat="开发工具" onclick="window.location.href='/tools/code/sqlite-viewer.html'">
+          <i class="bi bi-database tool-card-icon"></i>
+          <div class="tool-card-name">SQLite查看器</div>
+          <div class="tool-card-desc">在线SQLite数据库查看器，无需安装任何软件，上传.db或.sqlite文件即可浏览数据表结构、查看记录内容、导出数据为CSV，纯浏览器本地处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="user-agent 解析" data-desc="输入浏览器 user-agent 字符串，系统自动解析出浏览器名称及版本、操作系统类型、设备类别等信息，帮助开发者和测试人员快速判断客户端环境。" data-keywords="user-agent 解析，ua 解析，浏览器识别，操作系统识别，useragent，浏览器检测，客户端识别，设备类型" data-cat="开发工具" onclick="window.location.href='/tools/code/ua-parser.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">User-Agent 解析</div>
+          <div class="tool-card-desc">输入浏览器 User-Agent 字符串，系统自动解析出浏览器名称及版本、操作系统类型、设备类别等信息，帮助开发者和测试人员快速判断客户端环境。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="单位换算器" data-desc="在线单位换算工具，支持长度、重量、温度、面积、速度、时间、功率等常见单位之间的互相转换，实时计算结果。" data-keywords="单位换算,长度换算,重量换算,温度换算,面积换算,速度换算,单位转换,计量单位" data-cat="开发工具" onclick="window.location.href='/tools/code/unit-converter.html'">
+          <i class="bi bi-arrow-left-right tool-card-icon"></i>
+          <div class="tool-card-name">单位换算器</div>
+          <div class="tool-card-desc">在线单位换算工具，支持长度、重量、温度、面积、速度、时间、功率等常见单位之间的互相转换，实时计算结果。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="url 路径解析" data-desc="输入任意 url 即可自动分解出协议、主机名、端口、路径、查询参数、哈希片段与来源等全部组成信息，帮助快速了解陌生链接的结构与内容。" data-keywords="url解析，url路径，url组成，query参数，url分解，域名解析，查询字符串，url结构" data-cat="开发工具" onclick="window.location.href='/tools/code/url-parse.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">URL 路径解析</div>
+          <div class="tool-card-desc">输入任意 URL 即可自动分解出协议、主机名、端口、路径、查询参数、哈希片段与来源等全部组成信息，帮助快速了解陌生链接的结构与内容。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="uuid v7 生成器" data-desc="在线生成符合 rfc 规范的时间顺序 uuid v7，48位毫秒时间戳前端嵌入，适合数据库主键、分布式追踪等场景。" data-keywords="uuid v7，uuidv7，uuid生成，时间顺序uuid，分布式id，rfc uuid，数据库主键，追踪id" data-cat="开发工具" onclick="window.location.href='/tools/code/uuid-v7.html'">
+          <i class="bi bi-snow2 tool-card-icon"></i>
+          <div class="tool-card-name">UUID v7 生成器</div>
+          <div class="tool-card-desc">在线生成符合 RFC 规范的时间顺序 UUID v7，48位毫秒时间戳前端嵌入，适合数据库主键、分布式追踪等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="uuid v7生成器" data-desc="在线生成符合rfc 9562标准的uuid v7（基于时间的有序uuid）。uuidv7使用unix时间戳毫秒作为时间组件，保证全局唯一性的同时支持按时间排序，适合数据库主键、日志追踪等场景。" data-keywords="uuid v7，uuid生成器，rfc 9562，guid，uuid v7生成，数据库主键，有序uuid，时间排序uuid" data-cat="开发工具" onclick="window.location.href='/tools/code/uuid7.html'">
+          <i class="bi bi-hash tool-card-icon"></i>
+          <div class="tool-card-name">UUID v7生成器</div>
+          <div class="tool-card-desc">在线生成符合RFC 9562标准的UUID v7（基于时间的有序UUID）。UUIDv7使用Unix时间戳毫秒作为时间组件，保证全局唯一性的同时支持按时间排序，适合数据库主键、日志追踪等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="websocket 接口测试" data-desc="连接 websocket 服务器并测试收发消息，支持自定义连接地址、自动重连、心跳保活机制和消息历史记录，提供直观的聊天式界面，方便开发者调试实时通信功能与排查 ws 连接问题。" data-keywords="websocket 测试，ws 测试，websocket 客户端，实时通信，ws 调试，websocket 连接" data-cat="开发工具" onclick="window.location.href='/tools/code/websocket-test.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">Websocket 接口测试</div>
+          <div class="tool-card-desc">连接 WebSocket 服务器并测试收发消息，支持自定义连接地址、自动重连、心跳保活机制和消息历史记录，提供直观的聊天式界面，方便开发者调试实时通信功能与排查 WS 连接问题。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="xml格式化/压缩" data-desc="xml格式化工具，一键美化压缩xml数据，支持语法校验与错误提示，可自定义缩进级别。适合xml配置文件编辑、api响应查看与数据传输场景。" data-keywords="xml格式化，xml压缩，xml美化，xml在线格式化，xml压缩工具，xml语法校验，xml编辑" data-cat="开发工具" onclick="window.location.href='/tools/code/xml-format.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">XML格式化/压缩</div>
+          <div class="tool-card-desc">XML格式化工具，一键美化压缩XML数据，支持语法校验与错误提示，可自定义缩进级别。适合XML配置文件编辑、API响应查看与数据传输场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="xml 压缩格式化" data-desc="对 xml 文档进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持格式切换与代码高亮，适用于 xml 数据传输优化与阅读分析" data-keywords="xml格式化，xml压缩，xml美化，xml整理，xml解析" data-cat="开发工具" onclick="window.location.href='/tools/code/xml-formatter.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">XML 压缩格式化</div>
+          <div class="tool-card-desc">对 XML 文档进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持格式切换与代码高亮，适用于 XML 数据传输优化与阅读分析</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="进制转换" data-desc="二进制、八进制、十进制、十六进制互相转换" data-keywords="进制转换,binary,octal,decimal,hex,16进制,10进制,转换" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/base-converter.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">进制转换</div>
+          <div class="tool-card-desc">二进制、八进制、十进制、十六进制互相转换</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="字节转换器" data-desc="字节、b、kb、mb、gb、tb 单位互相转换" data-keywords="字节转换,byte,kb,mb,gb,tb,存储单位,单位转换" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/byte-converter.html'">
+          <i class="bi bi-memory tool-card-icon"></i>
+          <div class="tool-card-name">字节转换器</div>
+          <div class="tool-card-desc">字节、B、KB、MB、GB、TB 单位互相转换</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="css单位转换" data-desc="px、em、rem、%、vw、vh 单位互相转换，前端开发必备" data-keywords="css单位,px,em,rem,%,vw,vh,转换,前端,响应式" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/css-unit-converter.html'">
+          <i class="bi bi-rulers tool-card-icon"></i>
+          <div class="tool-card-name">CSS单位转换</div>
+          <div class="tool-card-desc">px、em、rem、%、vw、vh 单位互相转换，前端开发必备</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="随机ip地址" data-desc="生成随机ipv4地址，可选私有ip或公有ip" data-keywords="ip生成,随机ip,ipv4,私有ip,公有ip,地址生成" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/random-ip.html'">
+          <i class="bi bi-wifi tool-card-icon"></i>
+          <div class="tool-card-name">随机IP地址</div>
+          <div class="tool-card-desc">生成随机IPv4地址，可选私有IP或公有IP</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="随机mac地址" data-desc="生成随机mac地址，支持批量生成、大小写切换" data-keywords="mac地址,生成,随机,网卡,硬件地址,批量" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/random-mac.html'">
+          <i class="bi bi-ethernet tool-card-icon"></i>
+          <div class="tool-card-name">随机MAC地址</div>
+          <div class="tool-card-desc">生成随机MAC地址，支持批量生成、大小写切换</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="罗马数字转换" data-desc="阿拉伯数字与罗马数字互相转换，支持1-3999范围" data-keywords="罗马数字,转换,arabic,roman,number,数字" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/roman-numeral.html'">
+          <i class="bi bi-roman tool-card-icon"></i>
+          <div class="tool-card-name">罗马数字转换</div>
+          <div class="tool-card-desc">阿拉伯数字与罗马数字互相转换，支持1-3999范围</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="uuid生成器" data-desc="快速生成符合rfc 4122标准的uuid v4随机码，支持批量生成、大小写切换" data-keywords="uuid生成器,uuid,v4,随机,唯一标识符,批量生成,rfc4122" data-cat="开发工具" onclick="window.location.href='/tools/dev-tools/uuid-generator.html'">
+          <i class="bi bi-upc tool-card-icon"></i>
+          <div class="tool-card-name">UUID生成器</div>
+          <div class="tool-card-desc">快速生成符合RFC 4122标准的UUID v4随机码，支持批量生成、大小写切换</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="json 格式化" data-desc="对 json 文本进行格式化（美化缩进）或压缩（minify），支持一键复制结果，帮助开发者快速整理凌乱的 json 数据或精简请求体大小。" data-keywords="json 格式化，json 美化，json 压缩，json 格式化工具，json minify，json 在线格式化，json 整理" data-cat="开发工具" onclick="window.location.href='/tools/json/formatter.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 格式化</div>
+          <div class="tool-card-desc">对 JSON 文本进行格式化（美化缩进）或压缩（Minify），支持一键复制结果，帮助开发者快速整理凌乱的 JSON 数据或精简请求体大小。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="json 转表格" data-desc="将 json 数组数据快速转换为易读的 html 表格视图，支持嵌套对象展开、多层级字段展平、排序和筛选功能，适合展示 api 返回的列表类数据，一目了然。" data-keywords="json 转表格，json 数组转表格，数据可视化，json 表格，json 数据展示，json 预览" data-cat="开发工具" onclick="window.location.href='/tools/json/table.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON 转表格</div>
+          <div class="tool-card-desc">将 JSON 数组数据快速转换为易读的 HTML 表格视图，支持嵌套对象展开、多层级字段展平、排序和筛选功能，适合展示 API 返回的列表类数据，一目了然。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="json ↔ xml" data-desc="实现 json 与 xml 结构化数据格式的双向转换，支持节点映射、属性处理和缩进美化，帮助开发者在不同数据格式之间快速迁移数据，适用于接口对接与数据迁移场景。" data-keywords="json 转换 xml，xml 转换 json，数据格式转换，json xml 互转，xml 格式化，结构化数据" data-cat="开发工具" onclick="window.location.href='/tools/json/xml.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON ↔ XML</div>
+          <div class="tool-card-desc">实现 JSON 与 XML 结构化数据格式的双向转换，支持节点映射、属性处理和缩进美化，帮助开发者在不同数据格式之间快速迁移数据，适用于接口对接与数据迁移场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="json ↔ yaml" data-desc="实现 json 与 yaml 之间的双向转换，支持格式校验、语法纠错和一键复制功能，方便开发者在配置文件格式之间灵活切换，省去手动编写和转换的繁琐步骤。" data-keywords="json 转换 yaml，yaml 转换 json，json yaml 互转，配置文件转换，yaml 格式化，yaml 校验" data-cat="开发工具" onclick="window.location.href='/tools/json/yaml.html'">
+          <i class="bi bi-code-slash tool-card-icon"></i>
+          <div class="tool-card-name">JSON ↔ YAML</div>
+          <div class="tool-card-desc">实现 JSON 与 YAML 之间的双向转换，支持格式校验、语法纠错和一键复制功能，方便开发者在配置文件格式之间灵活切换，省去手动编写和转换的繁琐步骤。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="nano id生成器" data-desc="生成比 uuid 更短且同样安全的随机 nano id，支持自定义字符集和长度，适用于 url 短链、临时文件名、优惠券码等短标识需求。" data-keywords="nano id，nanoid，随机id，自定义字符集，短id生成，url短码，优惠券码" data-cat="开发工具" onclick="window.location.href='/tools/other/nanoid.html'">
+          <i class="bi bi-braille tool-card-icon"></i>
+          <div class="tool-card-name">Nano ID生成器</div>
+          <div class="tool-card-desc">生成比 UUID 更短且同样安全的随机 Nano ID，支持自定义字符集和长度，适用于 URL 短链、临时文件名、优惠券码等短标识需求。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="uuid生成器" data-desc="生成符合 rfc 4122 标准的 uuid v4 随机标识符，每键一击即可获得一个全球唯一id，适用于分布式系统主键、会话标识、事务追踪等场景。" data-keywords="uuid生成器，uuid v4，随机uuid，全球唯一标识符，rfc 4122，分布式id，标识符生成" data-cat="开发工具" onclick="window.location.href='/tools/other/uuid.html'">
+          <i class="bi bi-braille tool-card-icon"></i>
+          <div class="tool-card-name">UUID生成器</div>
+          <div class="tool-card-desc">生成符合 RFC 4122 标准的 UUID v4 随机标识符，每键一击即可获得一个全球唯一ID，适用于分布式系统主键、会话标识、事务追踪等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="less转css" data-desc="在线less编译器，将less样式代码实时转换为标准css，支持语法高亮、错误提示和一键复制，无需安装任何依赖，纯浏览器本地处理。" data-keywords="less转css,less编译器,less,css转换,less.js,在线less,样式表转换,less语法" data-cat="开发工具" onclick="window.location.href='/tools/code/less-to-css.html'">
+          <i class="bi bi-braces tool-card-icon"></i>
+          <div class="tool-card-name">LESS转CSS</div>
+          <div class="tool-card-desc">在线LESS编译器，将LESS样式代码实时转换为标准CSS，支持语法高亮、错误提示和一键复制，无需安装任何依赖，纯浏览器本地处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">开发工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="aes加密/解密" data-desc="aes（高级加密标准）是目前最广泛使用的对称加密算法之一，支持aes-128/aes-192/aes-256三种密钥长度。本工具支持cbc模式下的加密解密，可自定义iv向量，一键完成数据加解密，完全免费无需注册。" data-keywords="aes加密，aes解密，aes-128，aes-256，cbc模式，对称加密，数据加密，密码学" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/aes.html'">
+          <i class="bi bi-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">AES加密/解密</div>
+          <div class="tool-card-desc">AES（高级加密标准）是目前最广泛使用的对称加密算法之一，支持AES-128/AES-192/AES-256三种密钥长度。本工具支持CBC模式下的加密解密，可自定义IV向量，一键完成数据加解密，完全免费无需注册。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="base64加密/解密" data-desc="base64是一种基于64个可打印字符的编码方式，可将二进制数据或中文字符串转换为可传输的ascii文本格式。常用于邮件附件、数据url嵌入、api数据传输等场景，支持中英文混合内容的编解码处理。" data-keywords="base64，base64编码，base64解码，字符串编码，数据转换，ascii编码，mime，文本加密" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/base64.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">Base64加密/解密</div>
+          <div class="tool-card-desc">Base64是一种基于64个可打印字符的编码方式，可将二进制数据或中文字符串转换为可传输的ASCII文本格式。常用于邮件附件、数据URL嵌入、API数据传输等场景，支持中英文混合内容的编解码处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="bcrypt加密/校验" data-desc="在线bcrypt密码哈希加密与校验工具，基于web crypto api实现业界标准bcrypt算法，支持自定义cost因子生成哈希值，也可对已知哈希值进行暴力校验。" data-keywords="bcrypt加密,bcrypt校验,密码哈希,bcrypt,password hash,安全加密,密码学,加密工具" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/bcrypt.html'">
+          <i class="bi bi-shield-lock tool-card-icon"></i>
+          <div class="tool-card-name">Bcrypt加密/校验</div>
+          <div class="tool-card-desc">在线Bcrypt密码哈希加密与校验工具，基于Web Crypto API实现业界标准Bcrypt算法，支持自定义cost因子生成哈希值，也可对已知哈希值进行暴力校验。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="des加密/解密" data-desc="在线des对称加密解密工具，基于web crypto api纯浏览器实现，支持cbc/ecb模式和pkcs7填充，输入密钥即可加解密文本，数据安全不上传服务器。" data-keywords="des加密,des解密,对称加密,data encryption standard,加密算法,密码学,在线des,ecb,cbc" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/des.html'">
+          <i class="bi bi-shield-lock tool-card-icon"></i>
+          <div class="tool-card-name">DES加密/解密</div>
+          <div class="tool-card-desc">在线DES对称加密解密工具，基于Web Crypto API纯浏览器实现，支持CBC/ECB模式和PKCS7填充，输入密钥即可加解密文本，数据安全不上传服务器。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="16进制转字符串" data-desc="十六进制转换工具实现hex格式与字符串的双向转换，将可读文本转为十六进制表示，或将十六进制数据还原为原始字符串。广泛应用于逆向工程、网络协议分析、调试二进制数据等开发与研究场景。" data-keywords="hex，十六进制，字符串转换，ascii，十六进制解码，二进制转换，hex编码，字节转换" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/hex.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">16进制转字符串</div>
+          <div class="tool-card-desc">十六进制转换工具实现HEX格式与字符串的双向转换，将可读文本转为十六进制表示，或将十六进制数据还原为原始字符串。广泛应用于逆向工程、网络协议分析、调试二进制数据等开发与研究场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="jwt解密" data-desc="jwt（json web token）是一种开放标准，用于在各方之间安全传输信息。本工具可对标准jwt进行解码，展示header和payload内容，帮助开发者调试和验证jwt身份令牌。" data-keywords="jwt，jwt解码，json web token，token解析，header，payload，jwt验证，身份认证" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/jwt.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">JWT解密</div>
+          <div class="tool-card-desc">JWT（JSON Web Token）是一种开放标准，用于在各方之间安全传输信息。本工具可对标准JWT进行解码，展示Header和Payload内容，帮助开发者调试和验证JWT身份令牌。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="md5加密" data-desc="md5是一种广泛使用的哈希算法，可将任意长度的字符串转换为32位十六进制哈希值。常用于密码存储、数据完整性校验等场景。请注意，md5已被证明存在安全弱点，不建议用于高安全需求的密码存储。" data-keywords="md5，md5加密，md5哈希，密码加密，哈希算法，数据校验，消息摘要，信息安全" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/md5.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">MD5加密</div>
+          <div class="tool-card-desc">MD5是一种广泛使用的哈希算法，可将任意长度的字符串转换为32位十六进制哈希值。常用于密码存储、数据完整性校验等场景。请注意，MD5已被证明存在安全弱点，不建议用于高安全需求的密码存储。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="摩斯密码加密/解密" data-desc="摩斯密码是一种时通时断的信号代码，通过点、划及其停顿时间来表示不同的字符。本工具支持将任意文字加密为摩斯电码，或将摩斯电码解密还原为可读文字，适合学习和娱乐使用。" data-keywords="摩斯密码，morse，morsecode，密码加密，电报，加密通信，隐密通信，点划码" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/morse.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">摩斯密码加密/解密</div>
+          <div class="tool-card-desc">摩斯密码是一种时通时断的信号代码，通过点、划及其停顿时间来表示不同的字符。本工具支持将任意文字加密为摩斯电码，或将摩斯电码解密还原为可读文字，适合学习和娱乐使用。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="punycode编码/解码" data-desc="punycode是一种将unicode字符串转换为ascii字符集的编码算法，专门用于在纯ascii环境中表示含有非ascii字符的域名。在国际化域名注册和dns解析时经常使用，支持中文、日文等多语种域名的处理。" data-keywords="punycode，域名编码，中文域名，idn，域名转换，ascii编码，国际化域名，dns" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/punycode.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">Punycode编码/解码</div>
+          <div class="tool-card-desc">Punycode是一种将Unicode字符串转换为ASCII字符集的编码算法，专门用于在纯ASCII环境中表示含有非ASCII字符的域名。在国际化域名注册和DNS解析时经常使用，支持中文、日文等多语种域名的处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="rabbit加密/解密" data-desc="在线rabbit流加密解密工具，基于原生javascript实现，rabbit是高效的流密码算法，支持密钥和iv配置，纯前端运行无需服务器。" data-keywords="rabbit加密,rabbit解密,流密码,stream cipher,rabbit算法,加密工具,在线加密" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/rabbit.html'">
+          <i class="bi bi-shield-lock tool-card-icon"></i>
+          <div class="tool-card-name">Rabbit加密/解密</div>
+          <div class="tool-card-desc">在线Rabbit流加密解密工具，基于原生JavaScript实现，Rabbit是高效的流密码算法，支持密钥和IV配置，纯前端运行无需服务器。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="rc4加密/解密" data-desc="在线rc4流密码加密解密工具，纯浏览器原生javascript实现，rc4是经典的对称流密码算法，支持十六进制和ascii字符串输入与输出。" data-keywords="rc4加密,rc4解密,流密码,stream cipher,rc4算法,在线加密,密码学,wep加密" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/rc4.html'">
+          <i class="bi bi-shield-lock tool-card-icon"></i>
+          <div class="tool-card-name">RC4加密/解密</div>
+          <div class="tool-card-desc">在线RC4流密码加密解密工具，纯浏览器原生JavaScript实现，RC4是经典的对称流密码算法，支持十六进制和ASCII字符串输入与输出。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="sha加密" data-desc="sha系列哈希算法是美国国家安全局设计的加密标准，sha-1生成160位哈希值，sha-256生成256位哈希值。相比md5具有更高的安全性，广泛应用于数字签名、ssl证书、区块链等领域的数据完整性校验。" data-keywords="sha，sha256，sha1，哈希算法，密码学，数字签名，sha-256，sha-1，安全哈希，数据完整性" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/sha.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">SHA加密</div>
+          <div class="tool-card-desc">SHA系列哈希算法是美国国家安全局设计的加密标准，SHA-1生成160位哈希值，SHA-256生成256位哈希值。相比MD5具有更高的安全性，广泛应用于数字签名、SSL证书、区块链等领域的数据完整性校验。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="文字隐藏加密/解密" data-desc="零宽字符是一种在屏幕上不显示的unicode字符，可将秘密信息以不可见的方式嵌入到任意普通文本中。接收方使用本工具即可解密提取隐藏内容，适用于信息隐藏、敏感数据传输和数字水印等场景。" data-keywords="零宽字符，文字加密，隐写术，文字隐藏，信息隐藏，数字水印，隐密通信，unicode隐写" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/text-hide.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">文字隐藏加密/解密</div>
+          <div class="tool-card-desc">零宽字符是一种在屏幕上不显示的Unicode字符，可将秘密信息以不可见的方式嵌入到任意普通文本中。接收方使用本工具即可解密提取隐藏内容，适用于信息隐藏、敏感数据传输和数字水印等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="unicode中文互转" data-desc="unicode转换工具支持中文文字与utf-16 unicode编码序列的相互转换，中文字符可表示为\uxxxx格式的转义序列。在javascript字符串处理、跨系统数据交换、网络传输等场景中经常使用。" data-keywords="unicode，中文unicode，utf-16，编码转换，\u编码，中文转码，字符集，utf编码" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/unicode.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">Unicode中文互转</div>
+          <div class="tool-card-desc">Unicode转换工具支持中文文字与UTF-16 Unicode编码序列的相互转换，中文字符可表示为\uXXXX格式的转义序列。在JavaScript字符串处理、跨系统数据交换、网络传输等场景中经常使用。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="url编码解码" data-desc="url编码通过将中文字符和特殊符号转换为%xx格式的十六进制转义序列，确保url在传输过程中的安全性和兼容性。常用于表单提交、api调用、搜索引擎查询等场景，可有效避免字符冲突导致的数据解析错误。" data-keywords="url编码，url解码，encodeuri，uri编码，百分号编码，url转义，特殊字符，http请求" data-cat="编码/加密" onclick="window.location.href='/tools/encrypt/url.html'">
+          <i class="bi bi-shield-lock-fill tool-card-icon"></i>
+          <div class="tool-card-name">URL编码解码</div>
+          <div class="tool-card-desc">URL编码通过将中文字符和特殊符号转换为%XX格式的十六进制转义序列，确保URL在传输过程中的安全性和兼容性。常用于表单提交、API调用、搜索引擎查询等场景，可有效避免字符冲突导致的数据解析错误。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">编码/加密</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="ai邮件助手" data-desc="聚合多个ai模型，一键完成邮件摘要、邮件起草、邮件分类。无需注册，支持openai/anthropic/minimax等主流模型。" data-keywords="ai邮件,邮件助手,ai模型选择,邮件摘要,gpt邮件,claude邮件" data-cat="文本工具" onclick="window.location.href='/tools/ai-email-assistant/ai-email-assistant.html'">
+          <i class="bi bi-envelope-at-fill tool-card-icon"></i>
+          <div class="tool-card-name">AI邮件助手</div>
+          <div class="tool-card-desc">聚合多个AI模型，一键完成邮件摘要、邮件起草、邮件分类。无需注册，支持OpenAI/Anthropic/MiniMax等主流模型。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="ai检测器" data-desc="在线ai文本检测工具，通过分析文本的语言模式、词汇丰富度、句子长度变化等特征，判断文本是否由chatgpt、claude、gpt-4等ai生成。" data-keywords="ai检测器,chatgpt检测,ai文本检测,ai写作检测,人工智能检测,文本分析" data-cat="文本工具" onclick="window.location.href='/tools/text/ai-detector.html'">
+          <i class="bi bi-robot tool-card-icon"></i>
+          <div class="tool-card-name">AI检测器</div>
+          <div class="tool-card-desc">在线AI文本检测工具，通过分析文本的语言模式、词汇丰富度、句子长度变化等特征，判断文本是否由ChatGPT、Claude、GPT-4等AI生成。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="驼峰 ↔ 下划线" data-desc="在驼峰命名法（camelcase）和下划线命名法（snake_case）之间进行一键互转，支持变量名、函数名、类名等程序员常用命名风格的快速转换。" data-keywords="驼峰下划线转换，命名风格转换，camelcase，snake_case，变量命名，代码格式化，程序员工具，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/camel.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">驼峰 ↔ 下划线</div>
+          <div class="tool-card-desc">在驼峰命名法（CamelCase）和下划线命名法（snake_case）之间进行一键互转，支持变量名、函数名、类名等程序员常用命名风格的快速转换。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="大小写转换" data-desc="支持将英文字母在大小写之间快速转换，可选择全部转为大写、全部转为小写或首字母大写等多种模式，适用于文本格式规范化处理。" data-keywords="大小写转换，英文大小写，字母大小写转换，case 转换，英文格式化，字符串转换，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/case.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">大小写转换</div>
+          <div class="tool-card-desc">支持将英文字母在大小写之间快速转换，可选择全部转为大写、全部转为小写或首字母大写等多种模式，适用于文本格式规范化处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="字数统计" data-desc="实时统计文本框内字符数、单词数、中文字数、标点符号数量及段落数，支持中英文混合统计，帮助用户精准把控文本长度。" data-keywords="字数统计，字符统计，单词统计，文本统计，中文字数，字符数统计，文本长度，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/count.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">字数统计</div>
+          <div class="tool-card-desc">实时统计文本框内字符数、单词数、中文字数、标点符号数量及段落数，支持中英文混合统计，帮助用户精准把控文本长度。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="文本差异对比" data-desc="左右分栏对比两段文本内容，自动标注出增加、删除和修改的部分，直观呈现文本差异，广泛用于代码比对、文档修订等场景。" data-keywords="文本差异对比，文本比对，diff 对比，文本比较，文本差异，代码比对，文档修订，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/diff.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">文本差异对比</div>
+          <div class="tool-card-desc">左右分栏对比两段文本内容，自动标注出增加、删除和修改的部分，直观呈现文本差异，广泛用于代码比对、文档修订等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="提取邮箱/手机/链接" data-desc="从大段文本或网页内容中自动识别并提取邮箱地址、手机号码、url 链接等信息，支持一键复制提取结果，适用于数据整理和信息采集。" data-keywords="提取邮箱，提取手机号，提取链接，正则提取，文本信息提取，数据采集，信息提取，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/extract.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">提取邮箱/手机/链接</div>
+          <div class="tool-card-desc">从大段文本或网页内容中自动识别并提取邮箱地址、手机号码、URL 链接等信息，支持一键复制提取结果，适用于数据整理和信息采集。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="乱码修复" data-desc="自动检测文本乱码类型（如 utf-8、gbk、latin-1 等编码混淆导致的乱码），智能推断原始编码并还原为正常文字，修复网页抓取和文件传输中的乱码问题。" data-keywords="乱码修复，文本乱码修复，编码修复，乱码转换，编码检测，utf-8乱码，gbk乱码，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/garble-fix.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">乱码修复</div>
+          <div class="tool-card-desc">自动检测文本乱码类型（如 UTF-8、GBK、Latin-1 等编码混淆导致的乱码），智能推断原始编码并还原为正常文字，修复网页抓取和文件传输中的乱码问题。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="简繁体转换" data-desc="实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。" data-keywords="简繁体转换，简体繁体转换，繁简转换，中文简繁体，简体中文，繁体中文，文字转换，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/jianfan.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">简繁体转换</div>
+          <div class="tool-card-desc">实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="汉字转拼音" data-desc="将中文汉字快速转换为拼音标注，支持带声调、不带声调、只保留首字母等多种输出模式，适用于拼音学习、注音辅助及文字检索等用途。" data-keywords="汉字转拼音，中文拼音转换，汉字拼音，拼音转换，拼音标注，中文注音，拼音学习，在线工具" data-cat="文本工具" onclick="window.location.href='/tools/text/pinyin.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">汉字转拼音</div>
+          <div class="tool-card-desc">将中文汉字快速转换为拼音标注，支持带声调、不带声调、只保留首字母等多种输出模式，适用于拼音学习、注音辅助及文字检索等用途。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="正则替换字符串" data-desc="在线正则表达式批量替换工具，支持正则和普通字符串替换，可使用捕获组（$1,$2）、预览替换前后对比效果，适合批量文本处理和内容清洗。" data-keywords="正则替换,字符串替换,正则表达式,regex replace,批量替换,文本替换,捕获组,在线正则替换" data-cat="文本工具" onclick="window.location.href='/tools/text/regex-replace.html'">
+          <i class="bi bi-find-replace tool-card-icon"></i>
+          <div class="tool-card-name">正则替换字符串</div>
+          <div class="tool-card-desc">在线正则表达式批量替换工具，支持正则和普通字符串替换，可使用捕获组（$1,$2）、预览替换前后对比效果，适合批量文本处理和内容清洗。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="字符串数组排序" data-desc="在线字符串数组排序工具，支持升序/降序、中文按拼音/笔画/unicode、字母大小写敏感/不敏感等多种排序方式，实时预览排序结果并一键复制。" data-keywords="字符串排序,数组排序,中文排序,拼音排序,升序,降序,在线排序,字符串排序工具" data-cat="文本工具" onclick="window.location.href='/tools/text/string-sort.html'">
+          <i class="bi bi-sort-up tool-card-icon"></i>
+          <div class="tool-card-name">字符串数组排序</div>
+          <div class="tool-card-desc">在线字符串数组排序工具，支持升序/降序、中文按拼音/笔画/Unicode、字母大小写敏感/不敏感等多种排序方式，实时预览排序结果并一键复制。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="大小写转换器" data-desc="在 uppercase（全大写）、lowercase（全小写）、title case（首字母大写）和 sentence case（句首大写）之间一键转换英文字符。" data-keywords="大小写转换,uppercase,lowercase,title case,句首大写,首字母大写,英文大小写,字母大小写转换,在线大小写转换" data-cat="文本处理" onclick="window.location.href='/tools/text/case-convert.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">大小写转换器</div>
+          <div class="tool-card-desc">在 UPPERCASE（全大写）、lowercase（全小写）、Title Case（首字母大写）和 Sentence case（句首大写）之间一键转换英文字符。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="文本去重" data-desc="一键删除重复行，支持保留原始顺序或按字母排序显示，同时显示删除了多少重复行。适用于数据清洗、列表去重等场景。" data-keywords="文本去重,删除重复行,行去重,去除重复,文本清洗,列表去重,在线去重" data-cat="文本处理" onclick="window.location.href='/tools/text/dedupe.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">文本去重</div>
+          <div class="tool-card-desc">一键删除重复行，支持保留原始顺序或按字母排序显示，同时显示删除了多少重复行。适用于数据清洗、列表去重等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="全角半角转换" data-desc="支持全角英文字母、数字、标点符号与半角字符互转，可选择转换范围（仅数字、仅字母、仅标点或全部），适合排版和文本规范化处理。" data-keywords="全角半角转换,全角转半角,半角转全角,全角数字,全角字母,全角标点,字符转换,文本格式化" data-cat="文本处理" onclick="window.location.href='/tools/text/fullhalf.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">全角半角转换</div>
+          <div class="tool-card-desc">支持全角英文字母、数字、标点符号与半角字符互转，可选择转换范围（仅数字、仅字母、仅标点或全部），适合排版和文本规范化处理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="简繁转换" data-desc="简体中文与繁体中文（正体中文）之间的一键互转工具，支持常见词汇的整词转换（如「软件→軟體」），转换准确率高，适合文档本地化和繁简学习。" data-keywords="简繁转换,简繁体转换,简体转繁体,繁体转简体,简转繁,繁转简,正体中文,两岸用语转换" data-cat="文本处理" onclick="window.location.href='/tools/text/jian-fan.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">简繁转换</div>
+          <div class="tool-card-desc">简体中文与繁体中文（正体中文）之间的一键互转工具，支持常见词汇的整词转换（如「软件→軟體」），转换准确率高，适合文档本地化和繁简学习。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="行数统计" data-desc="统计文本的总行数、非空行数和空行数，并显示每行的行号，适合代码行数统计、文本分析等场景。" data-keywords="行数统计,行数统计工具,空行统计,非空行,文本行数,代码行数,行号显示,在线行数统计" data-cat="文本处理" onclick="window.location.href='/tools/text/line-count.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">行数统计</div>
+          <div class="tool-card-desc">统计文本的总行数、非空行数和空行数，并显示每行的行号，适合代码行数统计、文本分析等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="去除空行" data-desc="删除文本中的所有空行和仅含空白字符的行，支持将多个连续空行压缩为一个空行，适合文本清洗和数据整理。" data-keywords="去除空行,删除空行,删除空白行,压缩空行,文本去空行,在线去除空行,文本清洗" data-cat="文本处理" onclick="window.location.href='/tools/text/remove-blank.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">去除空行</div>
+          <div class="tool-card-desc">删除文本中的所有空行和仅含空白字符的行，支持将多个连续空行压缩为一个空行，适合文本清洗和数据整理。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="文本反转" data-desc="支持完全反转文本内容（字符倒序）和反转行顺序（最后一行变为第一行），适合特殊文本处理需求。" data-keywords="文本反转,字符反转,行反转,倒序文本,文本倒置,反转文字,在线文本反转" data-cat="文本处理" onclick="window.location.href='/tools/text/reverse.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">文本反转</div>
+          <div class="tool-card-desc">支持完全反转文本内容（字符倒序）和反转行顺序（最后一行变为第一行），适合特殊文本处理需求。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="敏感词检测" data-desc="通过内置词库检测文本中可能包含的敏感词，高亮显示并统计数量，帮助用户识别潜在问题内容。" data-keywords="敏感词检测,敏感词,违禁词,违规检测,内容审核,文本检测,在线敏感词检测" data-cat="文本处理" onclick="window.location.href='/tools/text/sensitive-check.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">敏感词检测</div>
+          <div class="tool-card-desc">通过内置词库检测文本中可能包含的敏感词，高亮显示并统计数量，帮助用户识别潜在问题内容。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="文本排序" data-desc="支持按字母顺序（a-z / z-a）排序和按数字大小排序，可选升序或降序，适合整理列表、数据排序等场景。" data-keywords="文本排序,行排序,字母排序,数字排序,升序,降序,a到z,z到a,倒序,在线排序" data-cat="文本处理" onclick="window.location.href='/tools/text/sort.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">文本排序</div>
+          <div class="tool-card-desc">支持按字母顺序（A-Z / Z-A）排序和按数字大小排序，可选升序或降序，适合整理列表、数据排序等场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="字数统计" data-desc="实时统计文本的总字符数、单词数、行数、段落数和句子数，支持中英文混合文本，敲字即出结果，一键复制统计报告。" data-keywords="字数统计,字符统计,单词统计,行数统计,段落统计,句子统计,中文字数,英文单词统计,文本长度统计" data-cat="文本处理" onclick="window.location.href='/tools/text/word-count.html'">
+          <i class="bi bi-body-text tool-card-icon"></i>
+          <div class="tool-card-name">字数统计</div>
+          <div class="tool-card-desc">实时统计文本的总字符数、单词数、行数、段落数和句子数，支持中英文混合文本，敲字即出结果，一键复制统计报告。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">文本处理</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="年龄计算器" data-desc="根据输入的出生日期精确计算周岁、虚岁和具体天数，同时显示距离下一个生日的倒计时，帮助用户了解自己的精确年龄和生命历程。" data-keywords="年龄计算器，周岁计算，虚岁计算，生日计算，年龄计算，出生日期计算，下一个生日倒计时" data-cat="时间工具" onclick="window.location.href='/tools/time/age.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">年龄计算器</div>
+          <div class="tool-card-desc">根据输入的出生日期精确计算周岁、虚岁和具体天数，同时显示距离下一个生日的倒计时，帮助用户了解自己的精确年龄和生命历程。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="在线万年历" data-desc="在线万年历，支持1900年至2100年任意公历日期查询，显示公历、农历、星期、节气、节假日信息。界面简洁美观，适合日程规划与历史日期查询。" data-keywords="万年历，在线万年历，公历农历，农历查询，日历，节气，节假日，日期查询，历史日历" data-cat="时间工具" onclick="window.location.href='/tools/time/calendar.html'">
+          <i class="bi bi-calendar3-fill tool-card-icon"></i>
+          <div class="tool-card-name">在线万年历</div>
+          <div class="tool-card-desc">在线万年历，支持1900年至2100年任意公历日期查询，显示公历、农历、星期、节气、节假日信息。界面简洁美观，适合日程规划与历史日期查询。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="在线倒计时" data-desc="在线倒计时器，支持设定目标时间或自定义时长，实时显示剩余的日、时、分、秒，适用于活动报名、考试、赛事等需要精确把握时间的场景。" data-keywords="在线倒计时，倒计时器，倒计时工具，计时器，活动倒计时，考试倒计时，会议计时，目标时间" data-cat="时间工具" onclick="window.location.href='/tools/time/countdown.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">在线倒计时</div>
+          <div class="tool-card-desc">在线倒计时器，支持设定目标时间或自定义时长，实时显示剩余的日、时、分、秒，适用于活动报名、考试、赛事等需要精确把握时间的场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="日期间隔计算" data-desc="计算两个日期之间相隔的天数，支持从开始日期到结束日期的精确天数统计，可用于项目工期规划、合同期限计算或旅行计划安排。" data-keywords="日期间隔计算，日期计算器，天数计算器，日期间隔，日期相差天数，项目工期计算，旅行天数计算" data-cat="时间工具" onclick="window.location.href='/tools/time/interval.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">日期间隔计算</div>
+          <div class="tool-card-desc">计算两个日期之间相隔的天数，支持从开始日期到结束日期的精确天数统计，可用于项目工期规划、合同期限计算或旅行计划安排。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="农历生日转换器" data-desc="将农历出生日期转换为公历日期的工具，支持计算转换后的公历生日对应的周岁年龄，并显示当年的生肖属相信息，适合农历生日纪念和年龄核对。" data-keywords="农历生日转换，农历公历转换，生肖计算，农历转换，出生日期转换，属相查询，农历纪念日" data-cat="时间工具" onclick="window.location.href='/tools/time/lunar-birthday.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">农历生日转换器</div>
+          <div class="tool-card-desc">将农历出生日期转换为公历日期的工具，支持计算转换后的公历生日对应的周岁年龄，并显示当年的生肖属相信息，适合农历生日纪念和年龄核对。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="公历农历互转器" data-desc="公历与农历日期互相转换的工具，支持公历转农历和农历转公历的双向查询，同时显示对应的星期、生肖和二十四节气等详细信息。" data-keywords="公历农历互转，农历公历转换，阴历阳历转换，二十四节气，农历查询，公历查询，属相查询" data-cat="时间工具" onclick="window.location.href='/tools/time/lunar-solar-converter.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">公历农历互转器</div>
+          <div class="tool-card-desc">公历与农历日期互相转换的工具，支持公历转农历和农历转公历的双向查询，同时显示对应的星期、生肖和二十四节气等详细信息。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="时间戳转换" data-desc="unix 时间戳与北京时间、utc 时间之间的互相转换工具，支持十位和十三位时间戳格式，适用于程序员调试和日志分析场景。" data-keywords="时间戳转换，unix 时间戳，utc 时间转换，时间戳互转，毫秒时间戳，程序员工具，日志时间转换" data-cat="时间工具" onclick="window.location.href='/tools/time/timestamp.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">时间戳转换</div>
+          <div class="tool-card-desc">Unix 时间戳与北京时间、UTC 时间之间的互相转换工具，支持十位和十三位时间戳格式，适用于程序员调试和日志分析场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="标准时间" data-desc="提供精确的世界时钟显示、时间单位换算以及 ntp 服务器校准功能，帮助用户将本地设备时间与国际标准时间同步，适用于对时间精度有较高要求的场景。" data-keywords="标准时间，ntp 校准，时间同步，世界时钟，时间单位换算，毫秒秒秒转换，精确时间" data-cat="时间工具" onclick="window.location.href='/tools/time/world-clock.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">标准时间</div>
+          <div class="tool-card-desc">提供精确的世界时钟显示、时间单位换算以及 NTP 服务器校准功能，帮助用户将本地设备时间与国际标准时间同步，适用于对时间精度有较高要求的场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="世界各地时间" data-desc="查看全球主要城市当前时间的在线工具，支持多时区同时对比，方便跨国沟通、会议安排和旅行规划时快速了解各地不同时区的当前时刻。" data-keywords="世界各地时间，世界时钟，时区转换，城市时间查询，跨国时间对比，旅行时间查询，当前时间" data-cat="时间工具" onclick="window.location.href='/tools/time/world.html'">
+          <i class="bi bi-clock-fill tool-card-icon"></i>
+          <div class="tool-card-name">世界各地时间</div>
+          <div class="tool-card-desc">查看全球主要城市当前时间的在线工具，支持多时区同时对比，方便跨国沟通、会议安排和旅行规划时快速了解各地不同时区的当前时刻。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">时间工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="bmi计算器" data-desc="身体质量指数计算，支持中国成人bmi参考标准" data-keywords="bmi,计算,身体质量,身高,体重,健康指数" data-cat="生活实用" onclick="window.location.href='/tools/life/bmi-calculator.html'">
+          <i class="bi bi-heart-pulse tool-card-icon"></i>
+          <div class="tool-card-name">BMI计算器</div>
+          <div class="tool-card-desc">身体质量指数计算，支持中国成人BMI参考标准</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="朋友圈九宫格分图" data-desc="将任意图片自动切割为3×3九宫格样式，方便发布朋友圈九图，保留完整画面的同时呈现精致排版效果。" data-keywords="九宫格分图，朋友圈九宫格，图片切割，图片分割，九图发布，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/grid-splitter.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">朋友圈九宫格分图</div>
+          <div class="tool-card-desc">将任意图片自动切割为3×3九宫格样式，方便发布朋友圈九图，保留完整画面的同时呈现精致排版效果。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="五险一金计算器" data-desc="根据税前工资和社保缴纳基数，自动计算养老保险、医疗保险、失业保险、工伤保险、生育保险及住房公积金的扣除金额。" data-keywords="五险一金计算器，五险一金计算，社保计算器，公积金计算，工资计算，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/insurance.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">五险一金计算器</div>
+          <div class="tool-card-desc">根据税前工资和社保缴纳基数，自动计算养老保险、医疗保险、失业保险、工伤保险、生育保险及住房公积金的扣除金额。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="键盘按键测试" data-desc="按下键盘任意按键后，页面实时显示对应的keycode键码和key值，方便前端开发者快速测试和查阅键盘按键信息。" data-keywords="键盘按键测试，按键测试，keycode测试，键盘码查询，键盘工具，在线测试" data-cat="生活实用" onclick="window.location.href='/tools/life/keyboard-test.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">键盘按键测试</div>
+          <div class="tool-card-desc">按下键盘任意按键后，页面实时显示对应的keyCode键码和key值，方便前端开发者快速测试和查阅键盘按键信息。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="年会抽奖工具" data-desc="输入参与者名单后点击抽奖，系统从名单中随机抽取一名中奖者，适用于公司年会、晚会、团建活动等多种场景。" data-keywords="年会抽奖，抽奖工具，随机抽取，抽奖软件，活动抽奖，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/lottery.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">年会抽奖工具</div>
+          <div class="tool-card-desc">输入参与者名单后点击抽奖，系统从名单中随机抽取一名中奖者，适用于公司年会、晚会、团建活动等多种场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="商品比价" data-desc="输入不同商品的价格和单位信息，自动计算单位价格，帮你快速比较同类商品的真实性价比，找出最划算的购买选择。" data-keywords="商品比价，单位价格比较，比价工具，购物比价，性价比比较，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/price-compare.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">商品比价</div>
+          <div class="tool-card-desc">输入不同商品的价格和单位信息，自动计算单位价格，帮你快速比较同类商品的真实性价比，找出最划算的购买选择。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="人民币大写转换" data-desc="数字金额转换为中文大写，支持角、分、整" data-keywords="人民币大写,金额转换,中文大写,财务,会计,金额" data-cat="生活实用" onclick="window.location.href='/tools/life/rmb-uppercase.html'">
+          <i class="bi bi-currency-yen tool-card-icon"></i>
+          <div class="tool-card-name">人民币大写转换</div>
+          <div class="tool-card-desc">数字金额转换为中文大写，支持角、分、整</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="税后工资计算器" data-desc="输入税前工资后，自动扣除五险一金和个人所得税，精准计算实际到手工资，帮助你清晰了解每月净收入构成。" data-keywords="税后工资计算器，工资计算器，个税计算，税后工资，薪资计算，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/salary.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">税后工资计算器</div>
+          <div class="tool-card-desc">输入税前工资后，自动扣除五险一金和个人所得税，精准计算实际到手工资，帮助你清晰了解每月净收入构成。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="温度转换" data-desc="摄氏度、华氏度、开尔文温度互相转换" data-keywords="温度转换,celsius,fahrenheit,kelvin,℃,℉,k,摄氏,华氏" data-cat="生活实用" onclick="window.location.href='/tools/life/temperature-converter.html'">
+          <i class="bi bi-thermometer tool-card-icon"></i>
+          <div class="tool-card-name">温度转换</div>
+          <div class="tool-card-desc">摄氏度、华氏度、开尔文温度互相转换</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="专注计时器" data-desc="支持秒表计时和番茄工作法模式，设定25分钟专注时间与5分钟休息时间交替循环，有效提升工作和学习效率。" data-keywords="专注计时器，番茄钟，计时器，时间管理，专注工具，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/time-annotate.html'">
+          <i class="bi bi-gear tool-card-icon"></i>
+          <div class="tool-card-name">专注计时器</div>
+          <div class="tool-card-desc">支持秒表计时和番茄工作法模式，设定25分钟专注时间与5分钟休息时间交替循环，有效提升工作和学习效率。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="专注白噪音画板" data-desc="在画板上打字或滑动鼠标即可生成唯美的粒子艺术效果，同时播放舒缓的白噪音背景音，帮助你快速进入专注状态。" data-keywords="白噪音画板，专注工具，白噪音，粒子艺术，冥想放松，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/life/zen-canvas.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">专注白噪音画板</div>
+          <div class="tool-card-desc">在画板上打字或滑动鼠标即可生成唯美的粒子艺术效果，同时播放舒缓的白噪音背景音，帮助你快速进入专注状态。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="点击速度测试" data-desc="在倒计时10秒内尽可能多地点击屏幕，系统实时统计点击次数并计算出每秒点击次数（cps），与好友一较高下。" data-keywords="点击速度测试，鼠标点击测试，手速测试，cps测试，竞技点击，在线测试" data-cat="生活实用" onclick="window.location.href='/tools/other/click-speed.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">点击速度测试</div>
+          <div class="tool-card-desc">在倒计时10秒内尽可能多地点击屏幕，系统实时统计点击次数并计算出每秒点击次数（CPS），与好友一较高下。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="颜色选择器" data-desc="通过色盘可视化为网页设计师和开发人员快速选取颜色，并实时转换rgb颜色值与hex十六进制颜色码。" data-keywords="颜色选择器，rgb hex转换，颜色代码，取色器，网页配色，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/other/color.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">颜色选择器</div>
+          <div class="tool-card-desc">通过色盘可视化为网页设计师和开发人员快速选取颜色，并实时转换RGB颜色值与HEX十六进制颜色码。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="进制转换" data-desc="支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果。" data-keywords="进制转换，二进制转换，八进制转换，十六进制转换，十进制转换，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/other/hex-convert.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">进制转换</div>
+          <div class="tool-card-desc">支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="密码生成器" data-desc="自定义密码长度与字符类型（大小写字母、数字、特殊符号），一键生成高强度随机密码，有效提升账户安全等级。" data-keywords="密码生成器，随机密码生成，密码生成工具，强密码生成，安全密码，在线工具" data-cat="生活实用" onclick="window.location.href='/tools/other/password.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">密码生成器</div>
+          <div class="tool-card-desc">自定义密码长度与字符类型（大小写字母、数字、特殊符号），一键生成高强度随机密码，有效提升账户安全等级。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="反应力测试" data-desc="屏幕随机变色时快速点击，记录每次反应时间，共进行5轮测试并取平均值，科学评估你的视觉反应速度水平。" data-keywords="反应力测试，反应速度测试，视觉反应测试，专注力测试，在线测试" data-cat="生活实用" onclick="window.location.href='/tools/other/reaction-test.html'">
+          <i class="bi bi-house-heart-fill tool-card-icon"></i>
+          <div class="tool-card-name">反应力测试</div>
+          <div class="tool-card-desc">屏幕随机变色时快速点击，记录每次反应时间，共进行5轮测试并取平均值，科学评估你的视觉反应速度水平。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">生活实用</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="平均数计算" data-desc="输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示。" data-keywords="平均数计算，平均值，mean，数学平均数，统计计算，数据统计，总和，平均" data-cat="数学计算" onclick="window.location.href='/tools/math/avg.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">平均数计算</div>
+          <div class="tool-card-desc">输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="四则计算器" data-desc="支持加法、减法、乘法、除法四种基本运算，输入两个数值和运算符后即可快速得到计算结果，适合日常学习和办公场景。" data-keywords="四则计算器，加减乘除，基本运算，数学计算，在线计算器，加法，减法，乘法，除法" data-cat="数学计算" onclick="window.location.href='/tools/math/calculator.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">四则计算器</div>
+          <div class="tool-card-desc">支持加法、减法、乘法、除法四种基本运算，输入两个数值和运算符后即可快速得到计算结果，适合日常学习和办公场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="阶乘计算" data-desc="计算任意非负整数 n 的阶乘值（n!），适用于概率统计、排列组合等数学场景，支持0到170范围内的精确阶乘计算。" data-keywords="阶乘计算，阶乘，n!，数学阶乘，排列组合，概率统计，组合数学，阶乘值" data-cat="数学计算" onclick="window.location.href='/tools/math/factorial.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">阶乘计算</div>
+          <div class="tool-card-desc">计算任意非负整数 n 的阶乘值（n!），适用于概率统计、排列组合等数学场景，支持0到170范围内的精确阶乘计算。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="最大公约数" data-desc="通过欧几里得算法快速计算两个整数的最大公约数（gcd），直观展示辗转相除法的计算过程，广泛用于分数化简和数论研究。" data-keywords="最大公约数，gcd，约数，数学计算，欧几里得算法，辗转相除法，数论，分数化简" data-cat="数学计算" onclick="window.location.href='/tools/math/gcd.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">最大公约数</div>
+          <div class="tool-card-desc">通过欧几里得算法快速计算两个整数的最大公约数（GCD），直观展示辗转相除法的计算过程，广泛用于分数化简和数论研究。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="最小公倍数" data-desc="计算两个整数的最小公倍数（lcm），结合最大公约数算法高效求解，常用于分数通分、工程时间调度等实际应用场景。" data-keywords="最小公倍数，lcm，公倍数，数学计算，通分，分数运算，时间调度，数论" data-cat="数学计算" onclick="window.location.href='/tools/math/lcm.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">最小公倍数</div>
+          <div class="tool-card-desc">计算两个整数的最小公倍数（LCM），结合最大公约数算法高效求解，常用于分数通分、工程时间调度等实际应用场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="乘方计算器" data-desc="输入底数和指数即可快速计算幂运算结果，支持任意实数指数的乘方计算，适用于数学、工程和科学计算等多种场景。" data-keywords="乘方计算，指数计算，幂运算，x^y，数学计算，次幂计算，乘方，指数" data-cat="数学计算" onclick="window.location.href='/tools/math/power.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">乘方计算器</div>
+          <div class="tool-card-desc">输入底数和指数即可快速计算幂运算结果，支持任意实数指数的乘方计算，适用于数学、工程和科学计算等多种场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="质数判定" data-desc="快速判断输入的正整数是否为质数，并显示最小因数信息，帮助理解质数的数学特性，适用于数论学习和密码学基础。" data-keywords="质数判定，质数检查，素数判定，质数测试，数学计算，质数识别，因数分解，数论" data-cat="数学计算" onclick="window.location.href='/tools/math/prime-check.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">质数判定</div>
+          <div class="tool-card-desc">快速判断输入的正整数是否为质数，并显示最小因数信息，帮助理解质数的数学特性，适用于数论学习和密码学基础。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="随机数生成器" data-desc="在用户指定的最小值和最大值范围内生成随机整数，适用于抽样调查、随机抽样、抽奖活动、游戏开发等多种应用场景。" data-keywords="随机数生成器，随机数，random，彩票随机数，在线随机数，抽样，抽奖，游戏" data-cat="数学计算" onclick="window.location.href='/tools/math/random.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">随机数生成器</div>
+          <div class="tool-card-desc">在用户指定的最小值和最大值范围内生成随机整数，适用于抽样调查、随机抽样、抽奖活动、游戏开发等多种应用场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="开方计算器" data-desc="计算任意非负数的平方根，支持高精度结果展示，自动处理整数和小数的显示格式，适用于几何和代数等多种计算场景。" data-keywords="开方计算，平方根，根号，sqrt，数学计算，n次方根，开根号，根式" data-cat="数学计算" onclick="window.location.href='/tools/math/sqrt.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">开方计算器</div>
+          <div class="tool-card-desc">计算任意非负数的平方根，支持高精度结果展示，自动处理整数和小数的显示格式，适用于几何和代数等多种计算场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="数列求和" data-desc="根据首项、公差和项数计算等差数列的通项、末项和前n项和，完整展示计算过程，适用于数学教学、学习和练习场景。" data-keywords="数列求和，等差数列，数列计算，累加，数学计算，通项公式，前n项和" data-cat="数学计算" onclick="window.location.href='/tools/math/sum-sequence.html'">
+          <i class="bi bi-calculator tool-card-icon"></i>
+          <div class="tool-card-name">数列求和</div>
+          <div class="tool-card-desc">根据首项、公差和项数计算等差数列的通项、末项和前n项和，完整展示计算过程，适用于数学教学、学习和练习场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">数学计算</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="api测试工具" data-desc="在线发送http请求，测试rest api接口，支持get/post/put/delete，查看响应结果" data-keywords="api测试，http请求，postman，rest api，json，get post put delete" data-cat="网络工具" onclick="window.location.href='/tools/network/api-tester.html'">
+          <i class="bi bi-gear tool-card-icon"></i>
+          <div class="tool-card-name">API测试工具</div>
+          <div class="tool-card-desc">在线发送HTTP请求，测试REST API接口，支持GET/POST/PUT/DELETE，查看响应结果</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="base64 编解码" data-desc="支持文本与 base64 字符串之间的双向编码与解码，输入明文可转换为 base64 字符串，输入 base64 字符串可还原为原始文本，常用于数据传输与接口调试。" data-keywords="base64 编码，base64 解码，base64 转换，字符串编解码，文本加密转换，base64 字符串，base64 在线" data-cat="网络工具" onclick="window.location.href='/tools/network/base64.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">Base64 编解码</div>
+          <div class="tool-card-desc">支持文本与 Base64 字符串之间的双向编码与解码，输入明文可转换为 Base64 字符串，输入 Base64 字符串可还原为原始文本，常用于数据传输与接口调试。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="颜色代码转换" data-desc="在 hex、rgb、hsl、hsv 四种常用颜色格式之间自由转换，输入任意格式的颜色值即可得到其他三种格式的结果，适用于前端开发与设计取色场景。" data-keywords="颜色代码转换，hex rgb hsl hsv，hex 颜色，rgb 颜色，hsl 颜色，hsv 颜色，颜色格式转换，取色器，颜色代码" data-cat="网络工具" onclick="window.location.href='/tools/network/color-convert.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">颜色代码转换</div>
+          <div class="tool-card-desc">在 HEX、RGB、HSL、HSV 四种常用颜色格式之间自由转换，输入任意格式的颜色值即可得到其他三种格式的结果，适用于前端开发与设计取色场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="cron 表达式生成器" data-desc="通过图形化界面配置分钟、小时、日期、月份、星期五个字段，自动生成标准五段式 cron 表达式，并附带自然语言说明，方便快速编写定时任务。" data-keywords="cron 表达式生成器，cron 表达式，定时任务，linux 定时任务，cron job，自动执行，计划任务" data-cat="网络工具" onclick="window.location.href='/tools/network/cron-gen.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">Cron 表达式生成器</div>
+          <div class="tool-card-desc">通过图形化界面配置分钟、小时、日期、月份、星期五个字段，自动生成标准五段式 Cron 表达式，并附带自然语言说明，方便快速编写定时任务。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="dns 查询" data-desc="输入域名即可查询 dns 解析记录，包括 a、aaaa、cname、mx、txt 等多种记录类型，帮助快速排查域名解析是否生效。" data-keywords="dns 查询，dns 记录查询，域名解析检查，dns lookup，域名信息，dns 类型记录，a 记录 cname 记录" data-cat="网络工具" onclick="window.location.href='/tools/network/dns-lookup.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">DNS 查询</div>
+          <div class="tool-card-desc">输入域名即可查询 DNS 解析记录，包括 A、AAAA、CNAME、MX、TXT 等多种记录类型，帮助快速排查域名解析是否生效。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-2" data-name="http 状态码查询" data-desc="收录常见 http 状态码，按 2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务器错误分类展示，快速查阅状态码含义与典型使用场景。" data-keywords="http 状态码，状态码查询，http code，2xx 3xx 4xx 5xx，状态码含义，http 响应码，服务器错误，客户端错误" data-cat="网络工具" onclick="window.location.href='/tools/network/http-status.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">HTTP 状态码查询</div>
+          <div class="tool-card-desc">收录常见 HTTP 状态码，按 2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务器错误分类展示，快速查阅状态码含义与典型使用场景。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-3" data-name="ip 地址查询" data-desc="快速查询任意 ip 地址的地理位置、所属城市、地区、国家及运营商信息，支持自动检测本机 ip，帮助用户了解网络出口情况。" data-keywords="ip 地址查询，ip 归属地查询，ip geolocation，我的 ip 地址，公网 ip 查询，ip 物理位置，ip 信息查询" data-cat="网络工具" onclick="window.location.href='/tools/network/ip-lookup.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">IP 地址查询</div>
+          <div class="tool-card-desc">快速查询任意 IP 地址的地理位置、所属城市、地区、国家及运营商信息，支持自动检测本机 IP，帮助用户了解网络出口情况。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-4" data-name="http 请求测试" data-desc="在线发送 http 请求，自定义请求方法（get/post/put/delete）、url、请求头和请求体，实时查看响应状态码、响应头和响应体，快速定位接口问题。" data-keywords="http 请求测试，api 测试，接口调试，http 调试，rest api，post get put delete，http 调试工具" data-cat="网络工具" onclick="window.location.href='/tools/network/request-tester.html'">
+          <i class="bi bi-globe tool-card-icon"></i>
+          <div class="tool-card-name">HTTP 请求测试</div>
+          <div class="tool-card-desc">在线发送 HTTP 请求，自定义请求方法（GET/POST/PUT/DELETE）、URL、请求头和请求体，实时查看响应状态码、响应头和响应体，快速定位接口问题。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-5" data-name="url 编码解码" data-desc="对 url 中的特殊字符进行百分号编码（urlencode）或逆向解码（urldecode），解决 url 含中文或特殊符号时无法正常传输和解析的问题。" data-keywords="url 编码，url 解码，百分号编码，urlencode，urldecode，url 特殊字符，百分号编码，url 加密" data-cat="网络工具" onclick="window.location.href='/tools/network/url-encode.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">URL 编码解码</div>
+          <div class="tool-card-desc">对 URL 中的特殊字符进行百分号编码（URLEncode）或逆向解码（URLDecode），解决 URL 含中文或特殊符号时无法正常传输和解析的问题。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+        <div class="tool-card reveal reveal-delay-1" data-name="url 参数解析" data-desc="输入任意带参数的 url，自动提取并解析问号后面的查询字符串，以表格形式清晰展示每个参数名与对应值，便于调试和查看链接构成。" data-keywords="url 参数解析，url 查询参数，query string，url 解析，get 参数解析，url 参数拆分，查询字符串" data-cat="网络工具" onclick="window.location.href='/tools/network/url-parse.html'">
+          <i class="bi bi-globe2 tool-card-icon"></i>
+          <div class="tool-card-name">URL 参数解析</div>
+          <div class="tool-card-desc">输入任意带参数的 URL，自动提取并解析问号后面的查询字符串，以表格形式清晰展示每个参数名与对应值，便于调试和查看链接构成。</div>
+          <div class="tool-card-meta">
+            <span class="tool-card-cat">网络工具</span>
+            <i class="bi bi-arrow-right tool-card-link"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <img src="/src/clover-logo.svg" alt="CloverTools" class="footer-logo" onerror="this.style.display='none'" />
+        <nav class="footer-links">
+          <a href="/">首页</a>
+          <a href="#categories">工具分类</a>
+          <a href="#all-tools">全部工具</a>
+          <a href="#">博客</a>
+          <a href="#">关于我们</a>
+        </nav>
+        <p class="footer-copy">
+          &copy; 2026 CloverTools · Made with <span>&#x2601;</span> by York · All tools run locally in your browser
+        </p>
+      </div>
+    </footer>
+
+  </div>
+
+  <div id="toast"></div>
+  <div class="back-to-top" id="backToTop" onclick="window.scrollTo{top:0,behavior:'smooth'}"><i class="bi bi-chevron-up"></i></div>
+
+  <script>
+    var ALL_TOOLS = [{"name": "文件分析器", "path": "format-conversion/file-analyzer.html", "desc": "全面分析文件的元信息、MIME 类型、字节内容及文件结构，支持图片缩略图预览，帮助快速识别未知文件格式与内容，适合文件校验与安全审查。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "文件分析，文件信息，文件类型分析，HEX查看，MIME类型，缩略图预览"}, {"name": "图片压缩/调整尺寸", "path": "format-conversion/image-resize.html", "desc": "批量压缩图片体积或自由调整图片像素尺寸，支持按比例缩放与固定宽高输出，适用于社交媒体发布、网页加载优化以及移动端适配等多种使用场景。", "icon": "bi bi-image", "category": "格式转换", "keywords": "图片压缩，图片尺寸调整，图片大小压缩，图片缩放，批量处理，图像优化"}, {"name": "JPG 转 PDF", "path": "format-conversion/jpg2pdf.html", "desc": "将 JPG 图片文件快速转换为 PDF 文档，支持批量处理，可自定义页面布局与尺寸，适用于报告整理、电子邮件附件发送等办公场景。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "JPG转PDF，图片转PDF，JPEG转PDF，批量转换，文档生成，办公效率"}, {"name": "JPG 转 WEBP", "path": "format-conversion/jpg2webp.html", "desc": "将传统 JPG 图片转换为新一代 WebP 格式，大幅压缩文件体积同时保持良好画质，有效节省存储空间并提升网页加载速度与带宽利用率。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "JPG转WEBP，图片压缩，WEBP转换，文件压缩，网页优化，带宽节省"}, {"name": "PDF 压缩", "path": "format-conversion/pdf-compress.html", "desc": "压缩 PDF 文件体积，支持多级压缩质量调节，在保持文档可读性的前提下显著减小文件大小，方便上传、发送和归档存储，节省传输时间与磁盘空间。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "PDF压缩，PDF压缩工具，PDF大小压缩，PDF体积减小，PDF在线压缩，文件优化"}, {"name": "PDF 转 HTML", "path": "format-conversion/pdf2html.html", "desc": "将 PDF 文档中的文本内容提取并渲染为标准 HTML 网页格式，保留基本排版结构，方便在浏览器中直接查看、复制文字或嵌入到网站中。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "PDF转HTML，PDF提取文本，PDF渲染，PDF预览，网页转换，内容提取"}, {"name": "PDF 转 JPG", "path": "format-conversion/pdf2jpg.html", "desc": "将 PDF 文件的指定页面快速转换为 JPG 或 PNG 图片格式，支持自定义分辨率与输出质量，适合从 PDF 中提取图像、制作封面或进行演示分享。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "PDF转JPG，PDF转图片，PDF转换，PDF图片提取，页面截图，图像导出"}, {"name": "PDF 转 TXT", "path": "format-conversion/pdf2txt.html", "desc": "从 PDF 文件中精准提取文本内容，支持纯文本导出，方便进行内容编辑、搜索和归档，无需安装专业 PDF 阅读软件即可使用。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "PDF转TXT，PDF文本提取，PDF读取，PDF解析，内容导出，文本提取"}, {"name": "PNG 转 WEBP", "path": "format-conversion/png2webp.html", "desc": "将 PNG 图片转换为高效的 WebP 格式，实现显著的文件体积压缩，适用于网页图片优化，可大幅降低带宽消耗并提升页面加载体验。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "PNG转WEBP，图片压缩，WEBP转换，文件体积优化，网页性能，图像压缩"}, {"name": "SVG 转 PNG", "path": "format-conversion/svg2png.html", "desc": "将 SVG 矢量图无损转换为 PNG 位图格式，支持自定义输出分辨率与尺寸，方便在不支持矢量图的环境中使用，如社交媒体发布或打印输出。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "SVG转PNG，矢量图转位图，SVG转换，PNG转换，图像渲染，位图导出"}, {"name": "WEBP 转 JPG", "path": "format-conversion/webp2jpg.html", "desc": "将 WEBP 格式图片转换为广泛兼容的 JPG 格式，解决部分平台和应用不支持 WEBP 的问题，保留高质量图像同时提升兼容性。", "icon": "bi bi-file-earning-fill", "category": "格式转换", "keywords": "WEBP转JPG，WEBP转换，图片格式转换，图片兼容性，图像转换"}, {"name": "XLSX转JSON", "path": "format-conversion/xlsx2json.html", "desc": "在线将Excel文件（.xlsx/.xls）转换为JSON格式数据，支持自定义工作表选择、键名行配置与预览下载。无需上传到服务器，纯浏览器本地处理，保护数据隐私。", "icon": "bi bi-file-earmark-arrow-down", "category": "格式转换", "keywords": "XLSX转JSON，Excel转JSON，XLS转JSON，Excel转换，SheetJS，表格转JSON，CSV转JSON，在线转换"}, {"name": "压缩包修复", "path": "format-conversion/zip-repair.html", "desc": "检测并修复损坏的 ZIP 压缩包，恢复可读取的文件内容，支持修复因下载中断、存储故障或传输损坏导致的各种 ZIP 异常情况。", "icon": "bi bi-file-zip-fill", "category": "格式转换", "keywords": "ZIP修复，压缩包修复，ZIP损坏修复，压缩包损坏修复，zip repair，数据恢复"}, {"name": "二维码生成器", "path": "image/qrcode.html", "desc": "在线二维码生成器，支持文本、URL、邮箱、电话等内容的二维码即时生成，可自定义尺寸、颜色与纠错级别，一键下载PNG图片，完全免费无需注册。", "icon": "bi bi-qr-code", "category": "图片工具", "keywords": "二维码生成，QR码，QRCode，二维码制作，二维码下载，URL二维码，手机扫码"}, {"name": "ASCII 艺术字生成", "path": "code/ascii-art.html", "desc": "输入任意文字或数字，自动将其转换为由 ASCII 字符拼成的艺术字 Banner 效果，支持大小写字母与常见符号，适合生成个性标题与趣味图片。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "ASCII艺术字，ASCII艺术，文字艺术，ASCII Banner，艺术字生成，字符画，ASCII字符画，Banner生成"}, {"name": "获取浏览器信息", "path": "code/browser-info.html", "desc": "检测当前浏览器的详细信息，包括 User-Agent、CPU 核心数、内存、屏幕分辨率、GPU、时区、电池状态、网络类型等核心环境参数", "icon": "bi bi-browser-chrome", "category": "开发工具", "keywords": "浏览器信息，UserAgent，浏览器检测，屏幕分辨率，GPU检测，电池状态，网络信息"}, {"name": "字节转换", "path": "code/bytes.html", "desc": "在字节（B）、千字节（KB）、兆字节（MB）、吉字节（GB）四种单位之间任意互转，输入数值后一键得到转换结果，适合前端文件大小展示与后端存储计算。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "字节转换，KB转换，MB转换，GB转换，文件大小，单位换算"}, {"name": "可视化颜色选择器", "path": "code/color-picker.html", "desc": "可视化颜色选择器，支持 HEX、RGB、RGBA、HSL、HSV 等多种格式的实时互转与复制，提供调色板、渐变色生成、色值历史记录及色盲模拟模式，适用于 UI 设计与前端开发场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "颜色选择器，颜色转换，HEX RGB HSL HSV，颜色代码，取色器，调色板，前端颜色"}, {"name": "拾取坐标/坐标转换", "path": "code/coordinate-picker.html", "desc": "在画布上点击拾取坐标点，实时查看 clientX/Y、pageX/Y、screenX/Y、offsetX/Y 等多种坐标系统的数值并记录", "icon": "bi bi-crosshair", "category": "开发工具", "keywords": "坐标拾取，clientX，pageX，screenX，坐标转换，鼠标位置，多坐标系，offsetX，offsetY"}, {"name": "Cron 表达式测试", "path": "code/cron-parser.html", "desc": "解析 Cron 表达式并可视化展示未来多次执行时间，支持 5 段式到 7 段式多种 Cron 格式，提供人类可读的自然语言描述，帮助运维和开发者快速验证定时任务调度规则是否正确。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "Cron 表达式测试，Cron 解析，Cron 在线测试，定时任务调度，Cron 可视化，Cron 格式"}, {"name": "Crontab执行时间计算", "path": "code/cron.html", "desc": "输入标准5段式Cron表达式，解析并计算最近5次预计执行时间，支持分钟、小时、日期、月份、星期五个时间字段的任意组合配置", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "Cron表达式，crontab，定时任务，执行时间计算，时间字段解析，最近执行时间"}, {"name": "CSS渐变生成器", "path": "code/css-gradient.html", "desc": "可视化配置 CSS 渐变，支持线性渐变、径向渐变和锥形渐变三种类型，实时预览并生成可复制的 CSS 代码", "icon": "bi bi-palette2", "category": "开发工具", "keywords": "CSS渐变，linear-gradient，radial-gradient，渐变生成器，conic-gradient，色彩过渡，CSS背景"}, {"name": "CSS单位互转", "path": "code/css-unit.html", "desc": "以 16px 为基准在 PX、REM、EM 等常用 CSS 长度单位之间相互转换，帮助前端开发者快速在像素精确设计与相对单位可访问性之间切换，确保多浏览器和辅助技术兼容性。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "CSS单位互转，PX转REM，REM转PX，EM转PX，CSS长度单位，前端开发"}, {"name": "CSS压缩格式化", "path": "code/css.html", "desc": "对 CSS 源代码进行美化缩进和格式化，方便阅读和调试；同时支持压缩模式，移除空白和换行以减小文件体积，提升网页加载速度。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "CSS格式化，CSS压缩，CSS美化，样式压缩，前端开发，网页优化"}, {"name": "目录树生成", "path": "code/directory-tree.html", "desc": "输入文本形式的目录结构，自动生成美观的树形可视化图，支持 ASCII 树和 JSON 两种格式导出", "icon": "bi bi-folder-tree", "category": "开发工具", "keywords": "目录树，文件夹结构，文件树，树形图，目录可视化，结构生成，ASCII树，JSON结构"}, {"name": "斐波那契数列生成", "path": "code/fibonacci.html", "desc": "设置要生成的斐波那契数列项数后，一键生成完整数列，同时显示第 N 项的具体数值与整个数列的总和，适用于数学学习与算法验证。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "斐波那契数列，Fibonacci，兔子数列，数列生成，数学计算，递归算法，数列总和，数学学习"}, {"name": "文件Hash计算", "path": "code/file-hash.html", "desc": "支持 MD5、SHA-1、SHA-256、SHA-512 等多种哈希算法，采用分片流式处理，适合计算大文件的完整性校验值", "icon": "bi bi-file-earmark-check", "category": "开发工具", "keywords": "文件Hash，MD5，SHA，哈希计算，文件校验，完整性验证，SHA-256，SHA-512"}, {"name": "HTML 实体编码/解码", "path": "code/html-entity.html", "desc": "将 HTML 中的特殊字符（如 < > & \" '）转换为对应的实体代码（&lt; &gt; &amp; 等），也可反向将实体还原为普通字符，轻松实现双向转换与数据脱敏。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "HTML实体编码，HTML实体解码，HTML转义，反转义，特殊字符转换，XSS防御，数据脱敏，字符实体"}, {"name": "HTML 格式化", "path": "code/html-formatter.html", "desc": "对 HTML 源代码进行格式化（美化缩进）或压缩（去除空格换行），支持代码高亮展示，一键切换查看模式，适用于前端开发调试与页面性能优化", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "HTML格式化，HTML压缩，HTML美化，HTML整理，前端工具"}, {"name": "HTTP 请求头查看器", "path": "code/http-headers.html", "desc": "输入任意 URL 并发起 HEAD 请求，获取服务器的完整响应头信息，包括状态码、Content-Type、CORS 等关键字段", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "HTTP请求头，响应头，Header查看，HTTP头部，API调试，CORS，Content-Type，Cache-Control"}, {"name": "Http 接口测试", "path": "code/http-test.html", "desc": "在线调试 HTTP REST API 接口的工具，支持 GET、POST、PUT、DELETE、PATCH 等多种请求方法，可自定义请求头、查询参数、请求体（JSON/Form），实时查看响应状态码、响应头与响应体内容。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "HTTP 测试，API 测试，接口测试，REST API，POST GET PUT DELETE，HTTP 请求，API 调试"}, {"name": "JavaScript格式化", "path": "code/javascript.html", "desc": "对混乱或压缩的 JavaScript 代码一键美化缩进、添加注释格式化，同时支持将格式化代码压缩回单行，有效减少文件体积用于生产环境。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JavaScript格式化，JS美化，JS压缩，代码美化，代码压缩，前端开发"}, {"name": "JSON压缩/格式化", "path": "code/json-compress.html", "desc": "JSON压缩与格式化工具，一键压缩JSON（去除空格换行）用于生产环境，也可格式化压缩后的JSON用于调试阅读，支持语法校验与错误定位，完全免费无需注册。", "icon": "bi bi-braces", "category": "开发工具", "keywords": "JSON压缩，JSON格式化，JSON压缩器，JSON格式化工具，JSON压缩格式化，JSON在线压缩，JSON在线格式化"}, {"name": "JSON 数据对比", "path": "code/json-diff.html", "desc": "输入两个 JSON 对象，秒级高亮显示新增、删除、修改的键值对，直观对比 API 响应、配置文件和数据结构差异。", "icon": "bi bi-file-diff-fill", "category": "开发工具", "keywords": "JSON对比，JSON差异，JSON diff，JSON比较，JSON对比工具，数据对比，API调试，配置对比"}, {"name": "JSON Schema 验证", "path": "code/json-schema.html", "desc": "使用 JSON Schema 标准校验 JSON 数据的结构和格式合法性，支持类型检查、必需字段、正则匹配等常用规则", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON Schema验证，JSON Schema校验，JSON验证，Schema检查，数据校验，类型校验，格式验证，JSON-Lint"}, {"name": "Json与Url参数互转", "path": "code/json-url.html", "desc": "在 JSON 对象与 URL 查询参数字符串之间相互转换，一键完成序列化与反序列化，并自动处理中文编码", "icon": "bi bi-arrow左-right", "category": "开发工具", "keywords": "JSON，URL参数，参数转换，query string，encodeURIComponent，序列化，反序列化"}, {"name": "JSON 校验格式化", "path": "code/json-validator.html", "desc": "在线校验 JSON 格式的正确性，支持一键美化（格式化）提升可读性，或压缩 JSON 减少体积，适用于前后端接口调试与数据处理", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON校验，JSON格式化，JSON压缩，JSON美化，JSON验证"}, {"name": "JSON 转 C# 实体类", "path": "code/json2csharp.html", "desc": "根据 JSON 数据自动生成 C# 实体类，支持 System.Text.Json 或 Newtonsoft.Json 注解，快速构建 .NET 项目中的数据模型，提升序列化开发效率", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON转C#，C#实体类，DataContract，System.Text.Json，C# POJO，JSON转类"}, {"name": "JSON 转 Golang Struct", "path": "code/json2go.html", "desc": "根据 JSON 数据自动生成 Go 语言 struct 定义，并附带 json tag，自动推断字段类型，快速构建 Go 项目中的数据结构，支持 gomod 规范命名", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON转Go，Go struct，Golang类型，JSON转结构体，json tag"}, {"name": "JSON 转 Java 实体类", "path": "code/json2java.html", "desc": "根据 JSON 数据自动生成 Java 实体类，支持 Lombok 注解（如 @Data、@Builder）生成 Getter/Setter，帮助快速构建 Java 项目中的数据模型", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON转Java，Java实体类，Lombok，JSON转类，Java POJO，Jackson注解"}, {"name": "JSON 转 SQL", "path": "code/json2sql.html", "desc": "将 JSON 数组数据转换为标准 INSERT INTO SQL 语句，可自定义表名和字段映射，一键生成批量插入语句，大幅提升数据导入数据库的效率", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON转SQL，INSERT语句生成，JSON转INSERT，SQL生成，数据导出，批量插入"}, {"name": "JSON 转 TypeScript", "path": "code/json2ts.html", "desc": "粘贴 JSON 数据即可自动生成对应的 TypeScript 接口 / 类型定义，避免手动编写，提升开发效率与类型安全性，适用于前后端联调场景", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON转TypeScript，TS类型生成，JSON接口，TypeScript定义，JSON类型推断"}, {"name": "JSONPath 解析器", "path": "code/jsonpath.html", "desc": "通过编写 JSONPath 表达式对 JSON 数据进行灵活查询与过滤，类似 XPath 操作 XML 的方式，支持返回匹配节点，大幅简化 JSON 数据的提取过程", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSONPath，JSON查询，JSON路径，XPath JSON，JSON过滤，JSON提取"}, {"name": "知识图谱构建器", "path": "code/knowledge-graph.html", "desc": "在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。", "icon": "bi bi-diagram-3", "category": "开发工具", "keywords": "知识图谱,实体识别,关系抽取,知识构建,文本分析,实体关系图,知识可视化,AI知识库"}, {"name": "Markdown 转 HTML", "path": "code/markdown.html", "desc": "将 Markdown 文档内容实时渲染为标准 HTML 网页，支持标题、列表、代码块、表格、链接图片等常用语法，提供多种主题样式切换，写完即看，方便撰写技术文档与博客文章。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "Markdown 转 HTML，Markdown 渲染，Markdown 在线预览，MD 转 HTML，Markdown 编辑器，Markdown 实时预览"}, {"name": "随机密码生成器", "path": "code/password-generator.html", "desc": "在线随机密码生成器，可自定义密码长度、字符类型（大写/小写/数字/符号），一键生成多个强密码，支持复制。", "icon": "bi bi-shield-lock", "category": "开发工具", "keywords": "密码生成器,随机密码,强密码生成,安全密码,密码工具"}, {"name": "提示词优化器", "path": "code/prompt-optimizer.html", "desc": "输入原始提示词，AI自动优化为结构更清晰、上下文更丰富、约束更明确的版本，显著提升ChatGPT、Claude等AI的回复质量。", "icon": "bi bi-lightning-charge", "category": "开发工具", "keywords": "提示词优化,prompt优化,AI提示词,ChatGPT提示词,Claude提示词,提示词工程"}, {"name": "Python 代码格式化", "path": "code/python-formatter.html", "desc": "将凌乱的 Python 代码整理为统一风格，自动修正缩进空白、统一函数与类之间的空行数量，让代码结构更清晰、符合 PEP 8 规范。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "Python格式化，Python代码格式化，Python美化，Python整理，PEP8规范，代码缩进，Python空行，代码规范"}, {"name": "简易 QR 码生成", "path": "code/qrcode.html", "desc": "输入文本内容后，使用纯 JavaScript Canvas API 即时绘制生成 QR 码，无需任何外部依赖，支持预览与 PNG 图片下载，方便快捷。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "QR码生成，二维码生成，QR Code，Canvas QR，无依赖二维码，QR码下载，手机扫码，二维码预览"}, {"name": "随机IP地址生成器", "path": "code/random-ip.html", "desc": "批量生成随机 IP 地址，支持纯 IPv4 格式（x.x.x.x）或完整 IPv6 格式，可自定义生成数量，适用于网络测试、Mock 数据填充、白名单测试等开发场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "随机IP生成，IP地址生成器，IPv4生成，IPv6生成，网络测试，Mock数据"}, {"name": "随机MAC地址生成器", "path": "code/random-mac.html", "desc": "按指定数量批量生成格式规范的随机 MAC 地址，输出冒号分隔的六字节形式（如 aa:bb:cc:dd:ee:ff），可用于网络设备模拟、虚拟机配置、局域网测试等场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "MAC地址生成器，随机MAC，MAC批量生成，网络设备配置，虚拟机MAC"}, {"name": "正则表达式生成器", "path": "code/regex-generator.html", "desc": "通过自然语言描述或示例文本自动生成正则表达式，支持常用模式库（手机号、邮箱、身份证、URL等），一键复制生成的RegExp，零基础也能快速写出正确的正则表达式。", "icon": "bi bi-lightning-charge", "category": "开发工具", "keywords": "正则表达式生成器，RegExp生成，正则自动生成，正则表达式工具，正则匹配，邮箱正则，手机号正则，身份证正则"}, {"name": "正则表达式测试器", "path": "code/regex-tester.html", "desc": "在线正则表达式测试器，输入正则表达式和测试文本，实时高亮显示所有匹配结果。支持正则标志（g/i/m/s）切换，提供常用正则表达式模板。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "正则表达式测试,Regex测试器,正则调试,在线regex,正则匹配"}, {"name": "响应式布局检测", "path": "code/responsive-layout.html", "desc": "实时检测当前视口尺寸和所在响应式断点，支持 xs、sm、md、lg、xl、xxl 等断点状态一目了然", "icon": "bi bi-grid-3x3", "category": "开发工具", "keywords": "响应式，媒体查询，断点，布局检测，viewport，移动端适配，CSS断点"}, {"name": "罗马数字转换", "path": "code/roman.html", "desc": "在阿拉伯数字（1-3999）与罗马数字（I, IV, MCMXC 等）之间双向转换，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "罗马数字转换，阿拉伯数字转换，罗马数字对照，数字转罗马数字，章节编号"}, {"name": "SQL 格式化", "path": "code/sql-formatter.html", "desc": "对 SQL 语句进行格式化、美化或压缩处理，支持关键字自动大写、语句分行动能，并提供智能缩进，让凌乱的 SQL 一键变得整洁易读。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "SQL格式化，SQL美化，SQL压缩，SQL关键字大写，SQL分行动能，SQL缩进，SQL整理，数据库查询"}, {"name": "SQLite查看器", "path": "code/sqlite-viewer.html", "desc": "在线SQLite数据库查看器，无需安装任何软件，上传.db或.sqlite文件即可浏览数据表结构、查看记录内容、导出数据为CSV，纯浏览器本地处理。", "icon": "bi bi-database", "category": "开发工具", "keywords": "SQLite查看器,SQLite浏览器,SQLite阅读器,db文件,sqlite文件,数据库查看,在线SQLite,CSV导出"}, {"name": "User-Agent 解析", "path": "code/ua-parser.html", "desc": "输入浏览器 User-Agent 字符串，系统自动解析出浏览器名称及版本、操作系统类型、设备类别等信息，帮助开发者和测试人员快速判断客户端环境。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "User-Agent 解析，UA 解析，浏览器识别，操作系统识别，UserAgent，浏览器检测，客户端识别，设备类型"}, {"name": "单位换算器", "path": "code/unit-converter.html", "desc": "在线单位换算工具，支持长度、重量、温度、面积、速度、时间、功率等常见单位之间的互相转换，实时计算结果。", "icon": "bi bi-arrow-left-right", "category": "开发工具", "keywords": "单位换算,长度换算,重量换算,温度换算,面积换算,速度换算,单位转换,计量单位"}, {"name": "URL 路径解析", "path": "code/url-parse.html", "desc": "输入任意 URL 即可自动分解出协议、主机名、端口、路径、查询参数、哈希片段与来源等全部组成信息，帮助快速了解陌生链接的结构与内容。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "URL解析，URL路径，URL组成，query参数，URL分解，域名解析，查询字符串，URL结构"}, {"name": "UUID v7 生成器", "path": "code/uuid-v7.html", "desc": "在线生成符合 RFC 规范的时间顺序 UUID v7，48位毫秒时间戳前端嵌入，适合数据库主键、分布式追踪等场景。", "icon": "bi bi-snow2", "category": "开发工具", "keywords": "UUID v7，UUIDv7，UUID生成，时间顺序UUID，分布式ID，RFC UUID，数据库主键，追踪ID"}, {"name": "UUID v7生成器", "path": "code/uuid7.html", "desc": "在线生成符合RFC 9562标准的UUID v7（基于时间的有序UUID）。UUIDv7使用Unix时间戳毫秒作为时间组件，保证全局唯一性的同时支持按时间排序，适合数据库主键、日志追踪等场景。", "icon": "bi bi-hash", "category": "开发工具", "keywords": "UUID v7，UUID生成器，RFC 9562，GUID，UUID v7生成，数据库主键，有序UUID，时间排序UUID"}, {"name": "Websocket 接口测试", "path": "code/websocket-test.html", "desc": "连接 WebSocket 服务器并测试收发消息，支持自定义连接地址、自动重连、心跳保活机制和消息历史记录，提供直观的聊天式界面，方便开发者调试实时通信功能与排查 WS 连接问题。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "WebSocket 测试，WS 测试，WebSocket 客户端，实时通信，WS 调试，WebSocket 连接"}, {"name": "XML格式化/压缩", "path": "code/xml-format.html", "desc": "XML格式化工具，一键美化压缩XML数据，支持语法校验与错误提示，可自定义缩进级别。适合XML配置文件编辑、API响应查看与数据传输场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "XML格式化，XML压缩，XML美化，XML在线格式化，XML压缩工具，XML语法校验，XML编辑"}, {"name": "XML 压缩格式化", "path": "code/xml-formatter.html", "desc": "对 XML 文档进行格式化（自动缩进对齐标签层级）或压缩（删除冗余空白），支持格式切换与代码高亮，适用于 XML 数据传输优化与阅读分析", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "XML格式化，XML压缩，XML美化，XML整理，XML解析"}, {"name": "进制转换", "path": "dev-tools/base-converter.html", "desc": "二进制、八进制、十进制、十六进制互相转换", "icon": "bi bi-calculator", "category": "开发工具", "keywords": "进制转换,binary,octal,decimal,hex,16进制,10进制,转换"}, {"name": "字节转换器", "path": "dev-tools/byte-converter.html", "desc": "字节、B、KB、MB、GB、TB 单位互相转换", "icon": "bi bi-memory", "category": "开发工具", "keywords": "字节转换,byte,KB,MB,GB,TB,存储单位,单位转换"}, {"name": "CSS单位转换", "path": "dev-tools/css-unit-converter.html", "desc": "px、em、rem、%、vw、vh 单位互相转换，前端开发必备", "icon": "bi bi-rulers", "category": "开发工具", "keywords": "CSS单位,px,em,rem,%,vw,vh,转换,前端,响应式"}, {"name": "随机IP地址", "path": "dev-tools/random-ip.html", "desc": "生成随机IPv4地址，可选私有IP或公有IP", "icon": "bi bi-wifi", "category": "开发工具", "keywords": "IP生成,随机IP,IPv4,私有IP,公有IP,地址生成"}, {"name": "随机MAC地址", "path": "dev-tools/random-mac.html", "desc": "生成随机MAC地址，支持批量生成、大小写切换", "icon": "bi bi-ethernet", "category": "开发工具", "keywords": "MAC地址,生成,随机,网卡,硬件地址,批量"}, {"name": "罗马数字转换", "path": "dev-tools/roman-numeral.html", "desc": "阿拉伯数字与罗马数字互相转换，支持1-3999范围", "icon": "bi bi-roman", "category": "开发工具", "keywords": "罗马数字,转换,arabic,roman,number,数字"}, {"name": "UUID生成器", "path": "dev-tools/uuid-generator.html", "desc": "快速生成符合RFC 4122标准的UUID v4随机码，支持批量生成、大小写切换", "icon": "bi bi-upc", "category": "开发工具", "keywords": "UUID生成器,UUID,v4,随机,唯一标识符,批量生成,RFC4122"}, {"name": "JSON 格式化", "path": "json/formatter.html", "desc": "对 JSON 文本进行格式化（美化缩进）或压缩（Minify），支持一键复制结果，帮助开发者快速整理凌乱的 JSON 数据或精简请求体大小。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON 格式化，JSON 美化，JSON 压缩，JSON 格式化工具，JSON Minify，JSON 在线格式化，JSON 整理"}, {"name": "JSON 转表格", "path": "json/table.html", "desc": "将 JSON 数组数据快速转换为易读的 HTML 表格视图，支持嵌套对象展开、多层级字段展平、排序和筛选功能，适合展示 API 返回的列表类数据，一目了然。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON 转表格，JSON 数组转表格，数据可视化，JSON 表格，JSON 数据展示，JSON 预览"}, {"name": "JSON ↔ XML", "path": "json/xml.html", "desc": "实现 JSON 与 XML 结构化数据格式的双向转换，支持节点映射、属性处理和缩进美化，帮助开发者在不同数据格式之间快速迁移数据，适用于接口对接与数据迁移场景。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON 转换 XML，XML 转换 JSON，数据格式转换，JSON XML 互转，XML 格式化，结构化数据"}, {"name": "JSON ↔ YAML", "path": "json/yaml.html", "desc": "实现 JSON 与 YAML 之间的双向转换，支持格式校验、语法纠错和一键复制功能，方便开发者在配置文件格式之间灵活切换，省去手动编写和转换的繁琐步骤。", "icon": "bi bi-code-slash", "category": "开发工具", "keywords": "JSON 转换 YAML，YAML 转换 JSON，JSON YAML 互转，配置文件转换，YAML 格式化，YAML 校验"}, {"name": "Nano ID生成器", "path": "other/nanoid.html", "desc": "生成比 UUID 更短且同样安全的随机 Nano ID，支持自定义字符集和长度，适用于 URL 短链、临时文件名、优惠券码等短标识需求。", "icon": "bi bi-braille", "category": "开发工具", "keywords": "Nano ID，NanoID，随机ID，自定义字符集，短ID生成，URL短码，优惠券码"}, {"name": "UUID生成器", "path": "other/uuid.html", "desc": "生成符合 RFC 4122 标准的 UUID v4 随机标识符，每键一击即可获得一个全球唯一ID，适用于分布式系统主键、会话标识、事务追踪等场景。", "icon": "bi bi-braille", "category": "开发工具", "keywords": "UUID生成器，UUID v4，随机UUID，全球唯一标识符，RFC 4122，分布式ID，标识符生成"}, {"name": "LESS转CSS", "path": "code/less-to-css.html", "desc": "在线LESS编译器，将LESS样式代码实时转换为标准CSS，支持语法高亮、错误提示和一键复制，无需安装任何依赖，纯浏览器本地处理。", "icon": "bi bi-braces", "category": "开发工具", "keywords": "LESS转CSS,LESS编译器,LESS,CSS转换,less.js,在线LESS,样式表转换,LESS语法"}, {"name": "AES加密/解密", "path": "encrypt/aes.html", "desc": "AES（高级加密标准）是目前最广泛使用的对称加密算法之一，支持AES-128/AES-192/AES-256三种密钥长度。本工具支持CBC模式下的加密解密，可自定义IV向量，一键完成数据加解密，完全免费无需注册。", "icon": "bi bi-lock-fill", "category": "编码/加密", "keywords": "AES加密，AES解密，AES-128，AES-256，CBC模式，对称加密，数据加密，密码学"}, {"name": "Base64加密/解密", "path": "encrypt/base64.html", "desc": "Base64是一种基于64个可打印字符的编码方式，可将二进制数据或中文字符串转换为可传输的ASCII文本格式。常用于邮件附件、数据URL嵌入、API数据传输等场景，支持中英文混合内容的编解码处理。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "Base64，Base64编码，Base64解码，字符串编码，数据转换，ASCII编码，MIME，文本加密"}, {"name": "Bcrypt加密/校验", "path": "encrypt/bcrypt.html", "desc": "在线Bcrypt密码哈希加密与校验工具，基于Web Crypto API实现业界标准Bcrypt算法，支持自定义cost因子生成哈希值，也可对已知哈希值进行暴力校验。", "icon": "bi bi-shield-lock", "category": "编码/加密", "keywords": "Bcrypt加密,Bcrypt校验,密码哈希,bcrypt,Password Hash,安全加密,密码学,加密工具"}, {"name": "DES加密/解密", "path": "encrypt/des.html", "desc": "在线DES对称加密解密工具，基于Web Crypto API纯浏览器实现，支持CBC/ECB模式和PKCS7填充，输入密钥即可加解密文本，数据安全不上传服务器。", "icon": "bi bi-shield-lock", "category": "编码/加密", "keywords": "DES加密,DES解密,对称加密,Data Encryption Standard,加密算法,密码学,在线DES,ECB,CBC"}, {"name": "16进制转字符串", "path": "encrypt/hex.html", "desc": "十六进制转换工具实现HEX格式与字符串的双向转换，将可读文本转为十六进制表示，或将十六进制数据还原为原始字符串。广泛应用于逆向工程、网络协议分析、调试二进制数据等开发与研究场景。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "HEX，十六进制，字符串转换，ASCII，十六进制解码，二进制转换，HEX编码，字节转换"}, {"name": "JWT解密", "path": "encrypt/jwt.html", "desc": "JWT（JSON Web Token）是一种开放标准，用于在各方之间安全传输信息。本工具可对标准JWT进行解码，展示Header和Payload内容，帮助开发者调试和验证JWT身份令牌。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "JWT，JWT解码，JSON Web Token，Token解析，Header，Payload，JWT验证，身份认证"}, {"name": "MD5加密", "path": "encrypt/md5.html", "desc": "MD5是一种广泛使用的哈希算法，可将任意长度的字符串转换为32位十六进制哈希值。常用于密码存储、数据完整性校验等场景。请注意，MD5已被证明存在安全弱点，不建议用于高安全需求的密码存储。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "MD5，MD5加密，MD5哈希，密码加密，哈希算法，数据校验，消息摘要，信息安全"}, {"name": "摩斯密码加密/解密", "path": "encrypt/morse.html", "desc": "摩斯密码是一种时通时断的信号代码，通过点、划及其停顿时间来表示不同的字符。本工具支持将任意文字加密为摩斯电码，或将摩斯电码解密还原为可读文字，适合学习和娱乐使用。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "摩斯密码，Morse，MorseCode，密码加密，电报，加密通信，隐密通信，点划码"}, {"name": "Punycode编码/解码", "path": "encrypt/punycode.html", "desc": "Punycode是一种将Unicode字符串转换为ASCII字符集的编码算法，专门用于在纯ASCII环境中表示含有非ASCII字符的域名。在国际化域名注册和DNS解析时经常使用，支持中文、日文等多语种域名的处理。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "Punycode，域名编码，中文域名，IDN，域名转换，ASCII编码，国际化域名，DNS"}, {"name": "Rabbit加密/解密", "path": "encrypt/rabbit.html", "desc": "在线Rabbit流加密解密工具，基于原生JavaScript实现，Rabbit是高效的流密码算法，支持密钥和IV配置，纯前端运行无需服务器。", "icon": "bi bi-shield-lock", "category": "编码/加密", "keywords": "Rabbit加密,Rabbit解密,流密码,Stream Cipher,Rabbit算法,加密工具,在线加密"}, {"name": "RC4加密/解密", "path": "encrypt/rc4.html", "desc": "在线RC4流密码加密解密工具，纯浏览器原生JavaScript实现，RC4是经典的对称流密码算法，支持十六进制和ASCII字符串输入与输出。", "icon": "bi bi-shield-lock", "category": "编码/加密", "keywords": "RC4加密,RC4解密,流密码,Stream Cipher,RC4算法,在线加密,密码学,WEP加密"}, {"name": "SHA加密", "path": "encrypt/sha.html", "desc": "SHA系列哈希算法是美国国家安全局设计的加密标准，SHA-1生成160位哈希值，SHA-256生成256位哈希值。相比MD5具有更高的安全性，广泛应用于数字签名、SSL证书、区块链等领域的数据完整性校验。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "SHA，SHA256，SHA1，哈希算法，密码学，数字签名，SHA-256，SHA-1，安全哈希，数据完整性"}, {"name": "文字隐藏加密/解密", "path": "encrypt/text-hide.html", "desc": "零宽字符是一种在屏幕上不显示的Unicode字符，可将秘密信息以不可见的方式嵌入到任意普通文本中。接收方使用本工具即可解密提取隐藏内容，适用于信息隐藏、敏感数据传输和数字水印等场景。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "零宽字符，文字加密，隐写术，文字隐藏，信息隐藏，数字水印，隐密通信，Unicode隐写"}, {"name": "Unicode中文互转", "path": "encrypt/unicode.html", "desc": "Unicode转换工具支持中文文字与UTF-16 Unicode编码序列的相互转换，中文字符可表示为\\uXXXX格式的转义序列。在JavaScript字符串处理、跨系统数据交换、网络传输等场景中经常使用。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "Unicode，中文Unicode，UTF-16，编码转换，\\u编码，中文转码，字符集，UTF编码"}, {"name": "URL编码解码", "path": "encrypt/url.html", "desc": "URL编码通过将中文字符和特殊符号转换为%XX格式的十六进制转义序列，确保URL在传输过程中的安全性和兼容性。常用于表单提交、API调用、搜索引擎查询等场景，可有效避免字符冲突导致的数据解析错误。", "icon": "bi bi-shield-lock-fill", "category": "编码/加密", "keywords": "URL编码，URL解码，encodeURI，URI编码，百分号编码，URL转义，特殊字符，HTTP请求"}, {"name": "AI邮件助手", "path": "ai-email-assistant/ai-email-assistant.html", "desc": "聚合多个AI模型，一键完成邮件摘要、邮件起草、邮件分类。无需注册，支持OpenAI/Anthropic/MiniMax等主流模型。", "icon": "bi bi-envelope-at-fill", "category": "文本工具", "keywords": "AI邮件,邮件助手,AI模型选择,邮件摘要,GPT邮件,Claude邮件"}, {"name": "AI检测器", "path": "text/ai-detector.html", "desc": "在线AI文本检测工具，通过分析文本的语言模式、词汇丰富度、句子长度变化等特征，判断文本是否由ChatGPT、Claude、GPT-4等AI生成。", "icon": "bi bi-robot", "category": "文本工具", "keywords": "AI检测器,ChatGPT检测,AI文本检测,AI写作检测,人工智能检测,文本分析"}, {"name": "驼峰 ↔ 下划线", "path": "text/camel.html", "desc": "在驼峰命名法（CamelCase）和下划线命名法（snake_case）之间进行一键互转，支持变量名、函数名、类名等程序员常用命名风格的快速转换。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "驼峰下划线转换，命名风格转换，CamelCase，snake_case，变量命名，代码格式化，程序员工具，在线工具"}, {"name": "大小写转换", "path": "text/case.html", "desc": "支持将英文字母在大小写之间快速转换，可选择全部转为大写、全部转为小写或首字母大写等多种模式，适用于文本格式规范化处理。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "大小写转换，英文大小写，字母大小写转换，Case 转换，英文格式化，字符串转换，在线工具"}, {"name": "字数统计", "path": "text/count.html", "desc": "实时统计文本框内字符数、单词数、中文字数、标点符号数量及段落数，支持中英文混合统计，帮助用户精准把控文本长度。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "字数统计，字符统计，单词统计，文本统计，中文字数，字符数统计，文本长度，在线工具"}, {"name": "文本差异对比", "path": "text/diff.html", "desc": "左右分栏对比两段文本内容，自动标注出增加、删除和修改的部分，直观呈现文本差异，广泛用于代码比对、文档修订等场景。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "文本差异对比，文本比对，Diff 对比，文本比较，文本差异，代码比对，文档修订，在线工具"}, {"name": "提取邮箱/手机/链接", "path": "text/extract.html", "desc": "从大段文本或网页内容中自动识别并提取邮箱地址、手机号码、URL 链接等信息，支持一键复制提取结果，适用于数据整理和信息采集。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "提取邮箱，提取手机号，提取链接，正则提取，文本信息提取，数据采集，信息提取，在线工具"}, {"name": "乱码修复", "path": "text/garble-fix.html", "desc": "自动检测文本乱码类型（如 UTF-8、GBK、Latin-1 等编码混淆导致的乱码），智能推断原始编码并还原为正常文字，修复网页抓取和文件传输中的乱码问题。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "乱码修复，文本乱码修复，编码修复，乱码转换，编码检测，UTF-8乱码，GBK乱码，在线工具"}, {"name": "简繁体转换", "path": "text/jianfan.html", "desc": "实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "简繁体转换，简体繁体转换，繁简转换，中文简繁体，简体中文，繁体中文，文字转换，在线工具"}, {"name": "汉字转拼音", "path": "text/pinyin.html", "desc": "将中文汉字快速转换为拼音标注，支持带声调、不带声调、只保留首字母等多种输出模式，适用于拼音学习、注音辅助及文字检索等用途。", "icon": "bi bi-body-text", "category": "文本工具", "keywords": "汉字转拼音，中文拼音转换，汉字拼音，拼音转换，拼音标注，中文注音，拼音学习，在线工具"}, {"name": "正则替换字符串", "path": "text/regex-replace.html", "desc": "在线正则表达式批量替换工具，支持正则和普通字符串替换，可使用捕获组（$1,$2）、预览替换前后对比效果，适合批量文本处理和内容清洗。", "icon": "bi bi-find-replace", "category": "文本工具", "keywords": "正则替换,字符串替换,正则表达式,regex replace,批量替换,文本替换,捕获组,在线正则替换"}, {"name": "字符串数组排序", "path": "text/string-sort.html", "desc": "在线字符串数组排序工具，支持升序/降序、中文按拼音/笔画/Unicode、字母大小写敏感/不敏感等多种排序方式，实时预览排序结果并一键复制。", "icon": "bi bi-sort-up", "category": "文本工具", "keywords": "字符串排序,数组排序,中文排序,拼音排序,升序,降序,在线排序,字符串排序工具"}, {"name": "大小写转换器", "path": "text/case-convert.html", "desc": "在 UPPERCASE（全大写）、lowercase（全小写）、Title Case（首字母大写）和 Sentence case（句首大写）之间一键转换英文字符。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "大小写转换,UPPERCASE,lowercase,Title Case,句首大写,首字母大写,英文大小写,字母大小写转换,在线大小写转换"}, {"name": "文本去重", "path": "text/dedupe.html", "desc": "一键删除重复行，支持保留原始顺序或按字母排序显示，同时显示删除了多少重复行。适用于数据清洗、列表去重等场景。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "文本去重,删除重复行,行去重,去除重复,文本清洗,列表去重,在线去重"}, {"name": "全角半角转换", "path": "text/fullhalf.html", "desc": "支持全角英文字母、数字、标点符号与半角字符互转，可选择转换范围（仅数字、仅字母、仅标点或全部），适合排版和文本规范化处理。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "全角半角转换,全角转半角,半角转全角,全角数字,全角字母,全角标点,字符转换,文本格式化"}, {"name": "简繁转换", "path": "text/jian-fan.html", "desc": "简体中文与繁体中文（正体中文）之间的一键互转工具，支持常见词汇的整词转换（如「软件→軟體」），转换准确率高，适合文档本地化和繁简学习。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "简繁转换,简繁体转换,简体转繁体,繁体转简体,简转繁,繁转简,正体中文,两岸用语转换"}, {"name": "行数统计", "path": "text/line-count.html", "desc": "统计文本的总行数、非空行数和空行数，并显示每行的行号，适合代码行数统计、文本分析等场景。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "行数统计,行数统计工具,空行统计,非空行,文本行数,代码行数,行号显示,在线行数统计"}, {"name": "去除空行", "path": "text/remove-blank.html", "desc": "删除文本中的所有空行和仅含空白字符的行，支持将多个连续空行压缩为一个空行，适合文本清洗和数据整理。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "去除空行,删除空行,删除空白行,压缩空行,文本去空行,在线去除空行,文本清洗"}, {"name": "文本反转", "path": "text/reverse.html", "desc": "支持完全反转文本内容（字符倒序）和反转行顺序（最后一行变为第一行），适合特殊文本处理需求。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "文本反转,字符反转,行反转,倒序文本,文本倒置,反转文字,在线文本反转"}, {"name": "敏感词检测", "path": "text/sensitive-check.html", "desc": "通过内置词库检测文本中可能包含的敏感词，高亮显示并统计数量，帮助用户识别潜在问题内容。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "敏感词检测,敏感词,违禁词,违规检测,内容审核,文本检测,在线敏感词检测"}, {"name": "文本排序", "path": "text/sort.html", "desc": "支持按字母顺序（A-Z / Z-A）排序和按数字大小排序，可选升序或降序，适合整理列表、数据排序等场景。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "文本排序,行排序,字母排序,数字排序,升序,降序,A到Z,Z到A,倒序,在线排序"}, {"name": "字数统计", "path": "text/word-count.html", "desc": "实时统计文本的总字符数、单词数、行数、段落数和句子数，支持中英文混合文本，敲字即出结果，一键复制统计报告。", "icon": "bi bi-body-text", "category": "文本处理", "keywords": "字数统计,字符统计,单词统计,行数统计,段落统计,句子统计,中文字数,英文单词统计,文本长度统计"}, {"name": "年龄计算器", "path": "time/age.html", "desc": "根据输入的出生日期精确计算周岁、虚岁和具体天数，同时显示距离下一个生日的倒计时，帮助用户了解自己的精确年龄和生命历程。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "年龄计算器，周岁计算，虚岁计算，生日计算，年龄计算，出生日期计算，下一个生日倒计时"}, {"name": "在线万年历", "path": "time/calendar.html", "desc": "在线万年历，支持1900年至2100年任意公历日期查询，显示公历、农历、星期、节气、节假日信息。界面简洁美观，适合日程规划与历史日期查询。", "icon": "bi bi-calendar3-fill", "category": "时间工具", "keywords": "万年历，在线万年历，公历农历，农历查询，日历，节气，节假日，日期查询，历史日历"}, {"name": "在线倒计时", "path": "time/countdown.html", "desc": "在线倒计时器，支持设定目标时间或自定义时长，实时显示剩余的日、时、分、秒，适用于活动报名、考试、赛事等需要精确把握时间的场景。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "在线倒计时，倒计时器，倒计时工具，计时器，活动倒计时，考试倒计时，会议计时，目标时间"}, {"name": "日期间隔计算", "path": "time/interval.html", "desc": "计算两个日期之间相隔的天数，支持从开始日期到结束日期的精确天数统计，可用于项目工期规划、合同期限计算或旅行计划安排。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "日期间隔计算，日期计算器，天数计算器，日期间隔，日期相差天数，项目工期计算，旅行天数计算"}, {"name": "农历生日转换器", "path": "time/lunar-birthday.html", "desc": "将农历出生日期转换为公历日期的工具，支持计算转换后的公历生日对应的周岁年龄，并显示当年的生肖属相信息，适合农历生日纪念和年龄核对。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "农历生日转换，农历公历转换，生肖计算，农历转换，出生日期转换，属相查询，农历纪念日"}, {"name": "公历农历互转器", "path": "time/lunar-solar-converter.html", "desc": "公历与农历日期互相转换的工具，支持公历转农历和农历转公历的双向查询，同时显示对应的星期、生肖和二十四节气等详细信息。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "公历农历互转，农历公历转换，阴历阳历转换，二十四节气，农历查询，公历查询，属相查询"}, {"name": "时间戳转换", "path": "time/timestamp.html", "desc": "Unix 时间戳与北京时间、UTC 时间之间的互相转换工具，支持十位和十三位时间戳格式，适用于程序员调试和日志分析场景。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "时间戳转换，Unix 时间戳，UTC 时间转换，时间戳互转，毫秒时间戳，程序员工具，日志时间转换"}, {"name": "标准时间", "path": "time/world-clock.html", "desc": "提供精确的世界时钟显示、时间单位换算以及 NTP 服务器校准功能，帮助用户将本地设备时间与国际标准时间同步，适用于对时间精度有较高要求的场景。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "标准时间，NTP 校准，时间同步，世界时钟，时间单位换算，毫秒秒秒转换，精确时间"}, {"name": "世界各地时间", "path": "time/world.html", "desc": "查看全球主要城市当前时间的在线工具，支持多时区同时对比，方便跨国沟通、会议安排和旅行规划时快速了解各地不同时区的当前时刻。", "icon": "bi bi-clock-fill", "category": "时间工具", "keywords": "世界各地时间，世界时钟，时区转换，城市时间查询，跨国时间对比，旅行时间查询，当前时间"}, {"name": "BMI计算器", "path": "life/bmi-calculator.html", "desc": "身体质量指数计算，支持中国成人BMI参考标准", "icon": "bi bi-heart-pulse", "category": "生活实用", "keywords": "BMI,计算,身体质量,身高,体重,健康指数"}, {"name": "朋友圈九宫格分图", "path": "life/grid-splitter.html", "desc": "将任意图片自动切割为3×3九宫格样式，方便发布朋友圈九图，保留完整画面的同时呈现精致排版效果。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "九宫格分图，朋友圈九宫格，图片切割，图片分割，九图发布，在线工具"}, {"name": "五险一金计算器", "path": "life/insurance.html", "desc": "根据税前工资和社保缴纳基数，自动计算养老保险、医疗保险、失业保险、工伤保险、生育保险及住房公积金的扣除金额。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "五险一金计算器，五险一金计算，社保计算器，公积金计算，工资计算，在线工具"}, {"name": "键盘按键测试", "path": "life/keyboard-test.html", "desc": "按下键盘任意按键后，页面实时显示对应的keyCode键码和key值，方便前端开发者快速测试和查阅键盘按键信息。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "键盘按键测试，按键测试，keyCode测试，键盘码查询，键盘工具，在线测试"}, {"name": "年会抽奖工具", "path": "life/lottery.html", "desc": "输入参与者名单后点击抽奖，系统从名单中随机抽取一名中奖者，适用于公司年会、晚会、团建活动等多种场景。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "年会抽奖，抽奖工具，随机抽取，抽奖软件，活动抽奖，在线工具"}, {"name": "商品比价", "path": "life/price-compare.html", "desc": "输入不同商品的价格和单位信息，自动计算单位价格，帮你快速比较同类商品的真实性价比，找出最划算的购买选择。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "商品比价，单位价格比较，比价工具，购物比价，性价比比较，在线工具"}, {"name": "人民币大写转换", "path": "life/rmb-uppercase.html", "desc": "数字金额转换为中文大写，支持角、分、整", "icon": "bi bi-currency-yen", "category": "生活实用", "keywords": "人民币大写,金额转换,中文大写,财务,会计,金额"}, {"name": "税后工资计算器", "path": "life/salary.html", "desc": "输入税前工资后，自动扣除五险一金和个人所得税，精准计算实际到手工资，帮助你清晰了解每月净收入构成。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "税后工资计算器，工资计算器，个税计算，税后工资，薪资计算，在线工具"}, {"name": "温度转换", "path": "life/temperature-converter.html", "desc": "摄氏度、华氏度、开尔文温度互相转换", "icon": "bi bi-thermometer", "category": "生活实用", "keywords": "温度转换,celsius,fahrenheit,kelvin,℃,℉,K,摄氏,华氏"}, {"name": "专注计时器", "path": "life/time-annotate.html", "desc": "支持秒表计时和番茄工作法模式，设定25分钟专注时间与5分钟休息时间交替循环，有效提升工作和学习效率。", "icon": "bi bi-gear", "category": "生活实用", "keywords": "专注计时器，番茄钟，计时器，时间管理，专注工具，在线工具"}, {"name": "专注白噪音画板", "path": "life/zen-canvas.html", "desc": "在画板上打字或滑动鼠标即可生成唯美的粒子艺术效果，同时播放舒缓的白噪音背景音，帮助你快速进入专注状态。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "白噪音画板，专注工具，白噪音，粒子艺术，冥想放松，在线工具"}, {"name": "点击速度测试", "path": "other/click-speed.html", "desc": "在倒计时10秒内尽可能多地点击屏幕，系统实时统计点击次数并计算出每秒点击次数（CPS），与好友一较高下。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "点击速度测试，鼠标点击测试，手速测试，CPS测试，竞技点击，在线测试"}, {"name": "颜色选择器", "path": "other/color.html", "desc": "通过色盘可视化为网页设计师和开发人员快速选取颜色，并实时转换RGB颜色值与HEX十六进制颜色码。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "颜色选择器，RGB HEX转换，颜色代码，取色器，网页配色，在线工具"}, {"name": "进制转换", "path": "other/hex-convert.html", "desc": "支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "进制转换，二进制转换，八进制转换，十六进制转换，十进制转换，在线工具"}, {"name": "密码生成器", "path": "other/password.html", "desc": "自定义密码长度与字符类型（大小写字母、数字、特殊符号），一键生成高强度随机密码，有效提升账户安全等级。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "密码生成器，随机密码生成，密码生成工具，强密码生成，安全密码，在线工具"}, {"name": "反应力测试", "path": "other/reaction-test.html", "desc": "屏幕随机变色时快速点击，记录每次反应时间，共进行5轮测试并取平均值，科学评估你的视觉反应速度水平。", "icon": "bi bi-house-heart-fill", "category": "生活实用", "keywords": "反应力测试，反应速度测试，视觉反应测试，专注力测试，在线测试"}, {"name": "平均数计算", "path": "math/avg.html", "desc": "输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "平均数计算，平均值，Mean，数学平均数，统计计算，数据统计，总和，平均"}, {"name": "四则计算器", "path": "math/calculator.html", "desc": "支持加法、减法、乘法、除法四种基本运算，输入两个数值和运算符后即可快速得到计算结果，适合日常学习和办公场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "四则计算器，加减乘除，基本运算，数学计算，在线计算器，加法，减法，乘法，除法"}, {"name": "阶乘计算", "path": "math/factorial.html", "desc": "计算任意非负整数 n 的阶乘值（n!），适用于概率统计、排列组合等数学场景，支持0到170范围内的精确阶乘计算。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "阶乘计算，阶乘，n!，数学阶乘，排列组合，概率统计，组合数学，阶乘值"}, {"name": "最大公约数", "path": "math/gcd.html", "desc": "通过欧几里得算法快速计算两个整数的最大公约数（GCD），直观展示辗转相除法的计算过程，广泛用于分数化简和数论研究。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "最大公约数，GCD，约数，数学计算，欧几里得算法，辗转相除法，数论，分数化简"}, {"name": "最小公倍数", "path": "math/lcm.html", "desc": "计算两个整数的最小公倍数（LCM），结合最大公约数算法高效求解，常用于分数通分、工程时间调度等实际应用场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "最小公倍数，LCM，公倍数，数学计算，通分，分数运算，时间调度，数论"}, {"name": "乘方计算器", "path": "math/power.html", "desc": "输入底数和指数即可快速计算幂运算结果，支持任意实数指数的乘方计算，适用于数学、工程和科学计算等多种场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "乘方计算，指数计算，幂运算，x^y，数学计算，次幂计算，乘方，指数"}, {"name": "质数判定", "path": "math/prime-check.html", "desc": "快速判断输入的正整数是否为质数，并显示最小因数信息，帮助理解质数的数学特性，适用于数论学习和密码学基础。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "质数判定，质数检查，素数判定，质数测试，数学计算，质数识别，因数分解，数论"}, {"name": "随机数生成器", "path": "math/random.html", "desc": "在用户指定的最小值和最大值范围内生成随机整数，适用于抽样调查、随机抽样、抽奖活动、游戏开发等多种应用场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "随机数生成器，随机数，Random，彩票随机数，在线随机数，抽样，抽奖，游戏"}, {"name": "开方计算器", "path": "math/sqrt.html", "desc": "计算任意非负数的平方根，支持高精度结果展示，自动处理整数和小数的显示格式，适用于几何和代数等多种计算场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "开方计算，平方根，根号，sqrt，数学计算，n次方根，开根号，根式"}, {"name": "数列求和", "path": "math/sum-sequence.html", "desc": "根据首项、公差和项数计算等差数列的通项、末项和前n项和，完整展示计算过程，适用于数学教学、学习和练习场景。", "icon": "bi bi-calculator", "category": "数学计算", "keywords": "数列求和，等差数列，数列计算，累加，数学计算，通项公式，前n项和"}, {"name": "API测试工具", "path": "network/api-tester.html", "desc": "在线发送HTTP请求，测试REST API接口，支持GET/POST/PUT/DELETE，查看响应结果", "icon": "bi bi-gear", "category": "网络工具", "keywords": "API测试，HTTP请求，Postman，REST API，JSON，GET POST PUT DELETE"}, {"name": "Base64 编解码", "path": "network/base64.html", "desc": "支持文本与 Base64 字符串之间的双向编码与解码，输入明文可转换为 Base64 字符串，输入 Base64 字符串可还原为原始文本，常用于数据传输与接口调试。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "Base64 编码，Base64 解码，Base64 转换，字符串编解码，文本加密转换，Base64 字符串，Base64 在线"}, {"name": "颜色代码转换", "path": "network/color-convert.html", "desc": "在 HEX、RGB、HSL、HSV 四种常用颜色格式之间自由转换，输入任意格式的颜色值即可得到其他三种格式的结果，适用于前端开发与设计取色场景。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "颜色代码转换，HEX RGB HSL HSV，HEX 颜色，RGB 颜色，HSL 颜色，HSV 颜色，颜色格式转换，取色器，颜色代码"}, {"name": "Cron 表达式生成器", "path": "network/cron-gen.html", "desc": "通过图形化界面配置分钟、小时、日期、月份、星期五个字段，自动生成标准五段式 Cron 表达式，并附带自然语言说明，方便快速编写定时任务。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "Cron 表达式生成器，Cron 表达式，定时任务，Linux 定时任务，Cron Job，自动执行，计划任务"}, {"name": "DNS 查询", "path": "network/dns-lookup.html", "desc": "输入域名即可查询 DNS 解析记录，包括 A、AAAA、CNAME、MX、TXT 等多种记录类型，帮助快速排查域名解析是否生效。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "DNS 查询，DNS 记录查询，域名解析检查，DNS Lookup，域名信息，DNS 类型记录，A 记录 CNAME 记录"}, {"name": "HTTP 状态码查询", "path": "network/http-status.html", "desc": "收录常见 HTTP 状态码，按 2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务器错误分类展示，快速查阅状态码含义与典型使用场景。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "HTTP 状态码，状态码查询，HTTP Code，2xx 3xx 4xx 5xx，状态码含义，HTTP 响应码，服务器错误，客户端错误"}, {"name": "IP 地址查询", "path": "network/ip-lookup.html", "desc": "快速查询任意 IP 地址的地理位置、所属城市、地区、国家及运营商信息，支持自动检测本机 IP，帮助用户了解网络出口情况。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "IP 地址查询，IP 归属地查询，IP Geolocation，我的 IP 地址，公网 IP 查询，IP 物理位置，IP 信息查询"}, {"name": "HTTP 请求测试", "path": "network/request-tester.html", "desc": "在线发送 HTTP 请求，自定义请求方法（GET/POST/PUT/DELETE）、URL、请求头和请求体，实时查看响应状态码、响应头和响应体，快速定位接口问题。", "icon": "bi bi-globe", "category": "网络工具", "keywords": "HTTP 请求测试，API 测试，接口调试，HTTP 调试，REST API，POST GET PUT DELETE，HTTP 调试工具"}, {"name": "URL 编码解码", "path": "network/url-encode.html", "desc": "对 URL 中的特殊字符进行百分号编码（URLEncode）或逆向解码（URLDecode），解决 URL 含中文或特殊符号时无法正常传输和解析的问题。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "URL 编码，URL 解码，百分号编码，URLEncode，URLDecode，URL 特殊字符，百分号编码，URL 加密"}, {"name": "URL 参数解析", "path": "network/url-parse.html", "desc": "输入任意带参数的 URL，自动提取并解析问号后面的查询字符串，以表格形式清晰展示每个参数名与对应值，便于调试和查看链接构成。", "icon": "bi bi-globe2", "category": "网络工具", "keywords": "URL 参数解析，URL 查询参数，Query String，URL 解析，GET 参数解析，URL 参数拆分，查询字符串"}];
+    var CAT_COUNTS = {"格式转换": 13, "图片工具": 1, "开发工具": 65, "编码/加密": 15, "文本工具": 12, "文本处理": 10, "时间工具": 9, "生活实用": 16, "数学计算": 10, "网络工具": 10};
+
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function() { t.classList.remove('show'); }, 2000);
+    }
+
+    var catCards = document.querySelectorAll('.cat-card');
+    var toolCards = document.querySelectorAll('.tool-card');
+
+    catCards.forEach(function(card) {
+      card.addEventListener('click', function() {
+        var cat = card.dataset.cat;
+        var isActive = card.classList.contains('active');
+        catCards.forEach(function(c) { c.classList.remove('active'); });
+        if (!isActive) {
+          card.classList.add('active');
+          toolCards.forEach(function(tc) {
+            tc.classList.toggle('hidden', tc.dataset.cat !== cat);
+          });
+        } else {
+          toolCards.forEach(function(tc) { tc.classList.remove('hidden'); });
+        }
+        document.getElementById('all-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    var searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function() {
+      var q = searchInput.value.trim().toLowerCase();
+      if (q) {
+        catCards.forEach(function(c) { c.classList.remove('active'); });
+        toolCards.forEach(function(tc) { tc.classList.remove('hidden'); });
+      }
+      var anyVisible = false;
+      toolCards.forEach(function(tc) {
+        var name = tc.dataset.name || '';
+        var desc = tc.dataset.desc || '';
+        var keywords = tc.dataset.keywords || '';
+        var show = !q || name.includes(q) || desc.includes(q) || keywords.includes(q);
+        tc.classList.toggle('hidden', !show);
+        if (show) anyVisible = true;
+      });
+      var noResults = document.getElementById('noResults');
+      if (noResults) noResults.style.display = anyVisible ? 'none' : '';
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    document.getElementById('randomBtn').addEventListener('click', function() {
+      if (ALL_TOOLS.length === 0) {
+        showToast('暂无可用工具');
+        return;
+      }
+      var idx = Math.floor(Math.random() * ALL_TOOLS.length);
+      var tool = ALL_TOOLS[idx];
+      window.location.href = '/tools/' + tool.path;
+    });
+
+    var revealEls = document.querySelectorAll('.reveal');
+    var revealObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function(el) { revealObserver.observe(el); });
+
+    var backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', function() {
+      backToTop.classList.toggle('visible', window.scrollY > 400);
+    });
+    backToTop.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+
+  <!-- Busuanzi counter -->
+  <script async src="//busuanzi.86.la/js/counter.js?base=56490&page=home-demo2"></script>
+  <script>
+    (function() {
+      var base = 56490;
+      var el = document.getElementById('busuanzi_value_site_pv');
+      if (!el) return;
+      function addBase() {
+        var v = parseInt(el.textContent || '0', 10);
+        if (v > 0) { el.textContent = v + base; observer.disconnect(); }
+      }
+      addBase();
+      var observer = new MutationObserver(addBase);
+      observer.observe(el, { childList: true, characterData: true, subtree: true });
+    })();
+  </script>
+</body>
+</html>
