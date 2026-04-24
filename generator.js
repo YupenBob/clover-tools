@@ -1882,6 +1882,11 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
   console.log('   Generated sitemap.xml');
 
+  // Generate robots.txt
+  const robots = `User-agent: *\nAllow: /\n\nSitemap: https://tools.xsanye.cn/sitemap.xml\n`;
+  fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'), robots);
+  console.log('   Generated robots.txt');
+
   console.log(' Done! Output in dist/');
 }
 
