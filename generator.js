@@ -1763,6 +1763,11 @@ function generate() {
     fs.copyFileSync(demoSrc, path.join(DIST_DIR, 'demo.html'));
     console.log('   Copied demo.html');
   }
+  const demo2Src = path.join(TEMPLATES_DIR, 'home-demo2.html');
+  if (fs.existsSync(demo2Src)) {
+    fs.copyFileSync(demo2Src, path.join(DIST_DIR, 'demo2.html'));
+    console.log('   Copied demo2.html');
+  }
 
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
