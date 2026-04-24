@@ -1860,22 +1860,22 @@ function generate() {
   // Generate sitemap.xml
   const baseUrl = 'https://tools.xsanye.cn';
   const today = new Date().toISOString().split('T')[0];
-  let urls = [`<url><loc>${baseUrl}/</loc><lastmod>${today}</lastmod><priority>1.0</priority></url>`];
-  urls.push(`<url><loc>${baseUrl}/about</loc><lastmod>${today}</lastmod><priority>0.5</priority></url>`);
+  let urls = [`<url><loc>${baseUrl}/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
+  urls.push(`<url><loc>${baseUrl}/about</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>`);
   toolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
-      urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><priority>0.8</priority></url>`);
+      urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
     });
   });
   // Add blog posts to sitemap
   keywordsConfig.forEach(kw => {
-    urls.push(`<url><loc>${baseUrl}/blog/${kw.slug}</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
+    urls.push(`<url><loc>${baseUrl}/blog/${kw.slug}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`);
   });
-  urls.push(`<url><loc>${baseUrl}/blog/</loc><lastmod>${today}</lastmod><priority>0.7</priority></url>`);
+  urls.push(`<url><loc>${baseUrl}/blog/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`);
 
   // Add fix hub pages to sitemap
   FIX_HUB_CONFIG.forEach(hub => {
-    urls.push(`<url><loc>${baseUrl}/fix/${hub.path}/</loc><lastmod>${today}</lastmod><priority>0.6</priority></url>`);
+    urls.push(`<url><loc>${baseUrl}/fix/${hub.path}/</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>`);
   });
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
