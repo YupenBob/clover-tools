@@ -1741,6 +1741,12 @@ function generate() {
   console.log('   Copied shared.css');
   fs.writeFileSync(path.join(DIST_DIR, 'src/shared.js'), sharedJs);
   console.log('   Copied shared.js');
+  // Copy shared-home-new.js
+  const sharedHomeNew = path.join(SRC_DIR, 'shared-home-new.js');
+  if (fs.existsSync(sharedHomeNew)) {
+    fs.copyFileSync(sharedHomeNew, path.join(DIST_DIR, 'src/shared-home-new.js'));
+    console.log('   Copied shared-home-new.js');
+  }
   fs.copyFileSync(TOOLS_JSON_PATH, path.join(DIST_DIR, 'tools.json'));
   console.log('   Copied tools.json');
   const cloverLogoSvg = fs.readFileSync(path.join(SRC_DIR, 'clover-logo.svg'), 'utf8');
