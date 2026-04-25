@@ -1552,7 +1552,7 @@
         "type": "encode-decode",
         "btnLabel1": "SHA-256",
         "btnLabel2": "SHA-1",
-        "forwardFn": "{var s=unescape(encodeURIComponent(v));function rotl(n,b){return(n<<b)|(n>>>32-b);}var h=[1732584193,4023233417,2562383102,271733878,3285377520];for(var i=0;i<s.length;i++){h[0]=((h[0]+((h[1]^h[2]^h[3]^h[4])+s.charCodeAt(i))))&0xffffffff;var t=((h[0]>>>17)^(h[0]<<<15)^(h[0]>>>19)^(h[0]<<<13));h[0]=h[1];h[1]=h[2];h[2]=h[3];h[3]=h[4];h[4]=t;}function toHex(n){var r=\"\";for(var j=0;j<4;j++)r+=((n>>>(j*8))&255).toString(16).padStart(2,\"0\");return r;}return toHex(h[0])+toHex(h[1])+toHex(h[2])+toHex(h[3]);}",
+        "forwardFn": "{var s=unescape(encodeURIComponent(v));function rotl(n,b){return(n<<b)|(n>>>32-b);}var h=[1732584193,4023233417,2562383102,271733878,3285377520];for(var i=0;i<s.length;i++){h[0]=((h[0]+((h[1]^h[2]^h[3]^h[4])+s.charCodeAt(i))))&0xffffffff;var t=((h[0]>>>17)^(h[0]<<15)^(h[0]>>>19)^(h[0]<<13));h[0]=h[1];h[1]=h[2];h[2]=h[3];h[3]=h[4];h[4]=t;}function toHex(n){var r=\"\";for(var j=0;j<4;j++)r+=((n>>>(j*8))&255).toString(16).padStart(2,\"0\");return r;}return toHex(h[0])+toHex(h[1])+toHex(h[2])+toHex(h[3])+toHex(h[4]);}",
         "icon": "bi bi-shield-lock-fill",
         "title": "SHA加密 - 计算字符串的SHA-1/SHA-256安全哈希值"
       },
