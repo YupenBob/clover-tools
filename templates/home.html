@@ -346,7 +346,7 @@
 
         <!-- Hot tools card grid -->
         <div class="hot-tools">
-          <div class="hot-tools-title">🔥 热门工具</div>
+          <div class="hot-tools-title">热门工具</div>
           <div class="tools-grid">
 
             <a class="tool-card" href="/tools/json/formatter.html" data-name="JSON 格式化" data-desc="美化 / 压缩 / 校验" data-tags="开发工具">
@@ -433,8 +433,10 @@
           <div style="text-align:center;margin-top:1rem;">
             <a href="/tools/json/formatter.html" class="view-all-link">查看全部 {{TOOL_COUNT}} 个工具 →</a>
           </div>
+        </div>
 
-          <div class="hot-tools-title" style="margin-top:2rem;">✨ 特别推荐</div>
+        <div style="margin-top:1rem;">
+          <div class="hot-tools-title">特别推荐</div>
           <div class="tools-grid" style="grid-template-columns:1fr;">
             <a href="https://aiti.xsanye.cn" target="_blank" class="tool-card" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;">
               <i class="bi bi-person-badge t-icon" style="color:#fff;"></i>
@@ -489,20 +491,28 @@
       });
     });
 
-    // Search (filters both quick-tool-cards and category items) + frosted glass overlay
+    // Search overlay — populated with ALL tools on first focus
     const searchInput = document.getElementById('tool-search');
     const searchOverlay = document.getElementById('searchOverlay');
     const searchResults = document.getElementById('searchResults');
-    const hotToolsGrid = document.querySelector('.hot-tools .tools-grid');
+    let overlayPopulated = false;
 
-    // Clone hot tools cards into search overlay on load
-    if (hotToolsGrid && searchResults) {
-      hotToolsGrid.querySelectorAll('.tool-card').forEach(card => {
-        searchResults.appendChild(card.cloneNode(true));
-      });
+    function populateOverlay() {
+      if (overlayPopulated || !window.__ALL_TOOLS__) return;
+      overlayPopulated = true;
+      const all = window.__ALL_TOOLS__;
+      searchResults.innerHTML = all.map(t => `
+        <a class="tool-card" href="${t.path}">
+          <i class="bi bi-tools t-icon"></i>
+          <div class="t-info">
+            <div class="t-name">${t.name}</div>
+            <div class="t-desc">${t.desc}</div>
+            <span class="t-tag">${t.tags}</span>
+          </div>
+          <i class="bi bi-arrow-right t-arrow"></i>
+        </a>
+      `).join('');
     }
-
-    const overlayCards = searchResults ? searchResults.querySelectorAll('.tool-card') : [];
 
     function closeSearch() {
       document.body.classList.remove('search-focused');
@@ -513,44 +523,16 @@
     searchInput.addEventListener('focus', () => {
       document.body.classList.add('search-focused');
       if (searchOverlay) searchOverlay.style.display = 'block';
-      // Show all cards initially
-      overlayCards.forEach(c => c.style.display = '');
+      populateOverlay();
+      searchResults.querySelectorAll('.tool-card').forEach(c => c.style.display = '');
+      searchInput.select();
     });
 
     searchInput.addEventListener('input', () => {
       const q = searchInput.value.trim().toLowerCase();
-
-      // Update hot tools grid (original behavior)
-      const hotToolCards = hotToolsGrid ? hotToolsGrid.querySelectorAll('.tool-card') : [];
-      hotToolCards.forEach(card => {
+      searchResults.querySelectorAll('.tool-card').forEach(card => {
         const text = card.textContent.toLowerCase();
         card.style.display = !q || text.includes(q) ? '' : 'none';
-      });
-
-      // Filter category items (original behavior)
-      categoryCards.forEach(card => {
-        const items = card.querySelectorAll('li');
-        let anyVisible = false;
-        items.forEach(li => {
-          const text = li.textContent.toLowerCase();
-          const show = !q || text.includes(q);
-          li.style.display = show ? '' : 'none';
-          if (show) anyVisible = true;
-        });
-        card.style.display = anyVisible ? '' : 'none';
-      });
-
-      // Filter search overlay cards
-      if (!q) {
-        overlayCards.forEach(c => c.style.display = '');
-        return;
-      }
-      overlayCards.forEach(card => {
-        const name = card.getAttribute('data-name') || '';
-        const desc = card.getAttribute('data-desc') || '';
-        const tags = card.getAttribute('data-tags') || '';
-        const match = name.includes(q) || desc.includes(q) || tags.includes(q);
-        card.style.display = match ? '' : 'none';
       });
     });
 
@@ -610,5 +592,8 @@
     })();
   </script>
   <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script>
+    window.__ALL_TOOLS__ = {{ALL_TOOLS_DATA}};
+  </script>
 </body>
 </html>

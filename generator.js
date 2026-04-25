@@ -1765,6 +1765,13 @@ function generate() {
   const categoriesHtml = buildCategoriesHtml();
   const categoryGridHtml = buildCategoryGridHtml();
   const toolCount = toolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
+  const allToolsData = toolsConfig.flatMap(cat => cat.tools.map(t => ({
+    name: t.name,
+    path: t.path,
+    desc: t.description || '',
+    tags: cat.name || '',
+    icon: t.icon || 'bi bi-tools'
+  })));
   let homeHtml = homeTemplate
     .replace('{{CATEGORY_GRID_HTML}}', categoryGridHtml)
     .replace('{{CATEGORIES_HTML}}', categoriesHtml)
@@ -1778,7 +1785,8 @@ function generate() {
     .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
     .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/src/clover-logo.svg')
     .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
-    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/');
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/')
+    .replace('{{ALL_TOOLS_DATA}}', JSON.stringify(allToolsData));
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
