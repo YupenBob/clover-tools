@@ -486,3 +486,65 @@ textarea { min-height: 200px; }
   .site-nav-desktop { display: none !important; }
   .hamburger-btn { display: flex !important; }
 }
+
+/* ==================== Upload Area ==================== */
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  position: relative;
+  overflow: hidden;
+}
+.upload-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, transparent 60%);
+  pointer-events: none;
+}
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--primary);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+.upload-area.drag-over {
+  border-style: solid;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.22);
+  transform: scale(1.01);
+}
+.upload-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--primary);
+  opacity: 0.7;
+  transition: all var(--transition);
+}
+.upload-area:hover .upload-icon,
+.upload-area.drag-over .upload-icon {
+  opacity: 1;
+  transform: translateY(-3px);
+}
+.upload-hint {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.upload-hint-main {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+.upload-hint-sub {
+  font-size: 0.82rem;
+  opacity: 0.65;
+}
