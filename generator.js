@@ -909,7 +909,7 @@ function generateBlogIndex() {
   {{SITE_FOOTER}}
   <div id="toast"></div>
   <script>
-    CT.initTheme();
+    CT.initTheme();CT.initReveal();CT.initCopyPulse();
     // Blog search
     const blogSearch = document.getElementById('blog-search');
     const blogCards = document.querySelectorAll('.blog-card');
@@ -1573,20 +1573,8 @@ function generateAboutPage() {
   <a href="/" class="back-link">← 返回工具首页</a>
 
   {{SITE_FOOTER}}
-
-  <script>
-    // Scroll reveal
-    const reveals = document.querySelectorAll('.reveal');
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    reveals.forEach(el => io.observe(el));
-  </script>
+  <div id="toast"></div>
+  <script>CT.initTheme();CT.initReveal();CT.initCopyPulse();</script>
 </body>
 </html>`;
 
@@ -1716,7 +1704,7 @@ function generateFixHubPages() {
   </main>
   {{SITE_FOOTER}}
   <div id="toast"></div>
-  <script>CT.initTheme();</script>
+  <script>CT.initTheme();CT.initReveal();CT.initCopyPulse();</script>
 </body>
 </html>`;
 
