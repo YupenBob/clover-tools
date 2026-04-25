@@ -1810,7 +1810,7 @@ function generate() {
       allTools.push({
         name: tool.name,
         path: tool.path,
-        category: cat.name,
+        category: cat.category,
         tags: tool.keywords || []
       });
     });
@@ -1824,6 +1824,48 @@ function generate() {
     .replace('{{TOOL_COUNT}}', String(toolCount));
   fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
   console.log('   Generated home-new.html');
+
+
+  // ============ Generate category pages ============
+  const CATEGORY_DIR = path.join(DIST_DIR, 'category');
+  if (!fs.existsSync(CATEGORY_DIR)) fs.mkdirSync(CATEGORY_DIR, { recursive: true });
+
+  toolsConfig.forEach(cat => {
+    const slug = (cat.category || cat.name || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '');
+    const catTools = cat.tools.map(tool => `
+    <div class="tool-card" onclick="location.href='/tools/${tool.path}'">
+      <div class="tool-card-name">${tool.name}</div>
+      <div class="tool-card-desc">${tool.desc || ''}</div>
+      <div class="tool-card-tags">${Array.isArray(tool.keywords) ? tool.keywords.slice(0, 3).map(k => '<span class="tag">'+k+'</span>').join('') : ''}</div>
+    </div>`).join('');
+    const catHtml = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${cat.category} - CloverTools</title>
+  <meta name="description" content="CloverTools ${cat.category}类工具，免费在线使用，无需注册。">
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="stylesheet" href="/src/home-new.css">
+</head>
+<body>
+${svgSpriteHtml}
+${headerHtml}
+<main class="container">
+  <div class="category-header">
+    <h1>${cat.category}</h1>
+    <p>共 ${cat.tools.length} 个工具</p>
+  </div>
+  <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem 0">
+    ${catTools}
+  </div>
+</main>
+${footerHtml}
+</body>
+</html>`;
+    fs.writeFileSync(path.join(CATEGORY_DIR, slug + '.html'), catHtml);
+  });
+  console.log('   Generated ' + toolsConfig.length + ' category pages');
 
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
