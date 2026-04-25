@@ -1818,6 +1818,10 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
   console.log('   Generated home-new.html');
 
+  // Overwrite index.html with home-new content (search/filter/random features)
+  fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeNewFinal);
+  console.log('   Overwrote index.html with home-new (search/filter/random)');
+
 
   // ============ Generate category pages ============
   const CATEGORY_DIR = path.join(DIST_DIR, 'category');
