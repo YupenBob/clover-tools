@@ -79,6 +79,36 @@
     });
   }
 
+  // ---- Scroll-triggered reveal observer ---
+  function initReveal() {
+    if (!('IntersectionObserver' in window)) {
+      // Fallback: make all visible immediately
+      document.querySelectorAll('.reveal').forEach(function (el) {
+        el.classList.add('visible');
+      });
+      return;
+    }
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function (el) { obs.observe(el); });
+  }
+
+  // ---- Copy button success pulse ---
+  function initCopyPulse() {
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        btn.classList.add('success');
+        setTimeout(function () { btn.classList.remove('success'); }, 300);
+      });
+    });
+  }
+
   // ---- Expose as window.CT ----
   window.CT = {
     showToast: showToast,
@@ -87,7 +117,9 @@
     toggleTheme: toggleTheme,
     initTheme: initTheme,
     initKeyboardShortcuts: initKeyboardShortcuts,
-    initShare: initShare
+    initShare: initShare,
+    initReveal: initReveal,
+    initCopyPulse: initCopyPulse
   };
 
   // ---- Global aliases (so tool scripts can call showToast() directly) ----
