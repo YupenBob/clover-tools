@@ -1768,7 +1768,7 @@ function generate() {
   let homeHtml = homeTemplate
     .replace('{{CATEGORY_GRID_HTML}}', categoryGridHtml)
     .replace('{{CATEGORIES_HTML}}', categoriesHtml)
-    .replace('{{TOOL_COUNT}}', String(toolCount))
+    .replace(/\{\{TOOL_COUNT\}\}/g, String(toolCount))
     .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
     .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
     .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
@@ -1818,9 +1818,6 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
   console.log('   Generated home-new.html');
 
-  // Overwrite index.html with home-new content (search/filter/random features)
-  fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeNewFinal);
-  console.log('   Overwrote index.html with home-new (search/filter/random)');
 
 
   // ============ Generate category pages ============
