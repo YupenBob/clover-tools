@@ -273,6 +273,7 @@
       autocomplete="off"
       spellcheck="false"
     />
+    <button id="randomBtn" class="btn btn-secondary" title="随机工具">🎲 随机</button>
   </div>
 </section>
 
@@ -281,7 +282,7 @@
   <div class="section-title">热门工具</div>
   <div class="tools-grid">
 
-    <a class="tool-card" href="/tools/json/formatter.html">
+    <a class="tool-card" href="/tools/json/formatter.html" data-name="JSON 格式化" data-desc="美化 / 压缩 / 校验" data-tags="开发工具" data-category="开发工具">
       <i class="bi bi-braces t-icon"></i>
       <div class="t-info">
         <div class="t-name">JSON 格式化</div>
@@ -291,7 +292,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/encrypt/base64.html">
+    <a class="tool-card" href="/tools/encrypt/base64.html" data-name="Base64 编解码" data-desc="文本与 Base64 互转" data-tags="编码/加密" data-category="编码/加密">
       <i class="bi bi-lock t-icon"></i>
       <div class="t-info">
         <div class="t-name">Base64 编解码</div>
@@ -301,7 +302,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/code/regex-tester.html">
+    <a class="tool-card" href="/tools/code/regex-tester.html" data-name="正则测试" data-desc="实时匹配与验证" data-tags="开发工具" data-category="开发工具">
       <i class="bi bi-code-slash t-icon"></i>
       <div class="t-info">
         <div class="t-name">正则测试</div>
@@ -311,7 +312,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/encrypt/url.html">
+    <a class="tool-card" href="/tools/encrypt/url.html" data-name="URL 编码" data-desc="URL 安全编码解码" data-tags="编码/加密" data-category="编码/加密">
       <i class="bi bi-link-45deg t-icon"></i>
       <div class="t-info">
         <div class="t-name">URL 编码</div>
@@ -321,7 +322,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/time/timestamp.html">
+    <a class="tool-card" href="/tools/time/timestamp.html" data-name="时间戳转换" data-desc="时间与时间戳互转" data-tags="时间工具" data-category="时间工具">
       <i class="bi bi-clock t-icon"></i>
       <div class="t-info">
         <div class="t-name">时间戳转换</div>
@@ -331,7 +332,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/code/cron-parser.html">
+    <a class="tool-card" href="/tools/code/cron-parser.html" data-name="Cron 表达式测试" data-desc="解析与下一次执行时间" data-tags="开发工具" data-category="开发工具">
       <i class="bi bi-code-slash t-icon"></i>
       <div class="t-info">
         <div class="t-name">Cron 表达式测试</div>
@@ -341,7 +342,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/code/color-picker.html">
+    <a class="tool-card" href="/tools/code/color-picker.html" data-name="颜色选择器" data-desc="颜色值互转与预览" data-tags="开发工具" data-category="开发工具">
       <i class="bi bi-palette2 t-icon"></i>
       <div class="t-info">
         <div class="t-name">颜色选择器</div>
@@ -351,7 +352,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/format-conversion/image-resize.html">
+    <a class="tool-card" href="/tools/format-conversion/image-resize.html" data-name="图片压缩" data-desc="压缩图片减小文件大小" data-tags="格式转换" data-category="格式转换">
       <i class="bi bi-image t-icon"></i>
       <div class="t-info">
         <div class="t-name">图片压缩</div>
@@ -361,7 +362,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/code/qrcode.html">
+    <a class="tool-card" href="/tools/code/qrcode.html" data-name="二维码生成" data-desc="文本 / 链接生成二维码" data-tags="图片工具" data-category="开发工具">
       <i class="bi bi-qr-code t-icon"></i>
       <div class="t-info">
         <div class="t-name">二维码生成</div>
@@ -371,7 +372,7 @@
       <i class="bi bi-arrow-right t-arrow"></i>
     </a>
 
-    <a class="tool-card" href="/tools/code/bytes.html">
+    <a class="tool-card" href="/tools/code/bytes.html" data-name="字节转换" data-desc="字节与单位互转" data-tags="开发工具" data-category="开发工具">
       <i class="bi bi-hash t-icon"></i>
       <div class="t-info">
         <div class="t-name">字节转换</div>
@@ -389,61 +390,61 @@
   <div class="section-title">全部分类</div>
   <div class="cat-grid">
 
-    <a class="cat-btn" href="/category/format-conversion.html">
+    <a class="cat-btn" href="/category/format-conversion.html" data-category="format-conversion.html">
       <i class="bi bi-arrow-left-right"></i>
       <span>格式转换</span>
       <span class="cat-count" data-cat="format-conversion">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/image.html">
+    <a class="cat-btn" href="/category/image.html" data-category="image.html">
       <i class="bi bi-image"></i>
       <span>图片工具</span>
       <span class="cat-count" data-cat="image">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/code.html">
+    <a class="cat-btn" href="/category/code.html" data-category="code.html">
       <i class="bi bi-code-slash"></i>
       <span>开发工具</span>
       <span class="cat-count" data-cat="code">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/encrypt.html">
+    <a class="cat-btn" href="/category/encrypt.html" data-category="encrypt.html">
       <i class="bi bi-shield-lock"></i>
       <span>编码/加密</span>
       <span class="cat-count" data-cat="encrypt">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/text.html">
+    <a class="cat-btn" href="/category/text.html" data-category="text.html">
       <i class="bi bi-file-earmark-text"></i>
       <span>文本工具</span>
       <span class="cat-count" data-cat="text">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/text-processing.html">
+    <a class="cat-btn" href="/category/text-processing.html" data-category="text-processing.html">
       <i class="bi bi-text-left"></i>
       <span>文本处理</span>
       <span class="cat-count" data-cat="text-processing">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/time.html">
+    <a class="cat-btn" href="/category/time.html" data-category="time.html">
       <i class="bi bi-clock"></i>
       <span>时间工具</span>
       <span class="cat-count" data-cat="time">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/life.html">
+    <a class="cat-btn" href="/category/life.html" data-category="life.html">
       <i class="bi bi-tools"></i>
       <span>生活实用</span>
       <span class="cat-count" data-cat="life">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/math.html">
+    <a class="cat-btn" href="/category/math.html" data-category="math.html">
       <i class="bi bi-calculator"></i>
       <span>数学计算</span>
       <span class="cat-count" data-cat="math">0 个</span>
     </a>
 
-    <a class="cat-btn" href="/category/network.html">
+    <a class="cat-btn" href="/category/network.html" data-category="network.html">
       <i class="bi bi-globe"></i>
       <span>网络工具</span>
       <span class="cat-count" data-cat="network">0 个</span>
