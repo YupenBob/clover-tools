@@ -454,6 +454,37 @@ const TOOL_TYPE_REGISTRY = {
 
   // type: "tool-generator" → optional input fields + generate button + output (enhanced)
   // tools.json: { type: "generator", generatorFn: "function(inputs) { return result; }", outputLabel: "UUID", fields: [...] }
+  // type: "dev-tools" → Developer utility tool with optional input fields + generate button + output
+  // tools.json: { type: "dev-tools", genFn: "function(inputs) { ... }", btnLabel: "生成", outputLabel: "结果", fields: [{id, label, type, placeholder}] }
+  'dev-tools': {
+    description: '开发者工具（生成器类）',
+    html: function(tool) {
+      var fields = '';
+      if (tool.fields && tool.fields.length) {
+        tool.fields.forEach(function(f) {
+          if (f.type === 'select') {
+            var opts = f.options.map(function(o) { return '<option value="' + o.value + '">' + o.label + '</option>'; }).join('');
+            fields += '<div class="input-field"><label>' + f.label + '</label><select id="' + f.id + '">' + opts + '</select></div>';
+          } else {
+            fields += '<div class="input-field"><label>' + f.label + '</label><input type="' + (f.type || 'text') + '" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+          }
+        });
+      }
+      var btnLabel = tool.btnLabel || '生成';
+      var outputLabel = tool.outputLabel || '结果';
+      return '<div class="tool-card">' + (fields ? '<h3>参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div>' : '') + '<div class="btn-row"><button class="btn btn-primary" id="genBtn">' + btnLabel + '</button></div></div><div class="output-box"><h3>' + outputLabel + ' <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+    },
+    script: function(tool) {
+      var genFn = tool.genFn || 'function(inputs){ return "请实现生成逻辑"; }';
+      var genFnEscaped = genFn.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      var fieldParts = (tool.fields || []).map(function(f) {
+        return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;\n  inputs["' + f.id + '_el"] = document.getElementById("' + f.id + '");';
+      });
+      var fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
+      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var genFnObj = new Function(\'return \' + genFn)();\n  var result = genFnObj(inputs);\n  document.getElementById("output").value = (typeof result === \'object\' && result !== null && result.result !== undefined) ? result.result : String(result);\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };';
+    }
+  },
+
   'tool-generator': {
     description: '生成器工具（支持 outputLabel 自定义输出区标题）',
     html: function(tool) {
