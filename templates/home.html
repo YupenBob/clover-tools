@@ -160,13 +160,12 @@
     }
 
     .quick-tools-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      opacity: 0.5;
+      font-size: 0.85rem;
+      opacity: 0.7;
       text-align: center;
       margin-bottom: 0.9rem;
       font-weight: 600;
+      letter-spacing: 0.05em;
     }
     .quick-tools-row {
       display: flex;
@@ -214,6 +213,24 @@
       border-color: var(--primary);
       color: var(--primary);
     }
+    .q-arrow {
+      margin-left: auto;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      transform: translateX(-4px);
+    }
+    .quick-tool-card:hover .q-arrow {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .view-all-link {
+      color: var(--primary);
+      font-size: 0.85rem;
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .view-all-link:hover { opacity: 1; text-decoration: underline; }
   </style>
   <!-- Counter.dev analytics -->
   <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
@@ -248,16 +265,19 @@
 
         <!-- Quick tools -->
         <div class="quick-tools">
-          <div class="quick-tools-title">热门工具 · 随取随用</div>
+          <div class="quick-tools-title">🔥 热门工具</div>
           <div class="quick-tools-row">
-            <a href="/tools/network/json-format.html" class="quick-tool-card"><i class="bi bi-braces"></i>JSON 格式化</a>
-            <a href="/tools/encrypt/base64.html" class="quick-tool-card"><i class="bi bi-lock"></i>Base64 编解码</a>
-            <a href="/tools/code/regex-tester.html" class="quick-tool-card"><i class="bi bi-code-slash"></i>正则测试</a>
-            <a href="/tools/encrypt/url.html" class="quick-tool-card"><i class="bi bi-link-45deg"></i>URL 编码</a>
-            <a href="/tools/time/timestamp.html" class="quick-tool-card"><i class="bi bi-clock"></i>时间戳转换</a>
+            <a href="/tools/json/formatter.html" class="quick-tool-card"><i class="bi bi-braces"></i>JSON 格式化<span class="q-arrow">→</span></a>
+            <a href="/tools/encrypt/base64.html" class="quick-tool-card"><i class="bi bi-lock"></i>Base64 编解码<span class="q-arrow">→</span></a>
+            <a href="/tools/code/regex-tester.html" class="quick-tool-card"><i class="bi bi-code-slash"></i>正则测试<span class="q-arrow">→</span></a>
+            <a href="/tools/encrypt/url.html" class="quick-tool-card"><i class="bi bi-link-45deg"></i>URL 编码<span class="q-arrow">→</span></a>
+            <a href="/tools/time/timestamp.html" class="quick-tool-card"><i class="bi bi-clock"></i>时间戳转换<span class="q-arrow">→</span></a>
+          </div>
+          <div style="text-align:center;margin-top:0.75rem;">
+            <a href="/tools/json/formatter.html" class="view-all-link">查看全部 {{TOOL_COUNT}} 个工具 →</a>
           </div>
 
-          <div class="quick-tools-title" style="margin-top:2rem;">特别推荐</div>
+          <div class="quick-tools-title" style="margin-top:2rem;">✨ 特别推荐</div>
           <div class="quick-tools-row" style="justify-content:center;">
             <a href="https://aiti.xsanye.cn" target="_blank" class="quick-tool-card" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-color:transparent;"><i class="bi bi-person-badge"></i> AITI 硅基人格测试</a>
           </div>
@@ -286,10 +306,8 @@
     // Category grid filter
     const catBtns = document.querySelectorAll('.cat-btn');
     const categoryCards = document.querySelectorAll('.category');
-    
+
     catBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        
       btn.addEventListener('click', () => {
         const cat = btn.dataset.cat;
         const isActive = btn.classList.contains('active');
@@ -306,10 +324,17 @@
       });
     });
 
-    // Search
+    // Search (filters both quick-tool-cards and category items)
     const searchInput = document.getElementById('tool-search');
+    const quickToolCards = document.querySelectorAll('.quick-tool-card');
     searchInput.addEventListener('input', () => {
       const q = searchInput.value.trim().toLowerCase();
+      // Filter quick-tool-cards
+      quickToolCards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = !q || text.includes(q) ? '' : 'none';
+      });
+      // Filter category items
       categoryCards.forEach(card => {
         const items = card.querySelectorAll('li');
         let anyVisible = false;
