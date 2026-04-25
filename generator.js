@@ -149,8 +149,10 @@ const TOOL_TYPE_REGISTRY = {
     script: function(tool) {
       return `
       var mode = 'forward';
-      var fwd = ${JSON.stringify(tool.forwardFn || 'function(v){return v;}')};
-      var rev = ${JSON.stringify(tool.reverseFn || 'function(v){return v;}')};
+      var _fwd = ${JSON.stringify(tool.forwardFn || 'function(v){return v;}')};
+      var _rev = ${JSON.stringify(tool.reverseFn || 'function(v){return v;}')};
+      var fwd = new Function('return ' + _fwd)();
+      var rev = new Function('return ' + _rev)();
       var fwdLabel = ${JSON.stringify(tool.btnLabel1 || '编码')};
       var revLabel = ${JSON.stringify(tool.btnLabel2 || '解码')};
       function run() {
