@@ -1013,6 +1013,7 @@ function generateAboutPage() {
   <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造，是一款轻量级开发者工具箱，无需注册，完全本地运行。">
   <link rel="canonical" href="https://tools.xsanye.cn/about">
   <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/shared.css">
   <script src="/src/shared.js"></script>
   <style>
     /* ── Base reset ── */
