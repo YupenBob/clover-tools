@@ -258,7 +258,8 @@
       visibility: visible;
     }
     .search-wrap.overlay-active {
-      z-index: 60;
+      z-index: 1010;
+      position: relative;
     }
     .search-wrap.overlay-active #hero-search {
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
@@ -286,12 +287,6 @@
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
-      position: fixed;
-      top: auto;
-      left: 50%;
-      transform: translateX(-50%) translateY(0);
-      width: min(600px, 90vw);
-      z-index: 1001;
     }
     .search-result-item {
       display: flex;
