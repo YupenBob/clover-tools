@@ -242,6 +242,94 @@
     }
     .cat-btn:hover .cat-count { color: var(--primary); opacity: 1; }
 
+    /* Search Overlay */
+    .search-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .search-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .search-wrap.overlay-active {
+      z-index: 60;
+    }
+    .search-wrap.overlay-active #hero-search {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      border-color: var(--primary);
+    }
+    /* Search Results Panel */
+    .search-results-panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 8px);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      max-height: 340px;
+      overflow-y: auto;
+      z-index: 61;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+    .search-results-panel.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: var(--bg-secondary); }
+    .search-result-item .sr-icon { font-size: 1.15rem; color: var(--primary); flex-shrink: 0; }
+    .search-result-item .sr-info { flex: 1; min-width: 0; }
+    .search-result-item .sr-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-result-item .sr-desc {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-result-item .sr-tag {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      padding: 1px 6px;
+      flex-shrink: 0;
+    }
+    .search-results-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
     /* Footer */
     .site-footer {
       text-align: center;
@@ -274,8 +362,12 @@
       spellcheck="false"
     />
     <button id="randomBtn" class="btn btn-secondary" title="随机工具">🎲 随机</button>
+    <div class="search-results-panel" id="searchResultsPanel"></div>
   </div>
 </section>
+
+<!-- Search Overlay (fixed fullscreen backdrop) -->
+<div class="search-overlay" id="searchOverlay"></div>
 
 <!-- Hot Tools -->
 <section class="section">
