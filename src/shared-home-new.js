@@ -125,22 +125,61 @@ CT.initSearchOverlay = function() {
   if (!searchInput || !overlay || !resultsPanel || !searchWrap) return;
 
   var isOpen = false;
+  var floatingBar = null;
 
   function openOverlay() {
     if (isOpen) return;
     isOpen = true;
-    overlay.classList.add('active');
-    searchWrap.classList.add('overlay-active');
+
+    // Create floating search bar at top
+    floatingBar = document.createElement('div');
+    floatingBar.id = 'floatingSearchBar';
+    floatingBar.innerHTML = '<div class="floating-search-inner"><input type="text" id="floatingSearchInput" placeholder="搜索工具..." autocomplete="off"/><button id="closeSearchBtn">×</button></div>';
+    floatingBar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.15);opacity:0;transform:translateY(-20px);transition:opacity 0.2s,transform 0.2s;';
+    document.body.appendChild(floatingBar);
+
+    // Fade in
+    requestAnimationFrame(function() {
+      floatingBar.style.opacity = '1';
+      floatingBar.style.transform = 'translateY(0)';
+    });
+
+    // Sync value from original input
+    var floatingInput = document.getElementById('floatingSearchInput');
+    floatingInput.value = searchInput.value;
+    floatingInput.focus();
+
+    // Sync typing back to original
+    floatingInput.addEventListener('input', function() {
+      searchInput.value = floatingInput.value;
+      updateResults();
+    });
+
+    // Close button
+    document.getElementById('closeSearchBtn').addEventListener('click', closeOverlay);
+
+    // Show results panel
+    resultsPanel.classList.add('active');
     updateResults();
   }
 
   function closeOverlay() {
     if (!isOpen) return;
     isOpen = false;
-    overlay.classList.remove('active');
-    searchWrap.classList.remove('overlay-active');
+
+    // Fade out and remove floating bar
+    if (floatingBar) {
+      floatingBar.style.opacity = '0';
+      floatingBar.style.transform = 'translateY(-20px)';
+      setTimeout(function() {
+        if (floatingBar && floatingBar.parentNode) floatingBar.parentNode.removeChild(floatingBar);
+        floatingBar = null;
+      }, 200);
+    }
+
     resultsPanel.classList.remove('active');
     resultsPanel.innerHTML = '';
+    searchInput.value = '';
     searchInput.blur();
   }
 
@@ -184,12 +223,9 @@ CT.initSearchOverlay = function() {
         html += '<div class="search-results-empty">还有 ' + (matches.length - 8) + ' 个结果，继续输入以精确查找</div>';
       }
       resultsPanel.innerHTML = html;
-      resultsPanel.classList.add('active');
     } else if (query) {
       resultsPanel.innerHTML = '<div class="search-results-empty">未找到匹配的工具</div>';
-      resultsPanel.classList.add('active');
     } else {
-      resultsPanel.classList.remove('active');
       resultsPanel.innerHTML = '';
     }
   }
@@ -199,19 +235,21 @@ CT.initSearchOverlay = function() {
     openOverlay();
   });
 
-  // Input → update results panel (card filtering handled by CT.initTools)
-  searchInput.addEventListener('input', function() {
-    updateResults();
-  });
-
-  // Click on overlay backdrop → close
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) closeOverlay();
-  });
-
   // ESC key → close
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && isOpen) {
+      closeOverlay();
+    }
+  });
+
+  // Click outside floating bar → close
+  document.addEventListener('click', function(e) {
+    if (!isOpen) return;
+    var floatingBarEl = document.getElementById('floatingSearchBar');
+    var floatingInput = document.getElementById('floatingSearchInput');
+    if (floatingBarEl && floatingInput &&
+        !floatingBarEl.contains(e.target) &&
+        !searchWrap.contains(e.target)) {
       closeOverlay();
     }
   });
