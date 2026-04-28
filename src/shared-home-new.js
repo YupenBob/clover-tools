@@ -126,51 +126,63 @@ CT.initSearchOverlay = function() {
 
   var isOpen = false;
   var floatingBar = null;
+  var clickGuard = false; // prevents close right after open
 
   function openOverlay() {
     if (isOpen) return;
     isOpen = true;
+    clickGuard = true; // ignore clicks for 200ms
 
     // Create floating search bar at top
     floatingBar = document.createElement('div');
     floatingBar.id = 'floatingSearchBar';
     floatingBar.innerHTML = '<div class="floating-search-inner"><input type="text" id="floatingSearchInput" placeholder="搜索工具..." autocomplete="off"/><button id="closeSearchBtn">×</button></div>';
-    floatingBar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.15);opacity:0;transform:translateY(-20px);transition:opacity 0.2s,transform 0.2s;';
+    floatingBar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,0.15);transition:opacity 0.2s,transform 0.2s;';
     document.body.appendChild(floatingBar);
-
     // Fade in
     requestAnimationFrame(function() {
       floatingBar.style.opacity = '1';
       floatingBar.style.transform = 'translateY(0)';
     });
 
-    // Sync value from original input
+    // Position results panel right below floating bar
+    resultsPanel.style.position = 'fixed';
+    resultsPanel.style.top = '64px';
+    resultsPanel.style.left = '50%';
+    resultsPanel.style.transform = 'translateX(-50%)';
+    resultsPanel.style.width = '600px';
+    resultsPanel.style.maxWidth = '90vw';
+    resultsPanel.style.zIndex = '9998';
+    resultsPanel.style.opacity = '0';
+    resultsPanel.style.transition = 'opacity 0.2s';
+    requestAnimationFrame(function() {
+      resultsPanel.classList.add('active');
+      requestAnimationFrame(function() { resultsPanel.style.opacity = '1'; });
+    });
+
     var floatingInput = document.getElementById('floatingSearchInput');
     floatingInput.value = searchInput.value;
     floatingInput.focus();
 
-    // Sync typing back to original
     floatingInput.addEventListener('input', function() {
       searchInput.value = floatingInput.value;
       updateResults();
     });
 
-    // Close button
     document.getElementById('closeSearchBtn').addEventListener('click', closeOverlay);
 
-    // Show results panel
-    resultsPanel.classList.add('active');
     updateResults();
+
+    setTimeout(function() { clickGuard = false; }, 200);
   }
 
   function closeOverlay() {
     if (!isOpen) return;
     isOpen = false;
 
-    // Fade out and remove floating bar
     if (floatingBar) {
       floatingBar.style.opacity = '0';
-      floatingBar.style.transform = 'translateY(-20px)';
+      floatingBar.style.transform = 'translateY(-10px)';
       setTimeout(function() {
         if (floatingBar && floatingBar.parentNode) floatingBar.parentNode.removeChild(floatingBar);
         floatingBar = null;
@@ -178,6 +190,12 @@ CT.initSearchOverlay = function() {
     }
 
     resultsPanel.classList.remove('active');
+    resultsPanel.style.opacity = '';
+    resultsPanel.style.top = '';
+    resultsPanel.style.left = '';
+    resultsPanel.style.transform = '';
+    resultsPanel.style.width = '';
+    resultsPanel.style.zIndex = '';
     resultsPanel.innerHTML = '';
     searchInput.value = '';
     searchInput.blur();
@@ -242,14 +260,16 @@ CT.initSearchOverlay = function() {
     }
   });
 
-  // Click outside floating bar → close
+  // Click outside floating bar + results → close
   document.addEventListener('click', function(e) {
-    if (!isOpen) return;
+    if (!isOpen || clickGuard) return;
     var floatingBarEl = document.getElementById('floatingSearchBar');
     var floatingInput = document.getElementById('floatingSearchInput');
-    if (floatingBarEl && floatingInput &&
-        !floatingBarEl.contains(e.target) &&
-        !searchWrap.contains(e.target)) {
+    if (!floatingBarEl || !floatingInput) return;
+    var clickedOnFloating = floatingBarEl.contains(e.target) || floatingInput.contains(e.target);
+    var clickedOnResults = resultsPanel.contains(e.target);
+    var clickedOnOriginalSearch = searchWrap.contains(e.target);
+    if (!clickedOnFloating && !clickedOnResults && !clickedOnOriginalSearch) {
       closeOverlay();
     }
   });
