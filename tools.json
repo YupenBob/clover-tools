@@ -259,7 +259,8 @@
         ],
         "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=0;if(from===\"b2kb\")r=n/1024;else if(from===\"kb2b\")r=n*1024;else if(from===\"b2mb\")r=n/1048576;else if(from===\"mb2b\")r=n*1048576;else if(from===\"b2gb\")r=n/1073741824;else if(from===\"gb2b\")r=n*1073741824;return r.toFixed(6).replace(/\\.?0+$/,\"\");}",
         "icon": "bi bi-code-slash",
-        "title": "字节转换 - B/KB/MB/GB单位互转"
+        "title": "字节转换 - B/KB/MB/GB单位互转",
+        "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var unit=inputs.unit||'B';var units={'B':1,'KB':1024,'MB':1048576,'GB':1073741824};var bytes=v*(units[unit]||1);var r='输入: '+v+' '+unit+'\nB: '+bytes+'\nKB: '+(bytes/1024).toFixed(4)+'\nMB: '+(bytes/1048576).toFixed(6)+'\nGB: '+(bytes/1073741824).toFixed(8);return{result:r};}"
       },
       {
         "name": "可视化颜色选择器",
@@ -366,7 +367,8 @@
         ],
         "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=n;if(from===\"px2rem\")r=n/16;else if(from===\"rem2px\")r=n*16;else if(from===\"px2em\")r=n/16;else if(from===\"em2px\")r=n*16;return r.toFixed(4);}",
         "icon": "bi bi-code-slash",
-        "title": "CSS单位互转 - PX/REM/EM单位相互转换"
+        "title": "CSS单位互转 - PX/REM/EM单位相互转换",
+        "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var from=inputs.from||'px';var to=inputs.to||'rem';var px=from==='px'?v:from==='pt'?v*1.3333:from==='rem'?v*16:from==='em'?v*16:v;var r=to==='px'?px:to==='pt'?px/1.3333:to==='rem'?px/16:to==='em'?px/16:px;return{result:px+'px = '+r.toFixed(4)+to};}"
       },
       {
         "name": "CSS压缩格式化",
@@ -474,7 +476,8 @@
         "keywords": "JSON压缩，JSON格式化，JSON压缩器，JSON格式化工具，JSON压缩格式化，JSON在线压缩，JSON在线格式化",
         "type": "code",
         "icon": "bi bi-braces",
-        "title": "JSON压缩/格式化"
+        "title": "JSON压缩/格式化",
+        "customScript": "document.getElementById('formatBtn').onclick=function(){try{var obj=JSON.parse(document.getElementById('input').value);document.getElementById('output').value=JSON.stringify(obj,null,2);}catch(e){document.getElementById('output').value='JSON错误: '+e.message;}};document.getElementById('compressBtn').onclick=function(){try{var obj=JSON.parse(document.getElementById('input').value);document.getElementById('output').value=JSON.stringify(obj);}catch(e){document.getElementById('output').value='JSON错误: '+e.message;}};"
       },
       {
         "name": "JSON 数据对比",
@@ -672,7 +675,8 @@
         "btnLabel": "生成",
         "generateFn": "function(inputs){var count=parseInt(inputs.count)||10;var type=inputs.type||\"ipv4\";var r=[];if(type===\"ipv4\"){for(var i=0;i<count;i++){r.push(Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256)+\".\"+Math.floor(Math.random()*256));}}else{for(var i=0;i<count;i++){var h=[];for(var j=0;j<8;j++)h.push(Math.floor(Math.random()*65536).toString(16).padStart(4,\"0\"));r.push(h.join(\":\"));}}return r.join(\"\\n\");}",
         "icon": "bi bi-code-slash",
-        "title": "随机IP地址生成器 - 批量生成IPv4或IPv6地址"
+        "title": "随机IP地址生成器 - 批量生成IPv4或IPv6地址",
+        "customScript": "document.getElementById('genBtn').onclick=function(){var count=parseInt(document.getElementById('count').value)||10;var result='';for(var i=0;i<count;i++){result+=Math.floor(Math.random()*256)+'.'+Math.floor(Math.random()*256)+'.'+Math.floor(Math.random()*256)+'.'+Math.floor(Math.random()*256)+'\\n';}document.getElementById('output').value=result;};"
       },
       {
         "name": "随机MAC地址生成器",
@@ -691,7 +695,8 @@
         "btnLabel": "生成",
         "generateFn": "function(inputs){var count=parseInt(inputs.count)||10;var r=[];for(var i=0;i<count;i++){var b=[];for(var j=0;j<6;j++)b.push(Math.floor(Math.random()*256).toString(16).padStart(2,\"0\"));r.push(b.join(\":\"));}return r.join(\"\\n\");}",
         "icon": "bi bi-code-slash",
-        "title": "随机MAC地址生成器 - 批量生成随机MAC地址"
+        "title": "随机MAC地址生成器 - 批量生成随机MAC地址",
+        "customScript": "document.getElementById('genBtn').onclick=function(){var count=parseInt(document.getElementById('count').value)||10;var hex=function(){return Math.floor(Math.random()*256).toString(16).padStart(2,'0');};var result='';for(var i=0;i<count;i++){result+=hex()+':'+hex()+':'+hex()+':'+hex()+':'+hex()+':'+hex()+'\\n';}document.getElementById('output').value=result;};"
       },
       {
         "name": "正则表达式生成器",
@@ -700,7 +705,8 @@
         "keywords": "正则表达式生成器，RegExp生成，正则自动生成，正则表达式工具，正则匹配，邮箱正则，手机号正则，身份证正则",
         "type": "code",
         "icon": "bi bi-lightning-charge",
-        "title": "正则表达式生成器"
+        "title": "正则表达式生成器",
+        "customScript": "var templates={'手机号':'/^1[3-9]\\d{9}$/','邮箱':'/^[\\w.-]+@[\\w.-]+\\.\\w+$/','URL':'/^https?:\\/\\/[^\\s]+$/','IP地址':'/^(\\d{1,3}\\.){3}\\d{1,3}$/','身份证':'/^\\d{17}[\\dXx]$/'};document.getElementById('genBtn').onclick=function(){var key=document.getElementById('template').value;document.getElementById('output').value=templates[key]||'请选择模板';};"
       },
       {
         "name": "正则表达式测试器",
@@ -742,7 +748,8 @@
         ],
         "convertFn": "function(v,from,to){if(from===\"int2roman\"){var n=parseInt(v)||0;var r=\"\";var d=[[1000,\"M\"],[900,\"CM\"],[500,\"D\"],[400,\"CD\"],[100,\"C\"],[90,\"XC\"],[50,\"L\"],[40,\"XL\"],[10,\"X\"],[9,\"IX\"],[5,\"V\"],[4,\"IV\"],[1,\"I\"]];for(var i=0;i<d.length;i++){while(n>=d[i][0]){r+=d[i][1];n-=d[i][0];}}return r;}else{var s=v.toUpperCase();var d={\"M\":1000,\"D\":500,\"C\":100,\"L\":50,\"X\":10,\"V\":5,\"I\":1};var r=0;for(var i=0;i<s.length;i++){var v1=d[s[i]];var v2=d[s[i+1]]||0;r+=v1<v2?-v1:v1;}return r;}}}",
         "icon": "bi bi-code-slash",
-        "title": "罗马数字转换 - 阿拉伯数字与罗马数字互转"
+        "title": "罗马数字转换 - 阿拉伯数字与罗马数字互转",
+        "genFn": "function(inputs){var v=inputs.value||'';if(!isNaN(v)){v=parseInt(v);var d=['','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];var n=[1000,900,500,400,100,90,50,40,10,9,5,4,1];var r='';for(var i=0;i<13;i++)while(v>=n[i]){r+=d[i];v-=n[i];}return{result:r};}else{var m={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000};var r=0;for(var i=0;i<v.length;i++)r+=(i+1<v.length&&m[v[i]]<m[v[i+1]])?-m[v[i]]:m[v[i]];return{result:r};}}"
       },
       {
         "name": "SQL 格式化",
@@ -824,7 +831,8 @@
         "keywords": "XML格式化，XML压缩，XML美化，XML在线格式化，XML压缩工具，XML语法校验，XML编辑",
         "type": "code",
         "icon": "bi bi-code-slash",
-        "title": "XML格式化/压缩"
+        "title": "XML格式化/压缩",
+        "customScript": "document.getElementById('formatBtn').onclick=function(){var xml=document.getElementById('input').value;var formatted=xml.replace(/(>)(<\\/\\w+>)/g,'$1\\n$2').replace(/(<\\w+)(>)/g,'$1\\n$2');document.getElementById('output').value=formatted;};document.getElementById('compressBtn').onclick=function(){var xml=document.getElementById('input').value;document.getElementById('output').value=xml.replace(/\\s+/g,' ').trim();};"
       },
       {
         "name": "XML 压缩格式化",
@@ -1344,7 +1352,8 @@
             "value": "xml2json",
             "label": "XML → JSON"
           }
-        ]
+        ],
+        "genFn": "function(inputs){var v=inputs.text.trim();if(inputs.mode==='toXml'){try{var obj=JSON.parse(v);var s='';for(var k in obj)s+='<'+k+'>'+obj[k]+'</'+k+'>';return{result:'<?xml version=\"1.0\"?><root>'+s+'</root>'};}catch(e){return{result:'JSON错误:'+e.message};}}else{return{result:'暂不支持XML转JSON'};}}"
       },
       {
         "name": "JSON ↔ YAML",
@@ -1364,7 +1373,8 @@
             "value": "yaml2json",
             "label": "YAML → JSON"
           }
-        ]
+        ],
+        "genFn": "function(inputs){var v=inputs.text.trim();try{var obj=JSON.parse(v);var s='';for(var k in obj){var val=obj[k];s+=k+': '+(typeof val==='object'?JSON.stringify(val):val)+'\n';}return{result:s};}catch(e){return{result:'JSON错误'};}}"
       },
       {
         "name": "Nano ID生成器",
@@ -1388,7 +1398,8 @@
         ],
         "generateFn": "function(i){var len=parseInt(i.length)||21;var alp=i.alphabet||\"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\";var id=\"\";var bytes=crypto.getRandomValues(new Uint8Array(len));for(var j=0;j<len;j++)id+=alp[bytes[j]%alp.length];return id;}",
         "btnLabel": "生成Nano ID",
-        "title": "Nano ID生成器 - 生成自定义长度随机短ID"
+        "title": "Nano ID生成器 - 生成自定义长度随机短ID",
+        "customScript": "var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/nanoid/3.0.0/nanoid.min.js';script.onload=function(){document.getElementById('genBtn').onclick=function(){var size=parseInt(document.getElementById('size').value)||21;document.getElementById('output').value=window.nanoid(size);};};document.head.appendChild(script);"
       },
       {
         "name": "UUID生成器",
@@ -1399,7 +1410,8 @@
         "icon": "bi bi-braille",
         "generateFn": "function(){return \"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx\".replace(/[xy]/g,function(c){var r=Math.random()*16|0;return(c===\"x\"?r:(r&0x3|0x8)).toString(16);});}",
         "btnLabel": "生成UUID",
-        "title": "UUID生成器 - 生成RFC 4122标准UUID v4"
+        "title": "UUID生成器 - 生成RFC 4122标准UUID v4",
+        "customScript": "document.getElementById('genBtn').onclick=function(){var count=parseInt(document.getElementById('count').value)||1;var result='';for(var i=0;i<count;i++){var uuid='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8).toString(16));});result+=uuid+'\\n';}document.getElementById('output').value=result;};"
       },
       {
         "name": "LESS转CSS",
@@ -1422,7 +1434,8 @@
         "keywords": "AES加密，AES解密，AES-128，AES-256，CBC模式，对称加密，数据加密，密码学",
         "type": "encrypt",
         "icon": "bi bi-lock-fill",
-        "title": "AES加密/解密"
+        "title": "AES加密/解密",
+        "customScript": "var CryptoJS=null;var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';script.onload=function(){CryptoJS=window.CryptoJS;};document.head.appendChild(script);document.getElementById('encryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='库加载中...';return;}var text=document.getElementById('input').value;var key=document.getElementById('key').value;if(!text||!key){document.getElementById('output').value='请输入文本和密钥';return;}document.getElementById('output').value=CryptoJS.AES.encrypt(text,key).toString();};document.getElementById('decryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='库加载中...';return;}var cipher=document.getElementById('input').value;var key=document.getElementById('key').value;try{document.getElementById('output').value=CryptoJS.AES.decrypt(cipher,key).toString(CryptoJS.enc.Utf8);}catch(e){document.getElementById('output').value='解密失败';}};"
       },
       {
         "name": "Base64加密/解密",
@@ -1444,7 +1457,8 @@
         "keywords": "Bcrypt加密,Bcrypt校验,密码哈希,bcrypt,Password Hash,安全加密,密码学,加密工具",
         "type": "encoder",
         "icon": "bi bi-shield-lock",
-        "title": "Bcrypt加密/校验 - 在线Bcrypt密码哈希加解密工具"
+        "title": "Bcrypt加密/校验 - 在线Bcrypt密码哈希加解密工具",
+        "customScript": "var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js';script.onload=function(){document.getElementById('hashBtn').onclick=function(){var p=document.getElementById('password').value;dcodePassword(p,function(hash){document.getElementById('output').value='hash:'+hash;});};document.getElementById('verifyBtn').onclick=function(){var p=document.getElementById('password').value;var h=document.getElementById('hashInput').value;dcodePassword(p,function(hash){document.getElementById('output').value=''+ (hash===h);});};};document.head.appendChild(script);function dcodePassword(password,callback){var salt=bcrypt.genSaltSync(10);var hash=bcrypt.hashSync(password,salt);callback(hash);}"
       },
       {
         "name": "DES加密/解密",
@@ -1453,7 +1467,8 @@
         "keywords": "DES加密,DES解密,对称加密,Data Encryption Standard,加密算法,密码学,在线DES,ECB,CBC",
         "type": "encoder",
         "icon": "bi bi-shield-lock",
-        "title": "DES加密/解密 - 在线DES对称加密解密工具"
+        "title": "DES加密/解密 - 在线DES对称加密解密工具",
+        "customScript": "var CryptoJS=null;var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';script.onload=function(){CryptoJS=window.CryptoJS;};document.head.appendChild(script);document.getElementById('encryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}var text=document.getElementById('input').value;var key=document.getElementById('key').value;document.getElementById('output').value=CryptoJS.DES.encrypt(text,key).toString();};document.getElementById('decryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}try{document.getElementById('output').value=CryptoJS.DES.decrypt(document.getElementById('input').value,document.getElementById('key').value).toString(CryptoJS.enc.Utf8);}catch(e){document.getElementById('output').value='解密失败';}};"
       },
       {
         "name": "16进制转字符串",
@@ -1473,7 +1488,8 @@
         ],
         "convertFn": "function(v,from,to){if(from===\"hex2str\"){try{var s=\"\";for(var i=0;i<v.length;i+=2)s+=String.fromCharCode(parseInt(v.substr(i,2),16));return s;}catch(e){return\"错误: \"+e.message;}}else{var s=\"\";for(var i=0;i<v.length;i++)s+=v.charCodeAt(i).toString(16).padStart(2,\"0\");return s;}}}",
         "icon": "bi bi-shield-lock-fill",
-        "title": "16进制转字符串 - 十六进制与可读文本之间的双向转换"
+        "title": "16进制转字符串 - 十六进制与可读文本之间的双向转换",
+        "genFn": "function(inputs){var v=inputs.text.trim();if(inputs.mode==='toHex'){var r='';for(var i=0;i<v.length;i++)r+=v.charCodeAt(i).toString(16).padStart(2,'0');return{result:r};}else{var s='';for(var i=0;i<v.length;i+=2)s+=String.fromCharCode(parseInt(v.substr(i,2),16));return{result:s};}}"
       },
       {
         "name": "JWT解密",
@@ -1533,7 +1549,8 @@
         "keywords": "Rabbit加密,Rabbit解密,流密码,Stream Cipher,Rabbit算法,加密工具,在线加密",
         "type": "encoder",
         "icon": "bi bi-shield-lock",
-        "title": "Rabbit加密/解密 - 在线Rabbit流密码加解密工具"
+        "title": "Rabbit加密/解密 - 在线Rabbit流密码加解密工具",
+        "customScript": "var CryptoJS=null;var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';script.onload=function(){CryptoJS=window.CryptoJS;};document.head.appendChild(script);document.getElementById('encryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}document.getElementById('output').value=CryptoJS.Rabbit.encrypt(document.getElementById('input').value,document.getElementById('key').value).toString();};document.getElementById('decryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}try{document.getElementById('output').value=CryptoJS.Rabbit.decrypt(document.getElementById('input').value,document.getElementById('key').value).toString(CryptoJS.enc.Utf8);}catch(e){document.getElementById('output').value='解密失败';}};"
       },
       {
         "name": "RC4加密/解密",
@@ -1542,7 +1559,8 @@
         "keywords": "RC4加密,RC4解密,流密码,Stream Cipher,RC4算法,在线加密,密码学,WEP加密",
         "type": "encoder",
         "icon": "bi bi-shield-lock",
-        "title": "RC4加密/解密 - 在线RC4流密码加解密工具"
+        "title": "RC4加密/解密 - 在线RC4流密码加解密工具",
+        "customScript": "var CryptoJS=null;var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';script.onload=function(){CryptoJS=window.CryptoJS;};document.head.appendChild(script);document.getElementById('encryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}document.getElementById('output').value=CryptoJS.RC4.encrypt(document.getElementById('input').value,document.getElementById('key').value).toString();};document.getElementById('decryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='加载中...';return;}try{document.getElementById('output').value=CryptoJS.RC4.decrypt(document.getElementById('input').value,document.getElementById('key').value).toString(CryptoJS.enc.Utf8);}catch(e){document.getElementById('output').value='解密失败';}};"
       },
       {
         "name": "SHA加密",
@@ -1704,7 +1722,8 @@
             "value": "t2s",
             "label": "繁体 → 简体"
           }
-        ]
+        ],
+        "genFn": "function(inputs){var v=inputs.text||'';var s={'啊':'啊','爱':'愛','被':'被','变':'變'};if(inputs.mode==='toSimple'){var r=v;for(var k in s)r=r.replace(new RegExp(k,'g'),s[k].normalize('NFD')[0]);return{result:r};}return{result:'请使用customScript'};}"
       },
       {
         "name": "汉字转拼音",
@@ -1724,7 +1743,8 @@
         "keywords": "正则替换,字符串替换,正则表达式,regex replace,批量替换,文本替换,捕获组,在线正则替换",
         "type": "diff",
         "icon": "bi bi-find-replace",
-        "title": "正则替换字符串 - 正则表达式批量文本替换工具"
+        "title": "正则替换字符串 - 正则表达式批量文本替换工具",
+        "customScript": "document.getElementById('replaceBtn').onclick=function(){var text=document.getElementById('input').value;var pattern=document.getElementById('pattern').value;var replacement=document.getElementById('replacement').value;try{var regex=new RegExp(pattern,'g');document.getElementById('output').value=text.replace(regex,replacement);}catch(e){document.getElementById('output').value='正则错误: '+e.message;}};"
       },
       {
         "name": "字符串数组排序",
@@ -1873,7 +1893,8 @@
         "keywords": "万年历，在线万年历，公历农历，农历查询，日历，节气，节假日，日期查询，历史日历",
         "type": "time",
         "icon": "bi bi-calendar3-fill",
-        "title": "在线万年历"
+        "title": "在线万年历",
+        "customScript": "document.getElementById('showBtn').onclick=function(){var year=parseInt(document.getElementById('year').value)||new Date().getFullYear();var month=parseInt(document.getElementById('month').value)||new Date().getMonth()+1;var cal='<div style=\"display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;\"><div style=\"background:#f0f0f0;padding:4px;\">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>';var firstDay=new Date(year,month-1,1).getDay();var days=new Date(year,month,0).getDate();for(var i=0;i<firstDay;i++)cal+='<div></div>';for(var d=1;d<=days;d++)cal+='<div style=\"padding:4px;border:1px solid #ddd;\">'+d+'</div>';cal+='</div>';document.getElementById('calendar').innerHTML=cal;};"
       },
       {
         "name": "在线倒计时",
@@ -2035,7 +2056,8 @@
         "renderFn": "function(data,search){if(!data||!data.length)return\"<div style=padding:1rem;color:#999;>无匹配结果</div>\";var h=\"<table style=width:100%;border-collapse:collapse;font-size:0.9rem;><tr style=background:var(--primary);color:#fff;><th style=padding:0.5rem;text-align:left;>按键</th><th style=padding:0.5rem;text-align:left;>说明</th></tr>\";data.forEach(function(item){h+=\"<tr style=border-bottom:1px solid var(--border);><td style=padding:0.5rem;font-family:monospace;>\"+item.key+\"</td><td style=padding:0.5rem;>\"+item.code+\"</td></tr>\";});h+=\"</table>\";return h;}",
         "searchLabel": "搜索按键",
         "icon": "bi bi-house-heart-fill",
-        "title": "键盘按键测试 - 查看按键对应键码和key值的在线工具"
+        "title": "键盘按键测试 - 查看按键对应键码和key值的在线工具",
+        "customScript": "document.addEventListener('keydown',function(e){document.getElementById('code').textContent=e.code;document.getElementById('key').textContent=e.key;document.getElementById('which').textContent=e.which;document.getElementById('event').innerHTML='<pre>'+JSON.stringify({code:e.code,key:e.key,which:e.which,ctrlKey:e.ctrlKey,shiftKey:e.shiftKey,altKey:e.altKey},null,2)+'</pre>';});"
       },
       {
         "name": "年会抽奖工具",
@@ -2054,7 +2076,8 @@
         "btnLabel": "开始抽奖",
         "generateFn": "function(inputs){var names=inputs.names.split(\"\\n\").filter(function(n){return n.trim();});if(names.length===0)return\"请输入参与者名单\";var winner=names[Math.floor(Math.random()*names.length)];return\"🎉 恭喜！中奖者：\"+winner;}",
         "icon": "bi bi-house-heart-fill",
-        "title": "年会抽奖工具 - 从名单中随机抽取中奖者适用于年会活动"
+        "title": "年会抽奖工具 - 从名单中随机抽取中奖者适用于年会活动",
+        "customScript": "var names=[];var running=false;var timer=null;document.getElementById('addBtn').onclick=function(){var name=document.getElementById('nameInput').value.trim();if(name){names.push(name);document.getElementById('nameList').value=names.join('\\n');document.getElementById('nameInput').value='';}};document.getElementById('startBtn').onclick=function(){if(names.length===0){alert('请先添加名单');return;}running=true;timer=setInterval(function(){document.getElementById('result').textContent=names[Math.floor(Math.random()*names.length)];},100);};document.getElementById('stopBtn').onclick=function(){if(running){clearInterval(timer);running=false;}};"
       },
       {
         "name": "商品比价",
@@ -2224,7 +2247,8 @@
             "value": "bin2hex",
             "label": "二进制 → 十六进制"
           }
-        ]
+        ],
+        "genFn": "function(inputs){var v=inputs.value.trim();var base=parseInt(inputs.from)||16;var toBase=parseInt(inputs.to)||10;return{result:parseInt(v,base).toString(toBase).toUpperCase()};}"
       },
       {
         "name": "密码生成器",
@@ -2233,7 +2257,8 @@
         "keywords": "密码生成器，随机密码生成，密码生成工具，强密码生成，安全密码，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "generator",
-        "title": "密码生成器 - 生成自定义长度的高强度随机密码"
+        "title": "密码生成器 - 生成自定义长度的高强度随机密码",
+        "customScript": "document.getElementById('genBtn').onclick=function(){var len=parseInt(document.getElementById('len').value)||16;var useUpper=document.getElementById('upper').checked;var useLower=document.getElementById('lower').checked;var useNum=document.getElementById('num').checked;var useSym=document.getElementById('sym').checked;var chars='';if(useUpper)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';if(useLower)chars+='abcdefghijklmnopqrstuvwxyz';if(useNum)chars+='0123456789';if(useSym)chars+='!@#$%^&*()_+-=[]{}|;';if(!chars)chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';var result='';for(var i=0;i<len;i++)result+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('output').value=result;};"
       },
       {
         "name": "反应力测试",
@@ -2447,7 +2472,8 @@
         "btnLabel": "生成随机数",
         "generateFn": "function(inputs) { var min=parseInt(inputs.min)||0, max=parseInt(inputs.max)||100; if(min>max){var t=min;min=max;max=t;} return Math.floor(Math.random()*(max-min+1))+min; }",
         "icon": "bi bi-calculator",
-        "title": "随机数生成器"
+        "title": "随机数生成器",
+        "customScript": "document.getElementById('genBtn').onclick=function(){var min=parseInt(document.getElementById('min').value)||0;var max=parseInt(document.getElementById('max').value)||100;var count=parseInt(document.getElementById('count').value)||1;var result='';for(var i=0;i<count;i++){result+=Math.floor(Math.random()*(max-min+1))+min+'\\n';}document.getElementById('output').value=result;};"
       },
       {
         "name": "开方计算器",
@@ -2553,7 +2579,8 @@
         ],
         "convertFn": "function(v,from,to){function h2r(h){var m=/^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;}function r2h(r,g,b){return'#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');}function r2hsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,s,h;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];}function r2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),v=mx,s,h;var d=mx-mn;s=mx===0?0:d/mx;if(mx===mn){h=0;}else{switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(v*100)];}function hsl2rgb(h,s,l){h/=360;s/=100;l/=100;var r,g,b;if(s===0){r=g=b=l;}else{var q=l<0.5?l*(1+s):l+s-l*s;var p=2*l-q;r=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h+1/3);g=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h);b=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}function hsv2rgb(h,s,v){h/=360;s/=100;v/=100;var r,g,b;var i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);i=i%6;switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break;}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}var rgb;if(from==='hex'){var p=h2r(v);if(!p)return'无效 HEX 值';rgb=p;}else if(from==='rgb'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 RGB 值';rgb=m.map(Number);}else if(from==='hsl'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSL 值';rgb=hsl2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}else if(from==='hsv'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSV 值';rgb=hsv2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}if(to==='hex')return r2h(rgb[0],rgb[1],rgb[2]);if(to==='rgb')return'rgb('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')';if(to==='hsl'){var h=r2hsl(rgb[0],rgb[1],rgb[2]);return'hsl('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}if(to==='hsv'){var h=r2hsv(rgb[0],rgb[1],rgb[2]);return'hsv('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}}",
         "icon": "bi bi-globe2",
-        "title": "颜色代码转换 - HEX、RGB、HSL、HSV 颜色值互转"
+        "title": "颜色代码转换 - HEX、RGB、HSL、HSV 颜色值互转",
+        "genFn": "function(inputs){var v=(inputs.color||'').replace('#','');if(v.length===6){var r=parseInt(v.substr(0,2),16);var g=parseInt(v.substr(2,2),16);var b=parseInt(v.substr(4,2),16);return{result:'RGB('+r+','+g+','+b+')\nHEX:#'+v.toUpperCase()};}return{result:'请输入6位hex如FF5733'};}"
       },
       {
         "name": "Cron 表达式生成器",
@@ -2576,7 +2603,8 @@
         "data": [],
         "renderFn": "function(data, search) { return '<div class=tool-card><h3>DNS 查询</h3><p style=color:#888;>请在上方搜索框输入域名进行查询（如：example.com）</p></div>'; }",
         "icon": "bi bi-globe2",
-        "title": "DNS 查询 - 查询域名的 DNS 记录与解析信息"
+        "title": "DNS 查询 - 查询域名的 DNS 记录与解析信息",
+        "customScript": "document.getElementById('queryBtn').onclick=function(){var domain=document.getElementById('domain').value.trim();if(!domain)return;var urls=['https://dns.google/resolve?name='+encodeURIComponent(domain),'https://api.shab.com/dns?q='+encodeURIComponent(domain)];fetch(urls[0]).then(function(r){return r.json();}).then(function(data){var result='Domain: '+domain+'\\nType: A\\nTTL: '+data.TTL+'\\n';if(data.Answer)data.Answer.forEach(function(a){result+=a.data+'\\n';});else result+='No A records';document.getElementById('output').value=result;}).catch(function(){document.getElementById('output').value='查询失败，请稍后重试';});};"
       },
       {
         "name": "HTTP 状态码查询",
@@ -2685,7 +2713,8 @@
         ],
         "renderFn": "function(data, search) { var html='<table style=\"width:100%;border-collapse:collapse;\"><thead><tr style=\"background:var(--bg-secondary);\"><th style=\"padding:0.6rem;border:1px solid var(--border);\">状态码</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">名称</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">分类</th><th style=\"padding:0.6rem;border:1px solid var(--border);\">说明</th></tr></thead><tbody>'; data.forEach(function(r){html+='<tr><td style=\"padding:0.5rem;border:1px solid var(--border);font-family:monospace;font-weight:bold;\">'+r.code+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);\">'+r.name+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);font-size:0.85rem;color:var(--text-secondary);\">'+r.category+'</td><td style=\"padding:0.5rem;border:1px solid var(--border);font-size:0.9rem;\">'+r.desc+'</td></tr>';}); html+='</tbody></table>'; return html; }",
         "icon": "bi bi-globe2",
-        "title": "HTTP 状态码查询 - 快速查询 HTTP 状态码含义与分类"
+        "title": "HTTP 状态码查询 - 快速查询 HTTP 状态码含义与分类",
+        "customScript": "var codes={200:'OK - 请求成功',201:'Created - 资源创建成功',204:'No Content - 请求成功但无返回内容',301:'Moved Permanently - 永久重定向',302:'Found - 临时重定向',304:'Not Modified - 使用缓存',400:'Bad Request - 请求语法错误',401:'Unauthorized - 需要认证',403:'Forbidden - 拒绝访问',404:'Not Found - 资源不存在',500:'Internal Server Error - 服务器内部错误',502:'Bad Gateway - 网关错误',503:'Service Unavailable - 服务不可用',504:'Gateway Timeout - 网关超时'};document.getElementById('searchBtn').onclick=function(){var code=document.getElementById('codeInput').value.trim();var result=codes[code]||'未知状态码';document.getElementById('output').value=code+' - '+result;};var all='';for(var c in codes)all+=c+': '+codes[c]+'\\n';document.getElementById('output').value=all;"
       },
       {
         "name": "IP 地址查询",
@@ -2697,7 +2726,8 @@
         "data": [],
         "renderFn": "function(data, search) {\n  var ip = search && search.trim() ? search.trim() : '';\n  var html = '<div class=tool-card><h3>查询结果</h3>';\n  if (!ip) {\n    html += '<p id=ipResult style=color:#888;>正在查询您的 IP 地址...</p></div>';\n    ip = '';\n  } else {\n    html += '<p id=ipResult style=color:#888;>正在查询 ' + ip + '...</p></div>';\n  }\n  var url = ip ? 'https://ipapi.co/' + ip + '/json/' : 'https://ipapi.co/json/';\n  setTimeout(function(){\n    fetch(url).then(function(r){return r.json();}).then(function(d){\n      var el = document.getElementById('ipResult');\n      if (el) {\n        if (d.error) {\n          el.outerHTML = '<p style=color:red;>查询失败：' + (d.reason||'无效的IP地址') + '</p>';\n        } else {\n          el.outerHTML = '<div><p><strong>IP：</strong>' + (d.ip||'未知') + '</p><p><strong>城市：</strong>' + (d.city||'未知') + '</p><p><strong>地区：</strong>' + (d.region||'未知') + '</p><p><strong>国家：</strong>' + (d.country_name||'未知') + '</p><p><strong>运营商：</strong>' + (d.org||'未知') + '</p></div>';\n        }\n      }\n    }).catch(function(e){\n      var el = document.getElementById('ipResult');\n      if (el) el.outerHTML = '<p style=color:red;>查询失败，请稍后重试</p>';\n    });\n  }, 100);\n  return html;\n}",
         "icon": "bi bi-globe2",
-        "title": "IP 地址查询 - 查询本机或任意 IP 的地理位置与归属地信息"
+        "title": "IP 地址查询 - 查询本机或任意 IP 的地理位置与归属地信息",
+        "customScript": "document.getElementById('queryBtn').onclick=function(){fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(data){document.getElementById('output').value='IP: '+data.ip+'\\n国家: '+data.country_name+'\\n城市: '+data.city+'\\n运营商: '+data.org+'\\n时区: '+data.timezone;}).catch(function(){document.getElementById('output').value='查询失败';});};"
       },
       {
         "name": "HTTP 请求测试",
@@ -2732,7 +2762,8 @@
         "data": [],
         "renderFn": "function(data, search) { return '<div class=tool-card><h3>URL 参数解析</h3><p style=color:#888;>在下方搜索框输入完整 URL 进行解析</p></div>'; }",
         "icon": "bi bi-globe2",
-        "title": "URL 参数解析 - 解析 URL 查询字符串并表格化展示"
+        "title": "URL 参数解析 - 解析 URL 查询字符串并表格化展示",
+        "customScript": "document.getElementById('parseBtn').onclick=function(){try{var url=document.getElementById('urlInput').value;var a=document.createElement('a');a.href=url;var result='href: '+a.href+'\\norigin: '+a.origin+'\\nprotocol: '+a.protocol+'\\nhost: '+a.hostname+'\\nport: '+a.port+'\\npathname: '+a.pathname+'\\nsearch: '+a.search+'\\nhash: '+a.hash;var params={};a.search.replace(/([^&=]+)=([^&]*)/g,function(k,v){params[k]=v;});result+='\\n参数:\\n';for(var p in params)result+=p+': '+params[p]+'\\n';document.getElementById('output').value=result;}catch(e){document.getElementById('output').value='URL解析错误: '+e.message;}};"
       }
     ]
   }
