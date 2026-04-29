@@ -558,17 +558,76 @@
 
   // Search handler
   var searchInput = document.getElementById('hero-search');
+  var searchOverlay = document.getElementById('searchOverlay');
+  var searchPanel = document.getElementById('searchResultsPanel');
+  var searchWrap = document.querySelector('.search-wrap');
+
   if (searchInput) {
+    // Open overlay on focus
+    searchInput.addEventListener('focus', function () {
+      if (searchOverlay) searchOverlay.classList.add('active');
+      if (searchWrap) searchWrap.classList.add('overlay-active');
+    });
+
+    // Close overlay on click outside
+    if (searchOverlay) {
+      searchOverlay.addEventListener('click', function () {
+        searchOverlay.classList.remove('active');
+        if (searchWrap) searchWrap.classList.remove('overlay-active');
+        searchInput.blur();
+      });
+    }
+
+    // Real-time search on input
+    searchInput.addEventListener('input', function () {
+      var q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        if (searchPanel) searchPanel.classList.remove('active');
+        return;
+      }
+      var results = TOOLS.filter(function (t) {
+        if (t.name.toLowerCase().includes(q)) return true;
+        var tags = t.tags ? t.tags.split('，') : [];
+        for (var i = 0; i < tags.length; i++) {
+          if (tags[i].toLowerCase().includes(q)) return true;
+        }
+        return false;
+      }).slice(0, 8);
+
+      if (!searchPanel) return;
+      if (results.length === 0) {
+        searchPanel.innerHTML = '<div class="search-results-empty">未找到相关工具</div>';
+        searchPanel.classList.add('active');
+        return;
+      }
+      var html = '';
+      results.forEach(function (t) {
+        html += '<a class="search-result-item" href="/tools/' + t.path + '">' +
+          '<i class="' + (t.icon || 'bi bi-tools') + ' sr-icon"></i>' +
+          '<div class="sr-info">' +
+          '<div class="sr-name">' + t.name + '</div>' +
+          '<div class="sr-desc">' + (t.desc || t.tags || '') + '</div>' +
+          '</div></a>';
+      });
+      searchPanel.innerHTML = html;
+      searchPanel.classList.add('active');
+    });
+
+    // Enter key → go to first result or show toast
     searchInput.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       var q = searchInput.value.trim().toLowerCase();
       if (!q) return;
-      var match = TOOLS.find(function (t) {
-        return t.name.toLowerCase().includes(q) ||
-               (t.tags && t.tags.some(function (tag) { return tag.toLowerCase().includes(q); }));
-      });
-      if (match) {
-        window.location.href = match.path;
+      var results = TOOLS.filter(function (t) {
+        if (t.name.toLowerCase().includes(q)) return true;
+        var tags = t.tags ? t.tags.split('，') : [];
+        for (var i = 0; i < tags.length; i++) {
+          if (tags[i].toLowerCase().includes(q)) return true;
+        }
+        return false;
+      }).slice(0, 1);
+      if (results.length > 0) {
+        window.location.href = results[0].path;
       } else {
         searchInput.style.borderColor = 'var(--primary)';
         setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
