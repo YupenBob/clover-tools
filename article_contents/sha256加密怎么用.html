@@ -1,0 +1,26 @@
+<h2>什么是SHA-256？</h2><p>SHA-256（Secure Hash Algorithm 256-bit）是SHA-2家族中最常用的成员，由美国国家安全局（NSA）设计。它把任意长度的数据"压缩"成一个<strong>固定64个十六进制字符的摘要</strong>。特点：</p><ul><li><strong>单向性</strong>：可以从原数据算出哈希值，但无法从哈希值还原原数据</li><li><strong>确定性</strong>：相同输入永远得到相同输出</li><li><strong>抗碰撞性</strong>：极难找到两组不同数据得到相同哈希</li></ul><h2>一、JavaScript中使用SHA-256</h2><p>现代浏览器内置了Web Crypto API，无需任何库：</p><pre><code>async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+sha256('hello world').then(console.log);
+// 输出: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9</code></pre><h2>二、Node.js中使用SHA-256</h2><pre><code>const crypto = require('crypto');
+
+const hash = crypto.createHash('sha256')
+  .update('hello world')
+  .digest('hex');
+
+console.log(hash);
+// 输出: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9</code></pre><p>注意：Node.js 18+ 也支持 Web Crypto API：<code>node:crypto.subtle</code></p><h2>三、Python中使用SHA-256</h2><pre><code>import hashlib
+
+result = hashlib.sha256('hello world'.encode('utf-8')).hexdigest()
+print(result)
+# 输出: b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9</code></pre><h2>四、SHA-256的常见使用场景</h2><ul><li><strong>密码存储</strong>：数据库存密码的哈希值，不存明文（建议加盐）</li><li><strong>文件完整性校验</strong>：下载文件时对比SHA-256值，防止被篡改</li><li><strong>区块链</strong>：比特币使用的就是SHA-256</li><li><strong>数字签名</strong>：作为签名算法的基础组件</li></ul><h2>五、密码存储的正确方式（加盐）</h2><p>光用SHA-256存密码还不够，需要加盐防止彩虹表攻击：</p><pre><code>// 生成随机盐并存储
+const salt = crypto.randomBytes(16).toString('hex'); // 32字符随机盐
+const hash = crypto.createHash('sha256')
+  .update(salt + password)  // 盐 + 密码一起哈希
+  .digest('hex');
+// 存储: { salt, hash }</code></pre><p>生产环境推荐用专门的密码哈希库（如 bcrypt、Argon2），不要手写。</p><h2>六、工具推荐</h2><ul><li><a href='/tools/encrypt/sha.html' target='_blank'>SHA加密工具</a> — 在线计算SHA-256/384/512，无需编程</li><li><a href='/tools/encrypt/hash.html'>Hash计算器</a> — 同时计算多种哈希算法</li><li><a href='/tools/code/file-hash.html'>文件哈希工具</a> — 计算本地文件的SHA-256校验值</li></ul>

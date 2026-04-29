@@ -1993,6 +1993,21 @@ ${footerHtml}
 
   console.log(`   Generated ${generated} tool pages`);
 
+  // Generate IndexNow key (persist across builds)
+  const INDEXNOW_KEY_PATH = path.join(BASE, 'indexnow-key.txt');
+  const INDEXNOW_KEY_DIST = path.join(DIST_DIR, '.well-known', 'indexnow', 'key.txt');
+  let indexNowKey;
+  if (fs.existsSync(INDEXNOW_KEY_PATH)) {
+    indexNowKey = fs.readFileSync(INDEXNOW_KEY_PATH, 'utf8').trim();
+  } else {
+    const crypto = require('crypto');
+    indexNowKey = crypto.randomBytes(32).toString('hex');
+    fs.writeFileSync(INDEXNOW_KEY_PATH, indexNowKey);
+  }
+  ensureDir(path.join(DIST_DIR, '.well-known', 'indexnow'));
+  fs.writeFileSync(INDEXNOW_KEY_DIST, indexNowKey);
+  console.log('   IndexNow key: ' + indexNowKey);
+
   // Generate blog SEO posts
   generateBlogPosts();
 
