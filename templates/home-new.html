@@ -562,19 +562,25 @@
   var searchPanel = document.getElementById('searchResultsPanel');
   var searchWrap = document.querySelector('.search-wrap');
 
+  var closeTimer;
   if (searchInput) {
     // Open overlay on focus
     searchInput.addEventListener('focus', function () {
+      clearTimeout(closeTimer);
       if (searchOverlay) searchOverlay.classList.add('active');
       if (searchWrap) searchWrap.classList.add('overlay-active');
     });
 
-    // Close overlay on click outside
+    // Close overlay on click outside (0.1s delay to prevent accidental close)
     if (searchOverlay) {
       searchOverlay.addEventListener('click', function () {
-        searchOverlay.classList.remove('active');
-        if (searchWrap) searchWrap.classList.remove('overlay-active');
-        searchInput.blur();
+        var overlay = searchOverlay;
+        var wrap = searchWrap;
+        closeTimer = setTimeout(function () {
+          overlay.classList.remove('active');
+          if (wrap) wrap.classList.remove('overlay-active');
+          searchInput.blur();
+        }, 100);
       });
     }
 
