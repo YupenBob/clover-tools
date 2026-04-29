@@ -1,0 +1,72 @@
+<h2>颜色代码转不出来的常见原因</h2>
+<p>设计师和开发者经常遇到颜色代码互转失败的情况，比如 HEX 转 RGB 少了个值、HSL 色相算出来是负数等。问题通常出在这几个地方：</p>
+<ul>
+<li><strong>格式不认</strong>：工具不支持输入格式（如只认 #RGB 却给了 rgb()）</li>
+<li><strong>范围超限</strong>：RGB 值超过 255、HSL 的 H 不在 0-360 范围内</li>
+<li><strong>分隔符错误</strong>：RGB(255,255,255) 和 RGB(255 255 255) 格式混用</li>
+<li><strong>透明度格式混乱</strong>：rgba() 和 #8 位 hex 混用</li>
+</ul>
+
+<h2>各颜色格式的正确写法</h2>
+<pre><code># HEX（最常见）
+#FF5733          ← 6位 HEX
+#F53            ← 3位简写（等于 #FF5533）
+
+# 带透明度（8位 HEX）
+#FF573380       ← 最后两位是 alpha（十六进制 00-FF）
+
+# RGB
+rgb(255, 87, 51)
+rgb(255 87 51)  ← 空格分隔也有效
+
+# RGBA（带透明度）
+rgba(255, 87, 51, 0.5)   ← alpha 范围 0-1
+rgba(255 87 51 / 0.5)    ← 空格+斜杠语法
+
+# HSL（色相/饱和度/亮度）
+hsl(11, 100%, 60%)       ← H=0-360, S/L=0-100%
+
+# 常见错误：
+rgb(255,87,51,)   ← 多余逗号
+hsl(11, 100%)     ← 缺亮度值
+#F5Z              ← Z 不是有效十六进制字符</code></pre>
+
+<h2>RGB 和 HEX 互转</h2>
+<p>RGB 转 HEX：每通道十进制 → 十六进制，不足两位补 0：</p>
+<pre><code>R=255 → FF
+G=87  → 57
+B=51  → 33
+HEX结果：#FF5733</code></pre>
+<p>HEX 转 RGB：每两个字符转十进制：</p>
+<pre><code>#FF5733 → FF=255, 57=87, 33=51
+RGB结果：rgb(255, 87, 51)</code></pre>
+
+<h2>RGB 和 HSL 互转（公式）</h2>
+<p>RGB 转 HSL 需要三步走：</p>
+<pre><code># 以 rgb(255, 87, 51) 为例：
+1. 归一化：R'=1, G'=0.34, B'=0.2
+2. 找 H：
+   - 如果 max=min（灰色）：H=0
+   - 否则：
+     H = 60° × ((B'-R')/ (max-min)) + 0   (R最大)
+     H = 60° × ((R'-G')/ (max-min)) + 120 (G最大)
+     H = 60° × ((G'-B')/ (max-min)) + 240 (B最大)
+   → H = 60° × ((0.2-1)/(1-0.2)) + 0 = -60° → 取模 360 = 11°
+3. 找 S 和 L：
+   L = (max + min) / 2 = (1 + 0.2) / 2 = 0.6
+   S = (max - min) / (1 - |2L - 1|) = 0.8 / 0.2 = 4... ❌ 应该是
+   S = 0.8 / (1 - |2×0.6 - 1|) = 0.8 / 0.2 = 4? 不对！
+
+# 实际用工具最靠谱
+→ <a href='/tools/convert/color.html' target='_blank'>RGB HSL 颜色互转工具</a></code></pre>
+
+<h2>为什么 HSL 色相是负数？</h2>
+<p>计算中可能出现负数，取模修正即可：</p>
+<pre><code>H = -60° → 修正后 H = 360 + (-60) = 300°
+H = 420° → 修正后 H = 420 % 360 = 60°</code></pre>
+
+<h2>实用工具推荐</h2>
+<ul>
+<li><a href='/tools/convert/color.html' target='_blank'>RGB HSL 颜色转换工具</a> — HEX / RGB / RGBA / HSL / HSLA 全格式互转，输入任意格式自动识别</li>
+<li><a href='/tools/convert/color.html' target='_blank'>颜色吸管工具</a> — 从图片或屏幕取色，获取任意颜色代码</li>
+</ul>

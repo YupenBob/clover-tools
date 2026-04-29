@@ -1,0 +1,87 @@
+<h2>JWT Token 过期是怎么回事？</h2>
+<p>JWT（JSON Web Token）由三部分组成：<code>Header.Payload.Signature</code>。Payload 中有一个 <code>exp</code> 字段（Expiration Time），声明了 Token 的过期时间点（Unix 时间戳）。</p>
+<p>当 <code>exp</code> 指定的时间到达后，服务端会认为这个 Token 失效，用户需要重新登录或刷新 Token。</p>
+<pre><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.
+KOUU5IU4M2GG5JH6z1z3h-q8h6D5I7Z2K8x1A3j9XkY
+
+# 解码后 Payload 部分：
+{
+  "sub": "1234567890",
+  "name": "John",
+  "exp": 1735689600   ← 这里就是过期时间戳（2025-01-01 00:00:00）
+}</code></pre>
+
+<h2>如何查看 JWT 是否已过期？</h2>
+<h3>方法一：在线解码工具（最简单）</h3>
+<p>不需要安装任何东西，直接把 Token 粘贴进去即可看到 <code>exp</code> 对应的日期时间和当前状态：</p>
+<ul>
+<li>推荐使用 <a href='/tools/encrypt/jwt.html' target='_blank'>JWT 解码工具</a>，一键解析 Header、Payload、Signature，并标注是否已过期</li>
+</ul>
+
+<h3>方法二：命令行快速查看</h3>
+<p>如果手边有终端，可以用 Python 一行命令解码：</p>
+<pre><code># Python 解码 JWT（无需验证签名，直接解析 payload）
+python3 -c "
+import json, base64, sys
+token = '你的JWT'
+payload = token.split('.')[1] + '=='
+decoded = json.loads(base64.urlsafe_b64decode(payload))
+print('过期时间:', decoded.get('exp'))
+print('签发时间:', decoded.get('iat'))
+print('是否过期:', decoded['exp'] < __import__('time').time())
+"</code></pre>
+
+<h3>方法三：手动查看 exp 时间戳</h3>
+<p>找到 Token 的 <code>exp</code> 字段值，用时间戳转换工具换算成可读日期：</p>
+<ul>
+<li><a href='/tools/time/timestamp.html' target='_blank'>Unix 时间戳转换工具</a> — 输入时间戳，查看对应的具体时间</li>
+</ul>
+
+<h2>JWT 过期后怎么处理？</h2>
+<h3>场景一：Token 过期，但后端支持刷新</h3>
+<p>很多 API 会提供 <code>/refresh</code> 接口，用过期 Token 换新 Token：</p>
+<pre><code>POST /api/refresh
+Content-Type: application/json
+
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+}
+
+# 响应：
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "expires_in": 3600
+}</code></pre>
+
+<h3>场景二：Token 过期且不支持刷新</h3>
+<p>只能重新登录，获取新的 Token 对。</p>
+<pre><code>POST /api/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "xxx"
+}
+
+# 响应：
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
+  "expires_in": 7200
+}</code></pre>
+
+<h2>延长 Token 有效期的方法</h2>
+<p>如果 Token 过期太快影响体验，可以：</p>
+<ul>
+<li>在服务端调整 <code>exp</code> 时长（如从 1 小时延长到 7 天）</li>
+<li>配合 Refresh Token 机制，Access Token 用短效，Refresh Token 用长效</li>
+<li>使用 <a href='/tools/encrypt/jwt.html' target='_blank'>JWT 生成工具</a> 自定义过期时间</li>
+</ul>
+
+<h2>常见错误：Token 时间不一致</h2>
+<p>调试时经常遇到 Token 明明没到 exp 时间却报过期，很可能是<strong>服务器时区不一致</strong>或<strong>客户端本地时间偏差</strong>导致的。建议：</p>
+<pre><code># 检查服务器时间是否准确
+date
+# 确认时间戳与 UTC 的偏差
+ timedatectl</code></pre>

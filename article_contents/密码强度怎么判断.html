@@ -1,1 +1,75 @@
-<h2>为什么密码强度很重要？</h2><p>一个事实：<strong>黑客破解密码不靠"猜"，靠"算"</strong>。用现代GPU，每秒可以尝试数十亿次常见密码组合。弱密码在黑客眼里就是明文。</p><p>另一个事实：<strong>密码泄露比你想象的更常见</strong>。即使你用了强密码，但如果某个你注册过的网站被拖库，而你的密码在其他网站又重复使用了——所有账号都会被攻破。</p><h2>密码强度的评估维度</h2><h3>1. 长度（最重要）</h3><ul><li>最低要求：8位</li><li>安全标准：12位以上</li><li>高安全场景：16位以上</li></ul><h3>2. 字符复杂度</h3><p>只用小写字母：26种可能<br>小写+大写：52种可能<br>加数字：62种可能<br>加特殊符号：95种可能</p><p>但要注意：<strong>复杂度不够时，加再多类型也不如增加长度</strong>。密码P@ssw0rd!其实比correct-horse-battery-staple弱得多。</p><h3>3. 信息熵（Entropy）</h3><pre><code>公式：熵 = log2(字符集大小 ^ 密码长度)\n\n8位小写字母 ≈ 37.6 bits（可被快速破解）\n12位混合字符 ≈ 78.4 bits（实际安全）\n16位混合字符 ≈ 104.8 bits（高安全）</code></pre><h2>密码强度等级划分</h2><ul><li><strong>弱（Weak）</strong>：熵 &lt; 28 bits → 即刻可破</li><li><strong>一般（Fair）</strong>：熵 28-35 bits → 几分钟到几小时</li><li><strong>中等（Good）</strong>：熵 36-59 bits → 几天到几周</li><li><strong>强（Strong）</strong>：熵 60-127 bits → 数十年</li><li><strong>极强（Excellent）</strong>：熵 ≥ 128 bits → 实际不可破解</li></ul><h2>如何生成真正安全的密码？</h2><p>最安全的方法：用<strong>真随机数生成器</strong>生成密码，而不是人为构造。</p><p>推荐工具：<a href='/tools/code/password-generator.html' target='_blank'>CloverTools密码生成器</a>，使用Web Crypto API的真随机数生成，支持8-64位自由设置，支持混合字符类型批量生成。</p><h2>密码安全最佳实践</h2><ul><li>每个网站使用独立密码</li><li>使用密码管理器（1Password/Bitwarden）管理密码</li><li>重要账号必须开启双因素认证（2FA）</li><li>定期检查密码是否在泄露库中（haveibeenpwned.com）</li><li>绝不在多个网站重复使用同一密码</li></ul>
+<h2>密码强度到底是什么？</h2>
+<p>密码强度是衡量一个密码被暴力破解难度的指标。主要从三个维度评估：</p>
+<ul>
+<li><strong>长度</strong>：越长越难猜（每多一位，组合数指数级增加）</li>
+<li><strong>复杂度</strong>：是否混用大小写字母、数字、特殊符号</li>
+<li><strong>可预测性</strong>：是否用了常见单词、生日、键盘顺序等易猜的组合</li>
+</ul>
+<p><strong>核心原则：长度 > 复杂度</strong>。一个 16 位纯字母密码比 8 位混合格式密码更难破解。</p>
+<pre><code>破解难度对比（理论计算）：
+密码: password        → 约 10^10 次尝试（秒级破解）
+密码: P@ssw0rd        → 约 10^12 次尝试（分钟级）
+密码: correcthorsebatterystaple → 约 10^28 次尝试（宇宙级）
+
+密码长度与安全性的关系：
+8位：2.8万亿种组合
+12位：95万亿亿种组合
+16位：3.4万亿亿亿种组合</code></pre>
+
+<h2>如何判断密码强度？</h2>
+<h3>方法一：使用密码强度检测工具</h3>
+<p>在线工具可以实时分析密码的组成，给出强度评分和建议：</p>
+<ul>
+<li><a href='/tools/other/password.html' target='_blank'>密码强度检测工具</a> — 输入密码，实时显示强度等级（弱/中/强/极强）</li>
+<li><a href='/tools/other/password.html' target='_blank'>密码生成器</a> — 一键生成随机强密码，避免人为设置的规律性</li>
+</ul>
+
+<h3>方法二：自行检查密码组成</h3>
+<p>对照以下清单，给自己的密码打分（每满足一项得 1 分，总分 5 分）：</p>
+<pre><code>✓ 长度 ≥ 12 位
+✓ 包含大写字母（A-Z）
+✓ 包含小写字母（a-z）
+✓ 包含数字（0-9）
+✓ 包含特殊符号（!@#$%^&*...）
+
+评分结果：
+1-2分：弱密码 ❌
+3分：中强度 ⚠️
+4分：强密码 ✓
+5分：极强密码 ✓✓</code></pre>
+
+<h2>常见弱密码模式（千万别用）</h2>
+<pre><code># 键盘顺序类
+❌ qwerty、asdfgh、123456、password、admin
+
+# 个人信息类
+❌ 生日、姓名+年份、手机号、身份证号
+
+# 常见单词类
+❌ iloveyou、welcome、monkey、dragon
+
+# 数字递增类
+❌ 123123、111111、000000、121212
+
+# 以上所有类型的变体（p@ssw0rd、adm1n）仍然容易被字典攻击破解</code></pre>
+
+<h2>密码强度与加密方式的关系</h2>
+<p>即使密码很强，如果存储方式不安全也白搭。推荐使用：</p>
+<ul>
+<li><strong>Bcrypt</strong>：自适应哈希，自带盐值，可配置计算成本</li>
+<li><strong>Argon2</strong>：目前最优选择，抗 GPU/ASIC 攻击</li>
+<li><a href='/tools/encrypt/bcrypt.html' target='_blank'>Bcrypt 加密工具</a> — 安全哈希密码</li>
+</ul>
+<pre><code># Bcrypt 加密示例（Node.js）
+const bcrypt = require('bcrypt');
+const hash = await bcrypt.hash('MyStr0ng!Pass', 10);
+// $2b$10$KFJ6Z8K3Z... 自动加盐，10 轮迭代</code></pre>
+
+<h2>最佳实践：如何设置真正强密码</h2>
+<ul>
+<li><strong>用密码管理器</strong>：生成并存储随机密码，避免重复</li>
+<li><strong>使用助记符</strong>：选一句你记得的话，取首字母+数字+符号，如"我2018年在上海工作！→ W2018nZSHgJ!"</li>
+<li><strong>每个网站单独密码</strong>：绝不重复，避免一个泄露全军覆没</li>
+<li><strong>开启两步验证（2FA）</strong>：密码 + 动态验证码，双重保险</li>
+<li>定期用 <a href='/tools/other/password.html' target='_blank'>密码强度检测</a> 工具审计已有密码</li>
+</ul>

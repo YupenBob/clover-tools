@@ -1,0 +1,64 @@
+<h2>Base64 图片打不开的常见原因</h2>
+<p>Base64 图片本质上是把图片二进制数据编码成一段字符串，嵌入 HTML 或 CSS 中直接显示。不显示通常不是"图片坏了"，而是<strong>格式拼接错误</strong>。</p>
+<p>最常见的 Base64 Data URL 格式：</p>
+<pre><code>data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+
+# 拆解：
+data:              ← 固定前缀
+image/png          ← MIME 类型（png/jpg/gif/webp）
+;base64,           ← 固定分隔符
+iVBORw0KGgo...    ← 实际编码内容</code></pre>
+
+<h2>错误一：MIME 类型写错</h2>
+<p>最常见的错误是用错了 MIME 类型，导致浏览器无法解析：</p>
+<pre><code>❌ 错误：data:image/jpg;base64,iVBORw0KGgo...
+✅ 正确：data:image/jpeg;base64,iVBORw0KGgo...
+
+❌ 错误：data:image;base64,iVBORw0KGgo...
+✅ 正确：data:image/png;base64,iVBORw0KGgo...
+
+常见 MIME 类型对照：
+.jpg → image/jpeg
+.png → image/png
+.gif → image/gif
+.webp → image/webp
+.svg → image/svg+xml
+</code></pre>
+
+<h2>错误二：分隔符写错（少加了逗号或分号）</h2>
+<pre><code>❌ 错误：data:image/png;base64iVBORw0KGgo...   ← 少了逗号
+❌ 错误：data:image/png,base64,iVBORw0KGgo...   ← 多了 base64,
+✅ 正确：data:image/png;base64,iVBORw0KGgo...  ← ;base64, 固定三段</code></pre>
+
+<h2>错误三：编码内容不完整或被截断</h2>
+<p>Base64 编码字符串如果被 URL 参数截断（超长 URL 被浏览器截断），或者复制时漏了结尾，图片就无法显示。</p>
+<pre><code># 正常 Base64 长度应该是 4 的倍数
+# 如果不是，要么缺了 = 填充符，要么内容被截断
+
+# 检查：长度 % 4 == 0（不够就补 =）
+原字符串：aGVsbG8gd29ybGQ   (长度=16，%4=0，正常)
+原字符串：aGVsbG8gd29ybG    (长度=15，%4=3，需要补 =)
+补齐后：  aGVsbG8gd29ybG==</code></pre>
+
+<h2>错误四：在不支持的地方使用 Base64</h2>
+<ul>
+<li><strong>CSS background-image</strong>：需要用 <code>url('data:image/png;base64,...')</code> 包裹，且部分旧浏览器有长度限制</li>
+<li><strong>JSON 字段</strong>：JSON 字符串内不能直接放未转义的 Data URL，需要对 <code>,</code>、<code>;</code> 等特殊字符做 URL 转义</li>
+<li><strong>浏览器地址栏</strong>：超长 Data URL 会被浏览器截断，建议在控制台或文件里查看</li>
+</ul>
+
+<h2>快速排查步骤</h2>
+<ol>
+<li>复制 Data URL 到浏览器地址栏，看能否显示图片</li>
+<li>检查 <code>data:image/xxx;base64,</code> 三段格式是否完整</li>
+<li>确认 MIME 类型（png/jpeg/gif/webp）是否正确</li>
+<li>用 <a href='/tools/encrypt/base64.html' target='_blank'>Base64 解码工具</a> 解码内容，看是否报错</li>
+<li>如果是文件图片，尝试重新上传生成新的 Base64</li>
+</ol>
+
+<h2>工具推荐</h2>
+<ul>
+<li><a href='/tools/encrypt/base64.html' target='_blank'>Base64 编解码工具</a> — 支持图片与 Base64 互转，自动生成标准 Data URL</li>
+<li><a href='/tools/encrypt/base64.html' target='_blank'>Base64 URL 编码</a> — 处理 JSON 字段中的 Base64 数据转义问题</li>
+<li><a href='/tools/image/image2base64.html' target='_blank'>图片转 Base64 工具</a> — 一键将本地图片转为 Data URL</li>
+</ul>

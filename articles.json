@@ -87,6 +87,111 @@
       "desc": "详解正则表达式怎么调试的原理、方法和最佳实践，配合CloverTools在线工具免费使用。",
       "content": "",
       "faqs": []
+    },
+    {
+      "title": "JSON Schema怎么使用？新手入门完全指南",
+      "desc": "JSON Schema 是用于描述和验证 JSON 数据结构的规范。本文详解 JSON Schema 的核心关键字（type、required、properties、enum、format），并提供实战示例和在线工具推荐。",
+      "content": "json-schema怎么使用.html",
+      "slug": "json-schema-怎么使用",
+      "intent": "guide",
+      "faqs": [
+        {
+          "q": "JSON Schema 是什么？",
+          "a": "JSON Schema 是一个用 JSON 格式描述 JSON 数据结构的规范，可用于数据验证和文档生成。"
+        },
+        {
+          "q": "JSON Schema required 和 properties 的区别？",
+          "a": "properties 定义每个字段的类型和约束，required 声明哪些字段是必填的。"
+        },
+        {
+          "q": "JSON Schema format 支持哪些格式？",
+          "a": "常用 format 包括 email、uri、date-time、ipv4、uuid 等。"
+        }
+      ]
+    },
+    {
+      "title": "JWT Token 过期了怎么查看和处理？",
+      "desc": "JWT Token 的 exp 字段声明了过期时间。本文教你三种方法快速查看 JWT 是否已过期，以及 Token 过期后的正确处理方式。",
+      "content": "jwt-token过期怎么查看.html",
+      "slug": "jwt-token过期怎么查看",
+      "intent": "info",
+      "faqs": [
+        {
+          "q": "JWT Token 过期时间怎么看？",
+          "a": "JWT 由三部分组成，解码 Payload 中的 exp 字段（Unix 时间戳），超过当前时间即已过期。"
+        },
+        {
+          "q": "JWT Token 过期了怎么办？",
+          "a": "如果后端支持 Refresh Token，用旧 Token 换取新 Token；否则需要重新登录。"
+        },
+        {
+          "q": "JWT Token 过期时间差 8 小时怎么解决？",
+          "a": "很可能是时区问题，exp 是 UTC 时间，需确认服务器和客户端时区配置一致。"
+        }
+      ]
+    },
+    {
+      "title": "Unix 时间戳转换错误怎么办？常见原因与修复方法",
+      "desc": "时间戳转换出错通常是因为秒/毫秒单位混淆、时区不一致或 2038 年溢出问题。本文详解每种错误的成因和修复方案。",
+      "content": "unix时间戳转换错误怎么办.html",
+      "slug": "unix时间戳转换错误怎么办",
+      "intent": "guide",
+      "faqs": [
+        {
+          "q": "时间戳秒和毫秒怎么区分？",
+          "a": "10位数字是秒级时间戳，13位是毫秒级。1735689600=秒，1735689600000=毫秒。"
+        },
+        {
+          "q": "时区差 8 小时怎么修正？",
+          "a": "Python 用 timezone(timedelta(hours=8))，JavaScript 用 toLocaleString(zh-CN)。"
+        },
+        {
+          "q": "2038 年时间戳溢出是什么？",
+          "a": "32位系统 int 上限约 2038-01-19，超出后变负数，需用 64位系统或毫秒时间戳解决。"
+        }
+      ]
+    },
+    {
+      "title": "Base64 图片无法显示怎么解决？常见原因与修复",
+      "desc": "Base64 图片打不开通常是 MIME 类型写错、分隔符缺少逗号、编码内容被截断等原因。本文提供完整排查步骤和解决方案。",
+      "content": "base64图片无法显示怎么解决.html",
+      "slug": "base64图片无法显示怎么解决",
+      "intent": "error-fix",
+      "faqs": [
+        {
+          "q": "Base64 图片 Data URL 格式是什么？",
+          "a": "格式为 data:image/png;base64,编码内容，三部分缺一不可。"
+        },
+        {
+          "q": "Base64 图片 MIME 类型写错了怎么办？",
+          "a": "检查 image/png、image/jpeg、image/gif、image/webp 是否与实际图片格式匹配。"
+        },
+        {
+          "q": "Base64 字符串被截断了怎么处理？",
+          "a": "重新生成 Base64，确保长度是4的倍数，不足的用 = 填充。"
+        }
+      ]
+    },
+    {
+      "title": "颜色代码转不出来怎么办？HEX/RGB/HSL 互转常见错误与解决方法",
+      "desc": "颜色代码转换失败通常是因为格式不支持、范围超限或分隔符错误。本文详解 HEX、RGB、HSL、RGBA 等格式的正确写法，以及互转时常见错误的修复方法。",
+      "content": "颜色代码转不出来怎么办.html",
+      "slug": "颜色代码转不出来怎么办",
+      "intent": "error-fix",
+      "faqs": [
+        {
+          "q": "RGB 值超过 255 会怎样？",
+          "a": "RGB 每个通道范围是 0-255，超过255的值会被截断或报错，需修正为有效范围。"
+        },
+        {
+          "q": "HSL 的 H 是负数怎么办？",
+          "a": "用 H = (H % 360 + 360) % 360 修正，负数加360直到在0-360范围内。"
+        },
+        {
+          "q": "#8位HEX透明度怎么写？",
+          "a": "#RRGGBBAA，最后两位是 alpha 通道（00=透明，FF=不透明），如 #FF573380。"
+        }
+      ]
     }
   ]
 }
