@@ -631,7 +631,24 @@ function buildToolContentHtml(tool) {
 // ============ Blog SEO Generator ============
 const blogTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'blog-post.html'), 'utf8');
 const KEYWORDS_JSON_PATH = path.join(BASE, 'keywords.json');
+const ARTICLES_JSON_PATH = path.join(BASE, 'articles.json');
 const keywordsConfig = JSON.parse(fs.readFileSync(KEYWORDS_JSON_PATH, 'utf8'));
+let articlesConfig = {};
+try {
+  const articlesRaw = JSON.parse(fs.readFileSync(ARTICLES_JSON_PATH, 'utf8'));
+  const ARTICLE_CONTENTS_DIR = path.join(BASE, 'article_contents');
+  if (articlesRaw.articles) {
+    articlesRaw.articles.forEach(function(a) {
+      articlesConfig[a.slug] = a;
+      // Load custom HTML content if available
+      const htmlPath = path.join(ARTICLE_CONTENTS_DIR, a.slug + '.html');
+      try {
+        articlesConfig[a.slug].content = fs.readFileSync(htmlPath, 'utf8');
+      } catch(e2) { /* no custom HTML for this article */ }
+    });
+  }
+  console.log('   Loaded ' + Object.keys(articlesConfig).length + ' custom articles');
+} catch(e) { /* no custom articles */ }
 
 // Tool name lookup for CTA links
 const toolNameMap = {};
@@ -985,7 +1002,10 @@ function generateBlogPosts() {
 
   keywordsConfig.forEach(kw => {
     const toolInfo = resolveTool(kw);
-    const articleContent = buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
+    var customArticle = articlesConfig[kw.slug];
+    var articleContent = customArticle ? customArticle.content : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
+    var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
+    var articleDesc = customArticle ? customArticle.desc : ('详细解决' + kw.keyword + '的方法，提供在线工具，无需注册即可使用。');
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
     const relatedQuestions = buildRelatedQuestions(kw, 6);
@@ -993,8 +1013,8 @@ function generateBlogPosts() {
     const today = new Date().toISOString().split('T')[0];
 
     let pageHtml = blogTemplate
-      .replace(/\{\{PAGE_TITLE\}\}/g, kw.keyword + ' - CloverTools')
-      .replace(/\{\{PAGE_DESC\}\}/g, `详细解决${kw.keyword}的方法，提供在线工具，无需注册即可使用。`)
+      .replace(/\{\{PAGE_TITLE\}\}/g, articleTitle)
+      .replace(/\{\{PAGE_DESC\}\}/g, articleDesc)
       .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + '，开发者工具，问题解决')
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
       .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
