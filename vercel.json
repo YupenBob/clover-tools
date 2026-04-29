@@ -3,6 +3,8 @@
   "buildCommand": "node generator.js",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" },
+    { "source": "/key.txt", "destination": "/key.txt" },
     { "source": "/landing", "destination": "/landing/index.html" },
     { "source": "/landing/", "destination": "/landing/index.html" },
     { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
@@ -12,5 +14,9 @@
     { "source": "/demo2", "destination": "/demo2.html" },
     { "source": "/home-new", "destination": "/home-new.html" },
     { "source": "/", "destination": "/home-new.html" }
+  ],
+  "headers": [
+    { "source": "/.well-known/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
+    { "source": "/key.txt", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
   ]
 }
