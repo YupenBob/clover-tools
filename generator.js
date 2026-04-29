@@ -182,7 +182,8 @@ const TOOL_TYPE_REGISTRY = {
             }).join('');
             fields += '<div class="input-field"><label>' + f.label + '</label><select id="' + f.id + '">' + opts + '</select></div>';
           } else {
-            fields += '<div class="input-field"><label>' + f.label + '</label><input type="number" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+            var inpType = (f.type && f.type !== 'number') ? f.type : 'number';
+            fields += '<div class="input-field"><label>' + f.label + '</label><input type="' + inpType + '" id="' + f.id + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
           }
         });
       }
@@ -203,6 +204,41 @@ const TOOL_TYPE_REGISTRY = {
   },
 
   // type: "converter" → input + select (from/to) + output
+  // type: "life" → BMI/温度/人民币大写等生活工具，支持 args.inputs + genFn，结果显示在 div（非 textarea）
+  'life': {
+    description: '生活计算类工具',
+    html: function(tool) {
+      var inputs = tool.args && tool.args.inputs ? tool.args.inputs : (tool.fields || []);
+      var fields = '';
+      if (inputs.length) {
+        fields = '<div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">';
+        inputs.forEach(function(f) {
+          var inpType = f.type || 'text';
+          fields += '<div class="input-field"><label>' + f.label + '</label><input type="' + inpType + '" id="' + f.name + '" placeholder="' + (f.placeholder || '') + '" style="width:100%;padding:0.5rem;font-size:1rem;"></div>';
+        });
+        fields += '</div>';
+      }
+      return '<div class="tool-card"><h3>输入参数</h3>' + fields + '<div class="btn-row"><button class="btn btn-primary" id="calcBtn">计算</button></div></div><div class="tool-card"><h3>计算结果</h3><div id="result" style="font-size:1.1rem;padding:1rem;line-height:1.8;"></div></div>';
+    },
+    script: function(tool) {
+      var fn = tool.genFn || tool.calcFn || 'function(inputs){return "请实现计算逻辑";}';
+      var fnEscaped = fn.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      var inputs = tool.args && tool.args.inputs ? tool.args.inputs : (tool.fields || []);
+      var fieldParts = inputs.map(function(f) {
+        return '  inputs["' + f.name + '"] = document.getElementById("' + f.name + '").value;';
+      });
+      var fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
+      return 'var genFn = \'' + fnEscaped + '\';\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var fnObj = new Function(\'return \' + genFn)();\n  var r = fnObj(inputs);\n  var html = (typeof r === "object" && r !== null && r.result !== undefined) ? r.result : String(r);\n  document.getElementById("result").innerHTML = html;\n};';
+    }
+  },
+
+  // type: "time" → alias to tool-custom (tools define customHtml/customScript in tools.json)
+  'time': {
+    description: '时间工具（自定义 HTML/JS）',
+    html: function(tool) { return '<!-- time: 使用 tools.json 的 customHtml -->'; },
+    script: function(tool) { return '// time: 使用 tools.json 的 customScript\n'; }
+  },
+
   'converter': {
     description: '格式转换工具',
     html: function(tool) {
@@ -344,7 +380,7 @@ const TOOL_TYPE_REGISTRY = {
   'json-generate': {
     description: 'JSON 代码生成工具',
     html: function(tool) {
-      return '<div class="tool-card"><h3>输入 JSON</h3><textarea id="input" placeholder=\'{"id": 1, "name": "test"}\' style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="input-row" style="margin-top:0.5rem;"><select id="langSelect" style="padding:0.4rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><option value="typescript">TypeScript</option><option value="java">Java</option><option value="csharp">C#</option><option value="go">Go</option><option value="sql">SQL</option></select><button class="btn btn-primary" id="genBtn" style="margin-left:0.5rem;">生成</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:150px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>';
+      return '<div class="tool-card"><h3>输入 JSON</h3><textarea id="input" placeholder=\'{"id": 1, "name": "test"}\' style="width:100%;min-height:120px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea><div class="input-row" style="margin-top:0.5rem;"><select id="langSelect" style="padding:0.4rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><option value="java">Java</option><option value="typescript">TypeScript</option><option value="csharp">C#</option><option value="go">Go</option><option value="sql">SQL</option></select><button class="btn btn-primary" id="genBtn" style="margin-left:0.5rem;">生成</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="width:100%;min-height:150px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div>';
     },
     script: function(tool) {
       return "var input = document.getElementById('input');\nvar output = document.getElementById('output');\nvar langSelect = document.getElementById('langSelect');\nvar genBtn = document.getElementById('genBtn');\nfunction esc(s) { return s.replace(/'/g, \"\\\\'\"); }\nfunction upperFirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }\nfunction toTypeScript(obj, name) {\n  var lines = ['interface ' + upperFirst(name) + ' {'];\n  Object.entries(obj).forEach(function(e) {\n    var k = e[0], v = e[1];\n    var t = typeof v === 'number' ? (Number.isInteger(v) ? 'number' : 'number') : typeof v === 'boolean' ? 'boolean' : typeof v === 'string' ? 'string' : 'any';\n    if (Array.isArray(v)) t = t + '[]';\n    lines.push('  ' + k + ': ' + t + ';');\n  });\n  lines.push('}');\n  return lines.join('\\n');\n}\nfunction toJava(obj, name) {\n  var lines = ['public class ' + upperFirst(name) + ' {'];\n  Object.entries(obj).forEach(function(e) {\n    var k = e[0], v = e[1];\n    var t = typeof v === 'number' ? (Number.isInteger(v) ? 'int' : 'double') : typeof v === 'boolean' ? 'boolean' : typeof v === 'string' ? 'String' : 'Object';\n    if (Array.isArray(v)) t = 'List<' + t.replace('[]','') + '>';\n    lines.push('  private ' + t + ' ' + k + ';');\n    lines.push('  public ' + t + ' get' + upperFirst(k) + '() { return ' + k + '; }');\n    lines.push('  public void set' + upperFirst(k) + '(' + t + ' ' + k + ') { this.' + k + ' = ' + k + '; }');\n  });\n  lines.push('}');\n  return lines.join('\\n');\n}\nfunction toCSharp(obj, name) {\n  var lines = ['public class ' + upperFirst(name) + ' {'];\n  Object.entries(obj).forEach(function(e) {\n    var k = e[0], v = e[1];\n    var t = typeof v === 'number' ? (Number.isInteger(v) ? 'int' : 'double') : typeof v === 'boolean' ? 'bool' : typeof v === 'string' ? 'string' : 'object';\n    if (Array.isArray(v)) t = 'List<' + t.replace('[]','') + '>';\n    lines.push('  public ' + t + ' ' + upperFirst(k) + ' { get; set; }');\n  });\n  lines.push('}');\n  return lines.join('\\n');\n}\nfunction toGo(obj, name) {\n  var lines = ['type ' + upperFirst(name) + ' struct {'];\n  Object.entries(obj).forEach(function(e) {\n    var k = e[0], v = e[1];\n    var t = typeof v === 'number' ? (Number.isInteger(v) ? 'int' : 'float64') : typeof v === 'boolean' ? 'bool' : typeof v === 'string' ? 'string' : 'interface{}';\n    if (Array.isArray(v)) t = '[]' + t.replace('[]','');\n    lines.push('  ' + upperFirst(k) + ' ' + t + ' `json:\"' + k + '\"`');\n  });\n  lines.push('}');\n  return lines.join('\\n');\n}\nfunction toSQL(obj, name) {\n  var table = upperFirst(name).replace(/[^a-zA-Z0-9_]/g, '');\n  var keys = Object.keys(obj);\n  if (keys.length === 0) return '-- Empty object';\n  var cols = keys.map(function(k) { return '  ' + k.replace(/[^a-zA-Z0-9_]/g, '_') + ' TEXT'; }).join(',\\n');\n  return 'CREATE TABLE ' + table + ' (\\n' + cols + '\\n);\\n\\nINSERT INTO ' + table + ' (' + keys.map(function(k) { return k.replace(/[^a-zA-Z0-9_]/g, '_'); }).join(', ') + ') VALUES\\n(' + keys.map(function() { return '?'; }).join(', ') + ');';\n}\ngenBtn.onclick = function() {\n  try {\n    var json = JSON.parse(input.value.trim());\n    var lang = langSelect.value;\n    var rootKey = 'Root';\n    if (typeof json === 'object' && !Array.isArray(json)) {\n      var keys = Object.keys(json);\n      if (keys.length > 0) rootKey = keys[0];\n    }\n    if (lang === 'typescript') output.value = toTypeScript(Array.isArray(json) ? (json[0] || {}) : json, rootKey);\n    else if (lang === 'java') output.value = toJava(Array.isArray(json) ? (json[0] || {}) : json, rootKey);\n    else if (lang === 'csharp') output.value = toCSharp(Array.isArray(json) ? (json[0] || {}) : json, rootKey);\n    else if (lang === 'go') output.value = toGo(Array.isArray(json) ? (json[0] || {}) : json, rootKey);\n    else if (lang === 'sql') output.value = toSQL(Array.isArray(json) ? (json[0] || {}) : json, rootKey);\n  } catch(e) { output.value = 'JSON 解析错误: ' + e.message; }\n};\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\ninput.addEventListener('input', function() { if (input.value.trim() === '') output.value = ''; });\n";
