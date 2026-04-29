@@ -1,0 +1,79 @@
+<h2>为什么时间戳转换会出错？</h2>
+<p>Unix 时间戳是自 1970-01-01 00:00:00 UTC 以来经过的秒数（或毫秒数）。时间戳转换出错通常有三个原因：</p>
+<ul>
+<li><strong>单位搞混</strong>：秒 vs 毫秒（13位）vs 微秒（16位）</li>
+<li><strong>时区不对</strong>：以为是北京时间，实际用了 UTC</li>
+<li><strong>范围超限</strong>：日期超出 2038 年问题（32位 int 上限）</li>
+</ul>
+<pre><code>秒级时间戳：1735689600  （10位）→ 2025-01-01 00:00:00
+毫秒时间戳：1735689600000（13位）→ 2025-01-01 00:00:00
+
+# 如果把秒级当毫秒转换，会得到 1970-01-20 左右的时间
+# 如果把毫秒当秒级转换，会得到几万年后的时间</code></pre>
+
+<h2>常见错误场景与修复</h2>
+<h3>错误一：秒/毫秒单位混淆</h3>
+<p>JavaScript 的 <code>Date.now()</code> 返回毫秒，Python <code>time.time()</code> 返回秒：</p>
+<pre><code># Python（秒）
+import time
+timestamp = int(time.time())  # 1735689600
+
+# JavaScript（毫秒）
+const timestamp = Date.now();  // 1735689600000
+
+# 互转：
+seconds = milliseconds / 1000
+milliseconds = seconds * 1000</code></pre>
+
+<h3>错误二：时区差异导致差8小时</h3>
+<p>北京时间 = UTC + 8。如果时间戳转出来总是早上8点，很可能是时区问题：</p>
+<pre><code># 正确做法：明确指定时区
+from datetime import datetime, timezone, timedelta
+
+bj = timezone(timedelta(hours=8))
+dt = datetime.fromtimestamp(1735689600, tz=bj)
+print(dt)  # 2025-01-01 00:00:00+08:00
+
+# ❌ 错误做法：不带时区
+dt = datetime.fromtimestamp(1735689600)
+print(dt)  # 2025-01-01 08:00:00（差8小时！）</code></pre>
+
+<h3>错误三：2038 年问题（32位溢出）</h3>
+<p>32位系统的 <code>int</code> 最大值是 <code>2147483647</code>（约 2038-01-19 03:14:07 UTC）。超过这个时间戳会溢出变成负数：</p>
+<pre><code># 2038年边界
+2147483647 → 2038-01-19 03:14:07 UTC
+2147483648 → 1901-12-13（溢出！）
+
+# 解决：使用 64位系统 或 毫秒时间戳
+timestamp_ms = 2147483648000  # 2038-01-19 03:14:08 UTC（毫秒）</code></pre>
+
+<h2>如何用工具快速排查</h2>
+<ul>
+<li><a href='/tools/time/timestamp.html' target='_blank'>Unix 时间戳转换工具</a> — 输入时间戳，查看秒/毫秒两种结果，秒级直接标注日期时间</li>
+<li><a href='/tools/time/timestamp.html' target='_blank'>时间戳倒算工具</a> — 输入日期，快速获取秒/毫秒两种时间戳</li>
+</ul>
+
+<h2>不同编程语言的时间戳处理</h2>
+<pre><code># Python（秒）
+import time; print(int(time.time()))
+
+# JavaScript（毫秒）
+console.log(Date.now())
+
+# Go（秒）
+import "time"; time.Now().Unix()
+
+# Java（毫秒）
+System.currentTimeMillis()
+
+# PHP（秒）
+echo time();</code></pre>
+
+<h2>调试建议</h2>
+<p>遇到时间戳转换问题时，按以下顺序排查：</p>
+<ol>
+<li>确认时间戳位数（10位=秒，13位=毫秒）</li>
+<li>确认目标时区（UTC 还是本地时间）</li>
+<li>确认系统时间是否准确（<code>date</code> 命令）</li>
+<li>用一个已知正确的参考值（如 <code>1735689600</code> = 2025-01-01 00:00:00 北京时间）做测试</li>
+</ol>

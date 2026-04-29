@@ -1,0 +1,88 @@
+<h2>什么是 JSON Schema？</h2>
+<p>JSON Schema 是一个用于描述和验证 JSON 数据结构的规范。它用 JSON 本身来定义 JSON 的"形状"——包括字段类型、必填项、取值范围、格式限制等。</p>
+<p>简单说：<strong>JSON Schema 就是 JSON 数据的"说明书"</strong>。用它你可以声明"这个字段必须是字符串"、"那个字段必须是 1-100 的整数"，验证工具会自动帮你检查数据是否符合规则。</p>
+<pre><code>{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["name", "age"]
+}</code></pre>
+
+<h2>JSON Schema 核心关键字</h2>
+<h3>type — 定义数据类型</h3>
+<p>最基础的关键字，声明字段必须是哪种类型：</p>
+<pre><code>{
+  "type": "string",   // 字符串
+  "type": "number",   // 数字（含小数）
+  "type": "integer",  // 整数
+  "type": "boolean",  // 布尔值
+  "type": "array",    // 数组
+  "type": "object"    // 对象
+}</code></pre>
+
+<h3>required — 必填字段</h3>
+<p>声明哪些字段是必填的：</p>
+<pre><code>{
+  "type": "object",
+  "required": ["username", "email"]
+}</code></pre>
+
+<h3>properties — 定义对象属性</h3>
+<p>描述一个对象的各个字段：</p>
+<pre><code>{
+  "type": "object",
+  "properties": {
+    "username": { "type": "string", "minLength": 3 },
+    "email": { "type": "string", "format": "email" },
+    "age": { "type": "integer", "minimum": 0, "maximum": 150 }
+  }
+}</code></pre>
+
+<h3>enum — 枚举限制</h3>
+<p>限制字段只能取特定值：</p>
+<pre><code>{
+  "status": {
+    "type": "string",
+    "enum": ["pending", "approved", "rejected"]
+  }
+}</code></pre>
+
+<h3>format — 格式校验</h3>
+<p>内置格式校验，覆盖常用场景：</p>
+<pre><code>{
+  "format": "email",      // 邮箱格式
+  "format": "uri",       // URL格式
+  "format": "date-time", // ISO 8601 日期时间
+  "format": "ipv4",      // IP地址
+  "format": "uuid"       // UUID格式
+}</code></pre>
+
+<h2>实战：API 响应验证示例</h2>
+<p>前后端分离项目中，用 JSON Schema 验证接口返回：</p>
+<pre><code>{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "code": { "type": "integer", "enum": [0, 200, 401, 500] },
+    "message": { "type": "string" },
+    "data": {
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "nickname": { "type": "string" },
+        "avatar": { "type": "string", "format": "uri" }
+      },
+      "required": ["userId", "nickname"]
+    }
+  },
+  "required": ["code", "message", "data"]
+}</code></pre>
+
+<h2>在线工具推荐</h2>
+<ul>
+<li><a href='/tools/code/json.html' target='_blank'>JSON Schema 验证工具</a> — 粘贴 Schema 和 JSON 数据，一键验证是否符合规范</li>
+<li><a href='/tools/format-conversion/json.html' target='_blank'>JSON 格式化工具</a> — 格式化混乱的 JSON 数据，方便查看结构</li>
+<li><a href='/tools/code/regex.html' target='_blank'>正则表达式测试</a> — 配合 Schema 做更精细的字段校验</li>
+</ul>
