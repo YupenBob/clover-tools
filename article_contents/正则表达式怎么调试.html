@@ -1,0 +1,33 @@
+<h2>正则表达式调试的常见坑</h2><p>正则表达式（Regular Expression）是开发者手中的瑞士军刀，但一把双刃剑——写对了瞬间解决问题，写错了却怎么都看不出哪里不对。本文介绍一套系统化的正则调试方法，帮你把"玄学匹配"变成"确定性排查"。</p><h2>一、逐层构建：从简单到复杂</h2><p>写正则最大的错误是一口气写完整段表达式，然后一头雾水地测试。正确做法是<strong>从最简单开始，逐步加条件</strong>。</p><pre><code>// 第一步：先匹配到目标
+const result1 = "user_yock_2024".match(/\w+/);
+console.log(result1); // ["user_yock_2024"] ✅ 匹配到
+
+// 第二步：加上限制条件
+const result2 = "user_yock_2024".match(/[a-z]+_\w+_\d+/);
+console.log(result2); // ["user_yock_2024"] ✅ 仍然匹配
+
+// 第三步：继续细化...
+const result3 = "user_yock_2024".match(/^[a-z]+_[a-z]+_\d{4}$/);
+console.log(result3); // ["user_yock_2024"] ✅ 最终结果</code></pre><p>每加一个字符就测试一次，一旦匹配失败，立刻知道是最后加的那个字符出了问题。</p><h2>二、善用分组和捕获</h2><p>分组不仅能让正则结构更清晰，还能帮你验证每一部分的匹配结果：</p><pre><code>// 用捕获组分别验证每部分
+const regex = /^([a-z]+)_([a-z]+)_(\d{4})$/;
+const str = "user_yock_2024";
+const match = str.match(regex);
+
+if (match) {
+  console.log("整体:", match[0]);   // user_yock_2024
+  console.log("第一组:", match[1]); // user
+  console.log("第二组:", match[2]); // yock
+  console.log("第三组:", match[3]); // 2024
+}</code></pre><p>打开浏览器的控制台（按F12），把正则粘进去，实际运行一遍，比任何工具都直观。</p><h2>三、常用调试工具推荐</h2><p>有了好工具，调试效率翻倍：</p><ul><li><a href='/tools/code/regex-tester.html' target='_blank'>正则表达式测试器</a> — 实时高亮匹配结果，支持分组捕获，即时反馈</li><li>Chrome DevTools Network面板 — 在网络请求中用正则过滤URL</li><li>VSCode搜索栏 — 支持正则搜索，支持大小写敏感/全词匹配</li></ul><h2>四、常见错误速查表</h2><pre><code>❌ \w 匹配字母、数字、下划线 —— 不匹配中文！
+❌ . 默认匹配换行符以外的任意字符 —— 想匹配点号要用 \.
+❌ [a-Z] 是错误写法 —— 正确是 [a-zA-Z]
+❌ * 表示0个或多个，+ 表示1个或多个 —— 别搞混！
+❌ ^ 在[]内外含义不同 —— []外是行首，[]内是取反</code></pre><h2>五、非贪婪模式的坑</h2><p>正则默认是贪婪匹配，会尽可能多地吞字符。用 <code>?</code> 改为非贪婪：</p><pre><code>const html = "<div>你好</div><div>世界</div>";
+
+// 贪婪匹配（错误）：.* 会尽可能多地匹配
+console.log(html.match(/<div>.*<\/div>/));
+// 结果: ["<div>你好</div><div>世界</div>"] ❌ 一次性匹配了两个标签
+
+// 非贪婪匹配（正确）：.*? 在满足整体匹配的前提下尽可能少
+console.log(html.match(/<div>.*?<\/div>/));
+// 结果: ["<div>你好</div>"] ✅ 匹配第一个标签</code></pre><p>遇到 <code>.*</code> 或 <code>.+</code> 时，条件反射地加上 <code>?</code> 变成非贪婪模式。</p><h2>六、工具推荐</h2><ul><li><a href='/tools/code/regex-tester.html'>正则表达式测试器</a> — 可视化调试，支持JavaScript/Python/Go多语言</li><li><a href='/tools/code/regex-generator.html'>正则生成器</a> — 输入描述自动生成正则，小白友好</li></ul>

@@ -1,0 +1,30 @@
+<h2>UUID会重复吗？</h2><p>UUID（通用唯一标识符）的设计目标就是<strong>在全球范围内不重复</strong>。那么它真的不会重复吗？答案是：在概率上可以认为"几乎不会"，但理解其中的原理才能正确使用。</p><h2>一、UUID的版本与质量差异</h2><p>UUID有多个版本，质量参差不齐：</p><ul><li><strong>UUID v1（时间序）</strong>：基于时间戳+MAC地址，理论上同一机器同一微秒内生成超过1亿个才会碰撞</li><li><strong>UUID v4（随机）</strong>：完全随机，碰撞概率极低（2^122分之一的概率）</li><li><strong>UUID v7（时间序随机）</strong>：结合时间序和随机，兼具可排序性和唯一性，推荐使用</li></ul><pre><code>// Node.js生成 v4 UUID
+const { v4: uuidv4 } = require('uuid');
+console.log(uuidv4()); // 例: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
+
+// Python生成 v4 UUID
+import uuid
+print(uuid.uuid4()) # 例: UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479')</code></pre><h2>二、UUID v4碰撞概率到底有多低？</h2><p>UUID v4有122位随机空间。生成10亿个UUID，碰撞概率约为 <strong>10^-30</strong>（远低于被雷劈中两次的概率）。</p><p>但如果用<strong>不靠谱的随机数生成器</strong>（如旧版Java的Random类），碰撞概率会大幅上升。</p><pre><code># Python验证：连续生成10万个UUID，检查是否有重复
+import uuid
+uuids = [str(uuid.uuid4()) for _ in range(100_000)]
+print(f"重复数量: {len(uuids) - len(set(uuids))}")  # 输出: 重复数量: 0</code></pre><h2>三、什么情况下UUID会重复？</h2><p>真正导致UUID重复的原因通常不是概率问题，而是：</p><ul><li><strong>使用了低质量的随机数生成器</strong>（种子重复）</li><li><strong>在确定性种子下反复生成</strong>（模拟测试时）</li><li><strong>不同系统使用了不同版本的UUID</strong>（混用导致解析错误）</li><li><strong>UUID被错误截断</strong>（只存了前16位）</li></ul><h2>四、实际开发中的最佳实践</h2><pre><code>// ✅ 推荐：使用密码学安全的随机数生成器
+import secrets
+import uuid
+safe_uuid = uuid.UUID(int=secrets.randbits(128), version=4)
+
+// ❌ 不推荐：使用普通Random（种子固定）
+import random
+random.seed(42)  // 每次运行结果一样！
+bad_uuid = uuid.UUID(int=random.getrandbits(128), version=4)</code></pre><h2>五、万一需要处理UUID冲突</h2><p>即使UUID碰撞概率极低，业务代码也应做好兜底：</p><pre><code>// 数据库唯一约束 + 冲突重试
+function generateUniqueId() {
+  const id = uuidv4();
+  try {
+    db.insert({ id });  // 数据库有唯一约束保证
+  } catch (e) {
+    if (e.code === '23505') { // PostgreSQL唯一约束冲突
+      return generateUniqueId(); // 重试一次
+    }
+    throw e;
+  }
+  return id;
+}</code></pre><h2>六、工具推荐</h2><ul><li><a href='/tools/other/uuid.html' target='_blank'>UUID生成器</a> — 支持v1/v4/v7多种版本，自定义数量批量生成</li><li><a href='/tools/code/regex-tester.html'>正则测试器</a> — 验证UUID格式合法性</li></ul>
