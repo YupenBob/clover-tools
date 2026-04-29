@@ -269,7 +269,8 @@
         "keywords": "颜色选择器，颜色转换，HEX RGB HSL HSV，颜色代码，取色器，调色板，前端颜色",
         "icon": "bi bi-code-slash",
         "type": "tool-custom",
-        "title": "可视化颜色选择器 - 多格式颜色值互转"
+        "title": "可视化颜色选择器 - 多格式颜色值互转",
+        "customHtml": "<div class=\"tool-card\"><div class=\"breadcrumb\">首页 / 开发工具 / 颜色选择器</div><h1>可视化颜色选择器</h1><p>选择颜色并获取 HEX、RGB、HSL 等格式代码</p><div class=\"tool-card\"><div style=\"display:flex;gap:1rem;flex-wrap:wrap\"><div><h3>拾取颜色</h3><input type=\"color\" id=\"colorPicker\" value=\"#6366f1\" style=\"width:120px;height:120px;border:none;cursor:pointer;border-radius:8px\"></div><div style=\"flex:1\"><h3>颜色预览</h3><div id=\"colorPreview\" style=\"width:100%;height:80px;border-radius:8px;background:#6366f1;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.2rem;text-shadow:0 1px 3px rgba(0,0,0,0.5)\">#6366f1</div></div></div><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem\"><div><label style=\"font-size:.85rem;color:var(--text-secondary)\">HEX</label><input id=\"outHex\" readonly style=\"width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-family:monospace;font-size:.85rem;box-sizing:border-box\" value=\"#6366f1\"></div><div><label style=\"font-size:.85rem;color:var(--text-secondary)\">RGB</label><input id=\"outRgb\" readonly style=\"width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-family:monospace;font-size:.85rem;box-sizing:border-box\" value=\"rgb(99, 102, 241)\"></div><div><label style=\"font-size:.85rem;color:var(--text-secondary)\">RGBA</label><input id=\"outRgba\" readonly style=\"width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-family:monospace;font-size:.85rem;box-sizing:border-box\" value=\"rgba(99, 102, 241, 1)\"></div><div><label style=\"font-size:.85rem;color:var(--text-secondary)\">HSL</label><input id=\"outHsl\" readonly style=\"width:100%;padding:.5rem;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);font-family:monospace;font-size:.85rem;box-sizing:border-box\" value=\"hsl(239, 84%, 67%)\"></div></div><button id=\"btnCopy\" class=\"btn btn-primary\" style=\"margin-top:1rem\">复制 HEX</button></div></div><script>function hexToRgb(hex){var r=/^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null;}function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;var max=Math.max(r,g,b),min=Math.min(r,g,b),h,s,l=(max+min)/2;if(max===min){h=s=0;}else{var d=max-min;s=l>.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}h/=6;}return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};}function updateColor(hex){var rgb=hexToRgb(hex);if(!rgb)return;var hsl=rgbToHsl(rgb.r,rgb.g,rgb.b);var pv=document.getElementById(\"colorPreview\");pv.style.background=hex;pv.textContent=hex;document.getElementById(\"outHex\").value=hex;document.getElementById(\"outRgb\").value=\"rgb(\"+rgb.r+\", \"+rgb.g+\", \"+rgb.b+\")\";document.getElementById(\"outRgba\").value=\"rgba(\"+rgb.r+\", \"+rgb.g+\", \"+rgb.b+\", 1)\";document.getElementById(\"outHsl\").value=\"hsl(\"+hsl.h+\", \"+hsl.s+\"%, \"+hsl.l+\"%)\";pv.style.color=(hsl.l>50)?\"#000\":\"#fff\";}document.getElementById(\"colorPicker\").oninput=function(){updateColor(this.value);};document.getElementById(\"btnCopy\").onclick=function(){navigator.clipboard.writeText(document.getElementById(\"outHex\").value);};</script>"
       },
       {
         "name": "拾取坐标/坐标转换",
@@ -289,7 +290,8 @@
         "keywords": "Cron 表达式测试，Cron 解析，Cron 在线测试，定时任务调度，Cron 可视化，Cron 格式",
         "icon": "bi bi-code-slash",
         "type": "tool-custom",
-        "title": "Cron 表达式测试 - 可视化解析执行时间"
+        "title": "Cron 表达式测试 - 可视化解析执行时间",
+        "customHtml": "<div class=\"tool-card\"><div class=\"breadcrumb\">首页 / 开发工具 / Cron 表达式测试</div><h1>Cron 表达式测试</h1><p>验证和解析 Cron 表达式，查看最近N次执行时间</p><div class=\"tool-card\"><h3>Cron 表达式</h3><input id=\"cronInput\" value=\"0 9 * * 1-5\" placeholder=\"* * * * *\" style=\"width:100%;padding:.75rem;font-size:1.1rem;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"><div style=\"margin-top:.5rem;font-size:.8rem;color:var(--text-secondary)\">格式: 分 时 日 月 周 &nbsp; 例: 0 9 * * 1-5 = 每天9点(周一至周五)</div><div style=\"display:flex;gap:.5rem;margin-top:.75rem\"><button id=\"btnParse\" class=\"btn btn-primary\">解析</button><select id=\"countSelect\" style=\"padding:.5rem;border-radius:6px;border:1px solid var(--border);background:var(--input-bg);color:var(--text)\"><option value=\"5\">最近5次</option><option value=\"10\">最近10次</option><option value=\"20\">最近20次</option></select></div><div id=\"result\" style=\"background:var(--output-bg);border:1px solid var(--border);border-radius:8px;padding:.75rem;min-height:100px;font-family:monospace;white-space:pre-wrap;margin-top:.75rem;color:var(--text)\"></div></div></div><script>function parseCron(expr){var parts=expr.trim().split(/\\s+/);if(parts.length<5)return null;return{minute:parts[0],hour:parts[1],day:parts[2],month:parts[3],weekday:parts[4]};}function matches(val,field){if(val==='*')return true;if(val.includes(','))return val.split(',').some(function(v){return matches(v.trim(),field);});if(val.includes('-')){var r=val.split('-');var f=parseInt(field);return f>=parseInt(r[0])&&f<=parseInt(r[1]);}if(val.includes('/')){var step=val.split('/')[1];return parseInt(field)%parseInt(step)===0;}return parseInt(field)===parseInt(val);}function nextRuns(cron,count){var runs=[];var d=new Date();d.setSeconds(0);d.setMilliseconds(0);for(var i=0;i<count*10&&runs.length<count;i++){d=new Date(d.getTime()+60000);if(matches(cron.minute,d.getMinutes())&&matches(cron.hour,d.getHours())&&matches(cron.day,d.getDate())&&matches(cron.month,d.getMonth()+1)&&matches(cron.weekday,d.getDay()||7))runs.push(new Date(d));}return runs;}document.getElementById('btnParse').onclick=function(){var cron=parseCron(document.getElementById('cronInput').value);if(!cron){document.getElementById('result').textContent='无效的 Cron 表达式';return;}var cnt=parseInt(document.getElementById('countSelect').value);var runs=nextRuns(cron,cnt);if(runs.length===0){document.getElementById('result').textContent='未来没有匹配的执行时间';return;}document.getElementById('result').textContent='Cron: '+document.getElementById('cronInput').value+'\\n\\n最近'+runs.length+'次执行时间:\\n'+runs.map(function(d){return d.toLocaleString('zh-CN');}).join('\\n');};</script>"
       },
       {
         "name": "Crontab执行时间计算",
@@ -455,7 +457,41 @@
         "keywords": "HTTP 测试，API 测试，接口测试，REST API，POST GET PUT DELETE，HTTP 请求，API 调试",
         "type": "http-test",
         "icon": "bi bi-code-slash",
-        "title": "Http 接口测试 - REST API 在线调试工具"
+        "title": "Http 接口测试 - REST API 在线调试工具",
+        "config": {
+          "method": {
+            "type": "select",
+            "label": "请求方法",
+            "options": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE",
+              "PATCH"
+            ],
+            "default": "GET"
+          },
+          "url": {
+            "type": "input",
+            "label": "URL",
+            "placeholder": "https://api.example.com/endpoint"
+          },
+          "headers": {
+            "type": "textarea",
+            "label": "请求头 (JSON)",
+            "placeholder": "{\"Content-Type\":\"application/json\"}"
+          },
+          "body": {
+            "type": "textarea",
+            "label": "请求体",
+            "placeholder": "{\"key\":\"value\"}"
+          },
+          "timeout": {
+            "type": "input",
+            "label": "超时(ms)",
+            "default": "10000"
+          }
+        }
       },
       {
         "name": "JavaScript格式化",
@@ -530,7 +566,12 @@
         "keywords": "JSON转C#，C#实体类，DataContract，System.Text.Json，C# POJO，JSON转类",
         "type": "json-generate",
         "icon": "bi bi-code-slash",
-        "title": "JSON 转 C# 实体类 - 根据 JSON 生成 C# 模型"
+        "title": "JSON 转 C# 实体类 - 根据 JSON 生成 C# 模型",
+        "schema": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var className = inputs.className || 'RootModel';\n    var result = 'public class ' + className + '\\n{\\n';\n    function toPascal(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'object';\n      if (Array.isArray(val)) return val.length > 0 ? toListType(val[0]) + '[]' : 'object[]';\n      if (typeof val === 'boolean') return 'bool';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'double';\n      return 'string';\n    }\n    function toListType(v) {\n      if (v === null) return 'object';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'double';\n      if (typeof v === 'string') return 'string';\n      return 'object';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      result += '    public ' + getType(obj[key]) + ' ' + toPascal(key) + ' { get; set; }\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
       },
       {
         "name": "JSON 转 Golang Struct",
@@ -539,7 +580,12 @@
         "keywords": "JSON转Go，Go struct，Golang类型，JSON转结构体，json tag",
         "type": "json-generate",
         "icon": "bi bi-code-slash",
-        "title": "JSON 转 Golang Struct - 根据 JSON 生成 Go 结构体"
+        "title": "JSON 转 Golang Struct - 根据 JSON 生成 Go 结构体",
+        "schema": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var typeName = inputs.typeName || 'Root';\n    var result = 'type ' + typeName + ' struct {\\n';\n    function toPascal(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'interface{}';\n      if (Array.isArray(val)) return '[]' + (val.length > 0 ? goType(val[0]) : 'interface{}');\n      if (typeof val === 'boolean') return 'bool';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'float64';\n      if (typeof val === 'string') return 'string';\n      return 'interface{}';\n    }\n    function goType(v) {\n      if (v === null) return 'interface{}';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float64';\n      if (typeof v === 'string') return 'string';\n      return 'interface{}';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      result += '    ' + toPascal(key) + ' ' + getType(obj[key]) + ' `json:\"' + key + '\"`\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
       },
       {
         "name": "JSON 转 Java 实体类",
@@ -548,7 +594,12 @@
         "keywords": "JSON转Java，Java实体类，Lombok，JSON转类，Java POJO，Jackson注解",
         "type": "json-generate",
         "icon": "bi bi-code-slash",
-        "title": "JSON 转 Java 实体类 - 根据 JSON 生成 Java POJO"
+        "title": "JSON 转 Java 实体类 - 根据 JSON 生成 Java POJO",
+        "schema": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var className = inputs.className || 'RootModel';\n    var result = 'public class ' + className + ' {\\n\\n';\n    function toCamel(s) { return s.charAt(0).toLowerCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'Object';\n      if (Array.isArray(val)) return val.length > 0 ? 'List<' + javaType(val[0]) + '>' : 'List<Object>';\n      if (typeof val === 'boolean') return 'boolean';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'double';\n      if (typeof val === 'string') return 'String';\n      return 'Object';\n    }\n    function javaType(v) {\n      if (v === null) return 'Object';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'Integer' : 'Double';\n      if (typeof v === 'string') return 'String';\n      return 'Object';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      var fn = toCamel(key);\n      result += '    private ' + getType(obj[key]) + ' ' + fn + ';\\n';\n    }\n    result += '\\n';\n    for (var key in obj) {\n      var fn = toCamel(key);\n      var mn = fn.charAt(0).toUpperCase() + fn.slice(1);\n      result += '    public ' + getType(obj[key]) + ' get' + mn + '() { return ' + fn + '; }\\n';\n      result += '    public void set' + mn + '(' + getType(obj[key]) + ' ' + fn + ') { this.' + fn + ' = ' + fn + '; }\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
       },
       {
         "name": "JSON 转 SQL",
@@ -557,7 +608,12 @@
         "keywords": "JSON转SQL，INSERT语句生成，JSON转INSERT，SQL生成，数据导出，批量插入",
         "type": "json-generate",
         "icon": "bi bi-code-slash",
-        "title": "JSON 转 SQL - 将 JSON 数组批量转为 INSERT 语句"
+        "title": "JSON 转 SQL - 将 JSON 数组批量转为 INSERT 语句",
+        "schema": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    if (!Array.isArray(json)) json = [json];\n    if (json.length === 0) return '-- No data';\n    var tableName = inputs.tableName || 'my_table';\n    var columns = Object.keys(json[0]);\n    var colDefs = columns.map(function(c){ return '  ' + c + ' TEXT'; }).join(',\\n');\n    var createSQL = 'CREATE TABLE ' + tableName + ' (\\n' + colDefs + '\\n);\\n\\n';\n    var insertSQL = json.map(function(row) {\n      var vals = columns.map(function(c){ return esc(row[c]); });\n      return 'INSERT INTO ' + tableName + ' (' + columns.join(', ') + ') VALUES (' + vals.join(', ') + ');';\n    }).join('\\n');\n    return createSQL + insertSQL;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n  function esc(v) {\n    if (v === null || v === undefined) return 'NULL';\n    return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n  }\n}"
       },
       {
         "name": "JSON 转 TypeScript",
@@ -566,7 +622,12 @@
         "keywords": "JSON转TypeScript，TS类型生成，JSON接口，TypeScript定义，JSON类型推断",
         "type": "json-generate",
         "icon": "bi bi-code-slash",
-        "title": "JSON 转 TypeScript - 根据 JSON 生成 TS 接口定义"
+        "title": "JSON 转 TypeScript - 根据 JSON 生成 TS 接口定义",
+        "schema": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var typeName = inputs.typeName || 'Root';\n    function getType(v) {\n      if (v === null) return 'null';\n      if (Array.isArray(v)) return v.length > 0 ? getType(v[0]) + '[]' : 'any[]';\n      if (typeof v === 'boolean') return 'boolean';\n      if (typeof v === 'number') return 'number';\n      if (typeof v === 'string') return 'string';\n      return 'any';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    var props = [];\n    for (var key in obj) {\n      props.push('  ' + key + '?: ' + getType(obj[key]) + ';');\n    }\n    return 'export interface ' + typeName + ' {\\n' + props.join('\\n') + '\\n}\\n';\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
       },
       {
         "name": "JSONPath 解析器",
@@ -763,15 +824,6 @@
         "title": "SQL 格式化 - 美化压缩SQL语句"
       },
       {
-        "name": "SQLite查看器",
-        "path": "code/sqlite-viewer.html",
-        "desc": "在线SQLite数据库查看器，无需安装任何软件，上传.db或.sqlite文件即可浏览数据表结构、查看记录内容、导出数据为CSV，纯浏览器本地处理。",
-        "keywords": "SQLite查看器,SQLite浏览器,SQLite阅读器,db文件,sqlite文件,数据库查看,在线SQLite,CSV导出",
-        "type": "tool-custom",
-        "icon": "bi bi-database",
-        "title": "SQLite查看器 - 在线SQLite数据库查看工具"
-      },
-      {
         "name": "User-Agent 解析",
         "path": "code/ua-parser.html",
         "desc": "输入浏览器 User-Agent 字符串，系统自动解析出浏览器名称及版本、操作系统类型、设备类别等信息，帮助开发者和测试人员快速判断客户端环境。",
@@ -822,7 +874,19 @@
         "keywords": "WebSocket 测试，WS 测试，WebSocket 客户端，实时通信，WS 调试，WebSocket 连接",
         "type": "websocket-test",
         "icon": "bi bi-code-slash",
-        "title": "Websocket 接口测试 - WS实时通信调试"
+        "title": "Websocket 接口测试 - WS实时通信调试",
+        "config": {
+          "url": {
+            "type": "input",
+            "label": "WebSocket URL",
+            "placeholder": "wss://echo.websocket.events"
+          },
+          "message": {
+            "type": "input",
+            "label": "发送消息",
+            "placeholder": "Hello WebSocket"
+          }
+        }
       },
       {
         "name": "XML格式化/压缩",
@@ -1420,7 +1484,8 @@
         "keywords": "LESS转CSS,LESS编译器,LESS,CSS转换,less.js,在线LESS,样式表转换,LESS语法",
         "type": "formatter",
         "icon": "bi bi-braces",
-        "title": "LESS转CSS - 在线LESS编译器将LESS转换为CSS"
+        "title": "LESS转CSS - 在线LESS编译器将LESS转换为CSS",
+        "formatFn": "function(v, opts) {\n  if (opts && opts.minify) {\n    return v.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\s+/g, ' ').replace(/\\s*([{}:;,])\\s*/g, '$1').trim();\n  }\n  var indent = 0;\n  var lines = v.replace(/\\r\\n/g, '\\n').split('\\n');\n  var result = [];\n  for (var i = 0; i < lines.length; i++) {\n    var line = lines[i].trim();\n    if (!line || line.startsWith('//')) continue;\n    if (line.startsWith('}')) indent = Math.max(0, indent - 1);\n    result.push('  '.repeat(indent) + line);\n    if (line.endsWith('{')) indent++;\n  }\n  return result.join('\\n');\n}"
       }
     ]
   },
@@ -1514,7 +1579,8 @@
         "btnLabel2": "",
         "forwardFn": "function md5(s){function R(n,t,r){return(n<<t)|(n>>>>(32-r));}function J(n){var c='',x='';for(var i=0;i<=3;i++){x='0'+((n>>>i*8)&255).toString(16);c+=x.substr(x.length-2,2);}return c;}var a=1732584193,b=-271733879,c=-1732584194,d=271733878;var k=[],i=0,len=s.length;for(i=0;i<64;i++)k[i]=(Math.abs(Math.sin(i+1))*4294967296)|0;for(i=0;i<len;i++)k[i>>2]|=s.charCodeAt(i)<<((i%4)*8);k[len>>2]|=128<<(((len%4)*8));k.push(0,0);k.push((len*8)>>>0);var w=[],j=0,A,B,C,D;for(var j=0;j<64;j++){w[j]=k[j];}for(j=0;j<k.length;j+=16){A=a;B=b;C=c;D=d;for(var i=0;i<16;i++){var temp=k[i+j]|0;if(temp<0)temp=temp+4294967296;var g,t;if(i<4){t=i;g=(B&C)|((255-B)&D);}else if(i<8){t=4+(i-4);g=(B&D)|(C&(255-D));}else if(i<12){t=8+(i-8);g=(B^C)^D;}else{t=12+(i-12);g=C^(B|(255-D));}g=(g+t+temp+k[(2*i+5*i)%16])>>>0;var rot=(i<4)?7:(i<8)?12:(i<12)?17:22;t=(A+g)>>>0;var rot_t=(t<<rot)|(t>>>(32-rot));D=C;C=B;B=(B+rot_t)>>>0;A=t;}a=(a+A)>>>0;b=(b+B)>>>0;c=(c+C)>>>0;d=(d+D)>>>0;}return J(a)+J(b)+J(c)+J(d);}(function(v){var s=unescape(encodeURIComponent(v));return md5(s);})(v)",
         "icon": "bi bi-shield-lock-fill",
-        "title": "MD5加密 - 快速计算任意字符串的MD5哈希值"
+        "title": "MD5加密 - 快速计算任意字符串的MD5哈希值",
+        "reverseFn": "function(v){return \"MD5 是不可逆哈希算法，无法解密。若已知明文可尝试彩虹表查询。\";}"
       },
       {
         "name": "摩斯密码加密/解密",
@@ -1572,7 +1638,8 @@
         "btnLabel2": "SHA-1",
         "forwardFn": "{var s=unescape(encodeURIComponent(v));function rotl(n,b){return(n<<b)|(n>>>32-b);}var h=[1732584193,4023233417,2562383102,271733878,3285377520];for(var i=0;i<s.length;i++){h[0]=((h[0]+((h[1]^h[2]^h[3]^h[4])+s.charCodeAt(i))))&0xffffffff;var t=((h[0]>>>17)^(h[0]<<15)^(h[0]>>>19)^(h[0]<<13));h[0]=h[1];h[1]=h[2];h[2]=h[3];h[3]=h[4];h[4]=t;}function toHex(n){var r=\"\";for(var j=0;j<4;j++)r+=((n>>>(j*8))&255).toString(16).padStart(2,\"0\");return r;}return toHex(h[0])+toHex(h[1])+toHex(h[2])+toHex(h[3])+toHex(h[4]);}",
         "icon": "bi bi-shield-lock-fill",
-        "title": "SHA加密 - 计算字符串的SHA-1/SHA-256安全哈希值"
+        "title": "SHA加密 - 计算字符串的SHA-1/SHA-256安全哈希值",
+        "reverseFn": "function(v){return \"SHA 是不可逆哈希算法，无法解密。若已知明文可尝试彩虹表查询。\";}"
       },
       {
         "name": "文字隐藏加密/解密",
@@ -1658,7 +1725,8 @@
         "keywords": "大小写转换，英文大小写，字母大小写转换，Case 转换，英文格式化，字符串转换，在线工具",
         "icon": "bi bi-body-text",
         "type": "tool-custom",
-        "title": "大小写转换 - 英文字母大小写一键切换"
+        "title": "大小写转换 - 英文字母大小写一键切换",
+        "customHtml": "<div class=\"tool-card\"><div class=\"breadcrumb\">首页 / 文本工具 / 大小写转换</div><h1>大小写转换</h1><p>文本转大写、小写、首字母大写、驼峰等格式</p><div class=\"tool-card\"><h3>输入文本</h3><textarea id=\"input\" placeholder=\"输入需要转换的文本...\" style=\"min-height:120px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea><div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem\"><button id=\"btnUpper\" class=\"btn btn-primary\">大写 UPPER</button><button id=\"btnLower\" class=\"btn btn-primary\">小写 lower</button><button id=\"btnTitle\" class=\"btn btn-primary\">首字母大写</button><button id=\"btnCamel\" class=\"btn btn-primary\">camelCase</button><button id=\"btnPascal\" class=\"btn btn-primary\">PascalCase</button><button id=\"btnSnake\" class=\"btn btn-primary\">snake_case</button><button id=\"btnKebab\" class=\"btn btn-primary\">kebab-case</button></div><h3 style=\"margin-top:1rem\">结果</h3><div id=\"result\" style=\"background:var(--output-bg);border:1px solid var(--border);border-radius:8px;padding:.75rem;min-height:80px;font-family:monospace;white-space:pre-wrap;word-break:break-all;color:var(--text)\"></div></div></div><script>function convert(fn){document.getElementById(\"result\").textContent=fn(document.getElementById(\"input\").value);}function toTitle(s){return s.replace(/\\b\\w/g,function(c){return c.toUpperCase();});}function toCamel(s){var w=s.trim().split(/[_\\-\\s]+/);return w[0].toLowerCase()+w.slice(1).map(function(x){return x.charAt(0).toUpperCase()+x.slice(1).toLowerCase();}).join(\"\");}function toPascal(s){return s.trim().split(/[_\\-\\s]+/).map(function(x){return x.charAt(0).toUpperCase()+x.slice(1).toLowerCase();}).join(\"\");}function toSnake(s){return s.trim().replace(/[_\\-\\s]+/g,\"_\").replace(/([a-z])([A-Z])/g,\"$1_$2\").toLowerCase();}function toKebab(s){return s.trim().replace(/[_\\-\\s]+/g,\"-\").replace(/([a-z])([A-Z])/g,\"$1-$2\").toLowerCase();}document.getElementById(\"btnUpper\").onclick=function(){convert(function(s){return s.toUpperCase();});};document.getElementById(\"btnLower\").onclick=function(){convert(function(s){return s.toLowerCase();});};document.getElementById(\"btnTitle\").onclick=function(){convert(toTitle);};document.getElementById(\"btnCamel\").onclick=function(){convert(toCamel);};document.getElementById(\"btnPascal\").onclick=function(){convert(toPascal);};document.getElementById(\"btnSnake\").onclick=function(){convert(toSnake);};document.getElementById(\"btnKebab\").onclick=function(){convert(toKebab);};</script>"
       },
       {
         "name": "字数统计",
@@ -1753,7 +1821,8 @@
         "keywords": "字符串排序,数组排序,中文排序,拼音排序,升序,降序,在线排序,字符串排序工具",
         "type": "formatter",
         "icon": "bi bi-sort-up",
-        "title": "字符串数组排序 - 在线字符串数组升序降序排序工具"
+        "title": "字符串数组排序 - 在线字符串数组升序降序排序工具",
+        "formatFn": "function(v, opts) {\n  var lines = v.split(/[\\n,]/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });\n  var order = (opts && opts.order) || 'asc';\n  if (order === 'desc') lines.sort(function(a,b){ return b.localeCompare(a, 'zh-CN'); });\n  else lines.sort(function(a,b){ return a.localeCompare(b, 'zh-CN'); });\n  return lines.join('\\n');\n}"
       }
     ]
   },
@@ -1947,7 +2016,8 @@
         "keywords": "时间戳转换，Unix 时间戳，UTC 时间转换，时间戳互转，毫秒时间戳，程序员工具，日志时间转换",
         "icon": "bi bi-clock-fill",
         "type": "tool-custom",
-        "title": "时间戳转换 - Unix时间戳与日期互转"
+        "title": "时间戳转换 - Unix时间戳与日期互转",
+        "customHtml": "<div class=\"tool-card\"><div class=\"breadcrumb\">首页 / 时间工具 / 时间戳转换</div><h1>时间戳转换</h1><p>在 Unix 时间戳与日期时间之间相互转换</p><div style=\"display:flex;gap:.5rem;margin-bottom:1rem\"><button id=\"btnNow\" class=\"btn btn-primary\">当前时间戳</button><button id=\"btnRefresh\" class=\"btn btn-secondary\">刷新</button></div><div class=\"tool-card\"><h3>输入时间戳或日期</h3><textarea id=\"input\" placeholder=\"输入时间戳(毫秒): 1714320000000 或日期: 2024-04-29 12:00:00\" style=\"min-height:100px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box\"></textarea><div style=\"display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem\"><button id=\"btnMsToDate\" class=\"btn btn-primary\">毫秒→日期</button><button id=\"btnSecToDate\" class=\"btn btn-primary\">秒→日期</button><button id=\"btnDateToMs\" class=\"btn btn-primary\">日期→毫秒</button><button id=\"btnDateToSec\" class=\"btn btn-primary\">日期→秒</button></div><h3 style=\"margin-top:1rem\">结果</h3><div id=\"result\" style=\"background:var(--output-bg);border:1px solid var(--border);border-radius:8px;padding:.75rem;min-height:80px;font-family:monospace;white-space:pre-wrap;word-break:break-all;color:var(--text)\"></div></div></div><script>document.getElementById(\"btnNow\").onclick=function(){var n=Date.now();document.getElementById(\"input\").value=n+\"\\n(秒:\"+Math.floor(n/1000)+\")\";};document.getElementById(\"btnRefresh\").onclick=function(){var n=Date.now();document.getElementById(\"result\").textContent=\"当前时间:\"+new Date().toLocaleString(\"zh-CN\")+\"\\n毫秒:\"+n+\"\\n秒:\"+Math.floor(n/1000);};document.getElementById(\"btnMsToDate\").onclick=function(){var v=document.getElementById(\"input\").value.trim().split(/\\n/)[0];var ms=parseInt(v);if(isNaN(ms)){document.getElementById(\"result\").textContent=\"请输入有效时间戳\";return;}if(ms<1e12)ms*=1000;document.getElementById(\"result\").textContent=new Date(ms).toLocaleString(\"zh-CN\",{timeZone:\"Asia/Shanghai\"});};document.getElementById(\"btnSecToDate\").onclick=function(){var v=document.getElementById(\"input\").value.trim().split(/\\n/)[0];var s=parseInt(v);if(isNaN(s)){document.getElementById(\"result\").textContent=\"请输入有效时间戳\";return;}document.getElementById(\"result\").textContent=new Date(s*1000).toLocaleString(\"zh-CN\",{timeZone:\"Asia/Shanghai\"});};document.getElementById(\"btnDateToMs\").onclick=function(){var v=document.getElementById(\"input\").value.trim();var d=new Date(v);if(isNaN(d.getTime())){document.getElementById(\"result\").textContent=\"请输入有效日期格式\";return;}document.getElementById(\"result\").textContent=\"毫秒:\"+d.getTime()+\"\\n秒:\"+Math.floor(d.getTime()/1000);};document.getElementById(\"btnDateToSec\").onclick=function(){var v=document.getElementById(\"input\").value.trim();var d=new Date(v);if(isNaN(d.getTime())){document.getElementById(\"result\").textContent=\"请输入有效日期格式\";return;}document.getElementById(\"result\").textContent=\"秒:\"+Math.floor(d.getTime()/1000)+\"\\n毫秒:\"+d.getTime();};</script>"
       },
       {
         "name": "标准时间",
@@ -2026,7 +2096,20 @@
         "keywords": "五险一金计算器，五险一金计算，社保计算器，公积金计算，工资计算，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "calculate",
-        "title": "五险一金计算器 - 计算社保公积金扣除和税后工资"
+        "title": "五险一金计算器 - 计算社保公积金扣除和税后工资",
+        "fields": [
+          {
+            "id": "salary",
+            "label": "税前工资(元)",
+            "placeholder": "例如: 10000"
+          },
+          {
+            "id": "city",
+            "label": "城市",
+            "placeholder": "例如: 北京"
+          }
+        ],
+        "calcFn": "function(inputs) {\n  var salary = parseFloat(inputs.salary) || 0;\n  var pension = salary * 0.08;\n  var medical = salary * 0.02;\n  var unemployment = salary * 0.005;\n  var housing = salary * 0.12;\n  var total = pension + medical + unemployment + housing;\n  var result = '<b>五险一金计算结果（' + (inputs.city||'某城市') + '）</b><br>';\n  result += '税前工资: ' + salary.toFixed(2) + '元<br>';\n  result += '养老保险(8%): ' + pension.toFixed(2) + '元<br>';\n  result += '医疗保险(2%): ' + medical.toFixed(2) + '元<br>';\n  result += '失业保险(0.5%): ' + unemployment.toFixed(2) + '元<br>';\n  result += '公积金(12%): ' + housing.toFixed(2) + '元<br>';\n  result += '<b>个人合计扣除: ' + total.toFixed(2) + '元</b><br>';\n  result += '实际到手: ' + (salary - total).toFixed(2) + '元';\n  return result;\n}"
       },
       {
         "name": "键盘按键测试",
@@ -2123,7 +2206,20 @@
         "keywords": "税后工资计算器，工资计算器，个税计算，税后工资，薪资计算，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "calculate",
-        "title": "税后工资计算器 - 扣除五险一金和个税计算实际到手工资"
+        "title": "税后工资计算器 - 扣除五险一金和个税计算实际到手工资",
+        "fields": [
+          {
+            "id": "salary",
+            "label": "税前工资(元)",
+            "placeholder": "例如: 15000"
+          },
+          {
+            "id": "insurance",
+            "label": "五险一金(元)",
+            "placeholder": "例如: 2000"
+          }
+        ],
+        "calcFn": "function(inputs) {\n  var salary = parseFloat(inputs.salary) || 0;\n  var insurance = parseFloat(inputs.insurance) || 0;\n  var taxable = salary - insurance - 5000;\n  var tax = 0;\n  if (taxable > 0) {\n    if (taxable <= 36000) tax = taxable * 0.03;\n    else if (taxable <= 144000) tax = taxable * 0.10 - 2520;\n    else if (taxable <= 300000) tax = taxable * 0.20 - 16920;\n    else if (taxable <= 420000) tax = taxable * 0.25 - 31920;\n    else if (taxable <= 660000) tax = taxable * 0.30 - 52920;\n    else if (taxable <= 960000) tax = taxable * 0.35 - 85920;\n    else tax = taxable * 0.45 - 181920;\n  }\n  var net = salary - insurance - tax;\n  var result = '<b>工资税务计算</b><br>';\n  result += '税前工资: ' + salary.toFixed(2) + '元<br>';\n  result += '五险一金: ' + insurance.toFixed(2) + '元<br>';\n  result += '应纳税所得额: ' + Math.max(0, taxable).toFixed(2) + '元<br>';\n  result += '个人所得税: ' + tax.toFixed(2) + '元<br>';\n  result += '<b>税后工资: ' + net.toFixed(2) + '元</b>';\n  return result;\n}"
       },
       {
         "name": "温度转换",
@@ -2258,7 +2354,8 @@
         "icon": "bi bi-house-heart-fill",
         "type": "generator",
         "title": "密码生成器 - 生成自定义长度的高强度随机密码",
-        "customScript": "document.getElementById('genBtn').onclick=function(){var len=parseInt(document.getElementById('len').value)||16;var useUpper=document.getElementById('upper').checked;var useLower=document.getElementById('lower').checked;var useNum=document.getElementById('num').checked;var useSym=document.getElementById('sym').checked;var chars='';if(useUpper)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';if(useLower)chars+='abcdefghijklmnopqrstuvwxyz';if(useNum)chars+='0123456789';if(useSym)chars+='!@#$%^&*()_+-=[]{}|;';if(!chars)chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';var result='';for(var i=0;i<len;i++)result+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('output').value=result;};"
+        "customScript": "document.getElementById('genBtn').onclick=function(){var len=parseInt(document.getElementById('len').value)||16;var useUpper=document.getElementById('upper').checked;var useLower=document.getElementById('lower').checked;var useNum=document.getElementById('num').checked;var useSym=document.getElementById('sym').checked;var chars='';if(useUpper)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';if(useLower)chars+='abcdefghijklmnopqrstuvwxyz';if(useNum)chars+='0123456789';if(useSym)chars+='!@#$%^&*()_+-=[]{}|;';if(!chars)chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';var result='';for(var i=0;i<len;i++)result+=chars[Math.floor(Math.random()*chars.length)];document.getElementById('output').value=result;};",
+        "generateFn": "function(inputs) {\n  var len = parseInt(inputs.length) || 16;\n  var useUpper = inputs.useUpper !== '0';\n  var useLower = inputs.useLower !== '0';\n  var useNum = inputs.useNum !== '0';\n  var useSpec = inputs.useSpec !== '0';\n  var count = parseInt(inputs.count) || 1;\n  var chars = '';\n  if (useUpper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';\n  if (useLower) chars += 'abcdefghijklmnopqrstuvwxyz';\n  if (useNum) chars += '0123456789';\n  if (useSpec) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';\n  if (!chars) chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';\n  var result = [];\n  for (var c = 0; c < count; c++) {\n    var pwd = '';\n    for (var i = 0; i < len; i++) {\n      pwd += chars[Math.floor(Math.random() * chars.length)];\n    }\n    result.push(pwd);\n  }\n  return result.join('\\n');\n}"
       },
       {
         "name": "反应力测试",
@@ -2736,7 +2833,41 @@
         "keywords": "HTTP 请求测试，API 测试，接口调试，HTTP 调试，REST API，POST GET PUT DELETE，HTTP 调试工具",
         "type": "http-test",
         "icon": "bi bi-globe",
-        "title": "HTTP 请求测试 - 发送 GET/POST/PUT/DELETE 请求调试接口"
+        "title": "HTTP 请求测试 - 发送 GET/POST/PUT/DELETE 请求调试接口",
+        "config": {
+          "method": {
+            "type": "select",
+            "label": "请求方法",
+            "options": [
+              "GET",
+              "POST",
+              "PUT",
+              "DELETE",
+              "PATCH"
+            ],
+            "default": "GET"
+          },
+          "url": {
+            "type": "input",
+            "label": "URL",
+            "placeholder": "https://api.example.com"
+          },
+          "headers": {
+            "type": "textarea",
+            "label": "Headers (JSON)",
+            "placeholder": "{\"Content-Type\":\"application/json\"}"
+          },
+          "body": {
+            "type": "textarea",
+            "label": "Body",
+            "placeholder": "{}"
+          },
+          "timeout": {
+            "type": "input",
+            "label": "Timeout(ms)",
+            "default": "10000"
+          }
+        }
       },
       {
         "name": "URL 编码解码",
