@@ -587,21 +587,21 @@ const TOOL_SPECIFIC_OVERRIDES = {
 function buildToolScript(tool) {
   // HIGHEST PRIORITY: customScript - complete JS customization, no template logic
   if (tool.customScript) {
-    return tool.customScript.replace(/<\/script>/gi, '<\\/script>');
+    return tool.customScript.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Path-based overrides for mis-typed tools
   if (TOOL_SPECIFIC_OVERRIDES[tool.path]) {
-    return (TOOL_SPECIFIC_OVERRIDES[tool.path].script || '').replace(/<\/script>/gi, '<\\/script>');
+    return (TOOL_SPECIFIC_OVERRIDES[tool.path].script || '').replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Check tool.type in registry
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
     const raw = TOOL_TYPE_REGISTRY[tool.type].script(tool);
-    return raw.replace(/<\/script>/gi, '<\\/script>');
+    return raw.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Fallback: use formatter type for any unhandled types
   if (TOOL_TYPE_REGISTRY['formatter']) {
     const raw = TOOL_TYPE_REGISTRY['formatter'].script(tool);
-    return raw.replace(/<\/script>/gi, '<\\/script>');
+    return raw.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   return '// No script available for ' + tool.path;
 }
@@ -610,7 +610,7 @@ function buildToolScript(tool) {
 function buildToolContentHtml(tool) {
   // HIGHEST PRIORITY: customHtml - complete HTML customization, no template logic
   if (tool.customHtml) {
-    return tool.customHtml;
+    return tool.customHtml.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Path-based overrides for mis-typed tools
   if (TOOL_SPECIFIC_OVERRIDES[tool.path]) {
@@ -1940,7 +1940,7 @@ ${footerHtml}
         return; // Skip duplicate - already generated
       }
       generatedPaths.add(tool.path);
-      const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/script>');
+      const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
       if (!contentHtml) {
         console.log(`  ️  No template for: ${tool.path}`);
         return;
