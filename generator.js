@@ -596,12 +596,12 @@ function buildToolScript(tool) {
   // Check tool.type in registry
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
     const raw = TOOL_TYPE_REGISTRY[tool.type].script(tool);
-    return raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
+    return raw.replace(/<\/script>/gi, '<\\/script>');
   }
   // Fallback: use formatter type for any unhandled types
   if (TOOL_TYPE_REGISTRY['formatter']) {
     const raw = TOOL_TYPE_REGISTRY['formatter'].script(tool);
-    return raw.replace(/\\/g, '\\\\').replace(/<\/script>/gi, '<\\/script>');
+    return raw.replace(/<\/script>/gi, '<\\/script>');
   }
   return '// No script available for ' + tool.path;
 }
