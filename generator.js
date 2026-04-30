@@ -1824,8 +1824,8 @@ function generate() {
   const allToolsData = toolsConfig.flatMap(cat => cat.tools.map(t => ({
     name: t.name,
     path: t.path,
-    desc: t.description || '',
-    tags: cat.name || '',
+    desc: t.desc || '',
+    tags: t.keywords || '',
     icon: t.icon || 'bi bi-tools'
   })));
   let homeHtml = homeTemplate

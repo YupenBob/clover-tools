@@ -598,12 +598,13 @@
         var all = window.__ALL_TOOLS__ || [];
         var results = all.filter(function (t) {
           if (t.name.toLowerCase().includes(q)) return true;
+          if ((t.desc || '').toLowerCase().includes(q)) return true;
           var tags = t.tags ? (Array.isArray(t.tags) ? t.tags : t.tags.split('，')) : [];
           for (var i = 0; i < tags.length; i++) {
             if (tags[i].toLowerCase().includes(q)) return true;
           }
           return false;
-        }).slice(0, 8);
+        }).slice(0, 12);
 
         if (!searchPanel) return;
         if (results.length === 0) {
