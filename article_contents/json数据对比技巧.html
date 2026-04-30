@@ -1,0 +1,59 @@
+<h2>JSON 数据对比有什么用</h2><p>JSON（JavaScript Object Notation）是现代 API 和配置文件最常用的数据格式。开发中经常遇到这些问题：</p><ul><li>两次接口返回的数据有什么不同？</li><li>配置文件修改了哪些内容？</li><li>数据库更新前后的数据差异？</li><li>代码重构后数据结构是否一致？</li></ul><p>用手工比对几十行甚至上百行的 JSON 几乎不可能，必须借助工具。</p><h2>JSON 对比的核心难点</h2><h3>1. 顺序无关对比</h3><p>JSON 对象的字段顺序不影响语义，但字符串对比会认为顺序不同就是不同：</p><pre><code>// 这两段 JSON 语义完全相同
+{"name": "Clover", "age": 16}
+{"age": 16, "name": "Clover"}
+
+// 字符串对比：❌ 不相同（顺序不同）
+// 结构对比：✅ 相同（字段一样）</code></pre><h3>2. 嵌套层级</h3><p>深层嵌套的对象，要能准确定位到"哪个路径下的哪个值"变了：</p><pre><code>{
+  "user": {
+    "profile": {
+      "name": "Clover",
+      "settings": {
+        "theme": "dark",    // ← 这里变了
+        "lang": "zh"
+      }
+    }
+  }
+}</code></pre><h3>3. 数组元素对比</h3><p>数组顺序敏感时，位置对应比较；顺序不敏感时，需要智能匹配元素：</p><pre><code>旧: ["apple", "banana", "cherry"]
+新: ["banana", "apple", "date"]
+// 变化：cherry被删除了，date新增了，apple和banana顺序变了</code></pre><h2>常见的 JSON Diff 算法</h2><h3>1. Deep Diff（深度递归对比）</h3><p>最常用。递归遍历两个对象的所有层级，生成差异列表：</p><pre><code>const oldObj = {a: 1, b: {c: 2}};
+const newObj = {a: 1, b: {c: 3}};
+
+deepDiff(oldObj, newObj);
+// 结果：[ {path: ['b','c'], oldValue: 2, newValue: 3} ]</code></pre><h3>2. RFC 6902 JSON Patch</h3><p>生成标准的 Patch 文档，可以精确描述如何把 A 变成 B：</p><pre><code>[
+  {"op": "replace", "path": "/b/c", "value": 3},
+  {"op": "add", "path": "/d", "value": 4},
+  {"op": "remove", "path": "/e"}
+]
+// op: replace=替换, add=新增, remove=删除</code></pre><h3>3. JSON Merge Patch（RFC 7386）</h3><p>简单场景：用新对象覆盖旧对象，<code>null</code> 表示删除：</p><pre><code>旧: {"a": 1, "b": 2}
+新: {"a": 1, "b": 3, "c": null}
+结果: {"a": 1, "b": 3}  // c:2被删除（null表示删除）</code></pre><h2>实战：前后端数据校验</h2><pre><code>// 场景：用户提交了修改资料，验证哪些字段变了
+const userBefore = {
+  name: "Clover",
+  email: "clover@example.com",
+  avatar: "https://...",
+  role: "admin"
+};
+
+const userAfter = {
+  name: "☘️ Clover",
+  email: "clover@example.com",
+  avatar: "https://new...",
+  role: "admin"
+};
+
+// 只提交变化的字段，减少请求体积
+const changedFields = {};
+for (const key of Object.keys(userAfter)) {
+  if (JSON.stringify(userBefore[key]) !== JSON.stringify(userAfter[key])) {
+    changedFields[key] = userAfter[key];
+  }
+}
+console.log(changedFields);
+// 输出: {name: "☘️ Clover", avatar: "https://new..."}
+// email 和 role 没变，不提交！</code></pre><h2>常用 JSON 对比工具推荐</h2><ul><li><a href='/tools/json/json-diff.html' target='_blank'>JSON 数据对比工具</a> — 可视化高亮差异，支持复制修改后的 JSON</li><li>VSCode 插件：JSON Tools</li><li>JetBrains 系列：内置 JSON 对比支持</li></ul><h2>注意事项</h2><h3>浮点数精度问题</h3><pre><code>const a = 0.1 + 0.2;   // 0.30000000000000004
+const b = 0.3;
+console.log(a === b);   // false！不能用 === 对比浮点数
+
+// 正确做法：指定精度后再对比
+const epsilon = 1e-10;
+console.log(Math.abs(a - b) < epsilon); // true</code></pre><h3>大文件处理</h3><p>对于几 MB 以上的 JSON，浏览器可能会卡顿。建议：</p><ul><li>先做粗粒度对比（顶层 keys），确认差异路径</li><li>再定位到具体文件做细粒度对比</li><li>大文件用专业桌面工具（如 Beyond Compare）</li></ul><h2>总结</h2><p>JSON 对比的核心是<strong>结构化对比而非字符串对比</strong>。选对算法和工具，能把几小时的人工对比变成几秒钟的自动分析。需要在线使用？试试 <a href='/tools/json/json-diff.html'>JSON 数据对比工具</a>。</p>

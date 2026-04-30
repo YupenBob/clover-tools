@@ -1,0 +1,44 @@
+<h2>字节、KB、MB、GB——到底怎么换算</h2><p>存储容量、网络带宽、文件大小……日常开发中几乎每天都要和字节打交道。但不同场景下"1 KB = 1024 字节"还是"1000 字节"？为什么买的硬盘插上电脑容量"缩水"了？这篇帮你彻底搞清楚。</p><h2>两种换算标准</h2><h3>二进制（IEC 标准）：编程中的标准</h3><p>计算机底层以二进制为基础，习惯上用 1024（2¹⁰）作为换算单位：</p><pre><code>1 Byte（B）   = 8 bits（位）
+1 KB（KiB）   = 1024 Bytes
+1 MB（MiB）   = 1024 KB
+1 GB（GiB）   = 1024 MB
+1 TB（TiB）   = 1024 GB
+1 PB（PiB）   = 1024 TB</code></pre><p>在编程语言和操作系统中，除非特别说明，都用这个标准。Linux 的 <code>df -h</code>、macOS 的"关于本机"都显示的是二进制单位。</p><h3>十进制（SI 标准）：商业标称用的标准</h3><p>硬盘、U 盘、网速等厂商标注容量时，为了数字更好看，用 1000 作为换算：</p><pre><code>1 KB = 1000 Bytes
+1 MB = 1000 KB
+1 GB = 1000 MB
+1 TB = 1000 GB
+// 厂商的"1TB硬盘" = 1,000,000,000,000 Bytes
+// 电脑显示 ≈ 931 GB（因为电脑用1024算）</code></pre><p>这就是为什么"买的 1TB 硬盘只显示 931GB"的真相——不是缩水，是计量标准不同。</p><h2>网络带宽中的字节</h2><p>网络带宽说的是"位"（bits），而下载速度说的是"字节"（Bytes），两者差 8 倍：</p><pre><code>运营商的"100M宽带" = 100 Mbps（兆位/秒）
+                        = 100 ÷ 8 MB/s
+                        ≈ 12.5 MB/s（实际下载速度峰值）
+
+"千兆宽带" = 1 Gbps = 125 MB/s（理论上限）</code></pre><p>所以如果看到"100M宽带下载只有12MB/s"，不是被骗了，是单位的正确换算。</p><h2>常见场景换算表</h2><table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-family:monospace;"><tr><th>场景</th><th>实际值</th><th>换算</th></tr><tr><td>1张普通照片</td><td>≈ 2-5 MB</td><td>2-5 × 1024² Bytes</td></tr><tr><td>一首 MP3</td><td>≈ 3-5 MB</td><td>≈ 3-5 分钟音乐</td></tr><tr><td>1部电影（1080p）</td><td>≈ 1.5-3 GB</td><td>≈ 90-120 分钟</td></tr><tr><td>1部电影（4K）</td><td>≈ 10-20 GB</td><td>流量杀手慎用</td></tr><tr><td>1集电视剧</td><td>≈ 300-700 MB</td><td>高清/普清差距大</td></tr><tr><td>主流游戏客户端</td><td>≈ 10-100 GB</td><td>首次下载流量大</td></tr><tr><td>4G手机流量套餐</td><td>1 GB = 1024 MB</td><td>注意运营商计费标准</td></tr><tr><td>双11薅羊毛</td><td>付定金时注意流量费</td><td>开玩笑的 😁</td></tr></table><h2>JavaScript 中处理字节换算</h2><pre><code>// 自动换算为人类可读格式
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals)) + ' ' + sizes[i];
+}
+
+formatBytes(1024);         // "1 KB"
+formatBytes(1536);         // "1.5 KB"
+formatBytes(1048576);      // "1 MB"
+formatBytes(1073741824);   // "1 GB"
+formatBytes(5000000000);   // "4.66 GB"</code></pre><h2>大数字的临界点记忆</h2><pre><code>1 KB = 1,024 Bytes        ≈ 1千字节
+1 MB = 1,048,576 Bytes    ≈ 100万字节
+1 GB = 1,073,741,824 Bytes ≈ 10亿字节
+1 TB = 1,099,511,627,776 Bytes ≈ 1万亿字节
+
+// 快速估算技巧：
+// 真实MB数 = 显示MB数 × 0.931
+// 显示GB数 = 标称GB数 × 0.931</code></pre><h2>编码对文件大小的影响</h2><p>不同字符编码占用的字节数不同：</p><pre><code>字符       ASCII    UTF-8    UTF-16   UTF-32
+"a"         1B       1B       2B       4B
+"中"        1B(乱码)  3B       2B       4B
+emoji "😀"  1B(乱码)  4B       4B       4B
+
+// 所以同一个文本文件，用 UTF-8 和 UTF-16 存储
+// 文件大小可能相差很大！
+// JSON 通信推荐统一用 UTF-8（无 BOM）</code></pre><h2>在线字节转换工具</h2><p>手动算太麻烦，在线工具一键互转：<a href='/tools/code/bytes.html' target='_blank'>字节转换器</a> 支持 B / KB / MB / GB / TB / PB 的双向换算，输入任意单位自动计算其他。</p><p>常见换算示例：</p><ul><li><code>1048576 Bytes</code> = <code>1024 KB</code> = <code>1 MB</code></li><li><code>15728640 Bytes</code> = <code>15360 KB</code> = <code>15 MB</code></li><li><code>2147483648 Bytes</code> = <code>2097152 KB</code> = <code>2048 MB</code> = <code>2 GB</code></li></ul><h2>总结</h2><p>记住两个标准：<strong>编程/系统用 1024（二进制），厂商/商业用 1000（十进制）</strong>。网络带宽记得除以 8 换算成下载速度。遇到字节换算别再算错，直接用 <a href='/tools/code/bytes.html'>字节转换器</a>。</p>

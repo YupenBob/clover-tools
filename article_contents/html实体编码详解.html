@@ -1,0 +1,47 @@
+<h2>HTML 实体编码是什么</h2><p>HTML 实体编码（HTML Entity Encoding）是把特殊字符转换为安全格式的技术。在 HTML 中，有些字符有特殊含义（如 <code>&lt;</code>、<code>&gt;</code>、<code>&amp;</code>），直接写在 HTML 里会被浏览器解析为标签或指令。用实体编码可以"原样显示"这些字符。</p><p>实体编码以 <code>&amp;</code> 开头，以 <code>;</code> 结尾，中间是名字或数字。</p><h2>三种表示方式</h2><h3>1. 命名实体（Named Entity）</h3><pre><code>&amp;lt;        → &lt;
+&amp;gt;        → &gt;
+&amp;amp;       → &amp;
+&amp;quot;       → "
+&amp;copy;      → ©
+&amp;nbsp;      → 不换行空格（non-breaking space）</code></pre><h3>2. 十进制数字编号（Decimal）</h3><pre><code>&amp;#60;       → &lt;
+&amp;#62;       → &gt;
+&amp;#38;       → &amp;
+&amp;#169;      → ©
+&amp;#160;      → 不间断空格</code></pre><h3>3. 十六进制数字编号（Hexadecimal）</h3><pre><code>&amp;#x3C;      → &lt;
+&amp;#x3E;      → &gt;
+&amp;#x26;      → &amp;
+&amp;#xA9;      → ©
+&amp;#xA0;      → 不间断空格</code></pre><h2>为什么要用 HTML 实体编码</h2><h3>场景一：防止 XSS 注入</h3><p>用户输入的内容如果未经转义直接显示，攻击者可以注入恶意脚本：</p><pre><code>// 危险：直接把用户输入放进 HTML
+div.innerHTML = userInput;
+// 如果 userInput = '&lt;script&gt;alert(1)&lt;/script&gt;'
+// 浏览器会执行这个脚本！</code></pre><pre><code>// 安全：对用户输入进行 HTML 转义
+function escapeHtml(str) {
+  return str
+    .replace(/&amp;/g, '&amp;amp;')
+    .replace(/&lt;/g, '&amp;lt;')
+    .replace(/&gt;/g, '&amp;gt;')
+    .replace(/"/g, '&amp;quot;')
+    .replace(/'/g, '&amp;#x27;');
+}
+// '&lt;script&gt;' → '&amp;lt;script&amp;gt;'（安全显示）</code></pre><h3>场景二：在网页中显示特殊符号</h3><pre><code>&lt;p&gt;5 &amp;lt; 10 &amp;amp;&amp;amp; 3 &amp;gt; 1&lt;/p&gt;
+显示为：5 &lt; 10 &amp;&amp; 3 &gt; 1</code></pre><h3>场景三：合并空格</h3><p>HTML 会把连续多个空格压缩成一个。用 <code>&amp;nbsp;</code> 可以保留原始空格：</p><pre><code>&lt;p&gt;苹果    香蕉    橙子&lt;/p&gt;
+显示为：苹果 香蕉 橙子（空格被合并）
+
+&lt;p&gt;苹果&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;香蕉&lt;/p&gt;
+显示为：苹果    香蕉（保留4个空格）</code></pre><h2>完整常用实体对照表</h2><table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;"><tr><th>字符</th><th>命名实体</th><th>十进制</th><th>十六进制</th></tr><tr><td>&lt;</td><td>&amp;lt;</td><td>&amp;#60;</td><td>&amp;#x3C;</td></tr><tr><td>&gt;</td><td>&amp;gt;</td><td>&amp;#62;</td><td>&amp;#x3E;</td></tr><tr><td>&amp;</td><td>&amp;amp;</td><td>&amp;#38;</td><td>&amp;#x26;</td></tr><tr><td>"（双引号）</td><td>&amp;quot;</td><td>&amp;#34;</td><td>&amp;#x22;</td></tr><tr><td>'（单引号）</td><td>&amp;apos;</td><td>&amp;#39;</td><td>&amp;#x27;</td></tr><tr><td>©</td><td>&amp;copy;</td><td>&amp;#169;</td><td>&amp;#xA9;</td></tr><tr><td>®</td><td>&amp;reg;</td><td>&amp;#174;</td><td>&amp;#xAE;</td></tr><tr><td>™</td><td>&amp;trade;</td><td>&amp;#8482;</td><td>&amp;#x2122;</td></tr><tr><td>空格</td><td>&amp;nbsp;</td><td>&amp;#160;</td><td>&amp;#xA0;</td></tr><tr><td>¥</td><td>&amp;yen;</td><td>&amp;#165;</td><td>&amp;#xA5;</td></tr><tr><td>&amp;</td><td>&amp;amp;</td><td>&amp;#38;</td><td>&amp;#x26;</td></tr></table><h2>JavaScript 中快速转义</h2><pre><code>// 最简洁的 HTML 转义（单行）
+const escapeHtml = s =&gt; s.replace(/[&amp;&lt;&gt;"']/g, c =&gt; ({
+  '&amp;': '&amp;amp;', '&lt;': '&amp;lt;', '&gt;': '&amp;gt;',
+  '"': '&amp;quot;', "'": '&amp;#39;'
+}[c]));
+
+// 反转义（解码）
+const unescapeHtml = s =&gt; s.replace(/&amp;(\w+);/g, (_, name) =&gt; {
+  const div = document.createElement('div');
+  div.innerHTML = '&amp;' + name + ';';
+  return div.textContent;
+});</code></pre><h2>进阶：URL 编码 vs HTML 编码</h2><p>不要混淆两者：</p><ul><li><strong>URL 编码</strong>（Percent-encoding）：用于 URL 中，如 <code>%20</code> 表示空格，<code>%3C</code> 表示 <code>&lt;</code>。用 <code>encodeURIComponent()</code></li><li><strong>HTML 编码</strong>：用于 HTML 内容中，如 <code>&amp;lt;</code> 表示 <code>&lt;</code>。用 <code>&amp;xxx;</code> 格式</li></ul><pre><code>// URL 参数中的特殊字符
+"hello world" → encodeURIComponent("hello world")
+// 结果: "hello%20world"
+
+&lt;script&gt; → encodeURIComponent("&lt;script&gt;")
+// 结果: "%3Cscript%3E"</code></pre><h2>总结</h2><p>HTML 实体编码的核心就三句话：<strong>1) 输出到 HTML 之前必须转义；2) 转义顺序是先 HTML 再 URL；3) 用 <code>&amp;xxx;</code> 格式，永远不要把未转义的用户输入直接放进 innerHTML。</strong></p><p>在线工具：<a href='/tools/code/html-entity.html' target='_blank'>HTML 实体编码/解码工具</a> 支持一键互相转换，实时预览结果。</p>
