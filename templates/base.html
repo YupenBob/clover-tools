@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CloverTools - 轻量级开发者工具箱</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" integrity="sha512-O8C8H4/qf9Bj1hQbK4/4C5LKoN7L3i6u Edu3Zb7K/p6LlHOM9QTiA63PBSBLNG3CbR4Gezd5Zb2X5M2Z7eLMrww==" crossorigin="anonymous">
   <style>
     :root {
       --primary: #c70039;
@@ -115,13 +116,20 @@
     .category li {
       margin: 0.75rem 0;
     }
-    .category a {
+    .category li a {
       text-decoration: none;
       color: var(--text);
       display: flex;
+      align-items: center;
+      gap: 0.35rem;
       justify-content: space-between;
       padding: 0.5rem 0;
       border-bottom: 1px dashed var(--border);
+    }
+    .category li a i[class^="bi-"] {
+      font-size: 1.05rem;
+      color: var(--primary);
+      flex-shrink: 0;
     }
     .category a:hover {
       color: var(--primary);
