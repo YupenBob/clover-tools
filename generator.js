@@ -110,7 +110,7 @@ function buildToolPage(tool) {
     .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl)
-    // SEO meta — derived from tools.json fields
+    // SEO meta - derived from tools.json fields
     .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.description || tool.name || '').slice(0, 160))
     .replace(/\{\{PAGE_KEYWORDS\}\}/g, Array.isArray(tool.keywords) ? tool.keywords.join(',') : '');
 
@@ -204,7 +204,7 @@ const TOOL_TYPE_REGISTRY = {
   },
 
   // type: "converter" → input + select (from/to) + output
-  // type: "life" → BMI/温度/人民币大写等生活工具，支持 args.inputs + genFn，结果显示在 div（非 textarea）
+  // type: "life" → BMI/温度/人民币大写等生活工具,支持 args.inputs + genFn,结果显示在 div(非 textarea)
   'life': {
     description: '生活计算类工具',
     html: function(tool) {
@@ -234,7 +234,7 @@ const TOOL_TYPE_REGISTRY = {
 
   // type: "time" → alias to tool-custom (tools define customHtml/customScript in tools.json)
   'time': {
-    description: '时间工具（自定义 HTML/JS）',
+    description: '时间工具(自定义 HTML/JS)',
     html: function(tool) { return '<!-- time: 使用 tools.json 的 customHtml -->'; },
     script: function(tool) { return '// time: 使用 tools.json 的 customScript\n'; }
   },
@@ -307,7 +307,7 @@ const TOOL_TYPE_REGISTRY = {
 
   // type: "formatter" → textarea input + format/minify buttons + output (JSON/HTML/XML)
   'formatter': {
-    description: '格式化工具（JSON/HTML/XML）',
+    description: '格式化工具(JSON/HTML/XML)',
     html: function(tool) {
       var inputPlaceholder = tool.inputPlaceholder || '输入内容...';
       return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="' + inputPlaceholder + '"></textarea><div class="btn-row"><button class="btn btn-primary" id="format">格式化</button><button class="btn btn-secondary" id="minify">压缩</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
@@ -328,7 +328,7 @@ const TOOL_TYPE_REGISTRY = {
       return '<div class="tool-card"><h3>上传文件</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" accept="' + accept + '" style="display:none;"><svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div class="upload-hint"><div class="upload-hint-main">点击或拖拽上传文件</div><div class="upload-hint-sub">或点击选择文件</div></div></div><div id="fileInfo" style="margin-top:0.5rem;font-size:0.85rem;display:none;"></div><div class="input-row" style="margin-top:0.5rem;"><select id="outputFormat" style="padding:0.4rem;">' + opts + '</select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">转换</button></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>输出 <button class="copy-btn" id="downloadOutput">下载</button></h3><div id="outputPreview" style="text-align:center;padding:1rem;"></div></div>';
     },
     script: function(tool) {
-      return "var toolPath = location.pathname;\nvar uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputFormat = document.getElementById('outputFormat');\nvar convertBtn = document.getElementById('convertBtn');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFileName = '';\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) {\n  e.preventDefault();\n  uploadArea.style.borderColor = 'var(--border)';\n  if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; handleFile(e.dataTransfer.files[0]); }\n});\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction handleFile(file) {\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<b>' + escHtml(file.name) + '</b> (' + (file.size / 1024).toFixed(1) + ' KB, ' + (file.type || '未知') + ')';\n}\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction downloadDataUrl(dataUrl, filename) {\n  var a = document.createElement('a');\n  a.href = dataUrl;\n  a.download = filename;\n  a.click();\n}\nfunction imgToPdf(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      var w = img.width, h = img.height;\n      var canv = document.createElement('canvas');\n      canv.width = w; canv.height = h;\n      var ctx = canv.getContext('2d');\n      ctx.fillStyle = '#fff';\n      ctx.fillRect(0, 0, w, h);\n      ctx.drawImage(img, 0, 0);\n      var imgData = canv.toDataURL('image/jpeg', 0.95);\n      var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.pdf';\n      // jsPDF approach\n      if (typeof window.jspdf !== 'undefined') {\n        var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });\n        pdf.addImage(imgData, 'JPEG', 0, 0, w, h);\n        pdf.save(newName);\n        callback({ dataUrl: null, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      } else {\n        // Load jspdf from CDN\n        var script = document.createElement('script');\n        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';\n        script.onload = function() {\n          var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });\n          pdf.addImage(imgData, 'JPEG', 0, 0, w, h);\n          pdf.save(newName);\n          callback({ dataUrl: null, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n        };\n        script.onerror = function() {\n          // Fallback: HTML printable page\n          var blob = new Blob(['<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>', escHtml(newName), '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh;object-fit:contain;background:#fff}@media print{body{background:none}img{max-height:none}}</style></head><body><img src=\"', imgData, '\" onload=\"window.print()\"></body></html>'], { type: 'text/html' });\n          var url = URL.createObjectURL(blob);\n          callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n        };\n        document.head.appendChild(script);\n      }\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(file);\n}\nfunction pdfToText(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        var promises = [];\n        for (var i = 1; i <= Math.min(pdf.numPages, 20); i++) {\n          promises.push(pdf.getPage(i).then(function(p) { return p.getTextContent().then(function(c) { return c.items.map(function(it) { return it.str; }).join(' '); }); }));\n        }\n        Promise.all(promises).then(function(pages) {\n          var text = pages.join('\\n\\n');\n          var blob = new Blob([text], { type: 'text/plain' });\n          var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.txt';\n          callback({ dataUrl: URL.createObjectURL(blob), filename: newName, preview: '<div style=\"text-align:left;max-height:400px;overflow:auto;background:var(--bg);padding:1rem;border-radius:8px;font-family:monospace;white-space:pre-wrap;word-break:break-all;\">' + escHtml(text) + '</div>' });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF 解析错误: ' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() {\n        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';\n        go();\n      };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败，请检查网络</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction imgToImg(file, mimeOut, extOut, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      var canv = document.createElement('canvas');\n      canv.width = img.width; canv.height = img.height;\n      var ctx = canv.getContext('2d');\n      ctx.drawImage(img, 0, 0);\n      canv.toBlob(function(blob) {\n        var url = URL.createObjectURL(blob);\n        var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.' + extOut;\n        callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      }, mimeOut, 0.95);\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(file);\n}\nfunction svgToPng(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var svgData = e.target.result;\n    var img = new Image();\n    img.onload = function() {\n      var canv = document.createElement('canvas');\n      canv.width = img.width || 800; canv.height = img.height || 600;\n      var ctx = canv.getContext('2d');\n      ctx.drawImage(img, 0, 0);\n      canv.toBlob(function(blob) {\n        var url = URL.createObjectURL(blob);\n        var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.png';\n        callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      }, 'image/png');\n    };\n    img.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">SVG 解析失败</div>' }); };\n    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));\n  };\n  reader.readAsText(file);\n}\nfunction pdfToImg(file, mimeOut, extOut, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        pdf.getPage(1).then(function(page) {\n          var vpt = page.getViewport({ scale: 2 });\n          var canv = document.createElement('canvas');\n          canv.width = vpt.width; canv.height = vpt.height;\n          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {\n            var dataUrl = canv.toDataURL(mimeOut, 0.95);\n            var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_page1.' + extOut;\n            callback({ dataUrl: dataUrl, filename: newName, preview: '<img src=\"' + dataUrl + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n          });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF 渲染错误: ' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction pdfToHtml(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        pdf.getPage(1).then(function(page) {\n          var vpt = page.getViewport({ scale: 2 });\n          var canv = document.createElement('canvas');\n          canv.width = vpt.width; canv.height = vpt.height;\n          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {\n            var dataUrl = canv.toDataURL('image/png');\n            callback({ dataUrl: null, filename: currentFileName.replace(/\\.[^.]+$/, '') + '.html', preview: '<div style=\"text-align:center;padding:1rem;\"><img src=\"' + dataUrl + '\" style=\"max-width:100%;border:1px solid #ddd;border-radius:8px;\"></div>' });\n          });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nconvertBtn.onclick = function() {\n  if (!fileInput.files || fileInput.files.length === 0) { outputBox.style.display = 'none'; if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }\n  var file = fileInput.files[0];\n  var outFmt = outputFormat.value;\n  var isJpg2pdf = toolPath.indexOf('jpg2pdf') !== -1;\n  var isPdf2txt = toolPath.indexOf('pdf2txt') !== -1;\n  var isWebp2jpg = toolPath.indexOf('webp2jpg') !== -1;\n  var isSvg2png = toolPath.indexOf('svg2png') !== -1;\n  var isJpg2webp = toolPath.indexOf('jpg2webp') !== -1;\n  var isPng2webp = toolPath.indexOf('png2webp') !== -1;\n  var isPdf2jpg = toolPath.indexOf('pdf2jpg') !== -1;\n  var isPdf2html = toolPath.indexOf('pdf2html') !== -1;\n  var isPdfCompress = toolPath.indexOf('pdf-compress') !== -1;\n  var isZipRepair = toolPath.indexOf('zip-repair') !== -1;\n  var onDone = function(result) {\n    outputPreview.innerHTML = result.preview || '';\n    outputBox.style.display = 'block';\n    window._fcResult = result;\n  };\n  if (isJpg2pdf) imgToPdf(file, onDone);\n  else if (isPdf2txt) pdfToText(file, onDone);\n  else if (isWebp2jpg) imgToImg(file, 'image/jpeg', 'jpg', onDone);\n  else if (isSvg2png) svgToPng(file, onDone);\n  else if (isJpg2webp) imgToImg(file, 'image/webp', 'webp', onDone);\n  else if (isPng2webp) imgToImg(file, 'image/webp', 'webp', onDone);\n  else if (isPdf2jpg) pdfToImg(file, outFmt === 'png' ? 'image/png' : 'image/jpeg', outFmt === 'png' ? 'png' : 'jpg', onDone);\n  else if (isPdf2html) pdfToHtml(file, onDone);\n  else if (isPdfCompress) pdfCompress(file, onDone);\n  else if (isZipRepair) zipRepair(file, onDone);\n};\nfunction pdfCompress(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    try {\n      var origSize = file.size;\n      var script = document.createElement('script');\n      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';\n      script.onload = function() {\n        window.pdfLib.getDocument(e.target.result).promise.then(function(pdfDoc) {\n          var numPages = pdfDoc.numPages;\n          var pagePromises = [];\n          for (var i = 1; i <= numPages; i++) pagePromises.push(pdfDoc.getPage(i));\n          Promise.all(pagePromises).then(function(pages) {\n            var newDoc = window.pdfLib.PDFDocument.create();\n            pages.forEach(function(p) {\n              var dims = p.getDimensions();\n              newDoc.addPage([dims.width, dims.height]);\n            });\n            newDoc.save().then(function(bytes) {\n              var blob = new Blob([bytes], {type:'application/pdf'});\n              var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_compressed.pdf';\n              var ratio = origSize > 0 ? ((1 - bytes.length / origSize) * 100).toFixed(1) : '0';\n              var color = bytes.length < origSize ? '#22c55e' : '#f59e0b';\n              var msg = bytes.length < origSize ? ('节省 ' + ratio + '%') : '已是高压缩';\n              callback({dataUrl: URL.createObjectURL(blob), filename: newName, preview: '<div style=\"text-align:center;padding:1rem;\"><div style=\"font-size:1.1rem;margin-bottom:0.5rem;\">PDF 压缩完成！</div><div>原始: ' + (origSize/1024).toFixed(1) + ' KB</div><div>压缩后: ' + (bytes.length/1024).toFixed(1) + ' KB</div><div style=\"color:' + color + ';font-weight:700;font-size:1.1rem;\">' + msg + '</div></div>'});\n            }).catch(function() {\n              var blob = new Blob([e.target.result], {type:'application/pdf'});\n              callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;\"><div>PDF 重新打包完成</div></div>'});\n            });\n          });\n        }).catch(function() {\n          var blob = new Blob([e.target.result], {type:'application/pdf'});\n          callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;\"><div>PDF 重新打包完成</div></div>'});\n        });\n      };\n      script.onerror = function() {\n        var blob = new Blob([e.target.result], {type:'application/pdf'});\n        callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;color:#f59e0b;\">库加载失败，文件已重新打包</div>'});\n      };\n      document.head.appendChild(script);\n    } catch(e) { callback({dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">错误: ' + escHtml(e.message) + '</div>'}); }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction zipRepair(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    try {\n      var arr = new Uint8Array(e.target.result);\n      var valid = 0, total = 0, issues = [], pos = 0;\n      while (pos < arr.length - 4) {\n        if (arr[pos] === 0x50 && arr[pos+1] === 0x4b && arr[pos+2] === 0x03 && arr[pos+3] === 0x04) {\n          total++;\n          var nameLen = arr[pos+26] | (arr[pos+27] << 8);\n          var extraLen = arr[pos+28] | (arr[pos+29] << 8);\n          var hdrLen = 30 + nameLen + extraLen;\n          var cSize = arr[pos+18] | (arr[pos+19]<<8) | (arr[pos+20]<<16) | (arr[pos+21]<<24);\n          if (pos + hdrLen + cSize > arr.length) issues.push('条目 #' + total + ' 数据不完整');\n          else valid++;\n          pos += hdrLen + cSize;\n        } else break;\n      }\n      var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_repaired.zip';\n      var preview = '<div style=\"text-align:left;padding:1rem;font-size:0.9rem;\"><div style=\"margin-bottom:0.5rem;\"><b>ZIP 检测结果：</b></div><div>总条目: ' + total + '</div><div style=\"color:#22c55e;\">有效条目: ' + valid + '</div>';\n      if (issues.length > 0) {\n        preview += '<div style=\"color:#f59e0b;\">发现问题: ' + issues.length + ' 个</div>';\n        issues.slice(0,3).forEach(function(iss){ preview += '<div style=\"color:#f59e0b;font-size:0.8rem;\">- ' + escHtml(iss) + '</div>'; });\n        preview += '<div style=\"margin-top:0.5rem;color:#f59e0b;font-size:0.85rem;\">注：完整修复需要专业工具，此处已尝试提取有效数据</div>';\n      } else {\n        preview += '<div style=\"color:#22c55e;\">ZIP 文件结构完整，未检测到明显损坏</div>';\n      }\n      preview += '</div>';\n      var blob = new Blob([arr], {type:'application/zip'});\n      callback({dataUrl: URL.createObjectURL(blob), filename: newName, preview: preview});\n    } catch(err) { callback({dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">ZIP 解析错误: ' + escHtml(err.message) + '</div>'}); }\n  };\n  reader.readAsArrayBuffer(file);\n}\ndocument.getElementById('downloadOutput').onclick = function() {\n  var r = window._fcResult;\n  if (!r) return;\n  if (r.dataUrl) { downloadDataUrl(r.dataUrl, r.filename); }\n  else if (r.filename && r.preview) {\n    var w = window.open('');\n    w.document.write('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>' + escHtml(r.filename) + '</title><style>body{margin:2rem;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh}@media print{body{background:none}}</style></head><body>' + r.preview + '<script>window.onload=function(){window.print()};<\/script></body></html>');\n    w.document.close();\n  } else { if (window.CT && CT.showToast) CT.showToast('暂不支持此格式下载'); }\n};\n";
+      return "var toolPath = location.pathname;\nvar uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputFormat = document.getElementById('outputFormat');\nvar convertBtn = document.getElementById('convertBtn');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFileName = '';\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) {\n  e.preventDefault();\n  uploadArea.style.borderColor = 'var(--border)';\n  if (e.dataTransfer.files[0]) { fileInput.files = e.dataTransfer.files; handleFile(e.dataTransfer.files[0]); }\n});\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction handleFile(file) {\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<b>' + escHtml(file.name) + '</b> (' + (file.size / 1024).toFixed(1) + ' KB, ' + (file.type || '未知') + ')';\n}\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction downloadDataUrl(dataUrl, filename) {\n  var a = document.createElement('a');\n  a.href = dataUrl;\n  a.download = filename;\n  a.click();\n}\nfunction imgToPdf(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      var w = img.width, h = img.height;\n      var canv = document.createElement('canvas');\n      canv.width = w; canv.height = h;\n      var ctx = canv.getContext('2d');\n      ctx.fillStyle = '#fff';\n      ctx.fillRect(0, 0, w, h);\n      ctx.drawImage(img, 0, 0);\n      var imgData = canv.toDataURL('image/jpeg', 0.95);\n      var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.pdf';\n      // jsPDF approach\n      if (typeof window.jspdf !== 'undefined') {\n        var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });\n        pdf.addImage(imgData, 'JPEG', 0, 0, w, h);\n        pdf.save(newName);\n        callback({ dataUrl: null, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      } else {\n        // Load jspdf from CDN\n        var script = document.createElement('script');\n        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';\n        script.onload = function() {\n          var pdf = new window.jspdf.jsPDF({ orientation: w > h ? 'landscape' : 'portrait', unit: 'px', format: [w, h] });\n          pdf.addImage(imgData, 'JPEG', 0, 0, w, h);\n          pdf.save(newName);\n          callback({ dataUrl: null, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n        };\n        script.onerror = function() {\n          // Fallback: HTML printable page\n          var blob = new Blob(['<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>', escHtml(newName), '</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh;object-fit:contain;background:#fff}@media print{body{background:none}img{max-height:none}}</style></head><body><img src=\"', imgData, '\" onload=\"window.print()\"></body></html>'], { type: 'text/html' });\n          var url = URL.createObjectURL(blob);\n          callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + imgData + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n        };\n        document.head.appendChild(script);\n      }\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(file);\n}\nfunction pdfToText(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        var promises = [];\n        for (var i = 1; i <= Math.min(pdf.numPages, 20); i++) {\n          promises.push(pdf.getPage(i).then(function(p) { return p.getTextContent().then(function(c) { return c.items.map(function(it) { return it.str; }).join(' '); }); }));\n        }\n        Promise.all(promises).then(function(pages) {\n          var text = pages.join('\\n\\n');\n          var blob = new Blob([text], { type: 'text/plain' });\n          var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.txt';\n          callback({ dataUrl: URL.createObjectURL(blob), filename: newName, preview: '<div style=\"text-align:left;max-height:400px;overflow:auto;background:var(--bg);padding:1rem;border-radius:8px;font-family:monospace;white-space:pre-wrap;word-break:break-all;\">' + escHtml(text) + '</div>' });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF 解析错误: ' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() {\n        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';\n        go();\n      };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败,请检查网络</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction imgToImg(file, mimeOut, extOut, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      var canv = document.createElement('canvas');\n      canv.width = img.width; canv.height = img.height;\n      var ctx = canv.getContext('2d');\n      ctx.drawImage(img, 0, 0);\n      canv.toBlob(function(blob) {\n        var url = URL.createObjectURL(blob);\n        var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.' + extOut;\n        callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      }, mimeOut, 0.95);\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(file);\n}\nfunction svgToPng(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var svgData = e.target.result;\n    var img = new Image();\n    img.onload = function() {\n      var canv = document.createElement('canvas');\n      canv.width = img.width || 800; canv.height = img.height || 600;\n      var ctx = canv.getContext('2d');\n      ctx.drawImage(img, 0, 0);\n      canv.toBlob(function(blob) {\n        var url = URL.createObjectURL(blob);\n        var newName = currentFileName.replace(/\\.[^.]+$/, '') + '.png';\n        callback({ dataUrl: url, filename: newName, preview: '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n      }, 'image/png');\n    };\n    img.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">SVG 解析失败</div>' }); };\n    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));\n  };\n  reader.readAsText(file);\n}\nfunction pdfToImg(file, mimeOut, extOut, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        pdf.getPage(1).then(function(page) {\n          var vpt = page.getViewport({ scale: 2 });\n          var canv = document.createElement('canvas');\n          canv.width = vpt.width; canv.height = vpt.height;\n          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {\n            var dataUrl = canv.toDataURL(mimeOut, 0.95);\n            var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_page1.' + extOut;\n            callback({ dataUrl: dataUrl, filename: newName, preview: '<img src=\"' + dataUrl + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\">' });\n          });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF 渲染错误: ' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction pdfToHtml(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var go = function() {\n      window.pdfjsLib.getDocument(e.target.result).promise.then(function(pdf) {\n        pdf.getPage(1).then(function(page) {\n          var vpt = page.getViewport({ scale: 2 });\n          var canv = document.createElement('canvas');\n          canv.width = vpt.width; canv.height = vpt.height;\n          page.render({ canvasContext: canv.getContext('2d'), viewport: vpt }).promise.then(function() {\n            var dataUrl = canv.toDataURL('image/png');\n            callback({ dataUrl: null, filename: currentFileName.replace(/\\.[^.]+$/, '') + '.html', preview: '<div style=\"text-align:center;padding:1rem;\"><img src=\"' + dataUrl + '\" style=\"max-width:100%;border:1px solid #ddd;border-radius:8px;\"></div>' });\n          });\n        });\n      }).catch(function(err) { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">' + escHtml(err.message) + '</div>' }); });\n    };\n    if (window.pdfjsLib) { go(); }\n    else {\n      var s = document.createElement('script');\n      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';\n      s.onload = function() { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; go(); };\n      s.onerror = function() { callback({ dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">PDF.js 加载失败</div>' }); };\n      document.head.appendChild(s);\n    }\n  };\n  reader.readAsArrayBuffer(file);\n}\nconvertBtn.onclick = function() {\n  if (!fileInput.files || fileInput.files.length === 0) { outputBox.style.display = 'none'; if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }\n  var file = fileInput.files[0];\n  var outFmt = outputFormat.value;\n  var isJpg2pdf = toolPath.indexOf('jpg2pdf') !== -1;\n  var isPdf2txt = toolPath.indexOf('pdf2txt') !== -1;\n  var isWebp2jpg = toolPath.indexOf('webp2jpg') !== -1;\n  var isSvg2png = toolPath.indexOf('svg2png') !== -1;\n  var isJpg2webp = toolPath.indexOf('jpg2webp') !== -1;\n  var isPng2webp = toolPath.indexOf('png2webp') !== -1;\n  var isPdf2jpg = toolPath.indexOf('pdf2jpg') !== -1;\n  var isPdf2html = toolPath.indexOf('pdf2html') !== -1;\n  var isPdfCompress = toolPath.indexOf('pdf-compress') !== -1;\n  var isZipRepair = toolPath.indexOf('zip-repair') !== -1;\n  var onDone = function(result) {\n    outputPreview.innerHTML = result.preview || '';\n    outputBox.style.display = 'block';\n    window._fcResult = result;\n  };\n  if (isJpg2pdf) imgToPdf(file, onDone);\n  else if (isPdf2txt) pdfToText(file, onDone);\n  else if (isWebp2jpg) imgToImg(file, 'image/jpeg', 'jpg', onDone);\n  else if (isSvg2png) svgToPng(file, onDone);\n  else if (isJpg2webp) imgToImg(file, 'image/webp', 'webp', onDone);\n  else if (isPng2webp) imgToImg(file, 'image/webp', 'webp', onDone);\n  else if (isPdf2jpg) pdfToImg(file, outFmt === 'png' ? 'image/png' : 'image/jpeg', outFmt === 'png' ? 'png' : 'jpg', onDone);\n  else if (isPdf2html) pdfToHtml(file, onDone);\n  else if (isPdfCompress) pdfCompress(file, onDone);\n  else if (isZipRepair) zipRepair(file, onDone);\n};\nfunction pdfCompress(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    try {\n      var origSize = file.size;\n      var script = document.createElement('script');\n      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';\n      script.onload = function() {\n        window.pdfLib.getDocument(e.target.result).promise.then(function(pdfDoc) {\n          var numPages = pdfDoc.numPages;\n          var pagePromises = [];\n          for (var i = 1; i <= numPages; i++) pagePromises.push(pdfDoc.getPage(i));\n          Promise.all(pagePromises).then(function(pages) {\n            var newDoc = window.pdfLib.PDFDocument.create();\n            pages.forEach(function(p) {\n              var dims = p.getDimensions();\n              newDoc.addPage([dims.width, dims.height]);\n            });\n            newDoc.save().then(function(bytes) {\n              var blob = new Blob([bytes], {type:'application/pdf'});\n              var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_compressed.pdf';\n              var ratio = origSize > 0 ? ((1 - bytes.length / origSize) * 100).toFixed(1) : '0';\n              var color = bytes.length < origSize ? '#22c55e' : '#f59e0b';\n              var msg = bytes.length < origSize ? ('节省 ' + ratio + '%') : '已是高压缩';\n              callback({dataUrl: URL.createObjectURL(blob), filename: newName, preview: '<div style=\"text-align:center;padding:1rem;\"><div style=\"font-size:1.1rem;margin-bottom:0.5rem;\">PDF 压缩完成!</div><div>原始: ' + (origSize/1024).toFixed(1) + ' KB</div><div>压缩后: ' + (bytes.length/1024).toFixed(1) + ' KB</div><div style=\"color:' + color + ';font-weight:700;font-size:1.1rem;\">' + msg + '</div></div>'});\n            }).catch(function() {\n              var blob = new Blob([e.target.result], {type:'application/pdf'});\n              callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;\"><div>PDF 重新打包完成</div></div>'});\n            });\n          });\n        }).catch(function() {\n          var blob = new Blob([e.target.result], {type:'application/pdf'});\n          callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;\"><div>PDF 重新打包完成</div></div>'});\n        });\n      };\n      script.onerror = function() {\n        var blob = new Blob([e.target.result], {type:'application/pdf'});\n        callback({dataUrl: URL.createObjectURL(blob), filename: currentFileName.replace(/\\.[^.]+$/, '') + '_repack.pdf', preview: '<div style=\"text-align:center;padding:1rem;color:#f59e0b;\">库加载失败,文件已重新打包</div>'});\n      };\n      document.head.appendChild(script);\n    } catch(e) { callback({dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">错误: ' + escHtml(e.message) + '</div>'}); }\n  };\n  reader.readAsArrayBuffer(file);\n}\nfunction zipRepair(file, callback) {\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    try {\n      var arr = new Uint8Array(e.target.result);\n      var valid = 0, total = 0, issues = [], pos = 0;\n      while (pos < arr.length - 4) {\n        if (arr[pos] === 0x50 && arr[pos+1] === 0x4b && arr[pos+2] === 0x03 && arr[pos+3] === 0x04) {\n          total++;\n          var nameLen = arr[pos+26] | (arr[pos+27] << 8);\n          var extraLen = arr[pos+28] | (arr[pos+29] << 8);\n          var hdrLen = 30 + nameLen + extraLen;\n          var cSize = arr[pos+18] | (arr[pos+19]<<8) | (arr[pos+20]<<16) | (arr[pos+21]<<24);\n          if (pos + hdrLen + cSize > arr.length) issues.push('条目 #' + total + ' 数据不完整');\n          else valid++;\n          pos += hdrLen + cSize;\n        } else break;\n      }\n      var newName = currentFileName.replace(/\\.[^.]+$/, '') + '_repaired.zip';\n      var preview = '<div style=\"text-align:left;padding:1rem;font-size:0.9rem;\"><div style=\"margin-bottom:0.5rem;\"><b>ZIP 检测结果:</b></div><div>总条目: ' + total + '</div><div style=\"color:#22c55e;\">有效条目: ' + valid + '</div>';\n      if (issues.length > 0) {\n        preview += '<div style=\"color:#f59e0b;\">发现问题: ' + issues.length + ' 个</div>';\n        issues.slice(0,3).forEach(function(iss){ preview += '<div style=\"color:#f59e0b;font-size:0.8rem;\">- ' + escHtml(iss) + '</div>'; });\n        preview += '<div style=\"margin-top:0.5rem;color:#f59e0b;font-size:0.85rem;\">注:完整修复需要专业工具,此处已尝试提取有效数据</div>';\n      } else {\n        preview += '<div style=\"color:#22c55e;\">ZIP 文件结构完整,未检测到明显损坏</div>';\n      }\n      preview += '</div>';\n      var blob = new Blob([arr], {type:'application/zip'});\n      callback({dataUrl: URL.createObjectURL(blob), filename: newName, preview: preview});\n    } catch(err) { callback({dataUrl: null, filename: '', preview: '<div style=\"color:#ef4444;\">ZIP 解析错误: ' + escHtml(err.message) + '</div>'}); }\n  };\n  reader.readAsArrayBuffer(file);\n}\ndocument.getElementById('downloadOutput').onclick = function() {\n  var r = window._fcResult;\n  if (!r) return;\n  if (r.dataUrl) { downloadDataUrl(r.dataUrl, r.filename); }\n  else if (r.filename && r.preview) {\n    var w = window.open('');\n    w.document.write('<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>' + escHtml(r.filename) + '</title><style>body{margin:2rem;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#f0f0f0}img{max-width:90vw;max-height:90vh}@media print{body{background:none}}</style></head><body>' + r.preview + '<script>window.onload=function(){window.print()};<\/script></body></html>');\n    w.document.close();\n  } else { if (window.CT && CT.showToast) CT.showToast('暂不支持此格式下载'); }\n};\n";
     }
   },
 
@@ -339,7 +339,7 @@ const TOOL_TYPE_REGISTRY = {
       return '<div class="tool-card"><h3>上传图片</h3><div class="upload-area" id="uploadArea"><input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif" style="display:none;"><svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><div class="upload-hint"><div class="upload-hint-main">点击或拖拽上传图片</div><div class="upload-hint-sub">支持 jpg, png, webp, gif</div></div></div><div id="fileInfo" style="margin-top:0.5rem;font-size:0.85rem;display:none;"></div><div style="margin-top:0.5rem;"><div class="input-row" style="gap:0.5rem;flex-wrap:wrap;"><div style="flex:1;min-width:100px;"><label style="font-size:0.78rem;opacity:0.7;display:block;margin-bottom:0.2rem;">宽度 (px)</label><input type="number" id="imgWidth" placeholder="原宽度" style="width:100%;padding:0.4rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"></div><div style="flex:1;min-width:100px;"><label style="font-size:0.78rem;opacity:0.7;display:block;margin-bottom:0.2rem;">高度 (px)</label><input type="number" id="imgHeight" placeholder="原高度" style="width:100%;padding:0.4rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"></div></div><div style="margin-top:0.5rem;"><label style="font-size:0.78rem;opacity:0.7;display:block;margin-bottom:0.2rem;">质量 (1-100) <span id="qualityVal">80</span></label><input type="range" id="imgQuality" min="10" max="100" value="80" style="width:100%;"></div><div style="margin-top:0.3rem;font-size:0.78rem;opacity:0.6;">保持比例: <input type="checkbox" id="keepRatio" checked></div></div><div class="btn-row"><button class="btn btn-primary" id="processBtn">处理</button></div></div><div class="output-box" id="outputBox" style="display:none;"><h3>输出 <button class="copy-btn" id="downloadBtn">下载</button></h3><div id="outputPreview" style="text-align:center;padding:1rem;"></div></div>';
     },
     script: function(tool) {
-      return "var fileInput = document.getElementById('fileInput');\\nvar uploadArea = document.getElementById('uploadArea');\\nvar fileInfo = document.getElementById('fileInfo');\\nvar imgWidth = document.getElementById('imgWidth');\\nvar imgHeight = document.getElementById('imgHeight');\\nvar imgQuality = document.getElementById('imgQuality');\\nvar keepRatio = document.getElementById('keepRatio');\\nvar qualityVal = document.getElementById('qualityVal');\\nvar processBtn = document.getElementById('processBtn');\\nvar outputBox = document.getElementById('outputBox');\\nvar outputPreview = document.getElementById('outputPreview');\\nvar currentFile = null;\\nvar currentFileName = '';\\nvar origW = 0, origH = 0;\\nimgQuality.addEventListener('input', function() { qualityVal.textContent = imgQuality.value; });\\nuploadArea.addEventListener('click', function() { fileInput.click(); });\\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });\\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) loadFile(fileInput.files[0]); });\\nkeepRatio.addEventListener('change', function() { if (keepRatio.checked && origW && origH && imgWidth.value) { var r = origH / origW; imgHeight.value = Math.round(imgWidth.value * r); } });\\nfunction loadFile(file) {\\n  currentFile = file;\\n  currentFileName = file.name;\\n  fileInfo.style.display = 'block';\\n  fileInfo.innerHTML = '<b>' + escHtml(file.name) + '</b> (' + (file.size / 1024).toFixed(1) + ' KB)';\\n  var reader = new FileReader();\\n  reader.onload = function(e) {\\n    var img = new Image();\\n    img.onload = function() {\\n      origW = img.width; origH = img.height;\\n      imgWidth.placeholder = origW;\\n      imgHeight.placeholder = origH;\\n      imgWidth.value = origW;\\n      imgHeight.value = origH;\\n      outputBox.style.display = 'none';\\n    };\\n    img.src = e.target.result;\\n  };\\n  reader.readAsDataURL(file);\\n}\\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\\nfunction fmtSize(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : (b/1048576).toFixed(2) + ' MB'; }\\nfunction downloadDataUrl(dataUrl, filename) { var a = document.createElement('a'); a.href = dataUrl; a.download = filename; a.click(); }\\nprocessBtn.onclick = function() {\\n  if (!currentFile) { if (window.CT && CT.showToast) CT.showToast('请先上传图片'); return; }\\n  var targetW = parseInt(imgWidth.value) || origW;\\n  var targetH = parseInt(imgHeight.value) || origH;\\n  var q = parseInt(imgQuality.value) / 100;\\n  var reader = new FileReader();\\n  reader.onload = function(e) {\\n    var img = new Image();\\n    img.onload = function() {\\n      var canv = document.createElement('canvas');\\n      canv.width = targetW; canv.height = targetH;\\n      var ctx = canv.getContext('2d');\\n      ctx.drawImage(img, 0, 0, targetW, targetH);\\n      var mime = currentFile.type.indexOf('png') !== -1 ? 'image/png' : 'image/jpeg';\\n      canv.toBlob(function(blob) {\\n        var url = URL.createObjectURL(blob);\\n        var ext = mime === 'image/png' ? '.png' : '.jpg';\\n        var newName = currentFileName.replace(/\\\\.[^.]+$/, '') + '_resized' + ext;\\n        var ratio = ((1 - blob.size / currentFile.size) * 100).toFixed(1);\\n        var color = blob.size < currentFile.size ? '#22c55e' : '#f59e0b';\\n        outputPreview.innerHTML = '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\\\"><div style=\\\"margin-top:0.5rem;font-size:0.85rem;\\\">原始: ' + fmtSize(currentFile.size) + ' → 处理后: ' + fmtSize(blob.size) + ' <span style=\\\"color:' + color + ';\\\">' + (blob.size < currentFile.size ? '节省 ' + ratio + '%' : '体积略增') + '</span></div>';\\n        outputBox.style.display = 'block';\\n        window._imgResult = { dataUrl: url, filename: newName };\\n      }, mime, q);\\n    };\\n    img.src = e.target.result;\\n  };\\n  reader.readAsDataURL(currentFile);\\n};\\ndocument.getElementById('downloadBtn').onclick = function() {\\n  var r = window._imgResult;\\n  if (r) downloadDataUrl(r.dataUrl, r.filename);\\n};\\n";
+      return "var fileInput = document.getElementById('fileInput');\nvar uploadArea = document.getElementById('uploadArea');\nvar fileInfo = document.getElementById('fileInfo');\nvar imgWidth = document.getElementById('imgWidth');\nvar imgHeight = document.getElementById('imgHeight');\nvar imgQuality = document.getElementById('imgQuality');\nvar keepRatio = document.getElementById('keepRatio');\nvar qualityVal = document.getElementById('qualityVal');\nvar processBtn = document.getElementById('processBtn');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFile = null;\nvar currentFileName = '';\nvar origW = 0, origH = 0;\nimgQuality.addEventListener('input', function() { qualityVal.textContent = imgQuality.value; });\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) loadFile(fileInput.files[0]); });\nkeepRatio.addEventListener('change', function() { if (keepRatio.checked && origW && origH && imgWidth.value) { var r = origH / origW; imgHeight.value = Math.round(imgWidth.value * r); } });\nfunction loadFile(file) {\n  currentFile = file;\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<b>' + escHtml(file.name) + '</b> (' + (file.size / 1024).toFixed(1) + ' KB)';\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      origW = img.width; origH = img.height;\n      imgWidth.placeholder = origW;\n      imgHeight.placeholder = origH;\n      imgWidth.value = origW;\n      imgHeight.value = origH;\n      outputBox.style.display = 'none';\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(file);\n}\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(b) { return b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(1) + ' KB' : (b/1048576).toFixed(2) + ' MB'; }\nfunction downloadDataUrl(dataUrl, filename) { var a = document.createElement('a'); a.href = dataUrl; a.download = filename; a.click(); }\nprocessBtn.onclick = function() {\n  if (!currentFile) { if (window.CT && CT.showToast) CT.showToast('请先上传图片'); return; }\n  var targetW = parseInt(imgWidth.value) || origW;\n  var targetH = parseInt(imgHeight.value) || origH;\n  var q = parseInt(imgQuality.value) / 100;\n  var reader = new FileReader();\n  reader.onload = function(e) {\n    var img = new Image();\n    img.onload = function() {\n      var canv = document.createElement('canvas');\n      canv.width = targetW; canv.height = targetH;\n      var ctx = canv.getContext('2d');\n      ctx.drawImage(img, 0, 0, targetW, targetH);\n      var mime = currentFile.type.indexOf('png') !== -1 ? 'image/png' : 'image/jpeg';\n      canv.toBlob(function(blob) {\n        var url = URL.createObjectURL(blob);\n        var ext = mime === 'image/png' ? '.png' : '.jpg';\n        var newName = currentFileName.replace(/\\\\.[^.]+$/, '') + '_resized' + ext;\n        var ratio = ((1 - blob.size / currentFile.size) * 100).toFixed(1);\n        var color = blob.size < currentFile.size ? '#22c55e' : '#f59e0b';\n        outputPreview.innerHTML = '<img src=\"' + url + '\" style=\"max-width:100%;max-height:300px;border:1px solid var(--border);border-radius:8px;\\\"><div style=\\\"margin-top:0.5rem;font-size:0.85rem;\\\">原始: ' + fmtSize(currentFile.size) + ' → 处理后: ' + fmtSize(blob.size) + ' <span style=\\\"color:' + color + ';\\\">' + (blob.size < currentFile.size ? '节省 ' + ratio + '%' : '体积略增') + '</span></div>';\n        outputBox.style.display = 'block';\n        window._imgResult = { dataUrl: url, filename: newName };\n      }, mime, q);\n    };\n    img.src = e.target.result;\n  };\n  reader.readAsDataURL(currentFile);\n};\ndocument.getElementById('downloadBtn').onclick = function() {\n  var r = window._imgResult;\n  if (r) downloadDataUrl(r.dataUrl, r.filename);\n};\n";
     }
   },
 
@@ -358,7 +358,7 @@ const TOOL_TYPE_REGISTRY = {
   'http-test': {
     description: 'HTTP 接口测试工具',
     html: function(tool) {
-      return '<div class="tool-card"><h3>请求配置</h3><div class="input-row" style="gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;"><input type="text" id="urlInput" placeholder="https://api.example.com/endpoint" style="flex:1;min-width:200px;padding:0.5rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><select id="methodSelect" style="padding:0.5rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option><option value="PATCH">PATCH</option><option value="HEAD">HEAD</option><option value="OPTIONS">OPTIONS</option></select></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Headers (每行一个，格式: Key: Value)</label><textarea id="headersInput" placeholder="Content-Type: application/json&#10;Authorization: Bearer xxx" style="width:100%;min-height:60px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Body</label><textarea id="bodyInput" placeholder="{&#10;  \&quot;key\&quot;: \&quot;value\&quot;&#10;}" style="width:100%;min-height:80px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div><div class="btn-row"><button class="btn btn-primary" id="sendBtn">发送请求</button></div></div><div class="output-box" id="resultBox" style="display:none;"><h3>响应</h3><div id="statusBar" style="margin-bottom:0.5rem;font-size:0.9rem;"></div><div id="respTime" style="margin-bottom:0.5rem;font-size:0.8rem;opacity:0.6;"></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;">响应 Headers</label><pre id="respHeaders" style="background:#f5f5f5;padding:0.5rem;border-radius:6px;font-size:0.8rem;max-height:150px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0.3rem 0 0;"></pre></div><div><label style="font-size:0.8rem;opacity:0.7;">响应 Body</label><textarea id="respBody" readonly style="width:100%;min-height:150px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;margin-top:0.3rem;"></textarea></div></div>';
+      return '<div class="tool-card"><h3>请求配置</h3><div class="input-row" style="gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;"><input type="text" id="urlInput" placeholder="https://api.example.com/endpoint" style="flex:1;min-width:200px;padding:0.5rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><select id="methodSelect" style="padding:0.5rem;font-size:0.9rem;border:1px solid var(--border);border-radius:8px;"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option><option value="PATCH">PATCH</option><option value="HEAD">HEAD</option><option value="OPTIONS">OPTIONS</option></select></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Headers (每行一个,格式: Key: Value)</label><textarea id="headersInput" placeholder="Content-Type: application/json&#10;Authorization: Bearer xxx" style="width:100%;min-height:60px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Body</label><textarea id="bodyInput" placeholder="{&#10;  \&quot;key\&quot;: \&quot;value\&quot;&#10;}" style="width:100%;min-height:80px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;"></textarea></div><div class="btn-row"><button class="btn btn-primary" id="sendBtn">发送请求</button></div></div><div class="output-box" id="resultBox" style="display:none;"><h3>响应</h3><div id="statusBar" style="margin-bottom:0.5rem;font-size:0.9rem;"></div><div id="respTime" style="margin-bottom:0.5rem;font-size:0.8rem;opacity:0.6;"></div><div style="margin-bottom:0.5rem;"><label style="font-size:0.8rem;opacity:0.7;">响应 Headers</label><pre id="respHeaders" style="background:#f5f5f5;padding:0.5rem;border-radius:6px;font-size:0.8rem;max-height:150px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:0.3rem 0 0;"></pre></div><div><label style="font-size:0.8rem;opacity:0.7;">响应 Body</label><textarea id="respBody" readonly style="width:100%;min-height:150px;padding:0.5rem;font-size:0.85rem;border:1px solid var(--border);border-radius:8px;resize:vertical;font-family:monospace;margin-top:0.3rem;"></textarea></div></div>';
     },
     script: function(tool) {
       return "var sendBtn = document.getElementById('sendBtn');\nvar urlInput = document.getElementById('urlInput');\nvar methodSelect = document.getElementById('methodSelect');\nvar headersInput = document.getElementById('headersInput');\nvar bodyInput = document.getElementById('bodyInput');\nvar resultBox = document.getElementById('resultBox');\nvar statusBar = document.getElementById('statusBar');\nvar respTime = document.getElementById('respTime');\nvar respHeaders = document.getElementById('respHeaders');\nvar respBody = document.getElementById('respBody');\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nsendBtn.onclick = function() {\n  var url = urlInput.value.trim();\n  if (!url) { if (window.CT && CT.showToast) CT.showToast('请输入 URL'); return; }\n  if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;\n  var method = methodSelect.value;\n  var headers = {};\n  headersInput.value.split('\\n').forEach(function(line) {\n    var idx = line.indexOf(':');\n    if (idx > 0) { headers[line.slice(0, idx).trim()] = line.slice(idx + 1).trim(); }\n  });\n  var body = method !== 'GET' && method !== 'HEAD' ? bodyInput.value : undefined;\n  var startTime = Date.now();\n  sendBtn.disabled = true; sendBtn.textContent = '请求中...';\n  fetch(url, { method: method, headers: headers, body: body }).then(function(res) {\n    var ms = Date.now() - startTime;\n    var statusColor = res.status >= 200 && res.status < 300 ? '#22c55e' : res.status >= 400 ? '#ef4444' : '#f59e0b';\n    statusBar.innerHTML = '<b>状态码</b>: <span style=\"color:' + statusColor + ';font-weight:700;\">' + res.status + '</span> <span style=\"opacity:0.6;\">' + res.statusText + '</span>';\n    respTime.textContent = '耗时: ' + ms + ' ms';\n    var h = [];\n    res.headers.forEach(function(v, k) { h.push(escHtml(k) + ': ' + escHtml(v)); });\n    respHeaders.textContent = h.join('\\n');\n    return res.text().then(function(txt) { return { text: txt, contentType: res.headers.get('content-type') || '' }; });\n  }).then(function(data) {\n    var ct = data.contentType;\n    if (ct.indexOf('json') !== -1) {\n      try { respBody.value = JSON.stringify(JSON.parse(data.text), null, 2); }\n      catch(e) { respBody.value = data.text; }\n    } else { respBody.value = data.text; }\n    resultBox.style.display = 'block';\n  }).catch(function(err) {\n    respBody.value = '请求错误: ' + err.message;\n    resultBox.style.display = 'block';\n  }).finally(function() {\n    sendBtn.disabled = false; sendBtn.textContent = '发送请求';\n  });\n};\n";
@@ -401,7 +401,7 @@ const TOOL_TYPE_REGISTRY = {
   // type: "tool-static" → Static display tool (supports action button with result display)
   // tools.json: { type: "tool-static", actionLabel: "获取信息", actionFn: "function() { return navigator.userAgent; }", resultTarget: "result-div" }
   'tool-static': {
-    description: '静态展示工具（支持按钮触发信息展示）',
+    description: '静态展示工具(支持按钮触发信息展示)',
     html: function(tool) {
       var actionLabel = tool.actionLabel || null;
       var resultTarget = tool.resultTarget || null;
@@ -423,7 +423,7 @@ const TOOL_TYPE_REGISTRY = {
   // type: "tool-upload" → File upload tool with configurable processing function
   // tools.json: { type: "tool-upload", acceptTypes: "image/*", processFn: "function(file, callback) { ... }" }
   'tool-upload': {
-    description: '文件上传处理工具（支持自定义处理函数）',
+    description: '文件上传处理工具(支持自定义处理函数)',
     html: function(tool) {
       var accept = tool.acceptTypes || '*';
       var extraFields = '';
@@ -446,14 +446,14 @@ const TOOL_TYPE_REGISTRY = {
         return '  extra["' + f.id + '"] = document.getElementById("' + f.id + '") ? document.getElementById("' + f.id + '").value : undefined;';
       });
       var extraFieldCode = extraFieldParts.length > 0 ? '\n  var extra = {};\n' + extraFieldParts.join('\n') + '\n' : '\n  var extra = {};\n';
-      return "var uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFileName = '';\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }\nfunction downloadDataUrl(dataUrl, filename) { var a = document.createElement('a'); a.href = dataUrl; a.download = filename; a.click(); }\nfunction handleFile(file) {\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<div style=\"font-size:0.9rem;line-height:1.8;\"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';\n  outputBox.style.display = 'block';\n  outputPreview.innerHTML = '<p style=\"color:var(--text-secondary);font-size:0.9rem;\">文件已加载，正在处理...</p>';\n" + extraFieldCode + "  var onDone = function(result) {\n    outputPreview.innerHTML = result.preview || '';\n    window._uploadResult = result;\n  };\n  try {\n    var processUserFn = new Function('return ' + " + processFnEscaped + ")();\n    processUserFn(file, onDone);\n  } catch(e) {\n    outputPreview.innerHTML = '<p style=\"color:#ef4444;\">处理错误: ' + escHtml(e.message) + '</p>';\n  }\n}\ndocument.getElementById('processBtn').onclick = function() {\n  if (!fileInput.files || !fileInput.files[0]) { if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }\n  handleFile(fileInput.files[0]);\n};\ndocument.getElementById('downloadOutput').onclick = function() {\n  var r = window._uploadResult;\n  if (!r || !r.dataUrl) { if (window.CT && CT.showToast) CT.showToast('无可下载内容'); return; }\n  downloadDataUrl(r.dataUrl, r.filename || currentFileName);\n};\n";
+      return "var uploadArea = document.getElementById('uploadArea');\nvar fileInput = document.getElementById('fileInput');\nvar fileInfo = document.getElementById('fileInfo');\nvar outputBox = document.getElementById('outputBox');\nvar outputPreview = document.getElementById('outputPreview');\nvar currentFileName = '';\nuploadArea.addEventListener('click', function() { fileInput.click(); });\nuploadArea.addEventListener('dragover', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--primary)'; });\nuploadArea.addEventListener('dragleave', function() { uploadArea.style.borderColor = 'var(--border)'; });\nuploadArea.addEventListener('drop', function(e) { e.preventDefault(); uploadArea.style.borderColor = 'var(--border)'; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });\nfileInput.addEventListener('change', function() { if (fileInput.files[0]) handleFile(fileInput.files[0]); });\nfunction escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }\nfunction fmtSize(bytes) { if (bytes < 1024) return bytes + ' B'; if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'; if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB'; return (bytes / 1073741824).toFixed(2) + ' GB'; }\nfunction downloadDataUrl(dataUrl, filename) { var a = document.createElement('a'); a.href = dataUrl; a.download = filename; a.click(); }\nfunction handleFile(file) {\n  currentFileName = file.name;\n  fileInfo.style.display = 'block';\n  fileInfo.innerHTML = '<div style=\"font-size:0.9rem;line-height:1.8;\"><div><b>文件名</b>: ' + escHtml(file.name) + '</div><div><b>文件大小</b>: ' + fmtSize(file.size) + '</div><div><b>MIME 类型</b>: ' + escHtml(file.type || '未知') + '</div></div>';\n  outputBox.style.display = 'block';\n  outputPreview.innerHTML = '<p style=\"color:var(--text-secondary);font-size:0.9rem;\">文件已加载,正在处理...</p>';\n" + extraFieldCode + "  var onDone = function(result) {\n    outputPreview.innerHTML = result.preview || '';\n    window._uploadResult = result;\n  };\n  try {\n    var processUserFn = new Function('return ' + " + processFnEscaped + ")();\n    processUserFn(file, onDone);\n  } catch(e) {\n    outputPreview.innerHTML = '<p style=\"color:#ef4444;\">处理错误: ' + escHtml(e.message) + '</p>';\n  }\n}\ndocument.getElementById('processBtn').onclick = function() {\n  if (!fileInput.files || !fileInput.files[0]) { if (window.CT && CT.showToast) CT.showToast('请先上传文件'); return; }\n  handleFile(fileInput.files[0]);\n};\ndocument.getElementById('downloadOutput').onclick = function() {\n  var r = window._uploadResult;\n  if (!r || !r.dataUrl) { if (window.CT && CT.showToast) CT.showToast('无可下载内容'); return; }\n  downloadDataUrl(r.dataUrl, r.filename || currentFileName);\n};\n";
     }
   },
 
   // type: "tool-formatter" → Text input + configurable buttons + output
   // tools.json: { type: "tool-formatter", buttons: [{"label": "编码", "action": "forward"}], processFn: "function(v, action) { return encodeURIComponent(v); }" }
   'tool-formatter': {
-    description: '文本格式化转换工具（支持自定义按钮和处理函数）',
+    description: '文本格式化转换工具(支持自定义按钮和处理函数)',
     html: function(tool) {
       var inputPlaceholder = tool.inputPlaceholder || '输入内容...';
       var buttons = tool.buttons || [{ label: '处理', action: 'process' }];
@@ -479,7 +479,7 @@ const TOOL_TYPE_REGISTRY = {
   // NOTE: customHtml and customScript are handled at the top of buildToolContentHtml/buildToolScript
   // so this registry entry is just a placeholder/description for the type
   'tool-custom': {
-    description: '完全自定义工具（通过 tools.json 的 customHtml/customScript 定义，无需改 generator.js）',
+    description: '完全自定义工具(通过 tools.json 的 customHtml/customScript 定义,无需改 generator.js)',
     html: function(tool) {
       return '<!-- tool-custom: HTML 由 tools.json 的 customHtml 提供 -->';
     },
@@ -493,7 +493,7 @@ const TOOL_TYPE_REGISTRY = {
   // type: "dev-tools" → Developer utility tool with optional input fields + generate button + output
   // tools.json: { type: "dev-tools", genFn: "function(inputs) { ... }", btnLabel: "生成", outputLabel: "结果", fields: [{id, label, type, placeholder}] }
   'dev-tools': {
-    description: '开发者工具（生成器类）',
+    description: '开发者工具(生成器类)',
     html: function(tool) {
       var fields = '';
       if (tool.fields && tool.fields.length) {
@@ -522,7 +522,7 @@ const TOOL_TYPE_REGISTRY = {
   },
 
   'tool-generator': {
-    description: '生成器工具（支持 outputLabel 自定义输出区标题）',
+    description: '生成器工具(支持 outputLabel 自定义输出区标题)',
     html: function(tool) {
       var fields = '';
       if (tool.fields && tool.fields.length) {
@@ -567,8 +567,8 @@ function getToolConfig(toolPath) {
 // Path-based overrides for mis-typed tools that need specific functionality
 const TOOL_SPECIFIC_OVERRIDES = {
   'time/timestamp.html': {
-    html: '<div class="tool-card"><h3>输入</h3><div class="input-row" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;"><div class="input-field"><label>时间戳（毫秒）</label><input type="text" id="tsInput" placeholder="如 1745088000000" style="width:120px;"></div><div class="input-field"><label>日期时间</label><input type="datetime-local" id="dtInput" style="width:200px;"></div></div><div class="btn-row"><button class="btn btn-primary" id="ts2dateBtn">时间戳→日期</button><button class="btn btn-secondary" id="date2tsBtn">日期→时间戳</button></div></div><div class="output-box"><h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="min-height:60px;"></textarea></div>',
-    script: 'var dtInput=document.getElementById("dtInput");var tsInput=document.getElementById("tsInput");var now=new Date();now.setMilliseconds(0);dtInput.value=now.toISOString().slice(0,16);function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}document.getElementById("ts2dateBtn").onclick=function(){var v=tsInput.value.trim();if(!v){output.value="";return;}var ms=parseInt(v);if(isNaN(ms)){output.value="错误：无效的时间戳";return;}var d=new Date(ms);output.value=d.toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"})+"\\n"+d.toISOString()+"\\nUnix秒: "+Math.floor(ms/1000)+"\\n毫秒: "+ms;};document.getElementById("date2tsBtn").onclick=function(){var v=dtInput.value;if(!v){output.value="";return;}var ms=new Date(v).getTime();tsInput.value=ms;output.value="毫秒时间戳: "+ms+"\\nUnix秒: "+Math.floor(ms/1000);};document.getElementById("copyOutput").onclick=function(){navigator.clipboard.writeText(document.getElementById("output").value);};'
+    html: '<div class="tool-card"><h3>输入</h3><div class="input-row" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:flex-end;"><div class="input-field"><label>时间戳(毫秒)</label><input type="text" id="tsInput" placeholder="如 1745088000000" style="width:120px;"></div><div class="input-field"><label>日期时间</label><input type="datetime-local" id="dtInput" style="width:200px;"></div></div><div class="btn-row"><button class="btn btn-primary" id="ts2dateBtn">时间戳→日期</button><button class="btn btn-secondary" id="date2tsBtn">日期→时间戳</button></div></div><div class="output-box"><h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="min-height:60px;"></textarea></div>',
+    script: 'var dtInput=document.getElementById("dtInput");var tsInput=document.getElementById("tsInput");var now=new Date();now.setMilliseconds(0);dtInput.value=now.toISOString().slice(0,16);function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}document.getElementById("ts2dateBtn").onclick=function(){var v=tsInput.value.trim();if(!v){output.value="";return;}var ms=parseInt(v);if(isNaN(ms)){output.value="错误:无效的时间戳";return;}var d=new Date(ms);output.value=d.toLocaleString("zh-CN",{timeZone:"Asia/Shanghai"})+"\\n"+d.toISOString()+"\\nUnix秒: "+Math.floor(ms/1000)+"\\n毫秒: "+ms;};document.getElementById("date2tsBtn").onclick=function(){var v=dtInput.value;if(!v){output.value="";return;}var ms=new Date(v).getTime();tsInput.value=ms;output.value="毫秒时间戳: "+ms+"\\nUnix秒: "+Math.floor(ms/1000);};document.getElementById("copyOutput").onclick=function(){navigator.clipboard.writeText(document.getElementById("output").value);};'
   },
   'text/case.html': {
     html: '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="输入要转换的文本..." style="min-height:120px;width:100%;padding:0.75rem;font-size:1rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);"></textarea><div class="btn-row"><button class="btn btn-primary" id="btnUpper">转大写</button><button class="btn btn-secondary" id="btnLower">转小写</button><button class="btn btn-secondary" id="btnTitle">首字母大写</button><button class="btn btn-secondary" id="btnReverse">反转大小写</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly style="min-height:120px;width:100%;padding:0.75rem;font-size:1rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);"></textarea></div>',
@@ -576,7 +576,7 @@ const TOOL_SPECIFIC_OVERRIDES = {
   },
   'code/cron-parser.html': {
     html: '<div class="tool-card"><h3>输入 Cron 表达式</h3><input type="text" id="cronInput" placeholder="* * * * * 或 0 9 * * 1-5" style="width:100%;padding:0.6rem;font-size:1.1rem;font-family:monospace;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);margin-bottom:1rem;"><div class="btn-row"><button class="btn btn-primary" id="parseBtn">解析</button></div><div id="descBox" style="padding:0.75rem;background:var(--result-bg);border-radius:6px;font-size:0.9rem;line-height:1.6;display:none;"></div></div><div class="tool-card"><h3>下次执行时间</h3><div id="nextRuns" style="font-size:0.85rem;color:var(--text-secondary);line-height:1.8;"></div></div>',
-    script: 'var fieldDescs={0:"分钟(0-59)",1:"小时(0-23)",2:"日期(1-31)",3:"月份(1-12)",4:"星期(0-6)"};function parseCron(expr){var parts=expr.trim().split(/\\s+/);if(parts.length!==5)return null;var descs=[];parts.forEach(function(p,i){if(p==="*")descs.push("每"+fieldDescs[i]);else if(p.startsWith("*/"))descs.push("每"+p.slice(2)+"个"+fieldDescs[i]);else descs.push(fieldDescs[i]+"="+p);});return descs.join("，");}function getNextRuns(expr,count){var runs=[];var d=new Date();d.setSeconds(0);d.setMilliseconds(0);d.setMinutes(d.getMinutes()+1);var parts=expr.trim().split(/\\s+/);if(parts.length!==5)return[];var max=525600;for(var i=0;i<max&&runs.length<count;i++){var min=d.getMinutes(),hr=d.getHours(),day=d.getDate(),mon=d.getMonth()+1,wd=d.getDay();var ok=true;var tests=[[min,parts[0]],[hr,parts[1]],[day,parts[2]],[mon,parts[3]],[wd,parts[4]]];tests.forEach(function(t){var v=t[0],p=t[1];if(p==="*")return;if(p.startsWith("*/")){if(v%parseInt(p.slice(2))!==0)ok=false;return;}if(!p.split(",").map(Number).includes(v))ok=false;});if(ok)runs.push(new Date(d));d.setMinutes(d.getMinutes()+1);}return runs;}function fmt(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}document.getElementById("parseBtn").onclick=function(){var expr=document.getElementById("cronInput").value;var desc=document.getElementById("descBox");var runs=document.getElementById("nextRuns");if(!expr.trim()){desc.style.display="none";runs.innerHTML="";return;}var result=parseCron(expr);if(!result){desc.style.display="block";desc.textContent="错误：Cron表达式需要5个字段";runs.innerHTML="";return;}desc.style.display="block";desc.innerHTML="<b>含义：</b>"+result;var next=getNextRuns(expr,5);if(next.length>0){runs.innerHTML="<b>接下来5次执行：</b><br>"+next.map(function(r){return"· "+fmt(r);}).join("<br>");}else{runs.innerHTML="无法计算，请检查表达式";}};'
+    script: 'var fieldDescs={0:"分钟(0-59)",1:"小时(0-23)",2:"日期(1-31)",3:"月份(1-12)",4:"星期(0-6)"};function parseCron(expr){var parts=expr.trim().split(/\\s+/);if(parts.length!==5)return null;var descs=[];parts.forEach(function(p,i){if(p==="*")descs.push("每"+fieldDescs[i]);else if(p.startsWith("*/"))descs.push("每"+p.slice(2)+"个"+fieldDescs[i]);else descs.push(fieldDescs[i]+"="+p);});return descs.join(",");}function getNextRuns(expr,count){var runs=[];var d=new Date();d.setSeconds(0);d.setMilliseconds(0);d.setMinutes(d.getMinutes()+1);var parts=expr.trim().split(/\\s+/);if(parts.length!==5)return[];var max=525600;for(var i=0;i<max&&runs.length<count;i++){var min=d.getMinutes(),hr=d.getHours(),day=d.getDate(),mon=d.getMonth()+1,wd=d.getDay();var ok=true;var tests=[[min,parts[0]],[hr,parts[1]],[day,parts[2]],[mon,parts[3]],[wd,parts[4]]];tests.forEach(function(t){var v=t[0],p=t[1];if(p==="*")return;if(p.startsWith("*/")){if(v%parseInt(p.slice(2))!==0)ok=false;return;}if(!p.split(",").map(Number).includes(v))ok=false;});if(ok)runs.push(new Date(d));d.setMinutes(d.getMinutes()+1);}return runs;}function fmt(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}document.getElementById("parseBtn").onclick=function(){var expr=document.getElementById("cronInput").value;var desc=document.getElementById("descBox");var runs=document.getElementById("nextRuns");if(!expr.trim()){desc.style.display="none";runs.innerHTML="";return;}var result=parseCron(expr);if(!result){desc.style.display="block";desc.textContent="错误:Cron表达式需要5个字段";runs.innerHTML="";return;}desc.style.display="block";desc.innerHTML="<b>含义:</b>"+result;var next=getNextRuns(expr,5);if(next.length>0){runs.innerHTML="<b>接下来5次执行:</b><br>"+next.map(function(r){return"· "+fmt(r);}).join("<br>");}else{runs.innerHTML="无法计算,请检查表达式";}};'
   },
   'code/color-picker.html': {
     html: '<div class="tool-card"><h3>选择颜色</h3><input type="color" id="colorPicker" value="#3B82F6" style="width:100%;height:60px;border:none;cursor:pointer;border-radius:8px;background:var(--card-bg);"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.5rem;margin-top:1rem;" id="presetColors"><div style="width:100%;height:32px;border-radius:4px;cursor:pointer;" onclick="setColor(this.style.backgroundColor)"></div></div></div><div class="tool-card"><h3>颜色值</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;"><div><label style="font-size:0.8rem;color:var(--text-secondary);">HEX</label><input type="text" id="hexOut" readonly style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;background:var(--input-bg);color:var(--text);" onclick="this.select()"></div><div><label style="font-size:0.8rem;color:var(--text-secondary);">RGB</label><input type="text" id="rgbOut" readonly style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;background:var(--input-bg);color:var(--text);" onclick="this.select()"></div><div><label style="font-size:0.8rem;color:var(--text-secondary);">HSL</label><input type="text" id="hslOut" readonly style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;background:var(--input-bg);color:var(--text);" onclick="this.select()"></div><div><label style="font-size:0.8rem;color:var(--text-secondary);">HSV</label><input type="text" id="hsvOut" readonly style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:6px;font-family:monospace;background:var(--input-bg);color:var(--text);" onclick="this.select()"></div></div><div id="colorPreview" style="margin-top:1rem;height:80px;border-radius:8px;border:1px solid var(--border);transition:background-color 0.2s;"></div></div>',
@@ -585,7 +585,7 @@ const TOOL_SPECIFIC_OVERRIDES = {
 };
 
 function buildToolScript(tool) {
-  // HIGHEST PRIORITY: customScript — complete JS customization, no template logic
+  // HIGHEST PRIORITY: customScript - complete JS customization, no template logic
   if (tool.customScript) {
     return tool.customScript.replace(/<\/script>/gi, '<\\/script>');
   }
@@ -608,7 +608,7 @@ function buildToolScript(tool) {
 
 // ============ Tool content HTML builders ============
 function buildToolContentHtml(tool) {
-  // HIGHEST PRIORITY: customHtml — complete HTML customization, no template logic
+  // HIGHEST PRIORITY: customHtml - complete HTML customization, no template logic
   if (tool.customHtml) {
     return tool.customHtml;
   }
@@ -685,7 +685,7 @@ function buildKeywordBlock(keyword, kwEntry) {
     `<a href="/blog/${k.slug}">${k.keyword}</a>`
   ).join('');
   return `<div class="keyword-block">
-  <p>你可能还在搜：</p>
+  <p>你可能还在搜:</p>
   <div class="keyword-tags">${tags}</div>
 </div>`;
 }
@@ -713,100 +713,100 @@ function buildBlogContent(keyword, intent, toolInfo, kwEntry) {
   const t = toolInfo ? `<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a>` : '';
   const kwBlock = buildKeywordBlock(keyword, kwEntry);
 
-  // Template by intent type — upgraded with concrete error scenarios + keyword block at top
+  // Template by intent type - upgraded with concrete error scenarios + keyword block at top
   const templates = {
     'error-fix': `
 ${kwBlock}
 <h2>问题描述</h2>
-<p>遇到 <strong>${keyword}</strong>？这个报错在开发过程中非常常见，通常在你向 API 发送请求或处理返回数据时触发。本文用真实场景帮你快速定位根因并给出具体修复方案。</p>
+<p>遇到 <strong>${keyword}</strong>?这个报错在开发过程中非常常见,通常在你向 API 发送请求或处理返回数据时触发。本文用真实场景帮你快速定位根因并给出具体修复方案。</p>
 <h2>常见原因</h2>
 <ul>
-  <li><strong>数据格式不符</strong>：发送的 JSON 多了一个逗号、少了引号，或键名用了单引号而非双引号</li>
-  <li><strong>编码不统一</strong>：后端返回 GBK 编码，但前端按 UTF-8 解析，导致解析失败</li>
-  <li><strong>特殊字符未转义</strong>：字符串中含有 <code>&</code>、<code>&lt;</code>、换行等特殊字符，直接拼接导致格式破坏</li>
-  <li><strong>请求参数类型错误</strong>：接口要求数字但传了字符串，或要求数组但传了对象</li>
-  <li><strong>接口返回异常数据</strong>：后端在某些边界情况下返回了非标准格式</li>
+  <li><strong>数据格式不符</strong>:发送的 JSON 多了一个逗号、少了引号,或键名用了单引号而非双引号</li>
+  <li><strong>编码不统一</strong>:后端返回 GBK 编码,但前端按 UTF-8 解析,导致解析失败</li>
+  <li><strong>特殊字符未转义</strong>:字符串中含有 <code>&</code>、<code>&lt;</code>、换行等特殊字符,直接拼接导致格式破坏</li>
+  <li><strong>请求参数类型错误</strong>:接口要求数字但传了字符串,或要求数组但传了对象</li>
+  <li><strong>接口返回异常数据</strong>:后端在某些边界情况下返回了非标准格式</li>
 </ul>
 <h2>解决方法</h2>
-${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键验证和修复大多数格式问题。</p>` : ''}
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>:<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键验证和修复大多数格式问题。</p>` : ''}
 <ol>
   <li>用工具 ${t || '在线工具'} 检查输入数据格式是否规范</li>
   <li>确认请求头中 <code>Content-Type: application/json</code> 和字符集为 UTF-8</li>
-  <li>检查 JSON 中所有字符串值是否正确转义（特别是 <code>"</code>、<code>\n</code>、<code>\t</code>）</li>
-  <li>验证接口文档中每个字段的类型要求，确保传参匹配</li>
-  <li>如果是第三方 API，查看其官方错误码文档定位具体问题</li>
+  <li>检查 JSON 中所有字符串值是否正确转义(特别是 <code>"</code>、<code>\n</code>、<code>\t</code>)</li>
+  <li>验证接口文档中每个字段的类型要求,确保传参匹配</li>
+  <li>如果是第三方 API,查看其官方错误码文档定位具体问题</li>
 </ol>`,
 
     'encoding': `
 ${kwBlock}
 <h2>问题描述</h2>
-<p><strong>${keyword}</strong> 是开发中常见的数据处理问题。字符编码不一致会导致乱码、解码失败或数据无法正常使用。这类问题排查起来往往耗时，因为根源不一定在出错的地方。</p>
+<p><strong>${keyword}</strong> 是开发中常见的数据处理问题。字符编码不一致会导致乱码、解码失败或数据无法正常使用。这类问题排查起来往往耗时,因为根源不一定在出错的地方。</p>
 <h2>常见原因</h2>
 <ul>
-  <li><strong>编码混用</strong>：文件或接口明明声明了 UTF-8，但实际内容是 GBK，两边对不上</li>
-  <li><strong>URL 编码不一致</strong>：前端用了 <code>encodeURIComponent</code>，后端却用 <code>urllib.parse.unquote</code> 处理方式不对</li>
-  <li><strong>Base64 格式错误</strong>：缺少前缀（如 <code>data:image/png;base64,</code>）、多余空格或使用了非标准字符集</li>
-  <li><strong>字节序 BOM 头</strong>：UTF-8 文件开头多了 <code>EF BB BF</code> 三个字节，导致解析器误判</li>
+  <li><strong>编码混用</strong>:文件或接口明明声明了 UTF-8,但实际内容是 GBK,两边对不上</li>
+  <li><strong>URL 编码不一致</strong>:前端用了 <code>encodeURIComponent</code>,后端却用 <code>urllib.parse.unquote</code> 处理方式不对</li>
+  <li><strong>Base64 格式错误</strong>:缺少前缀(如 <code>data:image/png;base64,</code>)、多余空格或使用了非标准字符集</li>
+  <li><strong>字节序 BOM 头</strong>:UTF-8 文件开头多了 <code>EF BB BF</code> 三个字节,导致解析器误判</li>
 </ul>
 <h2>解决方法</h2>
-${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键完成编解码转换。</p>` : ''}
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>:<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键完成编解码转换。</p>` : ''}
 <ol>
   <li>用工具 ${t || '在线工具'} 确定源数据编码格式</li>
-  <li>统一转换为 UTF-8（大多数系统的默认编码）</li>
+  <li>统一转换为 UTF-8(大多数系统的默认编码)</li>
   <li>Base64 类型数据确保添加正确前缀 <code>data:image/xxx;base64,</code></li>
-  <li>如果是文件，用十六进制编辑器检查 BOM 头并去除</li>
+  <li>如果是文件,用十六进制编辑器检查 BOM 头并去除</li>
 </ol>`,
 
     'limit-fix': `
 ${kwBlock}
 <h2>问题描述</h2>
-<p><strong>${keyword}</strong> 是文件上传和处理中的高频问题。几乎所有平台（微信、微博、GitHub、各大云服务）对上传内容都有明确的大小限制，超限就会直接被拒绝。</p>
+<p><strong>${keyword}</strong> 是文件上传和处理中的高频问题。几乎所有平台(微信、微博、GitHub、各大云服务)对上传内容都有明确的大小限制,超限就会直接被拒绝。</p>
 <h2>常见原因</h2>
 <ul>
-  <li><strong>平台硬限制</strong>：微信公众号图片限制 2MB，GitHub 单文件 100MB，各平台规则不一</li>
-  <li><strong>格式选错</strong>：PNG 是无损压缩，同尺寸下体积远大于 JPG；有些场景用 WebP 可以缩小 30%-60%</li>
-  <li><strong>未做有损压缩</strong>：原图是 4K 分辨率直接上传，文件体积自然爆炸</li>
-  <li><strong>PDF 内嵌字体</strong>：即使只有一页，嵌入完整字体后文件也能超过 5MB</li>
-  <li><strong>批量上传总和超限</strong>：单文件没超，但一次上传多个文件总大小超出了平台限制</li>
+  <li><strong>平台硬限制</strong>:微信公众号图片限制 2MB,GitHub 单文件 100MB,各平台规则不一</li>
+  <li><strong>格式选错</strong>:PNG 是无损压缩,同尺寸下体积远大于 JPG;有些场景用 WebP 可以缩小 30%-60%</li>
+  <li><strong>未做有损压缩</strong>:原图是 4K 分辨率直接上传,文件体积自然爆炸</li>
+  <li><strong>PDF 内嵌字体</strong>:即使只有一页,嵌入完整字体后文件也能超过 5MB</li>
+  <li><strong>批量上传总和超限</strong>:单文件没超,但一次上传多个文件总大小超出了平台限制</li>
 </ul>
 <h2>解决方法</h2>
-${toolInfo ? `<p><strong>推荐先使用工具处理</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键压缩到目标大小以内。</p>` : ''}
+${toolInfo ? `<p><strong>推荐先使用工具处理</strong>:<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 可以一键压缩到目标大小以内。</p>` : ''}
 <ol>
-  <li>用工具 ${t || '在线工具'} 压缩图片：质量降到 70-80%，肉眼几乎无差异</li>
-  <li>转换格式：PNG 转 JPG、静态 GIF 转 MP4 等，选择体积更小的等价格式</li>
-  <li>调整尺寸：宽高超过 2000px 的图片先缩放，再压缩</li>
-  <li>PDF 先用图片压缩工具处理，仍超限再做格式转换（PDF 转 JPG）</li>
-  <li>如果无法压缩，联系平台申请大文件上传权限</li>
+  <li>用工具 ${t || '在线工具'} 压缩图片:质量降到 70-80%,肉眼几乎无差异</li>
+  <li>转换格式:PNG 转 JPG、静态 GIF 转 MP4 等,选择体积更小的等价格式</li>
+  <li>调整尺寸:宽高超过 2000px 的图片先缩放,再压缩</li>
+  <li>PDF 先用图片压缩工具处理,仍超限再做格式转换(PDF 转 JPG)</li>
+  <li>如果无法压缩,联系平台申请大文件上传权限</li>
 </ol>`,
 
     'guide': `
 ${kwBlock}
 <h2>问题说明</h2>
-<p><strong>${keyword}</strong> 属于工具使用类需求。与其死记硬背，不如真正理解工具的工作原理，这样遇到变体问题时也能举一反三。</p>
+<p><strong>${keyword}</strong> 属于工具使用类需求。与其死记硬背,不如真正理解工具的工作原理,这样遇到变体问题时也能举一反三。</p>
 <h2>核心概念</h2>
 <ul>
-  <li>理解工具的输入输出格式，知道哪些场景适合用、哪些场景不适合</li>
-  <li>学会分层排查：先用简单数据验证工具是否正常，再处理真实数据</li>
-  <li>善用工具链：多个工具配合使用往往比一个复杂工具更高效</li>
-  <li>了解工具的边界情况，避免在不支持的输入格式上浪费时间</li>
+  <li>理解工具的输入输出格式,知道哪些场景适合用、哪些场景不适合</li>
+  <li>学会分层排查:先用简单数据验证工具是否正常,再处理真实数据</li>
+  <li>善用工具链:多个工具配合使用往往比一个复杂工具更高效</li>
+  <li>了解工具的边界情况,避免在不支持的输入格式上浪费时间</li>
 </ul>
 <h2>实践建议</h2>
-${toolInfo ? `<p><strong>动手试试</strong>：<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a></p>` : ''}
+${toolInfo ? `<p><strong>动手试试</strong>:<a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a></p>` : ''}
 <ol>
-  <li>用最简单的数据（空字符串、单个字符）验证工具基本功能</li>
-  <li>逐步增加数据复杂度，观察工具在边界情况下的表现</li>
-  <li>将工具用法记录到自己的知识库，下次遇到同类问题直接调用</li>
-  <li>结合实际项目场景，思考工具如何嵌入你的工作流</li>
+  <li>用最简单的数据(空字符串、单个字符)验证工具基本功能</li>
+  <li>逐步增加数据复杂度,观察工具在边界情况下的表现</li>
+  <li>将工具用法记录到自己的知识库,下次遇到同类问题直接调用</li>
+  <li>结合实际项目场景,思考工具如何嵌入你的工作流</li>
 </ol>`,
 
     'info': `
 ${kwBlock}
 <h2>问题说明</h2>
-<p><strong>${keyword}</strong> 是很多人会疑惑的技术问题，答案其实很明确。下面从原理层面做解释，让你知其然也知其所以然。</p>
+<p><strong>${keyword}</strong> 是很多人会疑惑的技术问题,答案其实很明确。下面从原理层面做解释,让你知其然也知其所以然。</p>
 <h2>技术原理</h2>
-<p>这类问题的答案由底层算法和协议规范决定，不是约定俗成的习惯，而是有明确定义的数学性质或技术标准。</p>
+<p>这类问题的答案由底层算法和协议规范决定,不是约定俗成的习惯,而是有明确定义的数学性质或技术标准。</p>
 <h2>结论</h2>
-${toolInfo ? `<p>实际使用 <a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 即可，在实际工程中完全不用担心问题。</p>` : '<p>理解原理后，在工程实践中完全可以放心使用，不需要过度担忧。</p>'}`,
+${toolInfo ? `<p>实际使用 <a href="/tools/${toolInfo.path}" target="_blank">${toolInfo.name}</a> 即可,在实际工程中完全不用担心问题。</p>` : '<p>理解原理后,在工程实践中完全可以放心使用,不需要过度担忧。</p>'}`,
   };
 
   return templates[intent] || templates['error-fix'];
@@ -816,32 +816,32 @@ ${toolInfo ? `<p>实际使用 <a href="/tools/${toolInfo.path}" target="_blank">
 function buildFaq(keyword, intent) {
   const faqs = {
     'error-fix': [
-      { q: `遇到 ${keyword}，是什么原因导致的？`, a: '常见原因有：数据格式不符合规范（如 JSON 多了逗号或少了引号）、字符编码不统一（UTF-8 和 GBK 混用）、特殊字符未正确转义，或接口返回了非标准数据。先用工具验证格式是最快的排查方式。' },
-      { q: `${keyword} 会影响程序正常运行吗？`, a: '会的。格式错误会导致数据无法正常解析，轻则功能异常，重则程序崩溃。尤其是涉及支付、用户输入等关键流程时，这类问题必须第一时间修复。' },
-      { q: `${keyword} 有没有自动修复的办法？`, a: '大多数格式问题可以用在线工具自动修复。如果是自己生成的 JSON/编码数据，修复后再重新提交即可；如果是第三方接口返回的格式问题，则需要联系对方修正或做容错处理。' },
-      { q: '修复后还需要注意什么？', a: '建议增加格式校验环节，在数据提交前或接收后先做格式验证（用 JSON.parse 或对应工具），避免再次出现同样问题。同时统一前后端编码规范，从源头减少这类错误。' },
+      { q: `遇到 ${keyword},是什么原因导致的?`, a: '常见原因有:数据格式不符合规范(如 JSON 多了逗号或少了引号)、字符编码不统一(UTF-8 和 GBK 混用)、特殊字符未正确转义,或接口返回了非标准数据。先用工具验证格式是最快的排查方式。' },
+      { q: `${keyword} 会影响程序正常运行吗?`, a: '会的。格式错误会导致数据无法正常解析,轻则功能异常,重则程序崩溃。尤其是涉及支付、用户输入等关键流程时,这类问题必须第一时间修复。' },
+      { q: `${keyword} 有没有自动修复的办法?`, a: '大多数格式问题可以用在线工具自动修复。如果是自己生成的 JSON/编码数据,修复后再重新提交即可;如果是第三方接口返回的格式问题,则需要联系对方修正或做容错处理。' },
+      { q: '修复后还需要注意什么?', a: '建议增加格式校验环节,在数据提交前或接收后先做格式验证(用 JSON.parse 或对应工具),避免再次出现同样问题。同时统一前后端编码规范,从源头减少这类错误。' },
     ],
     'encoding': [
-      { q: `什么是 ${keyword}，和 UTF-8 有什么区别？`, a: '不同编码格式是字符在计算机中的不同存储方式。UTF-8 是目前最通用的编码，支持全球所有文字；GBK 主要支持中文和少量字符。如果混用就会出现乱码。判断编码最简单的方法是用十六进制工具查看字节序列。' },
-      { q: 'Base64 图片打不开是什么原因？', a: '最常见的原因是缺少前缀（如 <code>data:image/png;base64,</code>），或者是编码过程中引入了空格和换行。另一个可能是使用了 URL-safe Base64 字符（+ / 变成 - _）但没有正确还原。' },
-      { q: '为什么解码出来的内容是乱码？', a: '乱码通常意味着编码格式不匹配——数据是 A 编码生成的，但用 B 编码去解析。解决方法：确认原始数据的编码，用同一编码进行解码。如果是网页内容，浏览器开发者工具的 Network 面板可以看到实际编码。' },
-      { q: '如何避免编码问题？', a: '统一使用 UTF-8 编码是最佳实践。所有文件保存为 UTF-8，所有接口声明 UTF-8，所有数据库连接也使用 UTF-8。建立团队编码规范，从源头杜绝混用问题。' },
+      { q: `什么是 ${keyword},和 UTF-8 有什么区别?`, a: '不同编码格式是字符在计算机中的不同存储方式。UTF-8 是目前最通用的编码,支持全球所有文字;GBK 主要支持中文和少量字符。如果混用就会出现乱码。判断编码最简单的方法是用十六进制工具查看字节序列。' },
+      { q: 'Base64 图片打不开是什么原因?', a: '最常见的原因是缺少前缀(如 <code>data:image/png;base64,</code>),或者是编码过程中引入了空格和换行。另一个可能是使用了 URL-safe Base64 字符(+ / 变成 - _)但没有正确还原。' },
+      { q: '为什么解码出来的内容是乱码?', a: '乱码通常意味着编码格式不匹配--数据是 A 编码生成的,但用 B 编码去解析。解决方法:确认原始数据的编码,用同一编码进行解码。如果是网页内容,浏览器开发者工具的 Network 面板可以看到实际编码。' },
+      { q: '如何避免编码问题?', a: '统一使用 UTF-8 编码是最佳实践。所有文件保存为 UTF-8,所有接口声明 UTF-8,所有数据库连接也使用 UTF-8。建立团队编码规范,从源头杜绝混用问题。' },
     ],
     'limit-fix': [
-      { q: `${keyword}，压缩后图片会变模糊吗？`, a: '适当压缩（质量 70%-80%）肉眼看不出明显区别，但文件体积能减少 50%-70%。如果质量降到 50% 以下才会出现可察觉的模糊。推荐先压 75%，根据实际效果再调整。' },
-      { q: '平台限制无法突破怎么办？', a: '如果压缩后仍超限，可以尝试：1) 换格式（PNG→JPG 或 JPG→WebP）；2) 降低分辨率；3) 联系平台申请更大额度；4) 分片上传（将大文件拆分成多个小文件分别上传）。' },
-      { q: '为什么 PNG 转 JPG 反而变大了？', a: 'PNG 是无损压缩，适合图标、截图、透明背景图；JPG 是有损压缩，适合照片。如果原图是简单色块或图标类图片，JPG 的压缩效果反而不如 PNG。建议根据图片内容类型选择格式。' },
-      { q: 'PDF 文件太大怎么压缩？', a: '先用图片压缩工具将 PDF 转为图片再压缩（JPG 或 PNG）；如果 PDF 内嵌了字体，可以尝试用工具去掉嵌入或子集化字体；仍超限的话，考虑分页上传或使用云存储直传。' },
+      { q: `${keyword},压缩后图片会变模糊吗?`, a: '适当压缩(质量 70%-80%)肉眼看不出明显区别,但文件体积能减少 50%-70%。如果质量降到 50% 以下才会出现可察觉的模糊。推荐先压 75%,根据实际效果再调整。' },
+      { q: '平台限制无法突破怎么办?', a: '如果压缩后仍超限,可以尝试:1) 换格式(PNG→JPG 或 JPG→WebP);2) 降低分辨率;3) 联系平台申请更大额度;4) 分片上传(将大文件拆分成多个小文件分别上传)。' },
+      { q: '为什么 PNG 转 JPG 反而变大了?', a: 'PNG 是无损压缩,适合图标、截图、透明背景图;JPG 是有损压缩,适合照片。如果原图是简单色块或图标类图片,JPG 的压缩效果反而不如 PNG。建议根据图片内容类型选择格式。' },
+      { q: 'PDF 文件太大怎么压缩?', a: '先用图片压缩工具将 PDF 转为图片再压缩(JPG 或 PNG);如果 PDF 内嵌了字体,可以尝试用工具去掉嵌入或子集化字体;仍超限的话,考虑分页上传或使用云存储直传。' },
     ],
     'guide': [
-      { q: `如何使用 ${keyword} 相关工具？`, a: '这类工具一般有明确的输入框和输出框，按提示输入内容，点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常，再处理实际数据。' },
-      { q: `${keyword} 适合在什么场景使用？`, a: '根据具体工具类型决定。格式转换工具适合处理第三方数据，编码工具适合加密传输，压缩工具适合文件上传前处理。多积累工具使用经验，遇到问题时能快速判断用哪个工具解决。' },
-      { q: '有没有更好的替代工具？', a: '不同工具有不同侧重，重点是理解原理。可以同时安装多个类似工具，实际使用中对比效果，选择最顺手的一个。随着使用经验增加，你也能判断工具的好坏。' },
+      { q: `如何使用 ${keyword} 相关工具?`, a: '这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。' },
+      { q: `${keyword} 适合在什么场景使用?`, a: '根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。' },
+      { q: '有没有更好的替代工具?', a: '不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。' },
     ],
     'info': [
-      { q: `${keyword} 的原理是什么？`, a: '这类问题的答案由底层算法决定，有明确的技术标准。与其死记硬背结论，不如理解原理，这样遇到变体问题也能推理出正确答案。' },
-      { q: `${keyword} 在实际项目中如何应用？`, a: '根据具体场景来用。理论问题理解即可，实际项目中关注的是如何正确使用工具处理你的业务数据。' },
-      { q: '我需要担心这个问题吗？', a: '在工程实践中，这类问题的风险是可控的。理解原理、正确使用工具、不做过度设计即可。' },
+      { q: `${keyword} 的原理是什么?`, a: '这类问题的答案由底层算法决定,有明确的技术标准。与其死记硬背结论,不如理解原理,这样遇到变体问题也能推理出正确答案。' },
+      { q: `${keyword} 在实际项目中如何应用?`, a: '根据具体场景来用。理论问题理解即可,实际项目中关注的是如何正确使用工具处理你的业务数据。' },
+      { q: '我需要担心这个问题吗?', a: '在工程实践中,这类问题的风险是可控的。理解原理、正确使用工具、不做过度设计即可。' },
     ],
   };
 
@@ -894,7 +894,7 @@ function generateBlogIndex() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>开发者问题解决博客 - CloverTools</title>
-  <meta name="description" content="开发者常见问题解决指南，JSON错误、编码问题、文件限制等实际问题的解决方案。">
+  <meta name="description" content="开发者常见问题解决指南,JSON错误、编码问题、文件限制等实际问题的解决方案。">
   <link rel="canonical" href="https://tools.xsanye.cn/blog/">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="icon" href="/src/clover-logo.svg">
@@ -936,7 +936,7 @@ function generateBlogIndex() {
     <div class="container">
       <div class="blog-hero">
         <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题解决博客</h1>
-        <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，无需注册，打开即用。</p>
+        <p class="subtitle">遇到开发问题?来这里找答案,顺便用工具快速解决。每篇文章都配有对应的在线工具,无需注册,打开即用。</p>
         <div class="stats">
           <div class="stat">
             <div class="stat-num">${keywordsConfig.length}</div>
@@ -1005,7 +1005,7 @@ function generateBlogPosts() {
     var customArticle = articlesConfig[kw.slug];
     var articleContent = customArticle ? customArticle.content : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
     var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
-    var articleDesc = customArticle ? customArticle.desc : ('详细解决' + kw.keyword + '的方法，提供在线工具，无需注册即可使用。');
+    var articleDesc = customArticle ? customArticle.desc : ('详细解决' + kw.keyword + '的方法,提供在线工具,无需注册即可使用。');
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
     const relatedQuestions = buildRelatedQuestions(kw, 6);
@@ -1015,10 +1015,10 @@ function generateBlogPosts() {
     let pageHtml = blogTemplate
       .replace(/\{\{PAGE_TITLE\}\}/g, articleTitle)
       .replace(/\{\{PAGE_DESC\}\}/g, articleDesc)
-      .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + '，开发者工具，问题解决')
+      .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + ',开发者工具,问题解决')
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
       .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
-      .replace(/\{\{PAGE_OG_DESC\}\}/g, `详细解决${kw.keyword}的方法，` + (toolInfo ? `配合${toolInfo.name}工具使用` : '配合CloverTools在线工具'))
+      .replace(/\{\{PAGE_OG_DESC\}\}/g, `详细解决${kw.keyword}的方法,` + (toolInfo ? `配合${toolInfo.name}工具使用` : '配合CloverTools在线工具'))
       .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
       .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
@@ -1066,7 +1066,7 @@ function generateAboutPage() {
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>关于 - CloverTools</title>
-  <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造，是一款轻量级开发者工具箱，无需注册，完全本地运行。">
+  <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造,是一款轻量级开发者工具箱,无需注册,完全本地运行。">
   <link rel="canonical" href="https://tools.xsanye.cn/about">
   <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/shared.css">
@@ -1517,7 +1517,7 @@ function generateAboutPage() {
     <h1 class="hero-title">CloverTools</h1>
     <p class="hero-sub">
       由 York 与 AI 助手 Clover 共同打造。<br>
-      告别繁琐，专注创造。用完即走，不留痕迹。
+      告别繁琐,专注创造。用完即走,不留痕迹。
     </p>
     <div class="hero-tags">
       <span class="hero-tag">⚡ 轻量级</span>
@@ -1538,13 +1538,13 @@ function generateAboutPage() {
     <div class="story-grid">
       <div class="story-text">
         <p>
-          CloverTools 起源于 2024 年，York 在日常开发中发现自己在各个网站之间来回切换——JSON 格式化要用一个站，Base64 编解码要用另一个站，cron 表达式又要找第三个。于是他决定做一个自己的工具箱，把所有常用的功能聚在一起。
+          CloverTools 起源于 2024 年,York 在日常开发中发现自己在各个网站之间来回切换--JSON 格式化要用一个站,Base64 编解码要用另一个站,cron 表达式又要找第三个。于是他决定做一个自己的工具箱,把所有常用的功能聚在一起。
         </p>
         <p>
-          后来，AI 助手 Clover 加入，成为这个项目的联合创造者。她帮助设计了架构，优化了工具分类逻辑，并持续为工具箱注入新的功能。
+          后来,AI 助手 Clover 加入,成为这个项目的联合创造者。她帮助设计了架构,优化了工具分类逻辑,并持续为工具箱注入新的功能。
         </p>
         <p>
-          今天，CloverTools 已经拥有 50+ 工具，目标是一个拥有 1000+ 工具的开发者生态平台。每一次提交、每一个新工具，都是为了让"用完即走"变得更优雅。
+          今天,CloverTools 已经拥有 50+ 工具,目标是一个拥有 1000+ 工具的开发者生态平台。每一次提交、每一个新工具,都是为了让"用完即走"变得更优雅。
         </p>
       </div>
       <div class="story-stats">
@@ -1579,7 +1579,7 @@ function generateAboutPage() {
           <div class="creator-info">
             <div class="creator-name">York</div>
             <a class="creator-link" href="https://github.com/YupenBob" target="_blank">@YupenBob</a>
-            <div class="creator-bio">YupenBob（别名），CloverTools 发起者。从 6 岁开始学编程，2024 年开始构建 CloverTools，想做自己的开发者工具生态。</div>
+            <div class="creator-bio">YupenBob(别名),CloverTools 发起者。从 6 岁开始学编程,2024 年开始构建 CloverTools,想做自己的开发者工具生态。</div>
           </div>
         </div>
         <div class="creator-card">
@@ -1587,7 +1587,7 @@ function generateAboutPage() {
           <div class="creator-info">
             <div class="creator-name">Clover 🍀</div>
             <a class="creator-link" href="https://github.com/YupenBob/clover-tools" target="_blank">OpenClaw AI</a>
-            <div class="creator-bio">AI 助手，CloverTools 联合创造者。帮助设计架构、优化分类逻辑、持续注入新工具，让工具箱越来越智能。</div>
+            <div class="creator-bio">AI 助手,CloverTools 联合创造者。帮助设计架构、优化分类逻辑、持续注入新工具,让工具箱越来越智能。</div>
           </div>
         </div>
       </div>
@@ -1617,7 +1617,7 @@ function generateAboutPage() {
       <div class="changelog-heading-block">
         <div class="section-label" style="margin-bottom:0.5rem;">Based on Git Log</div>
         <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:0.75rem;">每一次提交<br>都在让工具箱更好</h3>
-        <p>以下是根据 Git 提交记录自动生成的历史变更列表，每一次 commit 都是一个进化的印记。</p>
+        <p>以下是根据 Git 提交记录自动生成的历史变更列表,每一次 commit 都是一个进化的印记。</p>
       </div>
       <div class="changelog-list">
         {{ABOUT_CHANGELOG_ENTRIES}}
@@ -1846,6 +1846,28 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
 
+  // Generate home-new.html (with search functionality)
+  const homeNewTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home-new.html'), 'utf8');
+  const allTools = [];
+  toolsConfig.forEach(cat => {
+    cat.tools.forEach(tool => {
+      allTools.push({
+        name: tool.name,
+        path: tool.path,
+        category: cat.category,
+        tags: tool.keywords || []
+      });
+    });
+  });
+  const homeNewFinal = homeNewTemplate
+    .replace('var TOOLS = {{TOOL_COUNT}};', 'var TOOLS = ' + JSON.stringify(allTools) + ';')
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
+    .replace('{{TOOL_COUNT}}', String(toolCount));
+  fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
+  console.log('   Generated home-new.html');
+
   // Copy demo homepage as /demo
   const demoSrc = path.join(TEMPLATES_DIR, 'home-demo.html');
   if (fs.existsSync(demoSrc)) {
@@ -1858,32 +1880,7 @@ function generate() {
     console.log('   Copied demo2.html');
   }
 
-  // Generate home-new.html
-  const homeNewTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home-new.html'), 'utf8');
-  // Build tools array for search from all tool configs
-  const allTools = [];
-  toolsConfig.forEach(cat => {
-    cat.tools.forEach(tool => {
-      allTools.push({
-        name: tool.name,
-        path: tool.path,
-        category: cat.category,
-        tags: tool.keywords || []
-      });
-    });
-  });
-  // Replace var TOOLS = {{TOOL_COUNT}} BEFORE {{TOOL_COUNT}} substitution
-  const homeNewFinal = homeNewTemplate
-    .replace('var TOOLS = {{TOOL_COUNT}};', 'var TOOLS = ' + JSON.stringify(allTools) + ';')
-    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
-    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
-    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
-    .replace('{{TOOL_COUNT}}', String(toolCount));
-  fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
-  console.log('   Generated home-new.html');
-
-
-
+  
   // ============ Generate category pages ============
   const CATEGORY_DIR = path.join(DIST_DIR, 'category');
   if (!fs.existsSync(CATEGORY_DIR)) fs.mkdirSync(CATEGORY_DIR, { recursive: true });
@@ -1902,7 +1899,7 @@ function generate() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${cat.category} - CloverTools</title>
-  <meta name="description" content="CloverTools ${cat.category}类工具，免费在线使用，无需注册。">
+  <meta name="description" content="CloverTools ${cat.category}类工具,免费在线使用,无需注册。">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="stylesheet" href="/src/home-new.css">
 </head>
@@ -1974,8 +1971,8 @@ ${footerHtml}
         // Meta tags (add category suffix for tools with duplicate names)
         .replace(/\{\{PAGE_OG_TITLE\}\}/g, (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? tool.name + ' (' + cat.category + ') - CloverTools' : tool.name + ' - CloverTools'))
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
-        .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + '，无需注册，完全免费。' : tool.name + ' - 在线工具，无需注册，完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
-        .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + '，在线工具，免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? '，' + cat.category : ''))
+        .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + ',无需注册,完全免费。' : tool.name + ' - 在线工具,无需注册,完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
+        .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + ',在线工具,免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ',' + cat.category : ''))
         .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);

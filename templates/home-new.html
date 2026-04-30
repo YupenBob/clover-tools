@@ -619,6 +619,17 @@
       searchPanel.classList.add('active');
     });
 
+    // Random tool button
+    var randomBtn = document.getElementById('randomBtn');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', function () {
+        if (TOOLS && TOOLS.length > 0) {
+          var randomTool = TOOLS[Math.floor(Math.random() * TOOLS.length)];
+          window.location.href = '/tools/' + randomTool.path;
+        }
+      });
+    }
+
     // Enter key → go to first result or show toast
     searchInput.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
@@ -633,7 +644,7 @@
         return false;
       }).slice(0, 1);
       if (results.length > 0) {
-        window.location.href = results[0].path;
+        window.location.href = '/tools/' + results[0].path;
       } else {
         searchInput.style.borderColor = 'var(--primary)';
         setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
