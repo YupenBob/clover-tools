@@ -1868,6 +1868,11 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
   console.log('   Generated home-new.html');
 
+  // Also overwrite index.html with home-new content so Vercel serves the new homepage at /
+  // (Vercel GitHub App ignores "source": "/" rewrites and always serves index.html as root)
+  fs.copyFileSync(path.join(DIST_DIR, 'home-new.html'), path.join(DIST_DIR, 'index.html'));
+  console.log('   Overwrote index.html with home-new content (for root URL)');
+
   // Copy demo homepage as /demo
   const demoSrc = path.join(TEMPLATES_DIR, 'home-demo.html');
   if (fs.existsSync(demoSrc)) {
