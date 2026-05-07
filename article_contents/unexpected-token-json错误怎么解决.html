@@ -1,0 +1,178 @@
+<h2>什么是 Unexpected Token JSON 错误？</h2>
+<p>Unexpected Token 是 JavaScript 语法解析错误的一种，表示解析器在期望某个特定 token（符号）时遇到了意外的字符。放在 JSON 语境里，通常是 <code>Unexpected token in JSON</code>，说明你试图解析的内容不是合法 JSON。</p>
+
+<pre><code>// 典型报错
+// Chrome: SyntaxError: Unexpected token 'x', ... is not valid JSON
+// Firefox: SyntaxError: JSON.parse: expected ',' or '}' after property value
+
+const data = JSON.parse('{"name": "Clover" genre: "music"}');
+//                          ↑ 少了逗号，parser 遇到了意外的 token 'genre'
+
+const bad = JSON.parse("{'name': 'Clover'}");
+//                          ↑ JSON 只接受双引号，单引号是意外的 token</code></pre>
+
+<h2>Unexpected Token 的 6 大常见原因</h2>
+
+<h3>原因 1：少了逗号分隔符</h3>
+<pre><code>// ❌ 错误：两个属性之间没有逗号
+{"name": "Clover", "age": 16 "city": "Beijing"}
+
+// ✅ 正确
+{"name": "Clover", "age": 16, "city": "Beijing"}
+
+// 数组元素之间也同理
+[1, 2 3]     // ❌ 少了逗号
+[1, 2, 3]    // ✅ 正确</code></pre>
+
+<h3>原因 2：字符串用了单引号</h3>
+<pre><code>// ❌ 错误
+JSON.parse("{'name': 'Clover'}");
+
+// ✅ 正确
+JSON.parse('{"name": "Clover"}');</code></pre>
+
+<h3>原因 3：键没有引号（JSON5/JS对象写法，不是 JSON）</h3>
+<pre><code>// ❌ 这不是 JSON，这是 JavaScript 对象字面量
+JSON.parse('{name: "Clover", age: 16}');
+
+// ✅ 真正的 JSON：键必须加引号
+JSON.parse('{"name": "Clover", "age": 16}');</code></pre>
+
+<h3>原因 4：数组或对象括号不匹配</h3>
+<pre><code>// ❌ 括号没闭合
+JSON.parse('{"items": [1, 2, 3}');
+//                                ^ 期望 ] 但遇到了 }
+JSON.parse('{"data": {"ok": true}');
+//                                   ^ 多余 } 或少了 ,
+
+// ✅ 正确
+JSON.parse('{"items": [1, 2, 3]}');
+JSON.parse('{"data": {"ok": true}}');</code></pre>
+
+<h3>原因 5：数字写了非数字值</h3>
+<pre><code>// ❌ JSON 没有 undefined、NaN、Infinity
+JSON.parse('{"val": undefined}');
+JSON.parse('{"val": NaN}');
+JSON.parse('{"ratio": +Infinity}');
+
+// ✅ 正确：null 用于表示"空"
+JSON.parse('{"val": null}');
+JSON.parse('{"ratio": 0}');</code></pre>
+
+<h3>原因 6：BOM 或其他隐藏字符</h3>
+<pre><code>// 文件被保存为 UTF-8 with BOM，前面多了 \uFEFF
+// 导致解析时报 Unexpected token
+const raw = '\uFEFF{"ok": true}';
+JSON.parse(raw);  // Unexpected token
+
+// 清理 BOM
+JSON.parse(raw.replace(/^\uFEFF/, ''));  // OK</code></pre>
+
+<h2>网络请求返回 unexpected token 怎么办？</h2>
+<p>从接口拿到的数据报 unexpected token，通常是以下几个原因：</p>
+
+<h3>1. 接口返回了 HTML 错误页（最常见）</h3>
+<pre><code>fetch('/api/user/123')
+    .then(r => r.text())  // 先拿原始文本
+    .then(text => {
+        console.log('原始响应:', text.slice(0, 200));
+        // 如果打印出来是 "<html>..." 或 "Not Found"，说明接口本身报错了
+        // 不是 JSON 格式，自然解析失败
+    });</code></pre>
+
+<h3>2. 响应被 gzip 压缩了但没解压</h3>
+<pre><code>// 如果服务器返回了 gzip 压缩的数据，但前端没解压
+// 直接 JSON.parse 压缩后的乱码 → unexpected token
+
+// 解决：fetch 自动处理 gzip，但如果用了其他 HTTP 库，检查是否配置了解压
+// axios 会自动解压，request 库需要加 'gzip: true'
+const r = await fetch(url, {
+    headers: { 'Accept-Encoding': 'gzip, deflate, br' }
+    // 现代浏览器 fetch 会自动处理
+});</code></pre>
+
+<h3>3. 接口返回了空内容</h3>
+<pre><code>// 接口 204 No Content 时，body 是空的
+// JSON.parse('') → Unexpected end of JSON input
+fetch('/api/delete/123', {method: 'DELETE'})
+    .then(async r => {
+        if (r.status === 204) return null;  // 204 没有 body
+        return r.json();
+    });</code></pre>
+
+<h2>快速定位错误的调试技巧</h2>
+
+<h3>用 JSON Validator 高亮错误位置</h3>
+<p>复制你的 JSON 字符串到 <a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a>，它会告诉你具体哪一行、哪个字符出了问题。</p>
+
+<h3>用浏览器 DevTools 调试</h3>
+<pre><code>// 在 Console 里直接测试
+const testStr = '{"name": "测试"}';  // 你的 JSON 字符串
+console.log(JSON.parse(testStr));
+
+// 用 try-catch 包装，打印详细信息
+try {
+    JSON.parse(badStr);
+} catch (e) {
+    console.log('错误类型:', e.name);
+    console.log('错误信息:', e.message);
+    // 浏览器会显示出错字符的位置
+}</code></pre>
+
+<h3>用在线 JSON Formatter</h3>
+<ul>
+<li><a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a> — 自动美化并标红错误区域</li>
+<li><a href='/tools/json/yaml.html' target='_blank'>JSON ↔ YAML 互转</a> — 有时候转成 YAML 能更清楚看到缩进问题</li>
+</ul>
+
+<h2>防止 Unexpected Token 的编程习惯</h2>
+
+<pre><code>// 1. 后端统一用 JSON.stringify 输出，不要手动拼接字符串
+// ❌ 危险：手动拼接可能产生不合法的 JSON
+const bad = '{"name": "' + userName + '"}';
+// 如果 userName 里有 " 或 换行符，就崩了
+
+// ✅ 安全：始终用 JSON.stringify
+const good = JSON.stringify({name: userName});
+
+// 2. 前端解析时用 try-catch
+function fetchJson(url) {
+    return fetch(url)
+        .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.text();  // 先拿文本，检查一下
+        })
+        .then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSON解析失败，原始内容:', text.slice(0, 500));
+                throw e;
+            }
+        });
+}
+
+// 3. 用 schema 校验（关键数据）
+const Ajv = require('ajv');
+const ajv = new Ajv();
+const schema = {
+    type: 'object',
+    required: ['id', 'name'],
+    properties: {
+        id: {type: 'integer'},
+        name: {type: 'string'}
+    }
+};
+const validate = ajv.compile(schema);
+const valid = validate(data);
+if (!valid) console.error(validate.errors);</code></pre>
+
+<h2>总结</h2>
+<table>
+<tr><th>错误类型</th><th>原因</th><th>解决方案</th></tr>
+<tr><td>Unexpected token ' in JSON</td><td>用了单引号</td><td>全部换成双引号</td></tr>
+<tr><td>Unexpected token n</td><td>写了 undefined/NaN</td><td>用 null 代替</td></tr>
+<tr><td>Unexpected token u</td><td>写了 undefined</td><td>null 代替</td></tr>
+<tr><td>Unexpected token &lt;</td><td>接口返回 HTML 而非 JSON</td><td>检查 HTTP 状态码和 Content-Type</td></tr>
+<tr><td>Unexpected end of JSON</td><td>响应为空或被截断</td><td>检查网络或接口是否正常</td></tr>
+</table>

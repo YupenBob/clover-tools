@@ -258,6 +258,126 @@
       "desc": "详解failed to fetch错误的各种原因与解决方法，附CORS跨域、后端启动、网络断开等场景的调试指南。",
       "content": "<p>内容加载中...</p>",
       "faqs": []
+    },
+    {
+      "keyword": "json parse error什么意思",
+      "slug": "json-parse-error什么意思",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON处理",
+      "title": "json parse error什么意思？常见原因与解决方法",
+      "desc": "JSON.parse报错是什么意思？本文详解5种最常见的触发原因：引号错误、尾部逗号、BOM头、数字格式、非数字值，并提供调试技巧和在线工具。",
+      "content": "json-parse-error什么意思.html",
+      "faqs": [
+        {
+          "q": "JSON Parse Error 最常见的原因是什么？",
+          "a": "最常见的是键或字符串值没有用双引号包裹，以及尾部多余逗号。这两种错误在手动拼接JSON时特别容易出现。"
+        },
+        {
+          "q": "Unexpected end of JSON input 是什么意思？",
+          "a": "意味着JSON字符串不完整，可能被截断了，或者前面有BOM头等隐藏字符，导致解析器读到空内容。"
+        },
+        {
+          "q": "如何快速定位JSON里的格式错误？",
+          "a": "用CloverTools的JSON格式化工具粘贴进去，它会自动标红错误位置，比手动查找快得多。"
+        }
+      ]
+    },
+    {
+      "keyword": "unexpected token json错误怎么解决",
+      "slug": "unexpected-token-json错误怎么解决",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON处理",
+      "title": "unexpected token json错误怎么解决？6种原因及修复方法",
+      "desc": "Unexpected token是JSON解析时最常见的语法错误。本文详解6种触发原因：逗号缺失、单引号、键无引号、括号不匹配、非数字值、隐藏字符，并提供完整代码示例。",
+      "content": "unexpected-token-json错误怎么解决.html",
+      "faqs": [
+        {
+          "q": "Unexpected token 错误一般怎么解决？",
+          "a": "先找到错误出现的位置，通常是附近有引号不匹配、少了逗号、或者括号不匹配。最好用JSON校验工具自动定位。"
+        },
+        {
+          "q": "接口返回了HTML报错页面怎么解决？",
+          "a": "这是最容易被忽略的原因——接口500/502错误时返回的是HTML页面，不是JSON。解决方法是先检查HTTP状态码和Content-Type。"
+        },
+        {
+          "q": "JSON里能写undefined或NaN吗？",
+          "a": "不能。JSON只支持null、true、false、字符串、数字、对象和数组。undefined、NaN、Infinity都不属于JSON有效值。"
+        }
+      ]
+    },
+    {
+      "keyword": "json字符串转对象失败怎么办",
+      "slug": "json字符串转对象失败怎么办",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON处理",
+      "title": "json字符串转对象失败怎么办？5种场景及安全解析方法",
+      "desc": "JSON.parse报错？本文分析5大失败场景：后端返回HTML、特殊字符未转义、localStorage脏数据、BOM头干扰、CSV格式混淆，提供try-catch、清理+BOM解析、缓存校验等实用代码。",
+      "content": "json字符串转对象失败怎么办.html",
+      "faqs": [
+        {
+          "q": "后端返回了HTML而不是JSON怎么办？",
+          "a": "先检查Content-Type响应头是否为application/json，如果不是，说明接口报错返回了HTML页面。先修复接口问题，或者在代码里加Content-Type判断。"
+        },
+        {
+          "q": "JSON.parse前需要做哪些检查？",
+          "a": "至少要检查：1)字符串不为空 2)不是undefined/null字符串 3)没有BOM头 4)没有多余空白。最好用try-catch包裹。"
+        },
+        {
+          "q": "如何防止JSON转对象崩溃？",
+          "a": "用try-catch包装JSON.parse，或者用safeParse函数做防御性解析，返回null而非抛异常。生产环境推荐用JSON Schema先校验再解析。"
+        }
+      ]
+    },
+    {
+      "keyword": "接口返回429怎么办",
+      "slug": "接口返回429怎么办",
+      "tool": "network/api-tester.html",
+      "intent": "error-fix",
+      "category": "API调用",
+      "title": "接口返回429怎么办？Rate Limit处理完整指南",
+      "desc": "429 Too Many Requests是最常见的API限速报错。本文详解429的触发原因（速率限制、并发过多、重复请求），并提供指数退避、请求队列、缓存等5种实用解决方案及代码实现。",
+      "content": "接口返回429怎么办.html",
+      "faqs": [
+        {
+          "q": "收到429后应该等多久再重试？",
+          "a": "优先读响应头里的Retry-After字段，它会告诉你具体秒数。如果没有这个头，就用指数退避策略：1秒、2秒、4秒、8秒...逐渐增加。"
+        },
+        {
+          "q": "如何避免触发429？",
+          "a": "核心是减少重复请求和并发量：用缓存避免重复请求、用队列控制并发、批处理时加延迟、仔细阅读API的Rate Limit文档。"
+        },
+        {
+          "q": "指数退避是什么意思？",
+          "a": "每次重试的等待间隔翻倍。比如第1次等1秒，第2次等2秒，第3次等4秒，第4次等8秒...这样能避免在限速恢复时瞬间涌入大量请求。"
+        }
+      ]
+    },
+    {
+      "keyword": "请求参数错误怎么修复",
+      "slug": "请求参数错误怎么修复",
+      "tool": "network/api-tester.html",
+      "intent": "error-fix",
+      "category": "API调用",
+      "title": "请求参数错误怎么修复？6种类型及防御性编程实践",
+      "desc": "400 Bad Request是最常见的API参数报错。本文详解6大类型：字段缺失、类型错误、格式不规范、值超范围、JSON语法错、参数名拼错，并提供JSON Schema、Zod、Joi等校验方案。",
+      "content": "请求参数错误怎么修复.html",
+      "faqs": [
+        {
+          "q": "请求参数错误最常见的原因是什么？",
+          "a": "最常见的是类型不匹配——比如API期望数字但前端传了字符串，比如true/false但传了\"true\"/\"false\"字符串。其次是必填字段缺失。"
+        },
+        {
+          "q": "如何避免线上出现参数错误？",
+          "a": "用JSON Schema或Zod/Joi等校验库在发送请求前做本地校验。好的校验能在开发阶段就发现参数问题，而不是等到线上报错。"
+        },
+        {
+          "q": "参数名大小写不对也会报错吗？",
+          "a": "会的。很多API的参数名区分大小写，建议直接复制API文档里的参数名，不要自己拼写。"
+        }
+      ]
     }
   ]
 }

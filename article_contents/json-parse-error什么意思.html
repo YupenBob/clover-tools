@@ -1,0 +1,154 @@
+<h2>什么是 JSON Parse Error？</h2>
+<p>JSON Parse Error 是 JavaScript 在尝试解析 JSON 字符串时发生的错误。当你的代码试图用 <code>JSON.parse()</code> 把一个字符串转成 JavaScript 对象，但字符串的格式不符合 JSON 规范时，就会抛出这个错误。</p>
+
+<pre><code>// 触发 JSON Parse Error 的典型情况
+const jsonStr = '{"name": "Clover", age: 16}';
+// age 没有加引号，不是合法的 JSON
+JSON.parse(jsonStr);
+// SyntaxError: Unexpected token 'a', ... is not valid JSON
+
+const badJson = '{"greeting": "hello"}';  // 末尾多了不可见字符
+JSON.parse(badJson);  // 可能报错：Unexpected end of JSON input</code></pre>
+
+<h2>最常见的 5 种触发原因</h2>
+
+<h3>1. 键或字符串值没加引号</h3>
+<p>JSON 标准要求所有键和字符串值必须用双引号包裹。单引号、不加引号都会报错。</p>
+<pre><code>// ❌ 错误示例
+{"name": "Clover"}   // 正确
+{name: "Clover"}    // 错误：键没引号
+{'name': "Clover"}  // 错误：单引号不行
+
+// ✅ 正确示例
+{"name": "Clover"}</code></pre>
+
+<h3>2. 尾部多余逗号</h3>
+<p>JavaScript 对象可以写尾部逗号，但 JSON 不允许。</p>
+<pre><code>// ❌ 错误
+{"name": "Clover",}
+
+// ✅ 正确
+{"name": "Clover"}</code></pre>
+
+<h3>3. 单引号或反引号作为字符串边界</h3>
+<pre><code>// ❌ 错误
+const data = JSON.parse("{'name': 'Clover'}");
+// JavaScript字符串可以用单引号，但解析时JSON只认双引号
+
+// ✅ 正确
+const data = JSON.parse('{"name": "Clover"}');</code></pre>
+
+<h3>4. 数字格式错误</h3>
+<p>JSON 数字不能有前导零（<code>01</code>），不能是非数字（<code>NaN</code>、<code>Infinity</code>）。</p>
+<pre><code>// ❌ 错误
+{"count": 007}     // 前导零
+{"ratio": .5}      // 必须写 0.5
+{"bad": NaN}       // JSON 里没有 NaN
+
+// ✅ 正确
+{"count": 7}
+{"ratio": 0.5}
+{"bad": null}      // 用 null 表示无值</code></pre>
+
+<h3>5. BOM 头或隐藏字符</h3>
+<p>从文件或某些接口返回的 JSON 前面可能有 UTF-8 BOM（<code>\uFEFF</code>），肉眼看不见，但会导致解析失败。</p>
+<pre><code>const raw = '\uFEFF{"ok": true}';
+JSON.parse(raw);  // SyntaxError: Unexpected token '﻿'
+
+// ✅ 解决：去掉 BOM
+const clean = raw.replace(/^\uFEFF/, '');
+JSON.parse(clean);  // OK</code></pre>
+
+<h2>如何快速定位 JSON 错误？</h2>
+<p>手动找 JSON 里的格式问题很痛苦，最快的方法是用在线工具校验。</p>
+<ul>
+<li>打开 <a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a>，粘贴你的 JSON，工具会告诉你哪一行哪一列出错</li>
+<li>用 <a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a>，直接高亮错误位置</li>
+</ul>
+
+<pre><code>// 手动调试：在 JSON.parse 外面包 try-catch
+try {
+    const data = JSON.parse(responseText);
+} catch (e) {
+    console.error('JSON解析失败:', e.message);
+    console.log('原始内容:', responseText);
+    // 找到报错位置后，通常附近就是问题所在
+}
+
+// 进阶：用 reviver 函数获取具体路径
+JSON.parse(text, (key, value) => {
+    console.log('解析到:', key, value);
+    return value;
+});</code></pre>
+
+<h2>后端返回的 JSON 报错了怎么办？</h2>
+<p>很多时候 JSON Parse Error 不是你的代码问题，而是后端返回的数据格式不对。</p>
+
+<h3>第一步：打印原始响应</h3>
+<pre><code>fetch('/api/data')
+    .then(r => r.text())  // 先不用 .json()，拿到原始文本
+    .then(text => {
+        console.log('原始响应:', text);
+        // 检查：是否有意外的 HTML 包裹？是否有异常字符？
+        return JSON.parse(text);
+    })
+    .catch(e => console.error(e));</code></pre>
+
+<h3>第二步：检查 Content-Type</h3>
+<pre><code>// 如果后端返回的是 text/html（错误页），解析 JSON 当然失败
+// 响应头里应该是：
+Content-Type: application/json; charset=utf-8
+
+// 如果是：
+Content-Type: text/html; charset=utf-8
+// 说明后端报错了，返回的是 HTML 错误页面，不是 JSON</code></pre>
+
+<h3>第三步：后端返回脏数据</h3>
+<p>有时后端数据库里存了特殊字符，或者序列化时出了问题，导致输出的 JSON 不规范。</p>
+<pre><code>// Node.js 调试：打印中间变量
+const serialized = JSON.stringify(dataFromDB);
+console.log(serialized);  // 看看是不是有乱码或多余字符</code></pre>
+
+<h2>安全地解析 JSON（防止崩溃）</h2>
+<pre><code>// 方法一：try-catch 包裹
+function safeJsonParse(str, fallback = null) {
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.warn('JSON解析失败:', e.message);
+        return fallback;
+    }
+}
+
+// 方法二：先校验再解析（推荐性能敏感场景）
+function isValidJson(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch { return false; }
+}
+
+// 方法三：使用 reviver 深度检查（生产环境推荐）
+const data = JSON.parse(text, (key, value) => {
+    if (typeof value === 'string' && value.includes('\u0000')) {
+        throw new Error(`Null character in key: ${key}`);
+    }
+    return value;
+});</code></pre>
+
+<h2>常见错误对照表</h2>
+
+<table>
+<tr><th>错误信息</th><th>原因</th><th>解决方法</th></tr>
+<tr><td>Unexpected token</td><td>格式错误（引号/逗号/括号不匹配）</td><td>用工具格式化并定位错误位置</td></tr>
+<tr><td>Unexpected end of JSON input</td><td>字符串被截断，或多了特殊字符</td><td>检查是否有 BOM 头或多余字符</td></tr>
+<tr><td>Expected ',' or '}'</td><td>对象或数组里少了逗号/括号</td><td>逐行检查格式</td></tr>
+<tr><td>Expected property name or '}'</td><td>键没有用双引号</td><td>所有键必须用双引号</td></tr>
+</table>
+
+<h2>工具推荐</h2>
+<ul>
+<li><a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a> — 一键美化，错误位置高亮</li>
+<li><a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a> — 严格校验，发现不合规字段</li>
+<li><a href='/tools/json/yaml.html' target='_blank'>JSON ↔ YAML 互转</a> — 如果你搞混了格式</li>
+</ul>

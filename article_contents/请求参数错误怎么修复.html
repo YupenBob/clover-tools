@@ -1,0 +1,250 @@
+<h2>什么是请求参数错误？</h2>
+<p>请求参数错误（Bad Request / 400 Error）是最常见的 API 报错之一。当客户端发给服务器的数据格式不对、缺少必填字段、或值不符合预期时，服务器就会返回 <code>400 Bad Request</code>。</p>
+
+<pre><code>// 典型的 400 错误响应
+// HTTP/1.1 400 Bad Request
+// Content-Type: application/json
+//
+// {"error": "Invalid parameter: email", "detail": "邮箱格式不正确"}
+
+fetch('/api/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'not-an-email', age: 'abc' })
+}).then(r => {
+    if (r.status === 400) console.log('参数校验失败');
+});</code></pre>
+
+<h2>请求参数错误的 6 大类型</h2>
+
+<h3>类型 1：必填字段缺失</h3>
+<pre><code>// API 文档说 name 是必填的，但你没传
+// 请求：{}
+// 响应：{"error": "name is required"}
+
+// 解决：发送前检查所有必填字段
+function validateRequired(data, required) {
+    const missing = required.filter(key => 
+        data[key] === undefined || data[key] === null || data[key] === ''
+    );
+    if (missing.length > 0) {
+        throw new Error(`缺少必填字段: ${missing.join(', ')}`);
+    }
+}
+
+validateRequired({name: 'Clover'}, ['name', 'email']);  // 报错：缺少 email</code></pre>
+
+<h3>类型 2：数据类型错误</h3>
+<pre><code>// 期望数字，传了字符串
+// API 期望：{"page": 2}
+// 你发了：{"page": "2"}  ← 字符串不是数字
+
+// 期望布尔值，传了字符串
+// API 期望：{"active": true}
+// 你发了：{"active": "true"}  ← "true" 不是布尔值
+
+// 解决：参数发送前做类型转换
+const params = {
+    page: Number(query.page) || 1,  // 强制转数字
+    active: String(query.active) === 'true',  // 字符串转布尔
+    tags: Array.isArray(query.tags) ? query.tags : [query.tags]
+};</code></pre>
+
+<h3>类型 3：格式不符合规范（最常见：邮箱/手机号/URL）</h3>
+<pre><code>// 邮箱格式错误
+{"email": "clover@"}  // 缺了域名
+{"email": "clover@toolongdomainname.com"}  // 格式上没问题但可能校验不通过
+
+// URL 格式错误
+{"url": "htp://example.com"}  // 少了 p
+{"url": "example.com"}        // 少了协议头
+
+// 解决：用正则表达式或库来验证
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isValidUrl = (url) => {
+    try { new URL(url); return true; } catch { return false; }
+};
+
+// 或者用专门的校验库
+const Ajv = require('ajv');
+const schema = {
+    type: 'object',
+    required: ['email', 'url'],
+    properties: {
+        email: { type: 'string', format: 'email' },
+        url: { type: 'string', format: 'uri' }
+    }
+};
+const validate = new Ajv().compile(schema);
+console.log(validate({email: 'hi@xsanye.cn', url: 'https://tools.xsanye.cn'}));  // true</code></pre>
+
+<h3>类型 4：值超出允许范围</h3>
+<pre><code>// 页码必须是正整数，不能为 0 或负数
+{"page": 0}    // 400
+{"page": -1}   // 400
+
+// 分页 size 超出范围
+{"pageSize": 1000}  // 大多数 API 最大只允许 100
+
+// 枚举值不对
+{"status": "pending"}  // API 只接受 active/inactive/archived
+{"method": "delete"}   // 只接受 GET/POST/PUT/PATCH
+
+// 字符串长度超限
+{"name": "Clover的超长名字超过50个字符的限制内容啦啦啦"}
+// 400: name 长度不能超过 50</code></pre>
+
+<h3>类型 5：JSON 格式本身不合法</h3>
+<pre><code>// 请求 body 里有语法错误
+// Content-Type: application/json
+// Body: {"name": "Clover", }  ← 尾部逗号（Python/Node.js 可能容忍，Go/Java 可能拒绝）
+
+// 空请求体
+// {}  // 对于某些需要具体字段的 API，空对象也算参数错误
+
+// Content-Type 和实际 body 不匹配
+// header 说 application/json，但 body 是 form-urlencoded</code></pre>
+
+<h3>类型 6：参数名拼写错误或大小写不对</h3>
+<pre><code>// 某些 API 区分大小写
+{"UserName": "Clover"}   // API 期望 user_name
+{"page_size": 10}         // API 期望 pageSize
+
+// 解决：仔细对照 API 文档，参数名最好复制粘贴</code></pre>
+
+<h2>如何调试请求参数错误？</h2>
+
+<h3>Step 1：读懂错误响应</h3>
+<pre><code>fetch('/api/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({name: 'Cl'})
+})
+.then(async r => {
+    if (!r.ok) {
+        const err = await r.json().catch(() => r.text());
+        console.log('错误详情:', JSON.stringify(err, null, 2));
+        // 常见错误响应格式：
+        // {"message": "参数校验失败", "errors": [{"field": "name", "msg": "至少2个字符"}]}
+        // {"error": "invalid_request", "error_description": "The request body is missing required fields"}
+    }
+    return r.json();
+})</code></pre>
+
+<h3>Step 2：用 HTTP 测试工具手动构造请求</h3>
+<p>不确定是参数问题还是接口问题？用 <a href='/tools/network/api-tester.html' target='_blank'>API 测试工具</a> 手动发请求，边改参数边看响应，很快就能找到问题所在。</p>
+
+<h3>Step 3：用 JSON Schema 做请求前校验</h3>
+<pre><code>// 发请求前本地校验，拒绝不合规的参数
+const Ajv = require('ajv');
+const ajv = new Ajv({allErrors: true});
+
+const requestSchema = {
+    type: 'object',
+    required: ['email', 'password'],
+    properties: {
+        email: { 
+            type: 'string', 
+            format: 'email',
+            minLength: 5
+        },
+        password: { 
+            type: 'string', 
+            minLength: 8,
+            pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'  // 强密码规则
+        },
+        age: { type: 'integer', minimum: 0, maximum: 150 }
+    }
+};
+
+const validate = ajv.compile(requestSchema);
+const valid = validate(requestData);
+
+if (!valid) {
+    console.error('参数校验失败:', validate.errors);
+    // 格式化错误信息给用户看
+    const msgs = validate.errors.map(e => `${e.instancePath} ${e.message}`);
+    throw new Error(`参数错误: ${msgs.join('; ')}`);
+}</code></pre>
+
+<h2>前端常见参数错误场景</h2>
+
+<h3>场景 1：表单提交时参数丢失</h3>
+<pre><code>// HTML 表单序列化时，没选中的 checkbox 不会被提交
+// <input type="checkbox" name="agree" value="yes">  // 没勾就不发送
+// 后端收到少了 agree，报 400
+
+// 解决：发送前填充默认值，或用 FormData
+const formData = new FormData(form);
+const data = Object.fromEntries(formData.entries());
+// 没勾的 checkbox 仍然需要手动处理
+if (!formData.has('agree')) data.agree = 'no';</code></pre>
+
+<h3>场景 2：JSON.stringify 空值时字段丢失</h3>
+<pre><code>// undefined 在 JSON.stringify 时会被忽略
+const payload = {
+    name: 'Clover',
+    email: undefined,   // 这个字段会消失
+    age: null           // null 不会消失
+};
+JSON.stringify(payload);  // {"name":"Clover","age":null}
+
+// 某些 API 严格要求所有字段都有值
+// 解决：手动填充
+const cleanPayload = {
+    name: payload.name || '',
+    email: payload.email || '',
+    age: payload.age ?? 0
+};</code></pre>
+
+<h3>场景 3：时间格式不对</h3>
+<pre><code>// 发送 Date 对象而不是 ISO 字符串
+const params = {
+    startDate: new Date(),  // JS Date 对象
+    endDate: '2024-01-01'
+};
+// fetch 内部会调 toString()，变成 "Wed Jan 01 2024..."
+// 服务器不认识这个格式 → 400
+
+// 解决：统一转 ISO 字符串
+const params = {
+    startDate: new Date().toISOString(),  // "2024-01-15T08:30:00.000Z"
+    endDate: '2024-01-01'
+};</code></pre>
+
+<h2>请求参数校验的最佳实践</h2>
+
+<pre><code>// 1. 使用 ajv + JSON Schema（Node.js / 前端通用）
+// npm install ajv
+
+// 2. 使用 Joi（Node.js 更友好的校验）
+const Joi = require('joi');
+const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+    age: Joi.number().integer().min(0).max(150)
+});
+const { error, value } = schema.validate(req.body);
+if (error) return res.status(400).json({ error: error.message });
+
+// 3. 前端用 HTML5 原生校验（快速实现）
+// <input type="email" required pattern="..."> 浏览器会自动校验
+
+// 4. 用 zod（TypeScript 项目推荐）
+import { z } from 'zod';
+const UserSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8).regex(/[A-Z]/).regex(/[0-9]/),
+    age: z.number().int().positive().max(150).optional()
+});</code></pre>
+
+<h2>总结</h2>
+<table>
+<tr><th>错误类型</th><th>特征</th><th>解决</th></tr>
+<tr><td>字段缺失</td><td>错误信息说 "xxx is required"</td><td>补全必填字段</td></tr>
+<tr><td>类型错误</td><td>错误信息说 "expected number, got string"</td><td>做类型转换</td></tr>
+<tr><td>格式不对</td><td>错误信息说 "invalid email/url/date"</td><td>用正则或库校验格式</td></tr>
+<tr><td>值超范围</td><td>错误信息说 "must be between x and y"</td><td>确保值在允许范围内</td></tr>
+<tr><td>JSON 语法错</td><td>400 + 语法错误</td><td>检查引号/逗号/括号</td></tr>
+<tr><td>参数名错</td><td>错误信息不清楚，参数似乎没生效</td><td>仔细对照 API 文档</td></tr>
+</table>

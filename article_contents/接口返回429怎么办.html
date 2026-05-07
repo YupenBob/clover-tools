@@ -1,0 +1,247 @@
+<h2>什么是 HTTP 429 错误？</h2>
+<p>429 是 HTTP 状态码的一种，全称是 "Too Many Requests"（请求过多）。它告诉客户端：你频率太快了，歇一会儿再试。API 提供商用这个状态码来保护服务器不被冲垮。</p>
+
+<pre><code>// 典型的 429 报错
+// 请求发出后收到响应：
+// HTTP/2 429
+// Retry-After: 60
+// Content-Type: application/json
+//
+// {"error": "Rate limit exceeded", "retry_after": 60}
+
+// 在代码里看到的情况
+fetch('/api/data')
+    .then(r => {
+        if (r.status === 429) throw new Error('请求太频繁，请稍后重试');
+        return r.json();
+    });</code></pre>
+
+<h2>为什么会触发 429？</h2>
+
+<h3>1. 接口有速率限制（Rate Limiting）</h3>
+<p>这是最常见的原因。几乎所有公开 API 都有速率限制，只是门槛不同：</p>
+<ul>
+<li>GitHub API：60次/小时（未认证），5000次/小时（个人 token）</li>
+<li>OpenAI API：按 token 数和 RPM（Requests Per Minute）限制</li>
+<li>百度/高德地图 API：按日配额或 QPS 限制</li>
+<li>自己写的接口：也可能配置了速率限制中间件</li>
+</ul>
+
+<h3>2. 并发请求太多</h3>
+<pre><code>// 同时发大量请求，很容易触发 429
+const urls = Array.from({length: 100}, (_, i) => `/api/item/${i}`);
+
+// ❌ 危险：100 个请求同时发出
+Promise.all(urls.map(url => fetch(url)));
+
+// ✅ 正确：分批 + 延迟
+async function batchFetch(urls, batchSize = 5, delayMs = 1000) {
+    const results = [];
+    for (let i = 0; i < urls.length; i += batchSize) {
+        const batch = urls.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(url => fetch(url)));
+        results.push(...batchResults);
+        if (i + batchSize < urls.length) {
+            await new Promise(r => setTimeout(r, delayMs));
+        }
+    }
+    return results;
+}</code></pre>
+
+<h3>3. 短时间重复请求相同资源</h3>
+<pre><code>// 循环里每次都请求同一个 URL
+for (let i = 0; i < 10; i++) {
+    fetch('/api/user/profile');  // 第2次请求就可能触发429
+}
+
+// 解决：用缓存
+const cache = new Map();
+async function fetchWithCache(url) {
+    if (cache.has(url)) return cache.get(url);
+    const r = await fetch(url);
+    if (r.ok) cache.set(url, r.clone().json());  // clone 因为 body 只能读一次
+    return r.json();
+}</code></pre>
+
+<h2>429 的响应头信息</h2>
+<p>服务器在返回 429 时，通常会附带一些提示信息：</p>
+
+<pre><code>// 常用响应头
+Retry-After: 60           // 告诉你要等多少秒再试
+X-RateLimit-Limit: 100    // 每分钟限额
+X-RateLimit-Remaining: 0  // 剩余次数
+X-RateLimit-Reset: 1700000000  // 限额重置的时间戳（Unix 秒）
+
+// 读取这些头信息
+fetch('/api/data')
+    .then(r => {
+        if (r.status === 429) {
+            const retryAfter = r.headers.get('Retry-After');
+            const resetTime = r.headers.get('X-RateLimit-Reset');
+            console.log(`等 ${retryAfter} 秒后重试`);
+            console.log(`限额在 ${new Date(resetTime * 1000)} 重置`);
+        }
+        return r.json();
+    });</code></pre>
+
+<h2>处理 429 的正确方式</h2>
+
+<h3>方案一：指数退避（Exponential Backoff）</h3>
+<pre><code>// 最标准的处理方式：每次重试间隔翻倍
+async function fetchWithRetry(url, options = {}, retries = 3) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        const r = await fetch(url, options);
+        
+        if (r.ok) return r.json();
+        
+        if (r.status === 429) {
+            if (attempt === retries) throw new Error('重试次数用尽');
+            
+            // 读取 Retry-After 头，如果没有就用指数退避
+            const retryAfter = r.headers.get('Retry-After');
+            const waitMs = retryAfter 
+                ? parseInt(retryAfter) * 1000 
+                : Math.min(1000 * Math.pow(2, attempt), 30000);
+            
+            console.log(`429 错误，等 ${waitMs}ms 后重试（第${attempt + 1}次）`);
+            await new Promise(r => setTimeout(r, waitMs));
+            continue;
+        }
+        
+        throw new Error(`HTTP ${r.status}`);
+    }
+}
+
+// 使用示例
+const data = await fetchWithRetry('/api/data', {}, 5);</code></pre>
+
+<h3>方案二：加入请求队列（Rate Limit 友好的批量请求）</h3>
+<pre><code>// 用队列控制并发量，避免触发 429
+class RateLimitedQueue {
+    constructor(concurrency = 5, intervalMs = 1000) {
+        this.concurrency = concurrency;
+        this.intervalMs = intervalMs;
+        this.queue = [];
+        this.running = 0;
+    }
+    
+    add(fn) {
+        return new Promise((resolve, reject) => {
+            this.queue.push({ fn, resolve, reject });
+            this.process();
+        });
+    }
+    
+    async process() {
+        while (this.running < this.concurrency && this.queue.length > 0) {
+            const { fn, resolve, reject } = this.queue.shift();
+            this.running++;
+            fn()
+                .then(resolve)
+                .catch(reject)
+                .finally(() => {
+                    this.running--;
+                    setTimeout(() => this.process(), this.intervalMs);
+                });
+        }
+    }
+}
+
+const queue = new RateLimitedQueue(concurrency: 5, intervalMs: 1000);
+for (const url of urls) {
+    queue.add(() => fetch(url).then(r => r.json()));
+}</code></pre>
+
+<h3>方案三：使用缓存减少重复请求</h3>
+<pre><code>// 内存缓存 + localStorage 持久化
+class SmartCache {
+    constructor(ttlMs = 60000) {
+        this.cache = new Map();
+        this.ttlMs = ttlMs;
+    }
+    
+    get(key) {
+        const entry = this.cache.get(key);
+        if (!entry) return null;
+        if (Date.now() > entry.expires) {
+            this.cache.delete(key);
+            return null;
+        }
+        return entry.value;
+    }
+    
+    set(key, value) {
+        this.cache.set(key, { value, expires: Date.now() + this.ttlMs });
+    }
+    
+    async fetch(url) {
+        const cached = this.get(url);
+        if (cached) return cached;
+        
+        const r = await fetch(url);
+        if (r.status === 429) {
+            // 如果被限速，从缓存拿旧数据
+            const stale = this.cache.get(url);
+            if (stale) return stale.value;
+            throw new Error('Rate limited, no cached data');
+        }
+        const data = await r.json();
+        this.set(url, data);
+        return data;
+    }
+}</code></pre>
+
+<h2>如何避免触发 429？</h2>
+
+<ul>
+<li><strong>加延迟</strong>：批处理请求时，每批之间加 1-2 秒间隔</li>
+<li><strong>用缓存</strong>：相同数据不要重复请求</li>
+<li><strong>控制并发</strong>：不要一次开几十个并发请求</li>
+<li><strong>订阅更高配额</strong>：API 的付费套餐通常有更高 RPM</li>
+<li><strong>看文档</strong>：每个 API 的限速规则不同，仔细读 API 文档的 Rate Limiting 部分</li>
+</ul>
+
+<h2>常见 API 的限速示例</h2>
+
+<pre><code>// GitHub REST API
+// 60 req/hour (未认证) / 5000 req/hour (个人 access token)
+const ghToken = process.env.GITHUB_TOKEN;
+fetch('https://api.github.com/user/repos', {
+    headers: { Authorization: `Bearer ${ghToken}` }
+});
+
+// OpenAI API
+// GPT-4: 200 RPM, 100k TPM
+// 超出后报 429
+// 需要指数退避重试
+
+// 通用处理函数
+async function callAI(prompt) {
+    const maxRetries = 5;
+    for (let i = 0; i < maxRetries; i++) {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({model: 'gpt-4', messages: [{role: 'user', content: prompt}]})
+        });
+        if (r.status === 429) {
+            const retryAfter = r.headers.get('Retry-After') || Math.pow(2, i);
+            await new Promise(r => setTimeout(r, retryAfter * 1000));
+            continue;
+        }
+        return r.json();
+    }
+}</code></pre>
+
+<h2>总结</h2>
+<table>
+<tr><th>情况</th><th>处理方式</th></tr>
+<tr><td>首次遇到 429</td><td>读 Retry-After 头，按指示等待</td></tr>
+<tr><td>重试时再遇到 429</td><td>指数退避（间隔翻倍）</td></tr>
+<tr><td>高频批量请求</td><td>用队列控制并发量和请求间隔</td></tr>
+<tr><td>相同数据频繁请求</td><td>加缓存，减少重复请求</td></tr>
+<tr><td>长期高频需求</td><td>升级 API 套餐或换服务商</td></tr>
+</table>

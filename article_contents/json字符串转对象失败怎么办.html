@@ -1,0 +1,196 @@
+<h2>JSON 字符串转对象失败的常见原因</h2>
+<p>JavaScript 中把 JSON 字符串转成对象主要用 <code>JSON.parse()</code>，但这个操作会因为各种原因失败。最常见的报错是 <code>SyntaxError: Unexpected token</code> 或 <code>SyntaxError: Unexpected end of JSON input</code>。</p>
+
+<pre><code>// 最常见的失败代码
+const jsonStr = '{"name": "Clover"}';
+const obj = JSON.parse(jsonStr);  // ✅ 成功
+console.log(obj.name);  // "Clover"
+
+// 失败的例子
+const bad = '{"name: "Clover"}';  // 键没加引号
+JSON.parse(bad);  // SyntaxError
+
+const broken = '{"name": "Clover"}';  // 有多余字符
+JSON.parse(broken);  // 有时候也报错</code></pre>
+
+<h2>5 种最常见的失败场景</h2>
+
+<h3>场景 1：后端返回的不是 JSON 是 HTML</h3>
+<p>这是生产环境最常见的"JSON 转对象失败"原因。当接口报错时，后端往往返回一个 HTML 错误页面，但你代码里直接调了 <code>.json()</code>，于是崩了。</p>
+
+<pre><code>// 典型的报错流程
+// 1. 前端发送请求
+fetch('/api/data')
+    .then(r => r.json())  // 假设后端挂了，返回了 HTML
+    .then(data => console.log(data))
+    .catch(e => console.error(e));
+// 报错：SyntaxError: Unexpected token '<', "<!DOCTYPE html..." is not valid JSON
+
+// 原因：后端 502/503，返回了 Nginx/Apache 的错误页 HTML
+
+// 解决：先检查响应类型
+fetch('/api/data')
+    .then(async r => {
+        const contentType = r.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await r.text();
+            throw new Error(`Expected JSON, got ${contentType}: ${text.slice(0, 100)}`);
+        }
+        return r.json();
+    });</code></pre>
+
+<h3>场景 2：字符串里有 JavaScript 特殊字符没转义</h3>
+<pre><code>// 如果字符串里有换行符、双引号等，不做转义直接 JSON.stringify
+const str = "line1\nline2";  // JS 里的 \n 是换行符
+const json = JSON.stringify(str);
+// json 是 "\"line1\nline2\"" —— 这是合法的 JSON 字符串
+
+// 但如果你是手动拼接字符串...
+const badJson = '{"text": "line1\nline2"}';  // 直接写 \n 是两个字符
+JSON.parse(badJson);  // 可能报错，取决于具体内容
+
+// ✅ 正确做法：永远用 JSON.stringify 做序列化
+const obj = {text: "line1\nline2"};
+const safeJson = JSON.stringify(obj);
+JSON.parse(safeJson);  // 100% 可靠</code></pre>
+
+<h3>场景 3：从 localStorage / cookie 读取的数据</h3>
+<pre><code>// localStorage 只存字符串，取出来直接 JSON.parse
+const saved = localStorage.getItem('user_data');
+if (saved) {
+    const user = JSON.parse(saved);  // 如果从来没存过，saved 是 null
+    // JSON.parse(null) → null，不会报错
+    // 但如果存的是 'undefined' 字符串...
+    localStorage.setItem('tmp', undefined);
+    JSON.parse(localStorage.getItem('tmp'));  // SyntaxError!
+}
+
+// 解决：做防御性检查
+const safeParse = (str, fallback = null) => {
+    if (!str || str === 'undefined' || str === 'null') return fallback;
+    try {
+        return JSON.parse(str);
+    } catch { return fallback; }
+};</code></pre>
+
+<h3>场景 4：API 返回了 BOM 头或特殊 Unicode 字符</h3>
+<pre><code>// 有些接口返回的数据前面有 UTF-8 BOM (\uFEFF)，会导致解析失败
+const withBom = '\uFEFF{"ok": true, "name": "Clover"}';
+JSON.parse(withBom);  // Unexpected token
+
+// 解决
+const clean = withBom.replace(/^\uFEFF/, '');
+JSON.parse(clean);  // OK
+
+// 还有一种情况：字符串里有 Unicode 转义错误
+const badUnicode = '{"emoji": "\\uD83D\\uDE00"}';  // 笑脸 emoji
+// \uD83D\uDE00 是合法的代理对
+// 但如果只有一半 \uD83D，就会报错
+JSON.parse(badUnicode);  // 正常
+JSON.parse('"\\uD83D"');  // 正常
+JSON.parse('"\\uD800"');  // 错误：孤立的代理码点</code></pre>
+
+<h3>场景 5：从 CSV 或其他格式错误转换来的"JSON"</h3>
+<pre><code>// 有些人把 CSV 格式的数据当成 JSON 发出来
+// CSV: name,age\nClover,16
+// JSON: {"name":"Clover","age":16}
+
+// 手动解析 CSV → 错误百出
+const csvToJson = (csv) => {
+    const lines = csv.split('\n');
+    const headers = lines[0].split(',');
+    // 如果内容里有逗号就崩了！
+    return lines.slice(1).map(line => {
+        const vals = line.split(',');  // 简单 split，有坑
+        return {};
+    });
+};
+
+// 建议：用专门的 CSV → JSON 工具
+// → <a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a></code></pre>
+
+<h2>如何安全地做 JSON 字符串 → 对象转换？</h2>
+
+<pre><code>// 方法一：try-catch（最简单）
+function parseJSON(str) {
+    try {
+        return { ok: true, data: JSON.parse(str) };
+    } catch (e) {
+        console.error('JSON解析失败:', e.message, '原文:', str);
+        return { ok: false, error: e.message };
+    }
+}
+
+// 方法二：深度清理 + 解析
+function cleanAndParse(str) {
+    // 去掉 BOM
+    let cleaned = str.replace(/^\uFEFF/, '');
+    // 去掉行首行尾空白
+    cleaned = cleaned.trim();
+    return JSON.parse(cleaned);
+}
+
+// 方法三：使用 fetch 的响应对象（浏览器原生）
+// fetch 的 .json() 方法等价于先 .text() 再 JSON.parse
+// 但会自动检查 Content-Type
+fetch('/api/data')
+    .then(r => r.json())  // 内部会检查 content-type
+    .catch(e => console.error('不是合法JSON或网络错误:', e));</code></pre>
+
+<h2>axios / Node.js 里的特殊处理</h2>
+
+<pre><code>// axios：自动解析 JSON，但如果响应不是 JSON 格式会报错
+const axios = require('axios');
+const resp = await axios.get('/api/data');
+console.log(resp.data);  // 已经是 JS 对象了
+
+// axios 手动处理（更安全）
+try {
+    const resp = await axios.get('/api/data');
+    console.log(resp.data);
+} catch (e) {
+    if (e.response) {
+        // 服务器返回了错误状态码
+        console.error('HTTP', e.response.status, e.response.data);
+    } else if (e.request) {
+        // 请求发出去了但没收到响应（网络错误）
+        console.error('网络错误:', e.message);
+    } else {
+        console.error('请求配置错误:', e.message);
+    }
+}
+
+// Node.js 原生 http 模块
+const http = require('http');
+http.get('/api/data', (res) => {
+    let data = '';
+    res.on('data', chunk => data += chunk);
+    res.on('end', () => {
+        try {
+            const json = JSON.parse(data);
+            console.log(json);
+        } catch (e) {
+            console.error('JSON解析失败:', e.message, '原始:', data.slice(0, 100));
+        }
+    });
+});</code></pre>
+
+<h2>如何快速排查"字符串转对象失败"？</h2>
+
+<ol>
+<li>先打印原始字符串，看是不是真的是 JSON 格式</li>
+<li>用 JSON 格式化工具（<a href='/tools/json/formatter.html' target='_blank'>点击使用</a>）粘贴进去，看报错在哪里</li>
+<li>检查 Content-Type 响应头是否为 application/json</li>
+<li>检查字符串是否有 BOM 头（<code>\uFEFF</code>）</li>
+<li>检查是否有单引号或未转义的特殊字符</li>
+</ol>
+
+<h2>总结</h2>
+<table>
+<tr><th>错误场景</th><th>原因</th><th>解决</th></tr>
+<tr><td>后端返回 HTML 错误页</td><td>接口 5xx 挂了</td><td>检查接口状态，加 try-catch</td></tr>
+<tr><td>Content-Type 不对</td><td>后端没设 application/json</td><td>让后端设置正确响应头</td></tr>
+<tr><td>BOM 头干扰</td><td>文件编码问题</td><td>去掉 \uFEFF</td></tr>
+<tr><td>手动拼接字符串</td><td>转义不完整</td><td>用 JSON.stringify</td></tr>
+<tr><td>localStorage 存了 undefined</td><td>存的是字符串 'undefined'</td><td>先校验再 parse</td></tr>
+</table>
