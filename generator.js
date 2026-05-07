@@ -1001,13 +1001,14 @@ function generateBlogPosts() {
   ensureDir(path.join(DIST_DIR, 'blog'));
 
   keywordsConfig.forEach(kw => {
+    const slug = kw.slug || kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
     const toolInfo = resolveTool(kw);
-    var customArticle = articlesConfig[kw.slug];
+    var customArticle = articlesConfig[slug];
     // 优先读 articles.json 的 content，其次读 article_contents/{slug}.html
     var articleContent = (customArticle && customArticle.content && customArticle.content.trim().length > 0)
       ? customArticle.content
       : (() => {
-        const htmlPath = path.join(BASE, 'article_contents', kw.slug + '.html');
+        const htmlPath = path.join(BASE, 'article_contents', slug + '.html');
         return fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
       })();
     var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
@@ -1015,7 +1016,7 @@ function generateBlogPosts() {
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
     const relatedQuestions = buildRelatedQuestions(kw, 6);
-    const blogUrl = 'https://tools.xsanye.cn/blog/' + kw.slug;
+    const blogUrl = 'https://tools.xsanye.cn/blog/' + slug;
     const today = new Date().toISOString().split('T')[0];
 
     let pageHtml = blogTemplate
@@ -1038,7 +1039,7 @@ function generateBlogPosts() {
       .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
       .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
 
-    fs.writeFileSync(path.join(DIST_DIR, 'blog', kw.slug + '.html'), pageHtml);
+    fs.writeFileSync(path.join(DIST_DIR, 'blog', slug + '.html'), pageHtml);
   });
 
   generateBlogIndex();
