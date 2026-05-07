@@ -1005,7 +1005,7 @@ function generateBlogPosts() {
     var customArticle = articlesConfig[kw.slug];
     var articleContent = customArticle ? customArticle.content : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
     var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
-    var articleDesc = customArticle ? customArticle.desc : ('详细解决' + kw.keyword + '的方法,提供在线工具,无需注册即可使用。');
+    var articleDesc = customArticle ? customArticle.desc : ('解决' + kw.keyword + '的完整指南，附在线工具，打开即用无需注册。');
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
     const relatedQuestions = buildRelatedQuestions(kw, 6);
@@ -1018,7 +1018,7 @@ function generateBlogPosts() {
       .replace(/\{\{PAGE_KEYWORDS\}\}/g, kw.keyword + ',开发者工具,问题解决')
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
       .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
-      .replace(/\{\{PAGE_OG_DESC\}\}/g, `详细解决${kw.keyword}的方法,` + (toolInfo ? `配合${toolInfo.name}工具使用` : '配合CloverTools在线工具'))
+      .replace(/\{\{PAGE_OG_DESC\}\}/g, `解决${kw.keyword}的实战方法,` + (toolInfo ? `配合${toolInfo.name}在线工具免费使用` : 'CloverTools在线工具免费使用'))
       .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
       .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
