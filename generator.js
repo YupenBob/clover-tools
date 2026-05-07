@@ -1007,7 +1007,7 @@ function generateBlogPosts() {
     var articleContent = (customArticle && customArticle.content && customArticle.content.trim().length > 0)
       ? customArticle.content
       : (() => {
-        const htmlPath = path.join(ARTICLE_CONTENTS_DIR, kw.slug + '.html');
+        const htmlPath = path.join(BASE, 'article_contents', kw.slug + '.html');
         return fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
       })();
     var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
