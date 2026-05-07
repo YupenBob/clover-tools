@@ -875,8 +875,9 @@ function generateBlogIndex() {
       </div>
       <div class="blog-grid">`;
     catTools.forEach(kw => {
+      const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
       const toolInfo = resolveTool(kw);
-      itemsHtml += `<a href="/blog/${kw.slug}" class="blog-card">
+      itemsHtml += `<a href="/blog/${slug}" class="blog-card">
         <div class="blog-card-title">${kw.keyword}</div>
         <div class="blog-card-meta">
           <span class="blog-card-cat">${cat}</span>
@@ -1001,7 +1002,8 @@ function generateBlogPosts() {
   ensureDir(path.join(DIST_DIR, 'blog'));
 
   keywordsConfig.forEach(kw => {
-    const slug = kw.slug || kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
+    // 强制使用中文slug，防止英文slug和中文keyword不匹配
+    const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
     const toolInfo = resolveTool(kw);
     var customArticle = articlesConfig[slug];
     // 优先读 articles.json 的 content，其次读 article_contents/{slug}.html
@@ -1713,8 +1715,9 @@ function generateFixHubPages() {
     const toolInfo = resolveTool({ tool: hubKeywords[0] && hubKeywords[0].tool });
 
     const articlesHtml = hubKeywords.map(kw => {
+      const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
       const kwTool = resolveTool(kw);
-      return `<a href="/blog/${kw.slug}" class="blog-card">
+      return `<a href="/blog/${slug}" class="blog-card">
         <div class="blog-card-title">${kw.keyword}</div>
         <div class="blog-card-meta">
           <span class="blog-card-cat">${kw.category}</span>
@@ -2040,7 +2043,8 @@ ${footerHtml}
   });
   // Add blog posts to sitemap
   keywordsConfig.forEach(kw => {
-    urls.push(`<url><loc>${baseUrl}/blog/${kw.slug}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`);
+    const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
+    urls.push(`<url><loc>${baseUrl}/blog/${slug}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`);
   });
   urls.push(`<url><loc>${baseUrl}/blog/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>0.7</priority></url>`);
 
