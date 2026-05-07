@@ -1003,7 +1003,13 @@ function generateBlogPosts() {
   keywordsConfig.forEach(kw => {
     const toolInfo = resolveTool(kw);
     var customArticle = articlesConfig[kw.slug];
-    var articleContent = customArticle ? customArticle.content : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
+    // 优先读 articles.json 的 content，其次读 article_contents/{slug}.html
+    var articleContent = (customArticle && customArticle.content && customArticle.content.trim().length > 0)
+      ? customArticle.content
+      : (() => {
+        const htmlPath = path.join(ARTICLE_CONTENTS_DIR, kw.slug + '.html');
+        return fs.existsSync(htmlPath) ? fs.readFileSync(htmlPath, 'utf8') : buildBlogContent(kw.keyword, kw.intent, toolInfo, kw);
+      })();
     var articleTitle = customArticle ? customArticle.title : (kw.keyword + ' - CloverTools');
     var articleDesc = customArticle ? customArticle.desc : ('解决' + kw.keyword + '的完整指南，附在线工具，打开即用无需注册。');
     const faqContent = buildFaq(kw.keyword, kw.intent);
