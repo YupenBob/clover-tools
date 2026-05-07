@@ -176,7 +176,7 @@
         "keywords": "XLSX转JSON，Excel转JSON，XLS转JSON，Excel转换，SheetJS，表格转JSON，CSV转JSON，在线转换",
         "type": "format-convert",
         "icon": "bi bi-file-earmark-arrow-down",
-        "title": "XLSX转JSON"
+        "title": "XLSX转JSON - 将Excel文件转换为JSON数据"
       },
       {
         "name": "压缩包修复",
@@ -765,7 +765,7 @@
         "keywords": "正则表达式生成器，RegExp生成，正则自动生成，正则表达式工具，正则匹配，邮箱正则，手机号正则，身份证正则",
         "type": "tool-custom",
         "icon": "bi bi-lightning-charge",
-        "title": "正则表达式生成器",
+        "title": "正则表达式生成器 - 自然语言描述自动生成RegExp",
         "customScript": "var templates={'手机号':'/^1[3-9]\\d{9}$/','邮箱':'/^[\\w.-]+@[\\w.-]+\\.\\w+$/','URL':'/^https?:\\/\\/[^\\s]+$/','IP地址':'/^(\\d{1,3}\\.){3}\\d{1,3}$/','身份证':'/^\\d{17}[\\dXx]$/'};document.getElementById('genBtn').onclick=function(){var key=document.getElementById('template').value;document.getElementById('output').value=templates[key]||'请选择模板';};",
         "customHtml": "<div class=\"tool-card\">\n  <h3>正则表达式生成器</h3>\n  <div class=\"form-group\">\n    <label>选择模板</label>\n    <select id=\"template\" style=\"width:100%;padding:0.6rem;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-size:1rem;\">\n      <option value=\"\">请选择...</option>\n      <option value=\"手机号\">📱 手机号</option>\n      <option value=\"邮箱\">📧 邮箱</option>\n      <option value=\"URL\">🔗 URL</option>\n      <option value=\"IP地址\">🌐 IP地址</option>\n      <option value=\"身份证\">🪪 身份证</option>\n    </select>\n  </div>\n  <div class=\"btn-row\"><button class=\"btn btn-primary\" id=\"genBtn\">生成正则</button></div>\n  <div class=\"output-box\" style=\"margin-top:1rem;\">\n    <h3>结果 <button class=\"copy-btn\" id=\"copyOutput\" onclick=\"navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('output').value)\">复制</button></h3>\n    <textarea id=\"output\" readonly placeholder=\"选择模板后点击生成...\" style=\"font-family:monospace;\"></textarea>\n  </div>\n</div>"
       },
@@ -895,7 +895,7 @@
         "keywords": "XML格式化，XML压缩，XML美化，XML在线格式化，XML压缩工具，XML语法校验，XML编辑",
         "type": "tool-custom",
         "icon": "bi bi-code-slash",
-        "title": "XML格式化/压缩",
+        "title": "XML格式化/压缩 - 美化压缩XML数据并校验语法",
         "customScript": "document.getElementById('formatBtn').onclick=function(){var xml=document.getElementById('input').value;var formatted=xml.replace(/(>)(<\\/\\w+>)/g,'$1\\n$2').replace(/(<\\w+)(>)/g,'$1\\n$2');document.getElementById('output').value=formatted;};document.getElementById('compressBtn').onclick=function(){var xml=document.getElementById('input').value;document.getElementById('output').value=xml.replace(/\\s+/g,' ').trim();};",
         "customHtml": "<div class=\"tool-card\">\n  <h3>输入 XML</h3>\n  <textarea id=\"input\" placeholder=\"输入或粘贴 XML 内容...\" style=\"min-height:120px;\"></textarea>\n  <div class=\"btn-row\">\n    <button class=\"btn btn-primary\" id=\"formatBtn\">格式化</button>\n    <button class=\"btn btn-secondary\" id=\"compressBtn\">压缩</button>\n    <button class=\"btn btn-secondary\" id=\"copyBtn\" onclick=\"navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('output').value)\">复制结果</button>\n  </div>\n  <div class=\"output-box\">\n    <h3>输出</h3>\n    <textarea id=\"output\" readonly placeholder=\"处理结果...\" style=\"font-family:monospace;\"></textarea>\n  </div>\n</div>"
       },
@@ -913,11 +913,11 @@
       {
         "name": "进制转换",
         "path": "dev-tools/base-converter.html",
-        "desc": "二进制、八进制、十进制、十六进制互相转换",
+        "desc": "支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果，适用于编程开发与数据处理场景。",
         "keywords": "进制转换,binary,octal,decimal,hex,16进制,10进制,转换",
         "type": "dev-tools",
         "icon": "bi bi-calculator",
-        "title": "进制转换器",
+        "title": "进制转换器 - 二八十六进制数值相互转换",
         "genFn": "function(inputs){var v=inputs.value.trim();var r=parseInt(v,parseInt(inputs.fromBase)).toString(parseInt(inputs.toBase)).toUpperCase();return{result:r};}",
         "args": {
           "inputs": [
@@ -1017,11 +1017,11 @@
       {
         "name": "字节转换器",
         "path": "dev-tools/byte-converter.html",
-        "desc": "字节、B、KB、MB、GB、TB 单位互相转换",
+        "desc": "字节、B、KB、MB、GB、TB单位互相转换，输入数值即可快速得到转换结果，适用于存储容量计算与数据大小换算场景。",
         "keywords": "字节转换,byte,KB,MB,GB,TB,存储单位,单位转换",
         "type": "dev-tools",
         "icon": "bi bi-memory",
-        "title": "字节单位转换器",
+        "title": "字节转换器 - B/KB/MB/GB/TB单位互相转换",
         "genFn": "function(inputs){var u={B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776};var v=parseFloat(inputs.value)||0;var result=(v*u[inputs.from]/u[inputs.to]).toFixed(6).replace(/\\.?0+$/,'');return{result:result+' '+inputs.to};}",
         "args": {
           "inputs": [
@@ -1131,11 +1131,11 @@
       {
         "name": "CSS单位转换",
         "path": "dev-tools/css-unit-converter.html",
-        "desc": "px、em、rem、%、vw、vh 单位互相转换，前端开发必备",
+        "desc": "px、em、rem、%、vw、vh单位互相转换，输入数值和单位即可实时得到转换结果，适用于前端开发、页面调试与响应式设计场景。",
         "keywords": "CSS单位,px,em,rem,%,vw,vh,转换,前端,响应式",
         "type": "dev-tools",
         "icon": "bi bi-rulers",
-        "title": "CSS单位转换器",
+        "title": "CSS单位转换器 - px/em/rem/vw/vh单位互转",
         "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var b=parseFloat(inputs.baseline)||16;var m={'px':1,'em':b,'rem':b,'%':b/100,'vw':window.innerWidth/100,'vh':window.innerHeight/100};var r={};for(var u of ['px','em','rem','%','vw','vh']){r[u]=(v*m[inputs.from]/m[u]).toFixed(4);}return{result:Object.entries(r).map(([u,val])=>val+' '+u).join('\\n')};}",
         "args": {
           "inputs": [
@@ -1213,11 +1213,11 @@
       {
         "name": "随机IP地址",
         "path": "dev-tools/random-ip.html",
-        "desc": "生成随机IPv4地址，可选私有IP或公有IP",
+        "desc": "生成随机IPv4地址，可选私有IP或公有IP模式，支持批量生成指定数量，适用于网络测试、软件开发与教学演示场景。",
         "keywords": "IP生成,随机IP,IPv4,私有IP,公有IP,地址生成",
         "type": "dev-tools",
         "icon": "bi bi-wifi",
-        "title": "随机IP地址生成器",
+        "title": "随机IP地址生成器 - 批量生成随机IPv4地址",
         "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var ip;if(inputs.private){var p=[[10,1],[172,16],[192,168]];var x=p[Math.floor(Math.random()*p.length)];if(x[0]===10)ip='10.'+rand(256)+'.'+rand(256)+'.'+rand(256);else if(x[0]===172)ip='172.'+(x[1]+rand(16))+'.'+rand(256)+'.'+rand(256);else ip='192.168.'+rand(256)+'.'+rand(256);}else{ip=Array(4).fill().map(()=>Math.floor(Math.random()*256)).join('.');}r.push(ip);}function rand(m){return Math.floor(Math.random()*m);}return{result:r.join('\\n')};}",
         "args": {
           "inputs": [
@@ -1303,11 +1303,11 @@
       {
         "name": "罗马数字转换",
         "path": "dev-tools/roman-numeral.html",
-        "desc": "阿拉伯数字与罗马数字互相转换，支持1-3999范围",
+        "desc": "阿拉伯数字与罗马数字互相转换，支持1-3999范围，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。",
         "keywords": "罗马数字,转换,arabic,roman,number,数字",
         "type": "dev-tools",
         "icon": "bi bi-roman",
-        "title": "罗马数字转换器",
+        "title": "罗马数字转换器 - 阿拉伯数字与罗马数字互转",
         "genFn": "function(inputs){var toR=function(n){var t=['','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];var d=[1000,900,500,400,100,90,50,40,10,9,5,4,1];var r='';for(var i=0;i<d.length;i++){while(n>=d[i]){r+=t[i];n-=d[i];}}return r;};var fromR=function(s){var m={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000};var r=0;for(var i=0;i<s.length;i++){var cur=m[s[i]];var next=m[s[i+1]];r+=cur<next?-cur:cur;}return r;};var v=inputs.value.trim();var result=/^\\d+$/.test(v)?toR(parseInt(v)):fromR(v.toUpperCase()).toString();return{result:result};}",
         "args": {
           "inputs": [
@@ -1500,7 +1500,7 @@
         "keywords": "AES加密，AES解密，AES-128，AES-256，CBC模式，对称加密，数据加密，密码学",
         "type": "encrypt",
         "icon": "bi bi-lock-fill",
-        "title": "AES加密/解密",
+        "title": "AES加密/解密 - 对称加密算法CBC模式加解密",
         "customScript": "var CryptoJS=null;var script=document.createElement('script');script.src='https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';script.onload=function(){CryptoJS=window.CryptoJS;};document.head.appendChild(script);document.getElementById('encryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='库加载中...';return;}var text=document.getElementById('input').value;var key=document.getElementById('key').value;if(!text||!key){document.getElementById('output').value='请输入文本和密钥';return;}document.getElementById('output').value=CryptoJS.AES.encrypt(text,key).toString();};document.getElementById('decryptBtn').onclick=function(){if(!CryptoJS){document.getElementById('output').value='库加载中...';return;}var cipher=document.getElementById('input').value;var key=document.getElementById('key').value;try{document.getElementById('output').value=CryptoJS.AES.decrypt(cipher,key).toString(CryptoJS.enc.Utf8);}catch(e){document.getElementById('output').value='解密失败';}};"
       },
       {
@@ -1964,7 +1964,7 @@
         "keywords": "万年历，在线万年历，公历农历，农历查询，日历，节气，节假日，日期查询，历史日历",
         "type": "time",
         "icon": "bi bi-calendar3-fill",
-        "title": "在线万年历",
+        "title": "在线万年历 - 1900-2100年公历农历查询",
         "customScript": "document.getElementById('showBtn').onclick=function(){var year=parseInt(document.getElementById('year').value)||new Date().getFullYear();var month=parseInt(document.getElementById('month').value)||new Date().getMonth()+1;var cal='<div style=\"display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px;\"><div style=\"background:#f0f0f0;padding:4px;\">日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>';var firstDay=new Date(year,month-1,1).getDay();var days=new Date(year,month,0).getDate();for(var i=0;i<firstDay;i++)cal+='<div></div>';for(var d=1;d<=days;d++)cal+='<div style=\"padding:4px;border:1px solid #ddd;\">'+d+'</div>';cal+='</div>';document.getElementById('calendar').innerHTML=cal;};",
         "customHtml": "<div class=\"tool-card\">\n  <h3>选择日期</h3>\n  <div class=\"input-row\" style=\"display:flex;gap:1rem;flex-wrap:wrap;align-items:center;\">\n    <div class=\"input-field\"><label>年份</label><input type=\"number\" id=\"year\" value=\"2026\" style=\"width:100px;padding:0.5rem;font-size:1rem;\"></div>\n    <div class=\"input-field\"><label>月份</label><input type=\"number\" id=\"month\" min=\"1\" max=\"12\" value=\"4\" style=\"width:80px;padding:0.5rem;font-size:1rem;\"></div>\n    <button class=\"btn btn-primary\" id=\"showBtn\" style=\"margin-top:1rem;\">显示日历</button>\n  </div>\n</div>\n<div class=\"tool-card\">\n  <div id=\"calendar\" style=\"margin-top:1rem;\"></div>\n</div>"
       },
@@ -2053,11 +2053,11 @@
       {
         "name": "BMI计算器",
         "path": "life/bmi-calculator.html",
-        "desc": "身体质量指数计算，支持中国成人BMI参考标准",
+        "desc": "身体质量指数计算，支持中国成人BMI参考标准，输入身高体重即可快速得出BMI值与健康区间提示，适用于健康管理、体检参考与健身监测场景。",
         "keywords": "BMI,计算,身体质量,身高,体重,健康指数",
         "type": "life",
         "icon": "bi bi-heart-pulse",
-        "title": "BMI计算器",
+        "title": "BMI计算器 - 身体质量指数计算与健康评估",
         "genFn": "function(inputs){var h=parseFloat(inputs.height)/100;var w=parseFloat(inputs.weight);if(!h||!w)return{result:'请输入有效身高和体重'};var bmi=(w/(h*h)).toFixed(1);var cat=bmi<18.5?'偏瘦':bmi<24?'正常':bmi<28?'偏胖':'肥胖';var sug=cat==='正常'?'继续保持！':cat==='偏瘦'?'注意营养均衡':'建议适当运动控制饮食';return{result:'BMI: '+bmi+'\\n分类: '+cat+'\\n建议: '+sug+'\\n\\n参考: 18.5-23.9为正常范围'};}",
         "args": {
           "inputs": [
@@ -2183,11 +2183,11 @@
       {
         "name": "人民币大写转换",
         "path": "life/rmb-uppercase.html",
-        "desc": "数字金额转换为中文大写，支持角、分、整",
+        "desc": "数字金额转换为中文大写，支持角、分、整，适用于财务报销、合同签订、发票开具等需要规范金额书写的场景。",
         "keywords": "人民币大写,金额转换,中文大写,财务,会计,金额",
         "type": "life",
         "icon": "bi bi-currency-yen",
-        "title": "人民币大写转换器",
+        "title": "人民币大写转换器 - 数字金额转换为中文大写",
         "genFn": "function(inputs){var m=parseFloat(inputs.money)||0;var d=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];var fix=function(s){return s.replace(/零角零分$/,'整').replace(/零角/g,'零').replace(/零分/g,'');};var i=Math.floor(m);var dec=Math.round((m-i)*100);var whole='';if(i>0){var gs=['','','元'],gs2=['仟','佰','拾',''];var gi=String(i).padStart(4,'0');for(var j=0;j<4;j++){var v=parseInt(gi[j]);if(v)whole+=d[v]+gs2[j];}whole+=gs[gi.length-4]||'元';}var parts=[];if(dec>0){parts.push(d[Math.floor(dec/10)]+'角');if(dec%10>0)parts.push(d[dec%10]+'分');}return{result:(whole+parts.join('')+'整')||'零元整'};}",
         "args": {
           "inputs": [
@@ -2231,11 +2231,11 @@
       {
         "name": "温度转换",
         "path": "life/temperature-converter.html",
-        "desc": "摄氏度、华氏度、开尔文温度互相转换",
+        "desc": "摄氏度、华氏度、开尔文温度互相转换，输入任意温度值即可同时显示三种单位的换算结果，适用于科学计算、工程换算与日常生活场景。",
         "keywords": "温度转换,celsius,fahrenheit,kelvin,℃,℉,K,摄氏,华氏",
         "type": "life",
         "icon": "bi bi-thermometer",
-        "title": "温度单位转换器",
+        "title": "温度单位转换器 - 摄氏度华氏度开尔文互转",
         "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var r={};if(inputs.from==='C')r={'C':v,'F':(v*9/5+32).toFixed(2),'K':(v+273.15).toFixed(2)};else if(inputs.from==='F')r={'F':v,'C':((v-32)*5/9).toFixed(2),'K':((v-32)*5/9+273.15).toFixed(2)};else r={'K':v,'C':(v-273.15).toFixed(2),'F':((v-273.15)*9/5+32).toFixed(2)};return{result:Object.entries(r).map(([u,val])=>val+'°'+u).join('\\n')};}",
         "args": {
           "inputs": [
@@ -2383,7 +2383,7 @@
       {
         "name": "平均数计算",
         "path": "math/avg.html",
-        "desc": "输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示。",
+        "desc": "输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示，适用于数据分析与成绩统计场景。",
         "keywords": "平均数计算，平均值，Mean，数学平均数，统计计算，数据统计，总和，平均",
         "type": "calculate",
         "fields": [
@@ -2396,7 +2396,7 @@
         ],
         "calcFn": "function(inputs) { var nums=inputs.nums.value.split(/[，, ]+/).map(Number).filter(function(x){return !isNaN(x);}); if(nums.length===0) return '请输入有效数字'; var sum=nums.reduce(function(a,b){return a+b;},0); var avg=sum/nums.length; return '数字：['+nums.join(', ')+']<br>个数：'+nums.length+'<br>总和：'+sum+'<br>平均数：<strong>'+avg.toFixed(6).replace(/\\.?0+$/,'')+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "平均数计算"
+        "title": "平均数计算器 - 批量数字求平均值与统计"
       },
       {
         "name": "四则计算器",
@@ -2443,7 +2443,7 @@
         ],
         "calcFn": "function(inputs) { var a=parseFloat(inputs.a),b=parseFloat(inputs.b),op=inputs.op; if(isNaN(a)||isNaN(b)) return '请输入有效数字'; if(op==='/'&&b===0) return '错误：除数不能为零'; var r; switch(op){case '+':r=a+b;break;case '-':r=a-b;break;case '*':r=a*b;break;case '/':r=a/b;break;} return a+' '+op+' '+b+' = <strong>'+r+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "四则计算器"
+        "title": "四则计算器 - 加减乘除基本运算工具"
       },
       {
         "name": "阶乘计算",
@@ -2461,7 +2461,7 @@
         ],
         "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<0) return '请输入非负整数'; if(n>170) return '数字过大，可能导致精度丢失'; var r=1; for(var i=2;i<=n;i++) r*=i; return n+'! = <strong>'+r.toLocaleString()+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "阶乘计算"
+        "title": "阶乘计算器 - 计算任意非负整数n的阶乘"
       },
       {
         "name": "最大公约数",
@@ -2485,7 +2485,7 @@
         ],
         "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)) return '请输入有效整数'; while(b){var t=b;b=a%b;a=t;} return 'GCD('+inputs.a+', '+inputs.b+') = <strong>'+a+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "最大公约数"
+        "title": "最大公约数计算器 - 欧几里得算法快速求解"
       },
       {
         "name": "最小公倍数",
@@ -2509,7 +2509,7 @@
         ],
         "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)||a===0||b===0) return '请输入非零整数'; function gcd(x,y){while(y){var t=y;y=x%y;x=t;}return x;} var g=gcd(a,b); return 'LCM('+inputs.a+', '+inputs.b+') = <strong>'+(a*b/g)+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "最小公倍数"
+        "title": "最小公倍数计算器 - 高效计算两数LCM"
       },
       {
         "name": "乘方计算器",
@@ -2533,7 +2533,7 @@
         ],
         "calcFn": "function(inputs) { var base=parseFloat(inputs.base),exp=parseFloat(inputs.exp); if(isNaN(base)||isNaN(exp)) return '请输入有效数字'; var r=Math.pow(base,exp); return base+'<sup>'+exp+'</sup> = <strong>'+r+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "乘方计算器"
+        "title": "乘方计算器 - 任意底数指数的幂运算工具"
       },
       {
         "name": "质数判定",
@@ -2551,7 +2551,7 @@
         ],
         "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<2) return '请输入大于等于 2 的正整数'; if(n===2) return n+' 是质数'; if(n%2===0) return n+' 不是质数（能被 2 整除）'; for(var i=3;i*i<=n;i+=2){if(n%i===0) return n+' 不是质数（能被 '+i+' 整除）';} return n+' 是质数'; }",
         "icon": "bi bi-calculator",
-        "title": "质数判定"
+        "title": "质数判定工具 - 快速判断素数与因数分解"
       },
       {
         "name": "随机数生成器",
@@ -2576,7 +2576,7 @@
         "btnLabel": "生成随机数",
         "generateFn": "function(inputs) { var min=parseInt(inputs.min)||0, max=parseInt(inputs.max)||100; if(min>max){var t=min;min=max;max=t;} return Math.floor(Math.random()*(max-min+1))+min; }",
         "icon": "bi bi-calculator",
-        "title": "随机数生成器",
+        "title": "随机数生成器 - 指定范围随机整数批量生成",
         "customScript": "document.getElementById('genBtn').onclick=function(){var min=parseInt(document.getElementById('min').value)||0;var max=parseInt(document.getElementById('max').value)||100;var count=parseInt(document.getElementById('count').value)||1;var result='';for(var i=0;i<count;i++){result+=Math.floor(Math.random()*(max-min+1))+min+'\\n';}document.getElementById('output').value=result;};"
       },
       {
@@ -2595,7 +2595,7 @@
         ],
         "calcFn": "function(inputs) { var n=parseFloat(inputs.n); if(isNaN(n)) return '请输入有效数字'; if(n<0) return '错误：负数没有实数平方根'; var r=Math.sqrt(n); return '√'+(Number.isInteger(n)?n:n.toFixed(6).replace(/\\.?0+$/,''))+' = <strong>'+r+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "开方计算器"
+        "title": "开方计算器 - 平方根与高次方根计算工具"
       },
       {
         "name": "数列求和",
@@ -2625,7 +2625,7 @@
         ],
         "calcFn": "function(inputs) { var a1=parseFloat(inputs.a1),d=parseFloat(inputs.d),n=parseInt(inputs.n); if(isNaN(a1)||isNaN(d)||isNaN(n)||n<1) return '请输入有效数字，项数需大于 0'; var last=a1+(n-1)*d; var sum=n*(a1+last)/2; return '等差数列：a₁='+a1+', d='+d+', n='+n+'<br>末项 aₙ='+last+'<br>前 '+n+' 项和 Sₙ = n×(a₁+aₙ)/2 = <strong>'+sum+'</strong>'; }",
         "icon": "bi bi-calculator",
-        "title": "数列求和"
+        "title": "数列求和计算器 - 等差数列通项与前n项和"
       }
     ]
   },
@@ -2635,11 +2635,11 @@
       {
         "name": "API测试工具",
         "path": "network/api-tester.html",
-        "desc": "在线发送HTTP请求，测试REST API接口，支持GET/POST/PUT/DELETE，查看响应结果",
+        "desc": "在线发送HTTP请求，测试REST API接口，支持GET/POST/PUT/DELETE方法，查看响应状态码、头信息和返回内容，适用于前端开发与后端调试场景。",
         "keywords": "API测试，HTTP请求，Postman，REST API，JSON，GET POST PUT DELETE",
         "type": "tool-custom",
         "customHtml": "<div class=\"tool-wrapper\">\n    <div class=\"req-row\">\n      <select class=\"method-select\" id=\"method\">\n        <option value=\"GET\">GET</option>\n        <option value=\"POST\">POST</option>\n        <option value=\"PUT\">PUT</option>\n        <option value=\"DELETE\">DELETE</option>\n        <option value=\"PATCH\">PATCH</option>\n      </select>\n      <input class=\"url-input\" id=\"urlInput\" type=\"text\" value=\"https://jsonplaceholder.typicode.com/posts/1\" placeholder=\"https://api.example.com/endpoint\">\n      <button class=\"send-btn\" id=\"sendBtn\" onclick=\"sendReq()\">Send</button>\n    </div>\n\n    <div class=\"section\">\n      <div class=\"section-title\">\n        <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/></svg>\n        Headers (one per line, format: Key: Value)\n      </div>\n      <textarea class=\"req-headers\" id=\"headersInput\" placeholder=\"Content-Type: application/json\nAuthorization: Bearer token\"></textarea>\n    </div>\n\n    <div class=\"section\" id=\"bodySection\">\n      <div class=\"section-title\">\n        <svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 2 14 8 20 8\"/></svg>\n        Request Body\n      </div>\n      <textarea class=\"req-body\" id=\"bodyInput\" placeholder='{\"key\": \"value\"}'></textarea>\n    </div>\n\n    <div class=\"res-area\" id=\"resArea\" style=\"display:none;\">\n      <div class=\"res-status\">\n        <span class=\"status-code\" id=\"statusCode\"></span>\n        <span class=\"res-time\" id=\"resTime\"></span>\n      </div>\n      <div class=\"res-body\" id=\"resBody\"></div>\n    </div>\n    <div class=\"loading\" id=\"loading\" style=\"display:none;\">Sending request...</div>\n  </div>",
-        "title": "API测试工具",
+        "title": "API测试工具 - 在线发送HTTP请求测试REST接口",
         "customScript": "var methodSel=document.getElementById('method');\n    var urlInput=document.getElementById('urlInput');\n    var headersInput=document.getElementById('headersInput');\n    var bodyInput=document.getElementById('bodyInput');\n    var sendBtn=document.getElementById('sendBtn');\n    var resArea=document.getElementById('resArea');\n    var loading=document.getElementById('loading');\n    var statusCode=document.getElementById('statusCode');\n    var resTime=document.getElementById('resTime');\n    var resBody=document.getElementById('resBody');\n\n    methodSel.addEventListener('change',function(){\n      var m=methodSel.value;\n      document.getElementById('bodySection').style.display=(m==='GET'||m==='DELETE')?'none':'block';\n    });\n\n    function parseHeaders(hdrStr){\n      var headers={};\n      if(!hdrStr)return headers;\n      hdrStr.split('\\n').forEach(function(line){\n        var idx=line.indexOf(':');\n        if(idx>0){\n          var key=line.substring(0,idx).trim();\n          var val=line.substring(idx+1).trim();\n          headers[key]=val;\n        }\n      });\n      return headers;\n    }\n\n    function fmtTime(ms){\n      if(ms<1000)return ms+'ms';\n      return(ms/1000).toFixed(2)+'s';\n    }\n\n    function fmtJson(str){\n      try{\n        var obj=JSON.parse(str);\n        return JSON.stringify(obj,null,2);\n      }catch(e){\n        return str;\n      }\n    }\n\n    function getStatusClass(code){\n      if(code>=200&&code<300)return'status-ok';\n      if(code>=300&&code<400)return'status-redirect';\n      return'status-error';\n    }\n\n    function sendReq(){\n      var url=urlInput.value.trim();\n      if(!url){if(window.CT&&CT.showToast)CT.showToast('\\u8bf7\\u8f93\\u5165URL');return;}\n      var method=methodSel.value;\n      var headers=parseHeaders(headersInput.value);\n      var body=method!=='GET'&&method!=='DELETE'?bodyInput.value:null;\n      if(!headers['Content-Type']&&body)headers['Content-Type']='application/json';\n      sendBtn.disabled=true;\n      resArea.style.display='none';\n      loading.style.display='block';\n      var startTime=Date.now();\n      var options={method:method,headers:headers};\n      if(body)options.body=body;\n      var controller=new AbortController();\n      options.signal=controller.signal;\n      setTimeout(function(){controller.abort();},30000);\n      fetch(url,options).then(function(resp){\n        var elapsed=Date.now()-startTime;\n        statusCode.textContent=resp.status+' '+resp.statusText;\n        statusCode.className='status-code '+getStatusClass(resp.status);\n        resTime.textContent=fmtTime(elapsed);\n        return resp.text();\n      }).then(function(text){\n        loading.style.display='none';\n        resArea.style.display='block';\n        resBody.textContent=fmtJson(text);\n        sendBtn.disabled=false;\n      }).catch(function(err){\n        loading.style.display='none';\n        resArea.style.display='block';\n        statusCode.textContent='Error';\n        statusCode.className='status-code status-error';\n        resTime.textContent='';\n        resBody.textContent='\\u8bf7\\u6c42\\u5931\\u8d25: '+err.message+'\\n\\n\\u6ce8\\u610f: \\u6d4b\\u8bd5\\u8b66\\u6d3d\\u7684API\\u53ef\\u80fd\\u56e0\\u4e3aCORS\\u9519\\u8bef\\u88ab\\u9632\\u6b62\\u8bbf\\u95ee';\n        sendBtn.disabled=false;\n      });\n    }\n    urlInput.addEventListener('keydown',function(e){if(e.key==='Enter')sendReq();});\n//  <\\/script>\nwindow.sendReq=sendReq;"
       },
       {
