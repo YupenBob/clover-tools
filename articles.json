@@ -587,6 +587,144 @@
       "category": "认证授权",
       "title": "JWT Token 过期了？我翻车后总结的解决方案",
       "desc": "JWT过期4种解决方案：前端主动刷新、后端滑动窗口续期、双Token无感刷新、微服务网关架构，含完整Node.js代码示例。"
+    },
+    {
+      "keyword": "git冲突3种解决方法实战指南",
+      "slug": "git冲突3种解决方法实战指南",
+      "tool": "code/git-summary.html",
+      "intent": "guide",
+      "category": "Git",
+      "title": "Git 冲突了我赌你会这3种方法",
+      "desc": "Git冲突3种解决方法：VSCode图形化、命令行、meld可视化，merge conflict原理，rebase vs merge预防措施，含4个翻车现场。"
+    },
+    {
+      "keyword": "ssh连接失败排查指南",
+      "slug": "ssh连接失败排查指南",
+      "tool": "network/ssh-connect.html",
+      "intent": "guide",
+      "category": "SSH",
+      "title": "SSH 连接失败？这篇帮你排查所有原因",
+      "desc": "SSH连接失败6种报错排查：Connection refused/Timeout/Permission denied，网络层/端口/密钥/防火墙/known_hosts全覆盖，附SSH Config配置示例。"
+    },
+    {
+      "keyword": "ai接口异常怎么处理",
+      "slug": "ai接口异常怎么处理",
+      "tool": "code/regex-tester.html",
+      "intent": "error-fix",
+      "category": "AI / API / GPT",
+      "title": "AI接口异常怎么处理？常见错误排查与解决方案",
+      "desc": "调用AI接口时遇到异常报错是常见问题。本文系统梳理了超时、401认证失败、429限流、500服务器错误等典型异常场景的排查思路和解决方法，帮你快速恢复服务。",
+      "content": "## AI接口异常处理的完整指南\n\n调用AI接口时遇到异常报错是开发过程中最常见的问题之一。本文系统梳理了各类AI接口异常的处理方法，帮助你快速定位并解决问题。\n\n### 一、常见异常类型快速识别\n\n**1. 网络超时错误**\n症状：请求长时间无响应，最终报错 `timeout` 或 `ECONNRESET`\n解决：检查网络连接、增加超时时间配置、实现请求重试机制\n\n```javascript\n// 设置合理的超时时间\nconst response = await fetch(apiUrl, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(data),\n  signal: AbortSignal.timeout(30000) // 30秒超时\n});\n```\n\n**2. 认证失败错误（401 Unauthorized）**\n症状：返回 `{\"error\": {\"code\": \"invalid_api_key\", \"message\": \"...\"}}`\n解决：\n- 确认API Key拼写正确，无多余空格\n- 检查Key是否已过期或被禁用\n- 确认使用的是正确的API端点\n\n**3. 请求频率限制（429 Too Many Requests）**\n症状：返回 `429` 状态码，响应头包含 `Retry-After`\n解决：\n- 查看响应头中的 `Retry-After` 值，等指定秒数后重试\n- 实现指数退避策略（1s → 2s → 4s → 8s...）\n- 考虑使用批量接口或降级到更小的模型\n\n**4. 服务器内部错误（500 Internal Server Error）**\n症状：返回 `500` 或 `503` 错误\n解决：\n- 等待后重试，AI服务商通常有临时波动\n- 检查请求格式是否符合API规范\n- 查看服务商状态页面是否有已知故障\n\n### 二、系统性排查流程\n\n**Step 1：检查错误码和错误信息**\n大多数AI API返回结构化的错误对象：\n```json\n{\n  \"error\": {\n    \"code\": \"rate_limit_exceeded\",\n    \"message\": \"请求频率超出限制\",\n    \"param\": null,\n    \"type\": \"requests\"\n  }\n}\n```\n\n**Step 2：验证请求参数**\n- `messages` 格式是否正确（role/content结构）\n- `max_tokens` 是否超出模型上限\n- `temperature` 范围是否合法（通常0-2）\n\n**Step 3：检查网络层**\n- DNS解析是否正常\n- 防火墙/代理是否拦截了请求\n\n### 三、防御性编程建议\n\n```python\nimport time\nimport requests\n\ndef call_ai_with_retry(prompt, max_retries=3):\n    for attempt in range(max_retries):\n        try:\n            response = requests.post(\n                'https://api.example.com/v1/chat/completions',\n                headers={'Authorization': f'Bearer {API_KEY}'},\n                json={'model': 'gpt-3.5-turbo', 'messages': [{'role': 'user', 'content': prompt}]},\n                timeout=30\n            )\n            if response.status_code == 200:\n                return response.json()\n            elif response.status_code == 429:\n                retry_after = int(response.headers.get('Retry-After', 1))\n                time.sleep(retry_after)\n            else:\n                response.raise_for_status()\n        except requests.exceptions.RequestException as e:\n            if attempt == max_retries - 1:\n                raise\n            time.sleep(2 ** attempt)\n    return None\n```\n\n### 四、常用AI接口错误码对照表\n\n| 错误码 | 含义 | 处理方式 |\n|--------|------|----------|\n| 401 | API Key无效 | 检查Key配置 |\n| 403 | 无访问权限 | 确认账户权限 |\n| 429 | 频率限制 | 等待后重试 |\n| 500 | 服务器错误 | 稍后重试 |\n| 503 | 服务不可用 | 查看状态页 |\n\n遇到AI接口异常时，按照上述流程逐步排查，大多数问题都能在5分钟内定位并解决。",
+      "faqs": [
+        {
+          "q": "AI接口返回timeout怎么办？",
+          "a": "增加超时时间配置，同时检查网络连接。如果频繁超时，考虑使用异步请求并设置合理的重试机制。"
+        },
+        {
+          "q": "遇到429错误要等多久？",
+          "a": "查看响应头中的Retry-After字段指定秒数，或者使用指数退避策略从1秒开始逐步增加等待时间。"
+        },
+        {
+          "q": "API Key无效但确认配置正确？",
+          "a": "可能是Key被禁用、过期或账户欠费。登录服务商控制台检查Key状态和账户余额。"
+        }
+      ]
+    },
+    {
+      "keyword": "api key无效怎么办",
+      "slug": "api-key无效怎么办",
+      "tool": "code/regex-tester.html",
+      "intent": "error-fix",
+      "category": "AI / API / GPT",
+      "title": "API Key无效怎么办？常见原因与解决方案详解",
+      "desc": "API Key无效是最常见的集成错误之一。本文整理了Key无效的7种常见原因以及对应的解决方法，帮你快速恢复API调用。",
+      "content": "## API Key无效的完整排查指南\n\nAPI Key无效是开发者在对接各种服务时最常遇到的问题。根据错误消息识别根本原因并采取正确措施，通常能在几分钟内解决问题。\n\n### 一、快速诊断：错误消息对照\n\n不同服务商返回的错误格式略有差异，但核心信息相似：\n\n**OpenAI 格式：**\n```json\n{\n  \"error\": {\n    \"code\": \"invalid_api_key\",\n    \"type\": \"invalid_request_error\",\n    \"message\": \"Invalid API key provided: sk-xxxxxx...\"\n  }\n}\n```\n\n**其他服务商常见格式：**\n- `\"error\": \"invalid_api_key\"`\n- `\"message\": \"API key is invalid\"`\n- `\"error_description\": \"Invalid API key\"`\n\n### 二、七大常见原因及解决方案\n\n#### 1. 格式错误（最常见）\n**问题：** 复制粘贴时带入多余空格、换行或引号\n```javascript\n// 错误：多余的引号和空格\nconst apiKey = '\"sk-xxxxxx  \"';\n\n// 正确：干净字符串\nconst apiKey = 'sk-xxxxxx';\n```\n\n#### 2. 前缀/后缀错误\n部分Key有特定前缀要求：\n- OpenAI: 必须以 `sk-` 开头\n- Google AI: 必须以 `AIza` 开头\n- Anthropic: 必须以 `sk-ant-` 开头\n\n#### 3. 账户欠费/余额不足\n即使Key格式正确，账户欠费也会导致\"无效\"：\n- 登录服务商控制台\n- 检查账户余额和账单状态\n- 充值后重试\n\n#### 4. 权限不足\nKey可能有作用域限制：\n- 检查Key是否仅限特定API调用\n- 确认Key是否仅限特定IP或域名\n\n#### 5. 环境混淆\n测试环境和生产环境Key混用：\n```javascript\nconst apiKey = process.env.NODE_ENV === 'production'\n  ? 'sk-prod-xxxxxx'\n  : 'sk-test-xxxxxx';\n```\n\n#### 6. Key过期或被撤销\n- 登录控制台查看Key创建时间和有效期\n- 如Key已过期，需生成新Key\n\n#### 7. 并发请求超出限制\n部分服务对单个Key有并发限制。\n\n### 三、代码层面最佳实践\n\n```python\nimport os\nfrom dotenv import load_dotenv\n\nload_dotenv()\napi_key = os.getenv('OPENAI_API_KEY')\n\ndef validate_api_key(key: str) -> bool:\n    if not key or len(key) < 20:\n        return False\n    if not key.startswith('sk-'):\n        return False\n    return True\n\nif not validate_api_key(api_key):\n    raise ValueError(\"Invalid API key format\")\n```\n\n### 四、调试步骤清单\n\n1. **复制粘贴正确？** → 重新从控制台复制\n2. **前缀正确？** → 对照文档检查\n3. **账户有钱？** → 检查余额\n4. **Key没过期？** → 查看创建时间\n5. **权限够吗？** → 检查作用域\n6. **环境对了？** → 测试/生产Key分开\n7. **试新建Key？** → 创建新Key测试\n\n### 五、预防措施\n\n- 使用 `.env` 文件管理敏感配置，永远不要提交Key到代码仓库\n- 使用专业的密钥管理服务（AWS Secrets Manager、HashiCorp Vault等）\n- 为开发和生产环境分别创建独立Key，便于管理和监控\n- 定期轮换Key，减少泄露风险\n\nAPI Key问题排查其实不复杂，90%的情况都是复制粘贴时的格式问题。先从这里查起！",
+      "faqs": [
+        {
+          "q": "API Key显示无效但我确定没输错？",
+          "a": "检查是否有多余的空格或换行，有时候从网页复制会带入不可见字符。直接在代码中打印Key长度来验证。"
+        },
+        {
+          "q": "新创建的Key还是无效？",
+          "a": "确认账户状态正常（未欠费、未被禁用），同时检查Key的前缀和格式是否符合要求。"
+        },
+        {
+          "q": "测试环境和生产环境Key会混淆吗？",
+          "a": "会的！确认你使用的是正确环境的Key，生产环境Key通常以sk-prod或类似标识区分。"
+        }
+      ]
+    },
+    {
+      "keyword": "json key重复会怎样",
+      "slug": "json-key重复会怎样",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON / 数据处理",
+      "title": "JSON key重复会怎样？解析行为与正确处理方案",
+      "desc": "JSON中存在重复的key是一个容易被忽视但可能导致隐蔽Bug的问题。本文深入解析不同编程语言对重复key的处理方式，以及如何正确检测和修复重复key。",
+      "content": "## JSON Key重复的完整解析\n\nJSON规范明确指出对象中的key应该是唯一的，但实际开发中由于数据来源不可控或拼接错误，重复key的情况并不罕见。了解不同语言的处理方式，可以避免因此产生的隐蔽Bug。\n\n### 一、JSON规范怎么说\n\n根据RFC 8259规范，对象中的key应该是唯一的。规范使用的是\"SHOULD\"而非\"MUST\"，因此部分解析器对重复key较为宽容。\n\n### 二、不同语言的处理方式\n\n**JavaScript（V8引擎）：**\n```javascript\nconst jsonStr = '{\"name\": \"Alice\", \"name\": \"Bob\"}';\nconst obj = JSON.parse(jsonStr);\nconsole.log(obj.name); // \"Bob\" — 后面的值覆盖前面的\n```\n结论：**后面的key-value对会覆盖前面的**，只保留最后一个值。\n\n**Python（json库）：**\n```python\nimport json\njson_str = '{\"name\": \"Alice\", \"name\": \"Bob\"}'\nobj = json.loads(json_str)\nprint(obj)  # {'name': 'Bob'} — 同样保留最后一个\n```\n\n**Go（encoding/json）：**\n```go\nvar result map[string]interface{}\nerr := json.Unmarshal([]byte(`{\"name\":\"Alice\",\"name\":\"Bob\"}`), &result)\nfmt.Println(result[\"name\"]) // Bob\n```\n\n**Java（Gson）：**\n```java\nString json = \"{\\\"name\\\":\\\"Alice\\\",\\\"name\\\":\\\"Bob\\\"}\";\nGson gson = new Gson();\nMap<String, Object> map = gson.fromJson(json, Map.class);\nSystem.out.println(map.get(\"name\")); // Bob\n```\n\n### 三、为什么重复Key很危险\n\n**1. 不可预测的行为**\n不同库、不同版本处理方式可能不同。\n\n**2. 隐式的状态覆盖**\n```javascript\nconst userData = '{\"role\": \"user\", \"permissions\": [\"read\"], \"role\": \"admin\"}';\n// 本意是添加admin角色，但实际role变成\"admin\"，\"user\"角色丢失！\n```\n\n**3. 序列化不一致**\n```javascript\nconst obj = {\"name\": \"Alice\"};\nobj.name = \"Bob\";\nobj[\"name\"] = \"Charlie\";\nJSON.stringify(obj); // '{\"name\":\"Charlie\"}' — 丢失了中间状态\n```\n\n### 四、如何检测和修复重复Key\n\n**Python检测脚本：**\n```python\nimport json\nfrom collections import Counter\n\ndef find_duplicate_keys(json_str: str):\n    data = json.loads(json_str)\n    keys = []\n    \n    def flatten_keys(obj, path=\"\"):\n        if isinstance(obj, dict):\n            for k, v in obj.items():\n                full_path = f\"{path}.{k}\" if path else k\n                keys.append(full_path)\n                flatten_keys(v, full_path)\n        elif isinstance(obj, list):\n            for i, item in enumerate(obj):\n                flatten_keys(item, f\"{path}[{i}]\")\n    \n    flatten_keys(data)\n    counts = Counter(keys)\n    return [(k, c) for k, c in counts.items() if c > 1]\n\nduplicates = find_duplicate_keys('{\"name\":\"A\",\"name\":\"B\",\"data\":{\"x\":1,\"x\":2}}')\nprint(duplicates)  # [('name', 2), ('data.x', 2)]\n```\n\n**自动修复重复Key：**\n```javascript\nfunction removeDuplicateKeys(obj) {\n    if (Array.isArray(obj)) {\n        return obj.map(removeDuplicateKeys);\n    } else if (typeof obj === 'object' && obj !== null) {\n        return Object.fromEntries(\n            Object.entries(obj).map(([k, v]) => [k, removeDuplicateKeys(v)])\n        );\n    }\n    return obj;\n}\n```\n\n### 五、最佳实践\n\n1. **数据源验证**：从API或文件读取JSON时，先用验证器检查key唯一性\n2. **Schema验证**：使用JSON Schema的 `additionalProperties: false` 防止未知key\n3. **日志警告**：解析时发现重复key主动记录警告日志\n4. **数据清洗**：ETL流程中加入重复key检测步骤\n\n重复key问题虽小，但可能造成严重的数据错误，建议在CI流程中加入JSON校验步骤！",
+      "faqs": [
+        {
+          "q": "JSON重复key会导致解析失败吗？",
+          "a": "大多数现代解析器不会失败，只是后者覆盖前者。但严格模式或部分旧版库可能抛出异常。"
+        },
+        {
+          "q": "如何快速检查JSON是否有重复key？",
+          "a": "使用CloverTools的JSON格式化工具，打开重复检测功能即可。也可以用Python的json库配合Counter来统计。"
+        },
+        {
+          "q": "重复key时保留哪个值？",
+          "a": "几乎所有语言都采用\"后面覆盖前面\"的原则。建议在数据源头就避免重复key，而非依赖解析器行为。"
+        }
+      ]
+    },
+    {
+      "keyword": "zip文件打不开怎么办",
+      "slug": "zip文件打不开怎么办",
+      "tool": "format-conversion/file-analyzer.html",
+      "intent": "error-fix",
+      "category": "文件 / 图片 / PDF",
+      "title": "zip文件打不开怎么办？7种原因及修复方法详解",
+      "desc": "zip文件打不开是常见问题，可能由文件损坏、格式不兼容、密码保护等原因导致。本文介绍7种常见原因及其对应的修复方案，帮你挽回宝贵数据。",
+      "content": "## ZIP文件打不开的完整解决方案\n\nZIP是最常用的压缩格式之一，但文件打不开的情况并不少见。原因可能是文件损坏、格式不兼容、密码保护，甚至是病毒伪装。\n\n### 一、确认文件真实格式\n\n有时候扩展名欺骗了你：\n```bash\n# 查看文件真实类型\nfile example.zip\n# 正常ZIP应该以 PK (50 4B 03 04) 开头\n```\n\n### 二、七种常见原因及解决方案\n\n#### 原因1：文件传输损坏\n下载中断、复制中断是最常见的损坏原因。\n\n**修复方法：**\n```bash\n# Linux用zip命令修复\nzip -FF broken.zip --out fixed.zip\n\n# Windows用7-Zip\n7z t broken.zip  # 测试完整性\n7z x broken.zip  # 尝试解压\n```\n\n#### 原因2：压缩格式不兼容\n用WinRAR创建的文件在某些解压工具中无法识别。\n\n**解决方案：** 尝试用7-Zip打开（兼容性最强），或尝试不同解压工具（WinRAR、Bandizip、PeaZip等）。\n\n#### 原因3：密码保护但不知道密码\n加密ZIP需要密码才能解压。\n\n**尝试方法：**\n```bash\n# 使用fcrackzip暴力破解（简单密码）\nfcrackzip -b -c 'aA1!' -l 1-8 -u protected.zip\n```\n\n#### 原因4：文件被分割\n大型ZIP可能被分成多个 part。\n\n**解决：** 确认所有分卷在同一目录，按顺序重命名后使用原始分卷压缩工具解压。\n\n#### 原因5：文件名编码问题\n中文文件名在不同系统编码下可能乱码。\n\n**解决：**\n```bash\n# Linux解决中文文件名乱码\nunzip -O gbk corrupted.zip\n```\n\n#### 原因6：压缩包嵌套损坏\nZIP中包含损坏的子文件。\n\n**解决：** 跳过损坏文件继续解压：\n```bash\nunzip -o corrupted.zip -d output\n```\n\n#### 原因7：磁盘空间不足\n解压时磁盘写满导致中断。\n\n**解决：** 清理空间或解压到其他磁盘。\n\n### 三、紧急恢复方案\n\n**使用WinRAR修复模式：**\n1. 打开WinRAR\n2. 工具 → 修复压缩文件\n3. 选择\"把损坏的压缩文件当作ZIP\"\n4. 修复后尝试打开\n\n**Python深度修复脚本：**\n```python\nimport zipfile\n\ndef extract_ignore_errors(zip_path, output_dir):\n    with zipfile.ZipFile(zip_path, 'r') as zf:\n        for info in zf.infolist():\n            try:\n                zf.extract(info, output_dir)\n                print(f\"OK {info.filename}\")\n            except Exception as e:\n                print(f\"FAIL {info.filename}: {e}\")\n\nextract_ignore_errors('corrupted.zip', './output')\n```\n\n### 四、预防措施\n\n1. **完整性校验**：压缩后用 `zip -t file.zip` 测试\n2. **保留原文件**：重要数据永远保留未压缩备份\n3. **分卷压缩大文件**：避免单文件过大导致传输问题\n4. **使用新版工具**：旧版可能不支持新压缩算法\n5. **云盘特殊处理**：某些云盘会修改ZIP结构，下载后重新校验\n\n### 五、工具推荐\n\n| 工具 | 平台 | 特色 |\n|------|------|------|\n| 7-Zip | 全平台 | 格式兼容性最强 |\n| WinRAR | Windows | 修复功能强大 |\n| Bandizip | Windows | 轻量快速 |\n| The Unarchiver | Mac | Mac最佳选择 |\n| PeaZip | 全平台 | 开源免费 |\n\n遇到打不开的ZIP文件，不要急着删除！先用7-Zip尝试打开，同时运行修复功能，大部分损坏文件都能恢复。",
+      "faqs": [
+        {
+          "q": "ZIP文件损坏了能完全恢复吗？",
+          "a": "取决于损坏程度。轻微损坏（下载中断）可以修复；严重损坏（磁盘坏道）只能部分恢复。重要文件务必保留备份。"
+        },
+        {
+          "q": "为什么明明有密码却打不开？",
+          "a": "可能是加密格式不兼容。某些ZIP用AES-256加密，普通工具可能不支持。尝试用7-Zip或专门解密工具。"
+        },
+        {
+          "q": "文件扩展名是.zip但不是ZIP格式？",
+          "a": "可能是其他格式被误改了扩展名。用file命令查看真实格式，或用7-Zip直接尝试打开。"
+        }
+      ]
+    },
+    {
+      "keyword": "unexpected token json错误怎么解决",
+      "slug": "unexpected-token-json错误怎么解决",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON / 数据处理",
+      "title": "Unexpected token JSON错误怎么解决？完整排查指南",
+      "desc": "Unexpected token in JSON是前端开发中最常见的JSON解析错误。本文详细讲解该错误的7种常见原因、精确定位方法，以及修复示例，帮你快速解决解析问题。",
+      "content": "## Unexpected token in JSON 错误完全指南\n\n`Unexpected token` 是JavaScript解析JSON时最常见的错误之一。这个错误意味着JSON字符串中有无法识别的字符。\n\n### 一、错误本质解读\n\n```javascript\nJSON.parse('{\"name\": \"Alice\"}');\n// 正常：解析成功\n\nJSON.parse('{\"name\": \"Alice\"}extra');\n// Error: Unexpected token 'e' at position 20\n```\n\n错误消息中的 `position` 就是问题字符的位置索引。\n\n### 二、七大常见原因及修复\n\n#### 原因1：多余的逗号（最常见）\n```javascript\n// 错误：数组或对象末尾多了逗号\nJSON.parse('{\"name\": \"Alice\",}');\nJSON.parse('[\"a\", \"b\",]');\n\n// 正确\nJSON.parse('{\"name\": \"Alice\"}');\nJSON.parse('[\"a\", \"b\"]');\n```\n\n#### 原因2：单引号而非双引号\n```javascript\n// 错误：JavaScript字符串用单引号\nJSON.parse(\"{'name': 'Alice'}\");\n\n// 正确：JSON规范要求双引号\nJSON.parse('{\"name\": \"Alice\"}');\n```\n\n**修复：** 转换单引号为双引号：\n```javascript\nconst fixed = str.replace(/'/g, '\"');\nJSON.parse(fixed);\n```\n\n#### 原因3：控制字符未转义\n换行符未转义会导致解析失败。\n**修复：** 转义：\n```javascript\nconst text = rawText.replace(/\\n/g, '\\\\n');\n```\n\n#### 原因4：BOM头（UTF-8 BOM）\n文件以 `\\uFEFF` 开头导致解析失败：\n```javascript\n// 错误：文件开头有BOM\nJSON.parse('\\uFEFF{\"name\": \"Alice\"}');\n\n// 正确：去掉BOM\nconst clean = text.replace(/^\\uFEFF/, '');\nJSON.parse(clean);\n```\n\n#### 原因5：非ASCII字符未正确编码\n某些旧环境不支持emoji等字符。使用JSON.stringify确保正确编码。\n\n#### 原因6：来自后端的问题\n后端返回的不是有效JSON（HTML错误页面、空字符串等）。\n\n#### 原因7：数字精度丢失\nJavaScript Number最大安全整数：2^53-1 = 9007199254740991。极大数字会精度丢失。\n\n### 三、精确定位技巧\n\n**利用错误位置：**\n```javascript\nfunction findProblemChar(jsonStr, position) {\n    const before = jsonStr.substring(Math.max(0, position - 20), position);\n    const problem = jsonStr.substring(position, position + 5);\n    const after = jsonStr.substring(position + 5, position + 25);\n    return before + '[' + problem + ']' + after;\n}\n\ntry {\n    JSON.parse(badJson);\n} catch (e) {\n    if (e.message.includes('at position')) {\n        const pos = parseInt(e.message.match(/at position (\\d+)/)[1]);\n        console.log(findProblemChar(badJson, pos));\n    }\n}\n```\n\n**逐行排查：**\n```javascript\nfunction locateJsonError(jsonStr) {\n    const lines = jsonStr.split('\\n');\n    let charCount = 0;\n    \n    for (let i = 0; i < lines.length; i++) {\n        const lineChars = lines[i].length + 1;\n        charCount += lineChars;\n        \n        try {\n            JSON.parse(jsonStr.substring(0, charCount));\n        } catch (e) {\n            console.log(`问题在第 ${i + 1} 行附近`);\n            break;\n        }\n    }\n}\n```\n\n### 四、防御性解析代码\n\n```javascript\nfunction safeJsonParse(str, fallback = null) {\n    if (!str || typeof str !== 'string') {\n        return fallback;\n    }\n    \n    let cleaned = str.trim();\n    \n    // 移除BOM\n    if (cleaned.charCodeAt(0) === 0xFEFF) {\n        cleaned = cleaned.slice(1);\n    }\n    \n    try {\n        return JSON.parse(cleaned);\n    } catch (e) {\n        console.error('JSON Parse Error:', {\n            message: e.message,\n            at: e.message.match(/position (\\d+)/)?.[1],\n        });\n        return fallback;\n    }\n}\n```\n\n### 五、快速修复工具\n\n```bash\n# 用jq验证和格式化\necho '{\"name\": \"Alice\",}' | jq .\n\n# Python格式化（自动修复尾逗号）\npython3 -c \"import json; print(json.dumps(json.loads(input())))\"\n```\n\n遇到 `Unexpected token` 错误时，先复制完整错误消息，特别是 `at position X` 部分，它能直接告诉你问题在哪！",
+      "faqs": [
+        {
+          "q": "Unexpected token错误怎么快速定位？",
+          "a": "错误消息中的position数字就是字符位置。用substring(pos-20, pos+20)查看问题周围的上下文。"
+        },
+        {
+          "q": "后端返回的JSON前端解析失败怎么办？",
+          "a": "先在控制台console.log(response)看看实际返回的是什么。常见情况：后端返回了HTML错误页面、空字符串、或者非UTF8编码。"
+        },
+        {
+          "q": "如何避免JSON解析错误？",
+          "a": "1) 使用JSON.stringify()生成而非手写字符串；2) 后端返回前用库验证；3) 前端用try-catch包裹并给出友好提示；4) 接口返回非JSON时也要有降级处理。"
+        }
+      ]
     }
   ]
 }

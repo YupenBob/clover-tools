@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SSH连接失败全面排查指南，涵盖Connection refused、Timeout、Permission denied、端口错误、密钥权限、known_hosts等常见问题，配详细命令行示例，帮你5分钟内定位问题。">
+    <meta name="keywords" content="SSH连接失败, SSH Connection refused, SSH Timeout, SSH Permission denied, SSH密钥权限, SSH known_hosts, SSH config, SSH端口, SSH排查, SSH教程">
+    <title>SSH 连接失败？这篇帮你排查所有原因</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px 24px; background: #fafafa; }
+        .container { background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 40px 48px; }
+        h1 { font-size: 26px; color: #1a1a1a; margin-bottom: 16px; line-height: 1.4; }
+        .lead { font-size: 16px; color: #666; margin-bottom: 32px; line-height: 1.7; }
+        h2 { font-size: 20px; color: #222; margin: 40px 0 16px; padding-top: 20px; border-top: 2px solid #f0f0f0; }
+        h3 { font-size: 17px; color: #333; margin: 24px 0 12px; }
+        p { margin-bottom: 16px; font-size: 15px; color: #444; }
+        .scene { background: #fff3cd; border-left: 4px solid #ffc107; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 15px; color: #5d4a00; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', Consolas, monospace; font-size: 13.5px; color: #c0392b; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 20px 24px; border-radius: 8px; overflow-x: auto; margin: 16px 0; font-size: 13.5px; line-height: 1.7; }
+        pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+        .cmd { color: #9cdcfe; }
+        .str { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .keyword { color: #569cd6; }
+        .output { color: #b5cea8; font-style: italic; }
+        .tip { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; color: #2e7d32; }
+        .error-box { background: #fdecea; border-left: 4px solid #e53935; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .error-box .err-title { font-weight: 700; color: #c62828; margin-bottom: 8px; font-size: 15px; }
+        .error-box .err-msg { font-family: 'Courier New', monospace; font-size: 13px; color: #b71c1c; background: #fff; padding: 8px 12px; border-radius: 4px; display: inline-block; }
+        .warning { background: #fff8e1; border-left: 4px solid #ff9800; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; color: #5d4037; }
+        ul, ol { margin: 12px 0 16px 24px; }
+        li { margin-bottom: 8px; font-size: 15px; color: #444; }
+        .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 24px 28px; border-radius: 12px; margin: 36px 0 16px; text-align: center; }
+        .cta h3 { color: #fff; margin: 0 0 8px; font-size: 18px; }
+        .cta p { color: #e0d7f5; margin: 0 0 14px; font-size: 14px; }
+        .cta a { display: inline-block; background: #fff; color: #667eea; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; }
+        .cta a:hover { background: #f0e8ff; }
+        .toc { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px 24px; margin: 24px 0; }
+        .toc h3 { margin-top: 0; font-size: 15px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .toc ol { margin: 0; padding-left: 20px; }
+        .toc li { font-size: 14px; color: #666; }
+        .toc li a { color: #667eea; text-decoration: none; }
+        .toc li a:hover { text-decoration: underline; }
+        .hash { color: #999; font-size: 12px; margin-top: 4px; display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>SSH 连接失败？这篇帮你排查所有原因</h1>
+
+<p class="lead">深夜登服务器踩坑，SSH 连不上，网络没动，密码没改，可就是 Connection refused。急得像热锅上的蚂蚁，结果问题可能就藏在某个权限数字或者某个被遗忘的配置里。这篇指南把所有常见的 SSH 连接失败场景全拆开，配上命令行演示，帮你 5 分钟定位根因，不再盲猜。</p>
+
+<div class="toc">
+<h3>目录</h3>
+<ol>
+    <li><a href="#scene">你正在经历哪种报错？</a></li>
+    <li><a href="#network">方向一：网络层面 — 能通吗？</a></li>
+    <li><a href="#port">方向二：端口 — 22 还是 2222？</a></li>
+    <li><a href="#key">方向三：密钥 — 权限对了没？</a></li>
+    <li><a href="#firewall">方向四：防火墙 — 被墙了？</a></li>
+    <li><a href="#known">方向五：known_hosts — 被中间人拦截了？</a></li>
+    <li><a href="#config">进阶：SSH Config 这么配才靠谱</a></li>
+    <li><a href="#summary">总结：6 步排查 checklist</a></li>
+</ol>
+</div>
+
+<h2 id="scene">你正在经历哪种报错？</h2>
+
+<p>先认清楚自己碰到了什么，这比盲目试错重要得多。以下是几个最常见的 SSH 报错，先对号入座：</p>
+
+<div class="error-box">
+    <div class="err-title">报错 1：Connection refused</div>
+    <span class="err-msg">ssh: connect to host example.com port 22: Connection refused</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 2：Connection timed out</div>
+    <span class="err-msg">ssh: connect to host example.com port 22: Connection timed out</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 3：Permission denied (publickey)</div>
+    <span class="err-msg">Permission denied (publickey).</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 4：Permission denied (password)</div>
+    <span class="err-msg">Permission denied (password).</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 5：Connection closed by remote host</div>
+    <span class="err-msg">ssh_exchange_identification: Connection closed by remote host</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 6：Host key verification failed</div>
+    <span class="err-msg">Host key verification failed.</span>
+</div>
+
+<p>以上六种，涵盖了 90% 以上的 SSH 连接失败场景。下面的排查思路就按这个顺序来，层层过滤，快的话 2 分钟定位，慢的话也不超过 15 分钟。</p>
+
+<h2 id="network">方向一：网络层面 — 能通吗？</h2>
+
+<h3>先 ping 一下</h3>
+
+<pre><code><span class="comment"># 最基础的连通性测试</span>
+ping -c 4 example.com
+</code></pre>
+
+<div class="tip">如果 ping 不通，说明网络层面有问题，这时候 SSH 连不上的根因不是 SSH 本身，是网络。先检查目标服务器是否宕机，或者自己这边的路由/DNS 有没有问题。</div>
+
+<h3>telnet 测端口通不通</h3>
+
+<pre><code><span class="comment"># 检查 22 端口是否可达</span>
+telnet example.com 22
+</code></pre>
+
+<p>如果提示 <code>Connected to example.com</code>，说明端口层是通的，问题在别处。如果 <code>Connection refused</code>，说明目标机器 TCP 22 端口没有服务在监听，或者被防火墙挡了。</p>
+
+<h3>nc 更精确的端口扫描</h3>
+
+<pre><code><span class="comment"># -zv 意思是仅测试连接，不发数据</span>
+nc -zv example.com 22
+</code></pre>
+
+<p>输出类似 <code>Connection to example.com 22 port [tcp/ssh] succeeded!</code> 则说明 SSH 端口是通的。</p>
+
+<div class="warning">
+    <strong>注意：</strong>telnet 和 nc 不自带的话，macOS / Linux 装一下：<br>
+    <code>sudo apt install netcat</code> 或 <code>brew install netcat</code>
+</div>
+
+<h2 id="port">方向二：端口 — 22 还是 2222？</h2>
+
+<p>这个被问得最多。很多服务为了安全把 SSH 端口改成了非 22 端口，结果自己忘了，对着默认 22 狂试，还以为被封了。</p>
+
+<h3>查看当前连接用的端口</h3>
+
+<pre><code><span class="comment"># 明确指定端口连接</span>
+ssh -p 2222 user@example.com
+</code></pre>
+
+<h3>服务器上查看 SSH 端口配置</h3>
+
+<pre><code><span class="comment"># 在服务器上执行，查看 sshd 监听的端口</span>
+sudo grep "Port " /etc/ssh/sshd_config
+</code></pre>
+
+<p>默认是 22，如果改成其他数字，客户端也必须用 <code>-p</code> 指定。</p>
+
+<h3>端口改了但客户端没改？</h3>
+
+<p>有一种情况很阴险：服务端确实改了端口，但客户端还是用默认的 22，结果碰到的是一个什么服务都没有的 22，于是 Connection refused。</p>
+
+<pre><code><span class="comment"># 同时扫描常见 SSH 端口，找出哪个在跑 SSH</span>
+nc -zv example.com 22
+nc -zv example.com 2222
+nc -zv example.com 22022
+</code></pre>
+
+<div class="tip">也可以直接让服务器管理员执行 <code>ss -tlnp | grep sshd</code> 查看 sshd 实际监听的端口。</div>
+
+<h2 id="key">方向三：密钥 — 权限对了没？</h2>
+
+<p>密钥登录是最常见的方式，也是最容易被权限坑的。SSH 对文件权限极其敏感，错了直接拒绝。</p>
+
+<h3>Permission denied (publickey)？先查这三点：</h3>
+
+<ol>
+    <li>私钥文件权限是 <code>600</code> 吗？</li>
+    <li>公钥在服务器上的 <code>~/.ssh/authorized_keys</code> 里有吗？</li>
+    <li>用户目录 <code>~</code> 和 <code>.ssh</code> 目录权限对吗？</li>
+</ol>
+
+<pre><code><span class="comment"># 检查私钥权限</span>
+ls -la ~/.ssh/id_rsa
+<span class="comment"># 权限必须是 600，如果不是，修复它：</span>
+chmod 600 ~/.ssh/id_rsa
+</code></pre>
+
+<div class="warning">
+    <strong>警告：</strong>严禁把私钥权限设为 777，这等于把钥匙公开，SSH 会主动拒绝使用这种私钥。
+</div>
+
+<pre><code><span class="comment"># 检查 .ssh 目录权限</span>
+ls -la ~/.ssh/
+<span class="comment"># 输出应该类似：</span>
+<span class="comment"># drwx------  2 user  4096 ... .ssh/</span>
+<span class="comment"># -rw-------  1 user  ... authorized_keys</span>
+</code></pre>
+
+<pre><code><span class="comment"># 如果 .ssh 目录权限不对，修复：</span>
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/id_rsa
+</code></pre>
+
+<h3>用 -v 参数看详细认证过程</h3>
+
+<pre><code><span class="comment"># -v 参数开启 verbose 模式，可以看到每一步在干嘛</span>
+ssh -v user@example.com
+</code></pre>
+
+<p>输出里找 <code>Authentications that can continue:</code> 和 <code>Permission denied</code> 相关行，能帮你判断认证卡在哪一步。</p>
+
+<pre><code><span class="comment"># 更详细的 -vvv，适合深度排查</span>
+ssh -vvv user@example.com
+</code></pre>
+
+<h3>指定密钥文件登录</h3>
+
+<pre><code><span class="comment"># 明确指定用哪个私钥文件</span>
+ssh -i ~/.ssh/my_key user@example.com
+</code></pre>
+
+<p>如果密钥文件名不是默认的 id_rsa，就必须用 <code>-i</code> 指定，否则 SSH 会用默认密钥然后得到 Permission denied。</p>
+
+<h2 id="firewall">方向四：防火墙 — 被墙了？</h2>
+
+<p>网络层通了，端口也对了，但还是连不上？大概率是防火墙在作怪。</p>
+
+<h3>本地防火墙检查</h3>
+
+<pre><code><span class="comment"># Linux 查看防火墙规则（ufw）</span>
+sudo ufw status
+
+<span class="comment"># 或 iptables</span>
+sudo iptables -L -n | grep 22
+</code></pre>
+
+<h3>服务器防火墙（云服务器最常踩坑）</h3>
+
+<p>如果用的是阿里云、腾讯云、AWS 等云服务，<strong>安全组规则</strong>是最容易被忽略的地方。本地防火墙关了都没用，云厂商控制台的安全组没开 TCP 22 入站，一样 Connection refused。</p>
+
+<pre><code><span class="comment"># 在服务器上直接查 iptables INPUT 链</span>
+sudo iptables -L INPUT -n | grep -E "22|ssh"
+</code></pre>
+
+<div class="tip">
+    <strong>云服务器排查顺序：</strong><br>
+    1. 云厂商控制台 → 安全组 → 确认入站规则有 TCP 22（或你自定义的端口）<br>
+    2. 服务器内部防火墙：<code>sudo ufw allow 22/tcp</code><br>
+    3. 再测试连接
+</div>
+
+<h3>firewalld 用户</h3>
+
+<pre><code><span class="comment"># 检查 firewalld 是否在运行</span>
+sudo firewall-cmd --state
+<span class="comment"># 开放 SSH 端口</span>
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+</code></pre>
+
+<h2 id="known">方向五：known_hosts — 被中间人拦截了？</h2>
+
+<h3>Host key verification failed</h3>
+
+<p>这是 SSH 在告诉你：服务器的身份变了。可能是服务器重装了系统、换了 IP，或者……真的有人在搞中间人攻击。</p>
+
+<h3>先确认是真的服务器还是假服务器</h3>
+
+<pre><code><span class="comment"># 查看服务器的 fingerprint</span>
+ssh-keyscan example.com | head -1
+</code></pre>
+
+<p>联系服务器管理员，确认当前正确的 fingerprint。如果 fingerprint 对上了，说明之前记录的信息过期了，清掉旧的就行。</p>
+
+<h3>清除旧的 known_hosts 记录</h3>
+
+<pre><code><span class="comment"># 清除单台服务器的记录</span>
+ssh-keygen -R example.com
+
+<span class="comment"># 清除指定 IP 的记录</span>
+ssh-keygen -R 192.168.1.100
+
+<span class="comment"># 清除特定主机的特定 IP:port 组合</span>
+ssh-keygen -R [example.com]:2222
+</code></pre>
+
+<p>清除后再连接，SSH 会让你确认并写入新的 fingerprint：</p>
+
+<pre><code><span class="comment"># 首次连接会看到类似提示，输入 yes 即可</span>
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+</code></pre>
+
+<div class="warning">
+    <strong>安全提醒：</strong>如果服务器没换过，但你突然收到 "Host key changed" 警告，<strong>不要直接 yes</strong>。先联系服务器管理员确认。这可能是真实的中间人攻击。
+</div>
+
+<h3>已知 hosts 的指纹文件在哪？</h3>
+
+<pre><code><span class="comment"># 用户级 known_hosts</span>
+cat ~/.ssh/known_hosts
+
+<span class="comment"># 系统级 known_hosts</span>
+cat /etc/ssh/ssh_known_hosts
+</code></pre>
+
+<h2 id="config">进阶：SSH Config 这么配才靠谱</h2>
+
+<p>每次输长长一串命令很烦？Host 别名、默认用户、端口、密钥文件，都可以写进 <code>~/.ssh/config</code>，一劳永逸。</p>
+
+<pre><code><span class="comment"># 编辑 SSH 配置文件</span>
+nano ~/.ssh/config
+</code></pre>
+
+<h3>配置示例：</h3>
+
+<pre><code><span class="comment"># 生产服务器</span>
+Host prod
+    HostName     123.45.67.89
+    User         deploy
+    Port         2222
+    IdentityFile ~/.ssh/id_rsa_prod
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+<span class="comment"># 开发服务器</span>
+Host dev
+    HostName     dev.example.com
+    User         developer
+    Port         22
+    IdentityFile ~/.ssh/id_rsa
+
+<span class="comment"># GitHub（注意这里用 git@github.com 作为 HostName）</span>
+Host github.com
+    HostName     github.com
+    User         git
+    IdentityFile ~/.ssh/github_ed25519
+</code></pre>
+
+<div class="tip">
+    配置好之后，连接只需要输入 <code>ssh prod</code> 或 <code>ssh dev</code>，所有参数自动生效，不用记 IP、端口、密钥路径。
+</div>
+
+<h3>配置文件权限也要注意</h3>
+
+<pre><code><span class="comment"># config 文件权限必须是 600</span>
+chmod 600 ~/.ssh/config
+</code></pre>
+
+<h3>用 ProxyJump 穿透跳板机</h3>
+
+<pre><code><span class="comment"># 假设要访问内网机器，但要先登跳板机</span>
+Host internal
+    HostName     192.168.1.100
+    User         developer
+    ProxyJump    bastion@example.com
+</code></pre>
+
+<p>连 <code>ssh internal</code> 时，SSH 会自动先登跳板机，再跳到内网机器，全程透明。</p>
+
+<h2 id="summary">总结：SSH 连接失败排查 checklist</h2>
+
+<p>快速复盘，6 步锁定问题：</p>
+
+<ol>
+    <li><strong>ping 通不通？</strong> → 不通先查网络层</li>
+    <li><strong>端口对不对？</strong> → 默认 22，改过用 <code>-p</code> 指定</li>
+    <li><strong>密钥权限 600？</strong> → <code>chmod 600 ~/.ssh/id_rsa</code></li>
+    <li><strong>authorized_keys 有你的公钥？</strong> → 服务器上 <code>~/.ssh/</code> 目录检查</li>
+    <li><strong>防火墙和安全组开了吗？</strong> → 云服务器安全组最容易被忽略</li>
+    <li><strong>known_hosts 过期了？</strong> → <code>ssh-keygen -R example.com</code> 清除旧记录</li>
+</ol>
+
+<p>这六步走完，99% 的 SSH 连接问题都能定位。如果还是不行，把 <code>ssh -vvv</code> 的完整输出发给身边有经验的朋友，或者搜索引擎搜报错关键字，通常很快能找到答案。</p>
+
+<div class="cta">
+    <h3>不想折腾命令行？试试在线 SSH 工具</h3>
+    <p>CloverTools 提供可视化 SSH 连接工具，支持密钥上传、端口配置、known_hosts 管理，打开浏览器就能连服务器。</p>
+    <a href="https://tools.xsanye.cn/tools/network/ssh-connect.html" target="_blank">立即使用 SSH 连接工具</a>
+</div>
+
+<p style="font-size:12px;color:#999;text-align:center;margin-top:32px;border-top:1px solid #eee;padding-top:16px;">
+本文由 <a href="https://tools.xsanye.cn" style="color:#667eea;">CloverTools</a> 整理编写
+</p>
+
+</div>
+</body>
+</html>
