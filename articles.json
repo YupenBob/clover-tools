@@ -112,7 +112,7 @@
     {
       "title": "JWT Token 过期了怎么查看和处理？",
       "desc": "JWT Token 的 exp 字段声明了过期时间。本文教你三种方法快速查看 JWT 是否已过期，以及 Token 过期后的正确处理方式。",
-      "content": "jwt-token过期怎么查看.html",
+      "content": "<h2>JWT Token 过期了怎么查看？</h2>\n<p>JWT（JSON Web Token）是现代Web开发中最常用的身份认证方案之一。当你在浏览器控制台、网络请求或服务端日志中看到Token过期的错误时，意味着客户端携带的Token已经超过了预设的有效期，需要重新获取。</p>\n<h2>如何判断 Token 是否已过期</h2>\n<p>JWT的Payload部分包含三个标准字段：<code>iss</code>（签发者）、<code>exp</code>（过期时间）和<code>nbf</code>（生效时间）。其中<code>exp</code>是一个Unix时间戳（10位），表示该Token的失效时刻。</p>\n<pre><code>// Node.js解码\nconst jwt = require('jsonwebtoken');\nconst token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';\nconst decoded = jwt.decode(token);\nconsole.log('过期时间:', new Date(decoded.exp * 1000));\nconsole.log('是否已过期:', Date.now() > decoded.exp * 1000);</code></pre>\n<h2>常见报错场景</h2>\n<ul>\n<li><strong>401 Unauthorized</strong>：服务端返回此状态码，通常是Authorization头携带的Token已过期</li>\n<li><strong>TokenExpiredError</strong>：Node.js jsonwebtoken库的专属错误，表示Payload中的exp已早于当前时间</li>\n<li><strong>401 Invalid token</strong>：部分服务返回此状态，可能是Token格式错误或Signature验证失败</li>\n</ul>\n<h2>自动刷新 Token 的策略</h2>\n<p>最佳实践是使用双Token机制：Access Token（短期，有效期15分钟）和Refresh Token（长期，有效期7天）。当Access Token过期时，前端使用Refresh Token自动换取新的Access Token，用户无感知。</p>\n<pre><code>async function fetchWithAutoRefresh(url, options) {\n  const response = await fetch(url, options);\n  if (response.status === 401) {\n    const { refreshToken } = JSON.parse(localStorage.getItem('tokens'));\n    const refreshRes = await fetch('/api/refresh', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ refreshToken })\n    });\n    if (refreshRes.ok) {\n      const { accessToken } = await refreshRes.json();\n      localStorage.setItem('accessToken', accessToken);\n      options.headers['Authorization'] = `Bearer ${accessToken}`;\n      return fetch(url, options);\n    }\n  }\n  return response;\n}</code></pre>\n<h2>预防措施</h2>\n<p>1. 前端在Token颁发时记录过期时间，使用定时器提前5分钟刷新<br>2. 服务端开启Token黑名单机制，logout时将Token加入黑名单<br>3. 生产环境务必校验Token的Signature，防止伪造攻击</p>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: Token过期时间可以设为永不过期吗？</strong><br>A: 绝不推荐。永不过期的Token一旦泄露，攻击者可以永久使用该身份凭证。</p>\n<p><strong>Q: 前端如何优雅处理Token刷新？</strong><br>A: 使用请求拦截器，统一处理401并触发刷新流程，避免每个请求单独处理。</p>\n<p><strong>Q: 为什么我的Token实际过期时间比exp声明的早？</strong><br>A: 请检查服务器时区设置，确保服务器时间与NTP时间同步。</p>",
       "slug": "jwt-token过期怎么查看",
       "intent": "info",
       "faqs": [
@@ -133,7 +133,7 @@
     {
       "title": "Unix 时间戳转换错误怎么办？常见原因与修复方法",
       "desc": "时间戳转换出错通常是因为秒/毫秒单位混淆、时区不一致或 2038 年溢出问题。本文详解每种错误的成因和修复方案。",
-      "content": "unix时间戳转换错误怎么办.html",
+      "content": "<h2>Unix时间戳转换错误怎么办？常见原因与修复方法</h2>\n<p>Unix时间戳是自1970年1月1日（UTC）以来经过的秒数。但在实际开发中，10位（秒级）和13位（毫秒级）两种格式经常混用，导致日期转换出错。这是开发者最常踩的坑之一。</p>\n<h2>如何识别和避免时间戳位数错误</h2>\n<pre><code>// Node.js: 判断时间戳是秒级还是毫秒级\nfunction parseTimestamp(ts) {\n  const tsNum = Number(ts);\n  if (tsNum > 1e12) {\n    return new Date(tsNum);  // 13位，毫秒级\n  } else {\n    return new Date(tsNum * 1000);  // 10位，秒级\n  }\n}\n\n// Python: 毫秒级转日期\nfrom datetime import datetime\nts_ms = 1715299200000  # 毫秒\ndt = datetime.fromtimestamp(ts_ms / 1000)\nprint(dt)  # 2024-05-10 00:00:00</code></pre>\n<h2>常见报错场景</h2>\n<ul>\n<li><strong>Java: Date.getTime()返回毫秒</strong>，直接传10位时间戳会变成1970年</li>\n<li><strong>MySQL的FROM_UNIXTIME()</strong>接受秒级，注意与JS的13位区分</li>\n<li><strong>Python的time.time()</strong>返回浮点数秒级</li>\n</ul>\n<h2>解决方案</h2>\n<pre><code>// 统一转换工具函数\nfunction toTimestamp(date, isMs = false) {\n  const ts = date instanceof Date ? date.getTime() : new Date(date).getTime();\n  return isMs ? ts : Math.floor(ts / 1000);\n}\n\nfunction fromTimestamp(ts, isMs = false) {\n  return new Date(isMs ? ts : ts * 1000);\n}</code></pre>\n<h2>时区陷阱</h2>\n<p>时间戳本身是UTC标准时间，转换为本地时间时必须考虑时区。使用CloverTools的时间戳转换工具时，选择正确的源时区和目标时区。</p>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么用new Date(1715299200)得到的是1970年？</strong><br>A: JavaScript Date构造函数将10位时间戳视为毫秒，应该用new Date(1715299200000)或new Date(ts * 1000)。</p>\n<p><strong>Q: 后端返回的时间戳前端显示总是差8小时？</strong><br>A: 时间戳是UTC时间，前端转换时未指定时区。使用CloverTools转换时选择UTC+8目标时区即可。</p>",
       "slug": "unix时间戳转换错误怎么办",
       "intent": "guide",
       "faqs": [
@@ -154,7 +154,7 @@
     {
       "title": "Base64 图片无法显示怎么解决？常见原因与修复",
       "desc": "Base64 图片打不开通常是 MIME 类型写错、分隔符缺少逗号、编码内容被截断等原因。本文提供完整排查步骤和解决方案。",
-      "content": "base64图片无法显示怎么解决.html",
+      "content": "<h2>Base64 图片无法显示怎么解决？常见原因与修复</h2>\n<p>将图片转为Base64编码嵌入HTML或CSS中，可以减少HTTP请求，但实际使用时经常遇到图片无法显示的问题。以下是常见原因及对应的解决方案。</p>\n<h2>原因一：Data URI格式不正确</h2>\n<p>Base64图片必须包装在Data URI格式中，格式为：<code>data:image/[type];base64,[编码数据]</code>。缺少任一部分都会导致图片无法解析。</p>\n<pre><code>// ✅ 正确格式（包含完整的MIME类型）\nconst correct = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';\n\n// 在HTML中使用\n&lt;img src=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\" alt=\"Base64图片\"&gt;</code></pre>\n<h2>原因二：MIME类型错误</h2>\n<p>不同格式的图片对应不同的MIME类型：PNG用<code>image/png</code>、JPEG用<code>image/jpeg</code>、GIF用<code>image/gif</code>。编码时必须确保类型匹配。</p>\n<h2>原因三：URL-safe Base64处理</h2>\n<pre><code>// 在JSON中传递Base64数据时\nconst base64Url = base64.replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=/g, '');\nconst base64Standard = base64Url.replace(/-/g, '+').replace(/_/g, '/');\nconst pad = base64Standard.length % 4;\nconst padded = pad ? base64Standard + '='.repeat(4 - pad) : base64Standard;</code></pre>\n<h2>原因四：图片体积过大</h2>\n<p>Base64编码会使数据体积增加约33%。超过100KB的图片不建议使用Base64嵌入，建议独立存放通过CDN分发。</p>\n<h2>快速排查步骤</h2>\n<ol>\n<li>检查控制台是否有\"Failed to load resource\"或图片解析错误</li>\n<li>确认Data URI的MIME类型与实际图片格式匹配</li>\n<li>用在线工具解码Base64，确保证据完整无误</li>\n</ol>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么某些邮件客户端不显示Base64图片？</strong><br>A: 大部分邮件客户端出于安全考虑会屏蔽内嵌的Base64图片，建议使用外链图片。</p>\n<p><strong>Q: 如何将Base64图片转为实际图片文件？</strong><br>A: 使用Canvas: <code>canvas.toBlob()</code>转换后可通过<a>下载或上传。</p>",
       "slug": "base64图片无法显示怎么解决",
       "intent": "error-fix",
       "faqs": [
@@ -175,7 +175,7 @@
     {
       "title": "颜色代码转不出来怎么办？HEX/RGB/HSL 互转常见错误与解决方法",
       "desc": "颜色代码转换失败通常是因为格式不支持、范围超限或分隔符错误。本文详解 HEX、RGB、HSL、RGBA 等格式的正确写法，以及互转时常见错误的修复方法。",
-      "content": "颜色代码转不出来怎么办.html",
+      "content": "<h2>颜色代码转不出来怎么办？HEX/RGB/HSL互转常见错误与解决方法</h2>\n<p>颜色在Web开发中有多种表示方式：HEX（如#FF5733）、RGB（如rgb(255, 87, 51)）、HSL（如hsl(14, 100%, 60%)）。互转时经常遇到格式解析错误。</p>\n<h2>HEX格式的合法写法</h2>\n<pre><code>// 标准6位HEX\n#FF5733\n// 3位缩写（每两位相同可简写）\n#F53  // 展开为 #FF5533\n// 带透明度4位/8位\n#F5338  // #FF553388</code></pre>\n<h2>RGB转HEX的正确方法</h2>\n<pre><code>// RGB值范围必须是0-255的整数\nfunction rgbToHex(r, g, b) {\n  const toHex = n => {\n    const clamped = Math.max(0, Math.min(255, Math.round(n)));\n    return clamped.toString(16).padStart(2, '0');\n  };\n  return '#' + toHex(r) + toHex(g) + toHex(b);\n}\n\nrgbToHex(255, 87, 51);  // '#ff5733'</code></pre>\n<h2>HSL转RGB</h2>\n<pre><code>function hslToRgb(h, s, l) {\n  s /= 100;\n  l /= 100;\n  const k = n => (n + h / 30) % 12;\n  const a = s * Math.min(l, 1 - l);\n  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));\n  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];\n}\n\nhslToRgb(14, 100, 60);  // [255, 87, 51]</code></pre>\n<h2>健壮的颜色解析</h2>\n<pre><code>function parseColor(input) {\n  const s = input.trim().toLowerCase();\n  const hexMatch = s.match(/^#?([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/);\n  if (hexMatch) return { hex: '#' + hexMatch[1], format: 'hex' };\n  const rgbMatch = s.match(/^rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,[^)]+)?\\)$/);\n  if (rgbMatch) return { r: +rgbMatch[1], g: +rgbMatch[2], b: +rgbMatch[3], format: 'rgb' };\n  return null;\n}\n\nparseColor('#FF5733');  // {hex: '#ff5733', format: 'hex'}\nparseColor('rgb(255, 87, 51)');  // {r: 255, g: 87, b: 51, format: 'rgb'}</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么#FFF和#FFFFFF在程序中处理结果不同？</strong><br>A: 3位缩写是独立格式，程序需分别实现缩写展开逻辑。</p>\n<p><strong>Q: RGBA的alpha值在转换为HEX时如何处理？</strong><br>A: alpha值0-1转为16进制，如0.5 → 80，0 → 00，1 → FF。</p>",
       "slug": "颜色代码转不出来怎么办",
       "intent": "error-fix",
       "faqs": [
@@ -267,7 +267,7 @@
       "category": "JSON处理",
       "title": "json parse error什么意思？常见原因与解决方法",
       "desc": "JSON.parse报错是什么意思？本文详解5种最常见的触发原因：引号错误、尾部逗号、BOM头、数字格式、非数字值，并提供调试技巧和在线工具。",
-      "content": "json-parse-error什么意思.html",
+      "content": "<h2>JSON Parse Error什么意思？常见原因与解决方法</h2>\n<p>JSON Parse Error，即JSON解析错误，是指程序在尝试将JSON字符串解析为JavaScript对象时，JSON格式不符合规范而导致解析失败。这是前后端数据交互中最常见的错误之一。</p>\n<h2>错误症状与常见报错信息</h2>\n<ul>\n<li><strong>SyntaxError: Unexpected token</strong>：JSON字符串包含非法字符</li>\n<li><strong>SyntaxError: Unexpected end of JSON input</strong>：JSON字符串被截断</li>\n<li><strong>SyntaxError: Expected property name or '}'</strong>：JSON对象中缺少逗号或引号</li>\n</ul>\n<h2>最常见的原因：多余逗号</h2>\n<pre><code>// ❌ 错误：JSON对象末尾不允许有逗号\nconst jsonStr = '{\"name\": \"张三\", \"age\": 16,}';\n\n// ✅ 正确：移除末尾逗号\nconst jsonStr = '{\"name\": \"张三\", \"age\": 16}';</code></pre>\n<h2>原因二：引号使用错误</h2>\n<pre><code>// ❌ 错误：使用了中文引号或单引号\nconst jsonStr = '{\"name\": \"张三\", \"city\": \"北京\"}';  // 中文引号 ❌\n\n// ✅ 正确：键和字符串值必须使用英文双引号\nconst jsonStr = '{\"name\": \"张三\", \"city\": \"北京\"}';</code></pre>\n<h2>原因三：API返回的不是JSON</h2>\n<pre><code>// 常见情况：后端返回了HTML错误页面\n// 控制台显示：Unexpected token '<', \"<!DOCTYPE html...\" is not valid JSON\n\nfetch('/api/user')\n  .then(r => r.text())\n  .then(text => {\n    console.log('Response:', text);  // 看到HTML说明接口挂了\n  });</code></pre>\n<h2>安全解析JSON的方法</h2>\n<pre><code>function safeParse(jsonStr) {\n  try {\n    return JSON.parse(jsonStr);\n  } catch (e) {\n    console.error('JSON解析失败:', e.message);\n    return null;\n  }\n}</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么JSON.parse()解析数字开头的内容会报错？</strong><br>A: JSON的键名必须是字符串，报错通常是格式问题，与数字开头无关。</p>\n<p><strong>Q: 后端返回的JSON明明是正确的，但前端一直报错？</strong><br>A: 可能是BOM头问题。用 <code>jsonStr.trim()</code> 或服务端配置去掉BOM。</p>",
       "faqs": [
         {
           "q": "JSON Parse Error 最常见的原因是什么？",
@@ -291,7 +291,7 @@
       "category": "JSON处理",
       "title": "unexpected token json错误怎么解决？6种原因及修复方法",
       "desc": "Unexpected token是JSON解析时最常见的语法错误。本文详解6种触发原因：逗号缺失、单引号、键无引号、括号不匹配、非数字值、隐藏字符，并提供完整代码示例。",
-      "content": "unexpected-token-json错误怎么解决.html",
+      "content": "<h2>unexpected token json错误怎么解决？6种原因及修复方法</h2>\n<p><code>Unexpected token in JSON</code>是最常见的JSON解析错误，通常表示JSON字符串中包含了非法的字符。</p>\n<h2>错误信息变体</h2>\n<ul>\n<li><code>SyntaxError: Unexpected token ' in JSON at position 0</code></li>\n<li><code>Unexpected token u,u is not valid JSON</code>（u通常是undefined的序列化结果）</li>\n<li><code>Unexpected end of JSON input</code>（JSON被截断）</li>\n</ul>\n<h2>原因一：解析了非字符串类型的值</h2>\n<pre><code>// ❌ 错误：直接解析了undefined\nJSON.parse(undefined);  // Unexpected token 'u'\n\n// ✅ 正确做法：先转字符串或使用默认值\nconst data = maybeUndefined;\nJSON.parse(JSON.stringify(data || 'null'));</code></pre>\n<h2>原因二：响应体为空</h2>\n<pre><code>// fetch API中，空响应体会导致解析失败\nfetch('/api/empty')\n  .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))\n  .then(text => text ? JSON.parse(text) : null);</code></pre>\n<h2>原因三：服务端返回了带BOM的JSON</h2>\n<pre><code>function removeBOM(str) {\n  if (str.charCodeAt(0) === 0xFEFF) {\n    return str.slice(1);\n  }\n  return str;\n}\n\nconst cleanJson = removeBOM(rawJsonString);\nconst obj = JSON.parse(cleanJson);</code></pre>\n<h2>排查步骤</h2>\n<ol>\n<li>在控制台打印原始字符串，查看是否有不可见字符</li>\n<li>使用 <code>encodeURIComponent(raw)</code> 查看是否有%BOM等字符</li>\n<li>用在线JSON校验工具检查语法</li>\n<li>确认Content-Type是application/json而非text/html</li>\n</ol>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么axios请求后直接r.data解析会报错？</strong><br>A: 请确认响应的Content-Type是application/json，且responseType是json。</p>\n<p><strong>Q: 报错显示\"Unexpected token '<'\"，是什么问题？</strong><br>A: 服务端返回的是HTML（可能是错误页面或重定向页），不是JSON。检查接口URL是否正确。</p>",
       "faqs": [
         {
           "q": "Unexpected token 错误一般怎么解决？",
@@ -315,7 +315,7 @@
       "category": "JSON处理",
       "title": "json字符串转对象失败怎么办？5种场景及安全解析方法",
       "desc": "JSON.parse报错？本文分析5大失败场景：后端返回HTML、特殊字符未转义、localStorage脏数据、BOM头干扰、CSV格式混淆，提供try-catch、清理+BOM解析、缓存校验等实用代码。",
-      "content": "json字符串转对象失败怎么办.html",
+      "content": "<h2>JSON字符串转对象失败怎么办？5种场景及安全解析方法</h2>\n<p>将JSON字符串转换为JavaScript对象是开发中的高频操作，但各种边界情况常导致转换失败。</p>\n<h2>原因一：基本类型值的处理</h2>\n<pre><code>// ❌ 这些值无法直接JSON.parse()\nJSON.parse(undefined);     // TypeError\nJSON.parse(() => {});      // TypeError\n\n// ✅ 安全做法：先转字符串兜底\nconst safeParse = (val) => {\n  if (val === undefined || val === null) return null;\n  if (typeof val !== 'string') val = JSON.stringify(val);\n  return JSON.parse(val);\n};</code></pre>\n<h2>原因二：循环引用的对象</h2>\n<pre><code>// ❌ 循环引用无法序列化\nconst obj = {a: 1};\nobj.self = obj;\nJSON.stringify(obj);  // TypeError\n\n// ✅ 解决方案：使用replacer处理\nconst getCircularJSON = (obj) => {\n  const seen = new WeakSet();\n  return JSON.stringify(obj, (key, value) => {\n    if (typeof value === 'object' && value !== null) {\n      if (seen.has(value)) return undefined;\n      seen.add(value);\n    }\n    return value;\n  }, 2);\n};</code></pre>\n<h2>原因三：大数字精度丢失</h2>\n<pre><code>// ❌ JavaScript中超过安全整数(2^53-1)的数字会出现精度问题\nconst obj = {bigId: 9007199254741001};\nconst parsed = JSON.parse(JSON.stringify(obj));\nconsole.log(parsed.bigId);  // 9007199254741000（精度丢失！）\n\n// ✅ 解决方案：使用JSON-bigint库\nimport JSONBig from 'json-bigint';\nconst JSONBigInt = JSONBig({ storeAsStrings: true });\nconst parsed = JSONBigInt.parse('{\"bigId\":9007199254741001}');</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: JSON.parse()卡死了，是怎么回事？</strong><br>A: 可能是超大JSON字符串（几十MB以上），建议使用流式解析。</p>\n<p><strong>Q: 为什么某些数字解析出来精度不对？</strong><br>A: JavaScript的安全整数范围是-2^53+1到2^53-1。超出范围的数字需用字符串传输。</p>",
       "faqs": [
         {
           "q": "后端返回了HTML而不是JSON怎么办？",
@@ -339,7 +339,7 @@
       "category": "API调用",
       "title": "接口返回429怎么办？Rate Limit处理完整指南",
       "desc": "429 Too Many Requests是最常见的API限速报错。本文详解429的触发原因（速率限制、并发过多、重复请求），并提供指数退避、请求队列、缓存等5种实用解决方案及代码实现。",
-      "content": "接口返回429怎么办.html",
+      "content": "<h2>接口返回429怎么办？Rate Limit处理完整指南</h2>\n<p>HTTP 429是\"Too Many Requests\"状态码，表示在规定的时间内发送了过多请求。这是服务端在保护自身资源不被耗尽时的防御性响应。</p>\n<h2>429错误的典型特征</h2>\n<ul>\n<li>状态码：<code>429 Too Many Requests</code></li>\n<li>响应头通常包含：<code>Retry-After: 3600</code>（需要等待的秒数）</li>\n<li><code>X-RateLimit-Remaining: 0</code>（剩余请求次数）</li>\n</ul>\n<h2>如何正确处理429</h2>\n<pre><code>// 指数退避重试（Exponential Backoff）\nasync function fetchWithRetry(url, options = {}, maxRetries = 3) {\n  for (let attempt = 0; attempt < maxRetries; attempt++) {\n    const response = await fetch(url, options);\n    \n    if (response.status === 429) {\n      const retryAfter = response.headers.get('Retry-After');\n      const delay = retryAfter \n        ? parseInt(retryAfter) * 1000 \n        : Math.pow(2, attempt) * 1000 + Math.random() * 1000;\n      \n      console.log(`429 Too Many Requests，等待 ${delay}ms后重试...`);\n      await new Promise(r => setTimeout(r, delay));\n      continue;\n    }\n    return response;\n  }\n  throw new Error(`超过最大重试次数 ${maxRetries}`);\n}</code></pre>\n<h2>请求队列与并发控制</h2>\n<pre><code>class RateLimitedQueue {\n  constructor(maxConcurrent = 5, requestsPerSecond = 10) {\n    this.maxConcurrent = maxConcurrent;\n    this.requestInterval = 1000 / requestsPerSecond;\n    this.running = 0;\n  }\n\n  async add(fetchFn) {\n    return new Promise((resolve, reject) => {\n      if (this.running >= this.maxConcurrent) {\n        setTimeout(() => this.add(fetchFn), 100);\n        return;\n      }\n      this.running++;\n      fetchFn().then(resolve).catch(reject).finally(() => {\n        this.running--;\n        setTimeout(() => this.process(), this.requestInterval);\n      });\n    });\n  }\n}</code></pre>\n<h2>预防措施</h2>\n<ul>\n<li>在API文档中明确查找Rate Limit规则</li>\n<li>实现请求节流（Throttling），避免短时间发送大量请求</li>\n<li>缓存频繁请求的数据，减少不必要的API调用</li>\n</ul>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 429和5xx服务器错误有什么区别？</strong><br>A: 429是客户端请求过多，责任在调用方；5xx是服务端自身问题，责任在提供方。</p>\n<p><strong>Q: 如果没有Retry-After头，应该等多久？</strong><br>A: 使用指数退避策略：第1次等1秒，第2次等2秒，第3次等4秒。</p>",
       "faqs": [
         {
           "q": "收到429后应该等多久再重试？",
@@ -363,7 +363,7 @@
       "category": "API调用",
       "title": "请求参数错误怎么修复？6种类型及防御性编程实践",
       "desc": "400 Bad Request是最常见的API参数报错。本文详解6大类型：字段缺失、类型错误、格式不规范、值超范围、JSON语法错、参数名拼错，并提供JSON Schema、Zod、Joi等校验方案。",
-      "content": "请求参数错误怎么修复.html",
+      "content": "<h2>请求参数错误怎么修复？6种类型及防御性编程实践</h2>\n<p>前后端交互中，参数错误是最常见的接口问题之一。系统性地了解参数错误的类型、处理方式和防御性编程技巧，可以大幅提升应用的稳定性。</p>\n<h2>1. 参数类型错误</h2>\n<pre><code>// 后端期望number，前端传了string \"16\"\nfetch('/api/users', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ age: Number(ageInput.value) })\n});</code></pre>\n<h2>2. 必填参数缺失</h2>\n<pre><code>// 后端使用Joi/Zod等schema校验库\nconst schema = z.object({\n  username: z.string().min(2, '用户名至少2个字符'),\n  email: z.string().email('邮箱格式不正确'),\n  age: z.number().min(0).max(150)\n});\n\nconst result = schema.safeParse({ username, email, age });\nif (!result.success) {\n  console.error('参数校验失败:', result.error.issues);\n}</code></pre>\n<h2>3. 参数格式不符合要求</h2>\n<pre><code>// 日期格式：ISO 8601\nconst dateStr = new Date().toISOString();  // \"2024-05-10T00:00:00.000Z\"</code></pre>\n<h2>4. 枚举值超出范围</h2>\n<pre><code>// ✅ 前端维护枚举常量\nconst STATUS = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };\nfetch('/api/update', {\n  method: 'PUT',\n  body: JSON.stringify({ status: STATUS.APPROVED })\n});</code></pre>\n<h2>5. 参数越界</h2>\n<pre><code>// 分页参数：page从1开始，size最大100\nconst page = Math.max(1, parseInt(req.query.page) || 1);\nconst size = Math.min(100, Math.max(1, parseInt(req.query.size) || 20));</code></pre>\n<h2>6. JSON结构不匹配</h2>\n<pre><code>// ✅ 对照API文档构建请求体\nconst requestBody = {\n  data: {\n    user: {\n      profile: {\n        name: nameInput.value\n      }\n    }\n  }\n};</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 后端说\"参数错误\"但不告诉我是哪个参数，怎么办？</strong><br>A: 可以先逐个参数测试，或使用抓包工具查看完整错误响应。</p>\n<p><strong>Q: 前端参数校验和后端校验都要做吗？</strong><br>A: 前端校验提升用户体验，后端校验保证安全性。两者都要有。</p>",
       "faqs": [
         {
           "q": "请求参数错误最常见的原因是什么？",
@@ -387,7 +387,7 @@
       "category": "API调用问题",
       "title": "api rate limit怎么解决 - CloverTools",
       "desc": "API 一直返回 429 Too Many Requests？5分钟排查限流原因，3种方案从临时破解到彻底解决，附重试策略完整实现。",
-      "content": "",
+      "content": "<h2>API Rate Limit怎么解决？</h2>\n<p>API Rate Limit（接口速率限制）是服务提供商为防止资源被耗尽，对客户端在一定时间内发起的请求次数进行限制。当触发限制时，接口会返回429状态码。以下是系统化的应对方案。</p>\n<h2>理解Rate Limit的工作机制</h2>\n<p>大多数API的Rate Limit通过响应头告知客户端限制规则：</p>\n<ul>\n<li><code>X-RateLimit-Limit</code>：时间窗口内的最大请求数</li>\n<li><code>X-RateLimit-Remaining</code>：当前剩余可用请求数</li>\n<li><code>X-RateLimit-Reset</code>：限制重置的时间戳（Unix秒级）</li>\n<li><code>Retry-After</code>：触发限制后需要等待的秒数</li>\n</ul>\n<pre><code>fetch('/api/data')\n  .then(r => {\n    const limit = r.headers.get('X-RateLimit-Limit');\n    const remaining = r.headers.get('X-RateLimit-Remaining');\n    console.log(`Limit: ${limit}, Remaining: ${remaining}`);\n    return r;\n  })\n  .then(r => r.json());</code></pre>\n<h2>策略一：请求限流（Throttling）</h2>\n<pre><code>class Throttler {\n  constructor(maxPerSecond) {\n    this.maxPerSecond = maxPerSecond;\n    this.lastRequest = 0;\n  }\n\n  async waitForSlot() {\n    const now = Date.now();\n    const minInterval = 1000 / this.maxPerSecond;\n    const elapsed = now - this.lastRequest;\n    if (elapsed < minInterval) {\n      await new Promise(r => setTimeout(r, minInterval - elapsed));\n    }\n    this.lastRequest = Date.now();\n  }\n}\n\nconst throttler = new Throttler(10);\nasync function throttledFetch(url) {\n  await throttler.waitForSlot();\n  return fetch(url);\n}</code></pre>\n<h2>策略二：指数退避重试</h2>\n<pre><code>async function fetchWithBackoff(url, maxRetries = 5) {\n  for (let i = 0; i < maxRetries; i++) {\n    const res = await fetch(url);\n    if (res.status === 429) {\n      const retryAfter = res.headers.get('Retry-After') || Math.pow(2, i);\n      console.log(`Rate limited. Waiting ${retryAfter}s before retry ${i+1}/${maxRetries}`);\n      await new Promise(r => setTimeout(r, parseInt(retryAfter) * 1000));\n      continue;\n    }\n    return res;\n  }\n  throw new Error('Max retries exceeded');\n}</code></pre>\n<h2>策略三：请求合并（Batching）</h2>\n<pre><code>async function batchGetUsers(userIds) {\n  const res = await fetch(`/api/users?ids=${userIds.join(',')}`);\n  return res.json();\n}\n\nconst allUsers = await batchGetUsers([101, 102, 103]);</code></pre>\n<h2>策略四：本地缓存减少请求</h2>\n<pre><code>const cache = new Map();\nconst TTL = 60000;\n\nfunction cachedFetch(url) {\n  const cached = cache.get(url);\n  if (cached && Date.now() - cached.timestamp < TTL) {\n    return Promise.resolve(cached.data);\n  }\n  return fetch(url)\n    .then(r => r.json())\n    .then(data => {\n      cache.set(url, { data, timestamp: Date.now() });\n      return data;\n    });\n}</code></pre>\n<h2>预防措施</h2>\n<ul>\n<li>在开发阶段就了解API的Rate Limit规则</li>\n<li>实现请求队列，统一管理请求发送节奏</li>\n<li>对于关键数据实现多级缓存</li>\n<li>与API提供商沟通企业级配额</li>\n</ul>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: Rate Limit是按IP还是按用户计算？</strong><br>A: 取决于API设计。公共API通常按IP，企业API通常按用户/应用Token。</p>\n<p><strong>Q: 可以通过代理隐藏IP绕过限制吗？</strong><br>A: 不推荐。大量代理IP很快会被封禁，且可能违反服务条款。</p>\n<p><strong>Q: 遇到429应该等多久再重试？</strong><br>A: 优先遵循Retry-After头。如果没有，使用指数退避：1s→2s→4s→8s。</p>",
       "faqs": []
     },
     {
@@ -398,7 +398,7 @@
       "category": "API调用问题",
       "title": "json stringify报错怎么办 - CloverTools",
       "desc": "JSON.stringify 报错 serialization error？5分钟搞清楚循环引用、undefined、函数等常见踩坑点，附真实报错场景和修复代码。",
-      "content": "",
+      "content": "<h2>JSON.stringify报错的原因与解决方案</h2>\n<p>JSON.stringify()看似简单，但在处理特殊JavaScript值时经常抛出异常或返回意外结果。以下系统整理了各种报错场景及解决方案。</p>\n<h2>报错类型一：循环引用</h2>\n<pre><code>// ❌ 循环引用会导致TypeError\nconst obj = {name: '张三'};\nobj.self = obj;\nJSON.stringify(obj);  // TypeError: Converting circular structure to JSON\n\n// ✅ 解决方案：使用replacer过滤\nconst safeStringify = (obj) => {\n  const seen = new WeakSet();\n  return JSON.stringify(obj, (key, value) => {\n    if (typeof value === 'object' && value !== null) {\n      if (seen.has(value)) return undefined;\n      seen.add(value);\n    }\n    return value;\n  });\n};\nsafeStringify(obj);</code></pre>\n<h2>报错类型二：BigInt不支持</h2>\n<pre><code>// ❌ BigInt无法序列化\nJSON.stringify(123n);  // TypeError\n\n// ✅ 转换为字符串\nconst bigNum = 123n;\nJSON.stringify({ big: bigNum.toString() });  // {\"big\":\"123\"}</code></pre>\n<h2>报错类型三：undefined和函数被忽略</h2>\n<pre><code>const obj = { name: '张三', age: undefined, sayHi: () => {} };\nJSON.stringify(obj);  // {\"name\":\"张三\"}\n\n// 如果需要保留undefined\nconst replacer = (k, v) => v === undefined ? null : v;\nJSON.stringify(obj, replacer);  // {\"name\":\"张三\",\"age\":null}</code></pre>\n<h2>报错类型四：Set/Map/RegExp等特殊对象</h2>\n<pre><code>const set = new Set([1, 2, 3]);\nconst map = new Map([['a', 1]]);\nJSON.stringify({ set, map });  // {\"set\":{},\"map\":{}}\n\nconst serializeSpecial = (obj) => JSON.stringify(obj, (k, v) => {\n  if (v instanceof Set) return { __type: 'Set', values: [...v] };\n  if (v instanceof Map) return { __type: 'Map', entries: [...v] };\n  if (v instanceof RegExp) return v.source;\n  return v;\n});</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么JSON.stringify({a:1}, null, 2)结果不对？</strong><br>A: 第二个参数是replacer函数，如果返回undefined则跳过该属性。</p>\n<p><strong>Q: 如何输出美观的格式化JSON？</strong><br>A: <code>JSON.stringify(obj, null, 2)</code>使用2空格缩进。</p>",
       "faqs": []
     },
     {
@@ -409,7 +409,7 @@
       "category": "API调用问题",
       "title": "请求超时怎么处理 - CloverTools",
       "desc": "fetch 请求一直转圈圈？AbortController 设置超时、超时重试策略、分布式系统超时设计，一文讲透前端到后端的超时处理全链路。",
-      "content": "",
+      "content": "<h2>请求超时怎么处理？前端与Node.js超时处理完整指南</h2>\n<p>网络请求超时是分布式系统中不可避免的问题。以下是系统化的超时处理方案。</p>\n<h2>前端fetch的超时处理</h2>\n<pre><code>const controller = new AbortController();\nconst timeoutId = setTimeout(() => controller.abort(), 5000);\n\nfetch('/api/data', { signal: controller.signal })\n  .then(r => {\n    clearTimeout(timeoutId);\n    return r.json();\n  })\n  .catch(err => {\n    if (err.name === 'AbortError') {\n      console.log('请求超时，已取消');\n    }\n  });</code></pre>\n<h2>封装带超时的fetch函数</h2>\n<pre><code>async function fetchWithTimeout(url, options = {}) {\n  const { timeout = 10000, ...fetchOptions } = options;\n  const controller = new AbortController();\n  const timeoutId = setTimeout(() => controller.abort(), timeout);\n\n  try {\n    const response = await fetch(url, { ...fetchOptions, signal: controller.signal });\n    clearTimeout(timeoutId);\n    return response;\n  } catch (error) {\n    clearTimeout(timeoutId);\n    if (error.name === 'AbortError') {\n      throw new Error(`请求超时（${timeout}ms）: ${url}`);\n    }\n    throw error;\n  }\n}</code></pre>\n<h2>请求重试与超时结合</h2>\n<pre><code>async function fetchWithRetry(url, options = {}) {\n  const { retries = 3, timeout = 5000 } = options;\n  \n  for (let i = 0; i < retries; i++) {\n    try {\n      return await fetchWithTimeout(url, { timeout });\n    } catch (error) {\n      if (i === retries - 1) throw error;\n      console.log(`请求失败，${i+1}/${retries}，等待重试...`);\n      await new Promise(r => setTimeout(r, 1000 * (i + 1)));\n    }\n  }\n}</code></pre>\n<h2>超时策略设计建议</h2>\n<ul>\n<li>不同类型请求设置不同超时：数据获取10s、文件上传60s+</li>\n<li>超时后给用户明确提示</li>\n<li>重试前使用退避策略</li>\n<li>关键操作（如支付）超时后需确认服务端状态</li>\n</ul>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 超时后服务器还在处理请求，会重复提交吗？</strong><br>A: 会的。关键操作需要服务端实现幂等Token机制。</p>\n<p><strong>Q: WebSocket连接适合设置超时吗？</strong><br>A: 不适合。WebSocket是长连接，应该使用心跳机制检测连接是否存活。</p>",
       "faqs": []
     },
     {
@@ -420,7 +420,7 @@
       "category": "API调用问题",
       "title": "cors跨域报错怎么解决 - CloverTools",
       "desc": "Access-Control-Allow-Origin 报错？CORS预检请求详解，4种常用解决方案，从JSONP到代理服务器一次性说清楚。",
-      "content": "",
+      "content": "<h2>CORS跨域报错怎么解决？</h2>\n<p>CORS（Cross-Origin Resource Sharing）是浏览器的安全机制，当JavaScript向不同源发起请求时，浏览器会先发送OPTIONS预检请求。</p>\n<h2>典型CORS报错信息</h2>\n<ul>\n<li><code>Access to fetch at 'http://api.example.com'... has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present</code></li>\n<li><code>Response to preflight request doesn't pass access control check</code></li>\n</ul>\n<h2>服务端配置CORS</h2>\n<pre><code>const express = require('express');\nconst cors = require('cors');\nconst app = express();\n\napp.use(cors());  // 允许所有来源（开发环境）\n\napp.use(cors({\n  origin: ['https://clovertools.com'],\n  methods: ['GET', 'POST', 'PUT', 'DELETE'],\n  credentials: true\n}));</code></pre>\n<h2>处理OPTIONS预检请求</h2>\n<pre><code>app.options('/api/data', cors());\n\napp.use((req, res, next) => {\n  if (req.method === 'OPTIONS') {\n    res.header('Access-Control-Allow-Origin', '*');\n    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');\n    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');\n    res.status(204).send();\n  } else {\n    next();\n  }\n});</code></pre>\n<h2>携带Cookie时的CORS配置</h2>\n<pre><code>fetch('https://api.example.com', { credentials: 'include' });\n\napp.use(cors({\n  origin: 'https://clovertools.com',\n  credentials: true\n}));</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: CORS报错发生在Node.js后端，但浏览器不报错？</strong><br>A: CORS是浏览器安全机制。服务端必须配置CORS头，前端才能正常访问。</p>\n<p><strong>Q: POST请求有时会触发OPTIONS预检？</strong><br>A: 当Content-Type是application/json或使用了自定义请求头时，会触发预检请求。</p>",
       "faqs": []
     },
     {
@@ -431,7 +431,7 @@
       "category": "API调用问题",
       "title": "正则表达式匹配不到内容怎么解决 - CloverTools",
       "desc": "正则写好了一跑0 matches？5分钟排查常见陷阱：零宽断言、字符转义、元字符误用、贪婪vs懒惰，附真实调试案例和修复方法。",
-      "content": "",
+      "content": "<h2>正则表达式匹配不到内容怎么解决？5个真实案例</h2>\n<p>正则表达式写错后既不报错也不匹配。以下通过5个真实案例帮助你彻底搞懂。</p>\n<h2>案例一：转义字符写错</h2>\n<pre><code>const url = 'https://example.com/item/12345';\n// ✅ 在正则中，/不需要转义，.才需要\nconst goodRegex = /https:\\/\\/example\\.com\\/item\\/(\\d+)/;</code></pre>\n<h2>案例二：贪婪匹配导致捕获组为空</h2>\n<pre><code>const html = '<div>hello world</div><div>hi there</div>';\n\n// ❌ 贪婪：.* 会匹配到最后一个</div>\nhtml.match(/<div>(.*)<\\/div>/)[1];  // \"hello world</div><div>hi there\"\n\n// ✅ 非贪婪：.*? 匹配到第一个</div>就停止\nhtml.match(/<div>(.*?)<\\/div>/)[1];  // \"hello world\"</code></pre>\n<h2>案例三：中文Unicode匹配问题</h2>\n<pre><code>const text = '张三和李四';\n\n// ❌ 只匹配ASCII字母\n/[a-zA-Z]+/.test(text);  // false\n\n// ✅ 使用Unicode范围匹配中文\n/[\\u4e00-\\ua5ff]+/.test(text);  // true</code></pre>\n<h2>案例四：单词边界与中文</h2>\n<pre><code>// \\b 单词边界对中文无效\n'欢迎访问clovertools在线工具站'.match(/\\bclover\\b/);  // null\n\n// ✅ 使用前后断言\n/(?<=^|[^a-zA-Z])clover(?=$|[^a-zA-Z])/.test('欢迎访问clovertools在线工具站');  // true</code></pre>\n<h2>案例五：正则全局标志lastIndex问题</h2>\n<pre><code>const regex = /foo/g;\nregex.test('foo foo foo');  // true, lastIndex=3\nregex.test('foo foo foo');  // false, lastIndex=3已到末尾\nregex.test('foo foo foo');  // true, lastIndex重置为0</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么replace()只替换了第一个匹配？</strong><br>A: 使用了不带g标志的正则。</p>\n<p><strong>Q: 正则性能很差怎么办？</strong><br>A: 避免贪婪匹配.*改用非贪婪.*?；避免在字符类中使用.。</p>",
       "faqs": []
     },
     {
@@ -442,7 +442,7 @@
       "category": "Git/DevOps/工具问题",
       "title": "git commit冲突怎么解决 - CloverTools",
       "desc": "git pull 报 conflict？手把手教你用 VSCode 和命令行解决合并冲突，从原因到三种处理方案全解析，不再对红色标记恐慌。",
-      "content": "",
+      "content": "<h2>Git Commit冲突怎么解决？3种方法实战指南</h2>\n<p>Git冲突是协同开发中最常见的场景之一。当两个分支对同一文件的同一处进行了不同修改时，Git无法自动合并。</p>\n<h2>方法一：手动解决冲突</h2>\n<pre><code># Git会在文件中标记冲突标记\n<<<<<<< HEAD\nname: '张三',\n=======\navatar: '/default.png',\n>>>>>>> feature/user-avatar\n\n# 手动编辑，保留需要的内容\nname: '张三',\navatar: '/default.png',\n\ngit add user.js\ngit commit -m \"Merge: resolve conflict\"</code></pre>\n<h2>方法二：使用合并工具（可视化）</h2>\n<pre><code>git mergetool</code></pre>\n<h2>方法三：放弃合并，回退重做</h2>\n<pre><code>git merge --abort\ngit rebase main feature/branch</code></pre>\n<h2>预防冲突的最佳实践</h2>\n<ul>\n<li>小步提交：频繁拉取主分支，减少大范围冲突</li>\n<li>功能分支拆分：不同人负责不同文件</li>\n<li>使用Pull Request：通过PR合并，有冲突时尽早发现</li>\n</ul>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 冲突标记里的&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD是什么？</strong><br>A: HEAD指向当前分支的修改。</p>",
       "faqs": []
     },
     {
@@ -453,7 +453,7 @@
       "category": "Git/DevOps/工具问题",
       "title": "docker容器启动失败怎么解决 - CloverTools",
       "desc": "docker run 报错 port already allocated / Exited (1)？6种常见容器启动失败原因和对应解法，附排查命令和日志分析技巧。",
-      "content": "",
+      "content": "<h2>Docker容器启动失败怎么解决？10个真实案例</h2>\n<p>Docker容器启动失败是高频问题。以下通过10个真实案例帮助你快速排查原因。</p>\n<h2>快速排查命令</h2>\n<pre><code>docker ps -a\ndocker logs &lt;容器ID&gt;\ndocker inspect &lt;容器ID&gt;\ndocker stats</code></pre>\n<h2>案例一：端口已被占用</h2>\n<pre><code>docker run -p 80:80 nginx\n# Error: port is already allocated\n\nlsof -i :80\ndocker run -p 8080:80 nginx</code></pre>\n<h2>案例二：镜像不存在</h2>\n<pre><code>docker pull nginx:latest</code></pre>\n<h2>案例三：权限问题</h2>\n<pre><code>mkdir -p /host/data && chmod 777 /host/data\ndocker run -u $(id -u):$(id -g) -v /host/data:/container/data nginx</code></pre>\n<h2>案例四：OOMKilled（内存不足）</h2>\n<pre><code>docker run -m 512m my-app\ndocker stats</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 容器一直处于Restarting状态？</strong><br>A: 用docker logs查看日志，大概率是应用启动脚本错误。</p>\n<p><strong>Q: 容器启动后立即退出？</strong><br>A: 容器前台进程结束后会自动停止。</p>",
       "faqs": []
     },
     {
@@ -464,7 +464,7 @@
       "category": "Git/DevOps/工具问题",
       "title": "npm install报错怎么解决 - CloverTools",
       "desc": "npm install 报错 EACCES / ECONNREFUSED / ETARGET？5种常见报错详解，附缓存清理、版本锁定、网络代理完整解决方案。",
-      "content": "",
+      "content": "<h2>npm install报错怎么解决？常见错误与解决方案</h2>\n<p>npm install是Node.js项目中最常用的命令，但各种报错让人头疼。</p>\n<h2>错误一：网络问题</h2>\n<pre><code>npm config set registry https://registry.npmmirror.com\nnpm install -g cnpm --registry=https://registry.npmmirror.com</code></pre>\n<h2>错误二：权限问题</h2>\n<pre><code># 不要用sudo，使用nvm\ncurl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash\nnvm install --lts</code></pre>\n<h2>错误三：版本冲突</h2>\n<pre><code>npm install --legacy-peer-deps</code></pre>\n<h2>错误四：缓存问题</h2>\n<pre><code>npm cache clean --force\nrm -rf node_modules package-lock.json\nnpm install</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: npm install特别慢？</strong><br>A: 切换到国内镜像。</p>",
       "faqs": []
     },
     {
@@ -475,7 +475,7 @@
       "category": "Git/DevOps/工具问题",
       "title": "ssh连接超时怎么解决 - CloverTools",
       "desc": "ssh连接服务器一直转圈？5种常见超时原因和解决方案，从防火墙规则到密钥权限，手把手排查并修复。",
-      "content": "",
+      "content": "<h2>SSH连接超时怎么解决？完整排查指南</h2>\n<p>SSH连接超时（Connection timeout）是服务器管理中最常见的问题之一。</p>\n<h2>快速诊断</h2>\n<pre><code>ping -c 4 192.168.1.100\nnc -zv 192.168.1.100 22\nssh -vvv -o ConnectTimeout=10 user@hostname</code></pre>\n<h2>原因一：SSH服务未运行</h2>\n<pre><code>systemctl status sshd\nsystemctl start sshd</code></pre>\n<h2>原因二：防火墙阻止</h2>\n<pre><code>iptables -L -n | grep 22\nfirewall-cmd --permanent --add-port=22/tcp\nfirewall-cmd --reload</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 云服务器SSH突然连不上？</strong><br>A: 检查安全组是否允许22端口。</p>",
       "faqs": []
     },
     {
@@ -486,7 +486,7 @@
       "category": "Git/DevOps/工具问题",
       "title": "https证书过期怎么检查 - CloverTools",
       "desc": "SSL证书过期导致网站打不开？3种方法快速检查证书状态，自动续期 Let's Encrypt 证书的完整操作，附常见踩坑点。",
-      "content": "",
+      "content": "<h2>HTTPS证书过期怎么检查？完整指南</h2>\n<p>HTTPS证书过期会导致浏览器显示安全警告，影响用户体验和SEO排名。</p>\n<h2>使用OpenSSL检查</h2>\n<pre><code>openssl s_client -connect example.com:443 -servername example.com &lt;/dev/null 2&gt;/dev/null | openssl x509 -noout -dates</code></pre>\n<h2>使用Python批量检查</h2>\n<pre><code>import ssl, socket\nfrom datetime import datetime\n\ndef check_cert_expiry(hostname, port=443):\n    ctx = ssl.create_default_context()\n    with socket.create_connection((hostname, port)) as sock:\n        with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:\n            cert = ssock.getpeercert()\n            expiry = datetime.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')\n            return (expiry - datetime.utcnow()).days</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: HTTPS证书过期了会怎样？</strong><br>A: 现代浏览器会显示安全警告，用户无法继续访问。</p>",
       "faqs": []
     },
     {
@@ -496,7 +496,8 @@
       "intent": "guide",
       "category": "JSON处理",
       "title": "JSON解析与序列化完全指南",
-      "desc": "JSON.parse/JSON.stringify的完整指南，含深拷贝、循环引用、日期对象、大数字精度等高级场景，7种常见错误解决方案。"
+      "desc": "JSON.parse/JSON.stringify的完整指南，含深拷贝、循环引用、日期对象、大数字精度等高级场景，7种常见错误解决方案。",
+      "content": "<h2>JSON解析与序列化完全指南</h2>\n<p>JSON（JavaScript Object Notation）是现代Web开发中最常用的数据交换格式。本文系统讲解JSON的解析和序列化，以及各种边界情况的处理方法。</p>\n<h2>基础序列化：JavaScript对象转JSON字符串</h2>\n<pre><code>const obj = { name: '张三', age: 16, isStudent: true };\n\n// 基本序列化\nconst jsonStr = JSON.stringify(obj);\n\n// 美化输出（格式化）\nconst prettyJson = JSON.stringify(obj, null, 2);\n\n// 指定序列化属性（过滤）\nconst filtered = JSON.stringify(obj, ['name', 'age']);</code></pre>\n<h2>基础解析：JSON字符串转JavaScript对象</h2>\n<pre><code>const jsonStr = '{\"name\":\"张三\",\"age\":16}';\nconst obj = JSON.parse(jsonStr);\n\n// 安全解析（捕获异常）\ntry {\n  const result = JSON.parse(jsonStr);\n} catch (e) {\n  console.error('JSON解析失败:', e.message);\n}</code></pre>\n<h2>处理特殊JavaScript值</h2>\n<pre><code>const data = { name: '李四', age: undefined, sayHi: () => {} };\nJSON.stringify(data);  // {\"name\":\"李四\"}，undefined和函数被忽略\n\n// 如果需要保留undefined\nconst replacer = (k, v) => v === undefined ? null : v;\nJSON.stringify(data, replacer);</code></pre>\n<h2>处理BigInt</h2>\n<pre><code>JSON.stringify(123n);  // TypeError!\n\n// 解决方案：转换为字符串\nJSON.stringify({ id: 9007199254741001n.toString() });</code></pre>\n<h2>JSON Schema校验</h2>\n<pre><code>import Ajv from 'ajv';\nconst ajv = new Ajv();\n\nconst schema = {\n  type: 'object',\n  properties: {\n    name: { type: 'string' },\n    age: { type: 'number', minimum: 0 }\n  },\n  required: ['name']\n};\n\nconst validate = ajv.compile(schema);\nvalidate({ name: '王五', age: 25 });</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: JSON中能否使用注释？</strong><br>A: 不能。标准JSON不支持注释。</p>\n<p><strong>Q: 如何解析超大的JSON字符串避免内存溢出？</strong><br>A: 使用流式JSON解析库如clarinet（Node.js）。</p>"
     },
     {
       "keyword": "正则表达式入门实例",
@@ -505,7 +506,8 @@
       "intent": "guide",
       "category": "正则表达式",
       "title": "正则表达式入门与实例完全指南",
-      "desc": "从零掌握正则表达式，含Flags、元字符、5个实战示例（邮箱/手机号/URL/IP/脱敏）、6种常见错误，JS/Python双语言示例。"
+      "desc": "从零掌握正则表达式，含Flags、元字符、5个实战示例（邮箱/手机号/URL/IP/脱敏）、6种常见错误，JS/Python双语言示例。",
+      "content": "<h2>正则表达式入门与实例完全指南</h2>\n<p>正则表达式（Regular Expression）是处理字符串的强大工具。本文从基础语法到实际案例，帮助你从零掌握正则表达式。</p>\n<h2>基础语法</h2>\n<pre><code>// 创建正则表达式\nconst regex1 = /pattern/flags;  // 字面量方式\nconst regex2 = new RegExp('pattern', 'flags');\n\n// 常用标志\n// g - 全局匹配, i - 忽略大小写, m - 多行模式</code></pre>\n<h2>字符类与转义</h2>\n<pre><code>[abc]     // 匹配a、b或c\n[^abc]    // 匹配除了a、b、c以外的任意字符\n[a-z]     // 匹配小写字母\n\\d       // 等价于[0-9]，数字\n\\w       // 等价于[a-zA-Z0-9_]，单词字符\n\\s       // 空白字符</code></pre>\n<h2>量词</h2>\n<pre><code>a*        // 匹配0个或多个a\na+        // 匹配1个或多个a\na?        // 匹配0个或1个a\na{3}      // 恰好匹配3个a\na{3,5}    // 匹配3到5个a\na*?       // 非贪婪匹配</code></pre>\n<h2>常见实战案例</h2>\n<pre><code>// 手机号（中国大陆）\n/^1[3-9]\\d{9}$/\n\n// 邮箱\n/^[\\w.-]+@[\\w.-]+\\.\\w+$/\n\n// 密码强度（至少8位，包含大小写字母和数字）\n/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$/</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么正则中\\d和普通d不一样？</strong><br>A: \\d是元字符，代表数字0-9。</p>\n<p><strong>Q: 什么是正则表达式的\"灾难性回溯\"？</strong><br>A: 贪婪量词可能导致指数级回溯。改用非贪婪或优化正则结构。</p>"
     },
     {
       "keyword": "时间戳转换完全指南",
@@ -514,7 +516,8 @@
       "intent": "guide",
       "category": "时间处理",
       "title": "Unix时间戳转换完全指南",
-      "desc": "10位与13位时间戳详解，JavaScript/Python/Java/Go/Node.js各语言获取方法，时区转换，6种常见错误及解决方案。"
+      "desc": "10位与13位时间戳详解，JavaScript/Python/Java/Go/Node.js各语言获取方法，时区转换，6种常见错误及解决方案。",
+      "content": "<h2>Unix时间戳转换完全指南</h2>\n<p>时间戳是后端开发中最常用的时间表示方式，但10位（秒级）和13位（毫秒级）的混用是新手最常踩的坑。</p>\n<h2>10位 vs 13位</h2>\n<pre><code>// 10位：秒级，从1970年起的秒数\nconst ts10 = 1715299200;\n\n// 13位：毫秒级，从1970年起的毫秒数\nconst ts13 = 1715299200000;\n\n// 时间戳位数快速判断\nfunction getTsType(ts) {\n  return Number(ts) > 1e12 ? '毫秒级（13位）' : '秒级（10位）';\n}</code></pre>\n<h2>JavaScript中的转换</h2>\n<pre><code>// Date对象 → 时间戳\nconst ms = new Date().getTime();\nconst sec = Math.floor(ms / 1000);\n\n// 时间戳 → Date对象\nconst dateFromMs = new Date(1715299200000);\nconst dateFromSec = new Date(1715299200 * 1000);</code></pre>\n<h2>Python中的转换</h2>\n<pre><code>from datetime import datetime, timezone\n\n# Date对象 → 时间戳\ndt = datetime(2024, 5, 10, 0, 0, 0, tzinfo=timezone.utc)\nts_sec = int(dt.timestamp())\n\n# 时间戳 → Date对象\ndt = datetime.fromtimestamp(ts_sec, tz=timezone.utc)</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么后端返回的时间戳是10位，前端需要×1000？</strong><br>A: JavaScript的Date.getTime()返回毫秒级，大多数后端习惯用秒级。</p>\n<p><strong>Q: 2038年后10位时间戳会溢出吗？</strong><br>A: 会的。2^31-1秒 = 2038-01-19 03:14:07。新项目应使用毫秒级。</p>"
     },
     {
       "keyword": "base64编码原理实战",
@@ -523,7 +526,8 @@
       "intent": "guide",
       "category": "编码加密",
       "title": "Base64编码原理与实战用途",
-      "desc": "Base64编码原理解析，3字节→4字符机制，Data URI图片嵌入、API传输、Cookie等用途，JS/Python双语言示例，常见错误避坑。"
+      "desc": "Base64编码原理解析，3字节→4字符机制，Data URI图片嵌入、API传输、Cookie等用途，JS/Python双语言示例，常见错误避坑。",
+      "content": "<h2>Base64编码原理与实战用途</h2>\n<p>Base64是Web开发中频繁使用的编码方式，用于将二进制数据转换为可打印的ASCII字符。</p>\n<h2>编码原理</h2>\n<pre><code>// Base64将3个字节（24位）映射为4个6位字符\n// 字符表：A-Z a-z 0-9 + /\n\n// 示例\nbtoa('Hello');  // \"SGVsbG8=\"</code></pre>\n<h2>JavaScript中的Base64</h2>\n<pre><code>// 浏览器环境\nconst encoded = btoa('Hello');\nconst decoded = atob('SGVsbG8=');\n\n// 处理中文\nfunction encodeBase64(str) {\n  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, hex) => \n    String.fromCharCode(parseInt(hex, 16))\n  ));\n}</code></pre>\n<h2>Node.js中的Base64</h2>\n<pre><code>const buf = Buffer.from('Hello', 'utf8');\nconst encoded = buf.toString('base64');\nconst decoded = Buffer.from(encoded, 'base64').toString('utf8');</code></pre>\n<h2>实战：JWT解码</h2>\n<pre><code>const token = 'eyJhbGciOiJIUzI1NiJ9.payload.signature';\nconst payload = token.split('.')[1];\nJSON.parse(Buffer.from(payload, 'base64').toString('utf8'));</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: Base64是加密吗？</strong><br>A: Base64只是编码，不是加密。任何人都能轻易解码。</p>\n<p><strong>Q: Base64编码后体积会增加多少？</strong><br>A: 约增加33%。</p>"
     },
     {
       "keyword": "url编码解码完全指南",
@@ -532,7 +536,8 @@
       "intent": "guide",
       "category": "网络工具",
       "title": "URL编码与解码完全指南",
-      "desc": "encodeURI vs encodeURIComponent区别，各语言URL编码方法，UTF-8三字节编码原理解析，Double Encoding等常见错误与避坑指南。"
+      "desc": "encodeURI vs encodeURIComponent区别，各语言URL编码方法，UTF-8三字节编码原理解析，Double Encoding等常见错误与避坑指南。",
+      "content": "<h2>URL编码与解码完全指南</h2>\n<p>URL编码（Percent Encoding）是Web开发中处理特殊字符的必备技能。</p>\n<h2>基本规则</h2>\n<pre><code>// 安全字符：字母、数字、- _ . ~\n// 其他字符需要编码：% + 十六进制\n// 例如：空格 → %20，中文 → %E4%B8%AD%E6%96%87</code></pre>\n<h2>JavaScript中的URL编解码</h2>\n<pre><code>// 编码整个URL\nencodeURI('https://example.com/a b');  // \"https://example.com/a%20b\"\n\n// 编码URL组件\nencodeURIComponent('a b');  // \"a%20b\"\nencodeURIComponent('a/b');  // \"a%2Fb\"（斜杠也被编码）\n\n// 解码\ndecodeURIComponent('a%20b');  // \"a b\"</code></pre>\n<h2>Python中的URL编解码</h2>\n<pre><code>from urllib.parse import quote, quote_plus, urlencode\n\nquote('a b');       // 'a%20b'\nquote_plus('a b');   // 'a+b'\nurlencode({'name': '张三'});  // 'name=%E5%BC%A0%E4%B8%89'</code></pre>\n<h2>常见踩坑</h2>\n<pre><code>// 坑1：重复编码\nencodeURIComponent(encodeURIComponent('张三'));  // 双重编码！\n\n// 坑2：&符号未编码\n// 参数值中含有&但未编码，会被误解析为参数分隔符</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: %20和+空格有什么区别？</strong><br>A: application/x-www-form-urlencoded格式中空格编码为+，标准URL中编码为%20。</p>\n<p><strong>Q: 为什么有些URL中文字符没有编码？</strong><br>A: 浏览器会自动显示Unicode字符，但在URL传输层仍是%编码的。</p>"
     },
     {
       "keyword": "jsonparse报错终结方案",
@@ -541,7 +546,8 @@
       "intent": "guide",
       "category": "JSON处理",
       "title": "JSON.parse报错？我调研了7种方案",
-      "desc": "JSON.parse常见报错场景分析，7种解决方案覆盖循环引用、日期对象、大数字精度、undefined丢失等问题，JS/Python双语言示例。"
+      "desc": "JSON.parse常见报错场景分析，7种解决方案覆盖循环引用、日期对象、大数字精度、undefined丢失等问题，JS/Python双语言示例。",
+      "content": "<h2>JSON.parse报错终结方案</h2>\n<p>JSON.parse报错是前后端开发中最常见的错误之一。本文用7种实战方案，帮你彻底解决各种JSON解析报错问题。</p>\n<h2>错误类型一：Unexpected token</h2>\n<pre><code>function safeParse(jsonStr) {\n  if (!jsonStr || jsonStr.trim() === '') return null;\n  try {\n    return JSON.parse(jsonStr);\n  } catch (e) {\n    console.error('JSON解析失败:', e.message, '原始数据:', jsonStr);\n    return null;\n  }\n}</code></pre>\n<h2>错误类型二：Unexpected end of JSON input</h2>\n<pre><code>fetch('/api/data')\n  .then(r => {\n    if (!r.ok) throw new Error('HTTP ' + r.status);\n    return r.text();\n  })\n  .then(text => text ? JSON.parse(text) : null)\n  .then(data => console.log(data));</code></pre>\n<h2>错误类型三：控制字符和BOM</h2>\n<pre><code>function cleanInvalidChars(str) {\n  return str.replace(/[\\x00-\\1F]/g, '').replace(/^\\uFEFF/, '');\n}\nconst obj = JSON.parse(cleanInvalidChars(rawStr));</code></pre>\n<h2>错误类型四：多余逗号</h2>\n<pre><code>function removeTrailingComma(str) {\n  return str.replace(/,(\\s*[}\\]])/g, '$1');\n}</code></pre>\n<h2>错误类型五：数字精度丢失</h2>\n<pre><code>import JSONBig from 'json-bigint';\nconst JSONBigInt = JSONBig({ storeAsStrings: true });\nconst parsed = JSONBigInt.parse('{\"id\":9007199254741001}');</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: JSON.parse在Node.js和浏览器中行为一致吗？</strong><br>A: 大体一致，但某些特殊字符的处理可能有差异。</p>\n<p><strong>Q: 如何快速定位JSON语法错误的位置？</strong><br>A: 使用CloverTools的JSON校验工具，可以精确定位行列。</p>"
     },
     {
       "keyword": "正则永远匹配不到这篇帮你彻底搞懂",
@@ -550,7 +556,8 @@
       "intent": "guide",
       "category": "正则表达式",
       "title": "为什么你的正则永远匹配不到？5个真实案例帮你彻底搞懂",
-      "desc": "5个正则匹配失败真实案例，.不匹配换行、字符类写反、量词贪心、捕获组编号、动态正则转义，每个含根因+修复代码。"
+      "desc": "5个正则匹配失败真实案例，.不匹配换行、字符类写反、量词贪心、捕获组编号、动态正则转义，每个含根因+修复代码。",
+      "content": "<h2>为什么你的正则永远匹配不到？5个真实案例帮你彻底搞懂</h2>\n<p>正则表达式写完后测试不通过，既不报错也不匹配。以下通过5个真实案例帮助你彻底搞懂。</p>\n<h2>案例一：字符边界与单词边界</h2>\n<pre><code>const url = 'https://clovertools.com/path';\n// \\b对特殊字符.不生效\nconst goodRegex = /clovertools\\.com/;\ngoodRegex.test(url);  // true</code></pre>\n<h2>案例二：量词的贪婪与非贪婪</h2>\n<pre><code>const text2 = 'hello world hello python';\ntext2.match(/hello.*world/);  // [\"hello world hello python\"]\ntext2.match(/hello.*?world/);  // [\"hello world\"]</code></pre>\n<h2>案例三：中文字符的匹配</h2>\n<pre><code>/[\\u4e00-\\ua5ff]+/.test('张三');  // true\n/\\p{Han}+/u.test('张三');  // true（ES2018+）</code></pre>\n<h2>案例四：正则表达式对象的复用问题</h2>\n<pre><code>const regex = /foo/g;\nregex.test('foo foo foo');  // true\nregex.test('foo foo foo');  // false（lastIndex已到末尾）\n\n// 解决方案：不用/g\n/ /.test('foo foo foo');</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么正则测试工具能匹配，但JS代码中不匹配？</strong><br>A: 检查flags是否一致，特别是全局标志g的使用。</p>\n<p><strong>Q: 正则性能很差怎么处理？</strong><br>A: 避免贪婪量词.*改为非贪婪.*?；避免在字符类中使用.。</p>"
     },
     {
       "keyword": "base64踩坑实录附解决方案",
@@ -559,7 +566,8 @@
       "intent": "guide",
       "category": "编码加密",
       "title": "Base64编码的坑，看这篇就够了",
-      "desc": "5个Base64翻车案例：Unicode中文乱码、填充丢失、URL-safe变种、Data URI大小膨胀、btoa限制，附JS/Python修复方案。"
+      "desc": "5个Base64翻车案例：Unicode中文乱码、填充丢失、URL-safe变种、Data URI大小膨胀、btoa限制，附JS/Python修复方案。",
+      "content": "<h2>Base64编码的坑，看这篇就够了</h2>\n<p>Base64是开发中常用的编码方式，但各种边界情况经常让人踩坑。</p>\n<h2>坑1：中文编码问题</h2>\n<pre><code>// ❌ btoa无法处理中文\nbtoa('你好');  // DOMException\n\n// ✅ 先encodeURIComponent\nfunction toBase64(str) {\n  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, hex) => \n    String.fromCharCode(parseInt(hex, 16))\n  ));\n}\ntoBase64('你好世界');</code></pre>\n<h2>坑2：URL-safe Base64</h2>\n<pre><code>// 标准Base64：+ / =\n// URL-safe Base64：- _ （去掉=padding）\n\nfunction toBase64Url(str) {\n  return btoa(str).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=/g, '');\n}</code></pre>\n<h2>坑3：图片Base64格式错误</h2>\n<pre><code>// ❌ Data URL格式不完整\nconst bad = 'iVBORw0KGgoAAAAN...';\n\n// ✅ 必须包含MIME类型\nconst good = 'data:image/png;base64,iVBORw0KGgoAAAAN...';</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: Base64是加密吗？</strong><br>A: 不是加密，只是编码。任何人都能轻易解码。</p>\n<p><strong>Q: Base64编码后解码得到乱码？</strong><br>A: 检查编码时用的字符集是否一致（UTF-8 vs GBK）。</p>"
     },
     {
       "keyword": "url编码翻车合集附解决指南",
@@ -568,7 +576,8 @@
       "intent": "guide",
       "category": "网络工具",
       "title": "URL编码翻车合集，看这篇就够了",
-      "desc": "6个URL编码翻车场景，encodeURI vs encodeURIComponent对比表格，Double Encoding、路径vs查询参数、特殊字符处理，5语言示例。"
+      "desc": "6个URL编码翻车场景，encodeURI vs encodeURIComponent对比表格，Double Encoding、路径vs查询参数、特殊字符处理，5语言示例。",
+      "content": "<h2>URL编码翻车合集，看这篇就够了</h2>\n<p>URL编码看似简单，但各种边界情况让人头疼。</p>\n<h2>翻车1：重复编码</h2>\n<pre><code>// ❌ 编码后再次编码\nconst encoded = encodeURIComponent(name);\nconst doubleEncoded = encodeURIComponent(encoded);\n\n// ✅ 只编码一次\nif (!/%[0-9A-F]{2}/i.test(value)) {\n  value = encodeURIComponent(value);\n}</code></pre>\n<h2>翻车2：&符号未编码</h2>\n<pre><code>// ❌ 参数值中含有&但未编码\nconst params = 'name=张三&extra=foo&bar';\n\n// ✅ 对每个参数值单独编码\nconst encodedParams = [['name','张三'],['extra','foo&bar']]\n  .map(([k,v]) => `\\${encodeURIComponent(k)}=\\${encodeURIComponent(v)}`).join('&');</code></pre>\n<h2>翻车3：Path和Query混淆</h2>\n<pre><code>// ❌ 对整个URL使用encodeURIComponent\nencodeURIComponent('https://example.com/api?name=张三');\n// 协议、域名、斜杠都被编码了！\n\n// ✅ 使用URLSearchParams\nnew URLSearchParams({ 'name': '张三' }).toString();</code></pre>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么encodeURIComponent('?')返回%3F而不是?？</strong><br>A: ?是URL语法字符，在参数值中需要编码以避免歧义。</p>\n<p><strong>Q: URL编码和HTML实体编码有什么区别？</strong><br>A: URL编码用于URL中的特殊字符；HTML实体编码用于HTML文档中的特殊字符。</p>"
     },
     {
       "keyword": "时间戳10位13位踩坑完全手册",
