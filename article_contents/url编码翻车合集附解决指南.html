@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL编码翻车合集，看这篇就够了</title>
+    <meta name="description" content="URL编码从入门到精通：encodeURI和encodeURIComponent区别、Double Encoding、中文乱码、路径vs查询参数、5种语言示例，帮你彻底搞懂URL编码。">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #333; line-height: 1.8; max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+        .article { background: #fff; border-radius: 12px; padding: 48px 48px 40px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+        h1 { font-size: 28px; color: #1a1a2e; margin-bottom: 20px; line-height: 1.4; }
+        h2 { font-size: 20px; color: #2d2d6b; margin: 36px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #6c63ff20; }
+        h3 { font-size: 16px; color: #444; margin: 24px 0 12px; }
+        .lead { font-size: 17px; color: #555; margin-bottom: 28px; background: #6c63ff08; border-left: 4px solid #6c63ff; padding: 16px 20px; border-radius: 0 8px 8px 0; }
+        .crash-box { background: #fff1f0; border: 1px solid #ffccc7; border-radius: 10px; padding: 20px 24px; margin: 16px 0 24px; }
+        .crash-box h3 { color: #a94442; margin-top: 0; }
+        .crash-box p { margin-bottom: 10px; }
+        .crash-box code { background: #ffe7e6; padding: 2px 6px; border-radius: 4px; font-size: 14px; color: #a94442; }
+        .code-block { background: #1e1e2e; color: #cdd6f4; border-radius: 10px; padding: 20px 24px; margin: 16px 0; overflow-x: auto; font-size: 14px; line-height: 1.7; }
+        .code-block .comment { color: #6c7086; }
+        .code-block .string { color: #a6e3a1; }
+        .code-block .keyword { color: #cba6f7; }
+        .code-block .func { color: #89b4fa; }
+        .code-block .num { color: #fab387; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 15px; }
+        th { background: #6c63ff; color: #fff; padding: 12px 16px; text-align: left; }
+        td { padding: 11px 16px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) td { background: #f9f9ff; }
+        .highlight { background: #fff3cd; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+        .warning { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+        .tip { background: #f0f5ff; border: 1px solid #adc6ff; border-radius: 8px; padding: 14px 18px; margin: 20px 0; font-size: 15px; }
+        .tip::before { content: '💡 '; }
+        .summary { background: linear-gradient(135deg, #6c63ff10, #f0f5ff); border-radius: 10px; padding: 24px; margin-top: 32px; }
+        .summary h2 { border: none; margin-top: 0; }
+        ul { padding-left: 24px; }
+        li { margin-bottom: 8px; }
+        .cta { display: inline-block; background: linear-gradient(135deg, #6c63ff, #7c6fff); color: #fff; text-decoration: none; padding: 12px 28px; border-radius: 30px; font-weight: 600; margin-top: 12px; transition: transform 0.2s, box-shadow 0.2s; }
+        .cta:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(108,99,255,0.35); }
+        .tag { display: inline-block; background: #6c63ff15; color: #6c63ff; font-size: 12px; padding: 3px 10px; border-radius: 20px; margin-right: 6px; }
+    </style>
+</head>
+<body>
+<div class="article">
+
+    <div style="margin-bottom:12px">
+        <span class="tag">URL编码</span>
+        <span class="tag">前端开发</span>
+        <span class="tag">Python</span>
+        <span class="tag">JavaScript</span>
+    </div>
+
+    <h1>URL编码翻车合集，看这篇就够了</h1>
+
+    <div class="lead">
+        你是否遇到过：URL 里带了中文，结果接口报错 400；复制来的链接参数里有奇怪的 <code>%E4%B8%AD%E6%96%87</code>；或者同一个词在地址栏敲一次能跑，在代码里发请求就挂了？<br>
+        这篇文章，把 URL 编码翻车的常见场景全拆解一遍，附 5 种语言的实战代码，保证你下次遇到不再懵。
+    </div>
+
+    <!-- 场景一 -->
+    <h2>交通事故 1：URL带中文，请求直接爆了</h2>
+    <div class="crash-box">
+        <h3>❌ 错误示例</h3>
+        <p>小明想在搜索框搜"北京天气"，直接拼了个 URL：</p>
+        <code>https://api.example.com/search?q=北京天气</code>
+        <p style="margin-top:10px">结果后端拿到的是乱码，或者直接返回 400 Bad Request。</p>
+    </div>
+
+    <p>浏览器的地址栏能显示中文，是因为<strong>浏览器自动帮你编码了</strong>。但你在代码里手动拼接字符串时，中文不会被自动转成 `%E4%B8%AD` 这样的格式，服务器收到的就是一堆裸字节，解析失败。</p>
+
+    <div class="tip">
+        <strong>URL 的设计本身只支持 ASCII</strong>，所有非 ASCII 字符在传输前必须编码。浏览器、HTTP 客户端会帮你做，但如果你自己拼字符串，就得手动编码。
+    </div>
+
+    <h3>✅ 正确做法（JavaScript）</h3>
+    <div class="code-block">
+<span class="keyword">const</span> keyword = <span class="string">'北京天气'</span>;
+<span class="keyword">const</span> url = <span class="string">`https://api.example.com/search?q=</span><span class="func">encodeURIComponent</span>(keyword)<span class="string">`</span>;
+<span class="comment">// https://api.example.com/search?q=%E5%8C%97%E4%BA%AC%E5%A4%A9%E6%B0%94</span>
+console.<span class="func">log</span>(url);
+    </div>
+
+    <!-- 场景二 -->
+    <h2>交通事故 2：encodeURI vs encodeURIComponent — 傻傻分不清</h2>
+
+    <p>这两个方法长得像，但效果天差地别。用错了，URL 还是能跑，但参数值被截、特殊字符逃逸、服务器报错，各种妖蛾子就来了。</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>特性</th>
+                <th>encodeURI</th>
+                <th>encodeURIComponent</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>编码范围</td>
+                <td>整个 URL，<strong>保留</strong>：`A-Z a-z 0-9 - _ . ~ ! ' ( ) ; , : @ & = + $ ?`</td>
+                <td>只针对<strong>参数值</strong>，编码几乎所有特殊字符，包括 <code>;,/?:@&=+$</code></td>
+            </tr>
+            <tr>
+                <td>空格处理</td>
+                <td>→ <code>%20</code>（但保留原生空格写法）</td>
+                <td>→ <code>%20</code></td>
+            </tr>
+            <tr>
+                <td>中文处理</td>
+                <td>→ %E4%B8%AD%E6%96%87</td>
+                <td>→ %E4%B8%AD%E6%96%87（效果相同）</td>
+            </tr>
+            <tr>
+                <td>适合场景</td>
+                <td>完整的 URL（路径、域名）</td>
+                <td>查询参数值、POST body 的单个字段</td>
+            </tr>
+            <tr>
+                <td>典型错误</td>
+                <td colspan="2">用 <code>encodeURI</code> 给查询参数值编码，<code>=</code> 和 <code>&amp;</code> 没被编码，导致参数截断</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="crash-box">
+        <h3>❌ 错误：把 encodeURI 用在查询参数值上</h3>
+        <code>https://api.example.com/search?q=encodeURI('北京&上海')</code>
+        <p style="margin-top:10px"><strong>结果：</strong><code>&</code> 没被编码，URL 被解析成两个参数 <code>q=北京</code> 和 <code>上海</code>，后端直接崩溃。</p>
+    </div>
+
+    <div class="code-block">
+<span class="comment">// ✅ 正确做法：查询参数值用 encodeURIComponent</span>
+<span class="keyword">const</span> query = <span class="func">encodeURIComponent</span>(<span class="string">'北京&上海'</span>);
+<span class="comment">// 结果: %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7</span>
+<span class="keyword">const</span> url = <span class="string">`https://api.example.com/search?q=</span>${query}<span class="string">`</span>;
+<span class="comment">// https://api.example.com/search?q=%E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7</span>
+    </div>
+
+    <!-- 场景三 -->
+    <h2>交通事故 3：%E4%B8%AD%E6%96%87 到底是什么意思？</h2>
+
+    <p>这条 `%E4%B8%AD%E6%96%87` 看着像乱码，其实正好是中文"中文"的 UTF-8 编码。</p>
+
+    <div class="code-block">
+<span class="comment">// Python 演示：手动拆解 %E4%B8%AD%E6%96%87</span>
+<span class="keyword">import</span> urllib.parse
+
+text = <span class="string">'中文'</span>
+encoded = urllib.parse.<span class="func">quote</span>(text)   <span class="comment"># → %E4%B8%AD%E6%96%87</span>
+decoded = urllib.parse.<span class="func">unquote</span>(encoded) <span class="comment"># → 中文</span>
+<span class="keyword">print</span>(<span class="string">f'编码: {encoded}'</span>)
+<span class="keyword">print</span>(<span class="string">f'解码: {decoded}'</span>)
+
+<span class="comment"># 手动拆解 UTF-8 字节</span>
+byte_hex = text.<span class="func">encode</span>(<span class="string">'utf-8'</span>).<span class="func">hex</span>()
+<span class="keyword">print</span>(<span class="string">f'UTF-8 hex: {byte_hex}'</span>)  <span class="comment"># e4b8ad e69687</span>
+<span class="comment"># e4 b8 ad → 中 (0x4E2D)</span>
+<span class="comment"># e6 96 87 → 文 (0x6587)</span>
+    </div>
+
+    <div class="tip">
+        每个百分号 `%` 后跟两位十六进制，表示一个 UTF-8 字节。"中文"两个汉字共 6 字节，所以是 <code>%E4%B8%AD%E6%96%87</code>（每字节两位 hex，共 12 位）。记住这个，你就能"肉眼看懂"任何 URL 编码。
+    </div>
+
+    <!-- 场景四 -->
+    <h2>交通事故 4：Double Encoding — 编码两次的灾难</h2>
+
+    <p>这个问题最隐蔽。HTTP 请求链路每个环节都可能解码一次：浏览器发一次、代理解码一次、后端语言又解码一次……如果你在代码里已经编码了一次，但前端框架又编码了一次，就出现"明明传了中文，收到的却是乱码"的鬼故事。</p>
+
+    <div class="crash-box">
+        <h3>❌ Double Encoding 示例</h3>
+        <p>用户在输入框输入：<code>北京</code></p>
+        <p>前端 JS 已经编码了一次 → <code>%E5%8C%97%E4%BA%AC</code></p>
+        <p>然后又把整个 URL 再编码一次 → <code>%25E5%258C%2597%25E4%25BA%25AC</code></p>
+        <p style="margin-top:10px"><strong>服务器拿到的是：</strong><code>%25E5%258C%2597%25E4%25BA%25AC</code>，解码后还是 <code>%E5%8C%97%E4%BA%AC</code>，再解码才是"北京"。如果后端只解一次，就拿不到正确值。</p>
+    </div>
+
+    <h3>✅ 解决思路：只在最后一刻编码</h3>
+    <div class="code-block">
+<span class="comment">// 正确做法：在真正发送请求前，对参数值编码一次</span>
+<span class="comment">// 不要在输入时编码，不要在拼接URL时重复编码</span>
+
+<span class="comment">// ✅ 正确流程：用户输入原始值 → 编码 → 发送</span>
+<span class="keyword">const</span> userInput = <span class="string">'北京'</span>;          <span class="comment">// 原始值</span>
+<span class="keyword">const</span> encoded = <span class="func">encodeURIComponent</span>(userInput); <span class="comment">// 编码一次</span>
+<span class="comment">// fetch 不需要再编码，fetch 会处理</span>
+<span class="func">fetch</span>(<span class="string">`/api/search?q=</span>${encoded}<span class="string">`</span>);
+
+<span class="comment">// ❌ 错误：重复编码</span>
+<span class="keyword">const</span> doubleEncoded = <span class="func">encodeURIComponent</span>(<span class="func">encodeURIComponent</span>(userInput));
+    </div>
+
+    <div class="warning">
+        <strong>调试技巧：</strong>在浏览器控制台输入 <code>decodeURIComponent('%E4%B8%AD%E6%96%87')</code>，看看能不能还原成"中文"。如果不能，说明存在 Double Encoding。用这个方法可以快速定位问题在哪一层。
+    </div>
+
+    <!-- 场景五 -->
+    <h2>交通事故 5：路径里的中文 vs 查询参数里的中文</h2>
+
+    <p>URL 里中文出现的位置不同，处理方式也不一样。很多人以为编码都一样，结果在路径（Path）和查询参数（Query String）里混用，直接踩坑。</p>
+
+    <div class="code-block">
+<span class="comment">// ❌ 错误：路径里用了 encodeURIComponent</span>
+<span class="comment">// https://example.com/search/北京 → 报错</span>
+<span class="comment">// 路径（Path）中的 / 是分隔符，不能编码</span>
+
+<span class="comment">// ✅ 正确：路径整体用 encodeURI，参数用 encodeURIComponent</span>
+<span class="keyword">const</span> base = <span class="func">encodeURI</span>(<span class="string">'https://example.com/search/北京'</span>); <span class="comment">// 编码路径部分</span>
+<span class="comment">// 结果: https://example.com/search/%E5%8C%97%E4%BA%AC</span>
+
+<span class="keyword">const</span> query = <span class="func">encodeURIComponent</span>(<span class="string">'天气'</span>);         <span class="comment">// 编码查询参数</span>
+<span class="keyword">const</span> finalUrl = <span class="string">`</span>${base}<span class="string">?q=</span>${query}<span class="string">`</span>;
+<span class="comment">// 结果: https://example.com/search/%E5%8C%97%E4%BA%AC?q=%E5%A4%A9%E6%B0%94</span>
+    </div>
+
+    <div class="tip">
+        简单记忆：<strong>路径用 encodeURI，查询参数值用 encodeURIComponent</strong>。路径中的 <code>/</code> 是有意义的分隔符，不应该被编码；查询参数里的 <code>&</code> 和 <code>=</code> 也不应该出现在值里，所以需要 encodeURIComponent 来强制编码。
+    </div>
+
+    <!-- 场景六 -->
+    <h2>交通事故 6：特殊字符没处理，参数被截</h2>
+
+    <p>表单里有个输入框，用户可能输入 <code>#</code>、<code>&</code>、<code>+</code> 这些 URL 里有特殊含义的字符。没编码就往 URL 里塞，解析时直接截断或误解。</p>
+
+    <div class="crash-box">
+        <h3>常见需要编码的特殊字符</h3>
+        <p><code>#</code> → %23 （锚点/Hash）</p>
+        <p><code>&</code> → %26 （参数分隔符）</p>
+        <p><code>+</code> → %2B （空格在 query string 里会变成加号）</p>
+        <p><code>%</code> → %25 （编码前缀本身）</p>
+        <p><code>/</code> → %2F （路径分隔符）</p>
+    </div>
+
+    <div class="code-block">
+<span class="comment">// 用户输入：查询 "C++" 和 "A & B"</span>
+<span class="keyword">const</span> input = <span class="string">'C++ and A & B'</span>;
+
+<span class="comment">// ✅ encodeURIComponent 全搞定</span>
+<span class="keyword">const</span> encoded = <span class="func">encodeURIComponent</span>(input);
+<span class="comment">// C%2B%2B%20and%20A%20%26%20B</span>
+
+<span class="comment">// 注意：+ 号在 query string 里会被解析成空格！</span>
+<span class="comment">// 所以 + 要编码为 %2B，而不是 +</span>
+    </div>
+
+    <!-- 5种语言对比 -->
+    <h2>🔧 5 种语言 URL 编码实战对比</h2>
+
+    <p>下面用同一个场景演示：把字符串 <code>北京&上海=2026</code> 编码成 URL 参数值。</p>
+
+    <h3>JavaScript</h3>
+    <div class="code-block">
+<span class="comment">// 编码</span>
+<span class="keyword">const</span> encoded = <span class="func">encodeURIComponent</span>(<span class="string">'北京&上海=2026'</span>);
+<span class="comment">// %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+
+<span class="comment">// 解码</span>
+<span class="keyword">const</span> decoded = <span class="func">decodeURIComponent</span>(encoded);
+
+<span class="comment">// 注意：fetch 和 axios 会自动处理查询参数</span>
+<span class="comment">// 但手动拼接时必须编码</span>
+    </div>
+
+    <h3>Python</h3>
+    <div class="code-block">
+<span class="keyword">import</span> urllib.parse
+
+text = <span class="string">'北京&上海=2026'</span>
+
+<span class="comment"># 编码（query string 用）</span>
+encoded = urllib.parse.<span class="func">quote</span>(text, safe=<span class="string">''</span>)
+<span class="comment"># %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+
+<span class="comment"># 编码（完整 URL 路径用）</span>
+path_encoded = urllib.parse.<span class="func">quote</span>(text)
+<span class="comment"># 不编码 safe 列表中的字符</span>
+
+<span class="comment"># 解码</span>
+decoded = urllib.parse.<span class="func">unquote</span>(encoded)
+
+<span class="comment"># 构建查询参数字典（推荐方式，自动编码）</span>
+params = {<span class="string">'q'</span>: <span class="string">'北京&上海=2026'</span>, <span class="string">'page'</span>: <span class="num">1</span>}
+query_string = urllib.parse.<span class="func">urlencode</span>(params)
+<span class="comment"># q=%E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026&page=1</span>
+    </div>
+
+    <h3>Java</h3>
+    <div class="code-block">
+<span class="keyword">import</span> java.net.URLEncoder;
+<span class="keyword">import</span> java.net.URLDecoder;
+<span class="keyword">import</span> java.nio.charset.StandardCharsets;
+
+<span class="keyword">String</span> text = <span class="string">"北京&上海=2026"</span>;
+
+<span class="comment">// 编码</span>
+<span class="keyword">String</span> encoded = URLEncoder.<span class="func">encode</span>(text, StandardCharsets.UTF_8);
+<span class="comment">// %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+
+<span class="comment">// 解码</span>
+<span class="keyword">String</span> decoded = URLDecoder.<span class="func">decode</span>(encoded, StandardCharsets.UTF_8);
+
+<span class="comment">// 注意：Java 的 URLEncoder 会把空格编码成 +</span>
+<span class="comment">// 网络传输时 + 可能会被误解，要用 replace("+", "%20") 转换</span>
+    </div>
+
+    <h3>PHP</h3>
+    <div class="code-block">
+<span class="comment">// 编码</span>
+$encoded = <span class="func">rawurlencode</span>(<span class="string">'北京&上海=2026'</span>);
+<span class="comment">// %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+
+<span class="comment">// 解码</span>
+$decoded = <span class="func">rawurldecode</span>($encoded);
+
+<span class="comment">// 注意：PHP 有两个函数</span>
+<span class="comment">// rawurlencode() — 编码整个路径，RFC 3986 标准（空格编码为 %20）</span>
+<span class="comment">// urlencode()    — 编码查询参数，空格编码为 +（传统用法，已不推荐）</span>
+
+<span class="comment">// 推荐：查询参数用 rawurlencode()</span>
+    </div>
+
+    <h3>Go</h3>
+    <div class="code-block">
+<span class="keyword">import</span> (
+    <span class="string">"net/url"</span>
+)
+
+text := <span class="string">"北京&上海=2026"</span>
+
+<span class="comment">// 编码（QueryEscape 会编码 path 和 query 中的特殊字符）</span>
+encoded := url.<span class="func">QueryEscape</span>(text)
+<span class="comment">// %E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+
+<span class="comment">// 解码</span>
+decoded, _ := url.<span class="func">QueryUnescape</span>(encoded)
+
+<span class="comment">// 也可以用 url.Values 自动构建编码</span>
+params := url.Values{}
+params.<span class="func">Add</span>(<span class="string">"q"</span>, <span class="string">"北京&上海=2026"</span>)
+fullURL := <span class="string">"https://example.com/search?"</span> + params.<span class="func">Encode</span>()
+<span class="comment">// https://example.com/search?q=%E5%8C%97%E4%BA%AC%26%E4%B8%8A%E6%B5%B7%3D2026</span>
+    </div>
+
+    <!-- 总结 -->
+    <h2>📋 一句话总结</h2>
+
+    <div class="summary">
+        <table>
+            <tr>
+                <td>✅ <strong>查询参数值</strong></td>
+                <td><code>encodeURIComponent()</code></td>
+            </tr>
+            <tr>
+                <td>✅ <strong>URL 路径部分</strong></td>
+                <td><code>encodeURI()</code></td>
+            </tr>
+            <tr>
+                <td>✅ <strong>解码调试</strong></td>
+                <td>浏览器控制台 <code>decodeURIComponent()</code></td>
+            </tr>
+            <tr>
+                <td>⚠️ <strong>Double Encoding</strong></td>
+                <td>只在最后一刻编码，不要重复</td>
+            </tr>
+            <tr>
+                <td>⚠️ <strong>%E4%B8%AD%E6%96%87</strong></td>
+                <td>是"中文"的 UTF-8 编码，每 2 位 hex = 1 字节</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>URL 编码的坑大多数集中在「在错误的位置用了错误的方法」和「重复编码」这两个地方。记住：<strong>查询参数值用 encodeURIComponent，URL 路径用 encodeURI，只编码一次</strong>，基本就不会翻车。</p>
+
+    <!-- CTA -->
+    <div style="text-align:center; margin-top:40px; padding-top:32px; border-top: 1px solid #eee;">
+        <p style="font-size:16px; color:#555; margin-bottom:8px;">想快速验证你的 URL 编码/解码结果？</p>
+        <p style="font-size:14px; color:#888; margin-bottom:18px;">支持 URL Encode / Decode、特殊字符处理、中文自动识别</p>
+        <a class="cta" href="https://tools.xsanye.cn/tools/network/url-encode.html" target="_blank">🔧 打开 URL 编码工具</a>
+    </div>
+
+</div>
+</body>
+</html>

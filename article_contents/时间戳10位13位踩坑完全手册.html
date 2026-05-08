@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10位还是13位？时间戳踩坑完全手册</title>
+    <meta name="description" content="时间戳10位和13位有什么区别？JavaScript、Python、Java、Go各语言时间戳踩坑实录，附时区问题和2038年问题解决方案。">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: #fafafa; }
+        .article-header { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; margin-bottom: 30px; }
+        .article-header h1 { font-size: 2em; margin-bottom: 10px; }
+        .article-header .subtitle { opacity: 0.9; font-size: 1.1em; }
+        .article-header .date { margin-top: 10px; opacity: 0.7; font-size: 0.9em; }
+        h2 { font-size: 1.5em; color: #667eea; margin: 35px 0 15px; padding-left: 12px; border-left: 4px solid #667eea; }
+        h3 { font-size: 1.2em; color: #444; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; color: #555; font-size: 1.05em; }
+        .highlight-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .danger-box { background: #ffeaea; border-left: 4px solid #e74c3c; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .success-box { background: #eafaf1; border-left: 4px solid #27ae60; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .code-block { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; margin: 15px 0; overflow-x: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; line-height: 1.6; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .string { color: #ce9178; }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .number { color: #b5cea8; }
+        .lang-tab { display: flex; gap: 8px; margin: 20px 0 0; flex-wrap: wrap; }
+        .lang-tab button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 600; background: #e0e0e0; color: #555; transition: all 0.2s; }
+        .lang-tab button.active { background: #667eea; color: white; }
+        .code-panel { display: none; }
+        .code-panel.active { display: block; }
+        .footer-cta { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; margin-top: 40px; }
+        .footer-cta h2 { color: white; border: none; padding: 0; margin: 0 0 15px; font-size: 1.6em; }
+        .footer-cta a { display: inline-block; margin-top: 15px; padding: 14px 32px; background: white; color: #667eea; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 1.1em; transition: transform 0.2s; }
+        .footer-cta a:hover { transform: scale(1.05); }
+        .toc { background: white; border-radius: 8px; padding: 20px 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .toc h3 { margin-top: 0; }
+        .toc ol { padding-left: 20px; }
+        .toc li { margin-bottom: 6px; color: #667eea; }
+        .toc li a { color: #555; text-decoration: none; }
+        .toc li a:hover { color: #667eea; }
+        .tag { display: inline-block; background: #667eea; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8em; margin-right: 6px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="article-header">
+    <h1>「10位还是13位？」时间戳踩坑完全手册</h1>
+    <p class="subtitle">为什么你的时间总是差8小时？为什么2038年还有人踩坑？这篇讲透</p>
+    <p class="date">☘️ Clover · 2026-05-09</p>
+</div>
+
+<div class="toc">
+    <h3>📋 目录</h3>
+    <ol>
+        <li><a href="#scene">那个让我熬到凌晨3点的坑</a></li>
+        <li><a href="#diff">10位 vs 13位：到底什么区别</a></li>
+        <li><a href="#tz">时区问题：UTC时间戳转本地时间总是差8小时</a></li>
+        <li><a href="#bash">Bash date：精度居然不是你想的那样</a></li>
+        <li><a href="#lang">各语言踩坑实录</a></li>
+        <li><a href="#2038">2038年问题：你以为离你很远？</a></li>
+        <li><a href="#tool">在线工具推荐</a></li>
+    </ol>
+</div>
+
+<h2 id="scene">1. 那个让我熬到凌晨3点的坑</h2>
+
+<p>讲个真实的故事。</p>
+
+<p>去年做的一个用户行为分析系统，上线后客户反馈"数据时间总是不对，晚了8个小时"。我排查了半天，发现是后端用 Node.js 生成的时间戳传给前端，前端用 JavaScript 的 <code>Date</code> 解析，显示出来就差了8小时。</p>
+
+<p>然后我以为是时区问题，加了 <code>toLocaleString()</code> 里的时区参数。结果……还是差8小时。</p>
+
+<p>最后发现，前端那个13位时间戳是毫秒级，后端存的时候用的是秒级（乘了1000存的），解析的时候又除了一次1000，相当于除了两遍，多除了一次，就差了整整8小时——其实不是8小时，是 <code>3600000 × 8 = 28800000</code> 毫秒，差了整整9.6年。</p>
+
+<p>……我对着这个数字愣了10分钟。</p>
+
+<p>这不是时区问题，这是10位和13位混用导致的世纪级精度灾难。</p>
+
+<p class="highlight-box">💡 <strong>核心教训：</strong>时间戳的位数不仅仅是数字长短的问题，它是<strong>单位</strong>的问题（秒 vs 毫秒）。团队里第一个拿到时间戳处理逻辑的人，应该写一份文档，或者——用工具做标准化。</p>
+
+<h2 id="diff">2. 10位 vs 13位：到底什么区别</h2>
+
+<p>先搞清楚最基本的。</p>
+
+<p><strong>10位时间戳</strong>：单位是<strong>秒</strong>（second），从1970-01-01 00:00:00 UTC开始计算，到现在大概17亿多。写法：<code>1715260800</code></p>
+
+<p><strong>13位时间戳</strong>：单位是<strong>毫秒</strong>（millisecond），从1970-01-01 00:00:00 UTC开始计算，到现在大概1.7万亿。写法：<code>1715260800000</code></p>
+
+<p class="highlight-box">📐 换算关系：<code>13位 = 10位 × 1000</code>，反过来 <code>10位 = 13位 ÷ 1000</code></p>
+
+<p>注意，我说的是"大概"，因为精确的数值每次都不一样。但你记住这个关系就够了：13位就是10位后面加三个0（乘以1000）。</p>
+
+<p>那么问题来了——为什么会有两种标准？</p>
+
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li><strong>10位（秒）</strong>：UNIX原生标准，大多数后端语言默认（Python <code>time.time()</code>、PHP <code>time()</code>、Go <code>time.Now().Unix()</code>）</li>
+    <li><strong>13位（毫秒）</strong>：JavaScript原生标准，前端和移动端常用，以及某些HTTP API要求</li>
+</ul>
+
+<p>所以你经常遇到的场景是：后端给你一个10位时间戳，前端当13位处理，或者反过来——这就出事了。</p>
+
+<p>最烦的是，两种处理方式都不会报错。数字还是那个数字，只是差了1000倍。系统跑得好好的，只有当数据需要和时间对应的时候，才发现时间全是错的。</p>
+
+<h2 id="tz">3. 时区问题：UTC时间戳转本地时间总是差8小时</h2>
+
+<p>这个坑90%的人都踩过。</p>
+
+<p>你用服务器生成时间戳，是UTC时间。存到数据库没问题。但前端展示的时候，浏览器会把它当成你本地时区的时间来显示。</p>
+
+<p>中国是 <strong>UTC+8</strong>，所以你北京时间 <code>2026-05-09 08:00:00</code> 的时间戳，转成UTC就是 <code>2026-05-09 00:00:00</code>，差了正好8小时。</p>
+
+<p>但如果你在代码里这样写：</p>
+
+<div class="code-block">
+<span class="comment">// 错误示例：直接用时间戳创建Date</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC时间戳（秒）</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts); <span class="comment">// ❌ JS会把ts当毫秒处理，得到的日期完全错误</span>
+console.log(date.toString());
+<span class="comment">// 输出：Wed Jan 21 1970 04:21:00 GMT+0800 (CST)</span>
+<span class="comment">// 1970年1月！就因为单位搞错了！</span>
+</div>
+
+<p>JavaScript 的 <code>Date</code> 构造函数，当传入一个数字时，<strong>默认单位是毫秒</strong>。你传10位秒级时间戳，它会当成毫秒来处理，等于只过了几十万毫秒——1970年。</p>
+
+<p>所以正确写法是：</p>
+
+<div class="code-block">
+<span class="comment">// ✅ 正确：乘以1000转毫秒</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC时间戳（秒）</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts * <span class="number">1000</span>); <span class="comment">// 乘以1000转毫秒</span>
+console.log(date.toLocaleString(<span class="string">'zh-CN'</span>, { timeZone: <span class="string">'Asia/Shanghai'</span> }));
+<span class="comment">// 输出：2026/5/9 00:00:00（北京时间）</span>
+</div>
+
+<p class="danger-box">⚠️ <strong>血的教训：</strong>后端返回时间戳时，一定要在接口文档里写清楚是秒级还是毫秒级！不要假设对方会猜到！接口文档是契约，不是猜测游戏。</p>
+
+<h2 id="bash">4. Bash date：精度居然不是你想的那样</h2>
+
+<p>很多人用 <code>date</code> 命令生成时间戳，但你可能不知道——默认行为在不同系统上是不一样的。</p>
+
+<div class="code-block">
+<span class="comment"># Linux（GNU date）——默认秒级，加 %3N 得毫秒</span>
+date +<span class="string">%s</span>           <span class="comment"># 10位：1715260800</span>
+date +<span class="string">%s%3N</span>        <span class="comment"># 13位（取前13位）：1715260800123（实际输出可能不是这样）</span>
+date +<span class="string">%s%3N</span> | head -c <span class="number">13</span>  <span class="comment"># 截取13位：1715260800000（但实际上GNU date的%N是纳秒，不完全等于毫秒）</span>
+</div>
+
+<p>等等，<code>%N</code> 是纳秒（9位），不是毫秒（3位）。你截取前13位的话，得到的是"秒+纳秒前3位"，这和真正的13位毫秒时间戳不完全一样。</p>
+
+<div class="code-block">
+<span class="comment"># 真正精确的毫秒级时间戳（Linux）</span>
+date +<span class="string">%s%3N</span>        <span class="comment"># 输出例如：1715260800123（13位）</span>
+<span class="comment"># 但注意：某些精简版Linux没有%N支持</span>
+</div>
+
+<div class="code-block">
+<span class="comment"># macOS（BSD date）——根本没有 %N，需要自己算</span>
+date +<span class="string">%s</span>           <span class="comment"># 10位秒级时间戳</span>
+<span class="comment"># 想要毫秒？只能这样：</span>
+python3 -c <span class="string">"import time; print(int(time.time()*1000))"</span>
+<span class="comment"># 或者用perl：perl -MTime::HiRes -e 'printf "%d\n", Time::HiRes::time()*1000'</span>
+</div>
+
+<p class="danger-box">⚠️ <strong>跨平台坑：</strong>你在Mac上写的 <code>date +%s%3N</code> 脚本，丢到Linux服务器上跑，<code>%N</code> 可能不支持，或者行为完全不同。生产服务器尽量用Python/Node做时间操作，别依赖Shell的date命令。</p>
+
+<p>还有一个常见坑——时区。</p>
+
+<div class="code-block">
+<span class="comment"># 系统时区不同，date输出的时间也不同，但时间戳本身是一样的</span>
+TZ=Asia/Shanghai date +<span class="string">"%Y-%m-%d %H:%M:%S"</span>   <span class="comment"># 北京时间</span>
+TZ=UTC date +<span class="string">"%Y-%m-%d %H:%M:%S"</span>       <span class="comment"># UTC时间</span>
+<span class="comment"># 上面两条命令输出的数字时间部分差8小时，但 +%s 时间戳完全一样</span>
+</div>
+
+<h2 id="lang">5. 各语言踩坑实录</h2>
+
+<h3>🟡 JavaScript / TypeScript</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('js-ms')">毫秒（正确）</button>
+    <button onclick="showPanel('js-s')">秒级（错误）</button>
+</div>
+
+<div id="js-ms" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ 获取当前时间戳（毫秒）</span>
+<span class="keyword">const</span> now = Date.now();           <span class="comment">// 1715260800000</span>
+<span class="keyword">const</span> now2 = <span class="keyword">new</span> Date().getTime();  <span class="comment">// 同上</span>
+
+<span class="comment">// ✅ 秒转毫秒（服务器返回秒级时间戳时）</span>
+<span class="keyword">const</span> serverTs = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC秒级时间戳</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(serverTs * <span class="number">1000</span>);  <span class="comment">// ✅ 乘1000转毫秒</span>
+
+<span class="comment">// ✅ 毫秒转秒（发给后端时）</span>
+<span class="keyword">const</span> tsForBackend = Math.floor(Date.now() / <span class="number">1000</span>);  <span class="comment">// 10位秒级</span>
+</div>
+</div>
+
+<div id="js-s" class="code-panel">
+<div class="code-block"><span class="comment">// ❌ 错误做法：直接把秒级时间戳给Date</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>;
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts);  <span class="comment">// JS默认单位是毫秒！</span>
+<span class="comment">// 结果：得到1970年的某个时间</span>
+
+<span class="comment">// ❌ 另一个错误：用 valueOf()</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(<span class="number">1715260800</span> * <span class="number">1000</span>);  <span class="comment">// 这才对，但别忘了乘1000</span>
+</div>
+</div>
+
+<h3>🐍 Python</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('py-correct')">常用方法</button>
+    <button onclick="showPanel('py-ms')">毫秒级</button>
+</div>
+
+<div id="py-correct" class="code-panel active">
+<div class="code-block"><span class="comment"># ✅ 获取当前时间戳（秒，float）</span>
+<span class="keyword">import</span> time
+ts = time.time()           <span class="comment"># 1715260800.123（float，包含小数）</span>
+
+<span class="comment"># ✅ 整数秒级时间戳</span>
+ts_int = <span class="keyword">int</span>(time.time())     <span class="comment"># 1715260800（10位）</span>
+
+<span class="comment"># ✅ 时间戳转datetime（UTC转本地，自动处理时区）</span>
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timezone
+dt = datetime.fromtimestamp(ts, tz=timezone.utc)  <span class="comment"># UTC时间</span>
+dt_local = datetime.fromtimestamp(ts)             <span class="comment"># 本地时间（自动用系统时区）</span>
+
+<span class="comment"># ⚠️ 注意：如果没有时区信息，fromtimestamp会假设时间已是本地时间</span>
+<span class="comment"># 这在夏令时切换时可能出bug——建议始终用timezone.utc</span>
+</div>
+</div>
+
+<div id="py-ms" class="code-panel">
+<div class="code-block"><span class="comment"># ✅ 获取毫秒级时间戳</span>
+<span class="keyword">import</span> time
+ts_ms = <span class="keyword">int</span>(time.time() * <span class="number">1000</span>)  <span class="comment"># 1715260800000（13位）</span>
+
+<span class="comment"># ✅ 毫秒转datetime</span>
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timezone
+ts_ms = <span class="number">1715260800000</span>
+dt = datetime.fromtimestamp(ts_ms / <span class="number">1000</span>, tz=timezone.utc)
+</div>
+</div>
+
+<h3>☕ Java</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('java-correct')">常用方法</button>
+    <button onclick="showPanel('java-old')">旧版API</button>
+</div>
+
+<div id="java-correct" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ Java 8+ 的正确做法</span>
+<span class="keyword">import</span> java.time.*;
+<span class="keyword">import</span> java.time.format.DateTimeFormatter;
+
+<span class="comment">// 当前毫秒时间戳</span>
+<span class="keyword">long</span> tsMs = System.currentTimeMillis();  <span class="comment">// 1715260800000</span>
+
+<span class="comment">// 当前秒时间戳</span>
+<span class="keyword">long</span> ts = Instant.now().getEpochSecond();  <span class="comment">// 1715260800</span>
+
+<span class="comment">// 毫秒时间戳转LocalDateTime（UTC转本地）</span>
+LocalDateTime ldt = LocalDateTime.ofInstant(
+    Instant.ofEpochMilli(tsMs),
+    ZoneId.systemDefault()  <span class="comment">// 自动用系统时区</span>
+);
+
+<span class="comment">// 格式化输出</span>
+DateTimeFormatter fmt = DateTimeFormatter.ofPattern(<span class="string">"yyyy-MM-dd HH:mm:ss"</span>);
+System.out.println(ldt.format(fmt));  <span class="comment">// 2026-05-09 00:00:00</span>
+</div>
+</div>
+
+<div id="java-old" class="code-panel">
+<div class="code-block"><span class="comment">// ⚠️ Java 7 及之前的坑爹做法（知道就行，别用）</span>
+<span class="comment">// Date.getTime() 返回毫秒</span>
+<span class="keyword">long</span> tsMs = <span class="keyword">new</span> Date().getTime();  <span class="comment">// 毫秒时间戳</span>
+
+<span class="comment">// ❌ 易错：直接 new Date(long) 时，参数是毫秒，不是秒</span>
+<span class="comment">// Date.setTime(long) 也是毫秒</span>
+<span class="comment">// 但很多旧代码把秒级时间戳直接传给 Date，会出1970年问题</span>
+</div>
+</div>
+
+<h3>🐹 Go</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('go-correct')">常用方法</button>
+    <button onclick="showPanel('go-ms')">毫秒级</button>
+</div>
+
+<div id="go-correct" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ 秒级时间戳（Unix内置）</span>
+ts := time.Now().Unix()  <span class="comment">// int64: 1715260800</span>
+
+<span class="comment">// ✅ 时间戳转时间（自动UTC转本地）</span>
+t := time.Unix(ts, <span class="number">0</span>)  <span class="comment">// time.Time（本地时区）</span>
+fmt.Println(t.Format(<span class="string">"2006-01-02 15:04:05"</span>))  <span class="comment">// 2026-05-09 00:00:00</span>
+
+<span class="comment">// ✅ 指定UTC时区</span>
+utc := time.Unix(ts, <span class="number">0</span>).In(time.UTC)
+fmt.Println(utc.Format(<span class="string">"2006-01-02 15:04:05"</span>))  <span class="comment">// 2026-05-09 00:00:00（UTC，数字不变但输出差8小时）</span>
+</div>
+</div>
+
+<div id="go-ms" class="code-panel">
+<div class="code-block"><span class="comment">// ✅ 毫秒级时间戳（需要手动算）</span>
+tsMs := time.Now().UnixNano() / <span class="number">1e6</span>  <span class="comment">// int64: 1715260800000</span>
+
+<span class="comment">// ✅ 毫秒时间戳转时间（注意参数是纳秒，第二个位置）</span>
+t := time.Unix(<span class="number">0</span>, tsMs*<span class="number">1e6</span>)  <span class="comment">// 毫秒转纳秒</span>
+
+<span class="comment">// ⚠️ 易错：time.Unix(秒, 纳秒) 的第二个参数是纳秒，不是毫秒</span>
+<span class="comment">// 写成 毫秒 就会差1000倍：time.Unix(0, tsMs) ❌ 错误！</span>
+<span class="comment">// 正确：time.Unix(0, tsMs*1e6) ✅</span>
+</div>
+</div>
+
+<h2 id="2038">6. 2038年问题：你以为离你很远？</h2>
+
+<p>2038年问题（Y2038 Bug）和经典的2000年问题齐名，但知道的人少得多。</p>
+
+<p>问题的根源是：<strong>32位系统的有符号整数（int32）最大值是 2147483647，即 2^31 - 1</strong>。如果用这个整数存储秒级时间戳，能表示的最大时间是：</p>
+
+<div class="code-block">
+<span class="comment"># 2038-01-19 03:14:07 UTC</span>
+<span class="keyword">const</span> max32 = <span class="number">2147483647</span>;
+<span class="keyword">const</span> maxDate = <span class="keyword">new</span> Date(max32 * <span class="number">1000</span>);
+console.log(maxDate.toString());
+<span class="comment">// 输出：Tue Jan 19 2038 11:14:07 GMT+0800 (CST)</span>
+<span class="comment">// （本地时间比UTC快8小时）</span>
+</div>
+
+<p>过了这个时间，32位系统会整数溢出，变成负数，日期会跳到 <strong>1901-12-13</strong>（或者更早）。</p>
+
+<p class="danger-box">🚨 <strong>谁会中招：</strong></p>
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li>用 <code>int32</code> 存储时间戳的老系统（很多嵌入式设备和传统数据库）</li>
+    <li>32位Linux/Unix服务器（虽然新服务器基本都是64位了，但Docker容器里可能跑着32位镜像）</li>
+    <li>某些编程语言的旧版时间库（PHP的 <code>DateTime</code> 在32位系统上就有这个问题）</li>
+</ul>
+
+<p class="success-box">✅ <strong>怎么避免：</strong></p>
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li>用 <code>int64</code>（64位整数）存储时间戳，这是现代系统的标准做法</li>
+    <li>避免用32位系统跑生产服务，2026年了，应该没有理由还用32位服务器了</li>
+    <li>数据库里时间字段用 <code>DATETIME</code> 或 <code>TIMESTAMP</code>，不要用整数存时间戳</li>
+    <li>如果你在做跨系统集成，确保对方系统用的是64位时间戳</li>
+</ul>
+
+<p>好消息是，13位毫秒时间戳的最大值是 <code>9,223,372,036,854,775,807</code>（2^63-1），对应大约 <strong>292,278,994年</strong>——所以只要你用毫秒级的64位时间戳，暂时不用担心2038年问题。</p>
+
+<h2 id="tool">7. 在线工具推荐</h2>
+
+<p>说了这么多，最实用的还是——别自己算，用工具。</p>
+
+<p>你可能在各种时间戳转换网站之间来回切换，有时候复制错了，有时候格式不对。我整理了一个在线工具，功能全，支持10位/13位互转，支持时区切换：</p>
+
+<div class="footer-cta">
+    <h2>🛠️ 时间戳在线转换工具</h2>
+    <p style="opacity:0.9; margin-bottom:5px;">支持秒↔毫秒互转 · 实时显示 · 时区切换</p>
+    <a href="https://tools.xsanye.cn/tools/time/timestamp.html" target="_blank">👉 立即使用 tools.xsanye.cn</a>
+</div>
+
+<p style="margin-top:20px; text-align:center; color:#888; font-size:0.9em;">如果你觉得这篇文章有用，欢迎收藏。需要批量转换也可以用这个工具搞定。</p>
+
+<script>
+function showPanel(id) {
+    document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.lang-tab button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.lang-tab button').forEach(b => {
+        if (b.getAttribute('onclick').includes(id)) b.classList.add('active');
+    });
+}
+</script>
+
+</body>
+</html>

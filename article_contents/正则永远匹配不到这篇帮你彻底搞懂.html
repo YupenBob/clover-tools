@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="正则表达式匹配总是失败？本文通过5个真实案例，帮你彻底搞懂正则匹配失败的常见坑点，附JavaScript修复代码。">
+  <meta name="keywords" content="正则表达式,正则匹配失败,JavaScript正则,正则陷阱,.不匹配换行,字符类,量词优先级,捕获组">
+  <title>为什么你的正则永远匹配不到？5个真实案例帮你彻底搞懂</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f8f9fa; color: #222; line-height: 1.8; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 2em; font-weight: 900; color: #111; margin-bottom: 16px; line-height: 1.3; }
+    .subtitle { font-size: 1.1em; color: #666; margin-bottom: 40px; }
+    .tag-row { margin-bottom: 36px; }
+    .tag { display: inline-block; background: #e9f0ff; color: #3b5bdb; font-size: 0.82em; padding: 3px 10px; border-radius: 20px; margin-right: 6px; font-weight: 600; }
+    h2 { font-size: 1.4em; color: #111; margin: 48px 0 16px; border-left: 4px solid #3b5bdb; padding-left: 12px; }
+    h3 { font-size: 1.15em; color: #333; margin: 28px 0 12px; }
+    p { margin: 12px 0; color: #333; }
+    .lead { font-size: 1.05em; color: #444; border-left: 3px solid #ccc; padding-left: 16px; margin: 24px 0; }
+    .code-block { background: #1e1e1e; border-radius: 8px; padding: 20px 24px; margin: 16px 0; overflow-x: auto; position: relative; }
+    .code-block .label { position: absolute; top: 12px; right: 14px; font-size: 0.72em; color: #888; }
+    .code-block pre { color: #d4d4d4; font-family: "Cascadia Code", "Fira Code", "Consolas", monospace; font-size: 0.88em; line-height: 1.7; white-space: pre; }
+    .code-block .comment { color: #6a9955; }
+    .code-block .string { color: #ce9178; }
+    .code-block .keyword { color: #569cd6; }
+    .code-block .func { color: #dcdcaa; }
+    .code-block .number { color: #b5cea8; }
+    .case-box { background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 24px 28px; margin: 20px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .case-box h3 { color: #d63331; margin-top: 0; }
+    .wrong-label { background: #ffe0e0; color: #d63331; font-size: 0.78em; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 8px; display: inline-block; margin-bottom: 10px; }
+    .right-label { background: #e0f4e8; color: #2b8a3e; font-size: 0.78em; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-right: 8px; display: inline-block; margin-bottom: 10px; }
+    .summary-box { background: linear-gradient(135deg, #f0f4ff, #fdf0ff); border: 1px solid #d0dfff; border-radius: 12px; padding: 24px 28px; margin: 32px 0 24px; }
+    .summary-box h3 { color: #3b5bdb; margin-top: 0; }
+    .summary-box ul { padding-left: 22px; margin: 8px 0; }
+    .summary-box li { margin: 6px 0; }
+    .cta { background: linear-gradient(135deg, #3b5bdb, #6a4df5); color: #fff; border-radius: 10px; padding: 28px 32px; text-align: center; margin: 40px 0 20px; }
+    .cta h3 { color: #fff; font-size: 1.2em; margin-bottom: 8px; }
+    .cta p { color: rgba(255,255,255,0.85); font-size: 0.95em; }
+    .cta a { color: #fff; text-decoration: none; font-weight: 700; border-bottom: 2px solid rgba(255,255,255,0.5); }
+    .cta a:hover { border-color: #fff; }
+    .intro-text { font-size: 1.08em; color: #555; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<h1>为什么你的正则永远匹配不到？<br>5个真实案例帮你彻底搞懂</h1>
+<p class="subtitle">翻遍了 Stack Overflow 还是解决不了？别慌，老司机带你一个坑一个坑踩过去。</p>
+
+<div class="tag-row">
+  <span class="tag">正则表达式</span>
+  <span class="tag">JavaScript</span>
+  <span class="tag">匹配失败</span>
+  <span class="tag">SEO</span>
+  <span class="tag">实用教程</span>
+</div>
+
+<p class="intro-text">正则表达式这玩意儿，说简单也简单，说坑能坑你三天。我见过太多人拿着一个正则写半天，结果匹配不到想要的东西，左调右调还是不对——最后发现是踩了某个根本没想到的坑。</p>
+<p class="intro-text">今天这篇，不跟你讲什么"正则入门"、"正则三要素"那些教科书废话。我直接给你看<strong>5个真实匹配失败场景</strong>，每个场景先还原你的错误写法，再告诉你根因在哪，最后给你修复代码。看完这篇，你至少能绕过80%的正则坑。</p>
+
+<h2>场景一：<code>.</code> 不匹配换行 — 你以为"."能匹配一切？</h2>
+
+<div class="case-box">
+<h3>你的代码：</h3>
+<div class="code-block">
+<span class="label">❌ 错误写法</span>
+<pre><span class="keyword">const</span> text = <span class="string">`第一行内容
+第二行内容`</span>;
+<span class="keyword">const</span> result = text.<span class="func">match</span>(<span class="string">/开始.结束/</span>);
+console.<span class="func">log</span>(result); <span class="comment">// null！根本匹配不到</span></pre>
+</div>
+
+<p>你写的正则 <code>/开始.结束/</code>，意图是匹配"开始"和"结束"之间的任意字符。结果 <code>null</code>，百思不得其解。</p>
+
+<h3>根因：</h3>
+<p>在正则表达式里，<code>.</code>（点号）默认情况下<strong>不匹配换行符</strong> <code>\n</code>、<code>\r</code> 等字符。它匹配的是"除换行符以外的任意字符"。</p>
+<p>你的文本里，"开始"和"结束"分布在两行，中间隔着换行符，<code>.</code> 根本跨不过去。</p>
+
+<h3>修复代码：</h3>
+<div class="code-block">
+<span class="label">✅ 正确写法</span>
+<pre><span class="comment">// 方案1：用 [\s\S] 匹配任意字符（包括换行）</span>
+<span class="keyword">const</span> result1 = text.<span class="func">match</span>(<span class="string">/开始[\s\S]*?结束/</span>);
+console.<span class="func">log</span>(result1); <span class="comment">// ["第一行内容\n第二行内容"]</span>
+
+<span class="comment">// 方案2：用 s 标志（dotAll 模式），让 . 匹配换行</span>
+<span class="keyword">const</span> result2 = text.<span class="func">match</span>(<span class="string">/开始.结束/s</span>);
+console.<span class="func">log</span>(result2); <span class="comment">// ["第一行内容\n第二行内容"]</span></pre>
+</div>
+
+<p><strong>记住：</strong>在 JavaScript 里，<code>.</code> 默认不匹配换行符。跨行匹配请用 <code>[\s\S]</code> 或加 <code>s</code> 标志。</p>
+</div>
+
+<h2>场景二：字符类写反 — <code>[^abc]</code> 不是"不包含abc"这么简单</h2>
+
+<div class="case-box">
+<h3>你的代码：</h3>
+<div class="code-block">
+<span class="label">❌ 错误写法</span>
+<pre><span class="comment">// 意图：匹配不包含 "error" 的日志行</span>
+<span class="keyword">const</span> logs = [<span class="string">"[INFO] 启动完成"</span>, <span class="string">"[ERROR] 连接失败"</span>, <span class="string">"[DEBUG] 重试中"</span>];
+<span class="keyword">const</span> clean = logs.<span class="func">filter</span>(log => !/<span class="string">\[^error\]</span>/.<span class="func">test</span>(log));
+console.<span class="func">log</span>(clean); <span class="comment">// 结果：[DEBUG] 重试中 — [INFO] 启动完成 竟然也被过滤了！</span></pre>
+</div>
+
+<p>你想过滤掉包含 error 的日志，结果连正常的 INFO 日志都没了。</p>
+
+<h3>根因：</h3>
+<p><code>[^error]</code> 不是一个整体，它是两个东西：<code>[^...]</code> 是"字符类取反"，意思是"匹配任何一个不在括号里的字符"。<code>error</code> 拆开来，是 <code>e</code>、<code>r</code>、<code>o</code>、<code>r</code> 四个独立字符。</p>
+<p>所以 <code>[^error]</code> 实际意思是：<strong>匹配任何一个不是 e、r、o 的字符</strong>。注意，<code>[^error]</code> 里的 <code>r</code> 出现了两次——重复的字符不会重复排除，结果就是"排除 e、o、r 三个字符"。</p>
+<p>于是 <code>[INFO]</code> 里的 <code>I</code> 不在排除列表里，应该通过测试？等等——等等，<code>[^error]</code> 匹配的是"任意单个不在列表的字符"，而不是"整个字符串不包含列表中的字符"！这两者根本不是一回事。</p>
+<p>来看看实际发生了什么：</p>
+<div class="code-block">
+<span class="label">调试过程</span>
+<pre><span class="comment">// [^error] 在正则里展开为 [^eor]，匹配任意单个字符只要不是 e/o/r</span>
+<span class="comment">// "[ERROR]" 里有 O（大写），不是 e/o/r，所以 [^error] 能匹配成功！</span>
+console.<span class="func">log</span>(/<span class="string">\[^error\]</span>/.<span class="func">test</span>(<span class="string">"[ERROR]"</span>)); <span class="comment">// true — 匹配到了 O（因为大写 O 不在 eo r 列表里）</span>
+console.<span class="func">log</span>(/<span class="string">\[^error\]</span>/.<span class="func">test</span>(<span class="string">"[INFO]"</span>));  <span class="comment">// true — 匹配到了 I（大写）</span></pre>
+</div>
+
+<h3>修复代码：</h3>
+<div class="code-block">
+<span class="label">✅ 正确写法</span>
+<pre><span class="comment">// 方案1：负向前瞻，断言"后面不跟着 error"</span>
+<span class="keyword">const</span> clean = logs.<span class="func">filter</span>(log => !/(?!.*error)/.<span class="func">test</span>(log));
+<span class="comment">// (?!) 是负向前瞻，(?=) 是正向前瞻</span>
+<span class="comment">// (?!) 不消耗字符，只判断后面的字符串是否匹配模式</span>
+
+<span class="comment">// 方案2：明确写"不包含 error 的行"</span>
+<span class="keyword">const</span> clean2 = logs.<span class="func">filter</span>(log => !<span class="string">/error/</span>.<span class="func">test</span>(log));
+console.<span class="func">log</span>(clean2); <span class="comment">// ["[INFO] 启动完成", "[DEBUG] 重试中"]</span>
+
+<span class="comment">// 方案3：区分大小写，要忽略大小写就加 i 标志</span>
+<span class="keyword">const</span> clean3 = logs.<span class="func">filter</span>(log => !<span class="string">/error/i</span>.<span class="func">test</span>(log));
+console.<span class="func">log</span>(clean3); <span class="comment">// 同样得到干净日志</span></pre>
+</div>
+
+<p><strong>记住：</strong><code>[^abc]</code> 是"字符级取反"，匹配单个不在列表的字符，不是"整个字符串不含列表"的布尔判断。想做"不包含"判断，用负向前瞻 <code>(?!pattern)</code>。</p>
+</div>
+
+<h2>场景三：量词优先级 — <code>+</code> 和 <code>*</code> 比你想的贪心</h2>
+
+<div class="case-box">
+<h3>你的代码：</h3>
+<div class="code-block">
+<span class="label">❌ 错误写法</span>
+<pre><span class="comment">// 意图：匹配 HTML 标签及其内容，比如 &lt;div&gt;...&lt;/div&gt;</span>
+<span class="keyword">const</span> html = <span class="string">"&lt;div&gt;第一块&lt;/div&gt;&lt;div&gt;第二块&lt;/div&gt;"</span>;
+<span class="keyword">const</span> match = html.<span class="func">match</span>(<span class="string">/&lt;div&gt;.+&lt;\/div&gt;/</span>);
+console.<span class="func">log</span>(match); <span class="comment">// ["&lt;div&gt;第一块&lt;/div&gt;&lt;div&gt;第二块&lt;/div&gt;"]
+整个字符串被当成了一对标签！</span></pre>
+</div>
+
+<p>你本想匹配单独的 div 块，结果 <code>+</code> 把中间所有内容都吞了，从第一个 <code>&lt;div&gt;</code> 一路吃到最后一个 <code>&lt;/div&gt;</code>。</p>
+
+<h3>根因：</h3>
+<p><code>+</code> 是贪婪量词，它会尽可能多地匹配。在正则引擎看来，<code>&lt;div&gt;.+&lt;/div&gt;</code> 里，<code>.</code> 可以匹配任何字符，<code>+</code> 让它吃到底——直到找到字符串里最后一个 <code>&lt;/div&gt;</code> 为止。这叫"贪婪匹配（greedy）"。</p>
+<p>而你在写正则的时候，隐式地以为 <code>&lt;div&gt;</code> 和 <code>&lt;/div&gt;</code> 是配对的，实际上 <code>.</code> 根本不认识标签，它只认识字符。</p>
+
+<h3>修复代码：</h3>
+<div class="code-block">
+<span class="label">✅ 正确写法</span>
+<pre><span class="comment">// 方案1：改用非贪婪（lazy）量词 +?，让匹配尽可能少</span>
+<span class="keyword">const</span> match1 = html.<span class="func">match</span>(<span class="string">/&lt;div&gt;.+?&lt;\/div&gt;/</span>);
+console.<span class="func">log</span>(match1); <span class="comment">// ["&lt;div&gt;第一块&lt;/div&gt;"] — 只匹配到第一个</span>
+
+<span class="comment">// 方案2：如果要匹配所有 div，用 matchAll 或 g 标志</span>
+<span class="keyword">const</span> matches = [...html.<span class="func">matchAll</span>(<span class="string">/&lt;div&gt;(.+?)&lt;\/div&gt;/g</span>)];
+console.<span class="func">log</span>(matches.<span class="func">map</span>(m => m[<span class="number">1</span>])); <span class="comment">// ["第一块", "第二块"]</span>
+
+<span class="comment">// 方案3：用 [^&gt;]+ 而非 . 匹配标签内不含 > 的内容</span>
+<span class="keyword">const</span> match2 = html.<span class="func">match</span>(<span class="string">/&lt;div&gt;[^&gt;]+&lt;\/div&gt;/</span>);
+console.<span class="func">log</span>(match2); <span class="comment">// ["&lt;div&gt;第一块&lt;/div&gt;"]</span></pre>
+</div>
+
+<p><strong>记住：</strong>贪婪量词（<code>+</code>、<code>*</code>、<code>{n,}</code>）会尽可能多匹配，非贪婪量词（<code>+?</code>、<code>*?</code>）则相反。如果你要精确匹配标签内容，用非贪婪或字符类 <code>[^&gt;]</code> 限制范围。</p>
+</div>
+
+<h2>场景四：捕获组编号 — 第3个括号到底是谁？</h2>
+
+<div class="case-box">
+<h3>你的代码：</h3>
+<div class="code-block">
+<span class="label">❌ 错误写法</span>
+<pre><span class="comment">// 用 replace 交换两个词的位置，期望 "John Doe" → "Doe John"</span>
+<span class="keyword">const</span> name = <span class="string">"John Doe"</span>;
+<span class="keyword">const</span> result = name.<span class="func">replace</span>(<span class="string">/(\w+) (\w+)/</span>, <span class="string">"$2 $1"</span>);
+console.<span class="func">log</span>(result); <span class="comment">// "Doe John" — 看起来正常？等等！</span>
+
+<span class="comment">// 复杂一点的场景：</span>
+<span class="keyword">const</span> log = <span class="string">"[2024-01-15] [ERROR] 服务挂了，原因：超时"</span>;
+<span class="comment">// 意图：提取日期、级别、消息，但只想保留级别和消息</span>
+<span class="keyword">const</span> parsed = log.<span class="func">replace</span>(<span class="string">/\[(\d{4}-\d{2}-\d{2})\] \[(\w+)\] (.+)/</span>, <span class="string">"[$2] $3"</span>);
+console.<span class="func">log</span>(parsed); <span class="comment">// "[ERROR] 服务挂了，原因：超时" — 正常</span>
+
+<span class="comment">// 但当你嵌套了分组之后呢？</span>
+<span class="keyword">const</span> path = <span class="string">"/api/users/123/profile"</span>;
+<span class="comment">// 意图：提取 /api 和 /users/123/profile</span>
+<span class="keyword">const</span> result2 = path.<span class="func">replace</span>(<span class="string">/(\/(api|admin))(\/.*)/</span>, <span class="string">"prefix=$1, rest=$3"</span>);
+console.<span class="func">log</span>(result2);
+<span class="comment">// prefix=/api, rest=/users/123/profile — 但 $1 是 /api，不是 "api"！</span></pre>
+</div>
+
+<p>捕获组的编号规则不是你想的"第几个括号就是第几号"，当有嵌套括号时，编号按左括号"出现顺序"决定，而不是你想象的位置。</p>
+
+<h3>根因：</h3>
+<p>在 <code>/(\/(api|admin))(\/.*)/</code> 里：</p>
+<ul>
+<li>第一个左括号 <code>(</code> 包围 <code>\/(api|admin)</code> → 组1，匹配到 <code>/api</code></li>
+<li>第二个左括号 <code>(</code> 包围 <code>api|admin</code> → 组2，匹配到 <code>api</code></li>
+<li>第三个左括号 <code>(</code> 包围 <code>\/.*</code> → 组3，匹配到 <code>/users/123/profile</code></li>
+</ul>
+<p>所以 <code>$1</code> 是 <code>/api</code>，<code>$2</code> 是 <code>api</code>，<code>$3</code> 是 <code>/users/123/profile</code>。如果你想要 <code>api</code> 而不是 <code>/api</code>，用 <code>$2</code> 而不是 <code>$1</code>。</p>
+
+<h3>修复代码：</h3>
+<div class="code-block">
+<span class="label">✅ 正确写法</span>
+<pre><span class="comment">// 方案1：把不需要捕获的括号改成非捕获组 (?:...)</span>
+<span class="keyword">const</span> result = path.<span class="func">replace</span>(<span class="string">/(?:\/(?:api|admin))(\/.*)/</span>, <span class="string">"prefix=api, rest=$1"</span>);
+console.<span class="func">log</span>(result); <span class="comment">// prefix=api, rest=/users/123/profile</span>
+
+<span class="comment">// 方案2：明确知道编号，用命名捕获组更安全</span>
+<span class="keyword">const</span> result2 = path.<span class="func">replace</span>(<span class="string">/(?&lt;prefix>\/(api|admin))(?&lt;rest>\/.*)/</span>, <span class="string">"prefix=$&lt;prefix>, rest=$&lt;rest>"</span>);
+console.<span class="func">log</span>(result2); <span class="comment">// prefix=/api, rest=/users/123/profile</span>
+
+<span class="comment">// 方案3：用描述性变量名配合 exec，避免 $1 $2 的混乱</span>
+<span class="keyword">const</span> re = <span class="string">/(?&lt;year>\d{4})-(?&lt;month>\d{2})-(?&lt;day>\d{2})/</span>;
+<span class="keyword">const</span> m = <span class="string">"2024-05-20"</span>.<span class="func">match</span>(re);
+<span class="keyword">if</span> (m) {
+  console.<span class="func">log</span>(<span class="string">`年: <span class="keyword">${</span>m.groups.year<span class="keyword">}</span>, 月: <span class="keyword">${</span>m.groups.month<span class="keyword">}</span>, 日: <span class="keyword">${</span>m.groups.day<span class="keyword">}</span>`</span>);
+  <span class="comment">// 年: 2024, 月: 05, 日: 20</span>
+}</pre>
+</div>
+
+<p><strong>记住：</strong>捕获组按"左括号出现顺序"编号，从1开始。有嵌套时最外层先编号，内部后编号。想只分组不要捕获，用 <code>(?:...)</code> 非捕获组。想要清晰，用 <code>(?&lt;name>...)</code> 命名捕获组。</p>
+</div>
+
+<h2>场景五：动态正则转义 — 用户输入不是你想的那么简单</h2>
+
+<div class="case-box">
+<h3>你的代码：</h3>
+<div class="code-block">
+<span class="label">❌ 错误写法</span>
+<pre><span class="comment">// 用户搜索功能，按用户输入的关键词高亮匹配</span>
+<span class="keyword">const</span> userInput = <span class="string">"C++"</span>; <span class="comment">// 用户想搜索 C++</span>
+<span class="keyword">const</span> pattern = <span class="string">new RegExp</span>(userInput, <span class="string">'i'</span>);
+<span class="keyword">const</span> text = <span class="string">"C++ 是最好的语言"</span>;
+console.<span class="func">log</span>(pattern.<span class="func">test</span>(text)); <span class="comment">// 报错！RegExp 不合法的正则表达式</span>
+
+<span class="comment">// 再试一个：</span>
+<span class="keyword">const</span> userInput2 = <span class="string">"[example]"</span>; <span class="comment">// 用户想搜索方括号</span>
+<span class="keyword">const</span> pattern2 = <span class="string">new RegExp</span>(userInput2, <span class="string">'i'</span>);
+console.<span class="func">log</span>(pattern2.<span class="func">test</span>(<span class="string">"[example]"</span>)); <span class="comment">// 报错！方括号在正则里是字符类语法</span></pre>
+</div>
+
+<p>当用户输入包含正则特殊字符（如 <code>.*+?^${}|\[]()</code>）时，直接拿去构造正则，轻则匹配失败，重则直接报错。</p>
+
+<h3>根因：</h3>
+<p>在正则表达式里，元字符是有特殊含义的。用户输入的 <code>C++</code> 里的 <code>+</code> 是"量词"，表示"前面的字符出现一次或多次"，两个加号连在一起让正则引擎懵了。<code>[example]</code> 里的方括号是"字符类"的开始和结束，单独的 <code>]</code> 会让解析直接报错。</p>
+
+<h3>修复代码：</h3>
+<div class="code-block">
+<span class="label">✅ 正确写法</span>
+<pre><span class="comment">// 写一个转义函数，把正则元字符全部转义</span>
+<span class="keyword">function</span> <span class="func">escapeRegExp</span>(string) {
+  <span class="keyword">return</span> string.<span class="func">replace</span>(<span class="string">/[.*+?^${}()|[\]\\]/g</span>, <span class="string">'\\$&amp;'</span>);
+  <span class="comment">// $&amp; 表示匹配到的整个字符串，前面加 \\\\ 转义</span>
+}
+
+<span class="comment">// 安全构造正则</span>
+<span class="keyword">const</span> safePattern = <span class="string">new RegExp</span>(<span class="func">escapeRegExp</span>(userInput), <span class="string">'i'</span>);
+console.<span class="func">log</span>(safePattern.<span class="func">test</span>(text)); <span class="comment">// true</span>
+
+<span class="comment">// 完整搜索高亮示例</span>
+<span class="keyword">function</span> <span class="func">highlight</span>(text, keyword) {
+  <span class="keyword">const</span> escaped = <span class="func">escapeRegExp</span>(keyword);
+  <span class="keyword">const</span> regex = <span class="string">new RegExp</span>(escaped, <span class="string">'gi'</span>);
+  <span class="keyword">return</span> text.<span class="func">replace</span>(regex, match => <span class="string">`&lt;mark&gt;<span class="keyword">${</span>match<span class="keyword">}</span>&lt;/mark&gt;`</span>);
+}
+console.<span class="func">log</span>(<span class="func">highlight</span>(<span class="string">"C++ 是最好的语言，C++ 也是最流行的语言"</span>, <span class="string">"C++"</span>));
+<span class="comment">// "&lt;mark&gt;C++&lt;/mark&gt; 是最好的语言，&lt;mark&gt;C++&lt;/mark&gt; 也是最流行的语言"</span></pre>
+</div>
+
+<p><strong>记住：</strong>动态构建正则之前，必须转义正则元字符。JavaScript 没有内置的转义函数，需要自己写或用 lodash 的 <code>escapeRegExp</code>。这是搜索功能、过滤器、模板替换的必备步骤。</p>
+</div>
+
+<div class="summary-box">
+<h3>📋 五大坑点总结</h3>
+<ul>
+<li><strong><code>.</code> 不匹配换行</strong>：跨行匹配用 <code>[\s\S]</code> 或加 <code>s</code> 标志</li>
+<li><strong>字符类写反</strong>：<code>[^abc]</code> 是"单个字符不在列表"，不是"字符串不包含"的判断</li>
+<li><strong>量词贪心</strong>：<code>+</code> 和 <code>*</code> 默认贪婪，非贪婪加 <code>?</code></li>
+<li><strong>捕获组编号</strong>：按左括号顺序编号，嵌套括号用 <code>(?:)</code> 或命名组 <code>(?&lt;name>)</code></li>
+<li><strong>动态正则转义</strong>：用户输入必须先转义元字符，否则报错或匹配错误</li>
+</ul>
+</div>
+
+<div class="cta">
+  <h3>🔧 说了这么多，不如动手试试</h3>
+  <p>去我的 <a href="https://tools.xsanye.cn/tools/code/regex-tester.html" target="_blank">正则表达式在线测试工具</a>，把上面的案例代码粘贴进去跑一跑，亲自感受一下每个坑是怎么踩的、怎么爬出来的。边改边试，学得最快。</p>
+</div>
+
+<p style="color:#888;font-size:0.85em;text-align:right;margin-top:30px;">© Clover Tools · 正则系列 · 实用优先</p>
+
+</div>
+</body>
+</html>

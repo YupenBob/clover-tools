@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON.parse报错？我调研了7种方案</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; border-radius: 12px; margin-bottom: 30px; text-align: center; }
+        .header h1 { font-size: 2em; margin-bottom: 10px; }
+        .header .subtitle { opacity: 0.9; font-size: 1.1em; }
+        .toc { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 25px; border-left: 4px solid #667eea; }
+        .toc h2 { font-size: 1.2em; margin-bottom: 10px; color: #667eea; }
+        .toc li { margin-left: 20px; margin-bottom: 5px; }
+        .section { background: #fff; border-radius: 8px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .section h2 { font-size: 1.4em; margin-bottom: 15px; color: #444; border-bottom: 2px solid #667eea; padding-bottom: 8px; }
+        .section h3 { font-size: 1.1em; margin: 15px 0 8px; color: #555; }
+        .error-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 6px; padding: 12px 16px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 0.9em; color: #c0392b; white-space: pre-wrap; word-break: break-all; }
+        .code-block { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 16px; margin: 12px 0; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.88em; line-height: 1.6; }
+        .code-block .cm { color: #9cdcfe; } /* variable */
+        .code-block .str { color: #ce9178; } /* string */
+        .code-block .num { color: #b5cea8; } /* number */
+        .code-block .kw { color: #569cd6; } /* keyword */
+        .code-block .fn { color: #dcdcaa; } /* function */
+        .code-block .comment { color: #6a9955; } /* comment */
+        .code-block .op { color: #d4d4d4; } /* operator */
+        .highlight-box { background: #f0f4ff; border-radius: 6px; padding: 16px; margin: 15px 0; border: 1px solid #dde4ff; }
+        .highlight-box strong { color: #667eea; }
+        .tag { display: inline-block; background: #667eea; color: white; font-size: 0.75em; padding: 2px 8px; border-radius: 12px; margin-right: 5px; margin-bottom: 5px; }
+        .footer-cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 30px; text-align: center; margin-top: 30px; }
+        .footer-cta h2 { margin-bottom: 10px; font-size: 1.3em; }
+        .footer-cta p { opacity: 0.9; margin-bottom: 15px; }
+        .footer-cta a { display: inline-block; background: white; color: #667eea; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 1em; transition: transform 0.2s; }
+        .footer-cta a:hover { transform: scale(1.05); }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 6px; }
+        p { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>JSON.parse报错？我调研了7种方案</h1>
+    <div class="subtitle">真实翻车场景 × 根因分析 × 可复制代码，一次性解决所有JSON坑</div>
+    <div style="margin-top:12px">
+        <span class="tag">JavaScript</span><span class="tag">Python</span><span class="tag">JSON</span><span class="tag">实战</span>
+    </div>
+</div>
+
+<div class="toc">
+    <h2>📋 这篇文章解决什么问题</h2>
+    <ul>
+        <li>JSON.parse 报错，但不知道哪行有问题</li>
+        <li>循环引用导致序列化失败</li>
+        <li>日期对象序列化后变成字符串</li>
+        <li>大数字精度丢失变成乱码</li>
+        <li>undefined 被偷偷丢掉</li>
+    </ul>
+</div>
+
+<div class="section">
+<h2>一、真实报错场景——你可能见过的错误</h2>
+
+<p>先把几个最常见的错误码在这里，你感受一下是不是很眼熟：</p>
+
+<div class="error-box">SyntaxError: Unexpected token in JSON at position 0</div>
+<div class="error-box">SyntaxError: Expected ',' or '}' after property value in JSON</div>
+<div class="error-box">TypeError: Converting circular structure to JSON</div>
+<div class="error-box">OverflowError: integer out of range</div>
+
+<p>这些错误，每一个都曾经让程序员熬夜到凌晨三点。我也不例外。所以我花时间系统整理了 7 种最常见的 JSON 报错以及对应的解法，继续往下看。</p>
+</div>
+
+<div class="section">
+<h2>二、JSON.parse 失败：最常见的语法问题</h2>
+
+<h3>2.1 多了或少了逗号</h3>
+<p>这是头号杀手。JSON 严格要求列表最后一项不能有逗号，对象最后一个属性也不能有。肉眼很难发现，尤其字符串很长的时候。</p>
+
+<div class="code-block"><span class="cm">// ❌ 报错：多了尾部逗号</span>
+<span class="kw">const</span> bad = <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="str">'{"name":"小红","age":18,"}'</span>);
+<span class="cm">// SyntaxError: Expected ',' or '}'</span>
+
+<span class="cm">// ✅ 正确写法</span>
+<span class="kw">const</span> good = <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="str">'{"name":"小红","age":18}'</span>);
+</div>
+
+<div class="code-block"><span class="cm"># ❌ Python 同样报错</span>
+<span class="kw">import</span> json
+json.<span class="fn">loads</span>(<span class="str">'{"name":"小红","age":18,}'</span>)
+<span class="cm"># JSONDecodeError: Expecting ',' delimiter</span>
+
+<span class="cm"># ✅ 正确写法</span>
+json.<span class="fn">loads</span>(<span class="str">'{"name":"小红","age":18}'</span>)
+</div>
+
+<h3>2.2 用单引号包字符串</h3>
+<p>JSON 标准规定字符串必须用双引号，单引号在 JSON 里就是非法字符。有些新手会写：</p>
+
+<div class="code-block"><span class="cm">// ❌ JSON 标准不支持单引号</span>
+<span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="str">"{'name':'小红'}"</span>)
+<span class="cm">// SyntaxError: Unexpected token '</span>
+
+<span class="cm">// ✅ 双引号才是正道</span>
+<span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="str">'{"name":"小红"}'</span>)
+</div>
+
+<h3>2.3 多了转义字符</h3>
+<p>有些接口返回的数据里，双引号被多次转义，这种情况也常见：</p>
+
+<div class="code-block"><span class="cm">// 接口返回的数据被双重转义了</span>
+<span class="kw">let</span> raw = <span class="str">'{"data":"{\\"name\\":\\"小红\\"}"}'</span>;
+<span class="cm">// 直接 parse 会报错，需要先反转义</span>
+
+<span class="kw">let</span> parsed = <span class="fn">JSON</span>.<span class="fn">parse</span>(<span class="fn">JSON</span>.<span class="fn">parse</span>(raw));
+<span class="cm">// 或者 replace 去掉多余的转义</span>
+<span class="kw">let</span> cleaned = raw.<span class="fn">replace</span>(<span class="str">/\\\\"/g</span>, <span class="str">'"'</span>);
+</div>
+</div>
+
+<div class="section">
+<h2>三、循环引用：最头疼的报错</h2>
+
+<h3>3.1 什么是循环引用</h3>
+<p>就是一个对象的属性引用了自身，或者多个对象相互引用。比如：</p>
+
+<div class="code-block"><span class="kw">const</span> obj = { name: <span class="str">"小红"</span> };
+obj.self = obj;  <span class="cm">// obj.self 指向 obj 自己！循环了</span>
+
+<span class="fn">JSON</span>.<span class="fn">stringify</span>(obj);
+<span class="cm">// TypeError: Converting circular structure to JSON</span>
+</div>
+
+<p>这个问题在复杂对象图里很常见，比如有父对象引用子对象，子对象又引用父对象的情况。</p>
+
+<h3>3.2 方案一：检查循环引用，替换掉</h3>
+
+<div class="code-block"><span class="cm">// JavaScript：检测并跳过循环引用</span>
+<span class="kw">const</span> seen = <span class="kw">new</span> <span class="fn">WeakSet</span>();
+
+<span class="kw">const</span> safeStringify = (obj) => {
+  <span class="kw">return</span> <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj, (key, value) => {
+    <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="str">"object"</span> && value !== <span class="kw">null</span>) {
+      <span class="kw">if</span> (seen.<span class="fn">has</span>(value)) {
+        <span class="kw">return</span> <span class="str">"[Circular]"</span>;  <span class="cm">// 替换而不是报错</span>
+      }
+      seen.<span class="fn">add</span>(value);
+    }
+    <span class="kw">return</span> value;
+  });
+};
+
+<span class="kw">const</span> a = { name: <span class="str">"小红"</span> };
+a.self = a;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">safeStringify</span>(a));
+<span class="cm">// {"name":"小红","self":"[Circular]"}</span>
+</div>
+
+<h3>3.3 方案二：用第三方库处理循环引用</h3>
+
+<div class="code-block"><span class="cm">// 使用 json-stringify-safe（npm install json-stringify-safe）</span>
+<span class="kw">const</span> stringify = <span class="fn">require</span>(<span class="str">'json-stringify-safe'</span>);
+
+<span class="kw">const</span> obj = { name: <span class="str">"小红"</span> };
+obj.self = obj;
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">stringify</span>(obj));
+<span class="cm">// {"name":"小红","self":"[Circular]"}</span>
+</div>
+
+<div class="code-block"><span class="cm"># Python：检测循环引用可以用自定义 encoder</span>
+<span class="kw">import</span> json
+<span class="kw">from</span> collections <span class="kw">import</span> defaultdict
+
+<span class="kw">class</span> <span class="fn">CycleEncoder</span>(json.JSONEncoder):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, *args, **kwargs):
+        <span class="kw">super</span>().<span class="fn">__init__</span>(*args, **kwargs)
+        self.seen = defaultdict(<span class="fn">set</span>)
+    
+    <span class="kw">def</span> <span class="fn">default</span>(self, obj):
+        <span class="kw">return</span> <span class="str">"[Circular]"</span>
+    
+    <span class="kw">def</span> <span class="fn">encode</span>(self, o):
+        <span class="cm"># 简化版，实际可用更强的方式检测</span>
+        <span class="kw">return</span> <span class="kw">super</span>().<span class="fn">encode</span>(o)
+
+<span class="cm"># Python 标准库 json 不直接处理循环引用，需配合 object_hook</span>
+<span class="cm"># 简单场景可以直接用 str(object) 代替</span>
+</div>
+</div>
+
+<div class="section">
+<h2>四、日期对象：序列化的隐形杀手</h2>
+
+<h3>4.1 日期对象会被转成字符串</h3>
+<p>这是最容易踩的坑之一。JavaScript 的 Date 对象序列化后不是 {type:"date", value:...}，而是直接变成 ISO 字符串，但反序列化时不会自动转回 Date 对象：</p>
+
+<div class="code-block"><span class="cm">// ❌ Date 对象会被转成字符串，反序列化后变成普通字符串</span>
+<span class="kw">const</span> obj = { createdAt: <span class="kw">new</span> <span class="fn">Date</span>(<span class="str">"2026-01-01T00:00:00Z"</span>) };
+<span class="kw">const</span> json = <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj);
+<span class="kw">const</span> parsed = <span class="fn">JSON</span>.<span class="fn">parse</span>(json);
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> parsed.createdAt);  <span class="cm">// "string" 而不是 "object"！</span>
+<span class="fn">console</span>.<span class="fn">log</span>(parsed.createdAt);            <span class="cm">// "2026-01-01T00:00:00.000Z"</span>
+</div>
+
+<h3>4.2 方案三：自定义 reviver 还原日期</h3>
+
+<div class="code-block"><span class="cm">// ✅ 序列化时把日期标记化，反序列化时还原</span>
+
+<span class="cm">// 方式一：ISO 字符串前后加标记（推荐）</span>
+<span class="kw">const</span> obj = {
+  name: <span class="str">"小红"</span>,
+  createdAt: <span class="kw">new</span> <span class="fn">Date</span>(<span class="str">"2026-01-01"</span>),
+  updatedAt: <span class="kw">new</span> <span class="fn">Date</span>(<span class="str">"2026-05-01"</span>)
+};
+
+<span class="kw">const</span> json = <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj, <span class="kw">null</span>, 2);
+<span class="kw">const</span> parsed = <span class="fn">JSON</span>.<span class="fn">parse</span>(json, (key, value) => {
+  <span class="cm">// 匹配 ISODate 标记格式，还原为 Date 对象</span>
+  <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="str">"string"</span> && value.<span class="fn">match</span>(<span class="str">/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/</span>)) {
+    <span class="kw">return</span> <span class="kw">new</span> <span class="fn">Date</span>(value);
+  }
+  <span class="kw">return</span> value;
+});
+
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="kw">typeof</span> parsed.createdAt);  <span class="cm">// "object"</span>
+<span class="fn">console</span>.<span class="fn">log</span>(parsed.createdAt <span class="kw">instanceof</span> <span class="fn">Date</span>);    <span class="cm">// true</span>
+</div>
+
+<div class="code-block"><span class="cm"># Python：日期序列化 + 反序列化还原</span>
+<span class="kw">import</span> json
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, date
+
+<span class="kw">class</span> <span class="fn">DateTimeEncoder</span>(json.JSONEncoder):
+    <span class="kw">def</span> <span class="fn">default</span>(self, obj):
+        <span class="kw">if</span> <span class="fn">isinstance</span>(obj, (datetime, date)):
+            <span class="kw">return</span> {<span class="str">"__type__"</span>: <span class="str">"datetime"</span>, <span class="str">"value"</span>: obj.isoformat()}
+        <span class="kw">return</span> <span class="kw">super</span>().<span class="fn">default</span>(obj)
+
+<span class="kw">class</span> <span class="fn">DateTimeDecoder</span>(json.JSONDecoder):
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, *args, **kwargs):
+        <span class="kw">super</span>().<span class="fn">__init__</span>(*args, object_hook=<span class="kw">self</span>.date_hook, **kwargs)
+    
+    <span class="kw">def</span> <span class="fn">date_hook</span>(self, obj):
+        <span class="kw">if</span> obj.get(<span class="str">"__type__"</span>) == <span class="str">"datetime"</span>:
+            <span class="kw">return</span> datetime.<span class="fn">fromisoformat</span>(obj[<span class="str">"value"</span>])
+        <span class="kw">return</span> obj
+
+data = {<span class="str">"name"</span>: <span class="str">"小红"</span>, <span class="str">"created_at"</span>: datetime.<span class="fn">now</span>()}
+json_str = json.<span class="fn">dumps</span>(data, cls=DateTimeEncoder)
+parsed = json.<span class="fn">loads</span>(json_str, cls=DateTimeDecoder)
+<span class="fn">print</span>(<span class="fn">type</span>(parsed[<span class="str">"created_at"</span>]))  <span class="cm"># &lt;class 'datetime.datetime'&gt;</span>
+</div>
+</div>
+
+<div class="section">
+<h2>五、大数字精度：JS 的历史遗留问题</h2>
+
+<h3>5.1 为什么大数字会精度丢失</h3>
+<p>JavaScript 的 Number 类型使用 IEEE 754 双精度浮点数，只能安全表示 -2^53+1 到 2^53-1 之间的整数。超过这个范围的大数字（比如雪花算法生成的 ID）就会丢失精度：</p>
+
+<div class="code-block"><span class="cm">// ❌ 超过安全整数范围，精度丢失</span>
+<span class="kw">const</span> largeId = <span class="num">12345678901234567890</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(largeId);           <span class="cm">// 12345678901234567000（最后几位变了！）</span>
+
+<span class="cm">// 常见场景：雪花 ID、Twitter ID、大金额数字</span>
+<span class="kw">const</span> obj = { orderId: <span class="num">62875658976483924512</span> };
+<span class="kw">const</span> json = <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">JSON</span>.<span class="fn">parse</span>(json).orderId);  <span class="cm">// 62875658976483924000（精度丢失！）</span>
+</div>
+
+<h3>5.3 方案四：把大数字转成字符串</h3>
+<p>这是最简单有效的解法——既然数字会丢精度，那就别让它是数字：</p>
+
+<div class="code-block"><span class="cm">// 序列化时：大数字字段转字符串</span>
+<span class="kw">const</span> BIGINT_FIELDS = [<span class="str">"orderId"</span>, <span class="str">"userId"</span>, <span class="str">"transactionId"</span>];
+
+<span class="kw">const</span> safeStringify = (obj) => {
+  <span class="kw">return</span> <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj, (key, value) => {
+    <span class="cm">// 如果是超大数字，转成字符串</span>
+    <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="str">"number"</span> && <span class="fn">Math</span>.<span class="fn">abs</span>(value) > <span class="num">Number.MAX_SAFE_INTEGER</span>) {
+      <span class="kw">return</span> <span class="fn">String</span>(value);
+    }
+    <span class="kw">return</span> value;
+  });
+};
+
+<span class="kw">const</span> obj = { orderId: <span class="num">62875658976483924512</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">safeStringify</span>(obj));
+<span class="cm">// {"orderId":"62875658976483924512"}（字符串形式，不丢精度）</span>
+</div>
+
+<h3>5.4 方案五：使用 JSON.parse 的第二个参数修复精度</h3>
+
+<div class="code-block"><span class="cm">// 如果 JSON 里数字精度已经丢失，用 reviver 把它转回字符串</span>
+<span class="kw">const</span> THRESHOLD = <span class="num">9007199254740992</span>;  <span class="cm">// MAX_SAFE_INTEGER</span>
+
+<span class="kw">const</span> parsed = <span class="fn">JSON</span>.<span class="fn">parse</span>(json, (key, value) => {
+  <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="str">"number"</span> && <span class="fn">Math</span>.<span class="fn">abs</span>(value) > THRESHOLD) {
+    <span class="kw">return</span> <span class="fn">String</span>(value);  <span class="cm">// 精度已丢，转字符串让业务侧知道需要重新获取</span>
+  }
+  <span class="kw">return</span> value;
+});
+</div>
+</div>
+
+<div class="section">
+<h2>六、undefined 丢失：最隐蔽的坑</h2>
+
+<h3>6.1 undefined 直接被忽略</h3>
+<p>这个坑很隐蔽很多人没注意到——当你用 JSON.stringify 序列化包含 undefined 的对象时，这些键值对会直接消失，不会报错，但会导致数据丢失：</p>
+
+<div class="code-block"><span class="cm">// ❌ undefined 属性会被静默丢弃</span>
+<span class="kw">const</span> obj = { name: <span class="str">"小红"</span>, age: <span class="kw">undefined</span>, gender: <span class="str">"女"</span> };
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">JSON</span>.<span class="fn">stringify</span>(obj));
+<span class="cm">// {"name":"小红","gender":"女"} —— age 字段消失了！</span>
+</div>
+
+<h3>6.2 方案六：显式处理 undefined 和其他特殊值</h3>
+
+<div class="code-block"><span class="cm">// 方法：用自定义 replacer 保留 undefined 的信息</span>
+<span class="kw">const</span> obj = { name: <span class="str">"小红"</span>, age: <span class="kw">undefined</span>, gender: <span class="str">"女"</span>, score: <span class="kw">null</span> };
+
+<span class="kw">const</span> json = <span class="fn">JSON</span>.<span class="fn">stringify</span>(obj, (key, value) => {
+  <span class="cm">// 把 undefined 转为保留标记，业务侧可以还原</span>
+  <span class="kw">if</span> (value === <span class="kw">undefined</span>) {
+    <span class="kw">return</span> { __type__: <span class="str">"undefined"</span> };
+  }
+  <span class="kw">return</span> value;
+});
+
+<span class="fn">console</span>.<span class="fn">log</span>(json);
+<span class="cm">// {"name":"小红","age":{"__type__":"undefined"},"gender":"女","score":null}</span>
+
+<span class="cm">// 反序列化时还原</span>
+<span class="kw">const</span> parsed = <span class="fn">JSON</span>.<span class="fn">parse</span>(json, (key, value) => {
+  <span class="kw">if</span> (<span class="fn">Object</span>.<span class="fn">keys</span>(value).<span class="fn">includes</span>(<span class="str">"__type__"</span>) && value.__type__ === <span class="str">"undefined"</span>) {
+    <span class="kw">return</span> <span class="kw">undefined</span>;
+  }
+  <span class="kw">return</span> value;
+});
+</div>
+
+<div class="code-block"><span class="cm"># Python：处理 None 和特殊值</span>
+<span class="kw">import</span> json
+<span class="kw">from</span> typing <span class="kw">import</span> Any
+
+<span class="kw">def</span> <span class="fn">custom_encoder</span>(obj: Any) -> Any:
+    <span class="cm">"""保留 None 的语义，区分 null 和 missing"""</span>
+    <span class="kw">if</span> obj <span class="kw">is</span> <span class="kw">None</span>:
+        <span class="kw">return</span> {<span class="str">"__type__"</span>: <span class="str">"null"</span>}
+    <span class="kw">raise</span> <span class="fn">TypeError</span>(<span class="str">f"Object of type {type(obj)} is not JSON serializable"</span>)
+
+data = {<span class="str">"name"</span>: <span class="str">"小红"</span>, <span class="str">"age"</span>: <span class="kw">None</span>, <span class="str">"gender"</span>: <span class="str">"女"</span>}
+<span class="cm"># Python 的 None 会被正确序列化为 null，这是 JSON 标准行为</span>
+json_str = json.<span class="fn">dumps</span>(data)
+<span class="fn">print</span>(json_str)  <span class="cm"># {"name": "小红", "age": null, "gender": "女"}</span>
+</div>
+</div>
+
+<div class="section">
+<h2>七、综合方案：JSON 序列化工具推荐</h2>
+
+<h3>7.1 方案七：一站式解决所有 JSON 序列化问题</h3>
+<p>上面讲了 6 种具体方案，但实际上日常开发中最好的办法是用现成的工具或库，把这些细节都封装好。</p>
+
+<p>我自己常用的是一个 JSON 格式化工具，支持格式化、校验、压缩，还能直接处理上面这些边界情况：</p>
+
+<div class="highlight-box">
+<strong>推荐工具：</strong><a href="https://tools.xsanye.cn/tools/json/formatter.html">https://tools.xsanye.cn/tools/json/formatter.html</a><br>
+支持：JSON 格式化 · 语法校验 · 循环引用检测 · 压缩 · 代码高亮<br>
+地址栏直接访问，输入 JSON 即可使用，无需注册
+</div>
+
+<h3>7.2 常见库推荐</h3>
+<ul>
+    <li><strong>JavaScript：flatted</strong> — 专门处理循环引用的 JSON 序列化库</li>
+    <li><strong>JavaScript：json-bigint</strong> — 大数字精度丢失的解决方案</li>
+    <li><strong>Python：orjson</strong> — 比标准库快 10 倍，支持日期/dataclass 自动序列化</li>
+    <li><strong>Python：python-rapidjson</strong> — 快速 JSON 库，接口兼容标准库</li>
+</ul>
+</div>
+
+<div class="section">
+<h2>八、避坑总结表</h2>
+
+<table style="width:100%;border-collapse:collapse;margin-top:10px">
+<tr style="background:#667eea;color:white">
+<th style="padding:10px;text-align:left;border:1px solid #ddd">问题</th>
+<th style="padding:10px;text-align:left;border:1px solid #ddd">症状</th>
+<th style="padding:10px;text-align:left;border:1px solid #ddd">解法</th>
+</tr>
+<tr>
+<td style="padding:10px;border:1px solid #ddd">语法错误</td>
+<td style="padding:10px;border:1px solid #ddd">Unexpected token</td>
+<td style="padding:10px;border:1px solid #ddd">用 JSON 格式化工具检查</td>
+</tr>
+<tr style="background:#f9f9f9">
+<td style="padding:10px;border:1px solid #ddd">循环引用</td>
+<td style="padding:10px;border:1px solid #ddd">Converting circular structure</td>
+<td style="padding:10px;border:1px solid #ddd">WeakSet 检测 + [Circular] 标记</td>
+</tr>
+<tr>
+<td style="padding:10px;border:1px solid #ddd">日期对象</td>
+<td style="padding:10px;border:1px solid #ddd">反序列化后变成字符串</td>
+<td style="padding:10px;border:1px solid #ddd">reviver 函数还原 Date</td>
+</tr>
+<tr style="background:#f9f9f9">
+<td style="padding:10px;border:1px solid #ddd">大数字精度</td>
+<td style="padding:10px;border:1px solid #ddd">数字末尾变成 000</td>
+<td style="padding:10px;border:1px solid #ddd">序列化时转字符串</td>
+</tr>
+<tr>
+<td style="padding:10px;border:1px solid #ddd">undefined 丢失</td>
+<td style="padding:10px;border:1px solid #ddd">属性静默消失</td>
+<td style="padding:10px;border:1px solid #ddd">用 __type__ 标记保留</td>
+</tr>
+</table>
+</div>
+
+<div class="footer-cta">
+    <h2>🔥 JSON 报错不用再一个个搜了</h2>
+    <p>格式化、校验、排查问题，一个工具全搞定<br>
+    遇到复杂 JSON 数据，直接扔进去检查</p>
+    <a href="https://tools.xsanye.cn/tools/json/formatter.html" target="_blank">👉 立即使用 JSON 格式化工具</a>
+</div>
+
+</body>
+</html>
