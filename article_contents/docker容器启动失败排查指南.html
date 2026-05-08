@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker 启动失败？我排查了10个案例总结的实战指南</title>
+  <style>
+    body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.8; color: #333; }
+    h1 { font-size: 1.8em; color: #1a1a2e; border-left: 4px solid #5090d0; padding-left: 16px; }
+    h2 { font-size: 1.35em; color: #16213e; margin-top: 2em; border-left: 3px solid #5090d0; padding-left: 12px; }
+    h3 { font-size: 1.1em; color: #0f3460; }
+    .lead { font-size: 1.05em; color: #555; background: #f5f7ff; padding: 14px 18px; border-radius: 8px; border-left: 4px solid #7b9cd8; margin: 1.2em 0; }
+    .cmd { background: #1e1e2e; color: #cdd6f4; padding: 14px 18px; border-radius: 8px; font-family: "Cascadia Code", "Fira Code", Consolas, monospace; font-size: 0.88em; overflow-x: auto; white-space: pre; margin: 1em 0; }
+    .cmd .comment { color: #6a737d; }
+    .error-box { background: #fff3f3; border-left: 4px solid #e05252; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 1em 0; }
+    .success-box { background: #f0fff4; border-left: 4px solid #48c774; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 1em 0; }
+    .tip-box { background: #fffbea; border-left: 4px solid #f5a623; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 1em 0; }
+    .case-header { background: #eef2ff; padding: 10px 16px; border-radius: 8px; margin: 1.5em 0 0.8em; font-weight: 700; color: #2c3e8f; }
+    ul { padding-left: 1.5em; }
+    li { margin: 0.5em 0; }
+    .cta { background: linear-gradient(135deg, #5090d0, #2d6aa6); color: #fff; padding: 20px 24px; border-radius: 10px; text-align: center; margin: 2em 0; }
+    .cta a { color: #fff; font-weight: 700; text-decoration: underline; font-size: 1.1em; }
+    .toc { background: #f8f9fc; padding: 16px 20px; border-radius: 8px; margin: 1.5em 0; }
+    .toc ol { margin: 0.5em 0 0.5em 1.5em; }
+    strong { color: #c0392b; }
+    code { background: #f0f0f5; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+
+<h1>🐳 Docker 启动失败？我排查了10个案例总结的实战指南</h1>
+
+<div class="lead">
+  你有没有过这种经历：本地跑得好好的容器，一部署就报错；或者昨天还正常的服务，今天突然起不来？本文从<strong>10个真实翻车场景</strong>出发，梳理5类最常见的 Docker 启动失败原因，每个都带诊断命令 + 修复步骤，拿来就能用。
+</div>
+
+<div class="toc">
+  <strong>📋 目录</strong>
+  <ol>
+    <li><a href="#case1">案例1：端口已被宿主机其他进程占用</a></li>
+    <li><a href="#case2">案例2：镜像名称写错 / 私有仓库拉不到</a></li>
+    <li><a href="#case3">案例3：网络模式配置错误导致容器互通失败</a></li>
+    <li><a href="#case4">案例4：挂载目录权限不够，容器里写不了文件</a></li>
+    <li><a href="#case5">案例5：ENTRYPOINT / CMD 脚本语法错误</a></li>
+    <li><a href="#case6">案例6：docker-compose.yml 配置格式踩坑</a></li>
+    <li><a href="#case7">案例7：容器退出后想看日志却不知道从哪看</a></li>
+    <li><a href="#case8">案例8：docker inspect 挖出隐藏配置问题</a></li>
+    <li><a href="#case9">案例9：OOMKilled — 内存限制太小被 kill</a></li>
+    <li><a href="#case10">案例10：Docker daemon 本身挂了</a></li>
+    <li><a href="#summary">快速排查流程图（总结）</a></li>
+  </ol>
+</div>
+
+---
+
+<h2 id="case1">案例1：端口已被宿主机其他进程占用</h2>
+
+<p>最经典的"昨天还能跑，今天就不行"——99%是另一个服务抢了你的端口。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Error: Cannot start container: ports are already allocated</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd">docker ps -a --format "{{.Names}}\t{{.Ports}}"
+<span class="comment"># 查看所有容器及其端口占用</span>
+
+<span class="comment"># 定位哪个进程占了你想要的端口</span>
+lsof -i :8080
+<span class="comment"># 或</span>
+ss -tlnp | grep 8080</div>
+
+<div class="case-header">🛠️ 修复</div>
+<p>两种思路：停掉占用端口的进程，或者换端口。</p>
+<div class="cmd"><span class="comment"># 方案A：杀掉占用端口的进程（确认可以杀再杀）</span>
+kill $(lsof -t -i:8080)
+
+<span class="comment"># 方案B：容器启动时指定不同端口映射</span>
+docker run -d -p 8081:80 nginx
+
+<span class="comment"># 方案C：docker-compose 里改端口</span>
+<span class="comment"># services:</span>
+<span class="comment">#   web:</span>
+<span class="comment">#     ports:</span>
+<span class="comment">#       - "8081:80"</span></div>
+
+<div class="tip-box">💡 如果是 Docker 内部端口冲突（比如两个容器都声明 <code>expose: 80</code>），不会报这个错。这个错误一定是<strong>宿主机端口</strong>被占用。</div>
+
+---
+
+<h2 id="case2">案例2：镜像名称写错 / 私有仓库拉不到</h2>
+
+<p>Pull 镜像的时候悄无声息地失败，或者 tag 写错了导致找不到镜像。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Error: pull access denied, repository does not exist or may require authorization</div>
+<div class="error-box">Error: manifest unknown</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 检查本地镜像列表（看 tag 是否真的存在）</span>
+docker images | grep &lt;image_name&gt;
+
+<span class="comment"># 手动拉取镜像，看完整报错</span>
+docker pull &lt;image_name&gt;:&lt;tag&gt;
+
+<span class="comment"># 如果是私有仓库，先登录</span>
+docker login &lt;registry.example.com&gt;</div>
+
+<div class="case-header">🛠️ 修复</div>
+<div class="cmd"><span class="comment"># 常用镜像的官方 tag 通常是 latest，小心这个坑</span>
+docker pull nginx:latest       <span class="comment"># OK</span>
+docker pull nginx:alpine       <span class="comment"># 小体积版，更推荐</span>
+docker pull nginx:1.27.0       <span class="comment"># 指定具体版本，最稳</span>
+
+<span class="comment"># 私有仓库完整写法</span>
+docker pull registry.example.com/myproject/api:v2.3.1
+
+<span class="comment"># pull 失败时检查是否需要认证</span>
+docker login registry.example.com</div>
+
+<div class="tip-box">⚠️ <code>latest</code> 标签不保证是"最新稳定版"，很多镜像维护者根本不怎么更新 latest，导致你 CI 拉到的可能是一年前的版本。生产环境一定要写死具体 tag。</div>
+
+---
+
+<h2 id="case3">案例3：网络模式配置错误导致容器互通失败</h2>
+
+<p>容器启动了，进程也在跑，但容器之间互相访问不到，比如 MySQL 容器明明起来了，API 容器却连不上。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Error: connect ECONNREFUSED 172.18.0.2:3306</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 查看容器网络情况</span>
+docker network ls
+docker inspect &lt;container_name&gt; | jq '.[0].NetworkSettings.Networks'
+
+<span class="comment"># 进入某个容器测试网络连通性</span>
+docker exec -it &lt;container_name&gt; ping &lt;target_container&gt;
+docker exec -it web curl http://db:3306  <span class="comment"># 容器名作为 hostname 直接用</span>
+
+<span class="comment"># 查看当前 Docker 网络</span>
+docker network inspect bridge</div>
+
+<div class="case-header">🛠️ 修复</div>
+<p>用 <strong>docker-compose 的 networks</strong> 把相关容器放进同一个网络，这是最推荐的方式：</p>
+<div class="cmd"><span class="comment"># docker-compose.yml</span>
+version: "3.8"
+services:
+  web:
+    image: myapp:latest
+    networks:
+      - backend
+  db:
+    image: mysql:8
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge</div>
+<div class="cmd"><span class="comment"># 手动创建一个 bridge 网络并把容器加入</span>
+docker network create mynet
+docker network connect mynet &lt;container_a&gt;
+docker network connect mynet &lt;container_b&gt;</div>
+
+<div class="tip-box">💡 Docker 默认用 <code>bridge</code> 网络，但同一个宿主机上的两个容器默认情况下<strong>不在同一个网络里</strong>，需要通过 <code>--network</code> 或 docker-compose 显式声明才能互通。</div>
+
+---
+
+<h2 id="case4">案例4：挂载目录权限不够，容器里写不了文件</h2>
+
+<p>容器启动参数加了 <code>-v /data:/app/data</code>，但应用启动时报"Permission denied"，或者构建时文件所有者是 root。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Permission denied: '/app/data/config.yml'</div>
+<div class="error-box">EACCES: permission denied, open '/app/data/logs/app.log'</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 查看容器挂载点和宿主机目录权限</span>
+docker inspect &lt;container_name&gt; | jq '.[0].Mounts'
+
+<span class="comment"># 查看宿主机目录</span>
+ls -la /data
+id
+
+<span class="comment"># 查看容器内运行用户</span>
+docker exec -it &lt;container_name&gt; id
+docker exec -it &lt;container_name&gt; whoami</div>
+
+<div class="case-header">🛠️ 修复</div>
+<div class="cmd"><span class="comment"># 方案A：在宿主机先建好目录并设好权限</span>
+sudo mkdir -p /data
+sudo chown -R 1000:1000 /data   <span class="comment"># 1000:1000 是很多默认容器用户的 UID/GID</span>
+
+<span class="comment"># 方案B：运行时指定用户（如果容器支持）</span>
+docker run -v /data:/app/data -u 1000 myapp:latest
+
+<span class="comment"># 方案C：docker-compose 里指定 user</span>
+<span class="comment"># services:</span>
+<span class="comment">#   app:</span>
+<span class="comment">#     user: "1000:1000"</span>
+<span class="comment">#     volumes:</span>
+<span class="comment">#       - /data:/app/data</span>
+
+<span class="comment"># 方案D：使用 ACL（更精细控制）</span>
+setfacl -R -m u:1000:rwX /data</div>
+
+<div class="tip-box">🔑 容器内 root（UID 0）和宿主机 root 是不同的，但在 <code>volume 挂载</code>场景下，宿主机 root 权限会渗透进去——所以会出现宿主机 root 创建的文件，容器内非 root 用户无法写入的情况。</div>
+
+---
+
+<h2 id="case5">案例5：ENTRYPOINT / CMD 脚本语法错误</h2>
+
+<p>Dockerfile 写得很标准，镜像也构建成功了，但容器一启动就退出，日志里只有一个模糊的 exit code。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Error: spawner failed to start: exit status 1</div>
+<div class="error-box">docker: Error response from daemon: oci runtime error: exit status 1</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 查看容器退出状态码和日志</span>
+docker logs &lt;container_name&gt; --tail 50
+docker wait &lt;container_name&gt;
+docker inspect &lt;container_name&gt; | jq '.[0].State'</div>
+
+<div class="case-header">🛠️ 修复</div>
+<p>先看一个典型的错误 Dockerfile：</p>
+<div class="cmd"><span class="comment"># ❌ 错误：CMD 里直接写 shell，路径没加引号</span>
+CMD python app.py --port 8080
+
+<span class="comment"># ✅ 正确：exec 形式（JSON 数组），加引号</span>
+CMD ["python", "app.py", "--port", "8080"]
+
+<span class="comment"># ❌ 错误：ENTRYPOINT 用 shell 形式会导致 SIGINT 无法传递</span>
+ENTRYPOINT python app.py
+
+<span class="comment"># ✅ 正确：用 exec 形式</span>
+ENTRYPOINT ["python", "app.py"]</div>
+
+<p>如果用了 shell 脚本做入口点，注意脚本里要有 <code>exec "$@"</code> 来传递信号：</p>
+<div class="cmd"><span class="comment">#!/bin/sh
+# entrypoint.sh — 正确写法</span>
+set -e
+echo "Starting app with args: $@"
+exec "$@"   <span class="comment"># 关键！把信号正确传递给主进程</span></div>
+
+---
+
+<h2 id="case6">案例6：docker-compose.yml 配置格式踩坑</h2>
+
+<p>docker-compose 语法版本不对，或者缩进、空格、引号问题导致配置解析失败。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">ERROR: yaml.scanner.ScannerError: while scanning a simple key</div>
+<div class="error-box">ERROR: service 'web' must be a mapping</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 先检查 YAML 语法（不用启动容器就能检查）</span>
+docker-compose config --quiet
+<span class="comment"># 无输出 = 语法OK，有报错会直接显示</span>
+
+<span class="comment"># 版本检查</span>
+docker-compose --version</div>
+
+<div class="case-header">🛠️ 修复</div>
+<div class="cmd"><span class="comment"># 常见错误1：services 下缩进不对（必须是2空格）</span>
+<span class="comment"># ✅</span>
+services:
+  web:
+    image: nginx
+<span class="comment"># ❌（用了 tab 或 4空格）</span>
+
+<span class="comment"># 常见错误2：ports 写成数字没引号（某些版本报错）</span>
+<span class="comment"># ✅</span>
+    ports:
+      - "8080:80"
+<span class="comment"># ✅ 也可以</span>
+    ports:
+      - 8080:80
+
+<span class="comment"># 常见错误3：depends_on 只写了名字，但需要显式 version</span>
+version: "3.8"
+services:
+  web:
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db</div>
+
+<div class="tip-box">⚠️ docker-compose v2 开始默认用空格缩进，tab 一定会报错。另外 <code>docker-compose config</code> 能把最终合并后的配置输出来，怀疑有覆盖冲突时用这个命令非常管用。</div>
+
+---
+
+<h2 id="case7">案例7：容器退出后想看日志却不知道从哪看</h2>
+
+<p>容器跑了几秒就退出了，<code>docker logs</code> 拿不到任何内容，因为进程在启动脚本里又起了子进程。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">container is not running</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 查看容器状态（含历史）</span>
+docker ps -a | grep &lt;container_name&gt;
+
+<span class="comment"># 强制进入已退出容器（如果想调试）</span>
+docker start -ia &lt;container_name&gt;
+
+<span class="comment"># 查看详细状态信息</span>
+docker inspect &lt;container_name&gt; | jq '.[0].State'
+
+<span class="comment"># 看容器内进程（容器必须在运行状态）</span>
+docker top &lt;container_name&gt;</div>
+
+<div class="case-header">🛠️ 修复</div>
+<p>容器已经退出了？不要慌，先找残余信息：</p>
+<div class="cmd"><span class="comment"># 即使容器退出了，日志通常还在（Docker 保留容器文件系统）</span>
+docker logs &lt;container_name&gt; --tail 200 --details
+
+<span class="comment"># 查看容器文件系统（进入容器临时重新启动）</span>
+docker commit &lt;container_name&gt; temp_debug_image
+docker run -it --rm temp_debug_image /bin/sh
+
+<span class="comment"># 如果是 entrypoint 脚本有问题，直接用 sh 启动看哪里报错</span>
+docker run --rm -it &lt;image_name&gt; /bin/sh</div>
+
+<div class="success-box">✅ 小技巧：<code>docker-compose up --abort-on-container-exit</code> 可以让 docker-compose 在任何一个容器退出时立即停止并显示输出，排查 entrypoint 脚本问题时非常有用。</div>
+
+---
+
+<h2 id="case8">案例8：docker inspect 挖出隐藏配置问题</h2>
+
+<p><code>docker inspect</code> 是被严重低估的排查工具。容器启动失败时，90%的隐藏问题都能从这里找到答案。</p>
+
+<div class="case-header">🚨 常见疑问：为什么镜像里有 ENV，容器里读不到？</div>
+<div class="cmd"><span class="comment"># 查看容器所有环境变量</span>
+docker inspect &lt;container_name&gt; | jq '.[0].Config.Env'
+
+<span class="comment"># 查看容器启动命令（和实际运行的是否一致）</span>
+docker inspect &lt;container_name&gt; | jq '.[0].Config.Cmd'
+docker inspect &lt;container_name&gt; | jq '.[0].Config.Entrypoint'
+
+<span class="comment"># 查看容器的 mounts（挂载点详情）</span>
+docker inspect &lt;container_name&gt; | jq '.[0].Mounts'
+
+<span class="comment"># 查看 Restart policy</span>
+docker inspect &lt;container_name&gt; | jq '.[0].HostConfig.RestartPolicy'</div>
+
+<div class="case-header">🛠️ 实战组合拳</div>
+<div class="cmd"><span class="comment"># 一次性拿到关键信息（快速定位问题）</span>
+docker inspect &lt;container_name&gt; | jq '{
+  State: .[0].State,
+  Env: .[0].Config.Env,
+  Cmd: .[0].Config.Cmd,
+  Mounts: .[0].Mounts,
+  NetworkSettings: .[0].NetworkSettings.Networks,
+  RestartPolicy: .[0].HostConfig.RestartPolicy
+}'</div>
+
+<div class="tip-box">💡 <code>jq</code> 是神器，上面的组合拳可以一次性拿到所有关键配置，省去来回敲命令的时间。macOS/Linux 安装：<code>brew install jq</code> 或 <code>apt install jq</code>。</div>
+
+---
+
+<h2 id="case9">案例9：OOMKilled — 内存限制太小被 kill</h2>
+
+<p>容器进程明显在跑，但一会儿就没了。查日志什么都没有，因为进程被宿主机直接 kill 了。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Killed</div>
+<div class="error-box">docker: Error response from daemon: Cannot kill container: ...</div>
+<div class="error-box">exit code 137（128 + 9，OOM SIGKILL 的标准退出码）</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 查看容器退出原因（OOM Killed 会在这里显示）</span>
+docker inspect &lt;container_name&gt; | jq '.[0].State'
+
+<span class="comment"># 典型输出：</span>
+<span class="comment"># {
+span class="comment">#   "Status": "exited",</span>
+<span class="comment">#   "ExitCode": 137,</span>
+<span class="comment">#   "OOMKilled": true,       <--- 重点看这里</span>
+<span class="comment">#   "Error": ""</span>
+<span class="comment"># }</span>
+
+<span class="comment"># 宿主机层面验证是否真的 OOM</span>
+dmesg | grep -i "killed process" | tail 10</div>
+
+<div class="case-header">🛠️ 修复</div>
+<div class="cmd"><span class="comment"># 方案A：调高内存限制（docker run）</span>
+docker run -d --memory=512m --memory-swap=1g myapp:latest
+
+<span class="comment"># 方案B：docker-compose 里配置</span>
+<span class="comment"># services:</span>
+<span class="comment">#   app:</span>
+<span class="comment">#     mem_limit: 512m</span>
+<span class="comment">#     mem_reservation: 256m</span>
+
+<span class="comment"># 方案C：设成不限制（仅测试用）</span>
+docker run -d --memory="" myapp:latest</div>
+
+<div class="tip-box">🚨 退出码 137 = OOM（SIGKILL），128 + 9。退出码 143 = SIGTERM（正常停止）。退出码 1 = 应用自己报错退出。搞清楚这三个码，能省一半排查时间。</div>
+
+---
+
+<h2 id="case10">案例10：Docker daemon 本身挂了</h2>
+
+<p>最隐蔽的情况：所有命令都报错，但你以为是你自己的配置问题，其实是 Docker 服务本身崩了。</p>
+
+<div class="case-header">🚨 报错信息</div>
+<div class="error-box">Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?</div>
+
+<div class="case-header">🔍 诊断</div>
+<div class="cmd"><span class="comment"># 检查 Docker 服务状态</span>
+sudo systemctl status docker
+<span class="comment"># 或</span>
+sudo service docker status
+
+<span class="comment"># 检查 docker.sock 是否存在</span>
+ls -la /var/run/docker.sock</div>
+
+<div class="case-header">🛠️ 修复</div>
+<div class="cmd"><span class="comment"># 重启 Docker 服务</span>
+sudo systemctl restart docker
+
+<span class="comment"># 如果是磁盘空间不足导致 daemon 崩溃</span>
+df -h /var/lib/docker
+<span class="comment"># 清理无用镜像和容器</span>
+docker system prune -af --volumes</div>
+
+<div class="success-box">✅ 建议：生产环境的 Docker 服务用 <code>systemctl enable docker</code> 确保开机自启，并且定期监控 <code>/var/lib/docker</code> 的磁盘使用率。</div>
+
+---
+
+<h2 id="summary">🚀 快速排查流程图（总结）</h2>
+
+<p>下次容器起不来，按这个顺序走，基本能覆盖 90% 的坑：</p>
+
+<div style="background:#f0f4ff; padding: 16px 20px; border-radius: 10px; font-family: monospace; font-size: 0.9em;">
+<p><strong>1.</strong> 看容器状态 → <code>docker ps -a</code></p>
+<p><strong>2.</strong> 看退出码 → <code>docker inspect | jq '.[0].State.ExitCode'</code></p>
+<p style="padding-left: 2em;">&nbsp;&nbsp; ├─ 退出码 0 = 正常退出，看 CMD/ENTRYPOINT</p>
+<p style="padding-left: 2em;">&nbsp;&nbsp; ├─ 退出码 1 = 应用报错 → <code>docker logs</code></p>
+<p style="padding-left: 2em;">&nbsp;&nbsp; ├─ 退出码 137 = OOM → 调大 <code>--memory</code></p>
+<p style="padding-left: 2em;">&nbsp;&nbsp; └─ 退出码 143 = SIGTERM → 检查 restart policy</p>
+<p><strong>3.</strong> 连容器都建不起来 → 查 docker daemon <code>systemctl status docker</code></p>
+<p><strong>4.</strong> 镜像问题 → <code>docker pull</code> + <code>docker images</code></p>
+<p><strong>5.</strong> 端口问题 → <code>lsof -i :端口</code></p>
+<p><strong>6.</strong> 网络互通 → <code>docker network inspect</code></p>
+<p><strong>7.</strong> 权限问题 → <code>docker inspect Mounts</code> + 宿主机 <code>ls -la</code></p>
+<p><strong>8.</strong> YAML 问题 → <code>docker-compose config</code></p>
+</div>
+
+---
+
+<div class="cta">
+  <p>☘️ 写不动了？试试这些工具——</p>
+  <p><a href="https://tools.xsanye.cn/tools/dev-tools/docker-run.html" target="_blank">https://tools.xsanye.cn/tools/dev-tools/docker-run.html</a></p>
+  <p>Docker 启动命令生成器 · 一键复制 · 支持 docker &amp; docker-compose</p>
+</div>
+
+<p style="text-align:center; color:#999; font-size:0.85em;">
+  首发于 <a href="https://tools.xsanye.cn">CloverTools</a> · 助你少加班，多摸鱼 🐟
+</p>
+
+</body>
+</html>
