@@ -1,0 +1,55 @@
+<h2>痛点场景</h2>
+<p>你从后端拿了一个用户对象，满心欢喜地 <code>JSON.stringify(user)</code>，控制台红了一片：<code>TypeError: Converting circular structure to JSON</code>。或者你用 <code>fetch</code> 拿到了数据，一序列化，发现全是 <code>undefined</code>。这种报错不致命，但排查起来特别烦人。</p>
+
+<h2>问题根因</h2>
+<p>JSON.stringify 报错主要有四种原因：</p>
+<ul>
+<li><strong>循环引用</strong>：对象 A 引用了 B，B 又引用了 A，序列化进入死循环。</li>
+<li><strong>undefined / 函数</strong>：JSON 不支持 undefined 和函数，序列化时会被忽略或报错。</li>
+<li><strong>Symbol / BigInt</strong>：Symbol 作 key 会丢失，BigInt 直接抛 <code>TypeError</code>。</li>
+<li><strong>原型链上的不可枚举属性</strong>：某些继承来的属性无法被序列化。</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>方案一：排除法（快速定位）</h3>
+<pre><code>// 快速找到哪个字段有问题
+function findCircular(obj, path = 'root') {
+  if (typeof obj !== 'object' || obj === null) return;
+  for (const key of Object.keys(obj)) {
+    const val = obj[key];
+    if (val === obj) {
+      console.log(`循环引用在: ${path}.${key}`);
+      return true;
+    }
+    if (findCircular(val, `${path}.${key}`)) return true;
+  }
+  return false;
+}</code></pre>
+
+<h3>方案二：替换法（彻底解决循环引用）</h3>
+<pre><code>const seen = new WeakSet();
+
+const safeStringify = (obj) => JSON.stringify(obj, (key, value) => {
+  if (typeof value === 'object' && value !== null) {
+    if (seen.has(value)) return `[Circular: ${key}]`;
+    seen.add(value);
+  }
+  if (typeof value === 'undefined') return null;  // undefined变null
+  if (typeof value === 'function') return `[Function: ${key}]`;
+  if (typeof value === 'bigint') return value.toString();
+  return value;
+}, 2);</code></pre>
+<p>这样既处理了循环引用，又把 undefined 和函数转成了可序列化格式，输出还带格式化。</p>
+
+<h3>方案三：排除字段法（生产常用）</h3>
+<pre><code>const user = { id: 1, name: 'Alice', 
+  _internalCache: {...},  // 不需要序列化的内部数据
+  sayHello: () => 'hi'   // 方法
+};
+
+const serialized = JSON.stringify(user, ['id', 'name'], 2);
+// 只序列化 id 和 name 两个字段，自动排除其他</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>写好的代码可以用 <a href="/tools/json/formatter.html" target="_blank">CloverTools JSON格式化工具</a> 验证输出是否正确——粘贴 JSON 看格式化结果、检查字段是否完整、检验有没有意外被删除的数据。最适合做接口返回数据的事后验证，不用开 Postman。</p>

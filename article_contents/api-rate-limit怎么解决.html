@@ -1,0 +1,71 @@
+<h2>痛点场景</h2>
+<p>凌晨三点，你的爬虫脚本突然全部报错，日志清一色：<code>429 Too Many Requests</code>。用户头像没抓完，数据分析断了，更糟糕的是——你不知道该等多久才能继续。这是每一个写过爬虫或调过第三方 API 的开发者都经历过的夜晚。</p>
+
+<h2>问题根因</h2>
+<p>429 的本质不是"你做错了什么"，而是"你做太多了"。常见原因有三个：</p>
+<ul>
+<li><strong>请求频率超限</strong>：大多数 REST API 有每秒/每分钟请求数上限（如 GitHub API 限 5000次/小时，OpenAI 限 60次/分钟）。</li>
+<li><strong>并发连接数过多</strong>：同时发起大量请求，服务器主动丢弃超额请求。</li>
+<li><strong>IP 被封禁</strong>：短时间大量请求触发风控，IP 被临时或永久封禁。</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>方案一：等（被动等待）</h3>
+<p>最懒的办法是等。多数 API 的限流窗口是 1 分钟或 1 小时，时间到了自动恢复。但凌晨三点的你没有时间等，而且你根本不知道要等多久。</p>
+
+<h3>方案二：限流重试（主动控制）</h3>
+<p>在客户端加请求限流器，这是最常见的解法：</p>
+<pre><code>const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+async function retryWithBackoff(fn, maxRetries = 5) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (e.status === 429) {
+        // 从响应头读取需要等多久
+        const retryAfter = e.headers['retry-after'] || 60;
+        console.log(`限流，第${i+1}次重试，等待${retryAfter}秒...`);
+        await sleep(retryAfter * 1000);
+      } else {
+        throw e;
+      }
+    }
+  }
+  throw new Error('超过最大重试次数');
+}</code></pre>
+<p>这个方案可以配合 <code>AbortController</code> 实现超时控制，防止无限等待。</p>
+
+<h3>方案三：令牌桶算法（精确控速）</h3>
+<pre><code>class RateLimiter {
+  constructor(rate, interval) {
+    this.rate = rate;         // 每interval多少个请求
+    this.interval = interval;  // 时间窗口（毫秒）
+    this.allowance = rate;
+    this.lastCheck = Date.now();
+  }
+
+  async getToken() {
+    const now = Date.now();
+    const elapsed = now - this.lastCheck;
+    this.lastCheck = now;
+    // 每过1毫秒恢复rate/interval个令牌
+    this.allowance += elapsed * (this.rate / this.interval);
+    if (this.allowance > this.rate) this.allowance = this.rate;
+
+    if (this.allowance < 1) {
+      const wait = Math.ceil((1 - this.allowance) / (this.rate / this.interval));
+      await sleep(wait);
+      this.allowance = 0;
+    } else {
+      this.allowance -= 1;
+    }
+  }
+}</code></pre>
+
+<h3>方案四：换方案（彻底解决）</h3>
+<p>如果你长期需要大量调用某个 API，考虑：换到官方 SDK（通常内置智能重试）、申请企业级更高配额、或者自建缓存层减少重复请求。</p>
+
+<h2>顺手工具推荐</h2>
+<p>调试 API 限流问题最麻烦的一步是手动发请求看返回头。<a href="/tools/code/api-tester.html" target="_blank">CloverTools API测试工具</a>可以快速构造各种请求方法（GET/POST/PUT/DELETE）、添加自定义 Header、直接查看响应头中的 <code>X-RateLimit-Remaining</code> 和 <code>Retry-After</code> 字段，不用写代码就能摸清 API 的限流规则。</p>

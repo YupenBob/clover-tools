@@ -1,0 +1,65 @@
+<h2>痛点场景</h2>
+<p>本地开发好好的，<code>fetch('/api/users')</code> 返回数据完美。上线之后突然报错：<code>Access to fetch at 'https://api.example.com' from origin 'https://your-site.com' has been blocked by CORS policy</code>。用户打电话来问，你发现后端根本没配过跨域。</p>
+
+<h2>问题根因</h2>
+<p>浏览器的同源策略（CORS）是安全机制，不是 bug。报错的原因是：你的前端页面（origin A）通过 JavaScript 发请求到后端（origin B），但后端没有在响应头里说"允许来自 A 的请求"。</p>
+<p>特别注意：<strong>CORS 是浏览器行为</strong>，用 Postman 或 curl 直接请求是正常的，只有浏览器里才会触发。</p>
+
+<h2>解决方案</h2>
+
+<h3>方案一：后端加 CORS 响应头（最标准）</h3>
+<pre><code>// Node.js Express
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://your-site.com');
+  // 生产环境不要用 * 配特定域名
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true'); // 如果需要带cookie
+  next();
+});
+
+// 预检请求处理
+app.options('*', (req, res) => {
+  res.sendStatus(204);
+});</code></pre>
+
+<h3>方案二：Nginx 反向代理（不需要改后端）</h3>
+<p>把后端 API 代理到同域下，浏览器认为同源，CORS 不触发：</p>
+<pre><code>server {
+  listen 80;
+  server_name your-site.com;
+
+  location /api/ {
+    proxy_pass https://api.example.com/;  # 末尾斜杠决定是否保留前缀
+    proxy_set_header Host api.example.com;
+    proxy_set_header X-Real-IP $remote_addr;
+  }
+}</code></pre>
+<p>这是最干净的方案，前端代码完全不用改，后端也不需要知道有跨域这回事。</p>
+
+<h3>方案三：JSONP（只支持 GET，临时用）</h3>
+<pre><code>// 前端
+const script = document.createElement('script');
+script.src = 'https://api.example.com/users?callback=handleData';
+document.head.appendChild(script);
+
+function handleData(data) {
+  console.log(data);
+}</code></pre>
+<p>JSONP 利用了 script 标签不受同源策略限制的特性，但只支持 GET，且有安全风险，现在已经很少用了。</p>
+
+<h3>方案四：开发时用 Vite/Webpack 代理</h3>
+<pre><code>// vite.config.js
+export default {
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://api.example.com',
+        changeOrigin: true,
+      }
+    }
+  }
+}</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>遇到 CORS 报错，可以用 <a href="/tools/code/api-tester.html" target="_blank">CloverTools API测试工具</a>直接构造请求，手动加上 <code>Origin</code> 等 Header，看服务器返回的响应头里有没有 <code>Access-Control-Allow-Origin</code>。不用打开浏览器 Network 面板也能快速定位问题来源。</p>

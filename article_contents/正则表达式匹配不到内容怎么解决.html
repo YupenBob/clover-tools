@@ -1,0 +1,65 @@
+<h2>痛点场景</h2>
+<p>你写了一个正则：<code>/user:\d+/</code>，用来匹配 <code>user:12345</code>，一测试，0 matches。检查了八百遍，字符串里有 <code>user:12345</code> 啊，正则看着也没问题啊。结果半小时后发现：字符串里是全角冒号 <code>user：12345</code>（中文冒号）。</p>
+
+<h2>问题根因</h2>
+<p>正则不生效的原因特别多，列举最常见的六个：</p>
+<ul>
+<li><strong>字符不匹配</strong>：全角/半角、中英文标点、空格数量不一样（s 只认 ASCII 空格）。</li>
+<li><strong>转义问题</strong>：字符串里 <code>\d</code> 被 Java 解析成 <code>d</code>（不是正则的 <code>d</code>），实际传给正则的是 <code>d</code> 两个普通字符。</li>
+<li><strong>零宽断言写反</strong>：<code>(?=)</code> 是正前瞻，<code>(?!)</code> 是负前瞻，写反了就匹配不到。</li>
+<li><strong>贪婪 vs 懒惰</strong>：<code>.*</code> 贪婪匹配，可能吃掉了你想匹配的内容。</li>
+<li><strong>特殊字符没转义</strong>：正则里用 <code>.</code> 实际匹配任意字符，但你可能想匹配字面句点。</li>
+<li><strong>标志位忘加</strong>：大段文本要用 <code>m</code>（多行模式）或 <code>i</code>（大小写不敏感）。</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>调试第一步：逐字符验证</h3>
+<pre><code>// 先看字符串实际由什么字符组成
+const str = 'user:12345';
+console.log([...str].map(c => c.charCodeAt(0)));
+// [117, 58, 49, 50, 51, 52, 53]
+// 58 是英文冒号，如果显示 65338 就是中文冒号</code></pre>
+
+<h3>调试第二步：逐段匹配</h3>
+<pre><code>const regex = /user:(d+)/;
+const str = 'user:12345';
+
+if (!regex.test(str)) {
+  // 分段测试：[sS] 代替 . 可以匹配任意字符（包括换行）
+  const parts = str.match(/[sS]*/g);
+  console.log('分段结果:', parts);
+} else {
+  console.log('匹配结果:', str.match(regex));
+}</code></pre>
+
+<h3>零宽断言详解</h3>
+<pre><code>const str = 'hello123world456';
+
+// (?=d) 正前瞻：匹配后面紧接着数字的位置
+str.match(/hello(?=d)/);  // "hello"（后面是数字）
+
+// (?!d) 负前瞻：匹配后面不是数字的位置
+str.match(/hello(?!d)/);  // null（hello后面是数字）
+
+// 实际应用：提取引号里的内容，但不包括引号本身
+'"hello" and "world"'.match(/"([^"]+)"/g);
+// [""hello"", ""world""]  ← 这个不行，它包含引号
+
+// 用零宽断言：
+'"hello" and "world"'.match(/(?<=")[^"]+(?=")/g);
+// ["hello", "world"]  ← 这才是对的</code></pre>
+
+<h3>贪婪变懒惰</h3>
+<pre><code>const html = '<div>hello</div><div>world</div>';
+
+// 贪婪：.* 匹配尽可能多
+'<div>hello</div><div>world</div>'.match(/<div>.*<\/div>/);
+// "hello</div><div>world" ← 匹配了整段，不是一段
+
+// 懒惰：.*? 匹配尽可能少
+'<div>hello</div><div>world</div>'.match(/<div>.*?<\/div>/g);
+// ["<div>hello</div>", "<div>world</div>"]  ← 分别匹配</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>正则写完一定要实测。<a href="/tools/code/regex-tester.html" target="_blank">CloverTools 正则表达式测试器</a>支持实时高亮匹配结果、显示所有捕获组、支持 <code>g</code> <code>i</code> <code>m</code> 标志位切换，输入测试字符串后立刻看到哪些部分匹配、哪部分是捕获组，不用在代码里反复 console.log 来调试。</p>

@@ -1,0 +1,71 @@
+<h2>痛点场景</h2>
+<p>用户反馈页面一直转圈圈，打不开。打开控制台一看：请求发了出去，但一直没有响应，浏览器转了整整两分钟，最后弹出 <code>net::ERR_TIMED_OUT</code>。这种情况在后端接口慢、第三方服务不稳定、网络波动时特别常见。</p>
+
+<h2>问题根因</h2>
+<p>超时问题本质上是"不知道该等多久"。常见原因：</p>
+<ul>
+<li><strong>后端接口慢</strong>：数据库查询慢、第三方 API 响应慢，后端本身没问题但 RT（响应时间）超过前端预期。</li>
+<li><strong>网络不稳定</strong>：移动端弱网、跨国请求延迟高。</li>
+<li><strong>服务端资源满载</strong>：连接池耗尽，请求在队列里等待超时。</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>方案一：AbortController（前端单次请求超时）</h3>
+<pre><code>const controller = new AbortController();
+const timeout = setTimeout(() => controller.abort(), 5000); // 5秒超时
+
+try {
+  const res = await fetch('/api/data', {
+    signal: controller.signal
+  });
+  clearTimeout(timeout);
+  const data = await res.json();
+} catch (e) {
+  if (e.name === 'AbortError') {
+    console.log('请求超时了');
+  } else {
+    throw e;
+  }
+}</code></pre>
+
+<h3>方案二：超时自动重试（更健壮）</h3>
+<pre><code>async function fetchWithRetry(url, options = {}, retries = 3, timeout = 5000) {
+  for (let i = 0; i < retries; i++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (e) {
+      clearTimeout(timer);
+      if (i === retries - 1) throw e;
+      // 指数退避：1s, 2s, 4s
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
+  }
+}</code></pre>
+
+<h3>方案三：后端超时配置（完整链路）</h3>
+<p>后端也要设超时，否则前端设了也没用：</p>
+<pre><code>// Node.js Express 示例
+const server = app.listen(3000);
+
+// 全局请求超时中间件
+app.use((req, res, next) => {
+  req.setTimeout(5000);          // 5秒无响应即超时
+  res.setTimeout(10000);        // 10秒无响应即超时
+  next();
+});
+
+// 单个路由独立超时
+app.get('/slow-api', 
+  (req, res) => { /* 处理逻辑 */ },
+  { socketTimeoutMS: 5000 }
+);</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>调试超时问题，<a href="/tools/code/api-tester.html" target="_blank">CloverTools API测试工具</a>可以用来手动发请求测接口 RT，给不同接口分别设置超时时间，直观看到哪些接口拖慢了整体响应。对排查"到底是哪个 API 超时"特别有用。</p>
