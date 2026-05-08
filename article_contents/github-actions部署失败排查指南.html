@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Actions 部署失败了？这篇帮你排查所有原因</title>
+  <meta name="description" content="GitHub Actions 部署失败排查指南，涵盖 runner 超时、权限不足、secrets 未配置、action 版本问题、Docker build 失败等常见场景，附诊断思路和修复方案。">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px 24px; background: #fafafa; }
+    h1 { font-size: 1.8em; margin-bottom: 12px; color: #1a1a2e; }
+    h2 { font-size: 1.35em; margin-top: 48px; margin-bottom: 16px; color: #16213e; border-left: 4px solid #e94560; padding-left: 12px; }
+    h3 { font-size: 1.1em; margin-top: 28px; margin-bottom: 12px; color: #0f3460; }
+    p { margin-bottom: 16px; color: #444; }
+    ul, ol { margin-bottom: 16px; padding-left: 24px; }
+    li { margin-bottom: 8px; color: #444; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 0.88em; color: #c7254e; }
+    pre { background: #1a1a2e; color: #e0e0e0; padding: 20px; border-radius: 8px; overflow-x: auto; margin: 20px 0; font-size: 0.85em; line-height: 1.6; }
+    pre code { background: none; color: #e0e0e0; padding: 0; font-size: inherit; }
+    .note { background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; padding: 16px 20px; margin: 24px 0; font-size: 0.95em; }
+    .note strong { color: #856404; }
+    .tag { display: inline-block; background: #e94560; color: #fff; font-size: 0.75em; padding: 2px 8px; border-radius: 12px; margin-right: 6px; vertical-align: middle; }
+    .intro { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; padding: 32px 28px; border-radius: 12px; margin-bottom: 40px; }
+    .intro h1 { color: #fff; margin-bottom: 16px; }
+    .intro p { color: #b0b0c0; font-size: 1.05em; }
+    .cta { background: linear-gradient(135deg, #e94560, #0f3460); color: #fff; text-align: center; padding: 28px; border-radius: 10px; margin-top: 48px; }
+    .cta a { color: #ffe066; font-weight: bold; font-size: 1.1em; }
+    .err-block { border-left: 4px solid #e94560; background: #fff5f5; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+    .err-block .err-title { font-weight: bold; color: #c7254e; margin-bottom: 8px; }
+    .fix-block { border-left: 4px solid #28a745; background: #f0fff4; padding: 16px 20px; border-radius: 0 6px 6px 0; margin: 16px 0; }
+    .fix-block .fix-title { font-weight: bold; color: #28a745; margin-bottom: 8px; }
+    .table-wrap { overflow-x: auto; margin: 20px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    th { background: #16213e; color: #fff; padding: 10px 14px; text-align: left; }
+    td { padding: 9px 14px; border-bottom: 1px solid #e0e0e0; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+  </style>
+</head>
+<body>
+
+<div class="intro">
+  <span class="tag">DevOps</span><span class="tag">GitHub Actions</span><span class="tag">CI/CD</span>
+  <h1>GitHub Actions 部署失败了？这篇帮你排查所有原因</h1>
+  <p>半夜起来发现线上挂了，Actions 日志红了一片——别慌，这篇老司机带你逐条摸排，从 runner 超时到 Docker build 失败，从 secrets 漏配到 action 版本踩坑，5 分钟定位根因，对症下药。</p>
+</div>
+
+<h2>一、常见报错场景：先定位是哪一类问题</h2>
+
+<p>GitHub Actions 出错的形式就那么几种，搞清楚是哪一类，排查效率翻倍。先对号入座：</p>
+
+<div class="table-wrap">
+<table>
+  <tr><th>报错表现</th><th>可能原因</th><th>优先级</th></tr>
+  <tr><td>Job 一直 pending，超时后取消</td><td>runner 不可用 / 无效标签 / 队列阻塞</td><td>🔴 高</td></tr>
+  <tr><td>Push 代码触发了，但什么都没跑</td><td>workflow 条件判断 / 分支过滤 / 没启用 Actions</td><td>🔴 高</td></tr>
+  <tr><td>Permission denied / 403 Forbidden</td><td>secrets 未配 / GITHUB_TOKEN 权限不足 / scope 限制</td><td>🔴 高</td></tr>
+  <tr><td>Docker build 失败，exit code 非零</td><td>Dockerfile 错误 / 构建上下文 / 多阶段构建问题</td><td>🔴 高</td></tr>
+  <tr><td>action 版本报错（找不到 action / 版本冲突）</td><td>版本 tag 写错 / major 版本 breaking change / 未指定版本</td><tr>
+  <tr><td>cache 失效，每次都重新构建</td><td>cache key 变了 / actions/cache 版本 / 存储策略</td><td>🟡 中</td></tr>
+  <tr><td>并行 Job 有 race condition，或串行太慢</td><td>job 间数据依赖 / needs 依赖链设计 / matrix 设计</td><td>🟡 中</td></tr>
+  <tr><td>日志里有乱码、中文显示异常</td><td>locale 设置 / 文件编码 / log 层级配置</td><td>🟢 低</td></tr>
+</table>
+</div>
+
+<h2>二、诊断三板斧：logs → 环境变量 → 权限</h2>
+
+<p>不管什么报错，先跑这三步，80% 的问题在这里就能定位。</p>
+
+<h3>1. 先看 Logs，别猜</h3>
+
+<p>Actions 日志是金矿。很多人一看红了就慌，其实日志里写得清清楚楚。关键是看三点：</p>
+
+<ul>
+  <li><strong>失败那行的上下文</strong>：往上滚动 10-20 行，找到第一条 error 而不是最后一行 panic</li>
+  <li><strong>Exit code</strong>：非零退出码背后藏着真相，`echo $?` 或者日志里的 <code>Exit code: 1</code></li>
+  <li><strong>warnings</strong>：特别是 Node/Python 版本警告，很多行为是因为 Node 版本差异导致的隐性 bug</li>
+</ul>
+
+<div class="note">
+  <strong>💡 技巧：</strong>在 Job 失败时点「Re-run failed jobs」之前，先把完整日志另存为。重新跑会覆盖日志，有时候第一次的报错才是根因。
+</div>
+
+<h3>2. 环境变量是否到位</h3>
+
+<p>很多"玄学"问题其实是环境变量没配或者配错了地方。最常见的情况：</p>
+
+<pre><code># ❌ 错误：环境变量写在 job 外面但在 step 里用了
+env:
+  NODE_ENV: production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+# ✅ 正确：环境变量写在 job 内部
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+</code></pre>
+
+<p>检查清单：</p>
+<ul>
+  <li>变量是在 <code>env:</code> 还是在 step 里的 <code>env:</code>？作用域不同</li>
+  <li>secrets 在 workflow 里要用 <code>${{ secrets.XXX }}</code> 注入，不能直接写值</li>
+  <li>矩阵（matrix）展开的变量在 job 内可见，job 外不可见</li>
+</ul>
+
+<h3>3. 权限对了没有</h3>
+
+<p><code>GITHUB_TOKEN</code> 默认权限是受限的，很多操作需要显式授权。这是新手最常踩的坑。</p>
+
+<pre><code># 最常见的权限问题场景
+jobs:
+  deploy:
+    permissions:
+      contents: write    # 推送代码 / 创建 tag / Pages 部署
+      packages: write   # 推送 Docker 镜像到 GHCR
+      pull-requests: write  # 评论 PR / 创建 PR
+      id-token: write    # OIDC 云认证（AWS/GCP/Azure）
+</code></pre>
+
+<div class="note">
+  <strong>⚠️ 坑：</strong>Organization 仓库默认会覆盖仓库级别的权限设置。如果你的 workflow 在 org 仓库里跑，即使加了 <code>permissions:</code> 也可能不生效，要去 org 设置里放开。
+</div>
+
+<h2>三、5 种常见错误 + 修复方案</h2>
+
+<h3>错误 1：runner 一直 pending 超时</h3>
+
+<div class="err-block">
+  <div class="err-title">报错表现</div>
+  Job 状态是黄色 "In progress"，但没有任何日志输出，等待几分钟后显示 "The runner has not received a heartbeat in 600 seconds"。
+</div>
+
+<p>原因主要有三种：</p>
+
+<ul>
+  <li><strong>标签写错</strong>：比如写 <code>ubuntu-22.04</code> 但仓库没有自托管 runner，或者 <code>self-hosted</code> 标签没有匹配的机器</li>
+  <li><strong>自托管 runner 离线</strong>：服务器关机、agent 服务没启动、网络不通</li>
+  <li><strong>macOS runner 队列爆炸</strong>：GitHub 托管的 macOS runner 僧多粥少，高峰期排队严重</li>
+</ul>
+
+<div class="fix-block">
+  <div class="fix-title">修复方案</div>
+  <pre><code># 检查 runner 标签是否正确
+jobs:
+  build:
+    runs-on: ubuntu-latest    # GitHub 托管，直接用这个
+    # runs-on: [self-hosted]  # 自托管，注意确保机器在线
+    timeout-minutes: 30       # 加超时限制，别让 Job 无限挂起
+
+# 自托管 runner 排查顺序：
+# 1. 服务器上: ./run.sh 是否在跑（ps aux | grep run）
+# 2. 网络: curl https://api.github.com 是否通
+# 3. 标签: 仓库 Settings → Actions → Runners，确认标签匹配
+</code></pre>
+</div>
+
+<h3>错误 2：secrets 没配或引用方式错误</h3>
+
+<div class="err-block">
+  <div class="err-title">报错表现</div>
+  <code>Error: Input required and not supplied: token</code> 或 <code>Error: secrets.xxx is not defined</code>，或者 push 到仓库时显示 "Authentication failed"。
+</div>
+
+<p>secrets 配置和引用是两件事，很多人搞混。</p>
+
+<p><strong>第一步：仓库/Organization 里配置 secrets</strong></p>
+<ul>
+  <li>仓库 Settings → Secrets and variables → Actions → New repository secret</li>
+  <li>Organization secrets 可以共享给多个仓库，但要确保该仓库有权限</li>
+</ul>
+
+<p><strong>第二步：workflow 里正确引用</strong></p>
+<pre><code># ✅ 正确引用方式
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    steps:
+      - name: Deploy
+        run: ./deploy.sh
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}  # step 级也行
+
+# ❌ 常见错误：把 secrets 当普通变量写
+env:
+  DB_PASSWORD: "your_real_password"  # 不要这样做！会提交到 git
+</code></pre>
+
+<div class="note">
+  <strong>💡 环境变量 vs step env：</strong>job 级的 <code>env:</code> 所有 step 共享；step 级的 <code>env:</code> 只有当前 step 可用。如果某个 step 需要单独的 secrets，用 step 级。
+</div>
+
+<h3>错误 3：action 版本问题 / 找不到 action</h3>
+
+<div class="err-block">
+  <div class="err-title">报错表现</div>
+  <code>Error: Cannot find module '@actions/artifact'」或「The workflow is not valid. Unexpected value 'v4'"`</code>，以及 "The version 'v3' is deprecated for this action"。
+</div>
+
+<p>action 版本有三个坑：</p>
+
+<ol>
+  <li><strong>不写版本，用 latest</strong>：<code>actions/checkout@v4</code> 写死的版本不会突然爆炸</li>
+  <li><strong>大版本 breaking change</strong>：<code>actions/setup-node@v4</code> 有时候会更新导致不兼容</li>
+  <li><strong>私有 action 路径写错</strong>：<code>uses: ./my-action</code> 路径没找到</li>
+</ol>
+
+<pre><code># ✅ 推荐：锁定到具体版本（SHA 安全且稳定）
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.3
+        with:
+          node-version: '20'
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+# ❌ 不推荐：latest 或 major 版本随时可能变
+# - uses: actions/checkout@latest   ← 不稳定
+# - uses: actions/checkout@v4       ← major 可能 breaking
+</code></pre>
+
+<div class="note">
+  <strong>🔒 安全建议：</strong>用 SHA 而非版本号更安全，防止供应链攻击。GitHub 官方 action 的 SHA 在 release 页面有记录，每次 update 后记得换 SHA。
+</div>
+
+<h3>错误 4：Docker build 失败</h3>
+
+<div class="err-block">
+  <div class="err-title">报错表现</div>
+  <code>Error response from daemon: docker build failed with exit code 1</code>，或 Dockerfile 里 <code>RUN npm ci</code> 时报错 "npm not found"，或者 multi-stage build 里某 stage 找不到依赖。
+</div>
+
+<p>Docker build 失败的根因五花八门，按这个顺序查：</p>
+
+<ol>
+  <li><strong>构建上下文正确吗？</strong> <code>docker build</code> 默认在 git root，如果 <code>Dockerfile</code> 不在 root，要用 <code>context</code> 指定</li>
+  <li><strong>docker/login-action 用了吗？</strong>推送到 GHCR 需要先登录</li>
+  <li><strong>.dockerignore 漏了 node_modules 吗？</strong>本地 node_modules 被 COPY 进去导致覆盖镜像层</li>
+  <li><strong>多阶段构建 target 写对了吗？</strong></li>
+</ol>
+
+<pre><code># 完整 Docker 构建 + 推送 workflow
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend          # ← 指定构建上下文
+          push: true
+          tags: ghcr.io/${{ github.repository }}/myapp:latest
+          cache-from: type=gha       # ← 用 GitHub Actions cache 加速
+          cache-to: type=gha,mode=max
+
+# .dockerignore 示例（避免 node_modules 被 COPY）
+node_modules
+.git
+*.log
+.env
+</code></pre>
+
+<p>如果 build 缓存失效太频繁，用 <code>cache-from: type=gha</code> + <code>cache-to: type=gha</code> 把构建层缓存到 GitHub Actions Cache，第二次构建快很多。</p>
+
+<h3>错误 5：权限不足（GITHUB_TOKEN 限制）</h3>
+
+<div class="err-block">
+  <div class="err-title">报错表现</div>
+  <code>GraphQL: Resource not accessible by integration (HTTP 403)</code>，或者 push 代码时 "remote: Permission denied"，或者 "Unable to push to remote repository"。</div>
+
+<p><code>GITHUB_TOKEN</code> 的默认权限极其保守。常见需要额外权限的场景：</p>
+
+<div class="table-wrap">
+<table>
+  <tr><th>操作</th><th>所需权限</th></tr>
+  <tr><td>Push 代码到另一个仓库</td><td><code>contents: write</code>（目标仓库要有写入权）</td></tr>
+  <tr><td>创建/更新 GitHub Release</td><td><code>contents: write</code></td></tr>
+  <tr><td>推送 Docker 镜像到 GHCR</td><td><code>packages: write</code></td></tr>
+  <tr><td>创建 PR / 评论 PR</td><td><code>pull-requests: write</code></td></tr>
+  <tr><td>写入 GitHub Pages</td><td><code>pages: write</code></td></tr>
+  <tr><td>OIDC 云认证（AWS/GCP/Azure）</td><td><code>id-token: write</code></td></tr>
+  <tr><td>更新 GitHub Projects</td><td><code>projects: write</code></td></tr>
+</table>
+</div>
+
+<pre><code># 完整权限示例：部署到 GitHub Pages
+jobs:
+  deploy-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read    # 检出代码
+      pages: write      # 写入 GitHub Pages
+      id-token: write   # OIDC 认证
+    environment: github_pages  # 指定环境，环境级权限更细
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+      - uses: actions/deploy-pages@v4
+</code></pre>
+
+<h2>四、优化 CI 速度：并行 vs 串行</h2>
+
+<p>CI 跑 20 分钟和跑 5 分钟，对开发体验影响巨大。这里说几个实打实的优化手段。</p>
+
+<h3>1. 矩阵并行：让多个 Job 同时跑</h3>
+
+<pre><code># 矩阵并行：同时测试多个 Node 版本
+jobs:
+  test:
+    strategy:
+      matrix:
+        node-version: ['18', '20', '22']
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'    # 自动缓存 node_modules
+      - run: npm ci
+      - run: npm test
+
+# 结论：3 个 Node × 2 个 OS = 6 个 Job 并行跑，总时间不变，效率 6 倍
+</code></pre>
+
+<h3>2. Job 依赖链优化：减少不必要的串行</h3>
+
+<pre><code># ❌ 低效：所有 Job 串行等前一个完成
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps: ...
+  build:
+    needs: install    # 等 install 完才能跑
+    runs-on: ubuntu-latest
+    steps: ...
+  test:
+    needs: build       # 等 build 完才能跑
+    runs-on: ubuntu-latest
+    steps: ...
+
+# ✅ 高效：install → build|test 并行
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+  build:
+    needs: install
+    runs-on: ubuntu-latest
+    steps: ...
+
+  test:
+    needs: install    # ← 只依赖 install，不依赖 build
+    runs-on: ubuntu-latest
+    steps: ...
+</code></pre>
+
+<p><code>needs</code> 依赖链的设计原则：只依赖真正需要的前置结果，不要为了"保险"串一堆。</p>
+
+<h3>3. 依赖缓存：让每次构建不是从零开始</h3>
+
+<pre><code># Node.js 缓存（最常见）
+- uses: actions/cache@v4
+  with:
+    path: ~/.npm
+    key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+    restore-keys: |
+      npm-${{ runner.os }}-
+
+# Python 缓存
+- uses: actions/cache@v4
+  with:
+    path: ~/.cache/pip
+    key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+
+# Docker layer 缓存（用 buildx）
+- uses: docker/build-push-action@v5
+  with:
+    cache-from: type=gha
+    cache-to: type=gha,mode=max
+</code></pre>
+
+<h3>4. 快、省、准：条件执行</h3>
+
+<pre><code># 只在特定分支/文件变化时才跑 CI
+jobs:
+  test:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 需要 shallow false 来做 diff
+
+      - name: Run tests
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -qE '\.(js|ts)$'; then
+            npm test
+          else
+            echo "No relevant files changed, skip tests"
+          fi
+
+# 只在 release 时打包
+jobs:
+  build:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps: ...
+</code></pre>
+
+<h3>5. GitHub-hosted runner 选型建议</h3>
+
+<div class="table-wrap">
+<table>
+  <tr><th>Runner</th><th>适用场景</th><th>注意</th></tr>
+  <tr><td><code>ubuntu-latest</code></td><td>大多数场景，性价比最高</td><td>2 核 7GB RAM，并发有配额限制</td></tr>
+  <tr><td><code>windows-latest</code></td><td>.NET / MSBuild 项目</td><td>比 Linux 慢且贵，Windows 税</td></tr>
+  <tr><td><code>macos-latest</code></td><td>iOS/macOS 开发，Xcode</td><td>排队最慢，高峰等 30min+ 不稀奇</td></tr>
+  <tr><td><code>self-hosted</code></td><td>需要特殊硬件 / 更大内存 / 私有网络</td><td>自己维护，有可用性问题</td></tr>
+</table>
+</div>
+
+<h2>五、实战 checklist：下次出事先跑这个</h2>
+
+<ol>
+  <li>📋 <strong>看日志</strong>：找到第一条 error，而不是最后一行 panic</li>
+  <li>🔍 <strong>查 runner</strong>：GitHub 托管还是自托管？标签对不对？</li>
+  <li>🔑 <strong>验 secrets</strong>：仓库里配了吗？引用格式对吗？权限够不够？</li>
+  <li>📦 <strong>看 action 版本</strong>：SHA 还是版本号？要不要 update？</li>
+  <li>🐳 <strong>查 Docker</strong>：构建上下文、.dockerignore、multi-stage target</li>
+  <li>⚡ <strong>优化依赖</strong>：cache 配了吗？矩阵能并行吗？needs 链有没有不必要的串行？</li>
+  <li>🧪 <strong>本地复现</strong>：跑一遍 <code>docker build</code> / <code>npm test</code>，能复现就能修</li>
+</ol>
+
+<div class="cta">
+  <p>DevOps 工具链太长？试试 <a href="https://tools.xsanye.cn/tools/dev-tools/" target="_blank">CloverTools 开发工具箱</a>，收录 1000+ 高质量工具，覆盖 Docker、CI/CD、监控、代码生成等开发全流程。</p>
+  <p style="margin-top: 12px; font-size: 0.85em; opacity: 0.8;">📌 收藏本文，下次部署红了不慌。</p>
+</div>
+
+</body>
+</html>
