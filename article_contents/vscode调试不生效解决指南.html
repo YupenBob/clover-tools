@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VSCode调试不生效？这篇帮你彻底搞懂</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #333; line-height: 1.8; }
+    .container { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+    .article-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: #fff; padding: 50px 40px; border-radius: 16px; margin-bottom: 32px; text-align: center; position: relative; overflow: hidden; }
+    .article-header::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(94,53,177,0.15) 0%, transparent 60%); }
+    .article-header h1 { font-size: 2em; font-weight: 800; margin-bottom: 12px; position: relative; }
+    .article-header .subtitle { font-size: 1.1em; opacity: 0.85; position: relative; }
+    .tag-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; position: relative; }
+    .tag { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 14px; font-size: 0.82em; }
+    .content { background: #fff; border-radius: 16px; padding: 40px 44px; box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+    h2 { font-size: 1.45em; margin: 36px 0 14px; padding-bottom: 8px; border-bottom: 3px solid #5e35b1; display: inline-block; color: #1a1a2e; }
+    h3 { font-size: 1.15em; margin: 24px 0 10px; color: #2c3e50; }
+    p { margin: 12px 0; color: #444; }
+    .lead { font-size: 1.05em; color: #555; border-left: 4px solid #5e35b1; padding: 12px 20px; background: #fafafa; border-radius: 4px; margin: 20px 0; }
+    .highlight-box { background: #f3f0ff; border: 1px solid #d0bfff; border-radius: 10px; padding: 18px 22px; margin: 20px 0; }
+    .highlight-box strong { color: #5e35b1; }
+    code, pre { font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", monospace; }
+    .code-block { background: #1e1e1e; color: #d4d4d4; border-radius: 10px; padding: 20px 24px; margin: 16px 0; overflow-x: auto; font-size: 0.875em; line-height: 1.7; position: relative; }
+    .code-block .comment { color: #6a9955; }
+    .code-block .key { color: #9cdcfe; }
+    .code-block .string { color: #ce9178; }
+    .code-block .value { color: #b5cea8; }
+    .code-block .type { color: #4ec9b0; }
+    .inline-code { background: #f0f0f0; color: #c7254e; padding: 2px 7px; border-radius: 4px; font-size: 0.88em; }
+    ul, ol { margin: 12px 0 12px 24px; }
+    li { margin: 6px 0; color: #444; }
+    li strong { color: #333; }
+    .warning { background: #fff3e0; border: 1px solid #ffb74d; border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
+    .warning::before { content: "⚠️ "; font-size: 1.2em; }
+    .tip { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
+    .tip::before { content: "💡 "; font-size: 1.2em; }
+    .table-wrap { overflow-x: auto; margin: 18px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+    th { background: #5e35b1; color: #fff; padding: 10px 16px; text-align: left; }
+    td { padding: 9px 16px; border-bottom: 1px solid #eee; }
+    tr:hover { background: #fafafa; }
+    .cta-section { background: linear-gradient(135deg, #5e35b1, #7e57c2); color: #fff; border-radius: 14px; padding: 32px 36px; text-align: center; margin: 36px 0 0; }
+    .cta-section h3 { color: #fff; font-size: 1.4em; margin-bottom: 10px; }
+    .cta-section p { color: rgba(255,255,255,0.9); margin-bottom: 18px; }
+    .cta-btn { display: inline-block; background: #fff; color: #5e35b1; padding: 12px 32px; border-radius: 30px; font-weight: 700; text-decoration: none; font-size: 1em; transition: transform 0.2s; }
+    .cta-btn:hover { transform: scale(1.05); }
+    .issue-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+    .issue-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 10px; padding: 16px; }
+    .issue-card h4 { color: #c62828; font-size: 0.95em; margin-bottom: 6px; }
+    .issue-card p { font-size: 0.88em; color: #666; margin: 0; }
+    @media (max-width: 600px) { .issue-grid { grid-template-columns: 1fr; } .content { padding: 28px 22px; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="article-header">
+    <h1>VSCode调试不生效？这篇帮你彻底搞懂</h1>
+    <p class="subtitle">从 launch.json 配置到条件断点，老工程师踩坑实录，帮你彻底解决 JS/Node.js 调试难题</p>
+    <div class="tag-row">
+      <span class="tag">VSCode</span>
+      <span class="tag">Node.js 调试</span>
+      <span class="tag">launch.json</span>
+      <span class="tag">断点技巧</span>
+      <span class="tag">前端工程化</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <p class="lead">VSCode 的调试功能用过就回不去，但一旦出问题，能把人逼疯。断点打了不命中、控制台空跑、attach 半天连不上——这些问题我全踩过。这篇不讲教科书，就讲实际干活中遇到怎么解决。</p>
+
+    <h2>一、先搞清楚现状：你遇到的是哪种"不生效"？</h2>
+    <p>调试不生效是个笼统的说法，诱因不同解法完全不同。先对号入座：</p>
+
+    <div class="issue-grid">
+      <div class="issue-card">
+        <h4>断点变空心，命中不了</h4>
+        <p>断点打了变成空心圆（未验证），或者断点直接被跳过，代码执行了但不停下来。</p>
+      </div>
+      <div class="issue-card">
+        <h4>控制台直接跑完，没断住</h4>
+        <p>按 F5 跑程序，终端输出完了代码才反应过来，断点根本没拦住。</p>
+      </div>
+      <div class="issue-card">
+        <h4>attach 半天连不上</h4>
+        <p>用 "Attach to Node" 类型，进程列表里选了半天，连上去瞬间又断了。</p>
+      </div>
+      <div class="issue-card">
+        <h4>Chrome DevTools 和 VSCode 同时想调</h4>
+        <p>前端项目两边都想断住，但 Chrome 开debug模式后 VSCode 就连不上了。</p>
+      </div>
+    </div>
+
+    <p>以上四种是最常见的，对应不同的根因：一个一个来。</p>
+
+    <h2>二、从源头搞懂 launch.json</h2>
+    <p>VSCode 调试的核心就靠 <code class="inline-code">launch.json</code>。很多人配置乱抄，要么 launch 和 attach 混用，要么漏了关键字段，导致调试器根本不知道该干嘛。先搞清楚两个最基础的概念：</p>
+
+    <h3>2.1 launch vs attach：这是两条完全不同的路</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>模式</th><th>干了什么</th><th>适用场景</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>launch</strong></td><td>VSCode 自己启动一个进程，把调试器怼进去</td><td>全新启动一个程序来调试</td></tr>
+          <tr><td><strong>attach</strong></td><td>程序已经在跑了，VSCode 主动连上去</td><td>调试已启动的进程、热更新进程</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="highlight-box">
+      <strong>核心原则：</strong>如果你按了 F5 控制台是 VSCode 新开的窗口，基本就是 launch；如果你用 nodemon / pm2 / node --inspect 提前跑起来了，再在 VSCode 里选 attach，那就是 attach。
+    </div>
+
+    <h3>2.2 launch.json 字段详解（YAML 格式）</h3>
+    <p>现在来看一个完整的 launch.json，理解每个字段干什么。VSCode 支持在 <code class="inline-code">.vscode/launch.json</code> 里直接写 YAML，简洁好读：</p>
+
+    <div class="code-block"><span class="comment"># .vscode/launch.json</span>
+<span class="key">configurations</span>:
+  - <span class="key">name</span>: <span class="string">"Node.js: 启动调试"</span>
+    <span class="key">type</span>: <span class="value">node</span>
+    <span class="key">request</span>: <span class="value">launch</span>
+    <span class="key">runtimeExecutable</span>: <span class="string">"node"</span>
+    <span class="key">runtimeArgs</span>:
+      - <span class="string">"--nolazy"</span>
+      - <span class="string">"--inspect-brk=9229"</span>
+    <span class="key">program</span>: <span class="string">"${workspaceFolder}/src/index.js"</span>
+    <span class="key">console</span>: <span class="value">integratedTerminal</span>
+    <span class="key">restart</span>: <span class="value">true</span>
+    <span class="key">skipFiles</span>:
+      - <span class="string">"<node_internals>/**"</span>
+      - <span class="string">"${workspaceFolder}/node_modules/**/*.js"</span>
+
+  - <span class="key">name</span>: <span class="string">"Node.js: Attach 到已启动进程"</span>
+    <span class="key">type</span>: <span class="value">node</span>
+    <span class="key">request</span>: <span class="value">attach</span>
+    <span class="key">port</span>: <span class="value">9229</span>
+    <span class="key">restart</span>: <span class="value">true</span>
+    <span class="key">skipFiles</span>:
+      - <span class="string">"<node_internals>/**"</span>
+
+  - <span class="key">name</span>: <span class="string">"Nodemon 热更新调试"</span>
+    <span class="key">type</span>: <span class="value">node</span>
+    <span class="key">request</span>: <span class="value">launch</span>
+    <span class="key">runtimeExecutable</span>: <span class="string">"nodemon"</span>
+    <span class="key">runtimeArgs</span>:
+      - <span class="string">"--inspect-brk=9229"</span>
+    <span class="key">program</span>: <span class="string">"${workspaceFolder}/src/index.js"</span>
+    <span class="key">console</span>: <span class="value">integratedTerminal</span>
+    <span class="key">restart</span>: <span class="value">true</span>
+    <span class="key">env</span>:
+      <span class="key">NODE_ENV</span>: <span class="string">"development"</span>
+
+  - <span class="key">name</span>: <span class="string">"Chrome: 联合调试（前端）"</span>
+    <span class="key">type</span>: <span class="value">chrome</span>
+    <span class="key">request</span>: <span class="value">launch</span>
+    <span class="key">url</span>: <span class="string">"http://localhost:3000"</span>
+    <span class="key">webRoot</span>: <span class="string">"${workspaceFolder}/src"</span>
+    <span class="key">sourceMaps</span>: <span class="value">true</span>
+    <span class="key">pathMapping</span>:
+      <span class="key">/src</span>: <span class="string">"${workspaceFolder}/src"</span>
+</div>
+
+    <p>逐个解释关键字段：</p>
+    <ul>
+      <li><strong>runtimeExecutable</strong>：用什么程序跑。默认是 <code class="inline-code">node</code>，但如果你用 ts-node、tsx、nodemon，就换成对应的命令</li>
+      <li><strong>runtimeArgs</strong>：传给运行时进程的参数。<code class="inline-code">--nolazy</code> 关闭 V8 惰性编译，确保代码在第一行就能断住；<code class="inline-code">--inspect-brk=9229</code> 开启调试端口并在第一行停住</li>
+      <li><strong>program</strong>：入口文件路径，注意是绝对路径或 workspaceFolder 为基准</li>
+      <li><strong>console</strong>：输出走哪里。<code class="inline-code">integratedTerminal</code> 用 VSCode 内置终端，<code class="inline-code">externalTerminal</code> 用系统终端窗口</li>
+      <li><strong>restart</strong>：调试结束后自动重启，配合 nodemon 实现热更新调试</li>
+      <li><strong>skipFiles</strong>：这些文件里的代码直接跳过，不进入断点，通常用于过滤 node_modules 和 Node.js 内部模块</li>
+      <li><strong>port</strong>（attach 专用）：去连哪个端口的调试器</li>
+    </ul>
+
+    <div class="warning">很多人犯的错误是：attach 时没在程序启动时加 <code class="inline-code">--inspect</code> 或 <code class="inline-code">--inspect-brk</code> 参数。Node.js 默认不开启调试端口，你不在启动时显式声明，VSCode 根本连不上去。</div>
+
+    <h2>三、断点技巧：打出 debug 效率的最大化</h2>
+    <p>只会打普通断点？那你只发挥了调试器 30% 的能力。以下技巧让调试效率直接翻倍。</p>
+
+    <h3>3.1 条件断点：只在你关心的条件下停下来</h3>
+    <p>右键点击行号 → 选择"添加条件断点"，或者在已有断点上右键 →"编辑断点"。支持两种表达式：</p>
+    <ul>
+      <li><strong>表达式条件</strong>：<code class="inline-code">user.id === 42 && status === 'active'</code> — 当条件为 true 时断住</li>
+      <li><strong>命中计数</strong>：<code class="inline-code">hitCount >= 5</code> — 这个位置被命中第 5 次时才停，常用于循环里找特定那次</li>
+    </ul>
+
+    <p>实战场景：接口被并发调用 50 次，其中某一次数据异常，你想定位是哪次——打普通断点要按 49 次继续，太折磨了。改成 <code class="inline-code">hitCount >= 1</code> 然后配合变量判断：</p>
+
+    <div class="code-block"><span class="comment">// 条件：只有 userId 为 1024 时才停</span>
+userId === <span class="value">1024</span>
+</div>
+
+    <h3>3.2 函数断点：不知道在哪行但知道函数名</h3>
+    <p>按 <code class="inline-code">Ctrl+Shift+F10</code>（macOS: <code class="inline-code">Cmd+Shift+F10</code>），输入函数名，VSCode 会在所有同名函数的入口处下一个断点。这比搜代码再点行号快得多。</p>
+
+    <h3>3.3 日志点（Logpoint）：不打断点，只打印日志</h3>
+    <p>右键行号 → "添加日志点"。程序跑到这里不会停，但会在控制台输出一段你定义的消息。完美替代 <code class="inline-code">console.log</code>，还不用改代码。格式：</p>
+
+    <div class="code-block"><span class="string">"调用 getUser，当前 userId = "</span>{userId}<span class="string">"，结果 ="</span>{JSON.stringify(result)}<span class="string">""</span>
+</div>
+
+    <p>花括号里写变量名，调试器会实时替换。查循环里变量怎么变的，或者想知道某个函数被谁调了，用这个，比断点安静 10 倍。</p>
+
+    <h3>3.4 检查（Watch）面板：实时监控变量值</h3>
+    <p>调试时 VSCode 左侧有个 Watch 面板，可以添加表达式。右键选"添加到监视"，或者直接点 <code class="inline-code">+</code> 号输入表达式，比如 <code class="inline-code">user.posts.filter(p => p.liked)</code>，每次断住都会实时显示结果，不用在变量面板里翻层级。</p>
+
+    <h2>四、Node.js Debug 模式：挑对启动方式</h2>
+    <h3>4.1 --inspect vs --inspect-brk：两兄弟别搞混</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>参数</th><th>行为</th><th>什么时候用</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code class="inline-code">--inspect</code></td><td>开启调试端口，程序立即全速跑</td><td>你已经知道断点在哪里，只用 attach 事后连</td></tr>
+          <tr><td><code class="inline-code">--inspect-brk</code></td><td>开启调试端口，在第一行代码前停住</td><td>需要从程序入口第一行就开始调试</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>新手常犯的错误：用 <code class="inline-code">--inspect</code> 然后抱怨"为什么断点没停住程序就结束了"。因为你程序跑完了才想起来开 VSCode attach。解决方法：</p>
+    <ul>
+      <li>从头开始调 → 用 <code class="inline-code">--inspect-brk</code></li>
+      <li>程序已经在跑 → 用 <code class="inline-code">--inspect</code> 然后 attach</li>
+    </ul>
+
+    <h3>4.2 Nodemon 配合调试：热更新也要能断点</h3>
+    <p>用 nodemon 跑项目改代码不用重启，但调试怎么断？两种方式：</p>
+
+    <h4>方式一：nodemon 直接加 --inspect</h4>
+    <div class="code-block"><span class="comment"># 直接在命令行启动 nodemon 调试模式</span>
+nodemon --inspect-brk=<span class="value">9229</span> src/index.js
+</div>
+
+    <p>然后在 VSCode 里用 "Attach to Node" 配置连到 9229 端口。</p>
+
+    <h4>方式二：nodemon.json 配置</h4>
+    <div class="code-block">{
+  <span class="key">"execMap"</span>: {
+    <span class="key">"ts"</span>: <span class="string">"node --inspect-brk=9229 -r ts-node/register"</span>
+  },
+  <span class="key">"ext"</span>: <span class="string">"ts,js,json"</span>,
+  <span class="key">"ignore"</span>: [<span class="string">"node_modules"</span>, <span class="string">"dist"</span>],
+  <span class="key">"verbose"</span>: <span class="value">true</span>
+}
+</div>
+
+    <p>配合前面 launch.json 里的 "Nodemon 热更新调试" 配置，修改代码后 nodemon 自动重启，VSCode 调试器会重新 attach，调试体验和无热更新的基本一致。</p>
+
+    <div class="tip"><strong>Nodemon 调试实战 tip：</strong>nodemon 重启时调试端口可能冲突，建议给每个 nodemon 实例分配不同端口，或者配合 <code class="inline-code">restart: true</code> 让 VSCode 自动重连。</div>
+
+    <h2>五、Chrome DevTools + VSCode 联合调试</h2>
+    <p>前端项目（React/Vue/Angular）在 Chrome 里跑，VSCode 想断，两者要协调好调试端口，否则会互相抢。</p>
+
+    <h3>5.1 原理：两者用的是同一个 CDP 协议</h3>
+    <p>Chrome 打开 <code class="inline-code">--remote-debugging-port=9222</code> 后，VSCode 可以通过这个端口接管 Chrome 的调试。关键在于不要让 Chrome 自己开启独立的调试端口，要让两者用同一个。</p>
+
+    <h3>5.2 正确流程</h3>
+    <ol>
+      <li>启动你的前端项目（Vite/Webpack dev server）</li>
+      <li>用 Chrome 打开 <code class="inline-code">chrome --remote-debugging-port=9222</code> 访问 <code class="inline-code">localhost:3000</code></li>
+      <li>VSCode launch.json 配置 <code class="inline-code">"request": "attach"</code> + <code class="inline-code">"port": 9222</code>（注意不是 9229）</li>
+      <li>按 F5，VSCode 会列出 Chrome 里所有可调试页面，选中你的标签页</li>
+    </ol>
+
+    <div class="code-block"><span class="comment"># Chrome 启动命令（macOS）</span>
+open -a <span class="string">"Google Chrome"</span> --args --remote-debugging-port=<span class="value">9222</span> --user-data-dir=/tmp/chrome-debug
+</div>
+
+    <h3>5.3 sourceMaps 导致断点错位</h3>
+    <p>前端项目通常用 Webpack/Vite 打包，代码是编译后的。如果断点打在编译后代码上，位置会错乱。需要开启 <code class="inline-code">sourceMaps</code>：</p>
+
+    <div class="code-block"><span class="key">name</span>: <span class="string">"Chrome: 联合调试（前端）"</span>
+<span class="key">type</span>: <span class="value">chrome</span>
+<span class="key">request</span>: <span class="value">attach</span>
+<span class="key">port</span>: <span class="value">9222</span>
+<span class="key">urlFilter</span>: <span class="string">"localhost:3000"</span>
+<span class="key">webRoot</span>: <span class="string">"${workspaceFolder}/src"</span>
+<span class="key">sourceMaps</span>: <span class="value">true</span>
+<span class="key">pathMapping</span>:
+  <span class="key">/src</span>: <span class="string">"${workspaceFolder}/src"</span>
+</div>
+
+    <p><code class="inline-code">pathMapping</code> 是关键——告诉 VSCode Chrome 里的 <code class="inline-code">/src</code> 路径对应本地哪个目录，这样断点就能精确映射到源文件而不是打包后的文件。</p>
+
+    <h2>六、常见问题排查清单</h2>
+
+    <h3>Q1：断点变空心圆，不生效</h3>
+    <ul>
+      <li>检查 <code class="inline-code">skipFiles</code> 是否误把目标文件过滤了</li>
+      <li>确认代码被正确 source map 了，编译后的代码行号可能对不上</li>
+      <li>可能是代码被压缩了，开启 source map 或用非压缩 build</li>
+      <li>检查是否有多实例运行，旧进程还在占着调试端口</li>
+    </ul>
+
+    <h3>Q2：F5 按下去程序直接跑完，断点根本拦不住</h3>
+    <ul>
+      <li>确认用的是 <code class="inline-code">--inspect-brk</code> 而不是 <code class="inline-code">--inspect</code></li>
+      <li>检查 launch.json 里的 <code class="inline-code">program</code> 路径是否正确</li>
+      <li>确认 runtimeExecutable 指向正确的 node 路径（有些项目用 nvm 指定了版本）</li>
+    </ul>
+
+    <h3>Q3：attach 连上了但断点显示"未经验证"</h3>
+    <ul>
+      <li>这是 Source Map 映射失败的表现，检查 <code class="inline-code">sourceMaps: true</code> 是否配置</li>
+      <li>检查 <code class="inline-code">webRoot</code>（Chrome 调试）或 <code class="inline-code">cwd</code>（Node 调试）是否正确</li>
+      <li>试着在目标文件第一行手动打个断点，看能否命中；如果第一行能断住说明路径没问题</li>
+    </ul>
+
+    <h3>Q4：nodemon 重启后 VSCode 断不住</h3>
+    <ul>
+      <li>确保 launch.json 里 <code class="inline-code">"restart": true</code></li>
+      <li>nodemon 重启时调试端口要保持一致，不要每次生成随机端口</li>
+      <li>如果还不行，手动在 nodemon 重启后重新 attach 一次</li>
+    </ul>
+
+    <h3>Q5：ts-node / tsx 跑不起来调试</h3>
+    <ul>
+      <li>用 <code class="inline-code">node --inspect-brk -r ts-node/register src/app.ts</code></li>
+      <li>或者用 <code class="inline-code">tsx watch --inspect-brk src/app.ts</code></li>
+      <li>VSCode launch.json 里把 <code class="inline-code">runtimeExecutable</code> 换成 <code class="inline-code">"tsx"</code></li>
+    </ul>
+
+    <h3>Q6：VSCode 和 Chrome 同时想调试一个标签页</h3>
+    <p>Chrome 和 VSCode 不能同时 attach 同一个 CDP 端口。先在 VSCode 调试，调试完在 VSCode 停止调试（不是关闭 Chrome），Chrome 窗口就恢复自由了。反过来也一样，先关 VSCode 的 attach，Chrome 才能完全接管。</p>
+
+    <div class="warning"><strong>端口占用问题：</strong>Node.js 默认调试端口是 9229，Chrome 的是 9222。如果端口被占用：<br>
+    macOS/Linux: <code class="inline-code">lsof -i :9229</code> 查谁占着<br>
+    Windows: <code class="inline-code">netstat -ano | findstr 9229</code><br>
+    kill 掉对应进程，或者换个端口。
+    </div>
+
+    <h2>七、调试配置的工程化实践</h2>
+    <p>多人协作项目里，launch.json 建议写入 .vscode/ 并加入 .gitignore，或者在 launch.json 里加清晰注释方便队友。几个推荐实践：</p>
+
+    <ul>
+      <li><strong>环境区分</strong>：<code class="inline-code">runtimeArgs</code> 里可以通过 <code class="inline-code">"env"</code> 注入 NODE_ENV，dev 和 production 调试配置分开</li>
+      <li><strong>TypeScript 支持</strong>：<code class="inline-code">runtimeArgs</code> 加 <code class="inline-code">-r ts-node/register</code>，配合 <code class="inline-code">"outFiles"</code> 指定 source map 位置</li>
+      <li><strong>调试启动脚本</strong>：如果项目有 <code class="inline-code">npm run dev:debug</code> 脚本，直接把 <code class="inline-code">runtimeExecutable</code> 指向 <code class="inline-code">npm</code>，<code class="inline-code">runtimeArgs</code> 填 <code class="inline-code">["run", "dev:debug"]</code></li>
+      <li><strong>Compound 配置</strong>：launch.json 支持同时启动多个配置（compound），比如 Node.js 后端 + Chrome 前端同时断住：<div class="code-block"><span class="key">compounds</span>:
+  - <span class="key">name</span>: <span class="string">"全栈调试"</span>
+    <span class="key">configurations</span>:
+      - <span class="string">"Node.js: 启动调试"</span>
+      - <span class="string">"Chrome: 联合调试（前端）"</span>
+</div></li>
+    </ul>
+
+    <h2>总结</h2>
+    <p>VSCode 调试不生效，90% 的问题出在 launch.json 配置不对：launch 和 attach 混用、端口没开、路径写错、source map 没配。剩下的 10% 是调试端口被占用或者 skipFiles 误过滤。</p>
+
+    <p>搞定这些配置后，VSCode 调试的体验比 console.log 强太多——变量实时查看、条件断点、日志点、call stack 想看哪层看哪层。Chrome DevTools 联合调试在前端项目里也是神器，配合好两者，调试效率直接提升一个档次。</p>
+
+    <p>如果这篇帮你解决了问题，或者你还有别的调试坑想聊——</p>
+
+    <div class="cta-section">
+      <h3>☘️ 还在为工具配置头疼？</h3>
+      <p>CloverTools 收录了大量开发工具配置指南，VSCode 调试、Git 操作、前端构建……常用工具的坑都有记录，帮你少走弯路。</p>
+      <a href="https://tools.xsanye.cn/tools/dev-tools/" class="cta-btn">👉 前往 CloverTools 开发工具站</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
