@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTPS证书过期了？我翻车后总结的解决方案</title>
+</head>
+<body>
+
+<h1>HTTPS证书过期了？我翻车后总结的解决方案</h1>
+
+<p>凌晨两点，手机震了——"您的网站证书已过期"。爬起来一看，用户访问直接报安全警告，流量腰斩。那一刻我意识到，HTTPS证书这玩意儿，不出事不知道，一出事要命。今天把这次翻车从头到尾捋一遍，顺手把SSL/TLS/CA的原理、自动续期、常见报错全讲透，帮你别踩我踩过的坑。</p>
+
+<h2>一、翻车现场还原：那天晚上到底发生了什么</h2>
+
+<p>事情是这样的——我负责的一个外部API服务，三个月前用 Let's Encrypt 申请了证书，当时图省事，手动续期了一次就没再管。结果三个月后证书悄无声息地过期了，用户调用接口直接收到浏览器的"连接不安全"提示。客服反馈过来的时候我正在打游戏，一打开后台日志，大片 525 错误（SLL handshake failed），当时心态就崩了。</p>
+
+<p>简单复盘一下当时的惨状：</p>
+
+<ul>
+<li>证书过期后，用户浏览器直接拦截请求，显示"您的连接不是私密连接"</li>
+<li>APP 里的 HTTP Client 报 <code>ssl: certificate_verify_failed</code></li>
+<li>搜索引擎把 site 标记为"不安全"，SEO 排名肉眼可见地掉</li>
+<li紧急修复的时候还手抖改错了 Nginx 配置，差点把 443 端口给注释掉></li>
+</ul>
+
+<p>这次翻车让我彻底明白了一件事：<strong>证书管理这事，靠手动续期等于裸奔，自动续期才是正道。</strong>下面把从原理到实操的全部经验整理出来。</p>
+
+<h2>二、SSL/TLS/CA 原理：弄清楚证书到底是什么</h2>
+
+<h3>2.1 对称加密与非对称加密</h3>
+
+<p>在说 SSL 证书之前，先把加密基础过一遍。对称加密就是加密和解密用同一把钥匙，速度快，但钥匙怎么安全地给对方是个问题。非对称加密则是一对钥匙——公钥和私钥，公钥加密的内容只有私钥能解，私钥签名的东西只有公钥能验证。SSL/TLS 用的是混合方案：握手阶段用非对称加密协商出一个对称密钥，之后的数据传输全用对称加密，兼顾安全性和性能。</p>
+
+<h3>2.2 证书是什么</h3>
+
+<p>SSL 证书（也叫 TLS 证书）本质上是一个数字文件，里面包含了网站的公钥、域名信息、颁发者、有效期，还有一个数字签名。浏览器拿到证书后，用内置的 CA 根证书验证签名是否合法，验证通过说明"这个公钥确实属于这个域名"，否则就是中间人攻击。</p>
+
+<p>一个完整的证书链是这样的：</p>
+
+<code>根CA证书（Root CA）
+  └─ 中间CA证书（Intermediate CA）
+      └─ 服务器证书（Server Certificate）← 你网站用的</code>
+
+<p>光有服务器证书不够，必须整条链都能被验证，浏览器才会信任你。很多时候证书不认，不是服务器证书的问题，而是中间证书没配对。</p>
+
+<h3>2.3 CA 的角色</h3>
+
+<p>CA（Certificate Authority，证书颁发机构）就是那个负责"认证"域名身份的可信第三方。国际上常见的 CA 有 Let's Encrypt、DigiCert、GlobalSign、 Sectigo 等。Let's Encrypt 是目前最流行的免费 CA，由 ISRG 运营，自动化程度极高，几乎是个人站点的标配。</p>
+
+<h3>2.4 证书类型：DV、OV、EV</h3>
+
+<ul>
+<li><strong>DV（Domain Validation）</strong>：只验证域名所有权，几分钟就能签发，适合个人站点和博客</li>
+<li><strong>OV（Organization Validation）</strong>：验证域名所有权 + 企业身份，证书里会显示公司名，适合企业级应用</li>
+<li><strong>EV（Extended Validation）</strong>：最严格的验证，浏览器地址栏会显示绿色企业名称，适合金融、电商等高信任需求场景</li>
+</ul>
+
+<p>我们普通开发者用 Let's Encrypt 申请的，基本都是 DV 证书，足够用了。</p>
+
+<h2>三、用 openssl 检测证书是否过期</h2>
+
+<p>这是运维基本功，<code>openssl</code> 一把梭就能查清楚。</p>
+
+<h3>3.1 查看证书详细信息</h3>
+
+<code>openssl s_client -connect www.example.com:443 -servername www.example.com 2>/dev/null | openssl x509 -noout -text</code>
+
+<p>这条命令连到目标网站的 443 端口，把证书拿出来解析。<code>-servername</code> 参数不能省，因为很多站点是 SNI（Server Name Indication）场景下跑多个域名，不加这个拿到的可能是默认证书而不是你想要的。</p>
+
+<p>输出里重点关注这几个字段：</p>
+
+<code>Not Before: Apr 15 00:00:00 2026 GMT
+Not After : Jul 15 00:00:00 2026 GMT
+Issuer: C=US, O=Let's Encrypt, CN=R10
+Subject: CN=www.example.com</code>
+
+<p><code>Not After</code> 就是过期时间，<code>Not Before</code> 是生效时间，两个都在有效期内证书才能用。</p>
+
+<h3>3.2 直接检查过期时间（最常用）</h3>
+
+<code>echo | openssl s_client -connect www.example.com:443 2>/dev/null | openssl x509 -noout -dates</code>
+
+<p>输出简洁：</p>
+
+<code>notBefore=Apr 15 00:00:00 2026 GMT
+notAfter=Jul 15 00:00:00 2026 GMT</code>
+
+<h3>3.3 批量检查本地证书文件</h3>
+
+<p>如果你的证书在服务器上存着（常见路径：<code>/etc/ssl/certs/</code>、<code>/etc/nginx/ssl/</code>、<code>/var/www/ssl/</code>），直接读文件检查：</p>
+
+<code>openssl x509 -in /path/to/cert.pem -noout -dates -subject</code>
+
+<p>结合 <code>date</code> 命令可以写一个简单脚本，判断证书是否在 N 天内过期：</p>
+
+<code>#!/bin/bash
+CERT="/path/to/cert.pem"
+DAYS=30
+END_DATE=$(openssl x509 -in "$CERT" -noout -enddate | cut -d= -f2)
+END_EPOCH=$(date -d "$END_DATE" +%s)
+NOW_EPOCH=$(date +%s)
+LEFT=$(( (END_EPOCH - NOW_EPOCH) / 86400 ))
+if [ $LEFT -lt $DAYS ]; then
+  echo "⚠️ 证书还有 ${LEFT} 天过期，请尽快续期！"
+else
+  echo "✅ 证书还有 ${LEFT} 天过期。"
+fi</code>
+
+<h3>3.4 检查证书链完整性</h3>
+
+<code>openssl s_client -connect www.example.com:443 -showcerts 2>/dev/null</code>
+
+<p>这条命令会输出完整的证书链，检查是否有缺失的中间证书。如果链不完整，浏览器会报 <code>ERR_CERT_AUTHORITY_INVALID</code> 错误。</p>
+
+<h2>四、用 curl 验证 HTTPS 连接</h2>
+
+<p>有时候你不需要看证书详情，只需要确认"这个站能不能正常 HTTPS 访问"。</p>
+
+<h3>4.1 基础连接测试</h3>
+
+<code>curl -v https://www.example.com/</code>
+
+<p><code>-v</code> 会输出详细的 SSL 握手信息，包括用的 TLS 版本、cipher 套件、证书 Subject 等。正常情况下结尾会显示 <code>HTTP/2 200</code> 或者你站点的状态码。</p>
+
+<h3>4.2 检查证书过期警告</h3>
+
+<p>如果你怀疑证书过期，可以用 <code>--cacert</code> 指定 CA 证书文件，或者直接让 curl 跳过证书验证来排查是不是证书问题：</p>
+
+<code># 临时跳过证书验证（仅测试用！）
+curl -k https://www.example.com/
+
+# 对比：正常验证模式
+curl https://www.example.com/</code>
+
+<p>加了 <code>-k</code>（<code>--insecure</code>）之后跳过证书验证，如果加了 <code>-k</code> 能通但不加不能通，那基本就是证书的问题。注意这个参数只用于诊断，生产环境绝对不能依赖它。</p>
+
+<h3>4.3 检查 TLS 版本</h3>
+
+<code>curl -v --tlsv1.2 https://www.example.com/</code>
+
+<p>确保站点支持 TLS 1.2 及以上，TLS 1.0 和 TLS 1.1 已经基本被主流浏览器废弃，Chrome 从很早就不支持了。</p>
+
+<h3>4.4 用 curl 检查证书链各层级</h3>
+
+<code>openssl s_client -connect www.example.com:443 -servername www.example.com -showcerts 2>/dev/null | \
+  awk '/-----BEGIN CERTIFICATE-----/{p=1} p; /-----END CERTIFICATE-----/{p=0}' | \
+  openssl verify -CAfile /dev/null -partial_chain 2>&1</code>
+
+<p>这条稍微复杂，核心思路是：先把证书链提取出来，再逐级验证。如果中间证书缺失，这一步会报错。</p>
+
+<h2>五、自动续期：Let's Encrypt + acme.sh</h2>
+
+<p>手动续期的尽头一定是忘记续期。Let's Encrypt 的证书有效期是 <strong>90 天</strong>，我建议用 <strong>acme.sh</strong> 做全自动续期——轻量、支持中文、用 DNS API 泛解析方式验证，一次配好一年无忧。</p>
+
+<h3>5.1 acme.sh 安装（一条命令）</h3>
+
+<code>curl https://get.acme.sh | sh -s email=your@email.com</code>
+
+<p>安装完成后重新加载 shell 环境，或者直接 source：</p>
+
+<code>source ~/.acme.sh/acme.sh.env</code>
+
+<h3>5.2 申请证书（DNS API 方式，最通用）</h3>
+
+<p>以 Cloudflare 为例，先去 Cloudflare 申请 Global API Key，然后：</p>
+
+<code>export CF_Key="your_cloudflare_api_key"
+export CF_Email="your@email.com"
+
+acme.sh --issue --dns dns_cf -d example.com -d "*.example.com"</code>
+
+<p>用泛域名证书 <code>*.example.com</code> 可以覆盖所有子域名，一次申请全部搞定。<code>dns_cf</code> 表示用 Cloudflare 的 DNS API 自动添加 TXT 记录完成域名验证，全过程无需人工干预。</p>
+
+<p>其他主流 DNS 服务商的 API 方式：</p>
+
+<ul>
+<li>阿里云：<code>--dns dns_ali</code>，需要 <code>Ali_Key</code> 和 <code>Ali_Secret</code></li>
+<li>腾讯云：<code>--dns dns_dp</code>，需要 <code>DP_Id</code> 和 <code>DP_Key</code></li>
+<li>华为云：<code>--dns dns_huaweicloud</code></li>
+</ul>
+
+<h3>5.3 Nginx 自动部署</h3>
+
+<p>申请完证书之后，直接用 <code>--install-cert</code> 把证书和 key 路径写入 Nginx 配置，并设置好续期后自动 reload：</p>
+
+<code>acme.sh --install-cert -d example.com \
+  --key-file /etc/nginx/ssl/example.com.key \
+  --fullchain-file /etc/nginx/ssl/example.com.cer \
+  --reloadcmd "systemctl reload nginx"</code>
+
+<p>这条命令会把配置写入 <code>~/.acme.sh/example.com/</code>，续期后自动执行 reloadcmd，不用你再手动重启 Nginx。</p>
+
+<h3>5.4 手动续期测试</h3>
+
+<code>acme.sh --renew -d example.com --force</code>
+
+<p>加 <code>--force</code> 可以强制立即续期（一般用于测试）。正常情况下 acme.sh 每天会自动检测快过期的证书，在过期前 30 天自动续期。</p>
+
+<h3>5.5 查看已安装的证书</h3>
+
+<code>acme.sh --list</code>
+
+<p>输出包含域名、证书路径、剩余天数，一目了然。</p>
+
+<h3>5.6 续期日志</h3>
+
+<code>tail -f ~/.acme.sh/acme.sh.log</code>
+
+<p>如果续期失败了，第一时间看日志，常见原因：DNS API Token 失效、80/443 端口被占用、Let's Encrypt API 限流。</p>
+
+<h2>六、Nginx / Apache 配置完整示例</h2>
+
+<h3>6.1 Nginx 配置</h3>
+
+<code>server {
+    listen 443 ssl http2;
+    server_name example.com www.example.com;
+
+    # 证书和私钥路径（acme.sh 安装后自动生成）
+    ssl_certificate /etc/nginx/ssl/example.com.cer;
+    ssl_certificate_key /etc/nginx/ssl/example.com.key;
+
+    # 现代 TLS 配置
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+
+    # HSTS（可选，加了之后浏览器会强制 HTTPS，建议稳定后再开）
+    # add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+
+    # 安全头
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
+    root /var/www/html;
+    index index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+
+# HTTP 强制跳转 HTTPS
+server {
+    listen 80;
+    server_name example.com www.example.com;
+    return 301 https://$host$request_uri;
+}</code>
+
+<h3>6.2 Apache 配置</h3>
+
+<code>&lt;VirtualHost *:443&gt;
+    ServerName example.com
+    DocumentRoot /var/www/html
+
+    SSLEngine on
+    SSLCertificateFile /etc/apache2/ssl/example.com.cer
+    SSLCertificateKeyFile /etc/apache2/ssl/example.com.key
+
+    # Let's Encrypt 中间证书（如果需要）
+    SSLCertificateChainFile /etc/apache2/ssl/fullchain.cer
+
+    Protocols h2 http/1.1
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+&lt;/VirtualHost&gt;</code>
+
+<p>配置完成后记得测试再重载：</p>
+
+<code># Nginx
+nginx -t && systemctl reload nginx
+
+# Apache
+apachectl configtest && systemctl reload apache2</code>
+
+<h2>七、常见报错大全</h2>
+
+<h3>7.1 <code>ERR_CERT_DATE_INVALID</code> / 证书已过期</h3>
+
+<p><strong>原因：</strong>证书的 Not After 时间已过，或者客户端系统时间错误。</p>
+
+<p><strong>解决：</strong></p>
+<ul>
+<li>用 openssl 检查证书实际过期时间：<code>openssl x509 -in cert.pem -noout -enddate</code></li>
+<li>确认服务器系统时间正确：<code>date && timedatectl</code></li>
+<li>如果是自己生成的测试证书（自签名），浏览器不认是正常现象，换正式证书即可</li>
+</ul>
+
+<h3>7.2 <code>ERR_CERT_AUTHORITY_INVALID</code> / 证书链不完整</h3>
+
+<p><strong>原因：</strong>服务器只配了服务器证书，没有配中间 CA 证书，浏览器找不到可信的签发者。</p>
+
+<p><strong>解决：</strong></p>
+<ul>
+<li>用 <code>openssl s_client -connect yoursite:443 -showcerts</code> 导出完整链</li>
+<li>把中间证书拼接到服务器证书后面，保存为 <code>fullchain.cer</code></li>
+<li>Nginx 中使用 <code>ssl_certificate</code> 指向 fullchain，<code>ssl_certificate_key</code> 指向私钥</li>
+</ul>
+
+<h3>7.3 <code>SSL: certificate_verify_failed</code>（Python / curl）</h3>
+
+<p><strong>原因：</strong>Python 的 <code>requests</code> 库或 curl 找不到受信任的 CA 证书来验证服务器证书。</p>
+
+<p><strong>排查步骤：</strong></p>
+<code># 确认系统 CA 证书包存在
+ls /etc/ssl/certs/ca-certificates.crt
+
+# Python 里指定 CA 文件
+requests.get('https://example.com/', verify='/etc/ssl/certs/ca-certificates.crt')
+
+# 或者用 certifi 获取默认 CA 包
+import certifi
+requests.get('https://example.com/', verify=certifi.where())</code>
+
+<h3>7.4 <code>acme.sh: Please point correctly</code> / DNS 验证失败</h3>
+
+<p><strong>原因：</strong>DNS API Token 权限不足或已失效，acme.sh 无法自动添加或删除 DNS TXT 记录。</p>
+
+<p><strong>解决：</strong></p>
+<ul>
+<li>确认 API Token 有修改 DNS 记录的权限</li>
+<li>检查 DNS 生效时间（DNS 变更有传播延迟，通常 1-5 分钟）</li>
+<li>申请泛域名证书时需要支持 wildcard 的 API 权限</li>
+<li>改用手动 DNS 验证方式（<code>--dns --yes-I-know-dns-manual-mode-enough-go-ahead-please</code>）做临时调试</li>
+</ul>
+
+<h3>7.5 <code>Let's Encrypt rate limit exceeded</code></h3>
+
+<p><strong>原因：</strong>Let's Encrypt 对每个域名每周有申请次数限制（50 个），短时间内重复申请会触发限流。</p>
+
+<p><strong>解决：</strong></p>
+<ul>
+<li>等待一周后重试（限流自动解除）</li>
+<li>用 <code>--staging</code> 参数先在测试环境申请，不占生产限额</li>
+<li>检查 acme.sh 是否有重复的申请记录，清理 <code>~/.acme.sh/</code> 里的废弃证书</li>
+</ul>
+
+<h3>7.6 Nginx 重载后 HTTPS 不生效</h3>
+
+<p><strong>排查顺序：</strong></p>
+<ul>
+<li><code>nginx -t</code> — 语法是否正确</li>
+<li><code>systemctl status nginx</code> — 服务是否正常运行</li>
+<li><code>ss -tlnp | grep :443</code> — 443 端口是否在监听</li>
+<li>看 Nginx error log：<code>tail /var/log/nginx/error.log</code></li>
+<li>确认证书路径文件存在：<code>ls -la /etc/nginx/ssl/</code></li>
+</ul>
+
+<h2>八、证书监控：别等翻车了才想起来</h2>
+
+<p>翻车一次就够了，生产环境强烈建议上监控。几个方案：</p>
+
+<ul>
+<li><strong>acme.sh 自带通知</strong>：续期前 7 天会自动发邮件提醒</li>
+<li><strong>定时扫描脚本</strong>：每天跑一次，把快过期（&lt;30 天）的域名捞出来推送到飞书/钉钉</li>
+<li><strong>监控平台</strong>：用 Prometheus + blackbox_exporter 监控 HTTPS 可用性和证书过期时间</li>
+</ul>
+
+<p>顺手推荐一个在线工具，可以快速检测任意网站的 SSL 证书状态，无需注册：</p>
+
+<p><strong>👉 <a href="https://tools.xsanye.cn/tools/network/ssl-check.html">SSL 证书在线检测工具</a></strong> — 支持查看证书链、过期时间、TLS 版本、 cipher 套件，运维日常神器。</p>
+
+<h2>总结</h2>
+
+<p>HTTPS 证书过期这事，说大不大说小不小——对于一个访问量可观的线上服务而言，就是一次中型故障。核心经验就三条：</p>
+
+<ol>
+<li><strong>自动化续期是必选项</strong>，不是可选项。Let's Encrypt + acme.sh 配好之后真的不用管。</li>
+<li><strong>证书链要配完整</strong>，服务器证书 + 中间证书一个不能少，否则部分客户端会验证失败。</li>
+<li><strong>做好监控告警</strong>，别等用户报障了你才知道证书过期了。</li>
+</ol>
+
+<p>好了，老司机经验全部交代完毕。如果你觉得有用，欢迎收藏。需要配置 HTTPS 或者排查具体报错，可以去 <a href="https://tools.xsanye.cn/tools/network/ssl-check.html">SSL 检测工具</a> 先跑一遍，看看问题出在哪一环。祝你的证书永远不过期，凌晨两点不被叫醒。🛡️</p>
+
+</body>
+</html>
