@@ -1,0 +1,62 @@
+<h2>痛点场景</h2>
+<p>用户反馈网站打不开了，你排查了一圈，发现浏览器弹窗：<code>Your connection is not private. NET::ERR_CERT_EXPIRED</code>。SSL 证书过期是线上事故的高发原因之一，因为它不像代码报错那样有日志，证书过期没有任何预警，等用户报障了才发现已经晚了。</p>
+
+<h2>问题根因</h2>
+<p>SSL 证书过期的常见原因：</p>
+<ul>
+<li><strong>Let's Encrypt 证书90天后自动过期</strong>，没配置自动续期就会中招</li>
+<li><strong>手动部署证书</strong>，过期了没更新</li>
+<li><strong>负载均衡层证书</strong>，只更新了后端服务器，没更新 LB 层</li>
+<li><strong>通配符证书</strong>，覆盖多个子域名但某个域名不在范围内</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>检查一：命令行快速检查（最方便）</h3>
+<pre><code># 用 OpenSSL 检查证书过期时间
+echo | openssl s_client -servername your-site.com -connect your-site.com:443 2>/dev/null | openssl x509 -noout -dates
+
+# 输出示例：
+# notBefore=Jan 25 00:00:00 2026 GMT
+# notAfter=Apr 25 00:00:00 2026 GMT  ← 这个日期就是过期时间
+
+# 批量检查多个域名
+for domain in site1.com site2.com site3.com; do
+  echo -n "$domain: "
+  echo | openssl s_client -servername $domain -connect $domain:443 2>/dev/null | openssl x509 -noout -enddate
+done</code></pre>
+
+<h3>检查二：在线工具检查</h3>
+<p>打开 <a href="https://www.ssllabs.com/ssltest/" target="_blank">SSL Labs SSL Test</a>，输入域名，可以拿到完整的证书链信息、过期时间、评分，以及其他安全问题（TLS 版本、密码套件等）。</p>
+
+<h3>修复：Let's Encrypt 自动续期</h3>
+<pre><code># 查看 certbot 是否安装
+which certbot
+
+# 测试续期（不加 --dry-run 实际执行）
+sudo certbot renew --dry-run
+
+# 如果续期失败，查看原因
+sudo certbot renew -v
+
+# 常见失败原因：nginx 占用了 80 端口
+# 解决：先 stop nginx，续期后再 start
+sudo systemctl stop nginx
+sudo certbot renew
+sudo systemctl start nginx</code></pre>
+
+<h3>预防：crontab 自动检查</h3>
+<pre><code># 每天检查一次证书，过期前30天发邮件告警
+0 0 * * * echo | openssl s_client -servername your-site.com -connect your-site.com:443 2>/dev/null | openssl x509 -noout -enddate | grep -q "Apr 25" && echo "Certificate expiring soon!" | mail -s "SSL Alert" admin@your-site.com</code></pre>
+
+<h3>修复：Nginx 证书路径更新</h3>
+<pre><code># 查看当前证书路径
+grep -r "ssl_certificate" /etc/nginx/sites-enabled/
+# 或
+grep -r "ssl_certificate" /etc/nginx/conf.d/
+
+# 更新为新证书路径后重载配置
+sudo nginx -t && sudo nginx -s reload</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>可以用 <a href="/tools/encrypt/sha.html" target="_blank">CloverTools SSL/TLS 检测工具</a>（如果没有专门的 SSL 工具，可以用 <a href="/tools/code/api-tester.html" target="_blank">API测试工具</a>发 HTTPS 请求看返回的证书信息）。另外 <a href="/tools/time/timestamp.html" target="_blank">时间戳转换工具</a>可以把证书的 notAfter 字符串（如 "Apr 25 00:00:00 2026 GMT"）转换成时间戳，算出还有多少天过期。</p>

@@ -1,0 +1,62 @@
+<h2>痛点场景</h2>
+<p>你写好了 <code>docker-compose up</code>，满心期待数据库和后端同时启动，结果报错：<code>Bind for 0.0.0.0:5432 failed: port is already allocated</code>。或者容器起来了但是立刻 <code>Exited (1)</code>，日志里只有一行看不太懂的信息。Docker 容器的报错信息有时候非常隐晦，需要一点点排查经验。</p>
+
+<h2>问题根因</h2>
+<p>容器启动失败主要分三类：端口冲突、镜像问题、资源限制。</p>
+
+<h2>解决方案</h2>
+
+<h3>方案一：端口冲突</h3>
+<pre><code># 查看哪个进程占用了端口
+# Linux:
+sudo lsof -i :5432
+# macOS/Windows (Docker Desktop):
+netstat -ano | findstr :5432
+
+# 查看所有容器状态
+docker ps -a
+
+# 查看端口占用
+docker ps --format "{{.Names}}: {{.Ports}}"</code></pre>
+<p>解决方案：停止占用端口的容器，或者修改 docker-compose.yml 里的端口映射。</p>
+
+<h3>方案二：镜像损坏或缺失</h3>
+<pre><code># 重新拉取镜像
+docker pull &lt;镜像名&gt;
+
+# 清理未使用的镜像
+docker image prune -a
+
+# 重建容器
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d</code></pre>
+
+<h3>方案三：查看真实错误日志</h3>
+<pre><code># 查看具体容器的日志
+docker logs &lt;容器名&gt;
+
+# 实时跟踪日志
+docker logs -f &lt;容器名&gt;
+
+# 查看 exit 代码
+docker inspect &lt;容器名&gt; | grep ExitCode</code></pre>
+<p>最常见的错误是配置文件路径写错了——容器内的路径和宿主机的路径不一样，要看清楚是 <code>/app/config</code> 还是 <code>./config</code>。</p>
+
+<h3>方案四：权限问题（Linux）</h3>
+<pre><code># 如果报错 permission denied：
+# 在 docker-compose.yml 里加上用户组配置
+services:
+  myapp:
+    user: "${UID:-1000}:${GID:-1000}"
+
+# 或者修改文件权限
+sudo chown -R $USER:$USER ./data ./logs</code></pre>
+
+<h3>方案五：磁盘空间不足</h3>
+<pre><code>docker system df
+# 清理
+docker system prune -af --volumes</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>Docker 启动问题排查时，经常需要验证配置文件格式是否正确（docker-compose.yml 是 YAML）。<a href="/tools/json/formatter.html" target="_blank">CloverTools JSON/YAML 格式化工具</a>可以快速检查 YAML 语法错误，不用在 docker-compose 报错里找线索。另外检查端口占用可以用 <a href="/tools/code/port-scanner.html" target="_blank">端口扫描工具</a>。</p>

@@ -1,0 +1,63 @@
+<h2>痛点场景</h2>
+<p>你 clone 了一个新项目，<code>npm install</code> 跑了起来，结果报错：<code>EACCES: permission denied, access '/usr/local/lib/node_modules'</code>。或者在公司网络下，<code>npm install</code> 直接卡住然后报 <code>ECONNREFUSED</code>。又或者装了一个依赖后项目直接跑不起来了，错误是 <code>ETARGET: notarget: No matching version found</code>。npm 的报错种类繁多，每种处理方式都不一样。</p>
+
+<h2>问题根因与解决方案</h2>
+
+<h3>报错一：EACCES permission denied</h3>
+<p>最常见的原因是全局 node_modules 目录没有写权限。不要用 <code>sudo npm install</code>，正确做法是：</p>
+<pre><code># 创建 node_modules 的用户目录
+mkdir ~/.npm-global
+npm config set prefix '~/.npm-global'
+
+# 把路径加入 PATH（~/.bashrc 或 ~/.zshrc）
+echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
+# 或者用 nvm 管理 Node 版本，彻底避免权限问题
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+nvm install --lts</code></pre>
+
+<h3>报错二：ECONNREFUSED / 网络问题</h3>
+<pre><code># 检查网络
+curl -v https://registry.npmjs.org/
+
+# 切换到国内镜像
+npm config set registry https://registry.npmmirror.com
+
+# 或者用淘宝镜像
+npm config set registry https://registry.npmmirror.com
+
+# 如果公司有代理
+npm config set proxy http://proxy.company.com:8080
+npm config set https-proxy http://proxy.company.com:8080</code></pre>
+
+<h3>报错三：ETARGET / 版本找不到</h3>
+<pre><code># 查看某个包有哪些版本
+npm view &lt;包名&gt; versions
+
+# 指定版本安装
+npm install &lt;包名&gt;@1.2.3
+
+# 清理 npm 缓存（有时候缓存会导致版本检测错误）
+npm cache clean --force</code></pre>
+
+<h3>报错四：peerDependencies 冲突</h3>
+<pre><code># 强制安装（不推荐但有时必须）
+npm install --legacy-peer-deps
+
+# 或者用 yarn 代替 npm（peer deps 处理更宽松）
+npm install -g yarn
+yarn install</code></pre>
+
+<h3>报错五：.node-gyp 相关编译错误</h3>
+<pre><code># macOS 需要 Xcode Command Line Tools
+xcode-select --install
+
+# Linux 需要 python3 和 make/g++
+sudo apt install python3 make g++
+
+# Windows 需要 Visual Studio Build Tools
+# 下载：https://visualstudio.microsoft.com/downloads/</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>如果 <code>npm install</code> 后发现 <code>package.json</code> 格式乱了，可以用 <a href="/tools/json/formatter.html" target="_blank">CloverTools JSON格式化工具</a>快速格式化并检查字段完整性。也可以用 <a href="/tools/json/json-diff.html" target="_blank">JSON数据对比工具</a>对比 package-lock.json 的变化，快速定位是哪个包升级引发了问题。</p>

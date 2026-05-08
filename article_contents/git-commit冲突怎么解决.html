@@ -1,0 +1,43 @@
+<h2>痛点场景</h2>
+<p>你正在写代码，git push 之后，同事说他也提交了，你 pull 了一下——<code>Merge conflict in src/app.js</code>。文件里突然多了一堆 <code><<<<<<< HEAD</code> 和 <code>>>>>>>></code>，密密麻麻的红色标记。你不敢动，但又不知道该删哪些。合并冲突是每个 Git 用户的噩梦，但其实是最好解决的问题之一。</p>
+
+<h2>问题根因</h2>
+<p>合并冲突的本质是：两个人改了同一个文件的同一个地方，Git 不知道该听谁的。最常见的三种场景：</p>
+<ul>
+<li><strong>多人同时修改同一文件</strong>：你和同事都改了同一个函数，谁的代码会保留需要你决定。</li>
+<li><strong>pull 时本地有未提交的修改</strong>：本地改了东西，远程也有变化，Git 不知道该合并谁。</li>
+<li><strong>分支合并冲突</strong>：把 feature 分支合并到 main，两个分支改了同一个逻辑。</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>方案一：VSCode 可视化解决（最简单）</h3>
+<p>VSCode 自带合并冲突可视化界面，打开冲突文件后，点击 "Accept Incoming"（接受远程）、"Accept Current"（保留本地）或 "Accept Both"（两者都保留），冲突标记会自动消失。解决完记得 <code>git add .</code> 和 <code>git commit</code> 完成合并。</p>
+
+<h3>方案二：命令行三步走</h3>
+<pre><code># 1. 查看冲突文件列表
+git status
+
+# 2. 手动编辑冲突文件，删除 <<<<<<< HEAD / ======= / >>>>>>> 这三行标记，
+#    保留你想要的代码（或者两者合并）
+
+# 3. 标记冲突已解决
+git add &lt;文件名&gt;
+git commit -m "resolve merge conflict in &lt;文件名&gt;"
+git push</code></pre>
+
+<h3>方案三：abort 放弃合并（不推荐，但有时有用）</h3>
+<pre><code># 如果冲突太乱，想全部重来：
+git merge --abort</code></pre>
+<p>这会让你回到合并之前的状态，但会丢失你本地的未提交修改，慎用。</p>
+
+<h3>预防冲突的最佳实践</h3>
+<ul>
+<li>每次 push 之前先 pull，减少冲突概率</li>
+<li>改同一个文件前先沟通，确认不会改到同一行</li>
+<li>频繁 commit，小步提交比一次性大改冲突少得多</li>
+<li>用 <code>git pull --rebase</code> 代替普通的 pull，保持分支历史整洁</li>
+</ul>
+
+<h2>顺手工具推荐</h2>
+<p>解决完冲突后，可以用 <a href="/tools/code/regex-tester.html" target="_blank">CloverTools 正则表达式测试器</a>验证代码里是否还有残留的冲突标记（搜索 <code>&lt;&lt;&lt;&lt;&lt;&lt;</code> 或 <code>&gt;&gt;&gt;&gt;&gt;&gt;</code>），确保文件完全干净。另外如果冲突涉及 JSON 文件，可以用 <a href="/tools/json/formatter.html" target="_blank">JSON格式化工具</a>格式化后检查结构完整性。</p>

@@ -1,0 +1,69 @@
+<h2>痛点场景</h2>
+<p>你 <code>ssh root@your-server.com</code>，然后屏幕卡在 <code>Connecting to your-server.com...</code> 不动了。等了 30 秒，弹出 <code>Connection timed out</code>。服务器明明在线（ping 得通），但就是连不上。最气人的是——你上周还能连。</p>
+
+<h2>问题根因</h2>
+<p>SSH 超时的原因比想象中多，但最常见的是这几类：</p>
+<ul>
+<li><strong>防火墙阻止</strong>：22 端口被 iptables 或云安全组拦截</li>
+<li><strong>SSH 服务没运行</strong>：sshd 进程崩了或没启动</li>
+<li><strong>密钥权限错误</strong>：~/.ssh/ 目录或私钥文件权限太开放</li>
+<li><strong>网络/路由问题</strong>：中间链路 MTU 不一致导致包被丢弃</li>
+<li><strong>MaxStartups 限制</strong>：SSH 服务器同时连接数满了</li>
+</ul>
+
+<h2>解决方案</h2>
+
+<h3>排查一：先确认服务器在线</h3>
+<pre><code>ping your-server.com
+# 如果 ping 不通 → 网络层面问题，不是 SSH 的问题
+# 如果 ping 得通 → 说明服务器在线，问题在 SSH 层面</code></pre>
+
+<h3>排查二：检查端口是否可达</h3>
+<pre><code># 测试 22 端口是否开放
+nc -zv your-server.com 22
+# 或
+telnet your-server.com 22
+
+# 如果 port is closed → 防火墙或 SSH 服务问题
+# 如果Connection refused → SSH 服务没运行</code></pre>
+
+<h3>修复一：密钥权限问题（最常见）</h3>
+<pre><code># 私钥文件权限必须是 600
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_ed25519
+
+# .ssh 目录权限必须是 700
+chmod 700 ~/.ssh
+
+# authorized_keys 权限必须是 600
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+
+<h3>修复二：SSH 服务问题（通过控制台修复）</h3>
+<pre><code># 重启 SSH 服务
+sudo systemctl restart sshd
+# 或
+sudo systemctl restart ssh
+
+# 查看 SSH 服务状态
+sudo systemctl status sshd</code></pre>
+
+<h3>修复三：防火墙规则（云服务器）</h3>
+<pre><code># 云服务器（阿里云/腾讯云/ AWS）→ 检查安全组规则
+# 确认入方向允许 22 端口
+
+# 服务器内部防火墙
+sudo iptables -L -n | grep 22
+# 如果 DROP 了 22 端口：
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo systemctl enable iptables</code></pre>
+
+<h3>修复四：ClientAlive 防止超时断开</h3>
+<p>有时候连接其实没断，但长时间无操作会被服务器踢掉。可以在客户端加心跳：</p>
+<pre><code>#  ~/.ssh/config
+Host *
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    ConnectTimeout 10</code></pre>
+
+<h2>顺手工具推荐</h2>
+<p>如果需要快速检查服务器端口是否开放，<a href="/tools/code/port-scanner.html" target="_blank">CloverTools 端口扫描工具</a>可以远程检测目标服务器的端口状态（不需要在服务器上运行）。对于检查 SSH 配置文件语法，<a href="/tools/code/regex-tester.html" target="_blank">正则表达式测试器</a>可以用来验证 sshd_config 的格式是否正确。</p>
