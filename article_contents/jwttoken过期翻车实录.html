@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JWT Token 过期了？我翻车后总结的解决方案</title>
+  <meta name="description" content="JWT Token 过期了怎么办？本文以真实翻车经历总结了四种实战解决方案：前端刷新、后端续期、无感刷新、微服务场景全覆盖，附完整 Node.js 代码示例。">
+  <meta name="keywords" content="JWT过期,JWT刷新,Refresh Token,Token续期,前端JWT,后端JWT,Node.js JWT">
+</head>
+<body>
+
+<h1>JWT Token 过期了？我翻车后总结的解决方案</h1>
+
+<p>凌晨两点，一个线上告警把我从床上拽起来。</p>
+
+<p><strong>「用户下单接口 401，满屏都是。」</strong></p>
+
+<p>我揉了揉眼睛，打开日志一看：token 过期。用户明明在正常操作，页面没崩，但接口就是 401。一问产品，得知昨晚有个 Token 过期时间从 2 小时悄悄改成了 30 分钟——没通知前端。</p>
+
+<p>就这样，我翻车了。</p>
+
+<p>这篇文章，就把我踩过的坑、试过的方案、验证过的代码，一次性全部分享出来。希望你不用像我一样凌晨两点爬起来修 bug。</p>
+
+<hr>
+
+<h2>一、先说清楚：JWT 什么时候会「过期」？</h2>
+
+<p>很多人以为 Token 过期是「被踢出去」，其实不是。JWT 的过期是一种<strong>时间戳校验</strong>，发生在解码阶段。</p>
+
+<p>一个 JWT 长这样：</p>
+
+<pre><code>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+</code></pre>
+
+<p>解码后 Payload 部分长这样：</p>
+
+<pre><code>{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022,      // 签发时间
+  "exp": 1516242622       // 过期时间，这才是关键
+}
+</code></pre>
+
+<p><strong>什么时候会过期？</strong></p>
+
+<ul>
+  <li>你签发时设置了 <code>exp</code> 字段，比如 <code>exp: Date.now() / 1000 + 7200</code>（2小时）</li>
+  <li>客户端携带这个 Token 请求后端接口</li>
+  <li>后端解码时发现当前时间戳 > <code>exp</code>，直接拒绝，返回 401</li>
+</ul>
+
+<p>所以「过期」跟你有没有在操作没关系，纯粹是时间到了。服务器不会主动通知你，都是等你撞门才告诉你「此路不通」。</p>
+
+<hr>
+
+<h2>二、翻车场景还原：我遇到的四类典型问题</h2>
+
+<h3>翻车 1：用户还在操作，Token 突然失效</h3>
+
+<p>最常见的情况：用户在写长表单，刚写完点提交，401。</p>
+
+<p>根本原因：Token 设置了固定过期时间（如2小时），用户中途离开了一会儿，回来继续操作，Token 已经凉了。</p>
+
+<h3>翻车 2：Token 续期时间改了，前端不知道</h3>
+
+<p>就是开头我遇到的那个。后端把过期时间从 2 小时改成 30 分钟，前端还在用旧的逻辑，等到旧的 Token 自然失效才发现不对劲。</p>
+
+<h3>翻车 3：多端登录，Token 被顶掉</h3>
+
+<p>用户在手机和电脑同时登录，电脑改了密码，手机的 Token 没有主动失效，继续带着旧 Token 请求，被 401。</p>
+
+<h3>翻车 4：微服务架构下 Token 验证失败</h3>
+
+<p>网关校验 Token 通过，但下游服务自己维护一套密钥，或者不同服务用的算法不一致（HS256 vs RS256），导致 401。</p>
+
+<hr>
+
+<h2>三、四种实战解决方案</h2>
+
+<h3>方案一：前端主动刷新 Token（最常用）</h3>
+
+<p>思路很简单：客户端知道 Token 快过期了，主动在后台换一个新的，用户完全无感。</p>
+
+<p><strong>什么时候刷新？</strong></p>
+
+<ul>
+  <li>每次请求前检查 Token 剩余有效期，少于 5 分钟就提前刷新</li>
+  <li>或者定时器，每小时检查一次</li>
+</ul>
+
+<p>核心代码：</p>
+
+<pre><code>// 封装一个自动刷新 Token 的请求方法
+class AuthService {
+  constructor() {
+    this.accessToken = localStorage.getItem('access_token');
+    this.refreshToken = localStorage.getItem('refresh_token');
+    this.isRefreshing = false;
+  }
+
+  // 检查 Token 是否快过期（比如少于 5 分钟）
+  isTokenExpiringSoon() {
+    if (!this.accessToken) return true;
+    const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
+    const now = Date.now() / 1000;
+    return payload.exp - now < 300; // 300秒 = 5分钟
+  }
+
+  // 刷新 Token
+  async refreshAccessToken() {
+    if (this.isRefreshing) return;
+    this.isRefreshing = true;
+
+    try {
+      const res = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: this.refreshToken })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        this.accessToken = data.access_token;
+        localStorage.setItem('access_token', data.access_token);
+        if (data.refresh_token) {
+          this.refreshToken = data.refresh_token;
+          localStorage.setItem('refresh_token', data.refresh_token);
+        }
+      } else {
+        // 刷新失败，跳转登录
+        window.location.href = '/login';
+      }
+    } finally {
+      this.isRefreshing = false;
+    }
+  }
+
+  // 封装请求，自动处理 Token 刷新
+  async fetchWithAuth(url, options = {}) {
+    if (this.isTokenExpiringSoon()) {
+      await this.refreshAccessToken();
+    }
+
+    const headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${this.accessToken}`
+    };
+
+    const res = await fetch(url, { ...options, headers });
+
+    // 收到 401 说明 Token 已经失效（可能并发刷新没赶上），再刷新一次
+    if (res.status === 401) {
+      await this.refreshAccessToken();
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+      return fetch(url, { ...options, headers });
+    }
+
+    return res;
+  }
+}
+
+const auth = new AuthService();
+
+// 使用示例
+async function getUserInfo() {
+  const res = await auth.fetchWithAuth('/api/user/info');
+  const data = await res.json();
+  console.log(data);
+}
+</code></pre>
+
+<p>这个方案适合绝大多数场景。关键是：<strong>不要等到 401 才刷新，要提前主动刷新</strong>。等 401 发生再处理，用户已经看到错误了，体验不好。</p>
+
+<hr>
+
+<h3>方案二：后端 Token 续期（滑动窗口）</h3>
+
+<p>前端主动刷新虽然好，但有一种情况无法解决：用户很久没操作，回来时 Token 已经凉透了。</p>
+
+<p>滑动窗口续期的思路：<strong>只要用户在过期时间内有操作，就给他续期</strong>。比如每调用一次有效接口，就把过期时间往后推。</p>
+
+<pre><code>// Node.js / Express 中间件
+const jwt = require('jsonwebtoken');
+const SECRET = process.env.JWT_SECRET;
+
+function slidingRefreshMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return next();
+
+  const token = authHeader.substring(7);
+
+  try {
+    // 先解码，不验证（取 exp）
+    const payload = jwt.decode(token);
+    const now = Math.floor(Date.now() / 1000);
+    const TTL = 7200; // 2小时
+
+    // 如果 Token 剩余有效期不足 30 分钟，续期
+    if (payload.exp - now < 1800) {
+      const newPayload = {
+        ...payload,
+        iat: now,
+        exp: now + TTL
+      };
+      const newToken = jwt.sign(newPayload, SECRET, { algorithm: 'HS256' });
+
+      // 把新 Token 放到响应头里，前端自己更新
+      res.setHeader('X-Access-Token', newToken);
+
+      // 更新请求对象里的 token，给后续 handlers 用
+      req.token = newToken;
+      req.user = payload;
+      return next();
+    }
+
+    req.token = token;
+    req.user = payload;
+    next();
+  } catch (err) {
+    next();
+  }
+}
+
+// 使用
+app.use(slidingRefreshMiddleware);
+app.get('/api/user', (req, res) => {
+  res.json({ user: req.user.sub });
+});
+</code></pre>
+
+<p>前端收到 <code>X-Access-Token</code> 响应头后，更新本地存储：</p>
+
+<pre><code>// 拦截器里处理续期响应头
+fetch(url, options).then(res => {
+  const newToken = res.headers.get('X-Access-Token');
+  if (newToken) {
+    localStorage.setItem('access_token', newToken);
+  }
+  return res;
+});
+</code></pre>
+
+<p>这个方案的好处是用户无感知，但要注意：<strong>续期操作要有上限</strong>，防止 Token 无限续期导致安全问题（比如设置 maxAge，超过则强制重新登录）。</p>
+
+<hr>
+
+<h3>方案三：双 Token 无感刷新（最完善）</h3>
+
+<p>Access Token 和 Refresh Token 分开，是目前最主流、最安全的方案。</p>
+
+<ul>
+  <li><strong>Access Token</strong>：短期有效（15~30分钟），存在内存或 localStorage，用于请求认证</li>
+  <li><strong>Refresh Token</strong>：长期有效（7~30天），只用来换新的 Access Token，永不参与业务请求</li>
+</ul>
+
+<p><strong>后端签发：</strong></p>
+
+<pre><code>const jwt = require('jsonwebtoken');
+const REFRESH_SECRET = process.env.REFRESH_SECRET;
+
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { sub: user.id, type: 'access' },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+
+  const refreshToken = jwt.sign(
+    { sub: user.id, type: 'refresh', jti: crypto.randomUUID() },
+    REFRESH_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  // Refresh Token 的 jti（JWT ID）要存进数据库，用于吊销
+  return { accessToken, refreshToken };
+}
+</code></pre>
+
+<p><strong>后端刷新接口：</strong></p>
+
+<pre><code>app.post('/api/auth/refresh', async (req, res) => {
+  const { refresh_token } = req.body;
+  if (!refresh_token) {
+    return res.status(400).json({ error: 'missing refresh_token' });
+  }
+
+  try {
+    // 验证 Refresh Token
+    const payload = jwt.verify(refresh_token, REFRESH_SECRET);
+
+    // 检查 Token 是否已被吊销（查数据库 blacklist）
+    const isRevoked = await redis.get(`revoked:${payload.jti}`);
+    if (isRevoked) {
+      return res.status(401).json({ error: 'token revoked' });
+    }
+
+    // 生成新的 Access Token
+    const newAccessToken = jwt.sign(
+      { sub: payload.sub, type: 'access' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // 可选：Rotate Refresh Token（换一个新的旧的作废）
+    // 这样旧 Token 被盗也无法反复使用
+    const newRefreshToken = jwt.sign(
+      { sub: payload.sub, type: 'refresh', jti: crypto.randomUUID() },
+      REFRESH_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 把旧 Refresh Token 加入黑名单
+    await redis.setex(`revoked:${payload.jti}`, 7 * 86400, '1');
+
+    res.json({
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'invalid refresh_token' });
+  }
+});
+</code></pre>
+
+<p><strong>前端 Axios 拦截器：</strong></p>
+
+<pre><code>import axios from 'axios';
+
+const api = axios.create({ baseURL: '/api' });
+
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+// 把所有等待的请求都存入队列
+function subscribeTokenRefresh(callback) {
+  refreshSubscribers.push(callback);
+}
+
+// Token 刷新后，逐个重试队列里的请求
+function onTokenRefreshed(newToken) {
+  refreshSubscribers.forEach(callback => callback(newToken));
+  refreshSubscribers = [];
+}
+
+api.interceptors.request.use(async config => {
+  const token = getAccessToken();
+  if (token && isTokenExpiringSoon(token)) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        const res = await axios.post('/api/auth/refresh', {
+          refresh_token: getRefreshToken()
+        });
+        const newToken = res.data.access_token;
+        setAccessToken(newToken);
+        if (res.data.refresh_token) {
+          setRefreshToken(res.data.refresh_token);
+        }
+        onTokenRefreshed(newToken);
+      } catch (err) {
+        window.location.href = '/login';
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // 当前请求加入等待队列，等新 Token 拿到后再重试
+    return new Promise(resolve => {
+      subscribeTokenRefresh(newToken => {
+        config.headers['Authorization'] = `Bearer ${newToken}`;
+        resolve(config);
+      });
+    });
+  }
+
+  config.headers['Authorization'] = `Bearer ${token}`;
+  return config;
+});
+
+api.interceptors.response.use(
+  res => res,
+  async err => {
+    if (err.response?.status === 401 && !err.config._retry) {
+      err.config._retry = true;
+      // 触发刷新，等待完成后重试
+      // ... 同上逻辑
+    }
+    return Promise.reject(err);
+  }
+);
+</code></pre>
+
+<p>这种方案最健壮。即使 Access Token 过期，只要 Refresh Token 有效，用户完全无感知。而且 Refresh Token 泄漏的风险也更低，因为它只用于换 Token，不参与实际请求。</p>
+
+<hr>
+
+<h3>方案四：微服务架构下的 Token 处理</h3>
+
+<p>微服务场景有个独特问题：多个服务都要验证 Token，但各服务不能各自独立验证（否则密钥管理混乱），也不能所有请求都打到认证中心（延迟太高）。</p>
+
+<p>常见解法是「网关统一验证 + 下游服务信任网关」。</p>
+
+<p><strong>网关层（Node.js / Express）：</strong></p>
+
+<pre><code>const jwt = require('jsonwebtoken');
+const axios = require('axios');
+
+// 网关：验证 Token，通过后把用户信息写入请求头，下发给下游服务
+async function gatewayAuthMiddleware(req, res, next) {
+  const token = req.headers.authorization?.substring(7);
+  if (!token) return next();
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    // 把用户信息通过内部 Header 下发，不暴露原始 Token
+    req.headers['x-user-id'] = payload.sub;
+    req.headers['x-user-roles'] = payload.roles?.join(',');
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      // Token 过期，尝试用 Refresh Token 续期
+      const refreshToken = req.headers['x-refresh-token'];
+      if (refreshToken) {
+        try {
+          const newTokens = await refreshAccessToken(refreshToken);
+          const newPayload = jwt.decode(newTokens.access_token);
+          req.headers['x-user-id'] = newPayload.sub;
+          res.setHeader('x-access-token', newTokens.access_token);
+          next();
+        } catch {
+          res.status(401).json({ error: 'token expired and cannot refresh' });
+        }
+      } else {
+        res.status(401).json({ error: 'token expired' });
+      }
+    } else {
+      res.status(401).json({ error: 'invalid token' });
+    }
+  }
+}
+
+// 下游服务：信任网关，直接读 x-user-id
+function serviceAuthMiddleware(req, res, next) {
+  const userId = req.headers['x-user-id'];
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  req.userId = userId;
+  next();
+}
+
+app.use('/api', gatewayAuthMiddleware);           // 网关层
+app.use('/internal', serviceAuthMiddleware);      // 下游服务层
+</code></pre>
+
+<p><strong>下游服务之间的调用（服务网格思路）：</strong></p>
+
+<pre><code>// 下游服务 A 调用服务 B 时，携带网关下发的身份Header
+async function callServiceB(serviceName, endpoint, data) {
+  const token = getInternalToken(); // 服务间专用的短效Token
+
+  return axios.post(`http://${serviceName}${endpoint}`, data, {
+    headers: {
+      'x-internal-token': token,
+      'x-user-id': req.userId, // 透传原始用户身份
+      'x-request-id': generateUUID() // 追踪用
+    }
+  });
+}
+</code></pre>
+
+<p>微服务场景的关键原则：<strong>不要让下游服务直接解析用户 JWT</strong>，统一走网关或 service mesh 的 mTLS 通道，否则密钥管理会成为噩梦。</p>
+
+<hr>
+
+<h2>四、401 处理：统一错误码设计</h2>
+
+<p>不管哪种方案，前端都要统一处理 401。建议封一个全局拦截器：</p>
+
+<pre><code>// 统一处理 401
+window.addEventListener('unauthorized', () => {
+  // 清除本地 Token
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+
+  // 跳转到登录页，带上 return URL
+  const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+  window.location.href = `/login?return=${returnUrl}`;
+});
+</code></pre>
+
+<p>后端也要区分 401 的具体原因，不要所有错误都返回同一个 401：</p>
+
+<pre><code>{
+  "error": "token_expired",
+  "message": "Access token has expired",
+  "code": 401,
+  "retryable": true   // 前端看到这个字段，可以自动刷新
+}
+
+{
+  "error": "token_revoked",
+  "message": "Token has been revoked",
+  "code": 401,
+  "retryable": false  // Refresh Token 也失效，必须重新登录
+}
+</code></pre>
+
+<p><code>retryable</code> 字段非常重要，前端据此决定是刷新还是跳转登录页。</p>
+
+<hr>
+
+<h2>五、踩坑总结</h2>
+
+<ul>
+  <li><strong>不要只用 Access Token</strong>：过期时间设太短用户体验差，设太长安全风险大。必须配合 Refresh Token。</li>
+  <li><strong>不要等到 401 再处理</strong>：提前刷新，用户无感。</li>
+  <li><strong>Refresh Token 必须可吊销</strong>：存进数据库或 Redis，登录退出时要清除。</li>
+  <li><strong>Token 过期时间修改要同步</strong>：后端改，前端也改，不要让我再凌晨两点爬起来。</li>
+  <li><strong>微服务不要各自验证 JWT</strong>：统一走网关，否则密钥管理会逼疯你。</li>
+</ul>
+
+<hr>
+
+<h2>六、在线工具推荐</h2>
+
+<p>写代码调试 JWT 的时候，最烦的就是手动解码看 Payload。<strong>CloverTools 的 JWT 解析工具</strong>可以一键解码任意 JWT，查看 header、payload、签名，还支持在线验证。不用再在代码里 console.log 了。</p>
+
+<p><a href="https://tools.xsanye.cn/tools/encrypt/jwt-decoder.html" target="_blank">👉 点击使用 CloverTools JWT 解析工具</a></p>
+
+<p>另外，如果你需要生成测试 Token、验证签名是否正确，这个工具也很好用。</p>
+
+<hr>
+
+<p>Token 过期这事儿，说大不大，说小不小。做好了，用户完全感知不到；做砸了，就是凌晨两点的告警和用户投诉。</p>
+
+<p>希望这篇文章能帮你把「Token 过期」这件事从紧急 bug 变成一个可以优雅处理的正常流程。</p>
+
+<p><strong>有问题？评论区见。</strong></p>
+
+</body>
+</html>
