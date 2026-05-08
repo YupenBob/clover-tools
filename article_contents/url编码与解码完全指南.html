@@ -1,0 +1,228 @@
+<h1>URL编码与解码完全指南</h1>
+
+<p>你一定见过这种鬼东西：<code>%E4%B8%AD%E6%96%87</code>。它在URL里堂而皇之地出现，浏览器不报错，但人类读不懂。很多开发者在第一次碰到URL里传中文参数时，都会经历一个经典的崩溃循环——本地测试好好的，一上线就500，一查日志全是乱码。</p>
+
+<p>这篇文章给你彻底讲清楚：URL编码到底是什么、<code>encodeURI</code>和<code>encodeURIComponent</code>怎么选、各个语言怎么写、以及那些年坑过无数人的常见错误。</p>
+
+<h2>一、为什么URL需要编码</h2>
+
+<p>URL的原始规范（RFC 3986）规定，URL里只能包含一小部分字符：字母、数字、<code>-</code>、<code>_</code>、<code>.</code>、<code>~</code>。剩下的所有字符——中文、空格、&amp;、=、?、#、/、: 等等——都必须先转成一种特殊格式，才能安全地放进URL。</p>
+
+<p>这就是<a href="https://en.wikipedia.org/wiki/Percent-encoding" target="_blank">百分号编码（Percent-Encoding）</a>，俗称URL编码。原理很简单：把每个字符替换成<code>%</code>加两位十六进制数字。例如空格（ASCII 32）变成<code>%20</code>，中文的「中」在UTF-8下是<code>E4 B8 AD</code>，所以URL里就显示成<code>%E4%B8%AD</code>。</p>
+
+<h2>二、encodeURI vs encodeURIComponent：到底用哪个</h2>
+
+<p>这是JavaScript里最让人困惑的选择题。两者都会做URL编码，但编码范围完全不同，用错了轻则参数丢失，重则整个URL坏掉。</p>
+
+<h3>保留字符（Unreserved Characters）</h3>
+
+<p>先搞清楚一个概念：URL里有所谓「保留字符」，它们在特定位置有特殊含义：</p>
+
+<ul>
+<li><code>; / ? : @ &amp; = + $ ,</code> — 分号、斜杠、问号等，统称reserved characters</li>
+<li><code>- _ . ! ~ * ' ( )</code> — 不被编码的符号</li>
+</ul>
+
+<p>简单说：<code>encodeURI</code>假设你要编码一整个URL，它只编码那些「真正危险」的字符；<code>encodeURIComponent</code>假设你要编码URL里的一个参数值，它把能编码的都编了。</p>
+
+<h3>核心区别一览</h3>
+
+<table border="1" cellpadding="8" cellspacing="0">
+<tr><th>字符</th><th>encodeURI</th><th>encodeURIComponent</th></tr>
+<tr><td><code>A-Z a-z 0-9 - _ . ~</code></td><td>不编码</td><td>不编码</td></tr>
+<tr><td><code>; , / ? : @ &amp; = + $</code></td><td>不编码</td><td><strong>编码</strong></td></tr>
+<tr><td><code>! # $ ' ( ) * + ,</code></td><td>不编码</td><td><strong>编码</strong></td></tr>
+<tr><td>空格</td><td><code>%20</code></td><td><code>%20</code></td></tr>
+<tr><td>中文</td><td><code>%E4%B8%AD</code></td><td><code>%E4%B8%AD</code></td></tr>
+</table>
+
+<h3>实操演示</h3>
+
+<pre><code>// 原始字符串
+const query = "你好世界&name=张三";
+
+// encodeURI — 保留URL结构字符
+console.log(encodeURI(query));
+// 输出: %E4%B8%AD%E5%A5%BD%E4%B8%96%E7%95%8C&name=%E5%BC%A0%E4%B8%89
+// &amp; 和 = 没被编码！因为它们是URL结构的一部分
+
+// encodeURIComponent — 编码一切非安全字符
+console.log(encodeURIComponent(query));
+// 输出: %E4%B8%AD%E5%A5%BD%E4%B8%96%E7%95%8C%26name%3D%E5%BC%A0%E4%B8%89
+// &amp; 变成了 %26，= 变成了 %3D
+</code></pre>
+
+<p><strong>什么时候用哪个？</strong></p>
+
+<ul>
+<li>你要<strong>编码一个完整的URL路径或查询字符串</strong>（比如 <code>https://example.com/search?q=苹果</code>）→ 用 <code>encodeURI</code></li>
+<li>你要<strong>编码URL中的一个参数值</strong>（比如参数值本身就是 <code>q=苹果&amp;梨=香蕉</code> 这段文字）→ 用 <code>encodeURIComponent</code></li>
+</ul>
+
+<h2>三、Python怎么做URL编码</h2>
+
+<p>Python的URL编码比JavaScript更细粒度，因为它把编码和解码拆成了不同的工具函数。</p>
+
+<h3>Python 3</h3>
+
+<pre><code>import urllib.parse
+
+text = "你好世界&name=张三"
+
+# 编码为查询字符串格式（key=value&amp;key2=value2）
+encoded = urllib.parse.quote(text)
+print(encoded)
+# 输出: %E4%B8%AD%E5%A5%BD%E4%B8%96%E7%95%8C%26name%3D%E5%BC%A0%E4%B8%89
+
+# 编码查询参数（自动加 &amp; 分隔）
+params = {"q": "苹果 & 香蕉", "page": 1}
+query_string = urllib.parse.urlencode(params)
+print(query_string)
+# 输出: q=%E8%8F%9C%E8%8B%8F+%26+%E9%A6%99%E6%9E%9D&amp;page=1
+
+# 如果想把空格编码成+号（传统application/x-www-form-urlencoded格式）
+query_string_plus = urllib.parse.urlencode(params, quote_via=urllib.parse.quote_plus)
+# 输出: q=%E8%8F%9C%E8%8B%8F+%26+%E9%A6%99%E6%9E%9D&amp;page=1
+
+# 解码
+decoded = urllib.parse.unquote(encoded)
+print(decoded)
+# 输出: 你好世界&amp;name=张三
+</code></pre>
+
+<h3>Node.js</h3>
+
+<pre><code>// Node.js原生没有encodeURIComponent之外的工具，但querystring模块有帮助
+const querystring = require('querystring');
+
+// 编码对象为查询字符串
+const params = { q: '苹果 & 香蕉', page: 1 };
+const encoded = querystring.stringify(params);
+console.log(encoded);
+// 输出: q=%E8%8F%9C%E8%8B%8F+%26+%E9%A6%99%E6%9E%9D&amp;page=1
+// 注意：Node.js的querystring会把空格编码为+
+
+// 解码
+const decoded = querystring.unescape(encoded);
+console.log(decoded);
+// 输出: q=苹果 &amp; 香蕉&page=1
+</code></pre>
+
+<h3>其他语言快速参考</h3>
+
+<ul>
+<li><strong>Go：</strong><code>net/url</code> 包的 <code>url.QueryEscape()</code> / <code>url.PathEscape()</code></li>
+<li><strong>Java：</strong><code>URLEncoder.encode(str, "UTF-8")</code> / <code>URLDecoder.decode(str, "UTF-8")</code></li>
+<li><strong>PHP：</strong><code>urlencode()</code> / <code>urldecode()</code> / <code>rawurlencode()</code></li>
+<li><strong>Rust：</strong><code>urlencoding</code> crate 的 <code>encode()</code> / <code>decode()</code></li>
+</ul>
+
+<h2>四、%E4%B8%AD%E6%96%87到底是什么</h2>
+
+<p>这是被问得最多的问题之一。看到一串百分号开头的东西，完全不知道在表达什么。</p>
+
+<p>用中文「中文」举例：</p>
+
+<ul>
+<li>「中」的UTF-8编码：<code>E4 B8 AD</code>（三个字节）</li>
+<li>「文」的UTF-8编码：<code>E6 96 87</code>（三个字节）</li>
+<li>URL编码后：<code>%E4%B8%AD%E6%96%87</code></li>
+</ul>
+
+<p>解码方法——在浏览器控制台直接跑一行JS：</p>
+
+<pre><code>decodeURIComponent('%E4%B8%AD%E6%96%87');
+// 输出: "中文"
+</code></pre>
+
+<p>或者在Python里：</p>
+
+<pre><code>import urllib.parse
+urllib.parse.unquote('%E4%B8%AD%E6%96%87')
+# 输出: '中文'
+</code></pre>
+
+<h3>为什么会看到乱码？</h3>
+
+<p>如果你解码出来是<code>ä¸­æ–‡</code>这种鬼画符，说明URL用的是UTF-8编码，但你的解码器在用Latin-1或GBK解释这段字节。反过来，如果你encode后得到的不是%开头，而是<code>%C4%E4%B8%AD</code>这样，说明你用了GBK编码。</p>
+
+<p><strong>永远用UTF-8。</strong>这是铁律。</p>
+
+<h2>五、常见错误和避坑指南</h2>
+
+<h3>坑1：只编码一次（Double Encoding）</h3>
+
+<p>生产环境里很常见的bug：参数在多个系统之间传递，每个系统都「好心」地做了一次编码，结果<code>%20</code>被编码成<code>%2520</code>。</p>
+
+<pre><code>// 正常流程
+"北京" → encodeURIComponent → "%E5%8C%97%E4%BA%AC"
+
+// Double Encoding后
+"%E5%8C%97%E4%BA%AC" → encodeURIComponent → "%25E5%258C%2597%25E4%25BA%25AC"
+// 看到%25了吗？这是%的编码结果！
+</code></pre>
+
+<p>解决方案：追踪你的编码链路，确保每个环节只编码一次。</p>
+
+<h3>坑2：后端用错了字符集</h3>
+
+<p>前端JavaScript默认用UTF-8编码，这是对的。但如果后端用GBK解析收到的URL参数，中文就会乱码。</p>
+
+<pre><code>// 前端
+fetch('/api/search?q=' + encodeURIComponent('苹果'));
+// 发出去的是 q=%E8%8F%9C%E6%9E%9C
+
+// 如果后端用GBK解析这段%开始的十六进制，会得到乱码
+// 必须在后端统一用UTF-8
+</code></pre>
+
+<p>Java的Spring Boot默认UTF-8，Node.js默认也是，但PHP的某些老项目可能需要手动设置：</p>
+
+<pre><code>// PHP
+mb_internal_encoding('UTF-8');
+// 或在php.ini里设置 default_charset = UTF-8
+</code></pre>
+
+<h3>坑3：表单提交默认编码格式</h3>
+
+<p>HTML表单（<code>&lt;form method="GET"&gt;</code>）默认用<code>application/x-www-form-urlencoded</code>格式编码，这种格式会把空格编码成<code>+</code>而不是<code>%20</code>。现代前后端分离的项目通常走JSON API，很少遇到，但如果你在做传统PHP或Django项目，要清楚这个区别。</p>
+
+<h3>坑4：路径中的特殊字符</h3>
+
+<p>URL路径（Path）和查询参数（Query）的编码规则不同：</p>
+
+<pre><code>// 路径中的斜杠
+// https://example.com/path/to/文件.txt
+
+// 斜杠是路径分隔符，路径里的「/」不能编码（否则变成两层目录）
+// 但「文件.txt」需要编码
+encodeURIComponent('文件.txt');  // %E6%96%87%E4%BB%B6.txt — 正确
+encodeURI('文件.txt');           // %E6%96%87%E4%BB%B6.txt — 也行
+
+// 查询参数中的斜杠
+// ?path=/usr/local/bin
+encodeURIComponent('/usr/local/bin');
+// %2Fusr%2Flocal%2Fbin — 因为斜杠在查询参数里是普通字符，需要编码
+</code></pre>
+
+<h2>六、实战建议</h2>
+
+<ol>
+<li><strong>前端永远用 <code>encodeURIComponent</code> 编码参数值</strong>，这是最安全的选择，不会漏掉任何特殊字符。</li>
+<li><strong>后端必须明确指定UTF-8</strong>，在框架中间件里全局设置。</li>
+<li><strong>避免手动拼URL字符串</strong>，用各语言的标准库：Python的 <code>urllib.parse</code>、Node.js的 <code>URL</code> 构造函数。</li>
+<li><strong>跨语言调用时统一字符集</strong>，UTF-8是唯一选择。</li>
+<li><strong>用工具实时验证</strong>，比盯着%开头的字符串猜要快一万倍。</li>
+</ol>
+
+<h2>七、快速工具推荐</h2>
+
+<p>与其每次在控制台敲一行代码，不如用一个顺手好用的在线工具。</p>
+
+<p>☘️ <a href="https://tools.xsanye.cn/tools/network/url-encode.html" target="_blank">CloverTools URL编码/解码工具</a> — 支持JavaScript和Python双引擎实时转换，一键处理中文字符、特殊符号、完整URL，自动识别编码类型并标注颜色。开发者友好，无广告。</p>
+
+<h2>总结</h2>
+
+<p>URL编码的本质是让任意字符能安全地出现在URL里。<code>encodeURIComponent</code>编码参数值，<code>encodeURI</code>编码完整URL但保留结构字符。各个语言的库函数不同，但核心原理一致：UTF-8 + 百分号编码。最常踩的坑是双重编码和字符集不统一——搞清楚这两点，你就不会再被URL里的<code>%E4%B8%AD%E6%96%87</code>搞疯了。</p>
+
+<p>收藏这篇，下次遇到URL乱码回来对照检查。</p>
