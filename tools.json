@@ -385,7 +385,7 @@
       {
         "name": "目录树生成",
         "path": "code/directory-tree.html",
-        "desc": "输入文本形式的目录结构，自动生成美观的树形可视化图，支持 ASCII 树和 JSON 两种格式导出",
+        "desc": "输入文本形式的目录结构描述（如 \"src/app.js\" \"src/utils/helper.ts\"），自动生成美观的树形可视化图，支持 ASCII 树和 JSON 两种导出格式，适合项目文档、代码结构展示与分析。",
         "keywords": "目录树，文件夹结构，文件树，树形图，目录可视化，结构生成，ASCII树，JSON结构",
         "type": "tool-upload",
         "icon": "bi bi-folder-tree",
@@ -418,7 +418,7 @@
       {
         "name": "HTML 实体编码/解码",
         "path": "code/html-entity.html",
-        "desc": "将 HTML 中的特殊字符（如 < > & \" '）转换为对应的实体代码（&lt; &gt; &amp; 等），也可反向将实体还原为普通字符，轻松实现双向转换与数据脱敏。",
+        "desc": "将 HTML 中的特殊字符（如左尖括号、右尖括号、与符号、引号）转换为对应的实体代码（&lt; &gt; &amp; &quot; 等），也可反向将实体还原为普通字符，轻松实现双向转换与数据脱敏。",
         "keywords": "HTML实体编码，HTML实体解码，HTML转义，反转义，特殊字符转换，XSS防御，数据脱敏，字符实体",
         "type": "tool-static",
         "icon": "bi bi-code-slash",
@@ -510,7 +510,7 @@
         "keywords": "JSON压缩，JSON格式化，JSON压缩器，JSON格式化工具，JSON压缩格式化，JSON在线压缩，JSON在线格式化",
         "type": "tool-custom",
         "icon": "bi bi-braces",
-        "title": "JSON压缩/格式化",
+        "title": "JSON压缩/格式化 - 在线JSON格式化压缩工具",
         "customScript": "document.getElementById('formatBtn').onclick=function(){try{var obj=JSON.parse(document.getElementById('input').value);document.getElementById('output').value=JSON.stringify(obj,null,2);}catch(e){document.getElementById('output').value='JSON错误: '+e.message;}};document.getElementById('compressBtn').onclick=function(){try{var obj=JSON.parse(document.getElementById('input').value);document.getElementById('output').value=JSON.stringify(obj);}catch(e){document.getElementById('output').value='JSON错误: '+e.message;}};document.getElementById('copyBtn').onclick=function(){navigator.clipboard.writeText(document.getElementById('output').value);};",
         "customHtml": "<div class=\"tool-card\">\n<h1 style=\"font-size:1.5rem;margin-bottom:.4rem\">JSON 压缩 / 格式化</h1>\n<p style=\"color:var(--text-secondary);font-size:.9rem;margin-bottom:1rem;\">输入 JSON，选择格式化（美化缩进）或压缩（去除空格换行），支持语法校验与一键复制。</p>\n<div class=\"tool-card\">\n<h3>输入 JSON</h3>\n<textarea id=\"input\" placeholder=\"粘贴需要处理 JSON...\" style=\"min-height:120px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--input-bg);color:var(--text);font-family:monospace;box-sizing:border-box;margin-bottom:.75rem;\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;\">\n<button id=\"formatBtn\" style=\"padding:.5rem 1.2rem;background:var(--primary);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:.88rem\">格式化</button>\n<button id=\"compressBtn\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">压缩</button>\n</div>\n</div>\n<div class=\"tool-card\">\n<h3>输出</h3>\n<textarea id=\"output\" readonly style=\"min-height:120px;width:100%;padding:.75rem;font-size:.9rem;border:1px solid var(--border);border-radius:8px;resize:vertical;background:var(--result-bg);color:var(--text);font-family:monospace;box-sizing:border-box;margin-bottom:.75rem;\"></textarea>\n<div style=\"display:flex;gap:.5rem;flex-wrap:wrap;\">\n<button id=\"copyBtn\" style=\"padding:.5rem 1.2rem;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.88rem\">复制结果</button>\n</div>\n</div>"
       },
@@ -1255,11 +1255,11 @@
       {
         "name": "随机MAC地址",
         "path": "dev-tools/random-mac.html",
-        "desc": "生成随机MAC地址，支持批量生成、大小写切换",
+        "desc": "批量生成符合 IEEE 802 标准的随机 MAC 地址，可选本地/全局、单播/组播、大小写格式，支持批量导出和复制，适用于虚拟机配置、网络测试、MAC 地址过滤开发等场景。",
         "keywords": "MAC地址,生成,随机,网卡,硬件地址,批量",
         "type": "dev-tools",
         "icon": "bi bi-ethernet",
-        "title": "随机MAC地址生成器",
+        "title": "随机MAC地址生成器 - 批量生成随机MAC地址",
         "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var b=Array(6).fill().map(()=>Math.floor(Math.random()*256));var mac=b.map(v=>(inputs.uppercase?v.toString(16).padStart(2,'0').toUpperCase():v.toString(16).padStart(2,'0'))).join(':');r.push(mac);}return{result:r.join('\\n')};}",
         "args": {
           "inputs": [
@@ -1337,7 +1337,7 @@
       {
         "name": "UUID生成器",
         "path": "dev-tools/uuid-generator.html",
-        "desc": "快速生成符合RFC 4122标准的UUID v4随机码，支持批量生成、大小写切换",
+        "desc": "批量生成符合 RFC 4122 标准的 UUID v4 随机码，支持自定义数量、大小写切换和多种格式（标准、带连字符、纯数字），一键复制或批量导出，适合数据库主键、分布式ID、测试数据生成。",
         "keywords": "UUID生成器,UUID,v4,随机,唯一标识符,批量生成,RFC4122",
         "type": "dev-tools",
         "icon": "bi bi-upc",
@@ -1878,7 +1878,7 @@
       {
         "name": "行数统计",
         "path": "text/line-count.html",
-        "desc": "统计文本的总行数、非空行数和空行数，并显示每行的行号，适合代码行数统计、文本分析等场景。",
+        "desc": "统计文本的总行数、非空行数、空行数和字符数，支持实时显示每行内容与行号，可指定行范围统计，适合代码行数统计、日志分析、数据清洗等文本处理场景。",
         "keywords": "行数统计,行数统计工具,空行统计,非空行,文本行数,代码行数,行号显示,在线行数统计",
         "icon": "bi bi-body-text",
         "type": "tool-custom",
@@ -1889,7 +1889,7 @@
       {
         "name": "去除空行",
         "path": "text/remove-blank.html",
-        "desc": "删除文本中的所有空行和仅含空白字符的行，支持将多个连续空行压缩为一个空行，适合文本清洗和数据整理。",
+        "desc": "删除文本中的所有空行和仅含空白字符的行，支持将多个连续空行压缩为单个空行，自定义保留的空行数量，适用于日志清洗、数据预处理、多行文本格式化等场景。",
         "keywords": "去除空行,删除空行,删除空白行,压缩空行,文本去空行,在线去除空行,文本清洗",
         "icon": "bi bi-body-text",
         "type": "tool-custom",
@@ -1900,7 +1900,7 @@
       {
         "name": "文本反转",
         "path": "text/reverse.html",
-        "desc": "支持完全反转文本内容（字符倒序）和反转行顺序（最后一行变为第一行），适合特殊文本处理需求。",
+        "desc": "支持完全反转文本内容（字符倒序）和反转行顺序（最后一行变为第一行），可选择仅反转文字或仅反转行序，适合文字游戏、特殊排版需求和数据处理辅助。",
         "keywords": "文本反转,字符反转,行反转,倒序文本,文本倒置,反转文字,在线文本反转",
         "icon": "bi bi-body-text",
         "type": "tool-custom",
@@ -1911,7 +1911,7 @@
       {
         "name": "敏感词检测",
         "path": "text/sensitive-check.html",
-        "desc": "通过内置词库检测文本中可能包含的敏感词，高亮显示并统计数量，帮助用户识别潜在问题内容。",
+        "desc": "通过内置词库实时检测文本中可能包含的敏感词，高亮标记并统计各类别数量，支持自定义词库扩展，适用于内容审核、发帖前检查、文本清洗和数据合规场景。",
         "keywords": "敏感词检测,敏感词,违禁词,违规检测,内容审核,文本检测,在线敏感词检测",
         "icon": "bi bi-body-text",
         "type": "tool-custom",
@@ -2087,7 +2087,7 @@
       {
         "name": "朋友圈九宫格分图",
         "path": "life/grid-splitter.html",
-        "desc": "将任意图片自动切割为3×3九宫格样式，方便发布朋友圈九图，保留完整画面的同时呈现精致排版效果。",
+        "desc": "将任意图片自动切割为 3×3 九宫格样式，保留完整画面的同时呈现精致排版效果，支持自定义切割线和边距，适用于朋友圈九图、Instagram 配图等社交媒体内容制作。",
         "keywords": "九宫格分图，朋友圈九宫格，图片切割，图片分割，九图发布，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "tool-custom",
@@ -2209,7 +2209,7 @@
       {
         "name": "税后工资计算器",
         "path": "life/salary.html",
-        "desc": "输入税前工资后，自动扣除五险一金和个人所得税，精准计算实际到手工资，帮助你清晰了解每月净收入构成。",
+        "desc": "输入税前工资和社保缴纳地，自动扣除五险一金及个人所得税，精准计算实际到手工资，并详细展示各项扣费明细，帮助你清晰了解每月净收入构成和税费结构。",
         "keywords": "税后工资计算器，工资计算器，个税计算，税后工资，薪资计算，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "calculate",
@@ -2300,7 +2300,7 @@
       {
         "name": "颜色选择器",
         "path": "other/color.html",
-        "desc": "通过色盘可视化为网页设计师和开发人员快速选取颜色，并实时转换RGB颜色值与HEX十六进制颜色码。",
+        "desc": "通过色盘可视化快速选取颜色，实时转换 RGB、HEX、HSL、HSV 等多种格式，支持色值历史记录、色盲友好模式和渐变色生成，一键复制任意格式，适合网页设计和前端开发。",
         "keywords": "颜色选择器，RGB HEX转换，颜色代码，取色器，网页配色，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "tool-custom",
@@ -2311,7 +2311,7 @@
       {
         "name": "进制转换",
         "path": "other/hex-convert.html",
-        "desc": "支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果。",
+        "desc": "支持二进制、八进制、十进制、十六进制之间的任意相互转换，输入任意进制数值实时得到多种进制结果，支持大数处理和位运算展示，适合编程学习、密码学和数据结构课程。",
         "keywords": "进制转换，二进制转换，八进制转换，十六进制转换，十进制转换，在线工具",
         "icon": "bi bi-house-heart-fill",
         "type": "converter",
@@ -2367,7 +2367,7 @@
       {
         "name": "反应力测试",
         "path": "other/reaction-test.html",
-        "desc": "屏幕随机变色时快速点击，记录每次反应时间，共进行5轮测试并取平均值，科学评估你的视觉反应速度水平。",
+        "desc": "屏幕随机变色时快速点击，记录每次反应时间，共进行 5 轮测试取平均值，科学评估视觉反应速度，支持历史记录和分享结果，适合趣味测试和注意力训练。",
         "keywords": "反应力测试，反应速度测试，视觉反应测试，专注力测试，在线测试",
         "icon": "bi bi-house-heart-fill",
         "type": "tool-static",
