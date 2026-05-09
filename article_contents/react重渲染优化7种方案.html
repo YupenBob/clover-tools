@@ -1,0 +1,408 @@
+<article>
+  <h1>React重渲染了？我总结了7个优化方案</h1>
+
+  <p>你有没有遇到过这种场景——写了个看起来挺正常的 React 组件，数据也没变，但页面就是卡。一看 DevTools，组件刷刷刷渲染了几十次。老板路过瞄了一眼，说"你这卡啊"。</p>
+
+  <p>别慌，今天聊点实在的。我从真实项目里提炼了 7 个经过验证的优化方案，覆盖日常开发中最常见的重渲染问题。看完这篇，你基本上能解决 80% 的 React 性能瓶颈。</p>
+
+  <h2>一、先说清楚：什么时候算"渲染异常"？</h2>
+
+  <p>React 的渲染逻辑是：<strong>state 变了 → 组件重新渲染</strong>。这是设计如此，不是 bug。但问题在于——很多人以为"传进去的 props 没变，子组件就不会重新渲染"，实际上并不是。</p>
+
+  <p>举个子组件的例子：</p>
+
+  <pre><code>function Parent() {
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;div&gt;
+      &lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;增加&lt;/button&gt;
+      &lt;Child /&gt;
+    &lt;/div&gt;
+  );
+}
+
+function Child() {
+  console.log('Child 渲染了');
+  return &lt;div&gt;子组件&lt;/div&gt;;
+}</code></pre>
+
+  <p>每次点击按钮，Child 都会打印"渲染了"——尽管它自己的 props 和 state 什么都没变。这就是典型的"非必要渲染"。</p>
+
+  <h2>二、重渲染的常见原因</h2>
+
+  <p>在动手优化之前，先知道根因在哪。常见原因大概这几类：</p>
+
+  <h3>1. 父组件重新渲染，强制子组件跟着渲染</h3>
+  <p>上面那个例子就是。父组件的 state 变了，整个组件树重新走一遍 reconciliation。</p>
+
+  <h3>2. Props 传递的是新对象或新函数</h3>
+  <pre><code>// 每次 Parent 渲染，这俩都是新引用！
+function Parent() {
+  return &lt;Child onClick={() =&gt; console.log('click')} /&gt;;
+  return &lt;Child onClick={handleClick} /&gt;;
+}</code></pre>
+
+  <h3>3. Context 值每次都是新对象</h3>
+  <p>如果你把一个对象放进 Context 的 value，那个对象每次都是新的，整个消费这个 Context 的组件树都会重新渲染。</p>
+
+  <h3>4. 列表没有稳定的 key</h3>
+  <p>用 index 作为 key，数据变化时 React 分不清谁是谁，干脆全删了重建。</p>
+
+  <h3>5. 组件本身 state 频繁变化</h3>
+  <p>比如搜索框的实时过滤，每次按键都触发过滤逻辑。</p>
+
+  <p>好了，根因知道了。下面逐个击破。</p>
+
+  <h2>三、7个优化方案</h2>
+
+  <h3>方案1：React.memo——子组件的护身符</h3>
+
+  <p>React.memo 是最直接的工具。它的作用是：<strong>如果 props 没变，就跳过这次渲染</strong>。</p>
+
+  <pre><code>// 优化前
+function Child({ name, age }) {
+  console.log('Child 渲染了');
+  return &lt;div&gt;{name} - {age}&lt;/div&gt;;
+}
+
+// 优化后：用 React.memo 包裹
+const Child = React.memo(function Child({ name, age }) {
+  console.log('Child 渲染了');
+  return &lt;div&gt;{name} - {age}&lt;/div&gt;;
+});</code></pre>
+
+  <p>效果：父组件 state 变化时，Child 不会重复渲染了——除非 name 或 age 真的变了。</p>
+
+  <p>但这里有个坑：<strong>React.memo 默认用的是浅比较</strong>。如果 props 里有对象：</p>
+
+  <pre><code>// Parent 每次渲染，user 都是新对象
+&lt;Child user={{ name: 'yock', age: 16 }} /&gt;;
+
+// 即使 name 和 age 没变，memo 也会认为 props 变了，因为对象引用不同
+// 解决方案：用 useMemo 稳定对象引用（见方案2）</code></pre>
+
+  <p>React.memo 还支持第二个参数，做自定义比较：</p>
+
+  <pre><code>const Child = React.memo(
+  function Child({ user, onClick }) {
+    return &lt;div onClick={onClick}&gt;{user.name}&lt;/div&gt;;
+  },
+  (prevProps, nextProps) =&gt; {
+    // 返回 true = 不重新渲染（类似 shouldComponentUpdate 的反逻辑）
+    return prevProps.user.id === nextProps.user.id;
+  }
+);</code></pre>
+
+  <h3>方案2：useMemo——稳定计算结果</h3>
+
+  <p>useMemo 的作用是：<strong>当依赖没变时，复用上一次的计算结果</strong>。适合那些计算量大的场景，比如过滤、排序、大数据处理。</p>
+
+  <pre><code>function UserList({ users, filter }) {
+  // 只有 users 或 filter 变化时，才重新计算 filteredUsers
+  const filteredUsers = useMemo(() =&gt; {
+    console.log('开始过滤...');
+    return users.filter(u =&gt; u.name.includes(filter));
+  }, [users, filter]);
+
+  return (
+    &lt;ul&gt;
+      {filteredUsers.map(u =&gt; &lt;li key={u.id}&gt;{u.name}&lt;/li&gt;)}
+    &lt;/ul&gt;
+  );
+}</code></pre>
+
+  <p>敲黑板：依赖数组一定要写对。漏写了依赖会拿到过期数据，写多了又起不到缓存效果。</p>
+
+  <p>另一个常见场景——稳定传给子组件的对象引用：</p>
+
+  <pre><code>function Parent() {
+  const [count, setCount] = useState(0);
+
+  // 每次都新建对象？Child 每次都重渲染
+  // const config = { theme: 'dark', locale: 'zh-CN' };
+
+  // 用 useMemo 稳定引用
+  const config = useMemo(() =&gt; ({ theme: 'dark', locale: 'zh-CN' }), []);
+
+  return &lt;Child config={config} onClick={() =&gt; setCount(c =&gt; c + 1)} /&gt;;
+}
+
+const Child = React.memo(function Child({ config, onClick }) {
+  return &lt;button onClick={onClick}&gt;{config.theme}&lt;/button&gt;;
+});</code></pre>
+
+  <h3>方案3：useCallback——稳定函数引用</h3>
+
+  <p>useCallback 是 useMemo 的兄弟，专门用来稳定函数。它和 useMemo 的关系：</p>
+
+  <pre><code>// 下面两行是等价的
+const fn = useCallback(() =&gt; doSomething(a, b), [a, b]);
+const fn = useMemo(() =&gt; () =&gt; doSomething(a, b), [a, b]);</code></pre>
+
+  <p>典型场景：把函数作为 props 传给 memo 包裹的子组件。</p>
+
+  <pre><code>function Parent() {
+  const [count, setCount] = useState(0);
+
+  // 不用 useCallback：每次渲染都是新函数，memo 的子组件会认为 props 变了
+  // const handleClick = () =&gt; console.log('click');
+
+  // 用 useCallback：count 变化时才创建新函数
+  const handleClick = useCallback(() =&gt; {
+    console.log('click', count);
+  }, [count]);
+
+  return &lt;Button onClick={handleClick} /&gt;;
+}
+
+const Button = React.memo(function Button({ onClick }) {
+  return &lt;button onClick={onClick}&gt;点我&lt;/button&gt;;
+});</code></pre>
+
+  <p>注意：<strong>不要所有函数都包 useCallback</strong>。它本身有开销（闭包、比较），对于不传给子组件的函数，包了反而浪费。优先把 useCallback 用在真正穿透组件层级的 props 函数上。</p>
+
+  <h3>方案4：Context 优化——别把整个 App 拖下水</h3>
+
+  <p>Context 是性能重灾区。举个大冤种例子：</p>
+
+  <pre><code>const ThemeContext = createContext();
+
+function App() {
+  const [user, setUser] = useState({ name: 'yock' });
+
+  return (
+    &lt;ThemeContext.Provider value={{ theme: 'dark' }}&gt;
+      &lt;Dashboard /&gt;  // Dashboard 消费了 ThemeContext
+      &lt;Profile /&gt;    // Profile 也消费了 ThemeContext
+      &lt;Settings /&gt;   // Settings 也消费了 ThemeContext
+    &lt;/ThemeContext.Provider&gt;
+  );
+}</code></pre>
+
+  <p>问题在哪？ThemeContext.Provider 的 value 是个对象字面量，<strong>每次 App 渲染都是新对象</strong>，导致所有消费这个 Context 的组件全部重新渲染。</p>
+
+  <p>解决方案1：拆分成多个小 Context。</p>
+
+  <pre><code>// 主题相关的放一个 Context，用户相关的放另一个
+const ThemeContext = createContext();
+const UserContext = createContext();
+
+// 这样 user 变化不会导致只消费 ThemeContext 的组件重新渲染
+function App() {
+  const [user, setUser] = useState({ name: 'yock' });
+  const theme = useMemo(() =&gt; ({ theme: 'dark' }), []);
+
+  return (
+    &lt;UserContext.Provider value={user}&gt;
+      &lt;ThemeContext.Provider value={theme}&gt;
+        &lt;Dashboard /&gt;
+      &lt;/ThemeContext.Provider&gt;
+    &lt;/UserContext.Provider&gt;
+  );
+}</code></pre>
+
+  <p>解决方案2：把 Context 的 value 用 useMemo 包裹。</p>
+
+  <pre><code>function App() {
+  const [user, setUser] = useState({ name: 'yock' });
+
+  const contextValue = useMemo(() =&gt; ({
+    user,
+    setUser,
+    theme: 'dark',
+  }), [user]);
+
+  return (
+    &lt;Context.Provider value={contextValue}&gt;
+      &lt;App /&gt;
+    &lt;/Context.Provider&gt;
+  );
+}</code></pre>
+
+  <p>React 18 的并发特性还给 Context 带来了新的挑战——<strong>在 Concurrent 模式下，Context 的 Provider value 变化时，React 可能会多次渲染消费组件</strong>。如果你的应用卡顿严重，这个因素也要排查。</p>
+
+  <h3>方案5：状态扁平化——避免连锁反应</h3>
+
+  <p>看看这个 state 结构有没有很眼熟：</p>
+
+  <pre><code>const [form, setForm] = useState({
+  user: {
+    profile: {
+      name: '',
+      avatar: '',
+      bio: '',
+    },
+    settings: {
+      notifications: true,
+      language: 'zh-CN',
+      theme: 'dark',
+    }
+  }
+});
+
+// 改个名字，整条链路都要重新渲染
+setForm({
+  ...form,
+  user: {
+    ...form.user,
+    profile: {
+      ...form.user.profile,
+      name: 'yock'
+    }
+  }
+});</code></pre>
+
+  <p>这种深层嵌套的状态，任意一处变化都会导致消费这条数据的组件全部重新渲染。而且写起来也痛苦——一条数据变化要展开四五层。</p>
+
+  <p>优化思路：<strong>按需拆分 state</strong>。</p>
+
+  <pre><code>// 拆成独立的 state，每个只管一件事
+const [userName, setUserName] = useState('');
+const [userAvatar, setUserAvatar] = useState('');
+const [notifications, setNotifications] = useState(true);
+const [language, setLanguage] = useState('zh-CN');
+const [theme, setTheme] = useState('dark');
+
+// 改名字，只触发 userName 相关的组件重渲染
+setUserName('yock');</code></pre>
+
+  <p>如果确实需要管理复杂状态，考虑用 Zustand、Jotai 这类原子化状态管理库——React 18 的 useSyncExternalStore 也让这类库在并发模式下的表现更好了。</p>
+
+  <h3>方案6：虚拟列表——长列表的救星</h3>
+
+  <p>一个页面渲染 10000 条数据，浏览器直接红牌。这种场景别硬刚 DOM，用虚拟列表。</p>
+
+  <pre><code>// 思路：只渲染可视区域内的元素，数据总量可能很大，但 DOM 节点数量固定
+// 常见库：react-window、react-virtualized
+
+import { FixedSizeList } from 'react-window';
+
+function VirtualList({ items }) {
+  return (
+    &lt;FixedSizeList
+      height={600}
+      itemCount={items.length}
+      itemSize={50}
+      width="100%"
+    &gt;
+      {({ index, style }) =&gt; (
+        &lt;div style={style}&gt;
+          {items[index].name}
+        &lt;/div&gt;
+      )}
+    &lt;/FixedSizeList&gt;
+  );
+}</code></pre>
+
+  <p>可视区域固定只有几十个 DOM 节点，滚动时动态替换内容，体验和真·渲染一万条完全一样，帧率稳得住。</p>
+
+  <p>如果你是表格场景，react-virtualized 的 AutoSizer + ColumnResizer 组合更合适。虚拟列表的关键是<strong>估算好 itemSize</strong>，动态高度的列表推荐用 variableSize 模式。</p>
+
+  <h3>方案7：懒加载——减少首屏负担</h3>
+
+  <p>代码分割，让用户只加载当前页面需要的代码。React.lazy + Suspense 就能搞定：</p>
+
+  <pre><code>import { lazy, Suspense } from 'react';
+
+// 路由级别的懒加载
+const Dashboard = lazy(() =&gt; import('./pages/Dashboard'));
+const Settings = lazy(() =&gt; import('./pages/Settings'));
+
+function App() {
+  return (
+    &lt;Router&gt;
+      &lt;Suspense fallback={&lt;div&gt;加载中...&lt;/div&gt;}&gt;
+        &lt;Routes&gt;
+          &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;
+          &lt;Route path="/settings" element={&lt;Settings /&gt;} /&gt;
+        &lt;/Routes&gt;
+      &lt;/Suspense&gt;
+    &lt;/Router&gt;
+  );
+}</code></pre>
+
+  <p>组件级别的懒加载：</p>
+
+  <pre><code>function HeavyChart() {
+  const Chart = useMemo(() =&gt; lazy(() =&gt; import('./Chart')), []);
+
+  return (
+    &lt;Suspense fallback={&lt;Skeleton /&gt;}&gt;
+      &lt;Chart data={data} /&gt;
+    &lt;/Suspense&gt;
+  );
+}</code></pre>
+
+  <p>懒加载不只是首屏优化，配合 preload / prefetch 策略，可以在用户即将访问某页面时提前加载代码，进一步减少等待感。</p>
+
+  <h2>四、key 优化——你可能一直写错了</h2>
+
+  <p>React 用 key 来判断列表中每个元素的身份。key 选错了，列表更新时会触发大量不必要的销毁和重建。</p>
+
+  <p><strong>错误示范：用 index 作为 key</strong></p>
+
+  <pre><code>// 初始数据：[{id:1, name:'a'}, {id:2, name:'b'}]
+// 渲染后 key = [0, 1]
+
+// 删除第一项后：[{id:2, name:'b'}]
+// 渲染后 key = [0]（原本的 index 0 没了，变成新的 index 0）
+// React 以为 index 0 的组件更新了，实际上是 item 2 占据了 index 0
+// 结果：React 认为是"更新"，而不是"删除+重新渲染"
+// 代价：所有子组件的 state（输入框内容、展开状态）全部丢失</code></pre>
+
+  <p><strong>正确做法：用数据的唯一 ID 作为 key</strong></p>
+
+  <pre><code>{users.map(user =&gt; (
+  &lt;UserCard key={user.id} user={user} /&gt;
+))}</code></pre>
+
+  <p>key 的唯一性只要在同一层级列表内唯一就行，不需要全局唯一。另外，key 不要用随机数——每次渲染都是新值，失去了 key 的意义。</p>
+
+  <h2>五、用 DevTools Profiler 定位性能瓶颈</h2>
+
+  <p>优化得对不对，要靠数据说话。React DevTools 的 Profiler 面板就是干这个的。</p>
+
+  <h3>开启 Profiler</h3>
+  <p>React DevTools 扩展 → Profiler 面板 → 点击 Record → 操作你的应用 → 点击 Stop。</p>
+
+  <h3>读懂火焰图</h3>
+  <p>火焰图里，每个柱子的高度代表渲染耗时，宽度代表渲染次数。宽度大说明渲染次数多，柱子高说明单次渲染慢。两个都大的就是重点优化对象。</p>
+
+  <h3>Ranked 视图</h3>
+  <p>按"总共渲染耗时"排序，快速找到哪个组件吃掉了最多的渲染预算。</p>
+
+  <h3>Component 视图</h3>
+  <p>选中某个组件，可以看到它为什么渲染——是 props 变了？是父组件渲染了？还是 state 变了？直接定位根因。</p>
+
+  <h3>React 18 的 Suspense 边界</h3>
+  <p>React 18 的 Profiler 对 Suspense 边界有更好的支持，Suspense 展示 loading 状态时，不会触发下游组件的渲染分析。这个改进对于分析懒加载场景特别有用。</p>
+
+  <p>建议：先用 Profiler 跑一遍完整的用户操作流程（页面加载 → 交互 → 滚动 → 搜索），记录下渲染次数最多的前 5 个组件，针对性优化。盲目优化不在性能瓶颈路径上的组件，是浪费时间。</p>
+
+  <h2>六、实战建议：优化要有节奏感</h2>
+
+  <p>很多人优化 React 性能的方式是——先把所有组件都包上 React.memo，useMemo/useCallback 全部安排上。这是过犹不及。</p>
+
+  <p>我的经验是分三步走：</p>
+
+  <ol>
+    <li><strong>先 profiling</strong>——找到真正的瓶颈在哪。别猜，用数据说话。</li>
+    <li><strong>优先处理渲染次数多的</strong>——一个渲染了 100 次的组件，优化掉 90 次，价值远大于优化一个只渲染了 2 次的组件。</li>
+    <li><strong>避免过度优化</strong>——memo/useCallback 本身有开销，组件轻量且渲染不频繁时，不优化反而更划算。</li>
+  </ol>
+
+  <p>另外，如果你的项目还在用 class 组件，考虑迁移到函数组件 + hooks。函数组件在 memo、useMemo 这些工具的配合下，优化粒度比 class 组件的 shouldComponentUpdate 细得多。</p>
+
+  <h2>总结</h2>
+
+  <p>这 7 个方案不是孤立的——经常是组合使用才能达到最佳效果。比如一个高频更新的列表，你可能需要同时用 key 优化 + 虚拟列表 + React.memo + 状态扁平化。但核心原则就一条：<strong>让真正需要更新的组件更新，不该更新的组件保持原样</strong>。</p>
+
+  <p>性能优化是个持续的事，不是一次性工程。产品迭代中随时可能出现新的性能问题，保持 profiling 的习惯比记住所有优化技巧更重要。</p>
+
+  <hr />
+
+  <p>
+    ☘️ 顺手推荐一个我常用的工具站——<strong>CloverTools</strong>（<a href="https://tools.xsanye.cn/tools/code/js-formatter.html" target="_blank">点击访问</a>），收录了前端开发中常用的代码格式化、压缩、转换工具，React 项目里经常需要处理 JS/JSON 格式化，配合使用效率翻倍。
+  </p>
+</article>
