@@ -861,24 +861,78 @@ function buildToolLinks(toolInfo) {
 
 // Generate blog index page
 function generateBlogIndex() {
+  // 分类合并映射
+  const CAT_MERGE = {
+    '前端 / JS 报错': '前端报错', '前端 / JS报错': '前端报错', '前端调试': '前端报错',
+    'JSON / API报错': 'JSON处理', 'JSON处理': 'JSON处理',
+    '文件 / 图片限制': '文件处理', '文件 / 数据转换': '文件处理',
+    '编码 / Base64 / 转换': '编码转换', '编码 / Base64': '编码转换', '编码 / 转换类': '编码转换', '编码 / 加密类': '编码转换', '编码/加密': '编码转换', '编码加密': '编码转换',
+    'AI / API报错': 'AI接口', 'AI接口': 'AI接口',
+    '开发工具 / JS报错': '开发工具', '开发工具 / YAML报错': '开发工具', '开发工具 / CSS报错': '开发工具', '开发工具 / HTML报错': '开发工具', '开发工具 / Python报错': '开发工具', '开发工具 / SQL报错': '开发工具', '开发工具 / UA报错': '开发工具', '开发工具 / Cron报错': '开发工具',
+    '开发工具 / XML报错': '开发工具', '开发工具 / JSON-YAML转换报错': '开发工具', '开发工具 / JSON-XML转换报错': '开发工具', '开发工具 / JSON Schema报错': '开发工具',
+    'Git/DevOps/工具问题': 'DevOps', 'Git': 'DevOps', 'Docker': 'DevOps', 'npm': 'DevOps',
+    '认证授权': '安全认证', 'HTTPS': '安全认证',
+    '时间处理': '时间工具', '时间 / 加密 / 工具类': '时间工具',
+  };
+  const CAT_EMOJI = {
+    'JSON处理': '📋', '前端报错': '🖥️', '文件处理': '📁', '编码转换': '🔤',
+    'AI接口': '🤖', '时间工具': '⏰', '开发工具': '🔧', 'DevOps': '📦',
+    '安全认证': '🔐', '其他': '📌', '网络工具': '🌐', '正则表达式': '🎯', 'Python': '🐍', 'React': '⚛️',
+  };
+
+  // 合并相似分类
+  const mergedConfig = keywordsConfig.map(kw => {
+    if (CAT_MERGE[kw.category]) kw.category = CAT_MERGE[kw.category];
+    return kw;
+  });
+
   // Group by category
   const byCategory = {};
-  keywordsConfig.forEach(kw => {
+  mergedConfig.forEach(kw => {
     const cat = kw.category || '其他';
     if (!byCategory[cat]) byCategory[cat] = [];
     byCategory[cat].push(kw);
   });
 
+  // 最近更新：取 articles.json 中有 HTML 文件且 content 为空的前 8 篇
+  const recentArticlesHtml = (() => {
+    const artData = JSON.parse(fs.readFileSync(path.join(BASE, 'articles.json'), 'utf8'));
+    const artWithHtml = artData.articles.filter(a => {
+      const hp = path.join(BASE, 'article_contents', a.slug + '.html');
+      return fs.existsSync(hp) && (!a.content || a.content.trim().length === 0);
+    }).slice(0, 8);
+    if (artWithHtml.length === 0) return '';
+    let cards = '';
+    artWithHtml.forEach(a => {
+      const slug = a.slug;
+      const cat = a.category || '其他';
+      cards += `<a href="/blog/${slug}" class="recent-card">
+        <div class="recent-card-icon">📖</div>
+        <div class="recent-card-title">${a.title || a.keyword}</div>
+        <div class="recent-card-cat">${cat}</div>
+      </a>`;
+    });
+    return `<div class="recent-section">
+      <div class="recent-header"><h2>🆕 最近更新</h2><a href="#full-list" class="recent-more">查看全部 →</a></div>
+      <div class="recent-scroll">${cards}</div>
+    </div>`;
+  })();
+
   let itemsHtml = '';
   Object.keys(byCategory).sort().forEach(cat => {
     const catTools = byCategory[cat];
-    itemsHtml += `<div class="blog-cat-section">
+    const emoji = CAT_EMOJI[cat] || '📌';
+    const MAX_SHOW = 6;
+    let shownCount = 0;
+    itemsHtml += `<div class="blog-cat-section" id="full-list">
       <div class="blog-cat-header">
-        <h2>${cat}</h2>
+        <h2>${emoji} ${cat}</h2>
         <span class="count">${catTools.length} 篇</span>
       </div>
       <div class="blog-grid">`;
     catTools.forEach(kw => {
+      if (shownCount >= MAX_SHOW) return;
+      shownCount++;
       const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
       const toolInfo = resolveTool(kw);
       itemsHtml += `<a href="/blog/${slug}" class="blog-card">
@@ -889,6 +943,10 @@ function generateBlogIndex() {
         </div>
       </a>`;
     });
+    if (catTools.length > MAX_SHOW) {
+      const sampleSlug = catTools[0].keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
+      itemsHtml += `<a href="/blog/${sampleSlug}" class="blog-card blog-card-more">查看全部 ${catTools.length} 篇 →</a>`;
+    }
     itemsHtml += `</div></div>`;
   });
 
@@ -898,20 +956,31 @@ function generateBlogIndex() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>开发者问题解决博客 - CloverTools</title>
+  <title>开发者问题终结手册 - CloverTools</title>
   <meta name="description" content="开发者常见问题解决指南,JSON错误、编码问题、文件限制等实际问题的解决方案。">
   <link rel="canonical" href="https://tools.xsanye.cn/blog/">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="icon" href="/src/clover-logo.svg">
   <script src="/src/shared.js"></script>
   <style>
-    .blog-hero { text-align: center; padding: 3.5rem 0 2.5rem; }
+    .blog-hero { text-align: center; padding: 3.5rem 0 2rem; }
     .blog-hero h1 { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    .blog-hero .subtitle { font-size: 1.1rem; opacity: 0.65; max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.7; }
-    .blog-hero .stats { display: flex; justify-content: center; gap: 2rem; margin-top: 1rem; }
-    .blog-hero .stat { text-align: center; }
-    .blog-hero .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
-    .blog-hero .stat-label { font-size: 0.8rem; opacity: 0.6; }
+    .blog-hero .subtitle { font-size: 1.1rem; opacity: 0.65; max-width: 560px; margin: 0 auto 1rem; line-height: 1.7; }
+    .hero-tags { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    .hero-tag { background: var(--bg-secondary); border: 1px solid var(--border); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
+    .recent-section { margin-bottom: 2.5rem; }
+    .recent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+    .recent-header h2 { font-size: 1.1rem; }
+    .recent-more { font-size: 0.85rem; color: var(--primary); text-decoration: none; }
+    .recent-more:hover { text-decoration: underline; }
+    .recent-scroll { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin; }
+    .recent-scroll::-webkit-scrollbar { height: 4px; }
+    .recent-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .recent-card { flex: 0 0 200px; display: flex; flex-direction: column; gap: 0.4rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-decoration: none; color: var(--text); transition: transform 0.2s, box-shadow 0.2s; }
+    .recent-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); }
+    .recent-card-icon { font-size: 1.5rem; }
+    .recent-card-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; color: var(--text); }
+    .recent-card-cat { font-size: 0.72rem; color: var(--primary); }
     .blog-categories { padding: 0 0 2rem; }
     .blog-cat-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
     .blog-cat-header h2 { font-size: 1.1rem; color: var(--text); }
@@ -919,6 +988,7 @@ function generateBlogIndex() {
     .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; list-style: none; padding: 0; margin: 0; }
     .blog-card { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.2rem; text-decoration: none; color: var(--text); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
     .blog-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); border-color: var(--primary); }
+    .blog-card-more { text-align: center; color: var(--primary); font-weight: 600; }
     .blog-card-title { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; line-height: 1.4; }
     .blog-card-meta { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
     .blog-card-cat { font-size: 0.72rem; background: var(--primary); color: #fff; padding: 0.15rem 0.5rem; border-radius: 10px; }
@@ -940,22 +1010,18 @@ function generateBlogIndex() {
   <main class="page-body">
     <div class="container">
       <div class="blog-hero">
-        <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题解决博客</h1>
-        <p class="subtitle">遇到开发问题?来这里找答案,顺便用工具快速解决。每篇文章都配有对应的在线工具,无需注册,打开即用。</p>
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-num">${keywordsConfig.length}</div>
-            <div class="stat-label">篇文章</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num">${Object.keys(byCategory).length}</div>
-            <div class="stat-label">个分类</div>
-          </div>
+        <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题终结手册</h1>
+        <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，打开即用无需注册。</p>
+        <div class="hero-tags">
+          <span class="hero-tag">🔥 ${keywordsConfig.length} 篇实战文章</span>
+          <span class="hero-tag">🔧 158 个在线工具</span>
+          <span class="hero-tag">📂 ${Object.keys(byCategory).length} 个问题分类</span>
         </div>
       </div>
       <div class="blog-search">
         <input type="text" id="blog-search" placeholder="搜索文章... (Ctrl+K)" autocomplete="off">
       </div>
+      ${recentArticlesHtml}
       <div class="blog-categories" id="blog-categories">
         ${itemsHtml}
       </div>
