@@ -1,43 +1,102 @@
-<h2>痛点场景</h2>
-<p>你正在写代码，git push 之后，同事说他也提交了，你 pull 了一下——<code>Merge conflict in src/app.js</code>。文件里突然多了一堆 <code><<<<<<< HEAD</code> 和 <code>>>>>>>></code>，密密麻麻的红色标记。你不敢动，但又不知道该删哪些。合并冲突是每个 Git 用户的噩梦，但其实是最好解决的问题之一。</p>
+<h2>Git Commit 冲突是什么？</h2>
+<p>Git Commit 冲突（Merge Conflict）发生在 Git 自动合并失败时——当两个分支修改了同一文件的同一处，或者一个分支删除了某个文件而另一个分支修改了它，Git 就不知道该听谁的了，这时候需要你手动决定保留什么。</p>
+<p>听起来很可怕，但实际上只要搞清楚冲突标记的格式，5 分钟内就能解决大部分冲突。</p>
 
-<h2>问题根因</h2>
-<p>合并冲突的本质是：两个人改了同一个文件的同一个地方，Git 不知道该听谁的。最常见的三种场景：</p>
+<h2>冲突是怎么产生的？</h2>
+<p>典型的场景：</p>
+<pre><code># 1. 你在 feature 分支上开发
+git checkout -b feature/user-profile
+
+# 2. 同事在 main 分支提交了修改
+git checkout main
+# ... 修改了 utils.js
+git commit -m "fix: 修复工具函数"
+
+# 3. 你尝试把 main 合并到 feature
+git checkout feature/user-profile
+git merge main
+# 💥 冲突！两个分支都改了 utils.js</code></pre>
+
+<p>当 Git 尝试自动合并失败时，它会在冲突文件中插入特殊的标记：</p>
+<pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+const version = '1.2.0';
+=======
+const version = '2.0.0';
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/user-profile</code></pre>
+
+<p>格式很清晰：<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> 是当前分支的版本，<code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 后面是待合并分支的版本，中间是分隔线。</p>
+
+<h2>解决冲突的标准流程</h2>
+
+<h3>第一步：找到所有冲突文件</h3>
+<pre><code>git status
+# Unmerged path 文件就是冲突文件
+# 或者用：
+git diff --name-only --diff-filter=U</code></pre>
+
+<h3>第二步：逐个处理冲突文件</h3>
+<p>打开文件，找到 <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> 和 <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> 标记，决定保留哪部分内容，或者两者都保留（需要手动合并）。</p>
+
+<h3>第三步：标记为已解决</h3>
+<pre><code># 手动编辑完成后
+git add &lt;file&gt;
+# 或者一次性添加所有已解决的冲突文件
+git add .</code></pre>
+
+<h3>第四步：完成 commit</h3>
+<pre><code>git commit -m "merge: 解决 utils.js 冲突，保留新版本号"</code></pre>
+
+<h2>三种常见的冲突类型</h2>
+
+<h3>1. 同一行被不同分支修改</h3>
+<p>这是最常见的类型，两个分支都改了同一行代码：</p>
+<pre><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+const apiUrl = 'https://api.v1.example.com';
+=======
+const apiUrl = 'https://api.v2.example.com';
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/new-api</code></pre>
+<p>解决方式：和同事沟通确认该用哪个版本，或者合并两处的修改。</p>
+
+<h3>2. 一个分支删文件，另一个修改了它</h3>
+<pre><code># 如果对方删除了文件，你修改了它
+git status 会显示：
+deleted by them: config.json
+
+# 你需要决定：真的要删除还是保留？
+git rm config.json    # 确认删除
+git checkout --ours config.json  # 或恢复你的版本</code></pre>
+
+<h3>3. 同一文件被多个分支修改了多处</h3>
+<p>最复杂的情况，需要逐个解决所有冲突点。建议先 <code>git diff</code> 看清楚所有冲突点再动手。</p>
+
+<h2>用 VSCode 解决冲突（最推荐）</h2>
+<p>VSCode 内置了冲突编辑器，体验非常好：</p>
+<ol>
+<li>打开冲突文件，VSCode 会用不同颜色标出冲突区域</li>
+<li>点击 "Accept Current Change"、"Accept Incoming Change" 或 "Accept Both Changes"</li>
+<li>所有冲突解决完后，文件里就不再有 &lt;&lt;&lt;&lt;&lt;&lt;&lt; 标记了</li>
+<li>保存文件，<code>git add .</code> 然后 <code>git commit</code></li>
+</ol>
+
+<h2>Abort——放弃合并的正确方式</h2>
+<p>如果冲突太复杂，你想重新来过：</p>
+<pre><code>git merge --abort</code></pre>
+<p>这会恢复到合并之前的状态，你可以在处理好分支关系后再尝试合并。</p>
+
+<h2>避免冲突的最佳实践</h2>
 <ul>
-<li><strong>多人同时修改同一文件</strong>：你和同事都改了同一个函数，谁的代码会保留需要你决定。</li>
-<li><strong>pull 时本地有未提交的修改</strong>：本地改了东西，远程也有变化，Git 不知道该合并谁。</li>
-<li><strong>分支合并冲突</strong>：把 feature 分支合并到 main，两个分支改了同一个逻辑。</li>
+<li><strong>频繁 rebase</strong>：feature 分支经常 rebase main，减少累积的冲突可能性</li>
+<li><strong>小步提交</strong>：每次 commit 只改一个功能，减少和他人代码重叠的概率</li>
+<li><strong>代码分工明确</strong>：团队协商好哪些文件谁负责，减少同时改同一个文件的概率</li>
+<li><strong>PR 合并前先拉取</strong>：在发起 Pull Request 前先 <code>git fetch origin && git rebase origin/main</code></li>
 </ul>
 
-<h2>解决方案</h2>
-
-<h3>方案一：VSCode 可视化解决（最简单）</h3>
-<p>VSCode 自带合并冲突可视化界面，打开冲突文件后，点击 "Accept Incoming"（接受远程）、"Accept Current"（保留本地）或 "Accept Both"（两者都保留），冲突标记会自动消失。解决完记得 <code>git add .</code> 和 <code>git commit</code> 完成合并。</p>
-
-<h3>方案二：命令行三步走</h3>
-<pre><code># 1. 查看冲突文件列表
-git status
-
-# 2. 手动编辑冲突文件，删除 <<<<<<< HEAD / ======= / >>>>>>> 这三行标记，
-#    保留你想要的代码（或者两者合并）
-
-# 3. 标记冲突已解决
-git add &lt;文件名&gt;
-git commit -m "resolve merge conflict in &lt;文件名&gt;"
-git push</code></pre>
-
-<h3>方案三：abort 放弃合并（不推荐，但有时有用）</h3>
-<pre><code># 如果冲突太乱，想全部重来：
-git merge --abort</code></pre>
-<p>这会让你回到合并之前的状态，但会丢失你本地的未提交修改，慎用。</p>
-
-<h3>预防冲突的最佳实践</h3>
+<h2>自动化工具推荐</h2>
+<p>如果你经常遇到复杂冲突，可以用这些工具：</p>
 <ul>
-<li>每次 push 之前先 pull，减少冲突概率</li>
-<li>改同一个文件前先沟通，确认不会改到同一行</li>
-<li>频繁 commit，小步提交比一次性大改冲突少得多</li>
-<li>用 <code>git pull --rebase</code> 代替普通的 pull，保持分支历史整洁</li>
+<li><strong>git rerere</strong>：记录冲突解决方案，下次遇到类似冲突自动应用</li>
+<li><strong>Meld / Beyond Compare</strong>：可视化三方对比工具，更清晰看到 base 版本和你/对方的修改</li>
 </ul>
 
-<h2>顺手工具推荐</h2>
-<p>解决完冲突后，可以用 <a href="/tools/code/regex-tester.html" target="_blank">CloverTools 正则表达式测试器</a>验证代码里是否还有残留的冲突标记（搜索 <code>&lt;&lt;&lt;&lt;&lt;&lt;</code> 或 <code>&gt;&gt;&gt;&gt;&gt;&gt;</code>），确保文件完全干净。另外如果冲突涉及 JSON 文件，可以用 <a href="/tools/json/formatter.html" target="_blank">JSON格式化工具</a>格式化后检查结构完整性。</p>
+<h2>一句话总结</h2>
+<p>Git 冲突不是 bug，是 Git 在告诉你"我不懂这个，你来告诉我该怎么做"。解决冲突的思路很简单：看清楚标记，理解两个版本的意图，然后决定保留哪个。绝大多数冲突 5 分钟内都能解决，不用慌。</p>
