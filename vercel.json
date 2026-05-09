@@ -3,6 +3,7 @@
   "buildCommand": "node generator.js",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/(.*)", "destination": "https://tools.xsanye.cn/$1", "statusCode": 301 },
     { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" },
     { "source": "/key.txt", "destination": "/key.txt" },
     { "source": "/landing", "destination": "/landing/index.html" },
