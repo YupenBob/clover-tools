@@ -288,22 +288,22 @@
       "slug": "unexpected-token-json错误怎么解决",
       "tool": "json/formatter.html",
       "intent": "error-fix",
-      "category": "JSON处理",
-      "title": "unexpected token json错误怎么解决？6种原因及修复方法",
-      "desc": "Unexpected token是JSON解析时最常见的语法错误。本文详解6种触发原因：逗号缺失、单引号、键无引号、括号不匹配、非数字值、隐藏字符，并提供完整代码示例。",
-      "content": "<h2>unexpected token json错误怎么解决？6种原因及修复方法</h2>\n<p><code>Unexpected token in JSON</code>是最常见的JSON解析错误，通常表示JSON字符串中包含了非法的字符。</p>\n<h2>错误信息变体</h2>\n<ul>\n<li><code>SyntaxError: Unexpected token ' in JSON at position 0</code></li>\n<li><code>Unexpected token u,u is not valid JSON</code>（u通常是undefined的序列化结果）</li>\n<li><code>Unexpected end of JSON input</code>（JSON被截断）</li>\n</ul>\n<h2>原因一：解析了非字符串类型的值</h2>\n<pre><code>// ❌ 错误：直接解析了undefined\nJSON.parse(undefined);  // Unexpected token 'u'\n\n// ✅ 正确做法：先转字符串或使用默认值\nconst data = maybeUndefined;\nJSON.parse(JSON.stringify(data || 'null'));</code></pre>\n<h2>原因二：响应体为空</h2>\n<pre><code>// fetch API中，空响应体会导致解析失败\nfetch('/api/empty')\n  .then(r => r.ok ? r.text() : Promise.reject('HTTP ' + r.status))\n  .then(text => text ? JSON.parse(text) : null);</code></pre>\n<h2>原因三：服务端返回了带BOM的JSON</h2>\n<pre><code>function removeBOM(str) {\n  if (str.charCodeAt(0) === 0xFEFF) {\n    return str.slice(1);\n  }\n  return str;\n}\n\nconst cleanJson = removeBOM(rawJsonString);\nconst obj = JSON.parse(cleanJson);</code></pre>\n<h2>排查步骤</h2>\n<ol>\n<li>在控制台打印原始字符串，查看是否有不可见字符</li>\n<li>使用 <code>encodeURIComponent(raw)</code> 查看是否有%BOM等字符</li>\n<li>用在线JSON校验工具检查语法</li>\n<li>确认Content-Type是application/json而非text/html</li>\n</ol>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: 为什么axios请求后直接r.data解析会报错？</strong><br>A: 请确认响应的Content-Type是application/json，且responseType是json。</p>\n<p><strong>Q: 报错显示\"Unexpected token '<'\"，是什么问题？</strong><br>A: 服务端返回的是HTML（可能是错误页面或重定向页），不是JSON。检查接口URL是否正确。</p>",
+      "category": "JSON / 数据处理",
+      "title": "Unexpected token JSON错误怎么解决？完整排查指南",
+      "desc": "Unexpected token in JSON是前端开发中最常见的JSON解析错误。本文详细讲解该错误的7种常见原因、精确定位方法，以及修复示例，帮你快速解决解析问题。",
+      "content": "## Unexpected token in JSON 错误完全指南\n\n`Unexpected token` 是JavaScript解析JSON时最常见的错误之一。这个错误意味着JSON字符串中有无法识别的字符。\n\n### 一、错误本质解读\n\n```javascript\nJSON.parse('{\"name\": \"Alice\"}');\n// 正常：解析成功\n\nJSON.parse('{\"name\": \"Alice\"}extra');\n// Error: Unexpected token 'e' at position 20\n```\n\n错误消息中的 `position` 就是问题字符的位置索引。\n\n### 二、七大常见原因及修复\n\n#### 原因1：多余的逗号（最常见）\n```javascript\n// 错误：数组或对象末尾多了逗号\nJSON.parse('{\"name\": \"Alice\",}');\nJSON.parse('[\"a\", \"b\",]');\n\n// 正确\nJSON.parse('{\"name\": \"Alice\"}');\nJSON.parse('[\"a\", \"b\"]');\n```\n\n#### 原因2：单引号而非双引号\n```javascript\n// 错误：JavaScript字符串用单引号\nJSON.parse(\"{'name': 'Alice'}\");\n\n// 正确：JSON规范要求双引号\nJSON.parse('{\"name\": \"Alice\"}');\n```\n\n**修复：** 转换单引号为双引号：\n```javascript\nconst fixed = str.replace(/'/g, '\"');\nJSON.parse(fixed);\n```\n\n#### 原因3：控制字符未转义\n换行符未转义会导致解析失败。\n**修复：** 转义：\n```javascript\nconst text = rawText.replace(/\\n/g, '\\\\n');\n```\n\n#### 原因4：BOM头（UTF-8 BOM）\n文件以 `\\uFEFF` 开头导致解析失败：\n```javascript\n// 错误：文件开头有BOM\nJSON.parse('\\uFEFF{\"name\": \"Alice\"}');\n\n// 正确：去掉BOM\nconst clean = text.replace(/^\\uFEFF/, '');\nJSON.parse(clean);\n```\n\n#### 原因5：非ASCII字符未正确编码\n某些旧环境不支持emoji等字符。使用JSON.stringify确保正确编码。\n\n#### 原因6：来自后端的问题\n后端返回的不是有效JSON（HTML错误页面、空字符串等）。\n\n#### 原因7：数字精度丢失\nJavaScript Number最大安全整数：2^53-1 = 9007199254740991。极大数字会精度丢失。\n\n### 三、精确定位技巧\n\n**利用错误位置：**\n```javascript\nfunction findProblemChar(jsonStr, position) {\n    const before = jsonStr.substring(Math.max(0, position - 20), position);\n    const problem = jsonStr.substring(position, position + 5);\n    const after = jsonStr.substring(position + 5, position + 25);\n    return before + '[' + problem + ']' + after;\n}\n\ntry {\n    JSON.parse(badJson);\n} catch (e) {\n    if (e.message.includes('at position')) {\n        const pos = parseInt(e.message.match(/at position (\\d+)/)[1]);\n        console.log(findProblemChar(badJson, pos));\n    }\n}\n```\n\n**逐行排查：**\n```javascript\nfunction locateJsonError(jsonStr) {\n    const lines = jsonStr.split('\\n');\n    let charCount = 0;\n    \n    for (let i = 0; i < lines.length; i++) {\n        const lineChars = lines[i].length + 1;\n        charCount += lineChars;\n        \n        try {\n            JSON.parse(jsonStr.substring(0, charCount));\n        } catch (e) {\n            console.log(`问题在第 ${i + 1} 行附近`);\n            break;\n        }\n    }\n}\n```\n\n### 四、防御性解析代码\n\n```javascript\nfunction safeJsonParse(str, fallback = null) {\n    if (!str || typeof str !== 'string') {\n        return fallback;\n    }\n    \n    let cleaned = str.trim();\n    \n    // 移除BOM\n    if (cleaned.charCodeAt(0) === 0xFEFF) {\n        cleaned = cleaned.slice(1);\n    }\n    \n    try {\n        return JSON.parse(cleaned);\n    } catch (e) {\n        console.error('JSON Parse Error:', {\n            message: e.message,\n            at: e.message.match(/position (\\d+)/)?.[1],\n        });\n        return fallback;\n    }\n}\n```\n\n### 五、快速修复工具\n\n```bash\n# 用jq验证和格式化\necho '{\"name\": \"Alice\",}' | jq .\n\n# Python格式化（自动修复尾逗号）\npython3 -c \"import json; print(json.dumps(json.loads(input())))\"\n```\n\n遇到 `Unexpected token` 错误时，先复制完整错误消息，特别是 `at position X` 部分，它能直接告诉你问题在哪！",
       "faqs": [
         {
-          "q": "Unexpected token 错误一般怎么解决？",
-          "a": "先找到错误出现的位置，通常是附近有引号不匹配、少了逗号、或者括号不匹配。最好用JSON校验工具自动定位。"
+          "q": "Unexpected token错误怎么快速定位？",
+          "a": "错误消息中的position数字就是字符位置。用substring(pos-20, pos+20)查看问题周围的上下文。"
         },
         {
-          "q": "接口返回了HTML报错页面怎么解决？",
-          "a": "这是最容易被忽略的原因——接口500/502错误时返回的是HTML页面，不是JSON。解决方法是先检查HTTP状态码和Content-Type。"
+          "q": "后端返回的JSON前端解析失败怎么办？",
+          "a": "先在控制台console.log(response)看看实际返回的是什么。常见情况：后端返回了HTML错误页面、空字符串、或者非UTF8编码。"
         },
         {
-          "q": "JSON里能写undefined或NaN吗？",
-          "a": "不能。JSON只支持null、true、false、字符串、数字、对象和数组。undefined、NaN、Infinity都不属于JSON有效值。"
+          "q": "如何避免JSON解析错误？",
+          "a": "1) 使用JSON.stringify()生成而非手写字符串；2) 后端返回前用库验证；3) 前端用try-catch包裹并给出友好提示；4) 接口返回非JSON时也要有降级处理。"
         }
       ]
     },
@@ -708,30 +708,6 @@
         {
           "q": "文件扩展名是.zip但不是ZIP格式？",
           "a": "可能是其他格式被误改了扩展名。用file命令查看真实格式，或用7-Zip直接尝试打开。"
-        }
-      ]
-    },
-    {
-      "keyword": "unexpected token json错误怎么解决",
-      "slug": "unexpected-token-json错误怎么解决",
-      "tool": "json/formatter.html",
-      "intent": "error-fix",
-      "category": "JSON / 数据处理",
-      "title": "Unexpected token JSON错误怎么解决？完整排查指南",
-      "desc": "Unexpected token in JSON是前端开发中最常见的JSON解析错误。本文详细讲解该错误的7种常见原因、精确定位方法，以及修复示例，帮你快速解决解析问题。",
-      "content": "## Unexpected token in JSON 错误完全指南\n\n`Unexpected token` 是JavaScript解析JSON时最常见的错误之一。这个错误意味着JSON字符串中有无法识别的字符。\n\n### 一、错误本质解读\n\n```javascript\nJSON.parse('{\"name\": \"Alice\"}');\n// 正常：解析成功\n\nJSON.parse('{\"name\": \"Alice\"}extra');\n// Error: Unexpected token 'e' at position 20\n```\n\n错误消息中的 `position` 就是问题字符的位置索引。\n\n### 二、七大常见原因及修复\n\n#### 原因1：多余的逗号（最常见）\n```javascript\n// 错误：数组或对象末尾多了逗号\nJSON.parse('{\"name\": \"Alice\",}');\nJSON.parse('[\"a\", \"b\",]');\n\n// 正确\nJSON.parse('{\"name\": \"Alice\"}');\nJSON.parse('[\"a\", \"b\"]');\n```\n\n#### 原因2：单引号而非双引号\n```javascript\n// 错误：JavaScript字符串用单引号\nJSON.parse(\"{'name': 'Alice'}\");\n\n// 正确：JSON规范要求双引号\nJSON.parse('{\"name\": \"Alice\"}');\n```\n\n**修复：** 转换单引号为双引号：\n```javascript\nconst fixed = str.replace(/'/g, '\"');\nJSON.parse(fixed);\n```\n\n#### 原因3：控制字符未转义\n换行符未转义会导致解析失败。\n**修复：** 转义：\n```javascript\nconst text = rawText.replace(/\\n/g, '\\\\n');\n```\n\n#### 原因4：BOM头（UTF-8 BOM）\n文件以 `\\uFEFF` 开头导致解析失败：\n```javascript\n// 错误：文件开头有BOM\nJSON.parse('\\uFEFF{\"name\": \"Alice\"}');\n\n// 正确：去掉BOM\nconst clean = text.replace(/^\\uFEFF/, '');\nJSON.parse(clean);\n```\n\n#### 原因5：非ASCII字符未正确编码\n某些旧环境不支持emoji等字符。使用JSON.stringify确保正确编码。\n\n#### 原因6：来自后端的问题\n后端返回的不是有效JSON（HTML错误页面、空字符串等）。\n\n#### 原因7：数字精度丢失\nJavaScript Number最大安全整数：2^53-1 = 9007199254740991。极大数字会精度丢失。\n\n### 三、精确定位技巧\n\n**利用错误位置：**\n```javascript\nfunction findProblemChar(jsonStr, position) {\n    const before = jsonStr.substring(Math.max(0, position - 20), position);\n    const problem = jsonStr.substring(position, position + 5);\n    const after = jsonStr.substring(position + 5, position + 25);\n    return before + '[' + problem + ']' + after;\n}\n\ntry {\n    JSON.parse(badJson);\n} catch (e) {\n    if (e.message.includes('at position')) {\n        const pos = parseInt(e.message.match(/at position (\\d+)/)[1]);\n        console.log(findProblemChar(badJson, pos));\n    }\n}\n```\n\n**逐行排查：**\n```javascript\nfunction locateJsonError(jsonStr) {\n    const lines = jsonStr.split('\\n');\n    let charCount = 0;\n    \n    for (let i = 0; i < lines.length; i++) {\n        const lineChars = lines[i].length + 1;\n        charCount += lineChars;\n        \n        try {\n            JSON.parse(jsonStr.substring(0, charCount));\n        } catch (e) {\n            console.log(`问题在第 ${i + 1} 行附近`);\n            break;\n        }\n    }\n}\n```\n\n### 四、防御性解析代码\n\n```javascript\nfunction safeJsonParse(str, fallback = null) {\n    if (!str || typeof str !== 'string') {\n        return fallback;\n    }\n    \n    let cleaned = str.trim();\n    \n    // 移除BOM\n    if (cleaned.charCodeAt(0) === 0xFEFF) {\n        cleaned = cleaned.slice(1);\n    }\n    \n    try {\n        return JSON.parse(cleaned);\n    } catch (e) {\n        console.error('JSON Parse Error:', {\n            message: e.message,\n            at: e.message.match(/position (\\d+)/)?.[1],\n        });\n        return fallback;\n    }\n}\n```\n\n### 五、快速修复工具\n\n```bash\n# 用jq验证和格式化\necho '{\"name\": \"Alice\",}' | jq .\n\n# Python格式化（自动修复尾逗号）\npython3 -c \"import json; print(json.dumps(json.loads(input())))\"\n```\n\n遇到 `Unexpected token` 错误时，先复制完整错误消息，特别是 `at position X` 部分，它能直接告诉你问题在哪！",
-      "faqs": [
-        {
-          "q": "Unexpected token错误怎么快速定位？",
-          "a": "错误消息中的position数字就是字符位置。用substring(pos-20, pos+20)查看问题周围的上下文。"
-        },
-        {
-          "q": "后端返回的JSON前端解析失败怎么办？",
-          "a": "先在控制台console.log(response)看看实际返回的是什么。常见情况：后端返回了HTML错误页面、空字符串、或者非UTF8编码。"
-        },
-        {
-          "q": "如何避免JSON解析错误？",
-          "a": "1) 使用JSON.stringify()生成而非手写字符串；2) 后端返回前用库验证；3) 前端用try-catch包裹并给出友好提示；4) 接口返回非JSON时也要有降级处理。"
         }
       ]
     },
