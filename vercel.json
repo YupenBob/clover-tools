@@ -2,10 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "node generator.js",
   "outputDirectory": "dist",
-  "redirects": [
-    { "source": "/", "destination": "https://tools.xsanye.cn/", "statusCode": 301 },
-    { "source": "/(.*)", "destination": "https://tools.xsanye.cn/$1", "statusCode": 301 }
-  ],
   "rewrites": [
     { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" },
     { "source": "/key.txt", "destination": "/key.txt" },
