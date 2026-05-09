@@ -1,0 +1,136 @@
+<h2>什么是 JSON Schema？</h2>
+<p>JSON Schema 是一个用于描述和验证 JSON 数据结构的标准化规范。它像一份"数据合同"，告诉你的代码：我期待这个字段是字符串，那个字段是数字，这个数组里装的是对象。简单来说，它让 JSON 不再是"随意填写的表格"，而是"有结构、有约束、有文档的数据格式"。</p>
+
+<h2>为什么你需要 JSON Schema？</h2>
+<p>前后端对接时，最麻烦的不是接口调用，而是"这个字段到底什么格式"。你以为是字符串，结果对方给了个数字；你以为是数组，结果给了个 null。JSON Schema 就是来解决这个问题的——它在数据层面定义了"什么是对的"，而不是靠口口相传或者 README 里的一行文字。</p>
+<p>典型场景：</p>
+<ul>
+<li>API 响应验证——确保第三方接口返回的数据结构符合预期</li>
+<li>配置文件校验——确保 config.json 里的字段类型正确</li>
+<li>数据迁移——迁移前后校验数据完整性</li>
+<li>自动化测试——作为测试数据的生成依据</li>
+</ul>
+
+<h2>JSON Schema 基本语法</h2>
+<p>一个最简单的 JSON Schema 长这样：</p>
+<pre><code>{
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "age": { "type": "integer" }
+  },
+  "required": ["name"]
+}</code></pre>
+
+<p>这段 schema 说：这是一个对象，必须有 name 字段（字符串），age 字段可选（整数）。不复杂对吧？我们继续往下看。</p>
+
+<h2>核心关键字一览</h2>
+
+<h3>type——定义数据类型</h3>
+<p>JSON Schema 支持以下类型：string、number、integer、boolean、array、object、null。你可以对每个字段指定精确的类型约束。</p>
+<pre><code>{ "type": "string" }
+{ "type": "integer" }
+{ "type": "number" }
+{ "type": "boolean" }</code></pre>
+
+<h3>required——定义必填字段</h3>
+<p>数组形式，列出所有必须存在的字段名：</p>
+<pre><code>"required": ["name", "email"]</code></pre>
+
+<h3>properties——定义对象属性</h3>
+<p>每个属性可以有独立的 schema 定义：</p>
+<pre><code>"properties": {
+  "name": { "type": "string", "maxLength": 100 },
+  "email": { "type": "string", "format": "email" }
+}</code></pre>
+
+<h3>enum——枚举限制</h3>
+<p>限定字段只能取某些值：</p>
+<pre><code>"status": {
+  "type": "string",
+  "enum": ["pending", "approved", "rejected"]
+}</code></pre>
+
+<h3>format——内置格式校验</h3>
+<p>JSON Schema 内置了一些常用格式校验：</p>
+<pre><code>"email": { "type": "string", "format": "email" }
+"date": { "type": "string", "format": "date" }
+"uri": { "type": "string", "format": "uri" }
+"uuid": { "type": "string", "format": "uuid" }</code></pre>
+
+<h3>minimum/maximum——数值范围</h3>
+<pre><code>"age": {
+  "type": "integer",
+  "minimum": 0,
+  "maximum": 150
+}</code></pre>
+
+<h3>minLength/maxLength——字符串长度</h3>
+<pre><code>"username": {
+  "type": "string",
+  "minLength": 3,
+  "maxLength": 20
+}</code></pre>
+
+<h3>pattern——正则校验</h3>
+<pre><code>"phone": {
+  "type": "string",
+  "pattern": "^1[3-9]\\d{9}$"
+}</code></pre>
+
+<h3>items——数组元素约束</h3>
+<pre><code>"tags": {
+  "type": "array",
+  "items": { "type": "string" },
+  "minItems": 1,
+  "uniqueItems": true
+}</code></pre>
+
+<h3>$ref——引用其他 schema</h3>
+<p>复杂项目可以把 schema 拆分成多个文件，用 $ref 引用：</p>
+<pre><code>{ "$ref": "#/definitions/User" }
+{ "$ref": "https://example.com/schemas/person.json" }</code></pre>
+
+<h2>实战：用 Python 验证数据</h2>
+<pre><code>import json
+from jsonschema import validate, ValidationError
+
+schema = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "email": {"type": "string", "format": "email"},
+        "age": {"type": "integer", "minimum": 0}
+    },
+    "required": ["name", "email"]
+}
+
+# 正确数据
+valid_data = {"name": "张三", "email": "zhang@example.com", "age": 25}
+validate(instance=valid_data, schema=schema)  # 通过
+
+# 错误数据——age是字符串不是整数
+invalid_data = {"name": "李四", "email": "li@example.com", "age": "二十"}
+try:
+    validate(instance=invalid_data, schema=schema)
+except ValidationError as e:
+    print(f"验证失败: {e.message}")</code></pre>
+
+<h2>常用工具推荐</h2>
+<p>用 JSON Schema 写验证逻辑之前，先去这些工具走一遍：</p>
+<ul>
+<li><strong>JSON Schema Validator</strong>（https://tools.xsanye.cn/tools/code/js-formatter.html）—— JSON 格式化 + 验证</li>
+<li><strong>在线 Schema 生成器</strong>—— 粘贴 JSON 自动生成 Schema，省去手写麻烦</li>
+</ul>
+
+<h2>常见错误与避坑</h2>
+<ul>
+<li>**type 写错**：字符串写成了 "String"（大写），验证直接失败</li>
+<li>**required 忘了**：定义了 properties 但没加 required，导致字段可传可不传</li>
+<li>**format 过度依赖**：format 只是声明性校验，不是所有实现都强制检查，比如 "format": "email" 有些 validator 默认跳过</li>
+<li>**嵌套太深**：超过 5 层的嵌套 schema 难以维护，建议拆分子 schema 用 $ref 引用</li>
+</ul>
+
+<h2>总结</h2>
+<p>JSON Schema 是一个被严重低估的工具。它不只是"验证 JSON"，它是数据结构的文档、接口的合同、自动化的基石。学会它，你会发现前后端对接、配置校验、测试数据生成这些事变得可控得多。</p>
+<p>花 10 分钟学一下，受益一整年。</p>
