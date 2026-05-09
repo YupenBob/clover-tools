@@ -874,12 +874,6 @@ function generateBlogIndex() {
     '认证授权': '安全认证', 'HTTPS': '安全认证',
     '时间处理': '时间工具', '时间 / 加密 / 工具类': '时间工具',
   };
-  const CAT_EMOJI = {
-    'JSON处理': '📋', '前端报错': '🖥️', '文件处理': '📁', '编码转换': '🔤',
-    'AI接口': '🤖', '时间工具': '⏰', '开发工具': '🔧', 'DevOps': '📦',
-    '安全认证': '🔐', '其他': '📌', '网络工具': '🌐', '正则表达式': '🎯', 'Python': '🐍', 'React': '⚛️',
-  };
-
   // 合并相似分类
   const mergedConfig = keywordsConfig.map(kw => {
     if (CAT_MERGE[kw.category]) kw.category = CAT_MERGE[kw.category];
@@ -907,13 +901,13 @@ function generateBlogIndex() {
       const slug = a.slug;
       const cat = a.category || '其他';
       cards += `<a href="/blog/${slug}" class="recent-card">
-        <div class="recent-card-icon">📖</div>
+        <div class="recent-card-badge">NEW</div>
         <div class="recent-card-title">${a.title || a.keyword}</div>
         <div class="recent-card-cat">${cat}</div>
       </a>`;
     });
     return `<div class="recent-section">
-      <div class="recent-header"><h2>🆕 最近更新</h2><a href="#full-list" class="recent-more">查看全部 →</a></div>
+      <div class="recent-header"><h2>最近更新</h2><a href="#full-list" class="recent-more">查看全部 →</a></div>
       <div class="recent-scroll">${cards}</div>
     </div>`;
   })();
@@ -921,12 +915,11 @@ function generateBlogIndex() {
   let itemsHtml = '';
   Object.keys(byCategory).sort().forEach(cat => {
     const catTools = byCategory[cat];
-    const emoji = CAT_EMOJI[cat] || '📌';
     const MAX_SHOW = 6;
     let shownCount = 0;
     itemsHtml += `<div class="blog-cat-section" id="full-list">
       <div class="blog-cat-header">
-        <h2>${emoji} ${cat}</h2>
+        <h2>${cat}</h2>
         <span class="count">${catTools.length} 篇</span>
       </div>
       <div class="blog-grid">`;
@@ -939,7 +932,7 @@ function generateBlogIndex() {
         <div class="blog-card-title">${kw.keyword}</div>
         <div class="blog-card-meta">
           <span class="blog-card-cat">${cat}</span>
-          ${toolInfo ? `<span class="blog-card-tool">🔧 ${toolInfo.name}</span>` : ''}
+          ${toolInfo ? `<span class="blog-card-tool">${toolInfo.name}</span>` : ''}
         </div>
       </a>`;
     });
@@ -968,6 +961,7 @@ function generateBlogIndex() {
     .blog-hero .subtitle { font-size: 1.1rem; opacity: 0.65; max-width: 560px; margin: 0 auto 1rem; line-height: 1.7; }
     .hero-tags { display: flex; justify-content: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
     .hero-tag { background: var(--bg-secondary); border: 1px solid var(--border); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem; }
+    .hero-tag-num { color: var(--primary); font-weight: 700; }
     .recent-section { margin-bottom: 2.5rem; }
     .recent-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
     .recent-header h2 { font-size: 1.1rem; }
@@ -976,10 +970,10 @@ function generateBlogIndex() {
     .recent-scroll { display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin; }
     .recent-scroll::-webkit-scrollbar { height: 4px; }
     .recent-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .recent-card { flex: 0 0 200px; display: flex; flex-direction: column; gap: 0.4rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-decoration: none; color: var(--text); transition: transform 0.2s, box-shadow 0.2s; }
+    .recent-card { flex: 0 0 200px; display: flex; flex-direction: column; gap: 0.4rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-decoration: none; color: var(--text); transition: transform 0.2s, box-shadow 0.2s; position: relative; }
     .recent-card:hover { transform: translateY(-3px); box-shadow: var(--card-shadow); }
-    .recent-card-icon { font-size: 1.5rem; }
-    .recent-card-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; color: var(--text); }
+    .recent-card-badge { position: absolute; top: 0.5rem; right: 0.5rem; background: var(--primary); color: #fff; font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 4px; }
+    .recent-card-title { font-size: 0.9rem; font-weight: 600; line-height: 1.3; color: var(--text); margin-top: 0.3rem; }
     .recent-card-cat { font-size: 0.72rem; color: var(--primary); }
     .blog-categories { padding: 0 0 2rem; }
     .blog-cat-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border); }
@@ -1013,9 +1007,9 @@ function generateBlogIndex() {
         <h1><img src="/src/clover-logo.svg" alt="🍀" style="height:2em;vertical-align:middle;"> 开发者问题终结手册</h1>
         <p class="subtitle">遇到开发问题？来这里找答案，顺便用工具快速解决。每篇文章都配有对应的在线工具，打开即用无需注册。</p>
         <div class="hero-tags">
-          <span class="hero-tag">🔥 ${keywordsConfig.length} 篇实战文章</span>
-          <span class="hero-tag">🔧 158 个在线工具</span>
-          <span class="hero-tag">📂 ${Object.keys(byCategory).length} 个问题分类</span>
+          <span class="hero-tag"><span class="hero-tag-num">${keywordsConfig.length}</span> 篇实战文章</span>
+          <span class="hero-tag"><span class="hero-tag-num">158</span> 个在线工具</span>
+          <span class="hero-tag"><span class="hero-tag-num">${Object.keys(byCategory).length}</span> 个问题分类</span>
         </div>
       </div>
       <div class="blog-search">
