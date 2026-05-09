@@ -3,7 +3,7 @@
  * Reads tools.json → generates index.html + all tool pages
  */
 const fs = require('fs');
-require('dotenv').config();
+try { require('dotenv').config(); } catch(e) { /* dotenv not installed, skip */ }
 const path = require('path');
 const { execSync } = require('child_process');
 
