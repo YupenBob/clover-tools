@@ -31,16 +31,41 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - name: Submit to Bing IndexNow
+      - name: Submit to IndexNow (Bing + Yandex)
         run: |
           node -e "
           const https = require('https');
           const data = JSON.parse(require('fs').readFileSync('articles.json', 'utf8'));
-          const urls = data.articles.map(a => 'https://tools.xsanye.cn/blog/' + a.slug + '.html');
-          const payload = JSON.stringify({ host: 'https://tools.xsanye.cn', key: '05b97bd1ccb0108b037fad6252fd553acee2ce13191856e3a13c0aa1b5b4c37a', urlList: urls });
-          const req = https.request({ hostname: 'www.bing.com', path: '/indexnow', method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) } }, res => { console.log('IndexNow status:', res.statusCode); process.exit(0); });
-          req.on('error', e => console.error('IndexNow error:', e.message));
-          req.write(payload); req.end();
+          const urls = data.articles.slice(-10).map(a => 'https://tools.xsanye.cn/blog/' + a.slug + '.html');
+          const key = '05b97bd1ccb0108b037fad6252fd553acee2ce13191856e3a13c0aa1b5b4c37a';
+          const keyLocation = 'https://tools.xsanye.cn/.well-known/indexnow/' + key + '.txt';
+
+          const payload = JSON.stringify({
+            host: 'tools.xsanye.cn',
+            key: key,
+            keyLocation: keyLocation,
+            urlList: urls
+          });
+
+          function submit(host, path) {
+            return new Promise((resolve) => {
+              const req = https.request({
+                hostname: host,
+                path: path,
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': Buffer.byteLength(payload) }
+              }, res => {
+                let d=''; res.on('data',c=>d+=c); res.on('end',()=>{ console.log(host + path + ' -> ' + res.statusCode + ' ' + (d.success ? 'OK' : d)); resolve(); });
+              });
+              req.on('error', e => { console.log(host + ' error: ' + e.message); resolve(); });
+              req.write(payload); req.end();
+            });
+          }
+
+          (async () => {
+            await submit('api.indexnow.org', '/IndexNow');
+            await submit('yandex.com', '/indexnow');
+          })();
           "
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
