@@ -2017,6 +2017,8 @@ ${footerHtml}
   }
   ensureDir(path.join(DIST_DIR, '.well-known', 'indexnow'));
   fs.writeFileSync(INDEXNOW_KEY_DIST, indexNowKey);
+  // Also write to root so it can submit URLs from any path (IndexNow requirement)
+  fs.writeFileSync(path.join(DIST_DIR, 'key.txt'), indexNowKey);
   console.log('   IndexNow key: ' + indexNowKey);
 
   // Generate blog SEO posts
