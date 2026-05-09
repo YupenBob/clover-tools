@@ -2063,10 +2063,6 @@ ${footerHtml}
   fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'), robots);
   console.log('   Generated robots.txt');
 
-  // Inject tool-help sections into重点工具页
-  const { execSync } = require('child_process');
-  try { execSync('node /tmp/inject-help.js', { cwd: __dirname }); console.log('   Injected tool-help sections'); } catch(e) { console.log('   Tool-help injection skipped'); }
-
   console.log(' Done! Output in dist/');
 }
 
