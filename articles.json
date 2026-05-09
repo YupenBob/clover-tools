@@ -92,7 +92,7 @@
       "title": "JSON Schema怎么使用？新手入门完全指南",
       "desc": "JSON Schema 是用于描述和验证 JSON 数据结构的规范。本文详解 JSON Schema 的核心关键字（type、required、properties、enum、format），并提供实战示例和在线工具推荐。",
       "content": "json-schema怎么使用.html",
-      "slug": "json-schema-怎么使用",
+      "slug": "jsonschema怎么使用",
       "intent": "guide",
       "faqs": [
         {
@@ -113,7 +113,7 @@
       "title": "JWT Token 过期了怎么查看和处理？",
       "desc": "JWT Token 的 exp 字段声明了过期时间。本文教你三种方法快速查看 JWT 是否已过期，以及 Token 过期后的正确处理方式。",
       "content": "<h2>JWT Token 过期了怎么查看？</h2>\n<p>JWT（JSON Web Token）是现代Web开发中最常用的身份认证方案之一。当你在浏览器控制台、网络请求或服务端日志中看到Token过期的错误时，意味着客户端携带的Token已经超过了预设的有效期，需要重新获取。</p>\n<h2>如何判断 Token 是否已过期</h2>\n<p>JWT的Payload部分包含三个标准字段：<code>iss</code>（签发者）、<code>exp</code>（过期时间）和<code>nbf</code>（生效时间）。其中<code>exp</code>是一个Unix时间戳（10位），表示该Token的失效时刻。</p>\n<pre><code>// Node.js解码\nconst jwt = require('jsonwebtoken');\nconst token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';\nconst decoded = jwt.decode(token);\nconsole.log('过期时间:', new Date(decoded.exp * 1000));\nconsole.log('是否已过期:', Date.now() > decoded.exp * 1000);</code></pre>\n<h2>常见报错场景</h2>\n<ul>\n<li><strong>401 Unauthorized</strong>：服务端返回此状态码，通常是Authorization头携带的Token已过期</li>\n<li><strong>TokenExpiredError</strong>：Node.js jsonwebtoken库的专属错误，表示Payload中的exp已早于当前时间</li>\n<li><strong>401 Invalid token</strong>：部分服务返回此状态，可能是Token格式错误或Signature验证失败</li>\n</ul>\n<h2>自动刷新 Token 的策略</h2>\n<p>最佳实践是使用双Token机制：Access Token（短期，有效期15分钟）和Refresh Token（长期，有效期7天）。当Access Token过期时，前端使用Refresh Token自动换取新的Access Token，用户无感知。</p>\n<pre><code>async function fetchWithAutoRefresh(url, options) {\n  const response = await fetch(url, options);\n  if (response.status === 401) {\n    const { refreshToken } = JSON.parse(localStorage.getItem('tokens'));\n    const refreshRes = await fetch('/api/refresh', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ refreshToken })\n    });\n    if (refreshRes.ok) {\n      const { accessToken } = await refreshRes.json();\n      localStorage.setItem('accessToken', accessToken);\n      options.headers['Authorization'] = `Bearer ${accessToken}`;\n      return fetch(url, options);\n    }\n  }\n  return response;\n}</code></pre>\n<h2>预防措施</h2>\n<p>1. 前端在Token颁发时记录过期时间，使用定时器提前5分钟刷新<br>2. 服务端开启Token黑名单机制，logout时将Token加入黑名单<br>3. 生产环境务必校验Token的Signature，防止伪造攻击</p>\n<h2>常见问题 FAQ</h2>\n<p><strong>Q: Token过期时间可以设为永不过期吗？</strong><br>A: 绝不推荐。永不过期的Token一旦泄露，攻击者可以永久使用该身份凭证。</p>\n<p><strong>Q: 前端如何优雅处理Token刷新？</strong><br>A: 使用请求拦截器，统一处理401并触发刷新流程，避免每个请求单独处理。</p>\n<p><strong>Q: 为什么我的Token实际过期时间比exp声明的早？</strong><br>A: 请检查服务器时区设置，确保服务器时间与NTP时间同步。</p>",
-      "slug": "jwt-token过期怎么查看",
+      "slug": "jwttoken过期怎么查看",
       "intent": "info",
       "faqs": [
         {
@@ -250,7 +250,7 @@
     },
     {
       "keyword": "failed to fetch怎么解决",
-      "slug": "failed-to-fetch怎么解决",
+      "slug": "failedtofetch怎么解决",
       "tool": "code/http-test.html",
       "intent": "error-fix",
       "category": "前端 / JS 报错",
@@ -392,7 +392,7 @@
     },
     {
       "keyword": "json stringify报错怎么办",
-      "slug": "json-stringify报错怎么办",
+      "slug": "jsonstringify报错怎么办",
       "tool": "/tools/code/api-tester.html",
       "intent": "error-fix",
       "category": "API调用问题",
@@ -764,7 +764,7 @@
     },
     {
       "keyword": "chrome-devtools调试翻车实录",
-      "slug": "chrome-devtools调试翻车实录",
+      "slug": "chromedevtools调试翻车实录",
       "tool": "dev-tools/",
       "intent": "guide",
       "category": "前端调试",
@@ -800,7 +800,7 @@
     },
     {
       "keyword": "github-actions部署失败排查指南",
-      "slug": "github-actions部署失败排查指南",
+      "slug": "githubactions部署失败排查指南",
       "tool": "dev-tools/",
       "intent": "guide",
       "category": "DevOps",
