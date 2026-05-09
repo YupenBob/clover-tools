@@ -1,0 +1,389 @@
+<h2>什么是 AI 接口异常？</h2>
+<p>调用 AI 接口时，异常报错是开发者遇到最多的集成问题之一。与传统的 REST API 不同，AI 接口（尤其是大语言模型 API）有独特的错误模式：模型响应超时、Token 配额耗尽、流式输出中断、并发限制触发等。这些异常如果不能正确处理，不仅会导致功能失效，还可能引发级联故障——例如对话中断丢失上下文、重试导致双倍费用等。</p>
+<p>本文系统梳理了 AI 接口异常的常见类型、错误码含义、重试策略，以及在 CloverTools 环境下的调试方法。</p>
+
+<h2>AI 接口异常的核心分类</h2>
+<p>AI 接口异常可以从两个维度分类：一是按 HTTP 状态码（4xx 客户端错误、5xx 服务器错误），二是按错误发生的层次（网络层、应用层、模型层）。理解这个分类体系，是系统排查的第一步。</p>
+
+<h3>按 HTTP 状态码分类</h3>
+<table>
+<tr><th>状态码</th><th>含义</th><th>典型场景</th></tr>
+<tr><td>400 Bad Request</td><td>请求格式错误</td><td>JSON 结构不对、缺少必需字段、参数越界</td></tr>
+<tr><td>401 Unauthorized</td><td>认证失败</td><td>API Key 无效、过期、被禁用</td></tr>
+<tr><td>403 Forbidden</td><td>权限不足</td><td>账户欠费、地区限制、功能未开通</td></tr>
+<tr><td>408 Request Timeout</td><td>请求超时</td><td>模型推理时间过长、网络链路慢</td></tr>
+<tr><td>422 Unprocessable Entity</td><td>请求参数有效但无法处理</td><td>Prompt 超过模型上下文长度限制</td></tr>
+<tr><td>429 Too Many Requests</td><td>限流</td><td>QPS 超限、Token 用量超当日配额</td></tr>
+<tr><td>500 Internal Server Error</td><td>服务器内部错误</td><td>模型服务偶发性故障</td></tr>
+<tr><td>502 Bad Gateway</td><td>网关错误</td><td>上游模型服务不可用</td></tr>
+<tr><td>503 Service Unavailable</td><td>服务暂时不可用</td><td>模型服务维护或过载</td></tr>
+</table>
+
+<h3>按错误发生层次分类</h3>
+<ul>
+<li><strong>网络层异常</strong>：DNS 解析失败、TCP 连接被拒绝（Connection Refused）、SSL 证书错误、中途连接断开（ECONNRESET）。这类错误发生在请求到达服务器之前。</li>
+<li><strong>认证层异常</strong>：API Key 缺失、格式错误、权限不足、账户欠费。认证错误通常返回 401 或 403。</li>
+<li><strong>限流层异常</strong>：QPS 超出限制、Token 用量超配额、最大并发数达到上限。限流错误返回 429，并通常包含 Retry-After 或 X-RateLimit-* 响应头。</li>
+<li><strong>模型层异常</strong>：Prompt 过长、请求被内容安全策略拦截、模型服务故障。模型层错误可能返回 400、422 或 500。</li>
+</ul>
+
+<h2>401/403 错误码详解</h2>
+
+<h3>401 Unauthorized — 认证失败</h3>
+<p>401 是 AI 接口中最常见的错误之一。当请求携带的 API Key 无效、格式错误或已过期时，服务端返回 401。不同 AI 服务商的 401 响应格式略有差异，但核心信息一致。</p>
+<pre><code>// OpenAI 格式
+{
+  "error": {
+    "code": "invalid_api_key",
+    "type": "invalid_request_error",
+    "message": "Invalid API key provided: sk-xxxxxx..."
+  }
+}
+
+// Anthropic 格式
+{
+  "type": "error",
+  "error": {
+    "type": "authentication_error",
+    "message": "invalid x-api-key or bearer token"
+  }
+}
+
+// 通用格式
+{
+  "error": "invalid_api_key",
+  "message": "API key is invalid"
+}</code></pre>
+<p><strong>排查步骤：</strong></p>
+<ol>
+<li>确认 API Key 拼写正确，无多余空格或换行</li>
+<li>检查 Key 前缀是否匹配（OpenAI 以 sk- 开头，Anthropic 以 sk-ant- 开头）</li>
+<li>登录服务商控制台，确认 Key 处于启用状态</li>
+<li>确认账户余额充足，部分服务在欠费时会立即拒绝请求</li>
+<li>如果是共享密钥，检查是否已超出使用配额</li>
+</ol>
+
+<h3>403 Forbidden — 权限不足</h3>
+<p>403 表示请求格式正确、Key 有效，但当前 Key 没有访问目标资源的权限，或者账户本身受到限制。</p>
+<pre><code>// 常见的 403 场景
+// 1. 地区限制
+{
+  "error": {
+    "code": "unsupported_country",
+    "message": "Your country/region is not supported for this API"
+  }
+}
+
+// 2. 功能未开通
+{
+  "error": {
+    "code": "model_not_found",
+    "message": "Your subscription plan does not include this model"
+  }
+}
+
+// 3. 账户被风控
+{
+  "error": {
+    "code": "account_suspended",
+    "message": "Account has been suspended"
+  }
+}</code></pre>
+
+<h2>429 限流错误详解</h2>
+<p>429 是调用 AI 接口时最需要理性对待的错误。它不代表你的代码有 bug，而是告诉你当前请求量超过了服务商的允许范围。处理 429 的核心不是「避免触发」，而是「优雅降级」和「正确重试」。</p>
+
+<h3>429 响应的关键信息</h3>
+<pre><code>HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+Retry-After: 5
+X-RateLimit-Limit: 500000
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1715299200
+
+{
+  "error": {
+    "code": "rate_limit_exceeded",
+    "message": "Rate limit exceeded. Please retry after 5 seconds.",
+    "param": null,
+    "type": "requests"
+  }
+}</code></pre>
+<p><strong>关键响应头解读：</strong></p>
+<ul>
+<li><strong>Retry-After</strong>：服务端建议你等待的秒数。这是服务端明确给出的等待时间，比自己估算更可靠。</li>
+<li><strong>X-RateLimit-Limit</strong>：时间段内的最大请求数或 Token 数上限。</li>
+<li><strong>X-RateLimit-Remaining</strong>：当前时间窗口剩余的配额。</li>
+<li><strong>X-RateLimit-Reset</strong>：当前配额窗口重置的 Unix 时间戳（秒级）。</li>
+</ul>
+
+<h3>指数退避重试策略</h3>
+<p>收到 429 后，等待 Retry-After 指定的时间再重试是正确的做法，但如果并发请求量大，简单等待后立即重试可能再次触发限流。指数退避（Exponential Backoff）是一种更优雅的策略：每次重试的等待时间成倍增加，并在等待期间加入随机抖动（Jitter）避免多请求同时重试。</p>
+<pre><code>// Node.js 指数退避实现
+async function callWithRetry(url, options, maxRetries = 5) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.status !== 429) return response;
+
+      // 获取服务端建议的等待时间
+      const retryAfter = parseInt(response.headers.get('Retry-After') || '1');
+      const baseDelay = retryAfter * 1000;
+
+      // 指数退避：1x, 2x, 4x, 8x... 倍
+      const exponentialDelay = baseDelay * Math.pow(2, attempt);
+
+      // 添加随机抖动（0.5x ~ 1.5x），避免多请求同步
+      const jitter = exponentialDelay * (0.5 + Math.random());
+      const delay = Math.min(jitter, 60000); // 上限60秒
+
+      console.log(`Rate limited. Retrying in ${Math.round(delay)}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+    }
+  }
+  throw new Error('Max retries exceeded');
+}</code></pre>
+
+<h3>Python 实现</h3>
+<pre><code>import time
+import random
+import requests
+
+def call_with_retry(url, headers, payload, max_retries=5):
+    for attempt in range(max_retries):
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+
+        if response.status_code != 429:
+            return response
+
+        retry_after = int(response.headers.get('Retry-After', 1))
+        base_delay = retry_after
+
+        # 指数退避 + 随机抖动
+        delay = min(base_delay * (2 ** attempt) * (0.5 + random.random()), 60)
+        print(f"Rate limited. Waiting {delay:.1f}s before retry...")
+        time.sleep(delay)
+
+    raise Exception("Max retries exceeded")
+</code></pre>
+
+<h2>500/503 服务器错误</h2>
+<p>500 和 503 是服务端问题，客户端代码本身没有任何问题。处理这类错误的策略是：重试，并在重试时控制频率。</p>
+<pre><code>// 500/503 处理：带退避的重试
+async function callAIWithServerErrorRetry(url, options) {
+  const maxRetries = 3;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(url, options);
+
+    if (response.status >= 200 && response.status < 300) {
+      return response;
+    }
+
+    // 只有 500 和 503 才重试，4xx 其他错误不重试
+    if (response.status !== 500 && response.status !== 503) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw new Error(`AI API error ${response.status}: ${JSON.stringify(errorBody)}`);
+    }
+
+    // 服务端错误：等待后重试
+    const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+    console.log(`Server error ${response.status}. Retrying in ${delay}ms...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+  }
+  throw new Error('Server error: max retries exceeded');
+}</code></pre>
+<p><strong>需要特别注意的 500 场景：</strong></p>
+<ul>
+<li>部分 AI 服务在模型服务高峰期会返回 503，但这通常是临时性的，等待 10-30 秒后重试通常成功</li>
+<li>如果 500 错误高频出现（超过 10% 的请求），应检查服务商的状态页面</li>
+<li>某些模型的 Token 生成过程非常长，可能触发服务端超时，此时 500 不代表模型失败，可能是请求被静默丢弃了</li>
+</ul>
+
+<h2>408 请求超时处理</h2>
+<p>408 状态码表示请求在服务端等待超时。这通常发生在 Prompt 过长、模型推理时间超出服务商限制、或网络链路极慢的情况下。</p>
+<pre><code>// 设置合理的超时时间
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒
+
+const response = await fetch(apiUrl, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`
+  },
+  body: JSON.stringify({
+    model: 'gpt-3.5-turbo',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 1000
+  }),
+  signal: controller.signal
+});
+
+clearTimeout(timeoutId);</code></pre>
+<p><strong>超时处理的最佳实践：</strong></p>
+<ol>
+<li>不要将超时时间设置过短，GPT-4 等大型模型的首次响应时间可能超过 30 秒</li>
+<li>区分「连接超时」和「读取超时」：连接超时（ConnectTimeout）通常意味着网络问题，读取超时（ReadTimeout）通常意味着模型响应慢</li>
+<li>超时后不要立即重试，添加退避延迟</li>
+<li>考虑将长任务拆分为多个短任务，每次请求的 Token 量减少，响应时间更可预测</li>
+</ol>
+
+<h2>常见 AI API 错误场景汇总</h2>
+
+<h3>场景一：上下文长度超出（422/400）</h3>
+<pre><code>// OpenAI 错误
+{
+  "error": {
+    "code": "context_length_exceeded",
+    "message": "This model's maximum context length is 8192 tokens"
+  }
+}
+
+// 解决方案：减少 Prompt 中的历史消息，或使用摘要策略压缩对话历史
+const truncatedMessages = messages.slice(-10); // 只保留最近10条
+// 如果还是超，就截断最早的几条消息，保留最新的对话上下文
+</code></pre>
+
+<h3>场景二：流式输出中途断开</h3>
+<pre><code>// 流式请求中断的典型错误
+// Error: [ охламед生地 ] ... (断开的 SSE 流)
+// 原因：网络不稳定、服务端过载、Token 耗尽
+
+// 处理：实现流式读取的断点续传
+async function* streamWithRetry(url, options) {
+  for (let i = 0; i < 3; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      yield* response.body;
+      return;
+    } catch (e) {
+      if (i === 2) throw e;
+      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
+    }
+  }
+}
+</code></pre>
+
+<h3>场景三：并发请求超额</h3>
+<pre><code>// 某些服务限制单个 API Key 的并发数
+// 错误：{"error": {"code": "concurrent_limit", "message": "Too many requests"}}
+
+// 解决方案：使用信号量（Semaphore）控制并发
+class Semaphore {
+  constructor(limit) {
+    this.limit = limit;
+    this.count = 0;
+    this.waiting = [];
+  }
+
+  async acquire() {
+    if (this.count < this.limit) {
+      this.count++;
+      return;
+    }
+    await new Promise(resolve => this.waiting.push(resolve));
+  }
+
+  release() {
+    this.count--;
+    const next = this.waiting.shift();
+    if (next) next();
+  }
+}
+
+const semaphore = new Semaphore(5); // 最多5个并发请求
+
+async function callAI(prompt) {
+  await semaphore.acquire();
+  try {
+    return await callAIInternal(prompt);
+  } finally {
+    semaphore.release();
+  }
+}
+</code></pre>
+
+<h2>系统性异常处理框架</h2>
+<p>在实际项目中，推荐使用统一的 AI 调用封装，集成所有上述异常处理逻辑。以下是一个健壮的生产级封装示例：</p>
+<pre><code>class AIClient {
+  constructor(apiKey, baseUrl) {
+    this.apiKey = apiKey;
+    this.baseUrl = baseUrl;
+    this.rateLimiter = new Semaphore(5);
+  }
+
+  async complete(prompt, options = {}) {
+    const {
+      model = 'gpt-3.5-turbo',
+      temperature = 0.7,
+      maxTokens = 1000,
+      maxRetries = 3
+    } = options;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.rateLimiter.acquire();
+        const response = await this.fetchWithTimeout('/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature,
+            max_tokens: maxTokens
+          })
+        });
+        this.rateLimiter.release();
+        return response;
+      } catch (error) {
+        this.rateLimiter.release();
+
+        if (error.status === 429) {
+          const delay = this.getRetryDelay(error.headers, attempt);
+          console.log(`Rate limited. Retrying in ${delay}ms...`);
+          await this.sleep(delay);
+          continue;
+        }
+
+        if ((error.status === 500 || error.status === 503) && attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+          console.log(`Server error. Retrying in ${delay}ms...`);
+          await this.sleep(delay);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  getRetryDelay(headers, attempt) {
+    const retryAfter = parseInt(headers.get('Retry-After') || '1');
+    const base = retryAfter * 1000;
+    return Math.min(base * Math.pow(2, attempt) * (0.5 + Math.random()), 60000);
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+</code></pre>
+
+<h2>工具推荐</h2>
+<p>在调试 AI 接口异常时，以下工具可以大幅提升效率：</p>
+<ul>
+<li><strong>网络调试工具</strong>：Postman、curl 查看原始请求和响应头（Retry-After、X-RateLimit-* 等关键信息只在原始响应中可见）</li>
+<li><strong>请求测试工具</strong>：CloverTools 的 HTTP 测试工具，可快速验证 API 端点可达性</li>
+<li><strong>正则表达式测试</strong>：AI 响应常包含结构化文本，可用正则提取关键信息，CloverTools 正则测试工具支持实时高亮匹配</li>
+<li><strong>服务商状态页</strong>：OpenAI Status、Anthropic Status、Azure AI Status</li>
+</ul>
+
+<h2>总结</h2>
+<p>AI 接口异常处理的核心原则是：识别错误类型、采取对应策略、不盲目重试。401/403 错误不需要重试，应该检查配置；429 错误需要等待后重试，使用指数退避；500/503 错误可以重试，但要有退避和上限。完善的异常处理不仅能提升系统稳定性，还能避免因重复无效请求造成的额外费用。</p>

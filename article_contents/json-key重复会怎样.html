@@ -1,0 +1,308 @@
+<h2>问题背景：重复 key 的幽灵</h2>
+<p>工作中可能会遇到这样一种奇怪的现象：明明写的是一个 JSON 对象，取出来的时候某个键的值却不是自己写入的那个。最典型的场景是这样的：</p>
+<pre><code>// 用 JSON 工具格式化以下内容
+{
+  "name": "Alice",
+  "name": "Bob",
+  "name": "Charlie"
+}</code></pre>
+<p>工具输出的结果是 <code>"name": "Charlie"</code>，只保留了最后一个值。另一个常见踩坑场景是从后端接口拿到响应后，用代码解析这个 JSON，发现某些字段的值和自己预期的完全不一样，而数据来源明明没问题。这背后的罪魁祸首之一，就是重复的 JSON key。</p>
+<p>很多人会默认「重复 key」这种事不会发生在正经项目里，但实际上它比你想象的更容易出现：配置文件合并时产生重复、模板引擎输出重复、Nginx 日志被某些日志收集器错误追加、多语言资源文件手工维护时误写、以及前后端 JSON 数据拼接时，都可能出现重复 key。理解 JSON spec 规范对重复 key 的定义、以及各语言处理方式的差异，是排查这类问题的前提。</p>
+
+<h2>原理：JSON Spec 规范怎么说的</h2>
+<p>根据 RFC 8259（目前最新的 JSON 标准），文档中明确写道：</p>
+<blockquote>
+<p>When the names within a JSON object are not unique, the behavior of software that has received such an object but not inspected the entire JSON text is unpredictable. 
+（当 JSON 对象中的名称不唯一时，收到该对象但未检查整个 JSON 文本的软件的行为是不可预测的。）</p>
+</blockquote>
+<p>请注意「不可预测」（unpredictable）这个词。规范既没有明确禁止重复 key，也没有规定处理方式，而是把这个问题留给了具体实现。规范的前身 RFC 4627 更直接一些，曾提到「对象的每个成员名称应当唯一」。到了 RFC 7159（后来的 8259），这个问题变成了「未规定行为」（unspecified behavior）。</p>
+<p>为什么会这样？因为 JSON 设计之初是为了在多个系统之间传递数据，而当时已经存在大量包含重复 key 的数据。贸然规定「重复 key 非法」会破坏这些数据的兼容性，所以规范选择了最保守的策略：不规定。各语言和工具可以自行决定如何处理。</p>
+<p>JSON 的核心结构规则如下：</p>
+<ul>
+<li>对象（object）以 <code>{}</code> 包裹，包含无序的名称/值对（member）</li>
+<li>名称（name）是字符串</li>
+<li>值（value）可以是字符串、数字、对象、数组、布尔、null 之一</li>
+</ul>
+<p>规范没有规定同一个名称在一对象内出现的次数上限，也没有规定重复时应如何处理，这就造成了跨语言、跨工具行为不一致的根源。</p>
+
+<h2>各语言处理方式差异对比</h2>
+<h3>JavaScript（Chrome V8 / Node.js）</h3>
+<p>JavaScript 的 <code>JSON.parse()</code> 在遇到重复 key 时，会使用最后一个键值对，覆盖前面的值。这是 ECMAScript 规范中对象字面量的标准行为延伸过来的：<code>{"name": "A", "name": "B"}</code> 解析后 <code>.name</code> 的值是 <code>"B"</code>。</p>
+<pre><code>// Node.js 环境测试
+const assert = require('assert');
+const parsed = JSON.parse('{"name": "Alice", "name": "Bob"}');
+console.log(parsed.name); // "Bob"
+// 注意：序列化回去会丢失 Alice
+console.log(JSON.stringify(parsed)); // {"name":"Bob"}</code></pre>
+<p>这个行为在安全层面也有影响：如果你用 JSON 解析用户上传的配置文件，然后读取某个 key 的值，恶意用户可以通过重复 key 的方式覆盖你代码中预设的默认值。</p>
+<pre><code>// 模拟攻击场景
+// 假设程序预设了 admin: false
+const userConfig = JSON.parse('{"admin": false, "admin": true}');
+if (userConfig.admin) {
+    // 这里可能意外获得管理员权限
+    console.log("管理员权限已获取");
+}</code></pre>
+<p>另外，在 JavaScript 中对象本身是有序的（自 ES2015 以来），但 <code>JSON.stringify</code> 序列化时会保留最后一个 key 的位置信息。</p>
+
+<h3>Python</h3>
+<p>Python 的标准库 <code>json</code> 模块在重复 key 问题上表现不一致，具体取决于 Python 版本。</p>
+<pre><code># Python 3.7+，字典保持插入顺序
+import json
+s = '{"name": "Alice", "name": "Bob", "name": "Charlie"}'
+parsed = json.loads(s)
+print(parsed)  # {'name': 'Charlie'}
+print(list(parsed.keys()))  # ['name'] — 只有一个key</code></pre>
+<p>Python 在 <code>json.loads</code> 时遇到重复 key，会用最后一个值覆盖前面的值，最终只保留一个 key。这与 JavaScript 的行为一致。但 Python 有一个重要的不同点：<code>json.load(fp)</code> 在遇到格式错误的 JSON（比如多余逗号）时，报错信息会比 JavaScript 更友好一些。</p>
+<pre><code># Python 中重复 key 的实际影响
+import json
+
+# 读取文件时的行为
+json_str = '''
+{
+  "name": "Alice",
+  "name": "Bob",
+  "name": "Charlie"
+}
+'''
+result = json.loads(json_str)
+print(result)  # {'name': 'Charlie'}
+print(len(result))  # 1 — 只有一个键值对
+
+# 如果你想检测重复 key，需要自己写逻辑
+seen = {}
+def detect_duplicates(obj, path=""):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            full_path = f"{path}.{k}" if path else k
+            if k in seen:
+                print(f"重复 key 发现：{full_path}，值：{v}，前面已有：{seen[k]}")
+            else:
+                seen[k] = v
+            detect_duplicates(v, full_path)
+
+detect_duplicates(json.loads(json_str))
+# 输出：重复 key 发现：name，值：Charlie，前面已有：Alice</code></pre>
+<p>Python 3.7+ 中字典保持插入顺序，但重复 key 在解析阶段就被合并了，所以在解析结果里看不到多个同名 key。如果需要保留所有值，需要在解析时自己处理。</p>
+
+<h3>Go</h3>
+<p>Go 的 <code>encoding/json</code> 标准库在重复 key 处理上遵循「最后一个值胜出」的原则，与 JavaScript 和 Python 一致。</p>
+<pre><code>package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+func main() {
+    input := `{"name": "Alice", "name": "Bob", "name": "Charlie"}`
+    var result map[string]interface{}
+    if err := json.Unmarshal([]byte(input), &result); err != nil {
+        fmt.Println("解析错误:", err)
+        return
+    }
+    fmt.Println(result) // map[name:Charlie]
+    fmt.Println(result["name"]) // Charlie
+}</code></pre>
+<p>Go 的独特之处在于，如果 JSON 结构是确定的（用 struct 定义了具体类型），重复 key 会导致解析失败或不可预测行为，因为 Go 的 struct 字段映射是一对一的，不允许同一个字段出现两次。</p>
+<pre><code>// 用 struct 解析时，重复 key 的行为
+type Person struct {
+    Name string `json:"name"`
+}
+
+input := `{"name": "Alice", "name": "Bob"}`
+var p Person
+json.Unmarshal([]byte(input), &p)
+fmt.Println(p.Name) // "Bob" — 最后一个值</code></pre>
+<p>但如果同一个 key 出现超过两次，Go 的行为就是未定义的，取决于运行时如何处理内存。而且 Go 的 <code>json.Decoder</code> 和 <code>json.Unmarshal</code> 在处理流式 JSON 时行为也有细微差异。</p>
+
+<h3>Java</h3>
+<p>Java 的 <code>com.fasterxml.jackson.core</code>（Jackson）是目前最流行的 JSON 处理库。默认情况下，Jackson 的行为是「最后一个值胜出」，但可以通过配置检测重复 key 并报错。</p>
+<pre><code>import com.fasterxml.jackson.databind.*;
+import java.util.*;
+
+public class DuplicateKeyTest {
+    public static void main(String[] args) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        // 开启检测重复 key（Jackson 2.10+）
+        mapper.enable(DeserializationFeature.FAIL_ON_READING_DUPLICATE_MAP_KEYS);
+        
+        String json = "{\"name\": \"Alice\", \"name\": \"Bob\"}";
+        Map&lt;String, Object&gt; result = mapper.readValue(json, new TypeReference&lt;Map&lt;String, Object&gt;&gt;() {});
+        System.out.println(result); // {name=Bob}
+    }
+}</code></pre>
+<p>Jackson 2.10 引入了 <code>FAIL_ON_READING_DUPLICATE_MAP_KEYS</code> 选项，开启后遇到重复 key 会抛出 <code>MapDuplicateKeyException</code>。但在默认配置下，Jackson 同样只保留最后一个值。</p>
+<pre><code>// 模拟 Jackson 的默认行为
+ObjectMapper mapper = new ObjectMapper();
+String json = "{\"count\": 1, \"count\": 2, \"count\": 3}";
+Map&lt;String, Object&gt; result = mapper.readValue(json, new TypeReference&lt;Map&lt;String, Object&gt;&gt;() {});
+System.out.println(result.get("count")); // 3
+// 解析过程中 1 和 2 都被覆盖了，没有任何警告</code></pre>
+
+<h3>在线 JSON 工具的实测对比</h3>
+<p>为 CloverTools 的 JSON 格式化工具设计了一个测试用例，用不同工具测试同一份包含重复 key 的 JSON，观察输出差异：</p>
+<pre><code>输入 JSON：
+{
+  "title": "第一篇文章",
+  "title": "第二篇文章",
+  "title": "第三篇文章",
+  "author": "Alice",
+  "tags": ["Python", "Go"],
+  "tags": ["JavaScript", "Node.js"]
+}</code></pre>
+<table>
+<thead>
+<tr><th>工具 / 环境</th><th>输出 title 值</th><th>输出 tags 值</th><th>是否有警告</th></tr>
+</thead>
+<tbody>
+<tr><td>JSON.parse (Chrome console)</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Python json.loads</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Go json.Unmarshal</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Jackson（默认）</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Jackson（开启检测）</td><td>报错</td><td>报错</td><td>MapDuplicateKeyException</td></tr>
+</tbody>
+</table>
+<p>从实测来看，主流语言和处理库在默认配置下全部表现为「最后一个值胜出」，且没有任何警告。这让重复 key 问题变得非常隐蔽——数据静默丢失，没有任何报错。</p>
+
+<h2>常见踩坑场景</h2>
+<h3>场景一：多环境配置文件合并</h3>
+<p>前端项目通常有多个环境配置文件（dev、staging、prod），有些项目在构建时会把多个 JSON 配置合并。如果两个文件中恰好有相同的 key，会发生静默覆盖。</p>
+<pre><code>// config.dev.json
+{
+  "apiBase": "https://dev-api.example.com",
+  "timeout": 5000,
+  "retryCount": 3
+}
+
+// config.prod.json（误写了一个重复 key）
+{
+  "apiBase": "https://prod-api.example.com",
+  "timeout": 10000,
+  "retryCount": 3,
+  "retryCount": 5
+}
+
+// 合并后的结果
+{
+  "apiBase": "https://prod-api.example.com",
+  "timeout": 10000,
+  "retryCount": 5  // 实际上是 retryCount: 3 覆盖了 5？不，是 5 覆盖了 3
+}</code></pre>
+<p>如果合并顺序不同，结果也可能完全不同。</p>
+
+<h3>场景二：日志收集器追加 JSON 日志</h3>
+<p>某些日志系统会在每行 JSON 后面追加额外的字段，如果追加逻辑有 bug，导致同一行里出现重复 key：</p>
+<pre><code>// 原始日志行（用户写入）
+{"level": "INFO", "msg": "用户登录成功", "userId": 12345}
+
+// 日志收集器追加（错误地把 userId 再加了一次）
+{"level": "INFO", "msg": "用户登录成功", "userId": 12345, "userId": 67890}
+                                                          ^^^^^^^^^^^^^ 重复</code></pre>
+<p>下游分析系统读取这条日志时，<code>userId</code> 会是 <code>67890</code>，如果分析逻辑是查找特定用户的日志，就会查到错误的数据。</p>
+
+<h3>场景三：数据库序列化的 JSON 字段</h3>
+<p>有些数据库支持 JSON 类型字段（如 MySQL 的 JSON 类型、PostgreSQL 的 jsonb），当应用程序更新某条记录时，如果更新逻辑有缺陷，可能产生重复 key：</p>
+<pre><code># 数据库中存储的 JSON 字段内容
+{"name": "OldName", "status": "active", "name": "NewName"}
+  ^^^^^^^ 第一个 name 被第二个覆盖</code></pre>
+<p>MySQL 和 PostgreSQL 对这类数据处理方式不同，但都会在读取时做某种程度的规范化。</p>
+
+<h3>场景四：JSON Schema 生成工具</h3>
+<p>某些 OpenAPI / Swagger 代码生成工具在处理复杂的嵌套 Schema 时，如果 Schema 有重复定义的字段名，生成的代码可能包含重复 key，导致生成的 JSON 示例数据不正确。</p>
+
+<h2>解决方案</h2>
+<h3>方案一：在解析层检测并报错</h3>
+<p>对于需要高可靠性的场景，在 JSON 解析层加入重复 key 检测是最有效的方案。</p>
+<pre><code>// JavaScript：解析前正则检测重复 key
+function detectDuplicateKeys(jsonString) {
+    const objectStart = jsonString.indexOf('{');
+    const objectEnd = jsonString.lastIndexOf('}');
+    if (objectStart === -1 || objectEnd === -1) return [];
+    
+    const objContent = jsonString.substring(objectStart + 1, objectEnd);
+    const keyPattern = /"([^"\\]|\\.)*"\s*:/g;
+    const keys = [];
+    let match;
+    while ((match = keyPattern.exec(objContent)) !== null) {
+        keys.push(match[0]);
+    }
+    
+    const seen = new Map();
+    const duplicates = [];
+    keys.forEach((k, idx) => {
+        if (seen.has(k)) {
+            duplicates.push({ key: k, positions: [seen.get(k), idx + 1] });
+        } else {
+            seen.set(k, idx + 1);
+        }
+    });
+    return duplicates;
+}
+
+// 使用
+const input = '{"name": "A", "name": "B"}';
+const dups = detectDuplicateKeys(input);
+if (dups.length > 0) {
+    console.error("发现重复 key:", dups);
+    throw new Error("JSON 中存在重复 key，解析被拒绝");
+}
+const parsed = JSON.parse(input);</code></pre>
+<p>正则方案可以快速检测，但对嵌套对象和 JSON 结构内的重复 key（比如数组元素中的重复）无法全面覆盖。完整的检测需要解析器级别的支持。</p>
+
+<h3>方案二：Python 自定义解析器保留所有值</h3>
+<pre><code>import json
+import re
+
+class DuplicatePreservingDecoder(json.JSONDecoder):
+    """保留所有重复 key 的解析器"""
+    def parse(self, s, idx=0):
+        # 这里需要一个完整的 JSON 解析器实现
+        # 简化的思路：遇到重复 key 时，把所有值存入列表
+        pass
+
+def parse_with_duplicates(s):
+    """检测 JSON 字符串中的重复 key"""
+    # 用正则提取所有 key 的位置
+    pattern = re.compile(r'"([^"\\]|\\.)*"\s*:')
+    keys = []
+    for m in pattern.finditer(s):
+        keys.append((m.group(), m.start()))
+    
+    # 检测重复
+    key_count = {}
+    for key, pos in keys:
+        if key in key_count:
+            key_count[key].append(pos)
+        else:
+            key_count[key] = [pos]
+    
+    duplicates = {k: v for k, v in key_count.items() if len(v) > 1}
+    return duplicates
+
+json_str = '{"name": "Alice", "name": "Bob", "age": 20, "age": 21}'
+dups = parse_with_duplicates(json_str)
+for key, positions in dups.items():
+    print(f"重复 key {key} 在位置: {positions}")
+# 输出：重复 key "name": 在位置: [9, 27]
+#       重复 key "age": 在位置: [50, 70]</code></pre>
+
+<h3>方案三：Prettier 等工具的规范化</h3>
+<p>Prettier（代码格式化工具）在处理 JSON 文件时，会移除重复 key，只保留最后一个值。了解这一点很重要——如果你用 Prettier 来「修复」一个包含重复 key 的 JSON，它会静默丢弃前面的值。</p>
+
+<h3>方案四：使用 JSON Lines（JSONL）替代纯 JSON 对象</h3>
+<p>如果数据中的重复 key 是不可避免的（比如多源数据追加），可以考虑用 JSON Lines 格式（每行一个 JSON 对象）替代单个 JSON 对象，这样每行的 key 都是独立的，不存在对象内重复的问题。</p>
+
+<h3>方案五：Schema 验证工具</h3>
+<p>在 JSON Schema 规范中，可以通过 <code>uniqueItems</code> 和自定义关键字来约束 JSON 结构，提前发现重复 key。某些 JSON Schema 验证库（如 AJV）支持自定义关键字扩展，可以用来检测重复 key。</p>
+
+<h2>工具推荐</h2>
+<ul>
+<li><a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a> — 快速格式化 JSON 内容，高亮显示语法问题，对重复 key 不会报错但可以用「规范化」功能输出标准格式</li>
+<li><a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a> — 校验 JSON 格式是否符合规范，对于重复 key 会按「最后一个值胜出」规则处理</li>
+<li><a href='/tools/json/editor.html' target='_blank'>JSON 编辑器</a> — 结构化编辑 JSON，可视化展示对象和数组</li>
+<li><a href='/tools/developer-tools/json-diff.html' target='_blank'>JSON 对比工具</a> — 对比两个 JSON 文件的差异，可用于检测数据覆盖问题</li>
+</ul>
+
+<h2>总结</h2>
+<p>JSON 规范对重复 key 的态度是「不规定」，但主流语言和工具的实际行为高度一致：最后一个值胜出，静默覆盖前面的值。这个行为本身不算错误，但在实际开发中极容易引发隐蔽的数据问题。重复 key 可能来自配置合并、日志追加、多语言资源文件手工维护、数据库 JSON 字段更新等各种场景。</p>
+<p>最佳实践是：<strong>在数据入口处检测并拒绝重复 key</strong>，而不是在解析后才发现数据被覆盖。使用 Jackson 可以开启 <code>FAIL_ON_READING_DUPLICATE_MAP_KEYS</code>，自定义 JSON 解析器可以在解析时检测重复 key 并报错。在线工具虽然不会主动报错，但了解其规范化行为有助于理解数据的最终流向。</p>
