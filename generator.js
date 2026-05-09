@@ -1249,6 +1249,7 @@ function generateAboutPage() {
     .hero-logo-wrap img {
       height: 140px;
       filter: drop-shadow(0 0 40px rgba(139,92,246,0.55)) drop-shadow(0 0 90px rgba(167,139,250,0.25));
+      color-scheme: light;
     }
     @keyframes logoFloat {
       0%, 100% { transform: translateY(0); }

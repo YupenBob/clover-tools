@@ -17,10 +17,10 @@
 }
 
 [data-theme="dark"] {
-  --primary: #8b5cf6;
-  --primary-dark: #c0392b;
-  --primary-light: #a78bfa;
-  --primary-rgb: 139, 92, 246;
+  --primary: #ff6b6b;
+  --primary-dark: #c70039;
+  --primary-light: #ff9a9a;
+  --primary-rgb: 255, 107, 107;
   --text: #f0f0f0;
   --bg: #0f0f0f;
   --bg-secondary: #1a1a1a;
@@ -29,6 +29,12 @@
   --input-bg: #1a1a1a;
   --card-shadow: 0 2px 10px rgba(0,0,0,0.5);
   --text-secondary: #a0a0a0;
+}
+
+/* 阻止浏览器自动暗黑模式对 logo/favicon 的影响 */
+[data-theme="dark"] .site-logo img,
+[data-theme="dark"] .hero-logo-wrap img {
+  color-scheme: light;
 }
 
 /* ==================== Reset ==================== */
