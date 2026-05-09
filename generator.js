@@ -3,10 +3,12 @@
  * Reads tools.json → generates index.html + all tool pages
  */
 const fs = require('fs');
+require('dotenv').config();
 const path = require('path');
 const { execSync } = require('child_process');
 
 const BASE = __dirname;
+const BASE_URL = process.env.BASE_URL || 'https://tools.xsanye.cn';
 const TEMPLATES_DIR = path.join(BASE, 'templates');
 const SRC_DIR = path.join(BASE, 'src');
 const DIST_DIR = path.join(BASE, 'dist');
@@ -86,7 +88,7 @@ function buildCategoriesHtml() {
 // Each tool is defined as { name, description, category, path, layout, content: {html, script} }
 function buildToolPage(tool) {
   const toolScript = buildToolScript(tool);
-  const toolUrl = 'https://tools.xsanye.cn/tools/' + tool.path;
+  const toolUrl = BASE_URL + '/tools/' + tool.path;
   const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
   const footerWithShare = footerHtml.replace(
     '<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->',
@@ -107,7 +109,7 @@ function buildToolPage(tool) {
     // Meta tags
     .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - CloverTools')
     .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.description || tool.name)
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl)
     // SEO meta - derived from tools.json fields
@@ -951,7 +953,7 @@ function generateBlogIndex() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>开发者问题终结手册 - CloverTools</title>
   <meta name="description" content="开发者常见问题解决指南,JSON错误、编码问题、文件限制等实际问题的解决方案。">
-  <link rel="canonical" href="https://tools.xsanye.cn/blog/">
+  <link rel="canonical" href="${BASE_URL}/blog/">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="icon" href="/src/clover-logo.svg">
   <script src="/src/shared.js"></script>
@@ -1082,7 +1084,7 @@ function generateBlogPosts() {
     const faqContent = buildFaq(kw.keyword, kw.intent);
     const toolLinks = buildToolLinks(toolInfo);
     const relatedQuestions = buildRelatedQuestions(kw, 6);
-    const blogUrl = 'https://tools.xsanye.cn/blog/' + slug;
+    const blogUrl = BASE_URL + '/blog/' + slug;
     const today = new Date().toISOString().split('T')[0];
 
     let pageHtml = blogTemplate
@@ -1092,7 +1094,7 @@ function generateBlogPosts() {
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
       .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
       .replace(/\{\{PAGE_OG_DESC\}\}/g, `解决${kw.keyword}的实战方法,` + (toolInfo ? `配合${toolInfo.name}在线工具免费使用` : 'CloverTools在线工具免费使用'))
-      .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+      .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
       .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
       .replace(/\{\{ARTICLE_TITLE\}\}/g, kw.keyword)
@@ -1140,7 +1142,7 @@ function generateAboutPage() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>关于 - CloverTools</title>
   <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造,是一款轻量级开发者工具箱,无需注册,完全本地运行。">
-  <link rel="canonical" href="https://tools.xsanye.cn/about">
+  <link rel="canonical" href="${BASE_URL}/about">
   <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/src/shared.css">
   <script src="/src/shared.js"></script>
@@ -1797,7 +1799,7 @@ function generateFixHubPages() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${hub.title} - CloverTools</title>
   <meta name="description" content="${hub.desc}">
-  <link rel="canonical" href="https://tools.xsanye.cn/fix/${hub.path}/">
+  <link rel="canonical" href="${BASE_URL}/fix/${hub.path}/">
   <link rel="stylesheet" href="/src/shared.css">
   <link rel="icon" href="/src/clover-logo.svg">
   <script src="/src/shared.js"></script>
@@ -1913,9 +1915,9 @@ function generate() {
     .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
     .replace(/\{\{PAGE_META_DESC\}\}/g, 'CloverTools 轻量级开发者工具箱，提供 JSON 格式化、加密解码、时间转换、代码美化等实用工具，无需注册，完全免费。')
     .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/src/clover-logo.svg')
-    .replace(/\{\{PAGE_URL\}\}/g, 'https://tools.xsanye.cn/')
-    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, 'https://tools.xsanye.cn/')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/src/clover-logo.svg')
+    .replace(/\{\{PAGE_URL\}\}/g, BASE_URL + '/')
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, BASE_URL + '/')
     .replace('{{ALL_TOOLS_DATA}}', JSON.stringify(allToolsData));
   fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
   console.log('   Generated index.html');
@@ -2024,7 +2026,7 @@ ${footerHtml}
       const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
       ensureDir(toolDir);
 
-      const toolUrl = 'https://tools.xsanye.cn/tools/' + tool.path;
+      const toolUrl = BASE_URL + '/tools/' + tool.path;
       const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
       const footerWithShare = footerHtml.replace(
         '<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->',
@@ -2047,7 +2049,7 @@ ${footerHtml}
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
         .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + ',无需注册,完全免费。' : tool.name + ' - 在线工具,无需注册,完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
         .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + ',在线工具,免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ',' + cat.category : ''))
-        .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
+        .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
 
@@ -2093,7 +2095,7 @@ ${footerHtml}
   // xsanye.cn now uses its own Vercel project
 
   // Generate sitemap.xml
-  const baseUrl = 'https://tools.xsanye.cn';
+  const baseUrl = BASE_URL;
   const today = new Date().toISOString().split('T')[0];
   let urls = [`<url><loc>${baseUrl}/</loc><lastmod>2026-04-24</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
   urls.push(`<url><loc>${baseUrl}/about</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>`);
@@ -2119,7 +2121,7 @@ ${footerHtml}
   console.log('   Generated sitemap.xml');
 
   // Generate robots.txt
-  const robots = `User-agent: *\nAllow: /\n\nSitemap: https://tools.xsanye.cn/sitemap.xml\n`;
+  const robots = `User-agent: *\nAllow: /\n\nSitemap: ${BASE_URL}/sitemap.xml\n`;
   fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'), robots);
   console.log('   Generated robots.txt');
 
