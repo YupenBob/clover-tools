@@ -13,11 +13,59 @@ const TEMPLATES_DIR = path.join(BASE, 'templates');
 const SRC_DIR = path.join(BASE, 'src');
 const DIST_DIR = path.join(BASE, 'dist');
 const TOOLS_JSON_PATH = path.join(BASE, 'tools.json');
+const PLUGINS_TOOLS_JSON_PATH = path.join(BASE, 'plugins', 'tools.json');
+const PLUGINS_DIR = path.join(BASE, 'plugins');
+const PLUGINS_TEMPLATES_DIR = path.join(BASE, 'plugins', 'templates');
 
 // ============ Load templates ============
 const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf8');
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
 const toolsConfig = JSON.parse(fs.readFileSync(TOOLS_JSON_PATH, 'utf8'));
+
+// ============ Load plugin tools (merge with main tools) ============
+function mergeTools(mainTools, pluginTools) {
+  const merged = JSON.parse(JSON.stringify(mainTools)); // deep clone
+  const pathMap = {};
+  // Build path -> tool lookup from main tools
+  merged.forEach(cat => {
+    cat.tools.forEach(tool => {
+      pathMap[tool.path] = tool;
+    });
+  });
+  // Merge plugin tools (plugins override if same path)
+  pluginTools.forEach(pluginCat => {
+    let existingCat = merged.find(c => c.category === pluginCat.category);
+    if (!existingCat) {
+      existingCat = { category: pluginCat.category, tools: [] };
+      merged.push(existingCat);
+    }
+    pluginCat.tools.forEach(pluginTool => {
+      if (pathMap[pluginTool.path]) {
+        // Override: find and replace
+        merged.forEach(cat => {
+          const idx = cat.tools.findIndex(t => t.path === pluginTool.path);
+          if (idx !== -1) cat.tools[idx] = pluginTool;
+        });
+        pathMap[pluginTool.path] = pluginTool;
+      } else {
+        existingCat.tools.push(pluginTool);
+        pathMap[pluginTool.path] = pluginTool;
+      }
+    });
+  });
+  return merged;
+}
+
+let mergedToolsConfig = toolsConfig;
+if (fs.existsSync(PLUGINS_TOOLS_JSON_PATH)) {
+  try {
+    const pluginToolsConfig = JSON.parse(fs.readFileSync(PLUGINS_TOOLS_JSON_PATH, 'utf8'));
+    mergedToolsConfig = mergeTools(toolsConfig, pluginToolsConfig);
+    console.log('   Loaded plugin tools: ' + pluginToolsConfig.reduce((s, c) => s + c.tools.length, 0) + ' tools from plugin registry');
+  } catch (e) {
+    console.log('   Warning: failed to load plugin tools.json: ' + e.message);
+  }
+}
 
 // ============ Load shared assets ============
 const sharedCss = fs.readFileSync(path.join(SRC_DIR, 'shared.css'), 'utf8');
@@ -48,7 +96,7 @@ const CAT_ICONS = {
 
 function buildCategoryGridHtml() {
   let html = '<div class="cat-grid">';
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     const icon = CAT_ICONS[cat.category] || 'bi-grid';
     html += `
     <button class="cat-btn" data-cat="${cat.category}">
@@ -63,7 +111,7 @@ function buildCategoryGridHtml() {
 
 function buildCategoriesHtml() {
   let html = '';
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     let itemsHtml = '';
     cat.tools.forEach(tool => {
       itemsHtml += `
@@ -554,10 +602,10 @@ const TOOL_TYPE_REGISTRY = {
   },
 };
 
-// Get tool config from tools.json by path
+// Get tool config from tools.json by path (uses mergedToolsConfig)
 function getToolConfig(toolPath) {
-  for (var i = 0; i < toolsConfig.length; i++) {
-    var cat = toolsConfig[i];
+  for (var i = 0; i < mergedToolsConfig.length; i++) {
+    var cat = mergedToolsConfig[i];
     for (var j = 0; j < cat.tools.length; j++) {
       if (cat.tools[j].path === toolPath) return cat.tools[j];
     }
@@ -618,6 +666,15 @@ function buildToolContentHtml(tool) {
   if (tool.customHtml) {
     return tool.customHtml.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
   }
+  // Plugin custom template takes next priority (plugins/templates/{path})
+  const pluginTemplatePath = path.join(PLUGINS_TEMPLATES_DIR, tool.path);
+  if (fs.existsSync(pluginTemplatePath)) {
+    try {
+      return fs.readFileSync(pluginTemplatePath, 'utf8').replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    } catch (e) {
+      console.log('   Warning: failed to load plugin template for ' + tool.path + ': ' + e.message);
+    }
+  }
   // Path-based overrides for mis-typed tools
   if (TOOL_SPECIFIC_OVERRIDES[tool.path]) {
     return TOOL_SPECIFIC_OVERRIDES[tool.path].html || '';
@@ -656,9 +713,9 @@ try {
   console.log('   Loaded ' + Object.keys(articlesConfig).length + ' custom articles');
 } catch(e) { /* no custom articles */ }
 
-// Tool name lookup for CTA links
+// Tool name lookup for CTA links (uses mergedToolsConfig)
 const toolNameMap = {};
-toolsConfig.forEach(cat => {
+mergedToolsConfig.forEach(cat => {
   cat.tools.forEach(tool => {
     toolNameMap[tool.path] = { name: tool.name, path: tool.path, desc: tool.desc || '' };
   });
@@ -1862,6 +1919,23 @@ function copyFile(src, dst) {
   if (fs.existsSync(src)) fs.copyFileSync(src, dst);
 }
 
+function copyDirContents(srcDir, dstDir, opts) {
+  opts = opts || {};
+  if (!fs.existsSync(srcDir)) return;
+  if (!fs.existsSync(dstDir)) fs.mkdirSync(dstDir, { recursive: true });
+  fs.readdirSync(srcDir).forEach(item => {
+    const srcPath = path.join(srcDir, item);
+    const dstPath = path.join(dstDir, item);
+    if (fs.statSync(srcPath).isDirectory()) {
+      if (!fs.existsSync(dstPath)) fs.mkdirSync(dstPath, { recursive: true });
+      copyDirContents(srcPath, dstPath, opts);
+    } else {
+      if (!opts.overwrite && fs.existsSync(dstPath)) return; // skip existing
+      fs.copyFileSync(srcPath, dstPath);
+    }
+  });
+}
+
 function generate() {
   console.log(' CloverTools Generator starting...');
 
@@ -1883,6 +1957,16 @@ function generate() {
   }
   fs.copyFileSync(TOOLS_JSON_PATH, path.join(DIST_DIR, 'tools.json'));
   console.log('   Copied tools.json');
+
+  // Copy plugins/ directory to dist/plugins/ (preserved across builds, not overwritten)
+  if (fs.existsSync(PLUGINS_DIR)) {
+    const distPluginsDir = path.join(DIST_DIR, 'plugins');
+    ensureDir(distPluginsDir);
+    // Only copy files that don't already exist in dist/plugins (preserve user customizations)
+    copyDirContents(PLUGINS_DIR, distPluginsDir, { overwrite: false });
+    console.log('   Preserved plugins/ directory');
+  }
+
   const cloverLogoSvg = fs.readFileSync(path.join(SRC_DIR, 'clover-logo.svg'), 'utf8');
   fs.writeFileSync(path.join(DIST_DIR, 'src/clover-logo.svg'), cloverLogoSvg);
   console.log('   Copied clover-logo.svg');
@@ -1897,8 +1981,8 @@ function generate() {
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
   const categoryGridHtml = buildCategoryGridHtml();
-  const toolCount = toolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
-  const allToolsData = toolsConfig.flatMap(cat => cat.tools.map(t => ({
+  const toolCount = mergedToolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
+  const allToolsData = mergedToolsConfig.flatMap(cat => cat.tools.map(t => ({
     name: t.name,
     path: t.path,
     desc: t.desc || '',
@@ -1926,7 +2010,7 @@ function generate() {
   // Generate home-new.html (with search functionality)
   const homeNewTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home-new.html'), 'utf8');
   const allTools = [];
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       allTools.push({
         name: tool.name,
@@ -1962,7 +2046,7 @@ function generate() {
   const CATEGORY_DIR = path.join(DIST_DIR, 'category');
   if (!fs.existsSync(CATEGORY_DIR)) fs.mkdirSync(CATEGORY_DIR, { recursive: true });
 
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     const slug = (cat.category || cat.name || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '');
     const catTools = cat.tools.map(tool => `
     <div class="tool-card" onclick="location.href='/tools/${tool.path}'">
@@ -1997,11 +2081,11 @@ ${footerHtml}
 </html>`;
     fs.writeFileSync(path.join(CATEGORY_DIR, slug + '.html'), catHtml);
   });
-  console.log('   Generated ' + toolsConfig.length + ' category pages');
+  console.log('   Generated ' + mergedToolsConfig.length + ' category pages');
 
   // Build a map of tool name → list of categories (for disambiguating duplicate titles)
   const nameCategoryMap = {};
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       if (!nameCategoryMap[tool.name]) nameCategoryMap[tool.name] = [];
       nameCategoryMap[tool.name].push(cat.category);
@@ -2011,7 +2095,7 @@ ${footerHtml}
   // Generate each tool page
   let generated = 0;
   const generatedPaths = new Set(); // Deduplicate: keep first occurrence (skip duplicates)
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       if (generatedPaths.has(tool.path)) {
         return; // Skip duplicate - already generated
@@ -2100,7 +2184,7 @@ ${footerHtml}
   const today = new Date().toISOString().split('T')[0];
   let urls = [`<url><loc>${baseUrl}/</loc><lastmod>2026-04-24</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>`];
   urls.push(`<url><loc>${baseUrl}/about</loc><lastmod>${today}</lastmod><changefreq>monthly</changefreq><priority>0.5</priority></url>`);
-  toolsConfig.forEach(cat => {
+  mergedToolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
       urls.push(`<url><loc>${baseUrl}/tools/${tool.path}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
     });
