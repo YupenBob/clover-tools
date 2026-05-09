@@ -11,9 +11,7 @@
     { "source": "/changelog", "destination": "/about.html" },
     { "source": "/changelog/", "destination": "/about.html" },
     { "source": "/about", "destination": "/about.html" },
-    { "source": "/demo", "destination": "/demo.html" },
-    { "source": "/demo2", "destination": "/demo2.html" },
-    { "source": "/home-new", "destination": "/home-new.html" }
+    { "source": "/(.*)", "destination": "/$1.html" },
   ],
   "headers": [
     { "source": "/.well-known/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
