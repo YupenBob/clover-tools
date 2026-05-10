@@ -4,23 +4,19 @@
  * Scrape Google Suggest keywords for CloverTools SEO automation.
  *
  * Usage:
- *   node scripts/keyword-scraper.js                    # use seeds from keywords.json
+ *   node scripts/keyword-scraper.js                    # use seeds from keywords.json (first 10)
  *   node scripts/keyword-scraper.js "excel技巧"       # custom seed only
  *   node scripts/keyword-scraper.js --all            # use all keywords.json seeds
  *   node scripts/keyword-scraper.js "pdf工具" --all  # custom + all from keywords.json
  *
- * Note: Requires network access to Google. May not work in China without proxy/VPN.
- * If you see ETIMEDOUT errors, enable a proxy or VPN first.
+ * Network: Requires Google access. In China, run via proxychains4:
+ *   proxychains4 -q node scripts/keyword-scraper.js --all
  */
 
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
-// --- Proxy configuration ---
-const PROXY_HOST = '47.118.40.73';
-const PROXY_PORT = 33001;
 
 // --- Configuration ---
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -50,67 +46,44 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function fetch(url, proxyHost, proxyPort) {
+function fetch(url) {
   return new Promise((resolve, reject) => {
-    const parsedUrl = new URL(url);
-    const isHttps = parsedUrl.protocol === 'https:';
-    const opts = {
-      host: proxyHost,
-      port: proxyPort,
-      path: url,
+    const urlObj = new URL(url);
+    const isHttps = urlObj.protocol === 'https:';
+    const mod = isHttps ? https : http;
+    const req = mod.request({
+      hostname: urlObj.hostname,
+      port: urlObj.port || (isHttps ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
       method: 'GET',
       headers: {
-        'Host': parsedUrl.host,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': '*/*',
-      }
-    };
-    const req = http.request(opts, res => {
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+      },
+      timeout: 15000,
+    }, res => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve(data));
     });
     req.on('error', reject);
-    req.setTimeout(15000, () => {
-      req.destroy();
-      reject(new Error('Request timeout'));
-    });
+    req.on('timeout', () => { req.destroy(); reject(new Error('Request timeout')); });
     req.end();
   });
 }
 
 /**
  * Parse Google Suggest JSONP response.
- * The API returns window.google.ac.h && window.google.ac.h([...]) with an inner
- * keyword array at parsed[0][0].
+ * Google Suggest returns: window.google.ac.h([[["kw1",0,[512],"kw2",0,[512]]],{meta})
+ * Pattern: "keyword",0,[digits] — simple regex beats JSON.parse for nested arrays.
  */
 function parseSuggestResponse(body) {
-  const patterns = [
-    /window\.google\.ac\.h\s*&&\s*window\.google\.ac\.h\s*(\[[\s\S]*?\]\))/,
-    /window\.google\.ac\.h\s*(\[[\s\S]*?\]\))/,
-    /window\.google\.ac\.core_chars\s*(\[[\s\S]*?\]\))/,
-  ];
-
-  let jsonStr = null;
-  for (const pattern of patterns) {
-    const match = body.match(pattern);
-    if (match) { jsonStr = match[1]; break; }
+  const matches = [...body.matchAll(/"([^"]+)",0,\[([\d,]+)\]/g)].map(m => m[1]);
+  if (matches.length === 0) {
+    throw new Error('Could not parse: ' + body.slice(0, 100));
   }
-
-  if (!jsonStr) {
-    throw new Error('Could not parse Google Suggest response: ' + body.slice(0, 200));
-  }
-
-  try {
-    const parsed = JSON.parse(jsonStr);
-    // Structure: [[["kw1","kw2",...], ["desc1",...], ["b1",...], ["a1",...]]]
-    if (Array.isArray(parsed) && Array.isArray(parsed[0]) && Array.isArray(parsed[0][0])) {
-      return parsed[0][0];
-    }
-    return [];
-  } catch (e) {
-    throw new Error('JSON parse failed: ' + e.message + ' | raw: ' + jsonStr.slice(0, 200));
-  }
+  return matches;
 }
 
 /**
@@ -120,7 +93,7 @@ async function getSuggestions(query) {
   const encoded = encodeURIComponent(query);
   const charCount = encoded.length;
   const url = `https://www.google.com/complete/search?q=${encoded}&cp=${charCount}&client=gws-wiz`;
-  const body = await fetch(url, PROXY_HOST, PROXY_PORT);
+  const body = await fetch(url);
   return parseSuggestResponse(body);
 }
 
@@ -175,7 +148,6 @@ async function main() {
     seedKeywords = useAllSeeds ? loadSeedKeywords() : loadSeedKeywords().slice(0, 10);
   }
 
-  // Deduplicate seeds too
   seedKeywords = [...new Set(seedKeywords)];
 
   if (seedKeywords.length === 0) {
@@ -195,15 +167,13 @@ async function main() {
       if (!query.trim()) continue;
 
       try {
-        process.stdout.write(`[proxy:${PROXY_HOST}:${PROXY_PORT}] Scraping variation "${query}"... `);
+        process.stdout.write(`  Scraping "${query}"... `);
         const suggestions = await getSuggestions(query);
 
         let newCount = 0;
         for (const kw of suggestions) {
-          if (typeof kw === 'string' && !seen.has(kw)) {
+          if (!seen.has(kw)) {
             seen.add(kw); allKeywords.push(kw); newCount++;
-          } else if (Array.isArray(kw) && kw[0] && !seen.has(kw[0])) {
-            seen.add(kw[0]); allKeywords.push(kw[0]); newCount++;
           }
         }
         console.log(`got ${suggestions.length}, ${newCount} new`);
@@ -223,7 +193,7 @@ async function main() {
 
   if (networkErrors > 0) {
     console.error(`\n⚠️  ${networkErrors} request(s) failed due to network issues.`);
-    console.error('   Google is not reachable from this machine (likely need proxy/VPN in China).');
+    console.error('   In China: run with "proxychains4 -q node scripts/keyword-scraper.js --all"');
     console.error('   Keywords already collected are still saved.\n');
   }
 
