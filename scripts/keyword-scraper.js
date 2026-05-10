@@ -197,7 +197,31 @@ async function main() {
     console.error('   Keywords already collected are still saved.\n');
   }
 
-  const outPath = saveResults(allKeywords);
+  /**
+ * Merge new keywords into the main keywords.json (dedup).
+ */
+function mergeIntoMain(results) {
+  if (results.length === 0) return;
+  try {
+    const existing = JSON.parse(fs.readFileSync(KEYWORDS_FILE, 'utf8'));
+    const existingKws = new Set(existing.map(item => item.keyword));
+    let added = 0;
+    for (const kw of results) {
+      if (!existingKws.has(kw)) {
+        existing.push({ keyword: kw, source: 'google-suggest' });
+        existingKws.add(kw);
+        added++;
+      }
+    }
+    fs.writeFileSync(KEYWORDS_FILE, JSON.stringify(existing, null, 2), 'utf8');
+    console.log(`  Merged ${added} new keywords into keywords.json (total now ${existing.length})`);
+  } catch (e) {
+    console.error('  Warning: could not merge into keywords.json:', e.message);
+  }
+}
+
+const outPath = saveResults(allKeywords);
+  mergeIntoMain(allKeywords);
   console.log(`\nDone! Saved ${allKeywords.length} keywords to ${outPath}`);
 }
 
