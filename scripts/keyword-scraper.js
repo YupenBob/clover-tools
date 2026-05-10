@@ -14,8 +14,13 @@
  */
 
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
+
+// --- Proxy configuration ---
+const PROXY_HOST = '47.118.40.73';
+const PROXY_PORT = 33001;
 
 // --- Configuration ---
 const PROJECT_ROOT = path.join(__dirname, '..');
@@ -45,9 +50,22 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function fetch(url) {
+function fetch(url, proxyHost, proxyPort) {
   return new Promise((resolve, reject) => {
-    const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+    const parsedUrl = new URL(url);
+    const isHttps = parsedUrl.protocol === 'https:';
+    const opts = {
+      host: proxyHost,
+      port: proxyPort,
+      path: url,
+      method: 'GET',
+      headers: {
+        'Host': parsedUrl.host,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': '*/*',
+      }
+    };
+    const req = http.request(opts, res => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => resolve(data));
@@ -57,6 +75,7 @@ function fetch(url) {
       req.destroy();
       reject(new Error('Request timeout'));
     });
+    req.end();
   });
 }
 
@@ -101,7 +120,7 @@ async function getSuggestions(query) {
   const encoded = encodeURIComponent(query);
   const charCount = encoded.length;
   const url = `https://www.google.com/complete/search?q=${encoded}&cp=${charCount}&client=gws-wiz`;
-  const body = await fetch(url);
+  const body = await fetch(url, PROXY_HOST, PROXY_PORT);
   return parseSuggestResponse(body);
 }
 
@@ -176,7 +195,7 @@ async function main() {
       if (!query.trim()) continue;
 
       try {
-        process.stdout.write(`Scraping variation "${query}"... `);
+        process.stdout.write(`[proxy:${PROXY_HOST}:${PROXY_PORT}] Scraping variation "${query}"... `);
         const suggestions = await getSuggestions(query);
 
         let newCount = 0;

@@ -2102,14 +2102,25 @@ ${footerHtml}
       }
       generatedPaths.add(tool.path);
       const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+      // Detect if this is a standalone plugin template (complete HTML page)
+      const isStandalonePluginTemplate = contentHtml.trim().startsWith('<!DOCTYPE') || contentHtml.trim().startsWith('<html');
+      const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
+      ensureDir(toolDir);
+
+      if (isStandalonePluginTemplate) {
+        // Plugin template is a complete standalone HTML - write directly
+        fs.writeFileSync(path.join(toolDir, path.basename(tool.path)), contentHtml);
+        console.log('   Plugin template (standalone): ' + tool.path);
+        generated++;
+        return;
+      }
+
       if (!contentHtml) {
         console.log(`  ️  No template for: ${tool.path}`);
         return;
       }
 
       const script = buildToolScript(tool);
-      const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
-      ensureDir(toolDir);
 
       const toolUrl = BASE_URL + '/tools/' + tool.path;
       const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
