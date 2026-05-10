@@ -8,7 +8,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const BASE = __dirname;
-const BASE_URL = process.env.BASE_URL || 'https://tools.xsanye.cn';
+const BASE_URL = process.env.BASE_URL || 'https://clovertools.cn';
 const TEMPLATES_DIR = path.join(BASE, 'templates');
 const SRC_DIR = path.join(BASE, 'src');
 const DIST_DIR = path.join(BASE, 'dist');

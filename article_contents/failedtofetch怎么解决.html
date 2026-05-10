@@ -8,7 +8,7 @@
 </ul>
 
 <h2>最常见原因：CORS 跨域限制</h2>
-<p>浏览器的同源策略（Same-Origin Policy）默认阻止网页从一个域名请求另一个域名的资源。当你的前端页面 <code>https://tools.xsanye.cn</code> 调用后端 <code>https://api.example.com</code> 时，浏览器会先发一个预检请求（OPTIONS），如果服务器没有正确响应 <code>Access-Control-Allow-*</code> 头，浏览器就直接 block 掉请求。</p>
+<p>浏览器的同源策略（Same-Origin Policy）默认阻止网页从一个域名请求另一个域名的资源。当你的前端页面 <code>https://clovertools.cn</code> 调用后端 <code>https://api.example.com</code> 时，浏览器会先发一个预检请求（OPTIONS），如果服务器没有正确响应 <code>Access-Control-Allow-*</code> 头，浏览器就直接 block 掉请求。</p>
 
 <pre><code>// 触发 failed to fetch 的典型代码
 fetch('https://api.example.com/data')
@@ -32,14 +32,14 @@ fetch('https://api.example.com/data')
 <pre><code>// Node.js/Express 后端
 const cors = require('cors');
 app.use(cors({
-  origin: 'https://tools.xsanye.cn',  // 只允许你的域名
+  origin: 'https://clovertools.cn',  // 只允许你的域名
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // 或者手动设置头
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://tools.xsanye.cn');
+  res.header('Access-Control-Allow-Origin', 'https://clovertools.cn');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
@@ -81,7 +81,7 @@ server.listen(8080, '127.0.0.1');  // 外部无法访问！</code></pre>
 <p>如果你的页面是 HTTPS 的，但请求的是 HTTP 资源，浏览器会直接 block（现代浏览器默认阻止混合内容）。</p>
 
 <pre><code>// ❌ 错误：HTTPS 页面请求 HTTP 资源
-// https://tools.xsanye.cn 调用 http://api.example.com
+// https://clovertools.cn 调用 http://api.example.com
 fetch('http://api.example.com/data');  // 会 failed！
 
 // ✅ 正确：全部 HTTPS
@@ -135,7 +135,7 @@ curl -v https://api.example.com/data
 
 # 测试 CORS 预检
 curl -X OPTIONS https://api.example.com/data \
-  -H 'Origin: https://tools.xsanye.cn' \
+  -H 'Origin: https://clovertools.cn' \
   -H 'Access-Control-Request-Method: GET'
 
 # 看响应头里有没有 CORS 头
