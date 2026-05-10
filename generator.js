@@ -17,6 +17,29 @@ const PLUGINS_TOOLS_JSON_PATH = path.join(BASE, 'plugins', 'tools.json');
 const PLUGINS_DIR = path.join(BASE, 'plugins');
 const PLUGINS_TEMPLATES_DIR = path.join(BASE, 'plugins', 'templates');
 
+// ============ HQ Article Mode ============
+const HQ_KEYWORDS = [
+  'json格式化怎么用',
+  'api请求超时怎么办',
+  'base64编码原理',
+  '密码强度检测',
+  '时间戳转换',
+];
+const isHqMode = process.argv.includes('--hq');
+const hqStateFile = path.join(BASE, '.hq-state.json');
+
+function getHqState() {
+  try {
+    const raw = fs.readFileSync(hqStateFile, 'utf8');
+    return JSON.parse(raw);
+  } catch { return { index: 0 };
+  }
+}
+
+function saveHqState(state) {
+  fs.writeFileSync(hqStateFile, JSON.stringify(state));
+}
+
 // ============ Load templates ============
 const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf8');
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
@@ -2244,6 +2267,160 @@ ${footerHtml}
   console.log('   Generated robots.txt');
 
   console.log(' Done! Output in dist/');
+}
+
+function buildHqArticle(keyword) {
+  ensureDir(path.join(DIST_DIR, 'blog'));
+
+  const slug = keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
+  const picsumId = Math.floor(Math.random() * 900) + 50;
+  const heroUrl = `https://picsum.photos/id/${picsumId}/1600/900`;
+
+  const today = new Date().toISOString().split('T')[0];
+  const blogUrl = BASE_URL + '/blog/' + slug;
+
+  // Resolve tool for this keyword
+  const kwEntry = keywordsConfig.find(k => k.keyword === keyword) || {};
+  const toolInfo = resolveTool({ keyword, intent: kwEntry.intent });
+  const t = toolInfo ? `<a href="/tools/${toolInfo.path}" class="tool-cta">${toolInfo.name}</a>` : '';
+
+  const faqs = {
+    'json格式化怎么用': [
+      { q: 'JSON 格式化了还是报错怎么办？', a: '格式化只是让 JSON 更易读，如果仍然报错说明数据本身有问题——可能是多了逗号、引号不匹配、或键名拼写错误。建议用工具的"校验"功能定位具体位置。' },
+      { q: 'JSON 和 XML 哪个更好？', a: 'JSON 更轻量、解析更快，是现代 API 的主流选择。XML 在文档式传输（如 SOAP）和需要复杂元数据的场景仍有优势。' },
+      { q: '大文件 JSON 格式化会卡吗？', a: '浏览器端处理几百 KB 的 JSON 通常没问题，但如果超过 5MB 可能会有性能问题，这时建议用命令行工具或分片处理。' },
+    ],
+    'api请求超时怎么办': [
+      { q: '请求超时是前端还是后端的问题？', a: '都有可能。前端超时可能是网络问题或请求太频繁；后端超时可能是接口处理时间过长、数据库慢查询、或服务资源不足。先看超时时间是否设置合理。' },
+      { q: '怎么让接口响应更快？', a: '后端：加缓存（Redis）、优化数据库查询、加索引、减少不必要的计算。前端：做请求防抖/节流、对大文件请求用分片上传、预加载关键数据。' },
+      { q: 'retry 几次比较合理？', a: '一般 3 次以内。指数退避（1s → 2s → 4s）比固定间隔更合理，避免惊群效应。如果涉及写操作，retry 前要确保幂等性。' },
+    ],
+    'base64编码原理': [
+      { q: 'Base64 能加密吗？', a: '不能。Base64 只是编码格式，任何人都能解码，不适合存储密码或敏感数据。如需加密用 AES/RSA 等加密算法，Base64 只是为了让二进制数据能安全通过文本协议传输。' },
+      { q: 'Base64 比原文件大多少？', a: '大约大 33%。每 3 字节映射成 4 个 Base64 字符，不足时用 = 填充。所以 1MB 的图片转 Base64 后约 1.33MB。' },
+      { q: '图片转 Base64 后太长了怎么办？', a: '这是正常的，Base64 不适合存储大图片。正确做法是把图片上传到对象存储（OSS/COS），然后在 HTML 里引用 URL。' },
+    ],
+  };
+
+  const faqList = faqs[keyword] || [
+    { q: `${keyword} 是什么？`, a: '这是开发中常见的技术问题，通常和具体的工具使用场景相关。理解原理后解决问题会更快。' },
+    { q: `遇到 ${keyword} 应该怎么处理？`, a: '先确认具体场景和错误信息，然后用对应的工具验证和修复。如果自己无法解决，可以查看官方文档或搜索类似案例。' },
+    { q: `${keyword} 有没有更好的解决方案？`, a: '不同场景最佳方案不同。建议多对比几种工具的实际效果，找到最适合自己使用场景的方法。' },
+  ];
+
+  const faqHtml = faqList.map(f => `<div class="faq-item"><div class="faq-q">${f.q}</div><div class="faq-a">${f.a}</div></div>`).join('\n');
+
+  const caseStudies = {
+    'json格式化怎么用': {
+      scenario: '你正在调试一个第三方 API，返回的数据是压缩过的 JSON，单行看完整个人都麻了。',
+      steps: ['打开 <a href="/tools/format-conversion/json-format.html">JSON 格式化工具</a>，粘贴压缩后的 JSON', '点击"格式化"按钮，数据立刻缩进分层', '看到报错后，展开具体报错位置，用工具定位到多余逗号', '修复后重新格式化，确认无报错', '复制格式化后的内容替换源代码中'],
+    },
+    'api请求超时怎么办': {
+      scenario: '你的前端调用用户列表接口，结果等了 30 秒直接报超时错误，用户以为页面坏了。',
+      steps: ['先用浏览器开发者工具 Network 面板确认接口实际响应时间', '如果后端确实慢，检查是否有 N+1 查询问题（循环查数据库）', '给查询加上 Redis 缓存，设 5 分钟过期', '前端调接口时设置 10 秒 timeout， 超时后提示用户"稍后再试"', '长期优化：考虑分页、数据预加载、接口缓存'],
+    },
+    'base64编码原理': {
+      scenario: '你写了一个接口签名算法，结果对方系统解码出来是乱码，排查了两小时发现是编码问题。',
+      steps: ['确认发送端和接收端都用 UTF-8 编码', '在拼接 Base64 字符串时不要手动加换行或空格', '传输特殊字符（+ / =）时注意 URL 编码，+ 会变成空格', '用工具验证两端编解码结果是否一致', '生产环境建议直接用库的 Base64 方法，不要自己写'],
+    },
+  };
+
+  const cs = caseStudies[keyword] || {
+    scenario: '你在实际项目中遇到了这个具体问题，以下是推荐的处理步骤。',
+    steps: ['用工具验证问题，确认是哪个环节出了问题', '根据错误信息定位原因，不要盲目猜测', '修复后用工具再次验证', '记录问题原因和解决方法，下次遇到同类问题直接查'],
+  };
+
+  const caseStudyHtml = `
+<div class="case-study">
+  <h3>📋 真实案例</h3>
+  <p>${cs.scenario}</p>
+  <ol>${cs.steps.map(s => `<li>${s}</li>`).join('')}</ol>
+</div>`;
+
+  const toolLinksHtml = toolInfo
+    ? `<div class="tools-section">
+        <h3>🛠️ 相关工具</h3>
+        <div class="tool-list">
+          <a href="/tools/${toolInfo.path}" class="tool-card">
+            <span class="tool-name">${toolInfo.name}</span>
+            <span class="tool-desc">${toolInfo.desc || '在线工具，马上使用'}</span>
+          </a>
+        </div>
+      </div>`
+    : `<div class="tools-section">
+        <h3>🛠️ 相关工具</h3>
+        <p><a href="/tools/">浏览全部工具 →</a></p>
+      </div>`;
+
+  const articleContent = `
+<div class="hq-article">
+  <div class="hq-hero">
+    <img src="${heroUrl}" alt="${keyword}" loading="lazy">
+  </div>
+  <div class="hq-intro">
+    <p class="scene">💬 ${cs.scenario}</p>
+  </div>
+
+  <h2>🔍 问题分析</h2>
+  <p>${keyword} 是开发过程中常见的技术问题。表面看是一个报错或需求，实际上往往涉及几个层面的理解：</p>
+  <ul>
+    <li><strong>数据格式</strong> — 输入是否符合预期的格式要求？</li>
+    <li><strong>编码处理</strong> — 字符串在不同系统间传输时编码是否一致？</li>
+    <li><strong>工具选择</strong> — 是否用对了工具，还是在用错误的方式解决正确的问题？</li>
+  </ul>
+
+  ${caseStudyHtml}
+
+  <h2>⚡ 快速解决</h2>
+  ${t ? `<p><strong>推荐工具：</strong>${t}</p>` : '<p>使用上方相关工具可以快速验证和解决问题。</p>'}
+
+  ${toolLinksHtml}
+
+  <h2>❓ 常见问题</h2>
+  <div class="faq-list">${faqHtml}</div>
+
+  <h2>📝 总结</h2>
+  <p>遇到 <strong>${keyword}</strong> 的核心思路是：先定位问题出在哪一层（数据、编码、逻辑），再用对应工具验证，最后修复并确认。保持工具在手边，遇到问题随时验证，能大幅提升调试效率。</p>
+</div>`;
+
+  let pageHtml = blogTemplate
+    .replace(/\{\{PAGE_TITLE\}\}/g, keyword + ' - CloverTools')
+    .replace(/\{\{PAGE_DESC\}\}/g, '解决' + keyword + '的实战方法，配合在线工具免费使用，CloverTools开发者工具箱。')
+    .replace(/\{\{PAGE_KEYWORDS\}\}/g, keyword + ',开发者工具,问题解决,CloverTools')
+    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
+    .replace(/\{\{PAGE_OG_TITLE\}\}/g, keyword + ' - CloverTools')
+    .replace(/\{\{PAGE_OG_DESC\}\}/g, '解决' + keyword + '的实战指南，CloverTools在线工具免费使用。')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, heroUrl)
+    .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
+    .replace('{{ARTICLE_CATEGORY}}', '开发问题')
+    .replace(/\{\{ARTICLE_TITLE\}\}/g, keyword)
+    .replace('{{ARTICLE_DATE}}', today)
+    .replace('{{ARTICLE_CONTENT}}', articleContent)
+    .replace('{{TOOL_LINKS}}', toolLinksHtml)
+    .replace('{{FAQ_CONTENT}}', '')
+    .replace('{{RELATED_QUESTIONS}}', '')
+    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
+    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
+    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml);
+
+  const outPath = path.join(DIST_DIR, 'blog', slug + '.html');
+  fs.writeFileSync(outPath, pageHtml);
+  return { keyword, slug, heroUrl, outPath };
+}
+
+// HQ mode: generate one article and exit
+if (isHqMode) {
+  console.log('🍀 HQ Article Mode');
+  const state = getHqState();
+  const keyword = HQ_KEYWORDS[state.index % HQ_KEYWORDS.length];
+  console.log(`   Writing: ${keyword} (${state.index + 1}/${HQ_KEYWORDS.length})`);
+  const result = buildHqArticle(keyword);
+  state.index = (state.index + 1) % HQ_KEYWORDS.length;
+  saveHqState(state);
+  console.log(`   ✅ Saved: ${result.outPath}`);
+  console.log(`   🖼️  Hero: ${result.heroUrl}`);
+  console.log(' Done!');
+  process.exit(0);
 }
 
 generate();
