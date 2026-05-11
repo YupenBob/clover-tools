@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Smoke test for clovertools.cn
- * Tests key pages and reports results as JSON.
+ * Tests key pages, exits non-zero on failure.
+ * Feishu push handled by caller (cron isolated mode with delivery).
  */
 const https = require('https');
 
@@ -36,20 +37,20 @@ async function run() {
   const results = await Promise.all(TEST_URLS.map(testUrl));
   const ok = results.filter(r => r.ok);
   const fail = results.filter(r => !r.ok);
-  const output = {
-    date: new Date().toISOString(),
-    total: results.length,
-    ok: ok.length,
-    fail: fail.length,
-    results: results,
-  };
+  const output = { date: new Date().toISOString(), total: results.length, ok: ok.length, fail: fail.length };
   console.log(JSON.stringify(output, null, 2));
-  if (fail.length > 0) {
+
+  const time = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+  if (fail.length === 0) {
+    console.log(`🍀 CloverTools 冒烟测试 ${time}`);
+    console.log(`✅ 全部 ${ok.length}/${results.length} 个页面正常`);
+  } else {
     console.error('FAILED PAGES:');
     fail.forEach(f => console.error(`  ${f.path} -> ${f.status} ${f.error || ''}`));
+    console.error(`❌ CloverTools 冒烟测试 ${time}`);
+    console.error(`⚠️  ${fail.length}/${results.length} 页面异常`);
     process.exit(1);
   }
-  console.log(`All ${ok.length}/${results.length} pages OK`);
 }
 
 run();
