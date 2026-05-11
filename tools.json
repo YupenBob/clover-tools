@@ -1487,6 +1487,22 @@
         "icon": "bi bi-braces",
         "title": "LESS转CSS - 在线LESS编译器将LESS转换为CSS",
         "formatFn": "function(v, opts) {\n  if (opts && opts.minify) {\n    return v.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\s+/g, ' ').replace(/\\s*([{}:;,])\\s*/g, '$1').trim();\n  }\n  var indent = 0;\n  var lines = v.replace(/\\r\\n/g, '\\n').split('\\n');\n  var result = [];\n  for (var i = 0; i < lines.length; i++) {\n    var line = lines[i].trim();\n    if (!line || line.startsWith('//')) continue;\n    if (line.startsWith('}')) indent = Math.max(0, indent - 1);\n    result.push('  '.repeat(indent) + line);\n    if (line.endsWith('{')) indent++;\n  }\n  return result.join('\\n');\n}"
+      },
+      {
+        "name": "ai生成失败怎么办",
+        "path": "develop/ai.html",
+        "category": "开发工具",
+        "description": "在线ai生成失败怎么办工具 - 高效便捷",
+        "keywords": [
+          "ai生成失败怎么办",
+          "ai生成失败怎么办工具",
+          "在线ai生成失败怎么办"
+        ],
+        "type": "generic",
+        "tags": [
+          "开发工具",
+          "在线工具"
+        ]
       }
     ]
   },
@@ -2901,7 +2917,8 @@
         "renderFn": "function(data, search) { return '<div class=tool-card><h3>URL 参数解析</h3><p style=color:#888;>在下方搜索框输入完整 URL 进行解析</p></div>'; }",
         "icon": "bi bi-globe2",
         "title": "URL 参数解析 - 解析 URL 查询字符串并表格化展示",
-        "customScript": "document.getElementById('parseBtn').onclick=function(){try{var url=document.getElementById('urlInput').value;var a=document.createElement('a');a.href=url;var result='href: '+a.href+'\\norigin: '+a.origin+'\\nprotocol: '+a.protocol+'\\nhost: '+a.hostname+'\\nport: '+a.port+'\\npathname: '+a.pathname+'\\nsearch: '+a.search+'\\nhash: '+a.hash;var params={};a.search.replace(/([^&=]+)=([^&]*)/g,function(k,v){params[k]=v;});result+='\\n参数:\\n';for(var p in params)result+=p+': '+params[p]+'\\n';document.getElementById('output').value=result;}catch(e){document.getElementById('output').value='URL解析错误: '+e.message;}};"
+        "customScript": "document.getElementById('parseBtn').onclick=function(){try{var url=document.getElementById('urlInput').value;var a=document.createElement('a');a.href=url;var result='href: '+a.href+'\\norigin: '+a.origin+'\\nprotocol: '+a.protocol+'\\nhost: '+a.hostname+'\\nport: '+a.port+'\\npathname: '+a.pathname+'\\nsearch: '+a.search+'\\nhash: '+a.hash;var params={};a.search.replace(/([^&=]+)=([^&]*)/g,function(k,v){params[k]=v;});result+='\\n参数:\\n';for(var p in params)result+=p+': '+params[p]+'\\n';document.getElementById('output').value=result;}catch(e){document.getElementById('output').value='URL解析错误: '+e.message;}};",
+        "description": "URL 参数解析在线工具"
       }
     ]
   }
