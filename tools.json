@@ -281,6 +281,37 @@
         "icon": "bi bi-image",
         "title": "照片元信息编辑器 - 可视化EXIF编辑工具",
         "description": "批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。"
+      },
+      {
+        "name": "照片元信息编辑器",
+        "path": "format-conversion/photo-meta-editor.html",
+        "desc": "批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。",
+        "keywords": [
+          "照片元信息",
+          "EXIF编辑",
+          "GPS坐标修改",
+          "拍摄时间修改",
+          "照片编辑"
+        ],
+        "type": "tool-custom",
+        "icon": "bi bi-image",
+        "title": "照片元信息编辑器 - 可视化EXIF编辑工具"
+      },
+      {
+        "name": "照片隐私信息去除",
+        "path": "format-conversion/photo-privacy-cleaner.html",
+        "desc": "一键去除照片中的GPS位置、拍摄设备信息等隐私EXIF数据，防止照片分享时泄露个人位置和设备信息。",
+        "keywords": [
+          "照片隐私",
+          "EXIF去除",
+          "GPS去除",
+          "位置隐私",
+          "照片安全",
+          "元信息清理"
+        ],
+        "type": "tool-custom",
+        "icon": "bi bi-shield-lock",
+        "title": "照片隐私信息去除 - 批量清除EXIF敏感数据"
       }
     ]
   },
@@ -3059,6 +3090,21 @@
         "title": "URL 参数解析 - 解析 URL 查询字符串并表格化展示",
         "customScript": "document.getElementById('parseBtn').onclick=function(){try{var url=document.getElementById('urlInput').value;var a=document.createElement('a');a.href=url;var result='href: '+a.href+'\\norigin: '+a.origin+'\\nprotocol: '+a.protocol+'\\nhost: '+a.hostname+'\\nport: '+a.port+'\\npathname: '+a.pathname+'\\nsearch: '+a.search+'\\nhash: '+a.hash;var params={};a.search.replace(/([^&=]+)=([^&]*)/g,function(k,v){params[k]=v;});result+='\\n参数:\\n';for(var p in params)result+=p+': '+params[p]+'\\n';document.getElementById('output').value=result;}catch(e){document.getElementById('output').value='URL解析错误: '+e.message;}};",
         "description": "URL 参数解析在线工具"
+      },
+      {
+        "name": "M3U8解析下载",
+        "path": "network/m3u8-downloader.html",
+        "desc": "解析M3U8播放列表，提取所有TS分片并合并下载为MP4，支持m3u8链接和文件上传，浏览器端直接完成。",
+        "keywords": [
+          "m3u8下载",
+          "视频解析",
+          "hls下载",
+          "m3u8解析",
+          "视频下载器"
+        ],
+        "type": "tool-custom",
+        "icon": "bi bi-play-circle",
+        "title": "M3U8解析下载 - TS分片合并为MP4"
       }
     ]
   }

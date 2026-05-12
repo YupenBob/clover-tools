@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>照片元信息编辑器 - CloverTools</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+            background-color: #0d1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #c9a96e, #a8894d);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0d1117;
+            font-size: 18px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #e0e0e0;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #c9a96e;
+        }
+
+        .upload-zone {
+            border: 2px dashed #30363d;
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: #c9a96e;
+            background-color: rgba(201, 169, 110, 0.05);
+        }
+
+        .upload-zone i {
+            font-size: 48px;
+            color: #c9a96e;
+            margin-bottom: 12px;
+        }
+
+        .upload-zone p {
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        .upload-zone .formats {
+            color: #6e7681;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .preview-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .metadata-table th,
+        .metadata-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .metadata-table th {
+            color: #c9a96e;
+            font-weight: 500;
+            width: 40%;
+        }
+
+        .metadata-table td {
+            color: #e0e0e0;
+        }
+
+        .no-exif {
+            color: #8b949e;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .edit-form {
+            display: grid;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #c9a96e;
+        }
+
+        .form-group input {
+            padding: 10px 12px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #c9a96e;
+        }
+
+        .form-group input::placeholder {
+            color: #6e7681;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #c9a96e;
+            color: #0d1117;
+        }
+
+        .btn-primary:hover {
+            background-color: #b89a5f;
+        }
+
+        .btn-primary:disabled {
+            background-color: #4a4a4a;
+            color: #8b949e;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: #e0e0e0;
+            border: 1px solid #30363d;
+        }
+
+        .btn-secondary:hover {
+            border-color: #c9a96e;
+            color: #c9a96e;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #6e7681;
+            font-size: 12px;
+            border-top: 1px solid #30363d;
+        }
+
+        .error-message {
+            background-color: rgba(248, 81, 73, 0.1);
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background-color: rgba(63, 185, 80, 0.1);
+            border: 1px solid #3fb950;
+            color: #3fb950;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .main-container {
+                padding: 16px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .btn-container {
+                flex-direction: column;
+            }
+
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">C</div>
+        <h1 class="header-title">CloverTools - 照片元信息编辑器</h1>
+    </header>
+
+    <main class="main-container">
+        <div class="card">
+            <h2 class="card-title">
+                <i class="bi bi-cloud-upload"></i>
+                上传照片
+            </h2>
+            <div class="upload-zone" id="uploadZone">
+                <i class="bi bi-image"></i>
+                <p>拖拽照片到这里，或点击选择文件</p>
+                <p class="formats">支持 JPG、PNG 格式</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png">
+            
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" class="preview-image" alt="预览图片">
+            </div>
+
+            <div id="errorContainer"></div>
+        </div>
+
+        <div class="card" id="metadataCard">
+            <h2 class="card-title">
+                <i class="bi bi-info-circle"></i>
+                图片元信息
+            </h2>
+            <div id="metadataContent">
+                <p class="no-exif">请上传照片以查看元信息</p>
+            </div>
+        </div>
+
+        <div class="card" id="editCard">
+            <h2 class="card-title">
+                <i class="bi bi-pencil"></i>
+                编辑元信息
+            </h2>
+            <form class="edit-form" id="editForm">
+                <div class="form-group">
+                    <label for="gpsLatitude">GPS 纬度 (decimal)</label>
+                    <input type="text" id="gpsLatitude" placeholder="例如: 25.0330">
+                </div>
+                <div class="form-group">
+                    <label for="gpsLongitude">GPS 经度 (decimal)</label>
+                    <input type="text" id="gpsLongitude" placeholder="例如: 121.5654">
+                </div>
+                <div class="form-group">
+                    <label for="dateTime">拍摄时间</label>
+                    <input type="text" id="dateTime" placeholder="例如: 2024:01:15 10:30:00">
+                </div>
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary" id="downloadBtn" disabled>
+                        <i class="bi bi-download"></i>
+                        下载编辑后的图片
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="resetBtn">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 CloverTools - 照片元信息编辑器</p>
+    </footer>
+
+    <script>
+        (function() {
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewImage = document.getElementById('previewImage');
+            const metadataContent = document.getElementById('metadataContent');
+            const editForm = document.getElementById('editForm');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const errorContainer = document.getElementById('errorContainer');
+            const gpsLatitudeInput = document.getElementById('gpsLatitude');
+            const gpsLongitudeInput = document.getElementById('gpsLongitude');
+            const dateTimeInput = document.getElementById('dateTime');
+
+            let currentFile = null;
+            let originalExifData = null;
+            let hasExifData = false;
+
+            function showError(message) {
+                errorContainer.innerHTML = `<div class="error-message"><i class="bi bi-exclamation-triangle"></i> ${message}</div>`;
+                setTimeout(() => {
+                    errorContainer.innerHTML = '';
+                }, 5000);
+            }
+
+            function showSuccess(message) {
+                errorContainer.innerHTML = `<div class="success-message"><i class="bi bi-check-circle"></i> ${message}</div>`;
+                setTimeout(() => {
+                    errorContainer.innerHTML = '';
+                }, 3000);
+            }
+
+            function formatGPSCoordinate(coordinate, ref) {
+                if (!coordinate || coordinate.length < 3) return null;
+                const degrees = coordinate[0];
+                const minutes = coordinate[1];
+                const seconds = coordinate[2];
+                let decimal = degrees + minutes / 60 + seconds / 3600;
+                if (ref === 'S' || ref === 'W') {
+                    decimal = -decimal;
+                }
+                return decimal.toFixed(6);
+            }
+
+            function readExifData(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            EXIF.getData(img, function() {
+                                const allTags = EXIF.getAllTags(this);
+                                const exifData = {
+                                    GPSLatitude: allTags.GPSLatitude,
+                                    GPSLongitude: allTags.GPSLongitude,
+                                    GPSLatitudeRef: allTags.GPSLatitudeRef,
+                                    GPSLongitudeRef: allTags.GPSLongitudeRef,
+                                    DateTimeOriginal: allTags.DateTimeOriginal,
+                                    Make: allTags.Make,
+                                    Model: allTags.Model,
+                                    Software: allTags.Software,
+                                    LensModel: allTags.LensModel
+                                };
+                                resolve(exifData);
+                            });
+                        };
+                        img.onerror = function() {
+                            reject(new Error('无法加载图片'));
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = function() {
+                        reject(new Error('读取文件失败'));
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function displayMetadata(exifData) {
+                let html = '';
+                hasExifData = false;
+
+                const gpsLat = formatGPSCoordinate(exifData.GPSLatitude, exifData.GPSLatitudeRef);
+                const gpsLng = formatGPSCoordinate(exifData.GPSLongitude, exifData.GPSLongitudeRef);
+
+                const fields = [
+                    { label: 'GPS 纬度', value: gpsLat, key: 'GPSLatitude' },
+                    { label: 'GPS 经度', value: gpsLng, key: 'GPSLongitude' },
+                    { label: '拍摄时间', value: exifData.DateTimeOriginal, key: 'DateTimeOriginal' },
+                    { label: '相机品牌', value: exifData.Make, key: 'Make' },
+                    { label: '相机型号', value: exifData.Model, key: 'Model' },
+                    { label: '软件', value: exifData.Software, key: 'Software' },
+                    { label: '镜头型号', value: exifData.LensModel, key: 'LensModel' }
+                ];
+
+                for (const field of fields) {
+                    if (field.value) {
+                        hasExifData = true;
+                        html += `<tr><th>${field.label}</th><td>${field.value}</td></tr>`;
+                    }
+                }
+
+                if (!hasExifData) {
+                    metadataContent.innerHTML = '<p class="no-exif">此照片没有EXIF信息</p>';
+                    gpsLatitudeInput.value = '';
+                    gpsLongitudeInput.value = '';
+                    dateTimeInput.value = '';
+                } else {
+                    metadataContent.innerHTML = `<table class="metadata-table"><tbody>${html}</tbody></table>`;
+                    
+                    if (gpsLat) gpsLatitudeInput.value = gpsLat;
+                    if (gpsLng) gpsLongitudeInput.value = gpsLng;
+                    if (exifData.DateTimeOriginal) dateTimeInput.value = exifData.DateTimeOriginal;
+                }
+
+                downloadBtn.disabled = false;
+            }
+
+            async function handleFile(file) {
+                if (!file) return;
+
+                if (!file.type.match(/^image\/(jpeg|png)$/)) {
+                    showError('请上传 JPG 或 PNG 格式的图片');
+                    return;
+                }
+
+                if (file.size > 50 * 1024 * 1024) {
+                    showError('文件大小不能超过 50MB');
+                    return;
+                }
+
+                currentFile = file;
+                errorContainer.innerHTML = '';
+                previewContainer.classList.add('active');
+                previewImage.src = URL.createObjectURL(file);
+
+                try {
+                    originalExifData = await readExifData(file);
+                    displayMetadata(originalExifData);
+                } catch (error) {
+                    showError('读取图片信息时出错：' + error.message);
+                    metadataContent.innerHTML = '<p class="no-exif">此照片没有EXIF信息</p>';
+                    hasExifData = false;
+                    downloadBtn.disabled = false;
+                }
+            }
+
+            uploadZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                handleFile(file);
+            });
+
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            uploadZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                handleFile(file);
+            });
+
+            resetBtn.addEventListener('click', () => {
+                if (originalExifData) {
+                    displayMetadata(originalExifData);
+                    showSuccess('已重置为原始数据');
+                }
+            });
+
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                if (!currentFile) {
+                    showError('请先上传图片');
+                    return;
+                }
+
+                try {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        try {
+                            let imageData = event.target.result;
+                            let binary = imageData;
+
+                            if (imageData.indexOf('data:image/jpeg;base64,') === 0) {
+                                binary = atob(imageData.split(',')[1]);
+                            }
+
+                            let exifObj = null;
+                            try {
+                                exifObj = piexif.load(binary);
+                            } catch (e) {
+                                exifObj = { "0th": {}, "Exif": {}, "GPS": {}, "1st": {}, "thumbnail": null };
+                            }
+
+                            const lat = gpsLatitudeInput.value.trim();
+                            const lng = gpsLongitudeInput.value.trim();
+                            const datetime = dateTimeInput.value.trim();
+
+                            if (lat) {
+                                const latDeg = parseFloat(lat);
+                                const latRef = latDeg >= 0 ? 'N' : 'S';
+                                const latAbs = Math.abs(latDeg);
+                                const latMin = (latAbs % 1) * 60;
+                                const latSec = ((latMin % 1) * 60);
+                                exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef] = latRef;
+                                exifObj['GPS'][piexif.GPSIFD.GPSLatitude] = [Math.floor(latAbs), Math.floor(latMin), Math.round(latSec * 100)];
+                            } else {
+                                delete exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef];
+                                delete exifObj['GPS'][piexif.GPSIFD.GPSLatitude];
+                            }
+
+                            if (lng) {
+                                const lngDeg = parseFloat(lng);
+                                const lngRef = lngDeg >= 0 ? 'E' : 'W';
+                                const lngAbs = Math.abs(lngDeg);
+                                const lngMin = (lngAbs % 1) * 60;
+                                const lngSec = ((lngMin % 1) * 60);
+                                exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef] = lngRef;
+                                exifObj['GPS'][piexif.GPSIFD.GPSLongitude] = [Math.floor(lngAbs), Math.floor(lngMin), Math.round(lngSec * 100)];
+                            } else {
+                                delete exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef];
+                                delete exifObj['GPS'][piexif.GPSIFD.GPSLongitude];
+                            }
+
+                            if (datetime) {
+                                exifObj['Exif'][piexif.ExifIFD.DateTimeOriginal] = datetime;
+                                exifObj['0th'][piexif.ImageIFD.DateTime] = datetime;
+                            }
+
+                            const exifBytes = piexif.dump(exifObj);
+                            const newData = piexif.insert(exifBytes, binary);
+
+                            let outputData = imageData;
+                            if (imageData.indexOf('data:image/jpeg;base64,') === 0) {
+                                outputData = 'data:image/jpeg;base64,' + btoa(newData);
+                            }
+
+                            const link = document.createElement('a');
+                            const fileName = currentFile.name.replace(/\.[^.]+$/, '') + '_edited.jpg';
+                            link.download = fileName;
+                            link.href = outputData;
+                            link.click();
+
+                            showSuccess('图片已成功下载！');
+                        } catch (error) {
+                            showError('处理图片时出错：' + error.message);
+                            console.error(error);
+                        }
+                    };
+
+                    reader.onerror = function() {
+                        showError('读取文件失败');
+                    };
+
+                    if (currentFile.type === 'image/jpeg') {
+                        reader.readAsDataURL(currentFile);
+                    } else {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const img = new Image();
+                        img.onload = function() {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            ctx.drawImage(img, 0, 0);
+                            const jpegData = canvas.toDataURL('image/jpeg', 0.95);
+                            reader.readAsDataURL(dataURLtoBlob(jpegData));
+                        };
+                        img.src = URL.createObjectURL(currentFile);
+                        
+                        function dataURLtoBlob(dataurl) {
+                            const arr = dataurl.split(',');
+                            const mime = arr[0].match(/:(.*?);/)[1];
+                            const bstr = atob(arr[1]);
+                            let n = bstr.length;
+                            const u8arr = new Uint8Array(n);
+                            while (n--) {
+                                u8arr[n] = bstr.charCodeAt(n);
+                            }
+                            return new Blob([u8arr], { type: mime });
+                        }
+                        
+                        reader.readAsArrayBuffer(currentFile);
+                    }
+                } catch (error) {
+                    showError('导出图片时出错：' + error.message);
+                    console.error(error);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
