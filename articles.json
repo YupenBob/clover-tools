@@ -869,6 +869,50 @@
       "title": "Node.js内存泄漏排查5个案例 - CloverTools",
       "desc": "Node.js内存泄漏5个真实案例：全局变量、闭包、事件监听器、流未关闭、缓存累积，附排查方法和工具。",
       "content": ""
+    },
+    {
+      "keyword": "颜色格式转换 HEX RGB HSL HSV CMYK",
+      "slug": "颜色格式转换-hex-rgb-hsl-hsv-cmyk",
+      "tool": "format-conversion/color-converter.html",
+      "intent": "guide",
+      "category": "格式转换工具",
+      "title": "颜色格式转换完全指南 - HEX RGB HSL HSV CMYK 互转",
+      "desc": "详解 HEX、RGB、RGBA、HSL、HSV、CMYK 等颜色格式的含义与转换公式，附在线工具实测对比和代码示例。",
+      "content": "<h2>什么是颜色格式？</h2>\n<p>在前端开发、UI设计和图像处理中，我们经常需要在 HEX、RGB、HSL、HSV、CMYK 等颜色格式之间切换。理解每种格式的原理，能帮你更精准地控制颜色。</p>\n<h2>主流颜色格式详解</h2>\n<h3>HEX（十六进制）</h3>\n<p>用6位十六进制数表示颜色，如 <code>#FF5733</code>。优点是简洁，CSS 中最常用。缺点是不直观，难以手动调整亮度或饱和度。</p>\n<h3>RGB / RGBA</h3>\n<p>三通道表示：红(0-255)、绿(0-255)、蓝(0-255)。<code>rgba(255, 87, 51, 0.5)</code> 额外支持透明度。适合需要精确控制色彩的程序化场景。</p>\n<h3>HSL / HSLA</h3>\n<p>色相(Hue 0-360°)、饱和度(Saturation 0-100%)、亮度(Lightness 0-100%)。更符合人类对颜色的直观感知，调色时比 RGB 更容易。</p>\n<h3>HSV / HSB</h3>\n<p>色相、饱和度、明度(Value/Brightness)。与 HSL 类似，但明度计算方式不同，HSV 的纯色更亮，适合选色器实现。</p>\n<h3>CMYK</h3>\n<p>印刷专用：青(C)、品(M)、黄(Y)、黑(K)。四通道叠色，数值 0-100%。屏幕显示用 RGB，打印输出用 CMYK。</p>\n<h2>转换公式</h2>\n<p>以下是核心转换逻辑的 JavaScript 实现：</p>\n<pre><code>// RGB to HEX\nfunction rgbToHex(r, g, b) {\n  return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');\n}\n\n// RGB to HSL\nfunction rgbToHsl(r, g, b) {\n  r /= 255; g /= 255; b /= 255;\n  const max = Math.max(r,g,b), min = Math.min(r,g,b);\n  let h, s, l = (max + min) / 2;\n  if (max === min) { h = s = 0; }\n  else {\n    const d = max - min;\n    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);\n    switch(max) {\n      case r: h = ((g-b)/d + (g<b?6:0))/6; break;\n      case g: h = ((b-r)/d + 2)/6; break;\n      case b: h = ((r-g)/d + 4)/6; break;\n    }\n  }\n  return [h*360, s*100, l*100];\n}</code></pre>\n<h2>常见问题</h2>\n<p><strong>Q: HEX 和 RGB 哪个更好？</strong><br>CSS 使用场景选 HEX，程序化处理选 RGB，数据传输选 HEX。</p>\n<p><strong>Q: 为什么同一颜色在不同软件里显示不一样？</strong><br>色彩管理模式不同（sRGB vs Adobe RGB），建议统一使用 sRGB 标准。</p>\n<p><strong>Q: HSV 和 HSL 选哪个？</strong><br>做选色器用 HSV 更直观；做色彩搭配用 HSL 更符合直觉。</p>\n<h2>在线工具实测</h2>\n<p>使用 CloverTools <a href=\"https://clovertools.cn/tools/format-conversion/color-converter.html\">颜色格式转换</a> 可视化转换，支持 HEX/RGB/HSL/HSV/CMYK 同时显示，复制任意格式的代码。</p>",
+      "faqs": []
+    },
+    {
+      "keyword": "Hash生成器 MD5 SHA1 SHA256 SHA512 BCrypt",
+      "slug": "hash生成器-md5-sha1-sha256-sha512-bcrypt",
+      "tool": "format-conversion/hash-generator.html",
+      "intent": "guide",
+      "category": "加密工具",
+      "title": "Hash生成器完全指南 - MD5/SHA/BCrypt 算法详解",
+      "desc": "在线生成 Hash 散列值，支持 MD5、SHA-1、SHA-256、SHA-512、BCrypt。详解各算法特点和使用场景。",
+      "content": "<h2>Hash 是什么？</h2>\n<p>Hash（散列）是把任意长度数据映射为固定长度字符串的函数。相同输入必定产生相同输出，不同输入极大概率产生不同输出。不可逆（无法从 Hash 反推原始数据）。</p>\n<h2>常见 Hash 算法</h2>\n<h3>MD5</h3>\n<p>128位（16字节）输出，已不建议用于安全场景，但仍广泛用于数据校验（如文件完整性验证）。速度极快，容易被暴力破解。</p>\n<h3>SHA-1</h3>\n<p>160位输出，已被证实存在碰撞漏洞。Git 用 SHA-1 做提交签名，浏览器证书签名逐步废弃中。</p>\n<h3>SHA-256 / SHA-512</h3>\n<p>SHA-2 系列，256位和512位输出。SHA-256 是目前最广泛使用的安全 Hash 算法（TLS证书、比特币等）。</p>\n<h3>BCrypt</h3>\n<p>专为密码存储设计，内置盐值（salt）和可配置的工作因子（cost），会自动加盐防彩虹表攻击。工作因子越高，破解成本指数级上升。</p>\n<h2>代码示例</h2>\n<pre><code>// Node.js 计算 SHA-256\nconst crypto = require('crypto');\nconst hash = crypto.createHash('sha256').update('Hello').digest('hex');\nconsole.log(hash); // 185f8db3...\n\n// Python 计算 MD5\nimport hashlib\nprint(hashlib.md5(b'Hello').hexdigest())\n\n// BCrypt 密码哈希（Node.js）\nconst bcrypt = require('bcrypt');\nconst hash = await bcrypt.hash('password', 10);</code></pre>\n<h2>使用场景</h2>\n<ul>\n<li><strong>文件校验</strong>：下载文件后计算 MD5/SHA-256 与官网比对，防止篡改</li>\n<li><strong>密码存储</strong>：用 BCrypt 存密码（永远不要存明文）</li>\n<li><strong>数字签名</strong>：非对称加密的摘要算法</li>\n<li><strong>区块链</strong>：工作量证明（Proof of Work）</li>\n</ul>\n<h2>常见问题</h2>\n<p><strong>Q: MD5 还能用吗？</strong><br>可以用于文件校验等非安全场景，但密码存储绝对不要用 MD5。</p>\n<p><strong>Q: BCrypt 的 cost 应该设多少？</strong><br>建议 10-12，在可接受的速度（100-500ms）和安全性之间平衡。</p>\n<p><strong>Q: 相同密码会产生相同的 Hash 吗？</strong><br>BCrypt 会随机加盐，每次不同；MD5/SHA 会相同（所以要加盐）。</p>\n<h2>在线生成</h2>\n<p>使用 CloverTools <a href=\"https://clovertools.cn/tools/format-conversion/hash-generator.html\">Hash 生成器</a> 在线生成各种算法的 Hash 值，无需安装任何依赖。</p>",
+      "faqs": []
+    },
+    {
+      "keyword": "JWT解码器 Token解析验证",
+      "slug": "jwt解码器-token解析-header-payload",
+      "tool": "encrypt/jwt-decoder.html",
+      "intent": "guide",
+      "category": "加密工具",
+      "title": "JWT 解码器完全指南 - 解析 Token Header 和 Payload",
+      "desc": "在线解析 JWT Token，无需服务器即可查看 Header、Payload、签名信息，支持 HS256/RS256 等算法验证。",
+      "content": "<h2>JWT 是什么？</h2>\n<p>JWT（JSON Web Token）是一种用于身份验证和信息交换的开放标准（RFC 7519）。它由三部分组成，用点号分隔：<code>Header.Payload.Signature</code></p>\n<h2>JWT 结构详解</h2>\n<h3>Header（头部）</h3>\n<p>包含令牌类型（通常是 JWT）和使用的签名算法（如 HS256、RS256、ES256）。Base64URL 编码。</p>\n<pre><code>{\n  \"alg\": \"HS256\",\n  \"typ\": \"JWT\"\n}</code></pre>\n<h3>Payload（载荷）</h3>\n<p>包含声明（claims），分为三类：注册声明（如 exp 过期时间、sub 用户ID）、公开声明（自定义）、私有声明（双方约定）。</p>\n<pre><code>{\n  \"sub\": \"1234567890\",\n  \"name\": \"John Doe\",\n  \"exp\": 1699999999,\n  \"iat\": 1699996399\n}</code></pre>\n<h3>Signature（签名）</h3>\n<p>将编码后的 Header 和 Payload 用指定算法加密，验证数据没有被篡改。</p>\n<h2>在线解码</h2>\n<p>使用 <a href=\"https://clovertools.cn/tools/encrypt/jwt-decoder.html\">JWT 解码器</a> 无需服务器，直接在浏览器解析 JWT：</p>\n<ol>\n<li>粘贴 Token 到输入框</li>\n<li>实时显示 Header 和 Payload 的 JSON 格式化内容</li>\n<li>查看各字段含义和有效期</li>\n<li>复制解析结果</li>\n</ol>\n<h2>HS256 vs RS256</h2>\n<p><strong>HS256</strong>：对称加密，签名和验证使用同一密钥。适合服务端内部使用，不需要公钥分发。</p>\n<p><strong>RS256</strong>：非对称加密，签名用私钥，验证用公钥。适合开放 API（如 OAuth），客户端可以使用公钥验证令牌真实性。</p>\n<h2>常见问题</h2>\n<p><strong>Q: Token 过期了怎么查？</strong><br>看 Payload 里的 <code>exp</code> 字段，是 Unix 时间戳。可以用 Unix 时间戳转换工具直接转成北京时间。</p>\n<p><strong>Q: JWT 安全吗？</strong><br>Token 本身只做了 Base64 编码（不是加密！），敏感信息不要写在 Payload 里。签名可以防止篡改，但不能防止信息泄露。</p>\n<p><strong>Q: 如何安全存储 Token？</strong><br>推荐 HttpOnly Cookie（防 XSS），避免 localStorage 存储（可被 XSS 窃取）。</p>",
+      "faqs": []
+    },
+    {
+      "keyword": "Unix时间戳转换 北京时间",
+      "slug": "unix时间戳转换-北京时间-毫秒秒级",
+      "tool": "time/unix-timestamp.html",
+      "intent": "guide",
+      "category": "时间工具",
+      "title": "Unix 时间戳转换完全指南 - 毫秒秒级与北京时间互转",
+      "desc": "详解 Unix 时间戳的原理、10位与13位的区别、时区转换问题。附在线工具直接转换，无需代码。",
+      "content": "<h2>Unix 时间戳是什么？</h2>\n<p>Unix 时间戳是从 UTC 1970年1月1日 00:00:00 到某个时刻的秒数（或毫秒数）。这是计算机领域最常用的时间表示方式，贯穿服务器存储、API 传输、日志记录等场景。</p>\n<h2>10位 vs 13位</h2>\n<ul>\n<li><strong>10位</strong>（秒级）：<code>1699999999</code>，标准 Unix 时间戳，JS 的 <code>Date.now()</code> 会除以 1000 取整</li>\n<li><strong>13位</strong>（毫秒级）：<code>1699999999000</code>，Java、JavaScript 等语言默认使用毫秒级</li>\n</ul>\n<p>互转关系：<code>秒级 × 1000 = 毫秒级</code></p>\n<h2>常见场景的时间戳</h2>\n<pre><code>// JavaScript\nDate.now()          // 1699999999000（毫秒）\nMath.floor(Date.now()/1000)  // 1699999999（秒）\n\n// Python\nimport time\ntime.time()         // 1699999999.123（秒，浮点数）\nint(time.time())    // 1699999999（秒）\n\n// Node.js\nDate.now()          // 毫秒\nDate.now() / 1000 | 0  // 秒</code></pre>\n<h2>2038年问题</h2>\n<p>32位系统的 Unix 时间戳最大值是 <code>2147483647</code>（即 2038年1月19日 03:14:07 UTC）。32位系统到 2038 年后会产生整数溢出，时间会变成负数。现代系统均已迁移到64位，无此问题。</p>\n<h2>时区注意事项</h2>\n<p>时间戳本身是 <strong>UTC 时间</strong>，与时区无关。显示给用户时需要转换为本地时区：</p>\n<pre><code>// UTC 时间戳 → 北京时间\nfunction tsToBeijing(ts) {\n  return new Date(ts * 1000).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'});\n}\n\n// JS 毫秒时间戳直接用 Date\nnew Date(1699999999000).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})</code></pre>\n<h2>常见问题</h2>\n<p><strong>Q: 1699999999 是哪天？</strong><br>2024年11月14日（具体时分秒请用工具转换）。</p>\n<p><strong>Q: API 返回的时间戳是毫秒还是秒？</strong><br>没有统一标准！必须看文档或根据数值大小判断：大于 10^12 则是毫秒，小于则通常是秒。</p>\n<p><strong>Q: 负数时间戳代表什么？</strong><br>1970 年之前的日期，如 <code>-86400</code> = 1969年12月31日。</p>\n<h2>在线转换</h2>\n<p>使用 <a href=\"https://clovertools.cn/tools/time/unix-timestamp.html\">Unix 时间戳转换</a> 在浏览器里直接转换秒级/毫秒级时间戳，支持批量转换和时区显示。</p>",
+      "faqs": []
     }
   ]
 }
