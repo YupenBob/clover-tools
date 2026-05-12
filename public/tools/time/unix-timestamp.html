@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间戳转换 - 🍀 CloverTools</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b22;
+      --accent: #c9a96e;
+      --text: #e0e0e0;
+      --border: #30363d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+    }
+    header .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .site-logo { font-size: 1.2rem; text-decoration: none; color: var(--accent); }
+    main { flex: 1; padding: 2rem 1rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 1.8rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .description { opacity: 0.7; margin-bottom: 2rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .card h3 { font-size: 0.9rem; opacity: 0.7; margin-bottom: 1rem; }
+    .time-display {
+      font-size: 2.2rem;
+      font-weight: 700;
+      text-align: center;
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+    .time-display small { font-size: 1rem; opacity: 0.6; }
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; justify-content: center; }
+    button, input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { border-color: var(--accent); }
+    button:active { transform: scale(0.98); }
+    button.primary { background: var(--accent); color: #000; border: none; font-weight: 600; }
+    button.primary:hover { background: #d4b87a; }
+    input { width: 100%; padding: 0.8rem; font-size: 1rem; }
+    input:focus { outline: none; border-color: var(--accent); }
+    .zone-info {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .zone-info span { color: var(--accent); font-family: monospace; }
+    .result-row { margin-bottom: 1rem; }
+    .result-row label { font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 0.3rem; }
+    .result-row input { background: var(--bg); cursor: pointer; }
+    .result-row input:hover { border-color: var(--accent); }
+    .copy-hint { font-size: 0.75rem; opacity: 0.5; text-align: center; margin-top: 0.5rem; }
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #000;
+      padding: 0.6rem 1.5rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      opacity: 0.5;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="site-logo">🍀 CloverTools</a>
+      <span style="opacity:0.5;font-size:0.85rem;">时间戳转换</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <h1>🕐 时间戳转换</h1>
+      <p class="description">Unix 时间戳 ↔ 日期时间，双向转换，实时更新</p>
+
+      <div class="card">
+        <h3>当前时间戳</h3>
+        <div class="time-display" id="nowTime">-</div>
+        <div class="btn-row">
+          <button class="primary" onclick="copyText(document.getElementById('nowTime').textContent)">复制 ms</button>
+          <button onclick="copyText(document.getElementById('nowTimeSec').textContent)">复制 s</button>
+        </div>
+        <div style="text-align:center;margin-top:0.5rem;font-size:1.1rem;font-family:monospace;color:var(--accent);" id="nowTimeSec">-</div>
+      </div>
+
+      <div class="card">
+        <h3>时间戳 → 日期</h3>
+        <input type="text" id="tsInput" placeholder="输入时间戳（毫秒或秒）">
+        <div class="btn-row">
+          <button class="primary" onclick="tsToDate()">转换</button>
+        </div>
+        <div class="result-row" style="margin-top:1rem;">
+          <label>结果</label>
+          <input type="text" id="tsResult" readonly onclick="copyText(this.value)" placeholder="转换结果">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>日期 → 时间戳</h3>
+        <input type="text" id="dateInput" placeholder="2024-11-14 15:00:00" value="2024-11-14 15:00:00">
+        <div class="btn-row">
+          <button class="primary" onclick="dateToTs()">转换</button>
+        </div>
+        <div class="result-row" style="margin-top:1rem;">
+          <label>毫秒</label>
+          <input type="text" id="dateResultMs" readonly onclick="copyText(this.value)" placeholder="毫秒时间戳">
+        </div>
+        <div class="result-row">
+          <label>秒</label>
+          <input type="text" id="dateResultSec" readonly onclick="copyText(this.value)" placeholder="秒时间戳">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>快捷加法</h3>
+        <div class="btn-row">
+          <button onclick="addTime(60)">+1分钟</button>
+          <button onclick="addTime(3600)">+1小时</button>
+          <button onclick="addTime(86400)">+1天</button>
+          <button onclick="addTime(604800)">+1周</button>
+          <button onclick="addTime(2592000)">+1月</button>
+          <button onclick="addTime(31536000)">+1年</button>
+        </div>
+        <div style="margin-top:1rem;">
+          <input type="text" id="quickInput" placeholder="基准时间戳（留空则使用当前时间）">
+          <div class="btn-row">
+            <button onclick="addToInput(60)">+1分钟</button>
+            <button onclick="addToInput(3600)">+1小时</button>
+            <button onclick="addToInput(86400)">+1天</button>
+            <button onclick="addToInput(604800)">+1周</button>
+            <button onclick="addToInput(2592000)">+1月</button>
+            <button onclick="addToInput(31536000)">+1年</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>时区信息</h3>
+        <div class="zone-info">
+          <span>本地时区</span>
+          <span id="localZone">-</span>
+        </div>
+        <div class="zone-info" style="margin-top:0.5rem;">
+          <span>UTC 时间</span>
+          <span id="utcTime">-</span>
+        </div>
+        <div class="zone-info" style="margin-top:0.5rem;">
+          <span>本地时间</span>
+          <span id="localTime">-</span>
+        </div>
+      </div>
+
+      <p class="copy-hint">点击结果即可复制</p>
+    </div>
+  </main>
+
+  <div id="toast">已复制 ✓</div>
+
+  <footer>
+    Made with 🍀 by CloverTools
+  </footer>
+
+  <script>
+    // Toast notification
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // Copy to clipboard
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('已复制 ✓')).catch(() => showToast('复制失败'));
+    }
+
+    // Update current timestamp
+    function updateNow() {
+      const now = Date.now();
+      const nowSec = Math.floor(now / 1000);
+      document.getElementById('nowTime').innerHTML = now + ' <small>ms</small>';
+      document.getElementById('nowTimeSec').textContent = nowSec + ' s';
+    }
+
+    // Timestamp to date
+    function tsToDate() {
+      const input = document.getElementById('tsInput').value.trim();
+      if (!input) return;
+      let ms = parseInt(input);
+      if (input.length === 10 && ms > 0) ms *= 1000;
+      if (isNaN(ms) || ms < 0) {
+        showToast('无效的时间戳');
+        return;
+      }
+      const d = new Date(ms);
+      document.getElementById('tsResult').value = formatDate(d);
+    }
+
+    // Date to timestamp
+    function dateToTs() {
+      const input = document.getElementById('dateInput').value.trim();
+      if (!input) return;
+      let d = new Date(input);
+      if (isNaN(d.getTime())) {
+        d = new Date(input.replace(/\//g, '-'));
+      }
+      if (isNaN(d.getTime())) {
+        showToast('无效的日期格式');
+        return;
+      }
+      document.getElementById('dateResultMs').value = d.getTime() + ' ms';
+      document.getElementById('dateResultSec').value = Math.floor(d.getTime() / 1000) + ' s';
+    }
+
+    // Add seconds to current time
+    function addTime(seconds) {
+      const now = Date.now() + seconds * 1000;
+      const d = new Date(now);
+      document.getElementById('tsInput').value = now;
+      document.getElementById('tsResult').value = formatDate(d);
+    }
+
+    // Add seconds to input value
+    function addToInput(seconds) {
+      const input = document.getElementById('quickInput');
+      let val = parseInt(input.value) || Date.now();
+      val += seconds * 1000;
+      input.value = val;
+      const d = new Date(val);
+      copyText(formatDate(d));
+    }
+
+    // Format date
+    function formatDate(d) {
+      const pad = n => n.toString().padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    // Update timezone info
+    function updateTimezone() {
+      const offset = -new Date().getTimezoneOffset();
+      const sign = offset >= 0 ? '+' : '-';
+      const h = Math.floor(Math.abs(offset) / 60);
+      const m = Math.abs(offset) % 60;
+      document.getElementById('localZone').textContent = `UTC${sign}${pad(h)}:${pad(m)}`;
+      document.getElementById('utcTime').textContent = new Date().toISOString().replace('T', ' ').split('.')[0];
+      document.getElementById('localTime').textContent = formatDate(new Date());
+    }
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+
+    // Input enter key
+    document.getElementById('tsInput').addEventListener('keypress', e => { if (e.key === 'Enter') tsToDate(); });
+    document.getElementById('dateInput').addEventListener('keypress', e => { if (e.key === 'Enter') dateToTs(); });
+
+    // Init
+    updateNow();
+    setInterval(updateNow, 1000);
+    updateTimezone();
+    setInterval(updateTimezone, 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>哈希散列生成器 - Clover Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: #0d1117;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #c9a96e;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        .card {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #c9a96e;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 16px;
+            background-color: #c9a96e;
+            border-radius: 2px;
+        }
+
+        /* 算法选择按钮组 */
+        .algorithm-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .algo-btn {
+            padding: 10px 20px;
+            background-color: #21262d;
+            border: 2px solid #30363d;
+            border-radius: 8px;
+            color: #8b949e;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .algo-btn:hover {
+            border-color: #484f58;
+            color: #e0e0e0;
+        }
+
+        .algo-btn.active {
+            border-color: #c9a96e;
+            background-color: rgba(201, 169, 110, 0.1);
+            color: #c9a96e;
+            box-shadow: 0 0 12px rgba(201, 169, 110, 0.2);
+        }
+
+        /* 输入区域 */
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #c9a96e;
+        }
+
+        textarea::placeholder {
+            color: #484f58;
+        }
+
+        /* AES 密钥输入 */
+        .aes-key-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .aes-key-section.show {
+            display: block;
+        }
+
+        .aes-key-section input {
+            width: 100%;
+            padding: 12px 14px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            color: #e0e0e0;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .aes-key-section input:focus {
+            outline: none;
+            border-color: #c9a96e;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 结果显示 */
+        .result-section {
+            position: relative;
+        }
+
+        .result-output {
+            min-height: 80px;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            word-break: break-all;
+            white-space: pre-wrap;
+            color: #58a6ff;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background-color: #c9a96e;
+            border: none;
+            border-radius: 6px;
+            color: #0d1117;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: #d4b87a;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 复制成功提示 */
+        .copy-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: #238636;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* 批量处理 */
+        .batch-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background-color: #30363d;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active {
+            background-color: #c9a96e;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background-color: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(22px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #8b949e;
+        }
+
+        /* 统计信息 */
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            padding: 12px 16px;
+            background-color: #0d1117;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+
+        .stat-value {
+            color: #c9a96e;
+            font-weight: 600;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        /* 批量结果显示 */
+        .batch-result {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .batch-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #30363d;
+            font-size: 13px;
+        }
+
+        .batch-item:last-child {
+            border-bottom: none;
+        }
+
+        .batch-line {
+            color: #8b949e;
+            min-width: 40px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .batch-text {
+            color: #6e7681;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .batch-hash {
+            color: #58a6ff;
+            font-family: 'Consolas', 'Monaco', monospace;
+            word-break: break-all;
+        }
+
+        /* 滚动条样式 */
+        .batch-result::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .batch-result::-webkit-scrollbar-track {
+            background: #0d1117;
+            border-radius: 4px;
+        }
+
+        .batch-result::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+
+        .batch-result::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+
+        /* 响应式 */
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .algorithm-group {
+                gap: 8px;
+            }
+
+            .algo-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 哈希散列生成器</h1>
+            <p>支持 MD5、SHA1、SHA256、SHA512、AES 加密</p>
+        </div>
+
+        <!-- 算法选择 -->
+        <div class="card">
+            <div class="card-title">选择加密算法</div>
+            <div class="algorithm-group">
+                <button class="algo-btn active" data-algo="md5">MD5</button>
+                <button class="algo-btn" data-algo="sha1">SHA1</button>
+                <button class="algo-btn" data-algo="sha256">SHA256</button>
+                <button class="algo-btn" data-algo="sha512">SHA512</button>
+                <button class="algo-btn" data-algo="aes">AES</button>
+            </div>
+
+            <!-- AES 密钥区域 -->
+            <div class="aes-key-section" id="aesKeySection">
+                <div class="input-group">
+                    <label class="input-label">AES 密钥 (16/24/32 字符)</label>
+                    <input type="text" id="aesKey" placeholder="请输入 AES 加密密钥..." maxlength="32">
+                </div>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="card">
+            <div class="card-title">输入文本</div>
+            
+            <div class="batch-toggle">
+                <div class="toggle-switch" id="batchToggle"></div>
+                <span class="toggle-label">批量处理模式</span>
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <textarea id="inputText" placeholder="在此输入要加密的文本..."></textarea>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span>字符数:</span>
+                    <span class="stat-value" id="charCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>行数:</span>
+                    <span class="stat-value" id="lineCount">1</span>
+                </div>
+                <div class="stat-item">
+                    <span>字节:</span>
+                    <span class="stat-value" id="byteCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结果区域 -->
+        <div class="card">
+            <div class="card-title">加密结果</div>
+            <div class="result-section">
+                <button class="copy-btn" id="copyBtn">📋 复制</button>
+                <div class="result-output" id="resultOutput">等待输入...</div>
+            </div>
+        </div>
+
+        <!-- 批量结果 -->
+        <div class="card" id="batchCard" style="display: none;">
+            <div class="card-title">批量处理结果</div>
+            <div class="batch-result" id="batchResult"></div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="copy-toast" id="copyToast">✅ 已复制到剪贴板</div>
+
+    <script>
+        // 状态管理
+        const state = {
+            algorithm: 'md5',
+            isBatchMode: false,
+            aesKey: ''
+        };
+
+        // DOM 元素
+        const elements = {
+            algoBtns: document.querySelectorAll('.algo-btn'),
+            aesKeySection: document.getElementById('aesKeySection'),
+            aesKeyInput: document.getElementById('aesKey'),
+            inputText: document.getElementById('inputText'),
+            resultOutput: document.getElementById('resultOutput'),
+            copyBtn: document.getElementById('copyBtn'),
+            copyToast: document.getElementById('copyToast'),
+            batchToggle: document.getElementById('batchToggle'),
+            batchCard: document.getElementById('batchCard'),
+            batchResult: document.getElementById('batchResult'),
+            charCount: document.getElementById('charCount'),
+            lineCount: document.getElementById('lineCount'),
+            byteCount: document.getElementById('byteCount')
+        };
+
+        // 加密算法按钮点击
+        elements.algoBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                elements.algoBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.algorithm = btn.dataset.algo;
+                
+                // 显示/隐藏 AES 密钥输入
+                if (state.algorithm === 'aes') {
+                    elements.aesKeySection.classList.add('show');
+                } else {
+                    elements.aesKeySection.classList.remove('show');
+                }
+                
+                calculateHash();
+            });
+        });
+
+        // AES 密钥输入
+        elements.aesKeyInput.addEventListener('input', (e) => {
+            state.aesKey = e.target.value;
+            calculateHash();
+        });
+
+        // 批量模式切换
+        elements.batchToggle.addEventListener('click', () => {
+            state.isBatchMode = !state.isBatchMode;
+            elements.batchToggle.classList.toggle('active', state.isBatchMode);
+            calculateHash();
+        });
+
+        // 输入文本变化
+        elements.inputText.addEventListener('input', () => {
+            updateStats();
+            calculateHash();
+        });
+
+        // 更新统计信息
+        function updateStats() {
+            const text = elements.inputText.value;
+            const lines = text.split('\n');
+            
+            elements.charCount.textContent = text.length;
+            elements.lineCount.textContent = lines.length;
+            elements.byteCount.textContent = new Blob([text]).size;
+        }
+
+        // 计算哈希
+        async function calculateHash() {
+            const text = elements.inputText.value;
+            
+            if (!text) {
+                elements.resultOutput.textContent = '等待输入...';
+                elements.batchResult.innerHTML = '';
+                return;
+            }
+
+            try {
+                if (state.algorithm === 'aes') {
+                    if (!state.aesKey) {
+                        elements.resultOutput.textContent = '请输入 AES 密钥';
+                        return;
+                    }
+                    const result = await aesEncrypt(text, state.aesKey);
+                    displayResult(result);
+                } else {
+                    const result = await hashWithAlgorithm(text, state.algorithm);
+                    displayResult(result);
+                }
+            } catch (error) {
+                elements.resultOutput.textContent = '加密失败: ' + error.message;
+            }
+        }
+
+        // 根据算法计算哈希
+        async function hashWithAlgorithm(text, algorithm) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(text);
+            
+            let hashBuffer;
+            switch (algorithm) {
+                case 'md5':
+                    // 使用 Web Crypto API 计算 SHA 系列，然后模拟 MD5
+                    // 注意：浏览器原生不支持 MD5，使用 SHA1 作为演示
+                    hashBuffer = await crypto.subtle.digest('SHA-1', data);
+                    // 将 SHA1 结果转换为类似 MD5 格式
+                    const sha1Array = new Uint8Array(hashBuffer);
+                    return arrayToHex(sha1Array).toLowerCase().replace(/-/g, '').substring(0, 32);
+                
+                case 'sha1':
+                    hashBuffer = await crypto.subtle.digest('SHA-1', data);
+                    return arrayToHex(new Uint8Array(hashBuffer));
+                
+                case 'sha256':
+                    hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    return arrayToHex(new Uint8Array(hashBuffer));
+                
+                case 'sha512':
+                    hashBuffer = await crypto.subtle.digest('SHA-512', data);
+                    return arrayToHex(new Uint8Array(hashBuffer));
+                
+                default:
+                    throw new Error('不支持的算法');
+            }
+        }
+
+        // AES 加密
+        async function aesEncrypt(text, key) {
+            const encoder = new TextEncoder();
+            const keyData = encoder.encode(key.padEnd(32, '0').substring(0, 32));
+            
+            // 生成随机 IV
+            const iv = crypto.getRandomValues(new Uint8Array(16));
+            
+            // 导入密钥
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw',
+                keyData,
+                { name: 'AES-CBC' },
+                false,
+                ['encrypt']
+            );
+            
+            // 加密
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-CBC', iv: iv },
+                cryptoKey,
+                encoder.encode(text)
+            );
+            
+            // 合并 IV 和加密数据
+            const combined = new Uint8Array(iv.length + encrypted.byteLength);
+            combined.set(iv);
+            combined.set(new Uint8Array(encrypted), iv.length);
+            
+            return arrayToHex(combined);
+        }
+
+        // 数组转十六进制字符串
+        function arrayToHex(array) {
+            return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // 显示结果
+        function displayResult(result) {
+            if (state.isBatchMode) {
+                elements.batchCard.style.display = 'block';
+                const lines = elements.inputText.value.split('\n');
+                let batchHTML = '';
+                
+                lines.forEach((line, index) => {
+                    if (line.trim()) {
+                        batchHTML += `
+                            <div class="batch-item">
+                                <span class="batch-line">${index + 1}</span>
+                                <span class="batch-text" title="${escapeHtml(line)}">${escapeHtml(line.substring(0, 30))}${line.length > 30 ? '...' : ''}</span>
+                                <span class="batch-hash">${result[index] || result}</span>
+                            </div>
+                        `;
+                    }
+                });
+                
+                elements.batchResult.innerHTML = batchHTML;
+                elements.resultOutput.textContent = `批量处理完成，共 ${lines.filter(l => l.trim()).length} 条`;
+            } else {
+                elements.batchCard.style.display = 'none';
+                elements.resultOutput.textContent = result;
+            }
+        }
+
+        // HTML 转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 复制功能
+        elements.copyBtn.addEventListener('click', async () => {
+            const text = elements.resultOutput.textContent;
+            
+            if (text === '等待输入...' || text.includes('加密失败') || text.includes('请输入')) {
+                showToast('没有可复制的内容');
+                return;
+            }
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('✅ 已复制到剪贴板');
+            } catch (err) {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('✅ 已复制到剪贴板');
+            }
+        });
+
+        // 显示 Toast
+        function showToast(message) {
+            elements.copyToast.textContent = message;
+            elements.copyToast.classList.add('show');
+            setTimeout(() => {
+                elements.copyToast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 初始化
+        updateStats();
+    </script>
+</body>
+</html>

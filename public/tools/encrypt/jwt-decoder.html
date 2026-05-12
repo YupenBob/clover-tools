@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT解码器 - CloverTools</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --accent: #c9a96e;
+            --text: #e0e0e0;
+            --muted: #8b949e;
+            --border: #30363d;
+            --danger: #f85149;
+            --success: #3fb950;
+            --header-color: #c9a96e;
+            --payload-color: #3fb950;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .header p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+        .input-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+        #jwtInput {
+            width: 100%;
+            min-height: 100px;
+            padding: 14px 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #jwtInput:focus {
+            border-color: var(--accent);
+        }
+        #jwtInput::placeholder {
+            color: var(--muted);
+        }
+        .decode-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #0d1117;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .decode-btn:hover { opacity: 0.85; }
+        .result-section {
+            display: none;
+        }
+        .result-section.show { display: block; }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .jwt-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .jwt-card.header-card {
+            border-color: var(--header-color);
+        }
+        .jwt-card.payload-card {
+            border-color: var(--payload-color);
+        }
+        .jwt-card.signature-card {
+            border-color: var(--border);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header-card .card-title { color: var(--header-color); }
+        .payload-card .card-title { color: var(--payload-color); }
+        .signature-card .card-title { color: var(--muted); }
+        .copy-btn {
+            padding: 6px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .copy-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .copy-btn.copied {
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .json-content {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .json-key { color: #79c0ff; }
+        .json-string { color: #a5d6ff; }
+        .json-number { color: #f2cc60; }
+        .json-boolean { color: #ff7b72; }
+        .json-null { color: #8b949e; }
+        .field-annotations {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(201, 169, 110, 0.08);
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .annotation-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .annotation-row:last-child { border-bottom: none; }
+        .annotation-label {
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .annotation-value {
+            font-weight: 500;
+        }
+        .annotation-value.expired { color: var(--danger); }
+        .annotation-value.valid { color: var(--success); }
+        .expiry-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .expiry-status.expired {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--danger);
+        }
+        .expiry-status.valid {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--success);
+        }
+        .error-message {
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 8px;
+            padding: 16px;
+            color: var(--danger);
+            text-align: center;
+            display: none;
+        }
+        .error-message.show { display: block; }
+        .signature-content {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            color: var(--muted);
+            word-break: break-all;
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .note {
+            font-size: 12px;
+            color: var(--muted);
+            text-align: center;
+            margin-top: 24px;
+            padding: 12px;
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        @media (max-width: 480px) {
+            body { padding: 20px 12px; }
+            .input-section { padding: 16px; }
+            .jwt-card { padding: 16px; }
+            .annotation-row { flex-direction: column; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎫 JWT解码器</h1>
+        <p>Base64URL解码JWT字符串，查看Header和Payload内容</p>
+    </div>
+
+    <div class="container">
+        <div class="input-section">
+            <div class="input-group">
+                <label>粘贴JWT字符串</label>
+                <textarea id="jwtInput" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"></textarea>
+            </div>
+            <button class="decode-btn" id="decodeBtn" onclick="decodeJWT()">解码JWT</button>
+        </div>
+
+        <div class="error-message" id="errorMsg"></div>
+
+        <div class="result-section" id="resultSection">
+            <div class="section-title">🔍 解码结果</div>
+
+            <div class="jwt-card header-card" id="headerCard">
+                <div class="card-header">
+                    <span class="card-title">📋 Header</span>
+                    <button class="copy-btn" onclick="copyContent('header')">
+                        <span>📋</span> 复制
+                    </button>
+                </div>
+                <div class="json-content" id="headerContent"></div>
+            </div>
+
+            <div class="jwt-card payload-card" id="payloadCard">
+                <div class="card-header">
+                    <span class="card-title">📦 Payload</span>
+                    <button class="copy-btn" onclick="copyContent('payload')">
+                        <span>📋</span> 复制
+                    </button>
+                </div>
+                <div class="json-content" id="payloadContent"></div>
+                <div class="field-annotations" id="annotations"></div>
+            </div>
+
+            <div class="jwt-card signature-card" id="signatureCard">
+                <div class="card-header">
+                    <span class="card-title">🔏 Signature</span>
+                    <button class="copy-btn" onclick="copyContent('signature')">
+                        <span>📋</span> 复制
+                    </button>
+                </div>
+                <div class="signature-content" id="signatureContent"></div>
+            </div>
+        </div>
+
+        <div class="note">
+            ⚠️ 本工具仅解码不验证签名，请勿用于安全敏感场景
+        </div>
+    </div>
+
+    <script>
+        function base64UrlDecode(str) {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) {
+                str += '=';
+            }
+            try {
+                return decodeURIComponent(atob(str).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, null, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                        match = match.slice(0, -1);
+                        return '<span class="' + cls + '">' + match + '</span>:';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+        function formatTimestamp(ts) {
+            if (!ts) return '无';
+            var date = new Date(ts * 1000);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+        }
+
+        function getTimeDiff(ts) {
+            if (!ts) return '';
+            var now = Math.floor(Date.now() / 1000);
+            var diff = ts - now;
+            if (diff < 0) {
+                diff = Math.abs(diff);
+                if (diff < 60) return '已过期 ' + diff + ' 秒';
+                if (diff < 3600) return '已过期 ' + Math.floor(diff / 60) + ' 分钟';
+                if (diff < 86400) return '已过期 ' + Math.floor(diff / 3600) + ' 小时';
+                if (diff < 86400 * 30) return '已过期 ' + Math.floor(diff / 86400) + ' 天';
+                return '已过期 ' + Math.floor(diff / (86400 * 30)) + ' 个月';
+            } else {
+                if (diff < 60) return '还有 ' + diff + ' 秒';
+                if (diff < 3600) return '还有 ' + Math.floor(diff / 60) + ' 分钟';
+                if (diff < 86400) return '还有 ' + Math.floor(diff / 3600) + ' 小时';
+                if (diff < 86400 * 30) return '还有 ' + Math.floor(diff / 86400) + ' 天';
+                return '还有 ' + Math.floor(diff / (86400 * 30)) + ' 个月';
+            }
+        }
+
+        function decodeJWT() {
+            var input = document.getElementById('jwtInput').value.trim();
+            var resultSection = document.getElementById('resultSection');
+            var errorMsg = document.getElementById('errorMsg');
+
+            errorMsg.classList.remove('show');
+            resultSection.classList.remove('show');
+
+            if (!input) {
+                errorMsg.textContent = '请输入JWT字符串';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            var parts = input.split('.');
+            if (parts.length !== 3) {
+                errorMsg.textContent = '无效的JWT格式，JWT应由三部分组成，用点号分隔';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            var headerJson = base64UrlDecode(parts[0]);
+            var payloadJson = base64UrlDecode(parts[1]);
+
+            if (!headerJson || !payloadJson) {
+                errorMsg.textContent = 'Base64URL解码失败，请检查JWT字符串是否有效';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            var headerObj, payloadObj;
+            try {
+                headerObj = JSON.parse(headerJson);
+                payloadObj = JSON.parse(payloadJson);
+            } catch (e) {
+                errorMsg.textContent = 'JSON解析失败：' + e.message;
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            document.getElementById('headerContent').innerHTML = syntaxHighlight(headerObj);
+            document.getElementById('payloadContent').innerHTML = syntaxHighlight(payloadObj);
+            document.getElementById('signatureContent').textContent = parts[2];
+
+            var annotations = document.getElementById('annotations');
+            var html = '';
+
+            var knownFields = {
+                iss: { label: '签发者', icon: '🏛' },
+                sub: { label: '用户', icon: '👤' },
+                aud: { label: '受众', icon: '🎯' },
+                exp: { label: '过期时间', icon: '⏰', type: 'timestamp' },
+                nbf: { label: '生效时间', icon: '🔜', type: 'timestamp' },
+                iat: { label: '签发时间', icon: '📅', type: 'timestamp' },
+                jti: { label: 'JWT ID', icon: '🔖' }
+            };
+
+            for (var key in payloadObj) {
+                if (payloadObj.hasOwnProperty(key)) {
+                    var info = knownFields[key] || { label: key, icon: '📌' };
+                    var value = payloadObj[key];
+                    var displayValue = value;
+
+                    if (info.type === 'timestamp') {
+                        displayValue = formatTimestamp(value) + ' (' + getTimeDiff(value) + ')';
+                    } else if (typeof value === 'object') {
+                        displayValue = JSON.stringify(value);
+                    }
+
+                    var statusClass = '';
+                    if (key === 'exp') {
+                        var now = Math.floor(Date.now() / 1000);
+                        statusClass = value < now ? 'expired' : 'valid';
+                    }
+
+                    html += '<div class="annotation-row">' +
+                        '<span class="annotation-label"><span>' + info.icon + '</span>' + info.label + ' (' + key + ')</span>' +
+                        '<span class="annotation-value ' + statusClass + '">' + displayValue + '</span>' +
+                        '</div>';
+                }
+            }
+
+            annotations.innerHTML = html;
+
+            if (payloadObj.exp) {
+                var now = Math.floor(Date.now() / 1000);
+                var expStatus = document.createElement('div');
+                expStatus.style.textAlign = 'center';
+                expStatus.style.marginTop = '12px';
+                if (payloadObj.exp < now) {
+                    expStatus.innerHTML = '<span class="expiry-status expired">❌ 已过期</span>';
+                } else {
+                    expStatus.innerHTML = '<span class="expiry-status valid">✅ 有效</span>';
+                }
+                annotations.appendChild(expStatus);
+            }
+
+            resultSection.classList.add('show');
+        }
+
+        function copyContent(type) {
+            var text = '';
+            if (type === 'header') {
+                text = document.getElementById('headerContent').textContent;
+            } else if (type === 'payload') {
+                text = document.getElementById('payloadContent').textContent;
+            } else if (type === 'signature') {
+                text = document.getElementById('signatureContent').textContent;
+            }
+
+            navigator.clipboard.writeText(text).then(function() {
+                var btns = document.querySelectorAll('.copy-btn');
+                btns.forEach(function(btn) {
+                    if (btn.onclick.toString().includes('copyContent(\'' + type + '\')')) {
+                        btn.classList.add('copied');
+                        var originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<span>✓</span> 已复制';
+                        setTimeout(function() {
+                            btn.classList.remove('copied');
+                            btn.innerHTML = originalHtml;
+                        }, 2000);
+                    }
+                });
+            });
+        }
+
+        document.getElementById('jwtInput').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                decodeJWT();
+            }
+        });
+    </script>
+</body>
+</html>
