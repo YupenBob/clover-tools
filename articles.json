@@ -963,6 +963,46 @@
       "title": "正则全局匹配只匹配到第一个？原因与正确用法详解",
       "desc": "正则表达式用exec或match全局匹配时只返回第一个结果，是新手常见痛点。本文解释JavaScript/Python/Go中正确的全局匹配方式，以及replace配合回调函数的强大用法。",
       "content": "<h2>为什么全局匹配只返回第一个？</h2><p>这是正则表达式的经典陷阱。JavaScript中：<code>/a/g.exec(str)</code>每次调用从lastIndex位置开始搜索，全局标志不会自动重置。</p><h2>正确做法</h2><h3>JavaScript：用match配合while循环</h3><pre>let match;\nconst results = [];\nwhile((match = /pattern/g.exec(str)) !== null) {\n  results.push(match[0]);\n}</pre><h3>Python：re.findall</h3><pre>import re\nresults = re.findall(r\"pattern\", text)</pre><h2>replace配合回调函数</h2><pre>str.replace(/\\d+/g, (match) => parseInt(match) * 2)</pre><h2>在线调试</h2><p>使用CloverTools正则测试器实时验证你的正则表达式：<a href=\"/tools/code/regex-tester.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "user-agent字符串解析失败怎么解决",
+      "slug": "user-agent字符串解析失败怎么解决",
+      "tool": "network/user-agent-parser.html",
+      "intent": "guide",
+      "category": "User-Agent解析",
+      "title": "User-Agent字符串解析失败怎么解决？浏览器识别与正则匹配实战",
+      "desc": "User-Agent字符串格式复杂，解析失败是常见问题。本文介绍如何正确解析UA、判断浏览器/系统/设备，并提供正则匹配方案和常见错误修复。",
+      "content": "<h2>User-Agent解析失败的常见原因</h2>\n<p>User-Agent格式不统一，不同浏览器和设备对同一字段使用不同写法，导致解析结果错误或失败。</p>\n<h2>正确解析方法</h2>\n<h3>1. 使用现成库</h3>\n<pre>const useragent = require('useragent');\nconst agent = useragent.parse(req.headers['user-agent']);\nconsole.log(agent.browser.toString()); // Chrome 120</pre>\n<h3>2. 手动正则提取</h3>\n<pre>const ua = navigator.userAgent;\nconst browser = /Chrome\\/([\\d.]+)/.exec(ua)?.[1];\nconst isMobile = /Mobile|Android|iPhone/.test(ua);</pre>\n<h2>常见错误</h2>\n<ul><li>只检查Chrome就匹配到了Edge（Edge也有Chrome字符串）</li><li>iOS设备User-Agent包含\"CPU iPhone OS\"而不是\"iOS\"</li><li>某些国产浏览器伪造UA为Chrome</li></ul>\n<h2>在线工具</h2><p>使用CloverTools User-Agent解析工具：<a href=\"/tools/network/user-agent-parser.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "promise rejected未处理怎么办",
+      "slug": "promise-rejected未处理怎么办",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "JavaScript错误",
+      "title": "Promise rejected未处理怎么办？JavaScript异步错误处理完整指南",
+      "desc": "JavaScript中Promise rejection未被捕获会导致UnhandledPromiseRejection警告，严重时崩溃。本文讲解如何正确处理Promise拒绝，包括try/catch、.catch()、async/await最佳实践。",
+      "content": "<h2>为什么Promise rejection很重要</h2>\n<p>Node.js 15+版本开始，默认情况下未处理的Promise rejection会自动终止进程。在浏览器中也会产生Unhandled Rejection警告。</p>\n<h2>正确处理方式</h2>\n<h3>1. async/await + try/catch</h3>\n<pre>async function fetchData() {\n  try {\n    const res = await fetch(url);\n    return await res.json();\n  } catch(err) {\n    console.error(\"请求失败:\", err.message);\n  }\n}</pre>\n<h3>2. Promise链式调用用.catch()</h3>\n<pre>fetch(url)\n  .then(res => res.json())\n  .catch(err => console.error(err));</pre>\n<h2>全局处理未捕获reject</h2>\n<pre>process.on('unhandledRejection', (reason, promise) => {\n  console.error(\"Unhandled Rejection:\", reason);\n});</pre>"
+    },
+    {
+      "keyword": "decodeURIComponent失败怎么办",
+      "slug": "decodeuri-component失败怎么办",
+      "tool": "text/url-encoder.html",
+      "intent": "error-fix",
+      "category": "URL编码",
+      "title": "decodeURIComponent失败怎么办？URL编码解码错误排查与修复",
+      "desc": "decodeURIComponent报错\"URI malformed\"是常见问题，通常因为传入了非法编码字符串。本文提供4种修复方案和安全的解码写法。",
+      "content": "<h2>为什么会报URI malformed错误</h2>\n<p>decodeURIComponent只能解码合法UTF-8序列，如果字符串含有%XX格式但内容是残缺的（如%0、%GG、中文未经encode直接传入），就会报错。</p>\n<h2>4种修复方案</h2>\n<h3>1. try/catch包裹（最常用）</h3>\n<pre>function safeDecode(str) {\n  try { return decodeURIComponent(str); }\n  catch(e) { return str; }\n}</pre>\n<h3>2. 先替换无效字符</h3>\n<pre>str = str.replace(/%[0-9A-F]{1}/g, (m) =>\n  /%[0-9A-F]{2}/.test(m.padEnd(2,'0')) ? m : '');\ndecodeURIComponent(str);</pre>\n<h3>3. 使用decodeURI（更宽松）</h3>\n<pre>decodeURI(str); // 不会报malformed错误</pre>\n<h3>4. 分段解码</h3>\n<pre>function decodePart(s) {\n  try { return decodeURIComponent(s); }\n  catch { return s; }\n}\nstr.split('%').map((part,i) => i ? decodePart('%'+part) : part).join('');</pre>\n<h2>在线工具</h2><p>使用CloverTools URL编码解码工具：<a href=\"/tools/text/url-encoder.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "jsonparseerror什么意思",
+      "slug": "json-parse-error什么意思",
+      "tool": "json/formatter.html",
+      "intent": "info",
+      "category": "JSON解析",
+      "title": "JSON parse error什么意思？详解5种常见JSON解析错误及修复方法",
+      "desc": "JSON.parse报错是前端开发最常见的错误之一。本文用具体示例解释5种最常见的JSON解析错误及其修复方法。",
+      "content": "<h2>JSON.parse报错的5种类型</h2>\n<h3>1. Unexpected token</h3>\n<p>JSON中有非法的字符，比如多余逗号、键名用单引号、中文引号等。</p>\n<pre>// 错误\n{\"name\": \"张三', \"age\": 20}  // 单引号\n{\"items\": [1, 2, 3,]}  // 尾部逗号\n// 修正\n{\"name\": \"张三\", \"age\": 20}  // 双引号\n{\"items\": [1, 2, 3]}  // 无尾部逗号</pre>\n<h3>2. Unexpected end of input</h3>\n<p>JSON字符串不完整，缺少闭合括号或引号。</p>\n<h3>3. Syntax error - 键名无引号</h3>\n<pre>// 错误\n{name: \"test\"}  // name无引号\n// 修正\n{\"name\": \"test\"}</pre>\n<h3>4. 中文乱码导致的解析失败</h3>\n<p>文件保存为GBK但当作UTF-8解析，导致字符变成乱码。</p>\n<h3>5. BOM头导致的解析失败</h3>\n<p>UTF-8文件开头的EF BB BF三个字节导致首个字符解析错误。</p>\n<h2>工具修复</h2>\n<p>使用CloverTools JSON格式化工具自动检测和修复以上问题：<a href=\"/tools/json/formatter.html\">打开工具</a></p>"
     }
   ]
 }
