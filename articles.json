@@ -1038,6 +1038,36 @@
       "title": "AI模型不可用怎么处理？OpenAI/Claude/GPT模型调用失败排查指南",
       "desc": "调用AI API时遇到模型不可用（model not found/disabled/deprecated）是常见问题。本文分析原因并提供降级方案和错误恢复策略。",
       "content": "<h2>模型不可用的常见原因</h2>\n<ul><li><strong>模型已下线</strong>：如GPT-3.5-turbo-0301已废弃</li><li><strong>地区限制</strong>：某些模型在中国大陆不可用</li><li><strong>账户权限不足</strong>：需要升级订阅才能用某模型</li><li><strong>请求超时</strong>：模型服务暂时过载</li></ul>\n<h2>降级方案</h2>\n<pre>// 尝试主模型，失败则降级到备用模型\nasync function callAI(prompt) {\n  const models = ['gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo'];\n  for(const model of models) {\n    try {\n      const res = await openai.chat.completions.create({\n        model: model,\n        messages: [{role:'user', content: prompt}]\n      });\n      return res.choices[0].message.content;\n    } catch(err) {\n      console.log(model + ' failed, trying next...');\n    }\n  }\n  throw new Error('All models failed');\n}</pre>\n<h2>错误码判断</h2>\n<ul><li>400 Bad Request：请求格式有问题</li><li>401 Unauthorized：API key无效</li><li>403 Forbidden：需要升级权限</li><li>429 Rate Limit：请求太快，等一下再试</li><li>500 Internal Error：服务端问题，通常重试有效</li></ul>\n<h2>最佳实践</h2>\n<p>使用指数退避重试：<code>setTimeout(() => retry(), 1000 * 2^n)</code>，最多3-5次。</p>"
+    },
+    {
+      "keyword": "json多了尾部逗号怎么修复",
+      "slug": "json多了尾部逗号怎么修复",
+      "tool": "json/formatter.html",
+      "intent": "error-fix",
+      "category": "JSON处理",
+      "title": "JSON多了尾部逗号怎么修复？3种方法一键解决",
+      "desc": "JSON尾部逗号（trailing comma）是导致解析失败的最常见原因之一。本文提供3种快速修复方法：正则删除、Python修复、在线工具处理。",
+      "content": "<h2>为什么尾部逗号会报错</h2>\n<p>JSON规范严格禁止尾部逗号，但JavaScript曾允许双标签模式下使用，所以很多人在手动编辑时容易犯这个错误。</p>\n<h2>3种修复方法</h2>\n<h3>1. 正则删除（JavaScript）</h3>\n<pre>str = str.replace(/,(\\s*[\\]\\}])/g, \"$1\");</pre>\n<h3>2. Python修复</h3>\n<pre>import json, re\nwith open(\"file.json\") as f:\n    text = f.read()\ntext = re.sub(r\",(\\s*\\])\", r\"\\1\", text)\ndata = json.loads(text)</pre>\n<h3>3. Node.js修复</h3>\n<pre>import { parse } from \"jsonc-parser\";\nconst errors = [];\nconst data = parse(text, errors);</pre>\n<h2>在线工具</h2><p>使用CloverTools JSON格式化工具一键移除尾部逗号：<a href=\"/tools/json/formatter.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "ssh连接失败排查步骤",
+      "slug": "ssh连接失败排查步骤",
+      "tool": "network/ssh-tools.html",
+      "intent": "guide",
+      "category": "SSH连接",
+      "title": "SSH连接失败排查步骤？从网络到配置的系统性排查指南",
+      "desc": "SSH连接失败是服务器管理中最常见的问题之一。本文从网络连通性、端口检查、密钥配置、防火墙4个维度提供系统性排查步骤。",
+      "content": "<h2>SSH连接失败排查流程图</h2>\n<p>按以下顺序逐个检查，通常能覆盖90%以上的问题：</p>\n<ol><li><strong>网络层</strong>：ping服务器IP，检查是否通</li><li><strong>端口层</strong>：nc -zv host 22，检查端口是否开放</li><li><strong>服务层</strong>：sshd是否运行，systemctl status sshd</li><li><strong>认证层</strong>：密钥权限是否正确，~/.ssh/权限应为600</li><li><strong>日志层</strong>：tail -f /var/log/auth.log查看具体报错</li></ol>\n<h2>常见错误与修复</h2>\n<h3>Connection refused</h3>\n<pre># 检查sshd是否运行\nsudo systemctl status ssh\nsudo systemctl enable ssh\nsudo systemctl start ssh</pre>\n<h3>Permission denied (publickey)</h3>\n<pre># 检查密钥权限\nchmod 700 ~/.ssh\nchmod 600 ~/.ssh/id_rsa\nchmod 644 ~/.ssh/id_rsa.pub</pre>\n<h3>Connection timeout</h3>\n<p>通常是防火墙问题，检查云服务器安全组是否开放22端口。</p>"
+    },
+    {
+      "keyword": "cors预检请求失败怎么办",
+      "slug": "cors预检请求失败怎么办",
+      "tool": "develop/cors-debug.html",
+      "intent": "error-fix",
+      "category": "CORS错误",
+      "title": "CORS预检请求失败怎么办？跨域问题全面排查与解决方案",
+      "desc": "CORS跨域错误是前端开发中的常见痛点。本文详解CORS预检请求（OPTIONS）的机制，以及常见报错头的正确配置方法。",
+      "content": "<h2>CORS预检请求机制</h2>\n<p>浏览器先发OPTIONS请求询问服务器是否允许，真正的请求在预检通过后才发送。预检失败则真正的请求不会发出，直接报CORS错误。</p>\n<h2>服务端配置（Nginx示例）</h2>\n<pre>location / {\n  add_header Access-Control-Allow-Origin $http_origin;\n  add_header Access-Control-Allow-Methods \"GET, POST, OPTIONS\";\n  add_header Access-Control-Allow-Headers \"Content-Type, Authorization\";\n  add_header Access-Control-Allow-Credentials \"true\";\n  \n  if ($request_method = OPTIONS) {\n    add_header Access-Control-Allow-Origin $http_origin;\n    add_header Access-Control-Allow-Methods \"GET, POST, OPTIONS\";\n    add_header Access-Control-Max-Age 1728000;\n    add_header Content-Length 0;\n    return 204;\n  }\n}</pre>\n<h2>常见报错</h2>\n<ul><li><strong>Missing Allow-Origin</strong>：服务器没配CORS头</li><li><strong>Missing Allow-Methods</strong>：预检请求的OPTIONS方法不在允许列表</li><li><strong>Credentials+Wildcard</strong>：允许凭据时Origin不能是*</li></ul>"
     }
   ]
 }
