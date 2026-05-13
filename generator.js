@@ -686,21 +686,21 @@ const TOOL_SPECIFIC_OVERRIDES = {
 function buildToolScript(tool) {
   // HIGHEST PRIORITY: customScript - complete JS customization, no template logic
   if (tool.customScript) {
-    return tool.customScript.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    return tool.customScript.replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Path-based overrides for mis-typed tools
   if (TOOL_SPECIFIC_OVERRIDES[tool.path]) {
-    return (TOOL_SPECIFIC_OVERRIDES[tool.path].script || '').replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    return (TOOL_SPECIFIC_OVERRIDES[tool.path].script || '').replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Check tool.type in registry
   if (tool.type && TOOL_TYPE_REGISTRY[tool.type]) {
     const raw = TOOL_TYPE_REGISTRY[tool.type].script(tool);
-    return raw.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    return raw.replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Fallback: use formatter type for any unhandled types
   if (TOOL_TYPE_REGISTRY['formatter']) {
     const raw = TOOL_TYPE_REGISTRY['formatter'].script(tool);
-    return raw.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    return raw.replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   return '// No script available for ' + tool.path;
 }
@@ -709,13 +709,13 @@ function buildToolScript(tool) {
 function buildToolContentHtml(tool) {
   // HIGHEST PRIORITY: customHtml - complete HTML customization, no template logic
   if (tool.customHtml) {
-    return tool.customHtml.replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+    return tool.customHtml.replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
   }
   // Plugin custom template takes next priority (plugins/templates/{path})
   const pluginTemplatePath = path.join(PLUGINS_TEMPLATES_DIR, tool.path);
   if (fs.existsSync(pluginTemplatePath)) {
     try {
-      return fs.readFileSync(pluginTemplatePath, 'utf8').replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+      return fs.readFileSync(pluginTemplatePath, 'utf8').replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
     } catch (e) {
       console.log('   Warning: failed to load plugin template for ' + tool.path + ': ' + e.message);
     }
@@ -2146,7 +2146,7 @@ ${footerHtml}
         return; // Skip duplicate - already generated
       }
       generatedPaths.add(tool.path);
-      const contentHtml = buildToolContentHtml(tool).replace(/<\/script>/gi, '<\\/scr' + 'ipt>');
+      const contentHtml = buildToolContentHtml(tool).replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
       // Detect if this is a standalone plugin template (complete HTML page)
       const isStandalonePluginTemplate = contentHtml.trim().startsWith('<!DOCTYPE') || contentHtml.trim().startsWith('<html');
       const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
