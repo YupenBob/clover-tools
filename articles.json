@@ -933,6 +933,36 @@
       "title": "JSON多了逗号怎么修复 - CloverTools",
       "desc": "JSON文件末尾多了一个逗号会导致解析失败，本文提供3种快速修复方法：手动删除、正则替换、在线工具一键处理，附Python/JavaScript/Go示例。",
       "content": "<h2>JSON尾部逗号为什么会报错？</h2><p>JSON规范不允许尾部逗号（trailing comma），但JavaScript曾经允许双标签模式，所以很多人会犯这个错误。</p><h2>3种修复方法</h2><h3>1. 正则删除尾部逗号</h3><pre>s = s.replace(/,(s*[]}]))/g, \"$1\");</pre><h3>2. Python修复</h3><pre>import json\nwith open(\"file.json\") as f:\n    data = json.load(f)  # 自动报尾部逗号错</pre><h3>3. 在线工具修复</h3><p>使用CloverTools JSON格式化工具，一键移除尾部逗号并格式化：<a href=\"/tools/json/formatter.html\">打开工具 →</a></p><h2>常见场景</h2><ul><li>手动编辑JSON配置</li><li>AI生成JSON后忘记清理</li><li>从Excel导出JSON</li></ul>"
+    },
+    {
+      "keyword": "api调用报错invalid request怎么办",
+      "slug": "api调用报错invalid-request怎么办",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "API调用",
+      "title": "API调用报invalid request怎么办？5步排查与修复指南",
+      "desc": "调用API时遇到invalid request错误是常见问题。本文从请求头、参数格式、认证信息、跨域限制、负载大小5个维度提供系统性排查思路，附详细修复步骤和在线工具。",
+      "content": "<h2>invalid request错误的常见原因</h2><p>当API返回invalid request报错时，通常意味着服务端无法解析你的请求。常见原因包括：请求体格式错误、Content-Type不匹配、缺少必需参数、认证信息无效。</p><h2>5步排查流程</h2><h3>Step 1：检查请求头</h3><pre>headers = {\n  \"Content-Type\": \"application/json\",\n  \"Authorization\": \"Bearer \" + token\n}</pre><h3>Step 2：验证JSON参数</h3><p>使用CloverTools JSON格式化工具检查参数是否合法：<a href=\"/tools/json/formatter.html\">打开工具</a></p><h3>Step 3：检查认证信息</h3><p>Token是否过期？格式是否正确（Bearer前是否有空格）？</p><h3>Step 4：跨域限制</h3><p>浏览器环境下调用API需要服务器允许CORS，或使用服务端代理。</p><h3>Step 5：请求体大小</h3><p>某些API对请求体有大小限制，尝试压缩或简化参数。</p>"
+    },
+    {
+      "keyword": "gpt无法响应怎么办",
+      "slug": "gpt无法响应怎么办",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "AI调用",
+      "title": "GPT无法响应怎么办？排查思路与解决方案",
+      "desc": "AI API调用中GPT无响应是常见问题。本文分析超时、Token限制、模型不可用、网络问题4大原因，提供Python/JavaScript两种语言的修复代码示例。",
+      "content": "<h2>AI无响应的4种常见原因</h2><h3>1. 请求超时</h3><pre>import requests\nresponse = requests.post(url, json=payload, timeout=30)</pre><h3>2. Token超出限制</h3><p>检查prompt长度，如果超过模型上下文窗口（GPT-3.5约4K，GPT-4约8K），需要截断或使用摘要。</p><h3>3. 模型不可用/限流</h3><p>错误码429表示rate limit，等待后重试或降低请求频率。</p><h3>4. 网络问题</h3><p>检查代理设置、防火墙、VPN状态。</p><h2>在线工具</h2><p>使用CloverTools正则测试器来验证API响应格式：<a href=\"/tools/code/regex-tester.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "正则全局匹配只匹配到第一个怎么办",
+      "slug": "正则全局匹配只匹配到第一个怎么办",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "正则表达式",
+      "title": "正则全局匹配只匹配到第一个？原因与正确用法详解",
+      "desc": "正则表达式用exec或match全局匹配时只返回第一个结果，是新手常见痛点。本文解释JavaScript/Python/Go中正确的全局匹配方式，以及replace配合回调函数的强大用法。",
+      "content": "<h2>为什么全局匹配只返回第一个？</h2><p>这是正则表达式的经典陷阱。JavaScript中：<code>/a/g.exec(str)</code>每次调用从lastIndex位置开始搜索，全局标志不会自动重置。</p><h2>正确做法</h2><h3>JavaScript：用match配合while循环</h3><pre>let match;\nconst results = [];\nwhile((match = /pattern/g.exec(str)) !== null) {\n  results.push(match[0]);\n}</pre><h3>Python：re.findall</h3><pre>import re\nresults = re.findall(r\"pattern\", text)</pre><h2>replace配合回调函数</h2><pre>str.replace(/\\d+/g, (match) => parseInt(match) * 2)</pre><h2>在线调试</h2><p>使用CloverTools正则测试器实时验证你的正则表达式：<a href=\"/tools/code/regex-tester.html\">打开工具</a></p>"
     }
   ]
 }
