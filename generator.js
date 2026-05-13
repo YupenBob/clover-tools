@@ -721,16 +721,31 @@ function buildToolContentHtml(tool) {
     // Remove closing tags at the end
     html = html.replace(/<\/body>\s*<\/html>\s*$/i, '');
     // Strip self-contained tool header (h1 + subtitle inside <div class="container">)
-    // that customHtml adds for standalone use - would duplicate toolTemplate's tool-header
-    html = html.replace(/^\s*<div class="container">[\s\S]*?<div class="card">/, '<div class="card">');
-    // Strip self-contained site header (for tools that embed their own header)
+    html = html.replace(/^\s*<div class="container">\s*<h1>[\s\S]*?<\/h1>\s*<p class="subtitle">[\s\S]*?<\/p>\s*/i, '');
+    // Strip self-contained site header (div.header with h1)
+    html = html.replace(/<div class="header">[\s\S]*?<\/div>\s*/i, '');
+    // Strip <header class="header"> (photo-meta)
     html = html.replace(/<header class="header">[\s\S]*?<\/header>\s*/i, '');
-    // Strip container wrapper if present
-    html = html.replace(/^\s*<div class="container">/i, '');
-    // Strip <style>...</style> blocks from customHtml - their CSS conflicts with toolTemplate CSS
-    html = html.replace(/<style>[\s\S]*?<\/style>\s*/gi, '');
-    // Strip <main class="main-container"> wrapper if present (semantic element, layout handled by toolTemplate)
+    // Strip <main class="main-container"> wrapper
     html = html.replace(/^\s*<main class="main-container">\s*/i, '');
+    html = html.replace(/\s*<\/main>\s*$/i, '');
+    // Strip container wrapper if present
+    html = html.replace(/^\s*<div class="container">\s*/i, '');
+    html = html.replace(/\s*<\/div>\s*$/i, '');
+    // Strip <style> blocks from customHtml - CSS conflicts with toolTemplate
+    // Unwrap inner <div class="card"> from customHtml (style block stripped, no need for it)
+    // Unwrap inner <div class="card">...</div> - strip the wrapper but keep content
+    const cardMatch = html.match(/<div class="card">([\s\S]*)<\/div>\s*<\/div>\s*$/);
+    if (cardMatch) {
+      html = cardMatch[1];
+    } else {
+      // fallback: just strip card class attributes
+      html = html.replace(/<div class="card">/g, '<div>');
+    }
+
+    html = html.replace(/<style>[\s\S]*?<\/style>\s*/gi, '');
+    // Wrap remaining content in tool-card for consistent site styling
+    html = '<div class="tool-card">\n' + html.trim() + '\n</div>';
     return html;
   }
   // Plugin custom template takes next priority (plugins/templates/{path})
