@@ -713,11 +713,24 @@ function buildToolContentHtml(tool) {
     // customHtml includes a full HTML document for standalone use, but when used
     // with toolTemplate we only need the inner content (excluding DOCTYPE/html/head/body/open tags).
     let html = tool.customHtml;
-    // Remove everything up to and including <body> tag's opening attributes and >
+    // Strip outer wrapper (DOCTYPE/html/head/body) from customHtml.
+    // customHtml includes a full HTML document for standalone use, but when used
+    // with toolTemplate we only need the inner content (excluding DOCTYPE/html/head/body/open tags).
     html = html.replace(/^<!DOCTYPE[^>]*>\s*<html[^>]*>\s*<head>[\s\S]*?<\/head>\s*/i, '');
     html = html.replace(/^<body[^>]*>/i, '');
     // Remove closing tags at the end
     html = html.replace(/<\/body>\s*<\/html>\s*$/i, '');
+    // Strip self-contained tool header (h1 + subtitle inside <div class="container">)
+    // that customHtml adds for standalone use - would duplicate toolTemplate's tool-header
+    html = html.replace(/^\s*<div class="container">[\s\S]*?<div class="card">/, '<div class="card">');
+    // Strip self-contained site header (for tools that embed their own header)
+    html = html.replace(/<header class="header">[\s\S]*?<\/header>\s*/i, '');
+    // Strip container wrapper if present
+    html = html.replace(/^\s*<div class="container">/i, '');
+    // Strip <style>...</style> blocks from customHtml - their CSS conflicts with toolTemplate CSS
+    html = html.replace(/<style>[\s\S]*?<\/style>\s*/gi, '');
+    // Strip <main class="main-container"> wrapper if present (semantic element, layout handled by toolTemplate)
+    html = html.replace(/^\s*<main class="main-container">\s*/i, '');
     return html;
   }
   // Plugin custom template takes next priority (plugins/templates/{path})
