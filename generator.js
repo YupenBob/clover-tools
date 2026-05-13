@@ -709,7 +709,16 @@ function buildToolScript(tool) {
 function buildToolContentHtml(tool) {
   // HIGHEST PRIORITY: customHtml - complete HTML customization, no template logic
   if (tool.customHtml) {
-    return tool.customHtml.replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
+    // Strip outer wrapper (DOCTYPE/html/head/body) from customHtml.
+    // customHtml includes a full HTML document for standalone use, but when used
+    // with toolTemplate we only need the inner content (excluding DOCTYPE/html/head/body/open tags).
+    let html = tool.customHtml;
+    // Remove everything up to and including <body> tag's opening attributes and >
+    html = html.replace(/^<!DOCTYPE[^>]*>\s*<html[^>]*>\s*<head>[\s\S]*?<\/head>\s*/i, '');
+    html = html.replace(/^<body[^>]*>/i, '');
+    // Remove closing tags at the end
+    html = html.replace(/<\/body>\s*<\/html>\s*$/i, '');
+    return html;
   }
   // Plugin custom template takes next priority (plugins/templates/{path})
   const pluginTemplatePath = path.join(PLUGINS_TEMPLATES_DIR, tool.path);
@@ -2146,13 +2155,18 @@ ${footerHtml}
         return; // Skip duplicate - already generated
       }
       generatedPaths.add(tool.path);
-      const contentHtml = buildToolContentHtml(tool).replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>');
-      // Detect if this is a standalone plugin template (complete HTML page)
-      const isStandalonePluginTemplate = contentHtml.trim().startsWith('<!DOCTYPE') || contentHtml.trim().startsWith('<html');
+      // For customHtml (complete HTML), don't escape </script> (handled by buildToolContentHtml which now skips escaping)
+      const needsEscape = !tool.customHtml;
+      const contentHtml = needsEscape
+        ? buildToolContentHtml(tool).replace(/(?<!>)<\/script>/gi, '<\\/scr' + 'ipt>')
+        : buildToolContentHtml(tool);
+      // customHtml tools are NOT standalone - they need the site header/footer from toolTemplate
+      // Only actual plugin templates (non-customHtml) can be standalone
+      const isPluginTemplate = tool.customHtml ? false : (contentHtml.trim().startsWith('<!DOCTYPE') || contentHtml.trim().startsWith('<html'));
       const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
       ensureDir(toolDir);
 
-      if (isStandalonePluginTemplate) {
+      if (isPluginTemplate) {
         // Plugin template is a complete standalone HTML - write directly
         fs.writeFileSync(path.join(toolDir, path.basename(tool.path)), contentHtml);
         console.log('   Plugin template (standalone): ' + tool.path);
