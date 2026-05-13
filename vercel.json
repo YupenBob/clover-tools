@@ -3,19 +3,61 @@
   "buildCommand": "node generator.js",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/.well-known/(.*)", "destination": "/.well-known/$1" },
-    { "source": "/key.txt", "destination": "/key.txt" },
-    { "source": "/plugins/(.*)", "destination": "/plugins/$1" },
-    { "source": "/landing", "destination": "/landing/index.html" },
-    { "source": "/landing/", "destination": "/landing/index.html" },
-    { "source": "/blog/:slug", "destination": "/blog/:slug.html" },
-    { "source": "/changelog", "destination": "/about.html" },
-    { "source": "/changelog/", "destination": "/about.html" },
-    { "source": "/about", "destination": "/about.html" },
-    { "source": "/(.*)", "destination": "/$1.html" }
+    {
+      "source": "/key.txt",
+      "destination": "/key.txt"
+    },
+    {
+      "source": "/plugins/(.*)",
+      "destination": "/plugins/$1"
+    },
+    {
+      "source": "/landing",
+      "destination": "/landing/index.html"
+    },
+    {
+      "source": "/landing/",
+      "destination": "/landing/index.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/blog/:slug.html"
+    },
+    {
+      "source": "/changelog",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/changelog/",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/$1.html"
+    }
   ],
   "headers": [
-    { "source": "/.well-known/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
-    { "source": "/key.txt", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+    {
+      "source": "/.well-known/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
+      "source": "/key.txt",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    }
   ]
 }
