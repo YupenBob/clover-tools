@@ -180,7 +180,7 @@ function buildToolPage(tool) {
     // Meta tags
     .replace(/\{\{PAGE_OG_TITLE\}\}/g, tool.name + ' - CloverTools')
     .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.description || tool.name)
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
+    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/src/og-image.png')
     .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
     .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl)
     // SEO meta - derived from tools.json fields
@@ -1233,7 +1233,7 @@ function generateBlogPosts() {
       .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, blogUrl)
       .replace(/\{\{PAGE_OG_TITLE\}\}/g, kw.keyword + ' - CloverTools')
       .replace(/\{\{PAGE_OG_DESC\}\}/g, `解决${kw.keyword}的实战方法,` + (toolInfo ? `配合${toolInfo.name}在线工具免费使用` : 'CloverTools在线工具免费使用'))
-      .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
+      .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/src/og-image.png')
       .replace(/\{\{PAGE_URL\}\}/g, blogUrl)
       .replace('{{ARTICLE_CATEGORY}}', kw.category || '开发问题')
       .replace(/\{\{ARTICLE_TITLE\}\}/g, kw.keyword)
@@ -2060,6 +2060,13 @@ function generate() {
   fs.writeFileSync(path.join(DIST_DIR, 'src/clover-avatar.png'), cloverAvatar);
   console.log('   Copied clover-avatar.png');
 
+  // Copy OG image
+  const ogImageSrc = path.join(SRC_DIR, 'og-image.png');
+  if (fs.existsSync(ogImageSrc)) {
+    fs.copyFileSync(ogImageSrc, path.join(DIST_DIR, 'src/og-image.png'));
+    console.log('   Copied og-image.png');
+  }
+
   // Generate home page
   const categoriesHtml = buildCategoriesHtml();
   const categoryGridHtml = buildCategoryGridHtml();
@@ -2232,7 +2239,7 @@ ${footerHtml}
         .replace(/\{\{PAGE_OG_DESC\}\}/g, tool.desc || tool.name)
         .replace(/\{\{PAGE_META_DESC\}\}/g, (tool.desc ? tool.desc + ',无需注册,完全免费。' : tool.name + ' - 在线工具,无需注册,完全免费。') + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ' [' + cat.category + ']' : ''))
         .replace(/\{\{PAGE_KEYWORDS\}\}/g, (tool.keywords || (tool.name + ',在线工具,免费')) + (nameCategoryMap[tool.name] && nameCategoryMap[tool.name].length > 1 ? ',' + cat.category : ''))
-        .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/og-image.png')
+        .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/src/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
 
