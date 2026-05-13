@@ -1210,7 +1210,7 @@ function generateBlogPosts() {
     // 强制使用中文slug，防止英文slug和中文keyword不匹配
     const slug = kw.keyword.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '');
     const toolInfo = resolveTool(kw);
-    var customArticle = articlesConfig[slug];
+    var customArticle = articlesConfig[kw.keyword];
     // 优先读 articles.json 的 content，其次读 article_contents/{slug}.html
     var articleContent = (customArticle && customArticle.content && customArticle.content.trim().length > 0)
       ? customArticle.content
