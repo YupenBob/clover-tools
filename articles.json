@@ -913,6 +913,16 @@
       "desc": "详解 Unix 时间戳的原理、10位与13位的区别、时区转换问题。附在线工具直接转换，无需代码。",
       "content": "<h2>Unix 时间戳是什么？</h2>\n<p>Unix 时间戳是从 UTC 1970年1月1日 00:00:00 到某个时刻的秒数（或毫秒数）。这是计算机领域最常用的时间表示方式，贯穿服务器存储、API 传输、日志记录等场景。</p>\n<h2>10位 vs 13位</h2>\n<ul>\n<li><strong>10位</strong>（秒级）：<code>1699999999</code>，标准 Unix 时间戳，JS 的 <code>Date.now()</code> 会除以 1000 取整</li>\n<li><strong>13位</strong>（毫秒级）：<code>1699999999000</code>，Java、JavaScript 等语言默认使用毫秒级</li>\n</ul>\n<p>互转关系：<code>秒级 × 1000 = 毫秒级</code></p>\n<h2>常见场景的时间戳</h2>\n<pre><code>// JavaScript\nDate.now()          // 1699999999000（毫秒）\nMath.floor(Date.now()/1000)  // 1699999999（秒）\n\n// Python\nimport time\ntime.time()         // 1699999999.123（秒，浮点数）\nint(time.time())    // 1699999999（秒）\n\n// Node.js\nDate.now()          // 毫秒\nDate.now() / 1000 | 0  // 秒</code></pre>\n<h2>2038年问题</h2>\n<p>32位系统的 Unix 时间戳最大值是 <code>2147483647</code>（即 2038年1月19日 03:14:07 UTC）。32位系统到 2038 年后会产生整数溢出，时间会变成负数。现代系统均已迁移到64位，无此问题。</p>\n<h2>时区注意事项</h2>\n<p>时间戳本身是 <strong>UTC 时间</strong>，与时区无关。显示给用户时需要转换为本地时区：</p>\n<pre><code>// UTC 时间戳 → 北京时间\nfunction tsToBeijing(ts) {\n  return new Date(ts * 1000).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'});\n}\n\n// JS 毫秒时间戳直接用 Date\nnew Date(1699999999000).toLocaleString('zh-CN', {timeZone: 'Asia/Shanghai'})</code></pre>\n<h2>常见问题</h2>\n<p><strong>Q: 1699999999 是哪天？</strong><br>2024年11月14日（具体时分秒请用工具转换）。</p>\n<p><strong>Q: API 返回的时间戳是毫秒还是秒？</strong><br>没有统一标准！必须看文档或根据数值大小判断：大于 10^12 则是毫秒，小于则通常是秒。</p>\n<p><strong>Q: 负数时间戳代表什么？</strong><br>1970 年之前的日期，如 <code>-86400</code> = 1969年12月31日。</p>\n<h2>在线转换</h2>\n<p>使用 <a href=\"https://clovertools.cn/tools/time/unix-timestamp.html\">Unix 时间戳转换</a> 在浏览器里直接转换秒级/毫秒级时间戳，支持批量转换和时区显示。</p>",
       "faqs": []
+    },
+    {
+      "keyword": "json中null值怎么处理",
+      "slug": "json中null值怎么处理",
+      "tool": "json/formatter.html",
+      "intent": "guide",
+      "category": "JSON处理",
+      "title": "JSON中null值的处理方法大全 - CloverTools",
+      "desc": "JSON里的null值经常让人困惑：null和undefined有什么区别？如何判断、如何过滤、如何替换？本文提供7种实战场景的解决方案，附在线工具实测。",
+      "content": "<h2>null在JSON里是什么意思？</h2><p>JSON中的null是显式的空值，表示这里有值但是空的，和undefined（完全未定义）不同。</p><h2>判断null值</h2><p>在JavaScript中：<code>obj.key === null</code> 可以精确判断。</p><h2>过滤null值</h2><p>使用Object.fromEntries + Object.entries：<pre>Object.fromEntries(Object.entries(obj).filter(([,v])=>v!==null))</pre></p><h2>替换null为默认值</h2><p><pre>JSON.parse(JSON.stringify(obj), (k,v) => v === null ? \"\" : v)</pre></p><h2>在线工具</h2><p>使用CloverTools的JSON格式化工具，可以一键移除或替换null值：<a href=\"/tools/json/formatter.html\">打开工具 →</a></p>"
     }
   ]
 }
