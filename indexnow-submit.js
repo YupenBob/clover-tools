@@ -15,7 +15,7 @@ const path = require('path');
 const BASE = '/home/yock/clover-tools-v2';
 const KEY_FILE = path.join(BASE, 'indexnow-key.txt');
 const KEY = fs.readFileSync(KEY_FILE, 'utf8').trim();
-const SITE = 'https://tools.xsanye.cn';
+const SITE = 'https://clovertools.cn';
 
 // IndexNow endpoints (Bing supports this)
 const ENDPOINTS = [
@@ -25,7 +25,7 @@ const ENDPOINTS = [
 
 function submitToIndexNow(urls) {
   const payload = JSON.stringify({
-    host: 'tools.xsanye.cn',
+    host: 'clovertools.cn',
     key: KEY,
     urlList: urls
   });
