@@ -1068,6 +1068,56 @@
       "title": "CORS预检请求失败怎么办？跨域问题全面排查与解决方案",
       "desc": "CORS跨域错误是前端开发中的常见痛点。本文详解CORS预检请求（OPTIONS）的机制，以及常见报错头的正确配置方法。",
       "content": "<h2>CORS预检请求机制</h2>\n<p>浏览器先发OPTIONS请求询问服务器是否允许，真正的请求在预检通过后才发送。预检失败则真正的请求不会发出，直接报CORS错误。</p>\n<h2>服务端配置（Nginx示例）</h2>\n<pre>location / {\n  add_header Access-Control-Allow-Origin $http_origin;\n  add_header Access-Control-Allow-Methods \"GET, POST, OPTIONS\";\n  add_header Access-Control-Allow-Headers \"Content-Type, Authorization\";\n  add_header Access-Control-Allow-Credentials \"true\";\n  \n  if ($request_method = OPTIONS) {\n    add_header Access-Control-Allow-Origin $http_origin;\n    add_header Access-Control-Allow-Methods \"GET, POST, OPTIONS\";\n    add_header Access-Control-Max-Age 1728000;\n    add_header Content-Length 0;\n    return 204;\n  }\n}</pre>\n<h2>常见报错</h2>\n<ul><li><strong>Missing Allow-Origin</strong>：服务器没配CORS头</li><li><strong>Missing Allow-Methods</strong>：预检请求的OPTIONS方法不在允许列表</li><li><strong>Credentials+Wildcard</strong>：允许凭据时Origin不能是*</li></ul>"
+    },
+    {
+      "keyword": "git合并冲突怎么解决",
+      "slug": "git合并冲突怎么解决",
+      "tool": "develop/git-tools.html",
+      "intent": "error-fix",
+      "category": "Git冲突",
+      "title": "Git合并冲突怎么解决？3种场景下的冲突处理完整指南",
+      "desc": "Git合并冲突是团队协作中最常见的问题之一。本文详解3种场景下的冲突处理：本地分支合并、rebase冲突、多人同时修改同一文件。",
+      "content": "<h2>Git冲突的本质</h2>\n<p>冲突只发生在同一个文件的同一个位置被两个分支同时修改时。Git不知道该留哪个，所以把选择权交给你。</p>\n<h2>解决冲突的5个步骤</h2>\n<pre>1. git status  # 确认哪些文件冲突\n2. 打开冲突文件，找到 &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD ... ======= ... &gt;&gt;&gt;&gt; 标记\n3. 编辑文件，决定保留哪部分（或合并两者）\n4. git add &lt;file&gt;  # 标记为已解决\n5. git commit  # 完成合并</pre>\n<h2>3种场景</h2>\n<h3>1. 两个分支修改了不同位置</h3>\n<p>Git自动合并，只需commit即可。</p>\n<h3>2. 同一位置修改了不同内容</h3>\n<p>手动选择：保留ours、保留theirs、或重新写一个。</p>\n<h3>3. 同一位置同一行被不同人修改</h3>\n<p>最复杂的情况，需要沟通后决定最终内容。</p>\n<h2>Abort冲突合并</h2>\n<pre>git merge --abort  # 放弃合并，回到合并前状态\ngit rebase --abort  # 放弃rebase</pre>\n<h2>工具辅助</h2>\n<p>使用VSCode或Git Tower等GUI工具可以更直观地解决冲突：<a href=\"/tools/develop/git-tools.html\">打开Git工具</a></p>"
+    },
+    {
+      "keyword": "npm install卡住不动怎么办",
+      "slug": "npm-install卡住不动怎么办",
+      "tool": "develop/package-manager.html",
+      "intent": "error-fix",
+      "category": "npm错误",
+      "title": "npm install卡住不动怎么办？超时/网络问题的6种解决方案",
+      "desc": "npm install经常卡住不动是常见问题，通常是网络问题、镜像源不对、或权限问题。本文提供6种解决方案，从根源解决卡住问题。",
+      "content": "<h2>6种解决方案</h2>\n<h3>1. 切换国内镜像（最快）</h3>\n<pre>npm config set registry https://registry.npmmirror.com\nnpm install</pre>\n<h3>2. 清理缓存后重试</h3>\n<pre>npm cache clean --force\nnpm install</pre>\n<h3>3. 使用cnpm</h3>\n<pre>npm install -g cnpm --registry=https://registry.npmmirror.com\ncnpm install</pre>\n<h3>4. 指定超时时间</h3>\n<pre>npm install --fetch-timeout=120000</pre>\n<h3>5. 查看详细日志</h3>\n<pre>npm install --verbose 2>&1 | tee npm-debug.log</pre>\n<h3>6. 删除node_modules后重装</h3>\n<pre>rm -rf node_modules package-lock.json\nnpm install</pre>\n<h2>检查网络</h2>\n<pre>ping registry.npmjs.org\ncurl -v https://registry.npmjs.org</pre>"
+    },
+    {
+      "keyword": "json字符串如何格式化显示",
+      "slug": "json字符串如何格式化显示",
+      "tool": "json/formatter.html",
+      "intent": "guide",
+      "category": "JSON处理",
+      "title": "JSON字符串如何格式化显示？在线工具与代码方法详解",
+      "desc": "JSON格式化是开发中最常用的操作之一。本文介绍如何用在线工具、JavaScript、Python三种方式快速格式化JSON并美化显示。",
+      "content": "<h2>在线工具（最方便）</h2>\n<p>使用CloverTools JSON格式化工具，支持语法高亮、压缩、校验：<a href=\"/tools/json/formatter.html\">打开工具</a></p>\n<h2>JavaScript格式化</h2>\n<pre>// 格式化（缩进2空格）\nconst formatted = JSON.stringify(obj, null, 2);\n\n// 压缩（无缩进）\nconst minified = JSON.stringify(obj);\n\n// 美化+语法高亮（在HTML中）\nconst html = syntaxHighlight(JSON.stringify(obj, null, 2));</pre>\n<h2>Python格式化</h2>\n<pre>import json\n\n# 美化输出\nprint(json.dumps(data, indent=2, ensure_ascii=False))\n\n# 写入文件\nwith open(\"output.json\", \"w\", encoding=\"utf-8\") as f:\n    json.dump(data, f, indent=2, ensure_ascii=False)</pre>\n<h2>格式化选项</h2>\n<ul><li><strong>indent</strong>: 缩进空格数（2或4）</li><li><strong>ensure_ascii</strong>: 是否转义中文（False保留中文）</li><li><strong>sort_keys</strong>: 是否按键排序</li></ul>"
+    },
+    {
+      "keyword": "浏览器提示跨域错误怎么解决",
+      "slug": "浏览器提示跨域错误怎么解决",
+      "tool": "develop/cors-debug.html",
+      "intent": "error-fix",
+      "category": "CORS错误",
+      "title": "浏览器提示跨域错误怎么解决？CORS报错的原因与修复方案",
+      "desc": "浏览器控制台出现Access-Control-Allow-Origin错误是常见问题。本文详解CORS报错的原因判断，以及服务端和客户端的多种修复方案。",
+      "content": "<h2>跨域错误判断步骤</h2>\n<pre>1. F12打开控制台，查看具体报错信息\n2. Network面板查看响应头是否包含CORS头\n3. 确认是服务端未配置还是客户端请求方式不对</pre>\n<h2>服务端修复方案</h2>\n<h3>Nginx配置</h3>\n<pre>add_header Access-Control-Allow-Origin $http_origin;\nadd_header Access-Control-Allow-Methods \"GET, POST, PUT, DELETE, OPTIONS\";\nadd_header Access-Control-Allow-Headers \"Content-Type, Authorization\";</pre>\n<h3>Express中间件</h3>\n<pre>app.use((req, res, next) => {\n  res.header(\"Access-Control-Allow-Origin\", \"*\");\n  res.header(\"Access-Control-Allow-Methods\", \"GET,POST,PUT,DELETE,OPTIONS\");\n  res.header(\"Access-Control-Allow-Headers\", \"Content-Type\");\n  next();\n});</pre>\n<h2>客户端修复方案</h2>\n<ul><li>开发时使用CORS Proxy（不推荐生产）</li><li>后端接口配置正确CORS头</li><li>JSONP仅限GET请求（已过时）</li><li>代理服务器转发（生产环境推荐）</li></ul>"
+    },
+    {
+      "keyword": "linux常用命令大全",
+      "slug": "linux常用命令大全",
+      "tool": "develop/terminal.html",
+      "intent": "guide",
+      "category": "Linux命令",
+      "title": "Linux常用命令大全？系统管理文件操作网络诊断完整指南",
+      "desc": "本文整理了最常用的Linux命令分类速查表：文件操作、目录管理、权限设置、进程管理、网络诊断、磁盘查看等，每个命令附带实际例子。",
+      "content": "<h2>文件操作</h2>\n<pre>ls -la  # 列出所有文件（含隐藏）\ncp file1 file2  # 复制文件\nmv file1 file2  # 移动/重命名\nrm file  # 删除文件\nfind / -name \"*.log\"  # 搜索文件</pre>\n<h2>目录管理</h2>\n<pre>cd /path  # 进入目录\nmkdir -p dir1/dir2  # 递归创建\nrm -rf dir  # 删除目录及内容\npwd  # 显示当前路径</pre>\n<h2>权限管理</h2>\n<pre>chmod 755 file  # 修改权限\nchown user:group file  # 修改所有者\nls -la  # 查看权限详情</pre>\n<h2>进程管理</h2>\n<pre>ps aux | grep node  # 查看进程\nkill -9 PID  # 强制终止进程\ntop  # 实时查看资源占用\nhtop  # 更友好的进程查看</pre>\n<h2>网络诊断</h2>\n<pre>ping google.com\ncurl -v url\nnetstat -tlnp | grep 8080\ntcpdump -i eth0 port 80</pre>\n<h2>磁盘与内存</h2>\n<pre>df -h  # 查看磁盘空间\ndu -sh *  # 查看目录大小\nfree -h  # 查看内存使用</pre>"
     }
   ]
 }
