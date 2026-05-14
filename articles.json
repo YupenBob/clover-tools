@@ -1268,6 +1268,56 @@
       "title": "CSS布局方式有哪些？Flex/Grid/传统布局完全指南",
       "desc": "CSS布局是前端开发的核心技能。本文对比Flexbox、Grid、Float、Position四种布局方式，讲解各自的适用场景和常用技巧。",
       "content": "<h2>Flexbox弹性布局</h2>\n<pre>.container {\n  display: flex;\n  justify-content: space-between;  /* 主轴对齐 */\n  align-items: center;  /* 交叉轴对齐\n}\n.item {\n  flex: 1;  /* 占剩余空间 */\n}</pre>\n<h2>CSS Grid网格布局</h2>\n<pre>.container {\n  display: grid;\n  grid-template-columns: 1fr 2fr 1fr;  /* 三列布局 */\n  gap: 20px;\n}\n.item:first-child {\n  grid-column: 1 / 3;  /* 跨两列 */\n}</pre>\n<h2>传统布局：Float + Clearfix</h2>\n<pre>.clearfix::after {\n  content: '';\n  display: table;\n  clear: both;\n}</pre>\n<h2>Position定位</h2>\n<pre>.fixed { position: fixed; top: 0; }  /* 固定顶部 */\n.sticky { position: sticky; top: 10px; }  /* 滚动吸附 */</pre>\n<h2>布局选用建议</h2>\n<ul><li><strong>导航栏/卡片</strong>：Flexbox</li><li><strong>整体页面结构</strong>：Grid</li><li><strong>文字环绕</strong>：Float</li><li><strong>覆盖层/固定元素</strong>：Position</li></ul>"
+    },
+    {
+      "keyword": "jsonwebtoken怎么使用",
+      "slug": "jsonwebtoken怎么使用",
+      "tool": "encrypt/jwt-decoder.html",
+      "intent": "guide",
+      "category": "JWT认证",
+      "title": "JSON Web Token怎么使用？JWT登录认证完整实现教程",
+      "desc": "JWT是现代Web应用最常用的身份认证方案。本文讲解JWT的结构、生成与验证过程，以及如何在Express/Koa/Fastify中实现JWT认证中间件。",
+      "content": "<h2>JWT结构</h2>\n<p>JWT由三部分组成，用点号分隔：<code>header.payload.signature</code></p>\n<pre>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.  # Header（算法）\neyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ.  # Payload（数据）\nSflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c  # Signature（签名）</pre>\n<h2>生成Token</h2>\n<pre>const jwt = require('jsonwebtoken');\n\nconst token = jwt.sign(\n  { userId: 123, role: 'admin' },  // Payload\n  SECRET_KEY,\n  { expiresIn: '7d' }  // 7天过期\n);</pre>\n<h2>验证Token</h2>\n<pre>try {\n  const decoded = jwt.verify(token, SECRET_KEY);\n  console.log(decoded.userId);  // 123\n} catch(err) {\n  if(err.name === 'TokenExpiredError') {\n    console.log('Token已过期');\n  }\n}</pre>\n<h2>Express中间件</h2>\n<pre>function authMiddleware(req, res, next) {\n  const token = req.headers.authorization?.split(' ')[1];\n  if(!token) return res.status(401).send('No token');\n  try {\n    req.user = jwt.verify(token, SECRET_KEY);\n    next();\n  } catch {\n    res.status(401).send('Invalid token');\n  }\n}</pre>\n<h2>在线工具</h2><p>使用CloverTools JWT解码器：<a href=\"/tools/encrypt/jwt-decoder.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "websocker连接失败怎么排查",
+      "slug": "websocker连接失败怎么排查",
+      "tool": "network/http-request.html",
+      "intent": "error-fix",
+      "category": "WebSocket错误",
+      "title": "WebSocket连接失败怎么排查？从握手到生产环境的完整指南",
+      "desc": "WebSocket连接失败是实时应用开发中的常见问题。本文分析握手失败的原因，提供各环境的排查方法，以及生产环境部署注意事项。",
+      "content": "<h2>WebSocket连接过程</h2>\n<pre>1. 浏览器发起HTTP请求（Upgrade头）\n2. 服务器返回101 Switching Protocols\n3. TCP连接升级为WebSocket长连接</pre>\n<h2>常见错误与修复</h2>\n<h3>1. 握手失败（403/401）</h3>\n<pre>// 检查Origin头\n// 某些服务器默认拒绝非浏览器的握手请求\n// 解决：配置服务器允许指定Origin</pre>\n<h3>2. 代理阻止WebSocket</h3>\n<pre>// Nginx代理需要配置\nproxy_http_version 1.1;\nproxy_set_header Upgrade $http_upgrade;\nproxy_set_header Connection \"upgrade\";</pre>\n<h3>3. CORS问题</h3>\n<pre>// 服务器需要处理WebSocket的CORS\n// 某些共享主机可能不支持WebSocket</pre>\n<h2>前端调试</h2>\n<pre>const ws = new WebSocket('wss://example.com/socket');\n\nws.onerror = (e) => {\n  console.log('WebSocket error:', e);\n};\n\nws.onclose = (e) => {\n  console.log('Closed:', e.code, e.reason);\n};</pre>\n<h2>心跳保活</h2>\n<pre>// 定期发送ping防止连接断开\nsetInterval(() => {\n  if(ws.readyState === WebSocket.OPEN) {\n    ws.send(JSON.stringify({type: 'ping'}));\n  }\n}, 30000);</pre>"
+    },
+    {
+      "keyword": "git回退到上一个版本",
+      "slug": "git回退到上一个版本",
+      "tool": "develop/git-tools.html",
+      "intent": "guide",
+      "category": "Git操作",
+      "title": "Git回退到上一个版本？reset/revert/ checkout的区别与正确用法",
+      "desc": "Git版本回退有三种方式：reset、revert和checkout，各有不同的使用场景。本文讲解三种方式的工作原理、区别及如何选择。",
+      "content": "<h2>三种回退方式对比</h2>\n<table><tr><th>方式</th><th>作用</th><th>是否改历史</th><th>适用场景</th></tr><tr><td>reset</td><td>移动HEAD指针</td><td>是（危险）</td><td>本地未推送</td></tr><tr><td>revert</td><td>创建新提交</td><td>否（安全）</td><td>已推送</td></tr><tr><td>checkout</td><td>切换分支</td><td>否</td><td>临时查看</td></tr></table>\n<h2>reset（本地回退）</h2>\n<pre># 软回退（保留工作区更改）\ngit reset --soft HEAD~1\n\n# 硬回退（丢弃所有更改）\ngit reset --hard HEAD~1\n\n# 混合回退（保留修改但清空暂存区）\ngit reset --mixed HEAD~1</pre>\n<h2>revert（安全回退，已推送）</h2>\n<pre># 创建一个新提交来撤销指定提交\ngit revert HEAD\n\n# 撤销并保留修改\ngit revert -n HEAD\n# 然后手动处理冲突</pre>\n<h2>checkout（临时查看）</h2>\n<pre># 临时查看旧版本（不在分支上）\ngit checkout HEAD~1\n\n# 回到当前分支\ngit checkout -</pre>\n<h2>危险操作恢复</h2>\n<pre># reflog查看所有操作历史\ngit reflog\n# 找到误操作之前的commit，恢复\ngit reset --hard HEAD@{n}</pre>"
+    },
+    {
+      "keyword": "时间戳转换工具怎么用",
+      "slug": "时间戳转换工具怎么用",
+      "tool": "time/timestamp.html",
+      "intent": "guide",
+      "category": "时间工具",
+      "title": "时间戳转换工具怎么用？Unix时间戳与日期互转完整教程",
+      "desc": "时间戳是后端开发中的常见数据类型。本文讲解Unix时间戳的概念、Python/JavaScript/Go中的时间戳互转，以及时区处理注意事项。",
+      "content": "<h2>什么是Unix时间戳</h2>\n<p>Unix时间戳是从1970年1月1日00:00:00 UTC到现在的秒数。例如：1700000000表示2023-11-14 20:53:20 UTC。</p>\n<h2>各语言时间戳互转</h2>\n<h3>JavaScript</h3>\n<pre>// 日期转时间戳（毫秒）\nconst ts = Date.now();\nconst date = new Date(ts);\n\n// 时间戳转日期\nconst d = new Date(1700000000 * 1000);\nconsole.log(d.toISOString());</pre>\n<h3>Python</h3>\n<pre>import time\nfrom datetime import datetime\n\n# 当前时间戳（秒）\nts = int(time.time())\n\n# 时间戳转日期\nd = datetime.fromtimestamp(ts)\n\n# 日期转时间戳\nts = int(d.timestamp())</pre>\n<h2>时区注意事项</h2>\n<ul><li>后端存储尽量用UTC，转换时注意时区</li><li>JavaScript Date.now()返回的是本地时间戳（毫秒）</li><li>JSON传递时间用ISO 8601格式比时间戳更明确</li></ul>\n<h2>在线工具</h2><p>使用CloverTools时间戳转换工具：<a href=\"/tools/time/timestamp.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "markdown语法怎么写",
+      "slug": "markdown语法怎么写",
+      "tool": "text/regex-tester.html",
+      "intent": "guide",
+      "category": "Markdown写作",
+      "title": "Markdown语法怎么写？常用语法完整指南",
+      "desc": "Markdown是开发者写文档最常用的格式。本文整理最常用的Markdown语法：标题、链接、图片、代码块、表格、任务列表，附带实例和快捷键。",
+      "content": "<h2>基础语法</h2>\n<pre># 一级标题\n## 二级标题\n### 三级标题\n\n**粗体**  __粗体__\n*斜体*   _斜体_\n~~删除线~~\n\n[链接文字](https://example.com)\n![图片alt](image.jpg)</pre>\n<h2>代码块</h2>\n<pre>\\`\\`\\`javascript\nconst hello = () => console.log(\"Hello\");\n\\`\\`\\`\n\n行内代码：`const x = 1;`</pre>\n<h2>列表</h2>\n<pre>- 无序列表项\n- 另一个项\n  - 嵌套列表（缩进2个空格）\n\n1. 有序列表第一项\n2. 第二项\n3. 第三项</pre>\n<h2>表格</h2>\n<pre>| 列1 | 列2 | 列3 |\n|---|---|---|\n| A | B | C |\n| 1 | 2 | 3 |</pre>\n<h2>任务列表</h2>\n<pre>- [x] 已完成项\n- [ ] 未完成项\n- [ ] 待办事项</pre>\n<h2>引用和分隔线</h2>\n<pre>> 引用文字\n\n---（分隔线）</pre>"
     }
   ]
 }
