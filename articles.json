@@ -1218,6 +1218,56 @@
       "title": "VSCode调试Node.js怎么配置？launch.json完整指南",
       "desc": "VSCode是Node.js开发的利器，但调试配置常让人困惑。本文详解launch.json的多种配置方式，从简单脚本到复杂项目全覆盖。",
       "content": "<h2>创建launch.json</h2>\n<pre>1. VSCode侧边栏点击\"运行和调试\"\n2. 点击\"创建launch.json\"\n3. 选择\"Node.js\"模板</pre>\n<h2>常用配置</h2>\n<pre>{\n  \"version\": \"0.2.0\",\n  \"configurations\": [\n    {\n      \"type\": \"node\",\n      \"request\": \"launch\",\n      \"name\": \"启动程序\",\n      \"program\": \"${workspaceFolder}/index.js\",\n      \"runtimeExecutable\": \"node\"\n    },\n    {\n      \"type\": \"node\",\n      \"request\": \"attach\",\n      \"name\": \"附加到进程\",\n      \"port\": 9229\n    }\n  ]\n}</pre>\n<h2>调试Web应用</h2>\n<pre>{\n  \"type\": \"node\",\n  \"request\": \"launch\",\n  \"name\": \"调试服务器\",\n  \"program\": \"${workspaceFolder}/server.js\",\n  \"env\": { \"NODE_ENV\": \"development\" },\n  \"runtimeArgs\": [\"--inspect-brk\"],\n  \"restart\": true\n}</pre>\n<h2>断点调试技巧</h2>\n<ul><li>F9 设置断点</li><li>F10 单步跳过</li><li>F11 单步进入</li><li>Shift+F11 跳出</li><li>Variables面板查看变量值</li><li>Watch面板添加表达式监控</li></ul>"
+    },
+    {
+      "keyword": "webhook怎么配置和使用",
+      "slug": "webhook怎么配置和使用",
+      "tool": "develop/ci-cd.html",
+      "intent": "guide",
+      "category": "Webhook配置",
+      "title": "Webhook怎么配置和使用？自动化触发与安全验证完整指南",
+      "desc": "Webhook是实现自动化工作流的核心机制。本文讲解Webhook的工作原理、主流平台配置方法、以及如何验证请求真实性防止攻击。",
+      "content": "<h2>Webhook是什么</h2>\n<p>Webhook是一种自动向指定URL发送HTTP请求的机制。当某个事件发生时（如代码提交、支付成功），服务器主动通知你的应用，实现实时自动化。</p>\n<h2>GitHub Webhook配置</h2>\n<pre>1. Settings -> Webhooks -> Add webhook\n2. Payload URL: https://your-server.com/webhook\n3. Content type: application/json\n4. Secret: 设置签名密钥\n5. Events: 选择触发事件（push/pull_request等）</pre>\n<h2>验证签名（安全必须）</h2>\n<pre>const crypto = require('crypto');\n\nfunction verifySignature(payload, signature, secret) {\n  const hmac = crypto.createHmac('sha256', secret);\n  const digest = 'sha256=' + hmac.update(payload).digest('hex');\n  return crypto.timingSafeEqual(\n    Buffer.from(signature),\n    Buffer.from(digest)\n  );\n}</pre>\n<h2>Express处理示例</h2>\n<pre>app.post('/webhook', (req, res) => {\n  const sig = req.headers['x-hub-signature-256'];\n  if(!verifySignature(JSON.stringify(req.body), sig, SECRET)) {\n    return res.status(401).send('Invalid signature');\n  }\n  console.log('Webhook received:', req.body);\n  res.status(200).send('OK');\n});</pre>\n<h2>常用Webhook事件</h2>\n<ul><li>push - 代码提交</li><li>pull_request - PR创建/合并</li><li>issues - Issue创建/更新</li><li>payment_intent.succeeded - 支付成功</li></ul>"
+    },
+    {
+      "keyword": "uuid生成原理是什么",
+      "slug": "uuid生成原理是什么",
+      "tool": "text/uuid-generator.html",
+      "intent": "info",
+      "category": "UUID原理",
+      "title": "UUID生成原理是什么？5种UUID版本与选用指南",
+      "desc": "UUID是开发中常用的唯一标识符，但很多人不清楚UUID有多个版本，各有优缺点。本文详解5种UUID版本的生成原理和选用场景。",
+      "content": "<h2>UUID格式</h2>\n<p>UUID是128位的唯一标识符，格式为8-4-4-4-12的十六进制字符串：<br>例：<code>550e8400-e29b-41d4-a716-446655440000</code></p>\n<h2>5种UUID版本</h2>\n<h3>UUID v1 - 时间戳+MAC地址</h3>\n<p>使用当前时间戳和计算机MAC地址生成。优点：包含时间信息、全球唯一；缺点：能追溯生成时间和机器。</p>\n<h3>UUID v4 - 随机生成</h3>\n<p>完全随机生成，隐私性最好。随机重复概率极低（2^122分之一）。最常用的版本。</p>\n<pre>// Node.js生成v4\nconst { v4: uuidv4 } = require('uuid');\nconsole.log(uuidv4());</pre>\n<h3>UUID v3/v5 - 命名空间哈希</h3>\n<p>基于MD5(v3)或SHA-1(v5)哈希生成。相同命名空间+相同名字永远生成相同UUID，适合固定ID。</p>\n<h2>版本选用建议</h2>\n<ul><li><strong>Web应用内部ID</strong>：用v4（无信息泄露）</li><li><strong>数据库主键</strong>：用v4（随机写入性能好）</li><li><strong>需要重现的ID</strong>：用v5（确定性）</li><li><strong>旧系统兼容</strong>：保持原有版本</li></ul>"
+    },
+    {
+      "keyword": "dockerfile怎么写",
+      "slug": "dockerfile怎么写",
+      "tool": "develop/docker-tools.html",
+      "intent": "guide",
+      "category": "Docker配置",
+      "title": "Dockerfile怎么写？Node.js/Python/Go应用的最佳实践",
+      "desc": "Dockerfile是容器化应用的核心。本文讲解如何编写高效的Dockerfile，包括多阶段构建、层缓存优化、健康检查等高级技巧。",
+      "content": "<h2>基础结构</h2>\n<pre>FROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm ci --only=production\nCOPY . .\nEXPOSE 3000\nCMD [\"node\", \"index.js\"]</pre>\n<h2>多阶段构建（减小镜像）</h2>\n<pre># 阶段1：构建\nFROM node:18 AS builder\nWORKDIR /app\nCOPY . .\nRUN npm ci && npm run build\n\n# 阶段2：运行\nFROM node:18-alpine\nWORKDIR /app\nCOPY --from=builder /app/dist ./dist\nCOPY --from=builder /app/node_modules ./node_modules\nCMD [\"node\", \"dist/index.js\"]</pre>\n<h2>层缓存优化</h2>\n<pre># 频繁变化的文件放后面\nCOPY package*.json ./\nRUN npm ci\nCOPY src ./src  # 源代码变化不影响依赖层\nCOPY public ./public</pre>\n<h2>健康检查</h2>\n<pre>HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3\n  CMD curl -f http://localhost:3000/health || exit 1</pre>\n<h2>.dockerignore</h2>\n<pre>node_modules\n.git\n.env\n*.log\ndist</pre>"
+    },
+    {
+      "keyword": "es6新特性有哪些",
+      "slug": "es6新特性有哪些",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "JavaScript新特性",
+      "title": "ES6新特性有哪些？常用特性完全指南",
+      "desc": "ES6（ECMAScript 2015）是现代JavaScript最重要的一次更新，引入类、模块、箭头函数、Promise等众多新特性。本文整理开发者最常用的ES6特性及实例。",
+      "content": "<h2>let/const 块级作用域</h2>\n<pre>const PI = 3.14159;\nlet count = 0;\ncount++; // 可以修改let声明的变量</pre>\n<h2>箭头函数</h2>\n<pre>// 旧写法\nconst add = function(a, b) { return a + b; };\n// ES6\nconst add = (a, b) => a + b;\n// 单参数可省略括号\nconst double = x => x * 2;</pre>\n<h2>模板字符串</h2>\n<pre>const name = \"World\";\nconst msg = `Hello, ${name}!`;  // 支持嵌入表达式</pre>\n<h2>解构赋值</h2>\n<pre>const { name, age } = user;  // 对象解构\nconst [first, second] = arr;  // 数组解构\nconst { name: userName } = user;  // 重命名</pre>\n<h2>Promise</h2>\n<pre>const p = new Promise((resolve, reject) => {\n  setTimeout(() => resolve(42), 1000);\n});\np.then(val => console.log(val));</pre>\n<h2>async/await</h2>\n<pre>async function fetchData() {\n  const res = await fetch(url);\n  return await res.json();\n}</pre>\n<h2>类和模块</h2>\n<pre>class Animal {\n  constructor(name) { this.name = name; }\n  speak() { console.log(this.name + ' speaks'); }\n}\nexport default Animal;</pre>"
+    },
+    {
+      "keyword": "css布局方式有哪些",
+      "slug": "css布局方式有哪些",
+      "tool": "text/css-formatter.html",
+      "intent": "guide",
+      "category": "CSS布局",
+      "title": "CSS布局方式有哪些？Flex/Grid/传统布局完全指南",
+      "desc": "CSS布局是前端开发的核心技能。本文对比Flexbox、Grid、Float、Position四种布局方式，讲解各自的适用场景和常用技巧。",
+      "content": "<h2>Flexbox弹性布局</h2>\n<pre>.container {\n  display: flex;\n  justify-content: space-between;  /* 主轴对齐 */\n  align-items: center;  /* 交叉轴对齐\n}\n.item {\n  flex: 1;  /* 占剩余空间 */\n}</pre>\n<h2>CSS Grid网格布局</h2>\n<pre>.container {\n  display: grid;\n  grid-template-columns: 1fr 2fr 1fr;  /* 三列布局 */\n  gap: 20px;\n}\n.item:first-child {\n  grid-column: 1 / 3;  /* 跨两列 */\n}</pre>\n<h2>传统布局：Float + Clearfix</h2>\n<pre>.clearfix::after {\n  content: '';\n  display: table;\n  clear: both;\n}</pre>\n<h2>Position定位</h2>\n<pre>.fixed { position: fixed; top: 0; }  /* 固定顶部 */\n.sticky { position: sticky; top: 10px; }  /* 滚动吸附 */</pre>\n<h2>布局选用建议</h2>\n<ul><li><strong>导航栏/卡片</strong>：Flexbox</li><li><strong>整体页面结构</strong>：Grid</li><li><strong>文字环绕</strong>：Float</li><li><strong>覆盖层/固定元素</strong>：Position</li></ul>"
     }
   ]
 }
