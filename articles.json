@@ -1118,6 +1118,56 @@
       "title": "Linux常用命令大全？系统管理文件操作网络诊断完整指南",
       "desc": "本文整理了最常用的Linux命令分类速查表：文件操作、目录管理、权限设置、进程管理、网络诊断、磁盘查看等，每个命令附带实际例子。",
       "content": "<h2>文件操作</h2>\n<pre>ls -la  # 列出所有文件（含隐藏）\ncp file1 file2  # 复制文件\nmv file1 file2  # 移动/重命名\nrm file  # 删除文件\nfind / -name \"*.log\"  # 搜索文件</pre>\n<h2>目录管理</h2>\n<pre>cd /path  # 进入目录\nmkdir -p dir1/dir2  # 递归创建\nrm -rf dir  # 删除目录及内容\npwd  # 显示当前路径</pre>\n<h2>权限管理</h2>\n<pre>chmod 755 file  # 修改权限\nchown user:group file  # 修改所有者\nls -la  # 查看权限详情</pre>\n<h2>进程管理</h2>\n<pre>ps aux | grep node  # 查看进程\nkill -9 PID  # 强制终止进程\ntop  # 实时查看资源占用\nhtop  # 更友好的进程查看</pre>\n<h2>网络诊断</h2>\n<pre>ping google.com\ncurl -v url\nnetstat -tlnp | grep 8080\ntcpdump -i eth0 port 80</pre>\n<h2>磁盘与内存</h2>\n<pre>df -h  # 查看磁盘空间\ndu -sh *  # 查看目录大小\nfree -h  # 查看内存使用</pre>"
+    },
+    {
+      "keyword": "json数据对比工具怎么用",
+      "slug": "json数据对比工具怎么用",
+      "tool": "json/formatter.html",
+      "intent": "guide",
+      "category": "JSON处理",
+      "title": "JSON数据对比工具怎么用？快速找出两个JSON文件差异的方法",
+      "desc": "JSON数据对比是开发调试中的常见需求。本文介绍如何使用CloverTools JSON对比工具快速找出两个JSON文件的差异，并附代码实现方法。",
+      "content": "<h2>什么时候需要JSON对比</h2>\n<ul><li>API返回数据与预期不符，需要找差异</li><li>配置文件修改后忘记改了什么</li><li>前后端数据格式不匹配，需要排查哪里不同</li></ul>\n<h2>在线工具使用方法</h2>\n<p>使用CloverTools JSON对比工具：<a href=\"/tools/json/formatter.html\">打开工具</a> - 支持左右两栏粘贴、语法高亮、一键找出差异。</p>\n<h2>命令行对比（jq）</h2>\n<pre># 安装jq\napt install jq\n\n# 对比两个JSON文件\ndiff <(jq -S . a.json) <(jq -S . b.json)</pre>\n<h2>Node.js代码对比</h2>\n<pre>const fs = require('fs');\n\nfunction diffJson(obj1, obj2, path = '') {\n  const result = {};\n  \n  if (typeof obj1 !== typeof obj2) {\n    result[path] = { type: 'type', a: typeof obj1, b: typeof obj2 };\n    return result;\n  }\n  \n  if (typeof obj1 !== 'object' || obj1 === null) {\n    if (obj1 !== obj2) {\n      result[path] = { a: obj1, b: obj2 };\n    }\n    return result;\n  }\n  \n  const keys = new Set([...Object.keys(obj1||{}), ...Object.keys(obj2||{})]);\n  keys.forEach(key => {\n    const subResult = diffJson(obj1?.[key], obj2?.[key], path ? path + '.' + key : key);\n    Object.assign(result, subResult);\n  });\n  \n  return result;\n}</pre>\n<h2>快速diff算法</h2>\n<p>如果只需要知道是否相同，不需要知道差异：<code>JSON.stringify(a) === JSON.stringify(b)</code>（注意属性顺序会影响结果）。</p>"
+    },
+    {
+      "keyword": "python虚拟环境怎么创建和使用",
+      "slug": "python虚拟环境怎么创建和使用",
+      "tool": "develop/python-venv.html",
+      "intent": "guide",
+      "category": "Python开发",
+      "title": "Python虚拟环境怎么创建和使用？venv完全指南",
+      "desc": "Python虚拟环境是避免包版本冲突的标准方法。本文详解venv的创建、激活、使用，以及requirements.txt的导出和安装。",
+      "content": "<h2>为什么需要虚拟环境</h2>\n<p>不同项目依赖不同版本的包，全局安装会导致版本冲突。虚拟环境让每个项目有独立的Python环境。</p>\n<h2>创建虚拟环境</h2>\n<pre># 创建\npython -m venv myenv\n\n# Windows激活\nmyenv\\Scripts\\activate.bat\n\n# Linux/Mac激活\nsource myenv/bin/activate</pre>\n<h2>常用操作</h2>\n<pre># 安装包\npip install requests\n\n# 导出依赖\npip freeze > requirements.txt\n\n# 从requirements安装\npip install -r requirements.txt\n\n# 退出虚拟环境\ndeactivate</pre>\n<h2>推荐工具：venv + requirements.txt</h2>\n<pre># .gitignore中添加\nvenv/\n__pycache__/\n*.pyc</pre>\n<h2>进阶：使用pyenv管理多个Python版本</h2>\n<pre># 安装pyenv\nbrew install pyenv\n\n# 安装特定版本\npyenv install 3.11.0\n\n# 设置全局版本\npyenv global 3.11.0</pre>"
+    },
+    {
+      "keyword": "githubactions部署失败怎么排查",
+      "slug": "githubactions部署失败怎么排查",
+      "tool": "develop/ci-cd.html",
+      "intent": "error-fix",
+      "category": "CI/CD错误",
+      "title": "GitHub Actions部署失败怎么排查？从日志到修复的完整指南",
+      "desc": "GitHub Actions部署失败是常见问题。本文从Actions日志分析、常见错误原因、到修复方法提供系统性排查指南。",
+      "content": "<h2>查看Actions日志</h2>\n<pre>1. 进入GitHub仓库 -> Actions -> 点击失败的workflow\n2. 点击具体job -> 查看step输出\n3. 搜索error关键词快速定位问题</pre>\n<h2>常见错误与修复</h2>\n<h3>1. 权限问题（Permission denied）</h3>\n<pre># 添加deploy key或使用secrets\n- name: Deploy\n  uses: peaceiris/actions-gh-pages@v3\n  with:\n    github_token: ${{ secrets.GITHUB_TOKEN }}</pre>\n<h3>2. Node版本不匹配</h3>\n<pre>jobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - uses: actions/setup-node@v3\n        with:\n          node-version: '18'</pre>\n<h3>3. 构建命令不存在</h3>\n<pre># 检查package.json的scripts是否正确\n# 确保step顺序：checkout -> setup -> install -> build -> deploy</pre>\n<h3>4. 超时问题</h3>\n<pre>timeout-minutes: 10  # 增加超时时间</pre>"
+    },
+    {
+      "keyword": "curl命令怎么使用",
+      "slug": "curl命令怎么使用",
+      "tool": "network/http-request.html",
+      "intent": "guide",
+      "category": "网络工具",
+      "title": "curl命令怎么使用？HTTP请求完整指南",
+      "desc": "curl是命令行最常用的HTTP客户端工具。本文详解curl的各种用法：GET/POST请求、请求头设置、文件上传、代理配置等。",
+      "content": "<h2>基本用法</h2>\n<pre># GET请求\ncurl https://api.example.com/data\n\n# POST请求\ncurl -X POST https://api.example.com/data\n\n# 带数据POST\ncurl -X POST https://api.example.com/data \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"name\":\"test\"}'</pre>\n<h2>常用参数</h2>\n<pre>-H \"Header: value\"  # 设置请求头\n-d '{\"key\":\"value\"}'  # POST数据\n-i  # 显示响应头\n-v  # 详细模式（请求+响应）\n-X METHOD  # 指定HTTP方法\n-u user:pass  # Basic认证\n--data-urlencode  # URL编码数据\n-L  # 跟随重定向\n-k  # 忽略SSL证书错误</pre>\n<h2>上传文件</h2>\n<pre>curl -X POST https://example.com/upload \\\n  -F \"file=@/path/to/file.pdf\" \\\n  -F \"name=document\"</pre>\n<h2>调试技巧</h2>\n<pre># 保存响应\ncurl -o output.json https://api.example.com/data\n\n# 打印请求和响应详细\ncurl -v https://api.example.com\n\n# 只打印响应头\ncurl -I https://api.example.com</pre>"
+    },
+    {
+      "keyword": "正则表达式语法怎么看",
+      "slug": "正则表达式语法怎么看",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "正则表达式",
+      "title": "正则表达式语法怎么看？新手入门完全指南",
+      "desc": "正则表达式是程序员必备技能之一。本文用实例讲解正则的基本语法：字符类、量词、锚点、分组、替换，让新手快速入门。",
+      "content": "<h2>正则基础语法</h2>\n<h3>字符类</h3>\n<pre>.  # 任意字符\n\\d  # 数字 [0-9]\n\\w  # 字母数字下划线 [a-zA-Z0-9_]\n\\s  # 空白字符\n[abc]  # a或b或c\n[^abc]  # 除了a/b/c\n[a-z]  # a到z</pre>\n<h3>量词</h3>\n<pre>*  # 0次或多次\n+  # 1次或多次\n?  # 0次或1次\n{n}  # 正好n次\n{n,}  # n次以上\n{n,m}  # n到m次</pre>\n<h3>锚点</h3>\n<pre>^  # 字符串开头\n$  # 字符串结尾\n\\b  # 单词边界</pre>\n<h3>分组</h3>\n<pre>(abc)  # 捕获组\n(?:abc)  # 非捕获组\n(?=abc)  # 正向先行断言\n(?!abc)  # 负向先行断言</pre>\n<h2>实例讲解</h2>\n<pre># 匹配手机号\n^1[3-9]\\d{9}$  # 中国手机号\n\n# 匹配邮箱\n^[\\w.-]+@[\\w.-]+\\.\\w+$\n\n# 匹配日期\n^\\d{4}-\\d{2}-\\d{2}$  # 2024-01-01</pre>\n<h2>在线练习</h2>\n<p>使用CloverTools正则测试器实时验证：<a href=\"/tools/code/regex-tester.html\">打开工具</a></p>"
     }
   ]
 }
