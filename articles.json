@@ -1368,6 +1368,56 @@
       "title": "CSS选择器优先级怎么算？ specificity计算规则与!important注意事项",
       "desc": "CSS优先级（specificity）是前端面试必考题。本文详解选择器权重计算规则、!important的坑，以及如何避免优先级冲突导致的样式问题。",
       "content": "<h2>优先级计算规则</h2>\n<p>CSS优先级用一个四元组(A,B,C,D)表示：</p>\n<ul><li>A: ID选择器 (#id)</li><li>B: 类选择器、属性选择器、伪类 (.class/[attr]:hover)</li><li>C: 标签选择器、伪元素 (div, ::before)</li><li>D: 通配符、组合器、否定伪类 (*, >, +)</li></ul>\n<h2>计算示例</h2>\n<pre>#header .nav li:first-child  // (1, 1, 2, 1)\n                                    // ID=1, 类=1, 标签=2\n\n.header .nav .active            // (0, 3, 0, 0)\n\ndiv#header #nav                // (2, 0, 1, 0)</pre>\n<h2>优先级排序</h2>\n<pre>(1,0,0,0) > (0,10,0,0) > (0,0,10,0) > (0,0,0,10)\n\n#id > .class > tag > *</pre>\n<h2>!important的坑</h2>\n<pre>// !important 优先级最高，会覆盖一切\n.bad { color: red !important; }\n\n// 多个!important按普通优先级规则比较\n// 强烈建议不要用!important，它会破坏样式表的可维护性</pre>\n<h2>内联样式 vs ID</h2>\n<pre>&lt;div style=\"color: red;\"&gt;&lt;/div&gt;  // 内联优先级 = (1,0,0,0)\n// 内联 > ID选择器</pre>"
+    },
+    {
+      "keyword": "git合并分支命令",
+      "slug": "git合并分支命令",
+      "tool": "develop/git-tools.html",
+      "intent": "guide",
+      "category": "Git操作",
+      "title": "Git合并分支命令怎么用？merge/rebase cherry-pick 完整指南",
+      "desc": "Git分支合并是团队协作的核心操作。本文讲解merge、rebase、cherry-pick三种合并方式的区别、适用场景，以及解决合并冲突的实战技巧。",
+      "content": "<h2>merge（合并提交）</h2>\n<pre># 将feature分支合并到main\ngit checkout main\ngit merge feature\n\n# 合并后产生一个merge commit\n# 保留完整历史，适合团队协作分支</pre>\n<h2>rebase（变基）</h2>\n<pre># 把当前分支\"嫁接\"到目标分支顶部\ngit checkout feature\ngit rebase main\n\n# 产生线性历史，更干净\n# 但会改写提交历史，**不要对已推送的分支执行**</pre>\n<h2>cherry-pick（挑拣提交）</h2>\n<pre># 把某个commit应用到当前分支\ngit cherry-pick abc1234\n\n# 适用于：\n# - 把hotfix从一个分支应用到其他分支\n# - 回滚后的修复需要应用到main</pre>\n<h2>解决合并冲突</h2>\n<pre># 1. 拉取最新代码\ngit pull --rebase origin main\n\n# 2. 手动解决冲突文件\ngit add resolved_file.js\n\n# 3. 继续rebase\ngit rebase --continue\n\n# 或放弃rebase\ngit rebase --abort</pre>\n<h2>合并vs变基选择</h2>\n<ul><li><strong>公共分支（main/dev）</strong>：用merge</li><li><strong>个人功能分支</strong>：用rebase保持线性历史</li><li><strong>hotfix</strong>：用cherry-pick精确应用</li></ul>"
+    },
+    {
+      "keyword": "http状态码含义",
+      "slug": "http状态码含义",
+      "tool": "network/http-request.html",
+      "intent": "info",
+      "category": "HTTP协议",
+      "title": "HTTP状态码含义？1xx/2xx/3xx/4xx/5xx 完整对照表",
+      "desc": "HTTP状态码是API开发必掌握的基础知识。本文整理所有常用状态码含义，按1xx到5xx分类，提供快速查询对照表和实际场景说明。",
+      "content": "<h2>1xx - 信息性状态码</h2>\n<ul><li><strong>100 Continue</strong>：继续发送请求</li><li><strong>101 Switching Protocols</strong>：协议升级（如HTTP→WebSocket）</li></ul>\n<h2>2xx - 成功状态码</h2>\n<ul><li><strong>200 OK</strong>：请求成功</li><li><strong>201 Created</strong>：资源创建成功（POST成功）</li><li><strong>204 No Content</strong>：成功但无返回内容（DELETE成功）</li></ul>\n<h2>3xx - 重定向状态码</h2>\n<ul><li><strong>301 Moved Permanently</strong>：永久重定向（缓存）</li><li><strong>302 Found</strong>：临时重定向（不缓存）</li><li><strong>304 Not Modified</strong>：缓存未修改</li><li><strong>307 Temporary Redirect</strong>：临时重定向（保持方法）</li></ul>\n<h2>4xx - 客户端错误</h2>\n<ul><li><strong>400 Bad Request</strong>：请求格式错误</li><li><strong>401 Unauthorized</strong>：未认证（需登录）</li><li><strong>403 Forbidden</strong>：无权限</li><li><strong>404 Not Found</strong>：资源不存在</li><li><strong>429 Too Many Requests</strong>：请求过于频繁（限流）</li></ul>\n<h2>5xx - 服务器错误</h2>\n<ul><li><strong>500 Internal Server Error</strong>：服务器内部错误</li><li><strong>502 Bad Gateway</strong>：网关错误（上游服务挂了）</li><li><strong>503 Service Unavailable</strong>：服务不可用（过载/维护）</li><li><strong>504 Gateway Timeout</strong>：网关超时</li></ul>\n<h2>实际开发建议</h2>\n<pre>// 统一错误响应格式\n{\n  \"code\": 40401,\n  \"message\": \"用户不存在\",\n  \"data\": null\n}</pre>"
+    },
+    {
+      "keyword": "javascript数组方法有哪些",
+      "slug": "javascript数组方法有哪些",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "JavaScript数组",
+      "title": "JavaScript数组方法有哪些？map/filter/reduce/flat完整指南",
+      "desc": "现代JavaScript数组方法让你的代码更简洁、更函数式。本文详解forEach/map/filter/reduce/find/findIndex/flat/sort等方法的用法和性能注意事项。",
+      "content": "<h2>遍历类</h2>\n<pre>const arr = [1, 2, 3];\n\narr.forEach((item, index) => console.log(item));\n// 无返回值，不链式调用</pre>\n<h2>转换类</h2>\n<pre>// map - 逐一转换，返回新数组\nconst doubled = [1, 2, 3].map(x => x * 2);  // [2, 4, 6]\n\n// flat - 扁平化嵌套数组\nconst flat = [1, [2, [3]]].flat(2);  // [1, 2, 3]\n\n// flatMap - 先map再flat\nconst fm = [1, 2, 3].flatMap(x => [x, x * 2]);  // [1, 2, 2, 4, 3, 6]</pre>\n<h2>过滤类</h2>\n<pre>// filter - 过滤条件\nconst evens = [1, 2, 3, 4].filter(x => x % 2 === 0);  // [2, 4]\n\n// find/findIndex - 找第一个匹配\nconst found = [1, 2, 3].find(x => x > 1);  // 2\nconst idx = [1, 2, 3].findIndex(x => x > 1);  // 1\n\n// includes/some/every\n[1, 2, 3].includes(2);  // true\n[1, 2, 3].some(x => x > 2);  // true\n[1, 2, 3].every(x => x > 0);  // true</pre>\n<h2>聚合类</h2>\n<pre>// reduce - 汇总操作\nconst sum = [1, 2, 3].reduce((acc, x) => acc + x, 0);  // 6\n\n// 统计出现次数\nconst count = ['a', 'b', 'a'].reduce((acc, x) => {\n  acc[x] = (acc[x] || 0) + 1;\n  return acc;\n}, {});  // { a: 2, b: 1 }</pre>\n<h2>排序反转</h2>\n<pre>// sort - 排序（默认Unicode编码）\n[3, 1, 2].sort((a, b) => a - b);  // [1, 2, 3]\n\n// reverse - 反转\n[1, 2, 3].reverse();  // [3, 2, 1]</pre>"
+    },
+    {
+      "keyword": "sql增删改查语法",
+      "slug": "sql增删改查语法",
+      "tool": "data/sql-formatter.html",
+      "intent": "guide",
+      "category": "SQL基础",
+      "title": "SQL增删改查语法？SELECT/INSERT/UPDATE/DELETE完整指南",
+      "desc": "SQL是后端开发必备技能。本文讲解最常用的SELECT、INSERT、UPDATE、DELETE语句，包含JOIN、WHERE、GROUP BY等高阶用法和实战示例。",
+      "content": "<h2>查询（SELECT）</h2>\n<pre>SELECT id, name, email\nFROM users\nWHERE age >= 18\nORDER BY created_at DESC\nLIMIT 10 OFFSET 0;</pre>\n<h2>INSERT插入</h2>\n<pre>-- 插入单条\nINSERT INTO users (name, email, age)\nVALUES ('Tom', 'tom@example.com', 20);\n\n-- 批量插入\nINSERT INTO users (name, email)\nVALUES ('Tom', 'tom@example.com'),\n       ('Jerry', 'jerry@example.com');</pre>\n<h2>UPDATE更新</h2>\n<pre>UPDATE users\nSET email = 'new@example.com', age = 21\nWHERE id = 1;\n\n-- 批量更新（低版本MySQL）\nUPDATE users SET age = age + 1\nWHERE id IN (1, 2, 3);</pre>\n<h2>DELETE删除</h2>\n<pre>-- 删除单条\nDELETE FROM users WHERE id = 1;\n\n-- 清理表（保留结构）\nTRUNCATE TABLE users;</pre>\n<h2>JOIN连接</h2>\n<pre>-- 左连接\nSELECT u.name, o.order_id\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nWHERE o.deleted_at IS NULL;</pre>\n<h2>聚合统计</h2>\n<pre>SELECT \n  department,\n  COUNT(*) as count,\n  AVG(salary) as avg_salary\nFROM employees\nGROUP BY department\nHAVING AVG(salary) > 5000;</pre>"
+    },
+    {
+      "keyword": "vue3和vue2区别是什么",
+      "slug": "vue3和vue2区别是什么",
+      "tool": "code/vue-playground.html",
+      "intent": "info",
+      "category": "Vue框架",
+      "title": "Vue3和Vue2区别是什么？Composition API完全指南",
+      "desc": "Vue3是Vue2的重大升级，引入了Composition API、Proxy响应式系统等众多新特性。本文对比Vue2和Vue3的核心区别，以及如何迁移Vue2项目到Vue3。",
+      "content": "<h2>响应式系统升级</h2>\n<pre>// Vue2: Object.defineProperty（需要defineProperty）\n// Vue3: Proxy（更强大，原生支持数组）\n\n// Vue3可以直接监听数组变化\nconst state = reactive({\n  count: 0,\n  list: []\n});\nstate.list.push(1);  // Vue3可以监听到</pre>\n<h2>Composition API vs Options API</h2>\n<pre>// Vue3 Composition API\nsetup() {\n  const count = ref(0);\n  const double = computed(() => count.value * 2);\n  \n  function increment() {\n    count.value++;\n  }\n  \n  return { count, double, increment };\n}</pre>\n<h2>生命周期变化</h2>\n<pre>Vue2                Vue3 (setup内)\nbeforeCreate         not needed\ncreated              not needed\nbeforeMount          onBeforeMount\nmounted              onMounted\nbeforeUpdate         onBeforeUpdate\nupdated              onUpdated\nbeforeDestroy        onBeforeUnmount\ndestroyed            onUnmounted</pre>\n<h2>Teleport（传送门）</h2>\n<pre>&lt;Teleport to=\"body\"&gt;\n  &lt;Modal v-if=\"show\" /&gt;\n&lt;/Teleport&gt;</pre>\n<h2>Suspense异步组件</h2>\n<pre>&lt;Suspense&gt;\n  &lt;template #default&gt;\n    &lt;AsyncComponent /&gt;\n  &lt;/template&gt;\n  &lt;template #fallback&gt;\n    &lt;Loading /&gt;\n  &lt;/template&gt;\n&lt;/Suspense&gt;</pre>\n<h2>迁移建议</h2>\n<ul><li>新项目直接用Vue3</li><li>Vue2项目可以逐步迁移（支持共存）</li><li>composition-api插件可以让Vue2用Composition API</li></ul>"
     }
   ]
 }
