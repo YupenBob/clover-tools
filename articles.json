@@ -1468,6 +1468,56 @@
       "title": "正则表达式怎么写？常用模式与实战技巧完整指南",
       "desc": "正则表达式是处理字符串的利器，但语法复杂容易出错。本文整理常用正则模式（邮箱、手机、URL、IP等），以及如何用JavaScript/Python优雅地编写和调试正则。",
       "content": "<h2>常用模式</h2>\n<pre>// 中文\n[\\u4e00-\\u9fa5]\n\n// 手机号（中国）\n1[3-9]\\d{9}\n\n// 邮箱\n[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\n\n// URL\nhttps?:\\/\\/[\\w\\-]+(\\.[\\w\\-]+)+[\\w\\-.,@?^=%&:/~+#]*\n\n// IP地址\n((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\n\n// 日期 YYYY-MM-DD\n\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])</pre>\n<h2>JavaScript中使用</h2>\n<pre>const email = 'test@example.com';\nconst regex = /^[\\w.-]+@[\\w.-]+\\.\\w+$/;\n\nconsole.log(regex.test(email));  // true\n\n// 提取匹配\nconst match = email.match(/@(\\w+)\\.(\\w+)/);\nif (match) {\n  console.log(match[1]);  // example\n  console.log(match[2]);  // com\n}</pre>\n<h2>贪婪vs非贪婪</h2>\n<pre>// 贪婪（匹配最多）\n'aaaa'.match(/a+/);  // ['aaaa']\n\n// 非贪婪（匹配最少）\n'aaaa'.match(/a+?/);  // ['a']\n\n// 禁止贪婪\n'aaaa'.match(/a+?/g);  // ['a', 'a', 'a', 'a']</pre>\n<h2>前瞻断言</h2>\n<pre>// 正向前瞻：后面是数字才匹配\nconst str = 'abc123def456';\nstr.match(/\\w+(?=\\d)/g);  // ['abc', 'def']\n\n// 负向前瞻：后面不是数字才匹配\nstr.match(/\\w+(?!\\d)/g);  // ['abc123', 'def456']</pre>\n<h2>在线工具</h2><p>使用CloverTools正则表达式测试工具：<a href=\"/tools/text/regex-tester.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "mysql安装教程",
+      "slug": "mysql安装教程",
+      "tool": "data/sql-formatter.html",
+      "intent": "guide",
+      "category": "MySQL数据库",
+      "title": "MySQL安装教程？Windows/Mac/Linux完整安装指南",
+      "desc": "MySQL是最流行的开源关系型数据库。本文讲解在Windows、Mac、Linux三大平台上安装MySQL的完整步骤，以及安装后的初始配置和远程连接设置。",
+      "content": "<h2>Linux（Ubuntu/Debian）</h2>\n<pre>sudo apt update\nsudo apt install mysql-server\n\n# 启动服务\nsudo systemctl start mysql\nsudo systemctl enable mysql\n\n# 安全配置\nsudo mysql_secure_installation</pre>\n<h2>Mac（Homebrew）</h2>\n<pre>brew install mysql\n\n# 启动服务\nbrew services start mysql\n\n# 无密码登录（本地开发）\nmysql -u root</pre>\n<h2>Windows</h2>\n<pre># 下载MSI安装包：dev.mysql.com/downloads/mysql\n# 双击安装，记住root密码\n# 配置环境变量 PATH 加入 MySQL bin 目录</pre>\n<h2>初始配置</h2>\n<pre># 登录MySQL\nmysql -u root -p\n\n# 创建数据库\nCREATE DATABASE myapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\n\n# 创建用户\nCREATE USER 'app'@'localhost' IDENTIFIED BY 'password123';\nGRANT ALL PRIVILEGES ON myapp.* TO 'app'@'localhost';\nFLUSH PRIVILEGES;</pre>\n<h2>远程连接配置</h2>\n<pre># 编辑配置文件\nsudo nano /etc/mysql/mysql.conf.d/mysqld.cnf\n\n# 注释掉这行（允许远程连接）\n# bind-address = 127.0.0.1\n\n# 重启\nsudo systemctl restart mysql</pre>"
+    },
+    {
+      "keyword": "docker常用命令有哪些",
+      "slug": "docker常用命令有哪些",
+      "tool": "develop/docker-tools.html",
+      "intent": "guide",
+      "category": "Docker容器",
+      "title": "Docker常用命令有哪些？镜像/容器/网络/数据卷完整指南",
+      "desc": "Docker是现代云原生应用的基础。本文整理最常用的Docker命令，覆盖镜像管理、容器操作、数据卷挂载、网络配置等日常开发运维场景。",
+      "content": "<h2>镜像命令</h2>\n<pre># 查看本地镜像\ndocker images\n\n# 拉取镜像\ndocker pull nginx:latest\n\n# 构建镜像\ndocker build -t myapp:1.0 .\n\n# 删除镜像\ndocker rmi nginx:latest\n\n# 清理悬空镜像\ndocker image prune</pre>\n<h2>容器命令</h2>\n<pre># 运行容器\ndocker run -d --name web -p 8080:80 nginx\n\n# 常见选项\n# -d 后台运行\n# --name 给容器命名\n# -p 端口映射 主机:容器\n# -e 设置环境变量\n# -v 挂载数据卷\n\n# 查看运行中的容器\ndocker ps\n\n# 查看所有容器（包括已停止）\ndocker ps -a\n\n# 停止/启动容器\ndocker stop web\ndocker start web\n\n# 进入容器bash\ndocker exec -it web bash\n\n# 查看容器日志\ndocker logs -f web</pre>\n<h2>数据卷</h2>\n<pre># 创建数据卷\ndocker volume create mydata\n\n# 查看数据卷\ndocker volume ls\n\n# 挂载数据卷\ndocker run -v mydata:/data nginx</pre>\n<h2>清理</h2>\n<pre># 删除已停止容器\ndocker container prune\n\n# 删除所有已停止容器\ndocker system prune -a\n\n# 清理数据卷\ndocker volume prune</pre>"
+    },
+    {
+      "keyword": "git分支命令怎么用",
+      "slug": "git分支命令怎么用",
+      "tool": "develop/git-tools.html",
+      "intent": "guide",
+      "category": "Git操作",
+      "title": "Git分支命令怎么用？创建/切换/合并/删除分支完整指南",
+      "desc": "Git分支是团队协作的核心工具。本文讲解分支的创建、切换、合并、删除、重命名等常用操作，以及如何用分支模型管理团队协作流程。",
+      "content": "<h2>查看和创建分支</h2>\n<pre># 查看本地分支（当前分支带*）\ngit branch\n\n# 查看所有分支（包括远程）\ngit branch -a\n\n# 创建新分支\ngit branch feature-login\n\n# 创建并切换\ngit checkout -b feature-login\ngit switch -c feature-login  # 新语法</pre>\n<h2>切换和删除分支</h2>\n<pre># 切换分支\ngit checkout main\ngit switch main  # 新语法\n\n# 删除分支（已合并）\ngit branch -d feature-login\n\n# 强制删除分支\ngit branch -D feature-login</pre>\n<h2>合并分支</h2>\n<pre># 将feature合并到当前分支\ngit merge feature-login\n\n# 遇到冲突时，手动解决后\ngit add resolved_file.js\ngit commit</pre>\n<h2>重命名分支</h2>\n<pre># 重命名当前分支\ngit branch -m old-name new-name\n\n# 重命名其他分支\ngit branch -m feature-old feature-new</pre>\n<h2>推送和跟踪</h2>\n<pre># 推送分支到远程\ngit push -u origin feature-login\n\n# 设置上游跟踪\ngit branch -u origin/feature-login\n\n# 删除远程分支\ngit push origin --delete feature-login</pre>"
+    },
+    {
+      "keyword": "redis数据类型有哪些",
+      "slug": "redis数据类型有哪些",
+      "tool": "data/json-to-schema.html",
+      "intent": "info",
+      "category": "Redis数据库",
+      "title": "Redis数据类型有哪些？String/Hash/List/Set/Sorted Set完全指南",
+      "desc": "Redis支持5种基础数据类型，每种都有独特的应用场景。本文详解5种数据类型的命令和使用场景，以及如何选择合适的数据结构。",
+      "content": "<h2>String（字符串）</h2>\n<pre>SET name \"Tom\"\nGET name\nSET count 100\nINCR count  # 101\nDECRBY count 10  # 91\n\n# 场景：缓存、计数器、分布式锁</pre>\n<h2>Hash（哈希）</h2>\n<pre>HSET user:1 name \"Tom\" email \"tom@example.com\" age 20\nHGET user:1 name\nHGETALL user:1\nHINCRBY user:1 age 1\n\n# 场景：用户对象、配置缓存</pre>\n<h2>List（列表）</h2>\n<pre>LPUSH notifications \"new message\"\nRPUSH notifications \"order placed\"\nLRANGE notifications 0 -1\nLPOP notifications\n\n# 场景：消息队列、最新消息列表</pre>\n<h2>Set（集合）</h2>\n<pre>SADD tags \"python\" \"javascript\" \"nodejs\"\nSMEMBERS tags\nSISMEMBER tags \"python\"  # 1\nSINTER tag1 tag2  # 交集\n\n# 场景：标签系统、去重</pre>\n<h2>Sorted Set（有序集合）</h2>\n<pre>ZADD leaderboard 1000 \"Tom\" 900 \"Jerry\" 800 \"Bob\"\nZRANGE leaderboard 0 -1  # 正序\nZREVRANGE leaderboard 0 9  # 倒序（前10名）\nZSCORE leaderboard \"Tom\"  # 1000\n\n# 场景：排行榜、延时队列</pre>"
+    },
+    {
+      "keyword": "python虚拟环境怎么创建",
+      "slug": "python虚拟环境怎么创建",
+      "tool": "develop/node-package.html",
+      "intent": "guide",
+      "category": "Python环境",
+      "title": "Python虚拟环境怎么创建？venv/Conda完全指南",
+      "desc": "Python项目需要隔离的依赖环境，避免版本冲突。本文讲解venv、Conda两种虚拟环境管理方案，以及如何用pip和poetry管理依赖包。",
+      "content": "<h2>venv（Python内置）</h2>\n<pre># 创建虚拟环境\npython -m venv myenv\n\n# 激活（Windows）\nmyenv\\Scripts\\activate\n\n# 激活（Mac/Linux）\nsource myenv/bin/activate\n\n# 退出\ndeactivate</pre>\n<h2>Conda</h2>\n<pre># 创建环境\nconda create --name myenv python=3.11\n\n# 激活\nconda activate myenv\n\n# 退出\nconda deactivate\n\n# 查看所有环境\nconda env list\n\n# 删除环境\nconda env remove --name myenv</pre>\n<h2>pip使用</h2>\n<pre># 安装包\npip install requests\n\n# 导出依赖\npip freeze > requirements.txt\n\n# 从文件安装\npip install -r requirements.txt\n\n# 升级包\npip install --upgrade requests</pre>\n<h2>poetry（现代方案）</h2>\n<pre># 初始化项目\npoetry init\npoetry add requests\n\n# 安装依赖（按pyproject.toml）\npoetry install\n\n# 更新依赖\npoetry update</pre>\n<h2>.gitignore模板</h2>\n<pre># venv\u000benv/\n\n# conda\nenv/\n\n# Poetry\npoetry.lock</pre>"
     }
   ]
 }
