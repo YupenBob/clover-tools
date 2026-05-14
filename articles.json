@@ -1318,6 +1318,56 @@
       "title": "Markdown语法怎么写？常用语法完整指南",
       "desc": "Markdown是开发者写文档最常用的格式。本文整理最常用的Markdown语法：标题、链接、图片、代码块、表格、任务列表，附带实例和快捷键。",
       "content": "<h2>基础语法</h2>\n<pre># 一级标题\n## 二级标题\n### 三级标题\n\n**粗体**  __粗体__\n*斜体*   _斜体_\n~~删除线~~\n\n[链接文字](https://example.com)\n![图片alt](image.jpg)</pre>\n<h2>代码块</h2>\n<pre>\\`\\`\\`javascript\nconst hello = () => console.log(\"Hello\");\n\\`\\`\\`\n\n行内代码：`const x = 1;`</pre>\n<h2>列表</h2>\n<pre>- 无序列表项\n- 另一个项\n  - 嵌套列表（缩进2个空格）\n\n1. 有序列表第一项\n2. 第二项\n3. 第三项</pre>\n<h2>表格</h2>\n<pre>| 列1 | 列2 | 列3 |\n|---|---|---|\n| A | B | C |\n| 1 | 2 | 3 |</pre>\n<h2>任务列表</h2>\n<pre>- [x] 已完成项\n- [ ] 未完成项\n- [ ] 待办事项</pre>\n<h2>引用和分隔线</h2>\n<pre>> 引用文字\n\n---（分隔线）</pre>"
+    },
+    {
+      "keyword": "python打包成exe怎么弄",
+      "slug": "python打包成exe怎么弄",
+      "tool": "develop/package-builder.html",
+      "intent": "guide",
+      "category": "Python打包",
+      "title": "Python打包成exe怎么弄？PyInstaller/Freeze最全指南",
+      "desc": "Python程序如何打包成Windows可执行文件exe？本文对比PyInstaller、Nuitka、cx_Freeze等工具，详解打包配置、常见错误处理和多文件打包方法。",
+      "content": "<h2>PyInstaller最简打包</h2>\n<pre>pip install pyinstaller\npyinstaller --onefile your_script.py</pre>\n<h2>常见配置</h2>\n<pre>--onefile 打包成单个exe\n--noconsole 无黑窗口（GUI应用）\n--icon=app.ico 设置图标\n--name MyApp 指定输出名字\n--add-data \"src;dest\" 添加额外文件</pre>\n<h2>spec文件配置（高级）</h2>\n<pre>a = Analysis(['app.py'])\npyz = PYZ(a.pure)\nexe = EXE(pyz, a.scripts,\n  a.binaries, a.datas,\n  name='MyApp',\n  icon='app.ico',\n  console=False)</pre>\n<h2>常见错误</h2>\n<h3>找不到模块</h3>\n<pre>pyinstaller --hidden-import=requests app.py</pre>\n<h3>打包后太大</h3>\n<pre>pyinstaller --exclude-module=tkinter --onefile app.py</pre>\n<h2>Nuitka（编译成C，性能更好）</h2>\n<pre>pip install nuitka\npython -m nuitka --standalone --onefile app.py</pre>"
+    },
+    {
+      "keyword": "nginx反向代理怎么配",
+      "slug": "nginx反向代理怎么配",
+      "tool": "network/nginx-config.html",
+      "intent": "guide",
+      "category": "Nginx配置",
+      "title": "Nginx反向代理怎么配？负载均衡与SSL完整配置指南",
+      "desc": "Nginx反向代理是架构中的核心组件。本文讲解反向代理配置、负载均衡策略、SSL证书配置，以及与Docker配合的最佳实践。",
+      "content": "<h2>基础反向代理</h2>\n<pre>server {\n  listen 80;\n  server_name example.com;\n\n  location / {\n    proxy_pass http://127.0.0.1:3000;\n    proxy_set_header Host $host;\n    proxy_set_header X-Real-IP $remote_addr;\n  }\n}</pre>\n<h2>负载均衡</h2>\n<pre>upstream backend {\n  least_conn;  # 最少连接优先\n  server 127.0.0.1:3000;\n  server 127.0.0.1:3001;\n  server 127.0.0.1:3002;\n}\n\nserver {\n  location / {\n    proxy_pass http://backend;\n  }\n}</pre>\n<h2>SSL配置</h2>\n<pre>server {\n  listen 443 ssl;\n  server_name example.com;\n\n  ssl_certificate /etc/ssl/certs/cert.pem;\n  ssl_certificate_key /etc/ssl/private/key.pem;\n\n  location / {\n    proxy_pass http://127.0.0.1:3000;\n  }\n}</pre>\n<h2>WebSocket代理</h2>\n<pre>location /ws {\n  proxy_pass http://127.0.0.1:8000;\n  proxy_http_version 1.1;\n  proxy_set_header Upgrade $http_upgrade;\n  proxy_set_header Connection \"upgrade\";\n}</pre>"
+    },
+    {
+      "keyword": "react hooks怎么用",
+      "slug": "react hooks怎么用",
+      "tool": "code/react-playground.html",
+      "intent": "guide",
+      "category": "React开发",
+      "title": "React Hooks怎么用？useState/useEffect/useCallback/useMemo完全指南",
+      "desc": "React Hooks是函数组件的核心能力。本文详解最常用的useState、useEffect、useCallback、useMemo四个Hook，通过实例讲解正确用法和性能优化技巧。",
+      "content": "<h2>useState状态管理</h2>\n<pre>import { useState } from 'react';\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n  \n  return (\n    &lt;button onClick={() => setCount(c => c + 1)}&gt;\n      Count: {count}\n    &lt;/button&gt;\n  );\n}</pre>\n<h2>useEffect副作用</h2>\n<pre>useEffect(() => {\n  // 组件挂载时执行\n  const timer = setInterval(() => tick(), 1000);\n  \n  // 返回清理函数（组件卸载时执行）\n  return () => clearInterval(timer);\n}, []);  // 空依赖 = 只执行一次</pre>\n<h2>useCallback缓存函数</h2>\n<pre>const handleClick = useCallback(() => {\n  setCount(c => c + 1);\n}, []);  // 依赖数组\n\n// 父组件传入时，避免子组件不必要的重渲染\n&lt;Child onClick={handleClick} /&gt;</pre>\n<h2>useMemo缓存计算结果</h2>\n<pre>const expensiveValue = useMemo(() => {\n  return computeExpensiveValue(a, b);\n}, [a, b]);  // 依赖变化时重新计算</pre>\n<h2>自定义Hook</h2>\n<pre>function useWindowSize() {\n  const [size, setSize] = useState({ w: window.innerWidth, h: window.innerHeight });\n  useEffect(() => {\n    const handler = () => setSize({ w: window.innerWidth, h: window.innerHeight });\n    window.addEventListener('resize', handler);\n    return () => window.removeEventListener('resize', handler);\n  }, []);\n  return size;\n}</pre>"
+    },
+    {
+      "keyword": "数据库索引原理是什么",
+      "slug": "数据库索引原理是什么",
+      "tool": "data/json-to-schema.html",
+      "intent": "info",
+      "category": "数据库原理",
+      "title": "数据库索引原理是什么？B+树与索引优化完全指南",
+      "desc": "数据库索引是提升查询性能的关键，但滥用索引反而拖累写入性能。本文从B+树原理出发，讲解索引结构、复合索引、最左前缀原则，以及索引失效的常见场景。",
+      "content": "<h2>为什么需要索引</h2>\n<p>没有索引时，查询需要全表扫描（O(n)）；有了索引，只需几次磁盘IO就能定位数据（O(log n)）。</p>\n<h2>B+树结构</h2>\n<p>MySQL默认索引结构是非叶子节点存key，叶子节点存数据（InnoDB）。所有叶子节点在同一层，查询效率稳定。</p>\n<h2>创建索引</h2>\n<pre>-- 单列索引\nCREATE INDEX idx_name ON users(name);\n\n-- 复合索引（最左前缀）\nCREATE INDEX idx_age_name ON users(age, name);\n\n-- 唯一索引\nCREATE UNIQUE INDEX idx_email ON users(email);</pre>\n<h2>最左前缀原则</h2>\n<pre>-- 复合索引 idx(age, name, city)\n-- 能命中的查询：\nWHERE age = 20\nWHERE age = 20 AND name = 'Tom'\nWHERE age = 20 AND name = 'Tom' AND city = 'BJ'\n\n-- 不能命中（跳过age）：\nWHERE name = 'Tom'\nWHERE city = 'BJ'</pre>\n<h2>索引失效场景</h2>\n<pre>-- 1. 函数/计算\nWHERE YEAR(created_at) = 2024\n\n-- 2. 类型转换\nWHERE phone = 13800138000  -- phone是varchar\n\n-- 3. OR导致全表\nWHERE name = 'Tom' OR age = 20  -- age无索引</pre>"
+    },
+    {
+      "keyword": "css选择器优先级怎么算",
+      "slug": "css选择器优先级怎么算",
+      "tool": "text/css-formatter.html",
+      "intent": "guide",
+      "category": "CSS技巧",
+      "title": "CSS选择器优先级怎么算？ specificity计算规则与!important注意事项",
+      "desc": "CSS优先级（specificity）是前端面试必考题。本文详解选择器权重计算规则、!important的坑，以及如何避免优先级冲突导致的样式问题。",
+      "content": "<h2>优先级计算规则</h2>\n<p>CSS优先级用一个四元组(A,B,C,D)表示：</p>\n<ul><li>A: ID选择器 (#id)</li><li>B: 类选择器、属性选择器、伪类 (.class/[attr]:hover)</li><li>C: 标签选择器、伪元素 (div, ::before)</li><li>D: 通配符、组合器、否定伪类 (*, >, +)</li></ul>\n<h2>计算示例</h2>\n<pre>#header .nav li:first-child  // (1, 1, 2, 1)\n                                    // ID=1, 类=1, 标签=2\n\n.header .nav .active            // (0, 3, 0, 0)\n\ndiv#header #nav                // (2, 0, 1, 0)</pre>\n<h2>优先级排序</h2>\n<pre>(1,0,0,0) > (0,10,0,0) > (0,0,10,0) > (0,0,0,10)\n\n#id > .class > tag > *</pre>\n<h2>!important的坑</h2>\n<pre>// !important 优先级最高，会覆盖一切\n.bad { color: red !important; }\n\n// 多个!important按普通优先级规则比较\n// 强烈建议不要用!important，它会破坏样式表的可维护性</pre>\n<h2>内联样式 vs ID</h2>\n<pre>&lt;div style=\"color: red;\"&gt;&lt;/div&gt;  // 内联优先级 = (1,0,0,0)\n// 内联 > ID选择器</pre>"
     }
   ]
 }
