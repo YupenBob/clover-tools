@@ -1168,6 +1168,56 @@
       "title": "正则表达式语法怎么看？新手入门完全指南",
       "desc": "正则表达式是程序员必备技能之一。本文用实例讲解正则的基本语法：字符类、量词、锚点、分组、替换，让新手快速入门。",
       "content": "<h2>正则基础语法</h2>\n<h3>字符类</h3>\n<pre>.  # 任意字符\n\\d  # 数字 [0-9]\n\\w  # 字母数字下划线 [a-zA-Z0-9_]\n\\s  # 空白字符\n[abc]  # a或b或c\n[^abc]  # 除了a/b/c\n[a-z]  # a到z</pre>\n<h3>量词</h3>\n<pre>*  # 0次或多次\n+  # 1次或多次\n?  # 0次或1次\n{n}  # 正好n次\n{n,}  # n次以上\n{n,m}  # n到m次</pre>\n<h3>锚点</h3>\n<pre>^  # 字符串开头\n$  # 字符串结尾\n\\b  # 单词边界</pre>\n<h3>分组</h3>\n<pre>(abc)  # 捕获组\n(?:abc)  # 非捕获组\n(?=abc)  # 正向先行断言\n(?!abc)  # 负向先行断言</pre>\n<h2>实例讲解</h2>\n<pre># 匹配手机号\n^1[3-9]\\d{9}$  # 中国手机号\n\n# 匹配邮箱\n^[\\w.-]+@[\\w.-]+\\.\\w+$\n\n# 匹配日期\n^\\d{4}-\\d{2}-\\d{2}$  # 2024-01-01</pre>\n<h2>在线练习</h2>\n<p>使用CloverTools正则测试器实时验证：<a href=\"/tools/code/regex-tester.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "nginx配置不生效怎么排查",
+      "slug": "nginx配置不生效怎么排查",
+      "tool": "network/nginx-config.html",
+      "intent": "error-fix",
+      "category": "Nginx错误",
+      "title": "Nginx配置不生效怎么排查？从语法检查到重载的完整指南",
+      "desc": "Nginx配置文件修改后不生效是常见问题。本文详解nginx配置检查、重载、常见错误调试，以及如何排查端口冲突和权限问题。",
+      "content": "<h2>配置不生效的常见原因</h2>\n<ul><li>配置文件有语法错误，nginx -t没通过</li><li>改了配置但没执行nginx -s reload</li><li>多个server块冲突，匹配到了其他的</li><li>listen端口被其他进程占用</li></ul>\n<h2>排查步骤</h2>\n<pre># 1. 测试配置文件语法\nsudo nginx -t\n\n# 2. 查看配置路径\nsudo nginx -T | grep config\n\n# 3. 强制重载\nsudo nginx -s reload\nsudo nginx -s stop && sudo nginx</pre>\n<h2>常见错误</h2>\n<h3>端口被占用</h3>\n<pre>sudo lsof -i :80\nsudo fuser -k 80/tcp\nsudo nginx -s reload</pre>\n<h3>权限问题</h3>\n<pre># 检查运行用户\nuser nginx;\nworker_processes auto;\n\n# 检查文件权限\nchmod 644 /etc/nginx/conf.d/*.conf</pre>\n<h2>检查日志</h2>\n<pre>tail -f /var/log/nginx/error.log\ntail -f /var/log/nginx/access.log</pre>"
+    },
+    {
+      "keyword": "base64编码原理是什么",
+      "slug": "base64编码原理是什么",
+      "tool": "encrypt/base64.html",
+      "intent": "info",
+      "category": "编码原理",
+      "title": "Base64编码原理是什么？为什么用它？有什么优缺点？",
+      "desc": "Base64是开发中常用的编码方式，但很多人只知其然不知其所以然。本文从原理层面详解Base64的编码过程、用途、以及优缺点。",
+      "content": "<h2>Base64是什么</h2>\n<p>Base64是一种将二进制数据编码为64个可打印ASCII字符的方法。用途是把任意二进制数据转成文本字符串，方便在JSON、URL、HTML中传输。</p>\n<h2>编码原理</h2>\n<p>每3个字节（24bits）分成4组，每组6bits，对应0-63的索引，查Base64字符表：</p>\n<pre>A-Z (0-25)\na-z (26-51)\n0-9 (52-61)\n+/=</pre>\n<p>不足3字节的用= padding补齐。</p>\n<h2>为什么发明Base64</h2>\n<p>早期某些传输通道只支持文本，不支持二进制。比如HTTP头、XML、JSON、MIME邮件等。Base64解决了二进制数据在这些通道中的传输问题。</p>\n<h2>优缺点</h2>\n<h3>优点</h3>\n<ul><li>让二进制数据变成纯文本，安全传输</li><li>解决特殊字符问题（如二进制中的控制字符）</li></ul>\n<h3>缺点</h3>\n<ul><li>体积增加约33%</li><li>编解码有CPU开销</li><li>不适合大量数据传输</li></ul>\n<h2>在线工具</h2><p>使用CloverTools Base64编解码工具：<a href=\"/tools/encrypt/base64.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "http请求超时怎么解决",
+      "slug": "http请求超时怎么解决",
+      "tool": "network/http-request.html",
+      "intent": "error-fix",
+      "category": "网络错误",
+      "title": "HTTP请求超时怎么解决？从客户端到服务端的完整排查指南",
+      "desc": "HTTP请求超时（Timeout）是网络编程中最常见的问题之一。本文分析超时原因（网络慢/服务器负载高/防火墙/代理），并提供各语言的解决方法。",
+      "content": "<h2>超时的4种原因</h2>\n<h3>1. 网络延迟</h3>\n<p>客户端到服务器之间网络慢，可能因为物理距离远、网络拥塞、跨国链路质量差。</p>\n<h3>2. 服务器负载高</h3>\n<p>服务器CPU/内存耗尽，排队处理请求，导致响应慢。</p>\n<h3>3. 防火墙/代理超时</h3>\n<pre># 检查TCP连接\ncurl -v --max-time 10 https://example.com\n\n# 检查DNS\nnslookup example.com</pre>\n<h3>4. 代码逻辑问题</h3>\n<p>请求卡在某个耗时操作上（如数据库查询、外部API调用）。</p>\n<h2>各语言设置超时</h2>\n<pre>// Node.js\nfetch(url, { signal: AbortSignal.timeout(10000) });\n\n// Python\nrequests.get(url, timeout=10)\n\n// Go\nclient := &http.Client{Timeout: 10 * time.Second}</pre>\n<h2>超时处理最佳实践</h2>\n<pre>// 重试 + 指数退避\nfor(let i=0; i<3; i++) {\n  try {\n    return await fetchWithTimeout(url, 5000);\n  } catch(e) {\n    await sleep(1000 * Math.pow(2, i));\n  }\n}</pre>"
+    },
+    {
+      "keyword": "jsonp原理是什么",
+      "slug": "jsonp原理是什么",
+      "tool": "json/formatter.html",
+      "intent": "info",
+      "category": "JSONP原理",
+      "title": "JSONP原理是什么？为什么现在不推荐使用了？",
+      "desc": "JSONP是早期解决跨域问题的方案，现在已被CORS取代。本文讲解JSONP的工作原理、为什么能跨域、以及为什么CORS更好。",
+      "content": "<h2>JSONP的原理</h2>\n<p>HTML的script标签不受同源策略限制。JSONP利用这一点：服务器返回一段JavaScript代码（函数调用），浏览器当作JS执行，从而拿到数据。</p>\n<h2>工作流程</h2>\n<pre>1. 前端定义回调函数\n   function handleData(data) { console.log(data); }\n\n2. 创建script标签，src指向服务器（带回调名）\n   &lt;script src=\"https://api.example.com?callback=handleData\"&gt;&lt;/script&gt;\n\n3. 服务器返回\n   handleData({\"name\": \"test\", \"value\": 123});\n\n4. 浏览器当作JS执行，调用handleData</p>\n<h2>为什么JSONP有缺陷</h2>\n<ul><li>只支持GET请求</li><li>无法设置请求头（如Authorization）</li><li>没有错误处理机制</li><li>存在XSS安全风险（服务器返回的内容被当作代码执行）</li><li>无法捕获请求失败</li></ul>\n<h2>CORS vs JSONP</h2>\n<p>现代浏览器推荐使用CORS，它支持所有HTTP方法、自定义请求头、有完善的错误处理、安全性更好。</p>\n<pre>// CORS示例（服务端设置）\nAccess-Control-Allow-Origin: *\nAccess-Control-Allow-Methods: GET,POST\nAccess-Control-Allow-Headers: Content-Type</pre>"
+    },
+    {
+      "keyword": "vscode调试nodejs怎么配置",
+      "slug": "vscode调试nodejs怎么配置",
+      "tool": "develop/debugger.html",
+      "intent": "guide",
+      "category": "VSCode调试",
+      "title": "VSCode调试Node.js怎么配置？launch.json完整指南",
+      "desc": "VSCode是Node.js开发的利器，但调试配置常让人困惑。本文详解launch.json的多种配置方式，从简单脚本到复杂项目全覆盖。",
+      "content": "<h2>创建launch.json</h2>\n<pre>1. VSCode侧边栏点击\"运行和调试\"\n2. 点击\"创建launch.json\"\n3. 选择\"Node.js\"模板</pre>\n<h2>常用配置</h2>\n<pre>{\n  \"version\": \"0.2.0\",\n  \"configurations\": [\n    {\n      \"type\": \"node\",\n      \"request\": \"launch\",\n      \"name\": \"启动程序\",\n      \"program\": \"${workspaceFolder}/index.js\",\n      \"runtimeExecutable\": \"node\"\n    },\n    {\n      \"type\": \"node\",\n      \"request\": \"attach\",\n      \"name\": \"附加到进程\",\n      \"port\": 9229\n    }\n  ]\n}</pre>\n<h2>调试Web应用</h2>\n<pre>{\n  \"type\": \"node\",\n  \"request\": \"launch\",\n  \"name\": \"调试服务器\",\n  \"program\": \"${workspaceFolder}/server.js\",\n  \"env\": { \"NODE_ENV\": \"development\" },\n  \"runtimeArgs\": [\"--inspect-brk\"],\n  \"restart\": true\n}</pre>\n<h2>断点调试技巧</h2>\n<ul><li>F9 设置断点</li><li>F10 单步跳过</li><li>F11 单步进入</li><li>Shift+F11 跳出</li><li>Variables面板查看变量值</li><li>Watch面板添加表达式监控</li></ul>"
     }
   ]
 }
