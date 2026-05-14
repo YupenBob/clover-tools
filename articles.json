@@ -1418,6 +1418,56 @@
       "title": "Vue3和Vue2区别是什么？Composition API完全指南",
       "desc": "Vue3是Vue2的重大升级，引入了Composition API、Proxy响应式系统等众多新特性。本文对比Vue2和Vue3的核心区别，以及如何迁移Vue2项目到Vue3。",
       "content": "<h2>响应式系统升级</h2>\n<pre>// Vue2: Object.defineProperty（需要defineProperty）\n// Vue3: Proxy（更强大，原生支持数组）\n\n// Vue3可以直接监听数组变化\nconst state = reactive({\n  count: 0,\n  list: []\n});\nstate.list.push(1);  // Vue3可以监听到</pre>\n<h2>Composition API vs Options API</h2>\n<pre>// Vue3 Composition API\nsetup() {\n  const count = ref(0);\n  const double = computed(() => count.value * 2);\n  \n  function increment() {\n    count.value++;\n  }\n  \n  return { count, double, increment };\n}</pre>\n<h2>生命周期变化</h2>\n<pre>Vue2                Vue3 (setup内)\nbeforeCreate         not needed\ncreated              not needed\nbeforeMount          onBeforeMount\nmounted              onMounted\nbeforeUpdate         onBeforeUpdate\nupdated              onUpdated\nbeforeDestroy        onBeforeUnmount\ndestroyed            onUnmounted</pre>\n<h2>Teleport（传送门）</h2>\n<pre>&lt;Teleport to=\"body\"&gt;\n  &lt;Modal v-if=\"show\" /&gt;\n&lt;/Teleport&gt;</pre>\n<h2>Suspense异步组件</h2>\n<pre>&lt;Suspense&gt;\n  &lt;template #default&gt;\n    &lt;AsyncComponent /&gt;\n  &lt;/template&gt;\n  &lt;template #fallback&gt;\n    &lt;Loading /&gt;\n  &lt;/template&gt;\n&lt;/Suspense&gt;</pre>\n<h2>迁移建议</h2>\n<ul><li>新项目直接用Vue3</li><li>Vue2项目可以逐步迁移（支持共存）</li><li>composition-api插件可以让Vue2用Composition API</li></ul>"
+    },
+    {
+      "keyword": "nodejs异步编程方法",
+      "slug": "nodejs异步编程方法",
+      "tool": "develop/node-package.html",
+      "intent": "guide",
+      "category": "Node.js异步",
+      "title": "Node.js异步编程方法？Promise/async await/EventEmitter完整指南",
+      "desc": "Node.js是异步驱动的事件循环语言。本文讲解回调函数、Promise、async/await三种异步编程方式的区别，以及EventEmitter事件驱动的使用方法。",
+      "content": "<h2>回调函数（Callback）</h2>\n<pre>// 传统Node.js回调风格\nfs.readFile('file.txt', 'utf8', (err, data) => {\n  if (err) {\n    console.error('Error:', err);\n    return;\n  }\n  console.log(data);\n});</pre>\n<h2>Promise</h2>\n<pre>// Promise链式调用\nfetch(url)\n  .then(res => res.json())\n  .then(data => process(data))\n  .catch(err => console.error(err))\n  .finally(() => cleanup());</pre>\n<h2>async/await</h2>\n<pre>// async/await - 最简洁的异步写法\nasync function fetchData() {\n  try {\n    const res = await fetch(url);\n    const data = await res.json();\n    return data;\n  } catch (err) {\n    console.error('Fetch error:', err);\n  }\n}\n\n// 并行执行\nconst [users, posts] = await Promise.all([\n  fetchUsers(),\n  fetchPosts()\n]);</pre>\n<h2>EventEmitter（事件驱动）</h2>\n<pre>const { EventEmitter } = require('events');\nconst emitter = new EventEmitter();\n\nemitter.on('data', (chunk) => {\n  console.log('Received:', chunk);\n});\n\nemitter.emit('data', 'Hello');</pre>\n<h2>并行vs串行</h2>\n<pre>// 串行：一个完成后才开始下一个（慢）\nconst a = await fetchA();\nconst b = await fetchB();\n\n// 并行：同时开始（快）\nconst [a, b] = await Promise.all([fetchA(), fetchB()]);</pre>"
+    },
+    {
+      "keyword": "前端性能优化方法",
+      "slug": "前端性能优化方法",
+      "tool": "code/minify-js.html",
+      "intent": "guide",
+      "category": "性能优化",
+      "title": "前端性能优化方法？从加载到渲染的全面指南",
+      "desc": "前端性能直接影响用户体验和SEO排名。本文从资源加载、渲染优化、缓存策略三个维度，讲解图片优化、代码分割、懒加载等实战技巧。",
+      "content": "<h2>资源加载优化</h2>\n<pre>// 1. 图片优化\n&lt;img loading=\"lazy\" decoding=\"async\" /&gt;\n// WebP格式替代PNG/JPEG\n// 响应式图片\n&lt;img srcset=\"img-480w.webp 480w, img-800w.webp 800w\" /&gt;\n\n// 2. CSS/JS压缩\n// 生产环境用 Terser/UglifyCSS\n\n// 3. 代码分割\nconst Component = React.lazy(() => import('./Component'));</pre>\n<h2>渲染优化</h2>\n<pre>// 1. 避免重排重绘\n// 读DOM后统一写DOM\nconst width = div.clientWidth;  // Read\ndiv.style.width = width + 10 + 'px';  // Write\n\n// 2. will-change提示浏览器优化\n.box { will-change: transform; }\n\n// 3. 虚拟列表（长列表）\n// 只渲染可视区域的元素</pre>\n<h2>缓存策略</h2>\n<pre>// Service Worker缓存\nself.addEventListener('fetch', (event) => {\n  event.respondWith(\n    caches.match(event.request).then(response => {\n      return response || fetch(event.request);\n    })\n  );\n});\n\n// HTTP缓存头\nCache-Control: max-age=31536000, immutable</pre>\n<h2>关键渲染路径</h2>\n<pre>1. 构建DOM树\n2. 构建CSSOM树\n3. Layout（计算位置尺寸）\n4. Paint（绘制像素）\n5. Composite（合成层）\n\n优化目标：减少Layout和Paint次数</pre>"
+    },
+    {
+      "keyword": "git提交规范怎么写",
+      "slug": "git提交规范怎么写",
+      "tool": "develop/git-tools.html",
+      "intent": "guide",
+      "category": "Git规范",
+      "title": "Git提交规范怎么写？Conventional Commits完整指南",
+      "desc": "规范的Git提交信息让团队协作更清晰。本文讲解Angular风格的Conventional Commits规范，以及如何配置commitlint和自动生成CHANGELOG。",
+      "content": "<h2>格式结构</h2>\n<pre>&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;\n\nbody（可选）\n\nfooter（可选）</pre>\n<h2>type类型</h2>\n<ul><li><strong>feat</strong>：新功能</li><li><strong>fix</strong>：修复bug</li><li><strong>docs</strong>：文档更新</li><li><strong>style</strong>：格式调整（不影响代码）</li><li><strong>refactor</strong>：重构</li><li><strong>perf</strong>：性能优化</li><li><strong>test</strong>：测试相关</li><li><strong>chore</strong>：构建/工具</li></ul>\n<h2>示例</h2>\n<pre>feat(auth): add OAuth2 login support\n\nAdd Google and GitHub OAuth2 authentication.\nImplements login, logout, and session management.\n\nCloses #123</pre>\n<h2>scope（范围）</h2>\n<pre>feat(ui): add new button component\nfix(api): resolve user login timeout\nrefactor(db): optimize query performance</pre>\n<h2>配置commitlint</h2>\n<pre>npm install --save-dev @commitlint/config-conventional @commitlint/cli\n\n# commitlint.config.js\nmodule.exports = {\n  extends: ['@commitlint/config-conventional']\n};</pre>\n<h2>自动生成CHANGELOG</h2>\n<pre>npm install --save-dev conventional-changelog-cli\n\n# package.json scripts\n{\n  \"scripts\": {\n    \"changelog\": \"conventional-changelog -p angular -i CHANGELOG.md -s\"\n  }\n}</pre>"
+    },
+    {
+      "keyword": "api接口文档怎么写",
+      "slug": "api接口文档怎么写",
+      "tool": "code/api-test.html",
+      "intent": "guide",
+      "category": "API文档",
+      "title": "API接口文档怎么写？OpenAPI/Swagger完整指南",
+      "desc": "好的API文档是前后端协作的关键。本文讲解如何使用OpenAPI/Swagger规范编写接口文档，包含认证、参数校验、响应示例等实战内容。",
+      "content": "<h2>OpenAPI基础结构</h2>\n<pre>openapi: 3.0.0\ninfo:\n  title: 用户API\n  version: 1.0.0\n  description: 用户管理接口\npaths:\n  /users:\n    get:\n      summary: 获取用户列表</pre>\n<h2>GET请求示例</h2>\n<pre>/users:\n  get:\n    tags:\n      - Users\n    summary: 获取用户列表\n    parameters:\n      - name: page\n        in: query\n        schema:\n          type: integer\n          default: 1\n      - name: limit\n        in: query\n        schema:\n          type: integer\n          default: 20\n    responses:\n      '200':\n        description: 成功\n        content:\n          application/json:\n            schema:\n              type: object\n              properties:\n                data:\n                  type: array\n                  items:\n                    $ref: '#/components/schemas/User'</pre>\n<h2>POST请求示例</h2>\n<pre>/users:\n  post:\n    summary: 创建用户\n    requestBody:\n      required: true\n      content:\n        application/json:\n          schema:\n            type: object\n            required:\n              - email\n              - password\n            properties:\n              email:\n                type: string\n                format: email\n              password:\n                type: string\n                minLength: 6\n    responses:\n      '201':\n        description: 创建成功</pre>\n<h2>认证配置</h2>\n<pre>components:\n  securitySchemes:\n    BearerAuth:\n      type: http\n      scheme: bearer\n      bearerFormat: JWT\n\npaths:\n  /profile:\n    get:\n      security:\n        - BearerAuth: []</pre>\n<h2>在线工具</h2><p>使用CloverTools JSON格式化工具验证API响应：<a href=\"/tools/json/formatter.html\">打开工具</a></p>"
+    },
+    {
+      "keyword": "正则表达式怎么写",
+      "slug": "正则表达式怎么写",
+      "tool": "text/regex-tester.html",
+      "intent": "guide",
+      "category": "正则表达式",
+      "title": "正则表达式怎么写？常用模式与实战技巧完整指南",
+      "desc": "正则表达式是处理字符串的利器，但语法复杂容易出错。本文整理常用正则模式（邮箱、手机、URL、IP等），以及如何用JavaScript/Python优雅地编写和调试正则。",
+      "content": "<h2>常用模式</h2>\n<pre>// 中文\n[\\u4e00-\\u9fa5]\n\n// 手机号（中国）\n1[3-9]\\d{9}\n\n// 邮箱\n[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\n\n// URL\nhttps?:\\/\\/[\\w\\-]+(\\.[\\w\\-]+)+[\\w\\-.,@?^=%&:/~+#]*\n\n// IP地址\n((25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\n\n// 日期 YYYY-MM-DD\n\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])</pre>\n<h2>JavaScript中使用</h2>\n<pre>const email = 'test@example.com';\nconst regex = /^[\\w.-]+@[\\w.-]+\\.\\w+$/;\n\nconsole.log(regex.test(email));  // true\n\n// 提取匹配\nconst match = email.match(/@(\\w+)\\.(\\w+)/);\nif (match) {\n  console.log(match[1]);  // example\n  console.log(match[2]);  // com\n}</pre>\n<h2>贪婪vs非贪婪</h2>\n<pre>// 贪婪（匹配最多）\n'aaaa'.match(/a+/);  // ['aaaa']\n\n// 非贪婪（匹配最少）\n'aaaa'.match(/a+?/);  // ['a']\n\n// 禁止贪婪\n'aaaa'.match(/a+?/g);  // ['a', 'a', 'a', 'a']</pre>\n<h2>前瞻断言</h2>\n<pre>// 正向前瞻：后面是数字才匹配\nconst str = 'abc123def456';\nstr.match(/\\w+(?=\\d)/g);  // ['abc', 'def']\n\n// 负向前瞻：后面不是数字才匹配\nstr.match(/\\w+(?!\\d)/g);  // ['abc123', 'def456']</pre>\n<h2>在线工具</h2><p>使用CloverTools正则表达式测试工具：<a href=\"/tools/text/regex-tester.html\">打开工具</a></p>"
     }
   ]
 }
