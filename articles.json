@@ -1518,6 +1518,56 @@
       "title": "Python虚拟环境怎么创建？venv/Conda完全指南",
       "desc": "Python项目需要隔离的依赖环境，避免版本冲突。本文讲解venv、Conda两种虚拟环境管理方案，以及如何用pip和poetry管理依赖包。",
       "content": "<h2>venv（Python内置）</h2>\n<pre># 创建虚拟环境\npython -m venv myenv\n\n# 激活（Windows）\nmyenv\\Scripts\\activate\n\n# 激活（Mac/Linux）\nsource myenv/bin/activate\n\n# 退出\ndeactivate</pre>\n<h2>Conda</h2>\n<pre># 创建环境\nconda create --name myenv python=3.11\n\n# 激活\nconda activate myenv\n\n# 退出\nconda deactivate\n\n# 查看所有环境\nconda env list\n\n# 删除环境\nconda env remove --name myenv</pre>\n<h2>pip使用</h2>\n<pre># 安装包\npip install requests\n\n# 导出依赖\npip freeze > requirements.txt\n\n# 从文件安装\npip install -r requirements.txt\n\n# 升级包\npip install --upgrade requests</pre>\n<h2>poetry（现代方案）</h2>\n<pre># 初始化项目\npoetry init\npoetry add requests\n\n# 安装依赖（按pyproject.toml）\npoetry install\n\n# 更新依赖\npoetry update</pre>\n<h2>.gitignore模板</h2>\n<pre># venv\u000benv/\n\n# conda\nenv/\n\n# Poetry\npoetry.lock</pre>"
+    },
+    {
+      "keyword": "javascript异步处理方法",
+      "slug": "javascript异步处理方法",
+      "tool": "code/regex-tester.html",
+      "intent": "guide",
+      "category": "JavaScript异步",
+      "title": "JavaScript异步处理方法？Promise.all/async/await完整指南",
+      "desc": "JavaScript异步编程是现代前端开发的核心。本文讲解Promise、async/await的错误处理、并行执行、顺序执行等实战场景，以及如何避免回调地狱。",
+      "content": "<h2>async/await错误处理</h2>\n<pre>async function fetchData() {\n  try {\n    const res = await fetch(url);\n    if (!res.ok) throw new Error(`HTTP ${res.status}`);\n    return await res.json();\n  } catch (err) {\n    console.error('Fetch failed:', err);\n    throw err;\n  }\n}</pre>\n<h2>并行执行</h2>\n<pre>// Promise.all - 全部成功才算成功\nconst [users, posts] = await Promise.all([\n  fetchUsers(),\n  fetchPosts()\n]);\n\n// Promise.allSettled - 不管成功失败\nconst results = await Promise.allSettled([\n  fetchUsers(),\n  fetchPosts()\n]);\nresults.forEach((r, i) => {\n  if (r.status === 'fulfilled') console.log(i, r.value);\n  else console.error(i, r.reason);\n});</pre>\n<h2>顺序执行</h2>\n<pre>// 逐个等待（慢）\nfor (const url of urls) {\n  const data = await fetch(url);\n  results.push(data);\n}\n\n// 并发 + 限制数量\nasync function fetchWithLimit(urls, limit) {\n  const queue = [...urls];\n  const workers = Array(limit).fill().map(async () => {\n    while (queue.length) {\n      const url = queue.shift();\n      results.push(await fetch(url));\n    }\n  });\n  await Promise.all(workers);\n}</pre>\n<h2>避免回调地狱</h2>\n<pre>// 回调地狱\nfetchUser(id, (err, user) => {\n  fetchPosts(user.id, (err, posts) => {\n    fetchComments(posts[0].id, (err, comments) => {\n      // 嵌套太深\n    });\n  });\n});\n\n// async/await解决方案\nconst user = await fetchUser(id);\nconst posts = await fetchPosts(user.id);\nconst comments = await fetchComments(posts[0].id);</pre>\n<h2>超时处理</h2>\n<pre>const withTimeout = (promise, ms) => {\n  return Promise.race([\n    promise,\n    new Promise((_, reject) => \n      setTimeout(() => reject(new Error('Timeout')), ms)\n    )\n  ]);\n};</pre>"
+    },
+    {
+      "keyword": "centos安装nginx",
+      "slug": "centos安装nginx",
+      "tool": "network/nginx-config.html",
+      "intent": "guide",
+      "category": "Nginx安装",
+      "title": "CentOS安装Nginx？yum/源码编译完整指南",
+      "desc": "CentOS系统如何安装Nginx？本文对比yum安装和源码编译两种方式，以及安装后的基本配置、开机启动设置和常见问题处理。",
+      "content": "<h2>yum安装（Nginx官方源）</h2>\n<pre># 安装yum-utils\nsudo yum install yum-utils\n\n# 创建repo文件\nsudo vi /etc/yum.repos.d/nginx.repo\n[nginx-stable]\nname=nginx stable repo\nbaseurl=http://nginx.org/packages/centos/$releasever/$basearch/\ngpgcheck=0\nenabled=1\n\n# 安装\nsudo yum install nginx\n\n# 启动\nsudo systemctl start nginx\nsudo systemctl enable nginx</pre>\n<h2>源码编译安装（最新版本）</h2>\n<pre># 安装依赖\nsudo yum install gcc pcre pcre-devel zlib zlib-devel openssl openssl-devel\n\n# 下载源码\nwget http://nginx.org/download/nginx-1.26.0.tar.gz\ntar -zxvf nginx-1.26.0.tar.gz\ncd nginx-1.26.0\n\n# 编译配置\n./configure --prefix=/usr/local/nginx \\\n  --with-http_ssl_module \\\n  --with-http_v2_module \\\n  --with-http_gzip_static_module\n\n# 编译安装\nmake && sudo make install</pre>\n<h2>防火墙配置</h2>\n<pre>sudo firewall-cmd --permanent --add-service=http\nsudo firewall-cmd --permanent --add-service=https\nsudo firewall-cmd --reload</pre>\n<h2>验证安装</h2>\n<pre>nginx -v\ncurl localhost  # 显示Welcome to nginx页面</pre>"
+    },
+    {
+      "keyword": "kubernetes部署教程",
+      "slug": "kubernetes部署教程",
+      "tool": "develop/docker-tools.html",
+      "intent": "guide",
+      "category": "K8s部署",
+      "title": "Kubernetes部署教程？本地集群搭建与Pod/Service部署完整指南",
+      "desc": "Kubernetes是容器编排的标准工具。本文从零开始讲解K8s集群搭建、Pod创建、Service暴露、Deployment滚动更新等核心概念和实战操作。",
+      "content": "<h2>本地集群（Minikube）</h2>\n<pre># 安装\ncurl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64\nsudo install minikube-linux-amd64 /usr/local/bin/minikube\n\n# 启动集群\nminikube start --driver=docker\n\n# 验证\nkubectl get nodes</pre>\n<h2>部署第一个应用</h2>\n<pre># 创建deployment\nkubectl create deployment nginx --image=nginx\n\n# 查看pod\nkubectl get pods\n\n# 扩缩容\nkubectl scale deployment nginx --replicas=3\n\n# 更新镜像\nkubectl set image deployment/nginx nginx=nginx:1.25</pre>\n<h2>暴露服务</h2>\n<pre># NodePort暴露\nkubectl expose deployment nginx --type=NodePort --port=80\n\n# 查看服务\nkubectl get svc\n\n# 访问\nminikube service nginx --url</pre>\n<h2>配置文件部署</h2>\n<pre># nginx-deployment.yaml\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx\n  template:\n    metadata:\n      labels:\n        app: nginx\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.25\n        ports:\n        - containerPort: 80</pre>\n<h2>常用命令速查</h2>\n<pre>kubectl get pods -o wide      # 查看pod详情\nkubectl describe pod nginx-xxx  # 查看pod事件\nkubectl logs nginx-xxx          # 查看日志\nkubectl exec -it nginx-xxx -- /bin/sh  # 进入容器</pre>"
+    },
+    {
+      "keyword": "git暂存区是什么",
+      "slug": "git暂存区是什么",
+      "tool": "develop/git-tools.html",
+      "intent": "info",
+      "category": "Git概念",
+      "title": "Git暂存区是什么？工作区/暂存区/仓库区完整解析",
+      "desc": "Git的暂存区（Stage）是很多新手容易困惑的概念。本文从文件生命周期出发，详解工作区、暂存区、版本库的关系，以及HEAD指针和分支的工作原理。",
+      "content": "<h2>Git三个工作区域</h2>\n<p>Git项目有3个主要区域：工作区（Working Directory）、暂存区（Stage/Index）、Git仓库（Repository）</p>\n<pre>工作区  →  git add  →  暂存区  →  git commit  →  仓库\n\n.git/              # Git仓库（版本库）\n  ├── index         # 暂存区\n  └── objects/      # 对象存储</pre>\n<h2>文件生命周期</h2>\n<pre># 1. 修改文件（工作区）\nvim app.js  # 修改后文件是\"已修改\"状态\n\n# 2. git add（加入暂存区）\ngit add app.js  # 文件变成\"已暂存\"状态\n\n# 3. git commit（提交到仓库）\ngit commit -m \"update app\"  # 变成\"已提交\"状态</pre>\n<h2>暂存区的实际内容</h2>\n<pre># 查看暂存区内容\ngit ls-files --stage\n\n# 查看暂存区与HEAD的差异\ngit diff --cached\n\n# 撤销暂存（不丢修改）\ngit reset HEAD app.js\n\n# 撤销暂存并丢弃修改（危险）\ngit checkout -- app.js</pre>\n<h2>HEAD指针</h2>\n<pre>HEAD是指向当前分支最新提交的指针\n每次commit，HEAD会带着分支指针一起向前移动\n\ncat .git/HEAD\n# ref: refs/heads/main\n\ncat .git/refs/heads/main\n# abc123...（提交hash）</pre>\n<h2>常见误解</h2>\n<ul><li>暂存区不是临时文件夹，是Git内部的一个索引文件</li><li>git add只是复制文件到.git/objects，不删除原文件</li><li>commit只是把暂存区的快照写入仓库，不联网</li></ul>"
+    },
+    {
+      "keyword": "websocker和socketio区别",
+      "slug": "websocker和socketio区别",
+      "tool": "network/http-request.html",
+      "intent": "info",
+      "category": "Web实时通信",
+      "title": "WebSocket和Socket.IO区别？哪个更适合你的应用？",
+      "desc": "WebSocket和Socket.IO都是实现实时通信的技术，但原理和使用场景不同。本文对比两者特性、优缺点，以及在不同场景下如何选择。",
+      "content": "<h2>WebSocket基础</h2>\n<p>WebSocket是一种基于TCP的全双工通信协议，浏览器和服务器建立连接后可以互相推送数据，无需HTTP请求。</p>\n<pre>// 建立连接\nconst ws = new WebSocket('wss://example.com/ws');\n\nws.onopen = () => ws.send('Hello');\nws.onmessage = (e) => console.log(e.data);\nws.onclose = () => console.log('Disconnected');</pre>\n<h2>Socket.IO基础</h2>\n<p>Socket.IO是一个封装库，在WebSocket不可用时自动降级为轮询等方案，提供更好的兼容性和更简单的API。</p>\n<pre>// 客户端\nconst socket = io('https://example.com');\nsocket.on('connect', () => console.log('Connected'));\nsocket.emit('message', 'Hello');\nsocket.on('response', (data) => console.log(data));</pre>\n<h2>核心区别</h2>\n<table><tr><th>特性</th><th>WebSocket</th><th>Socket.IO</th></tr><tr><td>协议</td><td>原生协议</td><td>封装库</td></tr><tr><td>兼容性</td><td>现代浏览器</td><td>自动降级</td></tr><tr><td>断网重连</td><td>需手动实现</td><td>自动重连</td></tr><tr><td>广播/房间</td><td>需手动实现</td><td>内置支持</td></tr><tr><td>数据包</td><td>字符串/二进制</td><td>支持任意类型</td></tr></table>\n<h2>选用建议</h2>\n<ul><li><strong>简单双向通信</strong>：直接用WebSocket</li><li><strong>需要自动重连/断线恢复</strong>：用Socket.IO</li><li><strong>聊天室/游戏/协作</strong>：Socket.IO的房间功能很方便</li><li><strong>高性能低延迟</strong>：原生WebSocket更好</li></ul>\n<h2>Nginx代理配置</h2>\n<pre># WebSocket支持\nlocation /ws {\n  proxy_pass http://backend;\n  proxy_http_version 1.1;\n  proxy_set_header Upgrade $http_upgrade;\n  proxy_set_header Connection \"upgrade\";\n}</pre>"
     }
   ]
 }
