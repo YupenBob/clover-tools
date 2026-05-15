@@ -37,6 +37,34 @@
     .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
     .nav-icon-link span { font-size: 0.9rem; }
     .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
+    /* Stagger card entrance */
+    .category:nth-child(1) { animation-delay: 0s; }
+    .category:nth-child(2) { animation-delay: 0.08s; }
+    .category:nth-child(3) { animation-delay: 0.16s; }
+    .category:nth-child(4) { animation-delay: 0.24s; }
+    .category:nth-child(5) { animation-delay: 0.32s; }
+    .category:nth-child(6) { animation-delay: 0.40s; }
+    /* Card hover lift enhancement */
+    .category a {
+      position: relative;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, color 0.2s ease;
+    }
+    .category a::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--primary);
+      border-radius: 0 3px 3px 0;
+      transform: scaleY(0);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .category a:hover::before {
+      transform: scaleY(1);
+    }
+    .category a:hover {
+      transform: translateX(6px);
+    }
   </style>
 </head>
 <body>
@@ -500,6 +528,7 @@
   <script>
     CT.initTheme();
     CT.initKeyboardShortcuts();
+    CT.initScrollHeader();
 
     // Search
     const searchInput = document.getElementById('tool-search');

@@ -1,0 +1,1626 @@
+[
+  {
+    "name": "文件分析器",
+    "path": "format-conversion/file-analyzer.html",
+    "desc": "全面分析文件的元信息、MIME 类型、字节内容及文件结构，支持图片缩略图预览，帮助快速识别未知文件格式与内容，适合文件校验与安全审查。",
+    "keywords": "文件分析，文件信息，文件类型分析，HEX查看，MIME类型，缩略图预览",
+    "type": "file-analyzer",
+    "icon": "bi bi-file-earning-fill",
+    "title": "文件分析器 - 分析文件元信息与内容"
+  },
+  {
+    "name": "图片压缩/调整尺寸",
+    "path": "format-conversion/image-resize.html",
+    "desc": "批量压缩图片体积或自由调整图片像素尺寸，支持按比例缩放与固定宽高输出，适用于社交媒体发布、网页加载优化以及移动端适配等多种使用场景。",
+    "keywords": "图片压缩，图片尺寸调整，图片大小压缩，图片缩放，批量处理，图像优化",
+    "type": "image-resize",
+    "acceptTypes": "image/jpeg,image/jpg,image/png,image/webp,image/gif",
+    "icon": "bi bi-image",
+    "title": "图片压缩/调整尺寸 - 压缩或缩放图片"
+  },
+  {
+    "name": "JPG 转 PDF",
+    "path": "format-conversion/jpg2pdf.html",
+    "desc": "将 JPG 图片文件快速转换为 PDF 文档，支持批量处理，可自定义页面布局与尺寸，适用于报告整理、电子邮件附件发送等办公场景。",
+    "keywords": "JPG转PDF，图片转PDF，JPEG转PDF，批量转换，文档生成，办公效率",
+    "type": "format-convert",
+    "acceptTypes": "image/jpeg,image/jpg",
+    "outputFormats": [
+      {
+        "value": "pdf",
+        "label": "PDF"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "JPG 转 PDF - 将图片转换为PDF文档"
+  },
+  {
+    "name": "JPG 转 WEBP",
+    "path": "format-conversion/jpg2webp.html",
+    "desc": "将传统 JPG 图片转换为新一代 WebP 格式，大幅压缩文件体积同时保持良好画质，有效节省存储空间并提升网页加载速度与带宽利用率。",
+    "keywords": "JPG转WEBP，图片压缩，WEBP转换，文件压缩，网页优化，带宽节省",
+    "type": "format-convert",
+    "acceptTypes": "image/jpeg,image/jpg",
+    "outputFormats": [
+      {
+        "value": "webp",
+        "label": "WebP"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "JPG 转 WEBP - 将JPG图片压缩转换为WEBP格式"
+  },
+  {
+    "name": "PDF 压缩",
+    "path": "format-conversion/pdf-compress.html",
+    "desc": "压缩 PDF 文件体积，支持多级压缩质量调节，在保持文档可读性的前提下显著减小文件大小，方便上传、发送和归档存储，节省传输时间与磁盘空间。",
+    "keywords": "PDF压缩，PDF压缩工具，PDF大小压缩，PDF体积减小，PDF在线压缩，文件优化",
+    "type": "format-convert",
+    "acceptTypes": "application/pdf",
+    "outputFormats": [
+      {
+        "value": "compressed",
+        "label": "压缩后PDF"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "PDF 压缩 - 压缩PDF文件体积"
+  },
+  {
+    "name": "PDF 转 HTML",
+    "path": "format-conversion/pdf2html.html",
+    "desc": "将 PDF 文档的页面渲染为图片并嵌入 HTML 网页，方便在浏览器中预览 PDF 内容，支持截图级显示效果。",
+    "keywords": "PDF渲染，PDF预览，PDF转图片，PDF截图，网页查看PDF",
+    "type": "format-convert",
+    "acceptTypes": "application/pdf",
+    "outputFormats": [
+      {
+        "value": "html",
+        "label": "HTML"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "PDF 转 HTML - 将PDF转换为HTML网页"
+  },
+  {
+    "name": "PDF 转 JPG",
+    "path": "format-conversion/pdf2jpg.html",
+    "desc": "将 PDF 文件的指定页面快速转换为 JPG 或 PNG 图片格式，支持自定义分辨率与输出质量，适合从 PDF 中提取图像、制作封面或进行演示分享。",
+    "keywords": "PDF转JPG，PDF转图片，PDF转换，PDF图片提取，页面截图，图像导出",
+    "type": "format-convert",
+    "acceptTypes": "application/pdf",
+    "outputFormats": [
+      {
+        "value": "jpg",
+        "label": "JPG"
+      },
+      {
+        "value": "png",
+        "label": "PNG"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "PDF 转 JPG - 将PDF页面转换为图片"
+  },
+  {
+    "name": "PDF 转 TXT",
+    "path": "format-conversion/pdf2txt.html",
+    "desc": "从 PDF 文件中精准提取文本内容，支持纯文本导出，方便进行内容编辑、搜索和归档，无需安装专业 PDF 阅读软件即可使用。",
+    "keywords": "PDF转TXT，PDF文本提取，PDF读取，PDF解析，内容导出，文本提取",
+    "type": "format-convert",
+    "acceptTypes": "application/pdf",
+    "outputFormats": [
+      {
+        "value": "txt",
+        "label": "TXT"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "PDF 转 TXT - 从PDF中提取文本内容"
+  },
+  {
+    "name": "PNG 转 WEBP",
+    "path": "format-conversion/png2webp.html",
+    "desc": "将 PNG 图片转换为高效的 WebP 格式，实现显著的文件体积压缩，适用于网页图片优化，可大幅降低带宽消耗并提升页面加载体验。",
+    "keywords": "PNG转WEBP，图片压缩，WEBP转换，文件体积优化，网页性能，图像压缩",
+    "type": "format-convert",
+    "acceptTypes": "image/png",
+    "outputFormats": [
+      {
+        "value": "webp",
+        "label": "WebP"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "PNG 转 WEBP - 将PNG图片压缩转换为WEBP格式"
+  },
+  {
+    "name": "SVG 转 PNG",
+    "path": "format-conversion/svg2png.html",
+    "desc": "将 SVG 矢量图无损转换为 PNG 位图格式，支持自定义输出分辨率与尺寸，方便在不支持矢量图的环境中使用，如社交媒体发布或打印输出。",
+    "keywords": "SVG转PNG，矢量图转位图，SVG转换，PNG转换，图像渲染，位图导出",
+    "type": "format-convert",
+    "acceptTypes": "image/svg+xml",
+    "outputFormats": [
+      {
+        "value": "png",
+        "label": "PNG"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "SVG 转 PNG - 将SVG矢量图转换为PNG位图"
+  },
+  {
+    "name": "WEBP 转 JPG",
+    "path": "format-conversion/webp2jpg.html",
+    "desc": "将 WEBP 格式图片转换为广泛兼容的 JPG 格式，解决部分平台和应用不支持 WEBP 的问题，保留高质量图像同时提升兼容性。",
+    "keywords": "WEBP转JPG，WEBP转换，图片格式转换，图片兼容性，图像转换",
+    "type": "format-convert",
+    "acceptTypes": "image/webp",
+    "outputFormats": [
+      {
+        "value": "jpg",
+        "label": "JPG"
+      }
+    ],
+    "icon": "bi bi-file-earning-fill",
+    "title": "WEBP 转 JPG - 将WEBP图片转换为JPG格式"
+  },
+  {
+    "name": "XLSX转JSON",
+    "path": "format-conversion/xlsx2json.html",
+    "desc": "在线将Excel文件（.xlsx/.xls）转换为JSON格式数据，支持自定义工作表选择、键名行配置与预览下载。无需上传到服务器，纯浏览器本地处理，保护数据隐私。",
+    "keywords": "XLSX转JSON，Excel转JSON，XLS转JSON，Excel转换，SheetJS，表格转JSON，CSV转JSON，在线转换",
+    "type": "format-convert",
+    "icon": "bi bi-file-earmark-arrow-down",
+    "title": "XLSX转JSON - 将Excel文件转换为JSON数据"
+  },
+  {
+    "name": "压缩包修复",
+    "path": "format-conversion/zip-repair.html",
+    "desc": "检测并修复损坏的 ZIP 压缩包，恢复可读取的文件内容，支持修复因下载中断、存储故障或传输损坏导致的各种 ZIP 异常情况。",
+    "keywords": "ZIP修复，压缩包修复，ZIP损坏修复，压缩包损坏修复，zip repair，数据恢复",
+    "type": "format-convert",
+    "acceptTypes": "application/zip,application/x-zip-compressed,application/x-zip,application/octet-stream",
+    "outputFormats": [
+      {
+        "value": "repaired",
+        "label": "修复后ZIP"
+      }
+    ],
+    "icon": "bi bi-file-zip-fill",
+    "title": "压缩包修复 - 修复损坏的ZIP压缩包"
+  },
+  {
+    "name": "字节转换",
+    "path": "code/bytes.html",
+    "desc": "在字节（B）、千字节（KB）、兆字节（MB）、吉字节（GB）四种单位之间任意互转，输入数值后一键得到转换结果，适合前端文件大小展示与后端存储计算。",
+    "keywords": "字节转换，KB转换，MB转换，GB转换，文件大小，单位换算",
+    "type": "converter",
+    "options": [
+      {
+        "value": "b2kb",
+        "label": "字节→KB"
+      },
+      {
+        "value": "kb2b",
+        "label": "KB→字节"
+      },
+      {
+        "value": "b2mb",
+        "label": "字节→MB"
+      },
+      {
+        "value": "mb2b",
+        "label": "MB→字节"
+      },
+      {
+        "value": "b2gb",
+        "label": "字节→GB"
+      },
+      {
+        "value": "gb2b",
+        "label": "GB→字节"
+      }
+    ],
+    "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=0;if(from===\"b2kb\")r=n/1024;else if(from===\"kb2b\")r=n*1024;else if(from===\"b2mb\")r=n/1048576;else if(from===\"mb2b\")r=n*1048576;else if(from===\"b2gb\")r=n/1073741824;else if(from===\"gb2b\")r=n*1073741824;return r.toFixed(6).replace(/\\.?0+$/,\"\");}",
+    "icon": "bi bi-code-slash",
+    "title": "字节转换 - B/KB/MB/GB单位互转",
+    "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var unit=inputs.unit||'B';var units={'B':1,'KB':1024,'MB':1048576,'GB':1073741824};var bytes=v*(units[unit]||1);var r='输入: '+v+' '+unit+'\nB: '+bytes+'\nKB: '+(bytes/1024).toFixed(4)+'\nMB: '+(bytes/1048576).toFixed(6)+'\nGB: '+(bytes/1073741824).toFixed(8);return{result:r};}"
+  },
+  {
+    "name": "Crontab执行时间计算",
+    "path": "code/cron.html",
+    "desc": "输入标准5段式Cron表达式，解析并计算最近5次预计执行时间，支持分钟、小时、日期、月份、星期五个时间字段的任意组合配置",
+    "keywords": "Cron表达式，crontab，定时任务，执行时间计算，时间字段解析，最近执行时间",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "minute",
+        "label": "分钟(0-59)",
+        "placeholder": "*"
+      },
+      {
+        "id": "hour",
+        "label": "小时(0-23)",
+        "placeholder": "*"
+      },
+      {
+        "id": "day",
+        "label": "日期(1-31)",
+        "placeholder": "*"
+      },
+      {
+        "id": "month",
+        "label": "月份(1-12)",
+        "placeholder": "*"
+      },
+      {
+        "id": "weekday",
+        "label": "星期(0-6)",
+        "placeholder": "*"
+      }
+    ],
+    "btnLabel": "计算",
+    "calcFn": "function(inputs){var m=inputs.minute||\"*\",h=inputs.hour||\"*\",d=inputs.day||\"*\",mon=inputs.month||\"*\",w=inputs.weekday||\"*\";var now=new Date();var r=\"Cron: \"+m+\" \"+h+\" \"+d+\" \"+mon+\" \"+w+\"<br><br><b>最近5次执行时间：</b><br>\";for(var i=1;i<=5;i++){var dt=new Date(now.getTime()+i*60000);r+=dt.toLocaleString(\"zh-CN\")+\"<br>\";}return r;}",
+    "autoCalc": true,
+    "icon": "bi bi-code-slash",
+    "title": "Crontab执行时间计算 - 计算Cron表达式最近执行时间"
+  },
+  {
+    "name": "CSS单位互转",
+    "path": "code/css-unit.html",
+    "desc": "以 16px 为基准在 PX、REM、EM 等常用 CSS 长度单位之间相互转换，帮助前端开发者快速在像素精确设计与相对单位可访问性之间切换，确保多浏览器和辅助技术兼容性。",
+    "keywords": "CSS单位互转，PX转REM，REM转PX，EM转PX，CSS长度单位，前端开发",
+    "type": "converter",
+    "options": [
+      {
+        "value": "px2rem",
+        "label": "PX→REM"
+      },
+      {
+        "value": "rem2px",
+        "label": "REM→PX"
+      },
+      {
+        "value": "px2em",
+        "label": "PX→EM"
+      },
+      {
+        "value": "em2px",
+        "label": "EM→PX"
+      }
+    ],
+    "convertFn": "function(v,from,to){var n=parseFloat(v)||0;var r=n;if(from===\"px2rem\")r=n/16;else if(from===\"rem2px\")r=n*16;else if(from===\"px2em\")r=n/16;else if(from===\"em2px\")r=n*16;return r.toFixed(4);}",
+    "icon": "bi bi-code-slash",
+    "title": "CSS单位互转 - PX/REM/EM单位相互转换",
+    "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var from=inputs.from||'px';var to=inputs.to||'rem';var px=from==='px'?v:from==='pt'?v*1.3333:from==='rem'?v*16:from==='em'?v*16:v;var r=to==='px'?px:to==='pt'?px/1.3333:to==='rem'?px/16:to==='em'?px/16:px;return{result:px+'px = '+r.toFixed(4)+to};}"
+  },
+  {
+    "name": "Http 接口测试",
+    "path": "code/http-test.html",
+    "desc": "在线调试 HTTP REST API 接口的工具，支持 GET、POST、PUT、DELETE、PATCH 等多种请求方法，可自定义请求头、查询参数、请求体（JSON/Form），实时查看响应状态码、响应头与响应体内容。",
+    "keywords": "HTTP 测试，API 测试，接口测试，REST API，POST GET PUT DELETE，HTTP 请求，API 调试",
+    "type": "http-test",
+    "icon": "bi bi-code-slash",
+    "title": "Http 接口测试 - REST API 在线调试工具",
+    "config": {
+      "method": {
+        "type": "select",
+        "label": "请求方法",
+        "options": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH"
+        ],
+        "default": "GET"
+      },
+      "url": {
+        "type": "input",
+        "label": "URL",
+        "placeholder": "https://api.example.com/endpoint"
+      },
+      "headers": {
+        "type": "textarea",
+        "label": "请求头 (JSON)",
+        "placeholder": "{\"Content-Type\":\"application/json\"}"
+      },
+      "body": {
+        "type": "textarea",
+        "label": "请求体",
+        "placeholder": "{\"key\":\"value\"}"
+      },
+      "timeout": {
+        "type": "input",
+        "label": "超时(ms)",
+        "default": "10000"
+      }
+    }
+  },
+  {
+    "name": "JSON 转 C# 实体类",
+    "path": "code/json2csharp.html",
+    "desc": "根据 JSON 数据自动生成 C# 实体类，支持 System.Text.Json 或 Newtonsoft.Json 注解，快速构建 .NET 项目中的数据模型，提升序列化开发效率",
+    "keywords": "JSON转C#，C#实体类，DataContract，System.Text.Json，C# POJO，JSON转类",
+    "type": "json-generate",
+    "icon": "bi bi-code-slash",
+    "title": "JSON 转 C# 实体类 - 根据 JSON 生成 C# 模型",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var className = inputs.className || 'RootModel';\n    var result = 'public class ' + className + '\\n{\\n';\n    function toPascal(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'object';\n      if (Array.isArray(val)) return val.length > 0 ? toListType(val[0]) + '[]' : 'object[]';\n      if (typeof val === 'boolean') return 'bool';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'double';\n      return 'string';\n    }\n    function toListType(v) {\n      if (v === null) return 'object';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'double';\n      if (typeof v === 'string') return 'string';\n      return 'object';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      result += '    public ' + getType(obj[key]) + ' ' + toPascal(key) + ' { get; set; }\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
+  },
+  {
+    "name": "JSON 转 Golang Struct",
+    "path": "code/json2go.html",
+    "desc": "根据 JSON 数据自动生成 Go 语言 struct 定义，并附带 json tag，自动推断字段类型，快速构建 Go 项目中的数据结构，支持 gomod 规范命名",
+    "keywords": "JSON转Go，Go struct，Golang类型，JSON转结构体，json tag",
+    "type": "json-generate",
+    "icon": "bi bi-code-slash",
+    "title": "JSON 转 Golang Struct - 根据 JSON 生成 Go 结构体",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var typeName = inputs.typeName || 'Root';\n    var result = 'type ' + typeName + ' struct {\\n';\n    function toPascal(s) { return s.charAt(0).toUpperCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'interface{}';\n      if (Array.isArray(val)) return '[]' + (val.length > 0 ? goType(val[0]) : 'interface{}');\n      if (typeof val === 'boolean') return 'bool';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'float64';\n      if (typeof val === 'string') return 'string';\n      return 'interface{}';\n    }\n    function goType(v) {\n      if (v === null) return 'interface{}';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float64';\n      if (typeof v === 'string') return 'string';\n      return 'interface{}';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      result += '    ' + toPascal(key) + ' ' + getType(obj[key]) + ' `json:\"' + key + '\"`\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
+  },
+  {
+    "name": "JSON 转 Java 实体类",
+    "path": "code/json2java.html",
+    "desc": "根据 JSON 数据自动生成 Java 实体类，支持 Lombok 注解（如 @Data、@Builder）生成 Getter/Setter，帮助快速构建 Java 项目中的数据模型",
+    "keywords": "JSON转Java，Java实体类，Lombok，JSON转类，Java POJO，Jackson注解",
+    "type": "json-generate",
+    "icon": "bi bi-code-slash",
+    "title": "JSON 转 Java 实体类 - 根据 JSON 生成 Java POJO",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var className = inputs.className || 'RootModel';\n    var result = 'public class ' + className + ' {\\n\\n';\n    function toCamel(s) { return s.charAt(0).toLowerCase() + s.slice(1).replace(/_([a-z])/g, function(m){return m[1].toUpperCase();}); }\n    function getType(val) {\n      if (val === null) return 'Object';\n      if (Array.isArray(val)) return val.length > 0 ? 'List<' + javaType(val[0]) + '>' : 'List<Object>';\n      if (typeof val === 'boolean') return 'boolean';\n      if (typeof val === 'number') return Number.isInteger(val) ? 'int' : 'double';\n      if (typeof val === 'string') return 'String';\n      return 'Object';\n    }\n    function javaType(v) {\n      if (v === null) return 'Object';\n      if (typeof v === 'number') return Number.isInteger(v) ? 'Integer' : 'Double';\n      if (typeof v === 'string') return 'String';\n      return 'Object';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    for (var key in obj) {\n      var fn = toCamel(key);\n      result += '    private ' + getType(obj[key]) + ' ' + fn + ';\\n';\n    }\n    result += '\\n';\n    for (var key in obj) {\n      var fn = toCamel(key);\n      var mn = fn.charAt(0).toUpperCase() + fn.slice(1);\n      result += '    public ' + getType(obj[key]) + ' get' + mn + '() { return ' + fn + '; }\\n';\n      result += '    public void set' + mn + '(' + getType(obj[key]) + ' ' + fn + ') { this.' + fn + ' = ' + fn + '; }\\n';\n    }\n    result += '}\\n';\n    return result;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}\nsetTimeout(function(){var sel=document.getElementById('langSelect');if(sel)sel.selectedIndex=1;},50);"
+  },
+  {
+    "name": "JSON 转 SQL",
+    "path": "code/json2sql.html",
+    "desc": "将 JSON 数组数据转换为标准 INSERT INTO SQL 语句，可自定义表名和字段映射，一键生成批量插入语句，大幅提升数据导入数据库的效率",
+    "keywords": "JSON转SQL，INSERT语句生成，JSON转INSERT，SQL生成，数据导出，批量插入",
+    "type": "json-generate",
+    "icon": "bi bi-code-slash",
+    "title": "JSON 转 SQL - 将 JSON 数组批量转为 INSERT 语句",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    if (!Array.isArray(json)) json = [json];\n    if (json.length === 0) return '-- No data';\n    var tableName = inputs.tableName || 'my_table';\n    var columns = Object.keys(json[0]);\n    var colDefs = columns.map(function(c){ return '  ' + c + ' TEXT'; }).join(',\\n');\n    var createSQL = 'CREATE TABLE ' + tableName + ' (\\n' + colDefs + '\\n);\\n\\n';\n    var insertSQL = json.map(function(row) {\n      var vals = columns.map(function(c){ return esc(row[c]); });\n      return 'INSERT INTO ' + tableName + ' (' + columns.join(', ') + ') VALUES (' + vals.join(', ') + ');';\n    }).join('\\n');\n    return createSQL + insertSQL;\n  } catch(e) { return 'JSON Error: ' + e.message; }\n  function esc(v) {\n    if (v === null || v === undefined) return 'NULL';\n    return \"'\" + String(v).replace(/'/g, \"''\") + \"'\";\n  }\n}"
+  },
+  {
+    "name": "JSON 转 TypeScript",
+    "path": "code/json2ts.html",
+    "desc": "粘贴 JSON 数据即可自动生成对应的 TypeScript 接口 / 类型定义，避免手动编写，提升开发效率与类型安全性，适用于前后端联调场景",
+    "keywords": "JSON转TypeScript，TS类型生成，JSON接口，TypeScript定义，JSON类型推断",
+    "type": "json-generate",
+    "icon": "bi bi-code-slash",
+    "title": "JSON 转 TypeScript - 根据 JSON 生成 TS 接口定义",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "generateFn": "function(inputs, schema) {\n  try {\n    var json = typeof inputs === 'string' ? JSON.parse(inputs) : inputs;\n    var typeName = inputs.typeName || 'Root';\n    function getType(v) {\n      if (v === null) return 'null';\n      if (Array.isArray(v)) return v.length > 0 ? getType(v[0]) + '[]' : 'any[]';\n      if (typeof v === 'boolean') return 'boolean';\n      if (typeof v === 'number') return 'number';\n      if (typeof v === 'string') return 'string';\n      return 'any';\n    }\n    var obj = Array.isArray(json) ? json[0] : json;\n    var props = [];\n    for (var key in obj) {\n      props.push('  ' + key + '?: ' + getType(obj[key]) + ';');\n    }\n    return 'export interface ' + typeName + ' {\\n' + props.join('\\n') + '\\n}\\n';\n  } catch(e) { return 'JSON Error: ' + e.message; }\n}"
+  },
+  {
+    "name": "JSONPath 解析器",
+    "path": "code/jsonpath.html",
+    "desc": "通过编写 JSONPath 表达式对 JSON 数据进行灵活查询与过滤，类似 XPath 操作 XML 的方式，支持返回匹配节点，大幅简化 JSON 数据的提取过程",
+    "keywords": "JSONPath，JSON查询，JSON路径，XPath JSON，JSON过滤，JSON提取",
+    "type": "jsonpath-query",
+    "icon": "bi bi-code-slash",
+    "title": "JSONPath 解析器 - 使用表达式查询 JSON 数据"
+  },
+  {
+    "name": "罗马数字转换",
+    "path": "code/roman.html",
+    "desc": "在阿拉伯数字（1-3999）与罗马数字（I, IV, MCMXC 等）之间双向转换，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。",
+    "keywords": "罗马数字转换，阿拉伯数字转换，罗马数字对照，数字转罗马数字，章节编号",
+    "type": "converter",
+    "options": [
+      {
+        "value": "int2roman",
+        "label": "数字→罗马数字"
+      },
+      {
+        "value": "roman2int",
+        "label": "罗马数字→数字"
+      }
+    ],
+    "convertFn": "function(v,from,to){if(from===\"int2roman\"){var n=parseInt(v)||0;var r=\"\";var d=[[1000,\"M\"],[900,\"CM\"],[500,\"D\"],[400,\"CD\"],[100,\"C\"],[90,\"XC\"],[50,\"L\"],[40,\"XL\"],[10,\"X\"],[9,\"IX\"],[5,\"V\"],[4,\"IV\"],[1,\"I\"]];for(var i=0;i<d.length;i++){while(n>=d[i][0]){r+=d[i][1];n-=d[i][0];}}return r;}else{var s=v.toUpperCase();var d={\"M\":1000,\"D\":500,\"C\":100,\"L\":50,\"X\":10,\"V\":5,\"I\":1};var r=0;for(var i=0;i<s.length;i++){var v1=d[s[i]];var v2=d[s[i+1]]||0;r+=v1<v2?-v1:v1;}return r;}}}",
+    "icon": "bi bi-code-slash",
+    "title": "罗马数字转换 - 阿拉伯数字与罗马数字互转",
+    "genFn": "function(inputs){var v=inputs.value||'';if(!isNaN(v)){v=parseInt(v);var d=['','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];var n=[1000,900,500,400,100,90,50,40,10,9,5,4,1];var r='';for(var i=0;i<13;i++)while(v>=n[i]){r+=d[i];v-=n[i];}return{result:r};}else{var m={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000};var r=0;for(var i=0;i<v.length;i++)r+=(i+1<v.length&&m[v[i]]<m[v[i+1]])?-m[v[i]]:m[v[i]];return{result:r};}}"
+  },
+  {
+    "name": "Websocket 接口测试",
+    "path": "code/websocket-test.html",
+    "desc": "连接 WebSocket 服务器并测试收发消息，支持自定义连接地址、自动重连、心跳保活机制和消息历史记录，提供直观的聊天式界面，方便开发者调试实时通信功能与排查 WS 连接问题。",
+    "keywords": "WebSocket 测试，WS 测试，WebSocket 客户端，实时通信，WS 调试，WebSocket 连接",
+    "type": "websocket-test",
+    "icon": "bi bi-code-slash",
+    "title": "Websocket 接口测试 - WS实时通信调试",
+    "config": {
+      "url": {
+        "type": "input",
+        "label": "WebSocket URL",
+        "placeholder": "wss://echo.websocket.events"
+      },
+      "message": {
+        "type": "input",
+        "label": "发送消息",
+        "placeholder": "Hello WebSocket"
+      }
+    }
+  },
+  {
+    "name": "进制转换",
+    "path": "dev-tools/base-converter.html",
+    "desc": "支持二进制、八进制、十进制、十六进制之间的相互转换，输入任意进制数值即可实时得到多种进制结果，适用于编程开发与数据处理场景。",
+    "keywords": "进制转换,binary,octal,decimal,hex,16进制,10进制,转换",
+    "type": "dev-tools",
+    "icon": "bi bi-calculator",
+    "title": "进制转换器 - 二八十六进制数值相互转换",
+    "genFn": "function(inputs){var v=inputs.value.trim();var r=parseInt(v,parseInt(inputs.fromBase)).toString(parseInt(inputs.toBase)).toUpperCase();return{result:r};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "value",
+          "label": "数值",
+          "type": "text",
+          "placeholder": "255"
+        },
+        {
+          "name": "fromBase",
+          "label": "从",
+          "type": "select",
+          "default": "10",
+          "options": [
+            "2",
+            "8",
+            "10",
+            "16"
+          ]
+        },
+        {
+          "name": "toBase",
+          "label": "转换为",
+          "type": "select",
+          "default": "16",
+          "options": [
+            "2",
+            "8",
+            "10",
+            "16"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "结果"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "value",
+        "label": "数值",
+        "type": "text",
+        "placeholder": "输入数值"
+      },
+      {
+        "id": "from",
+        "label": "从",
+        "type": "select",
+        "options": [
+          {
+            "value": "2",
+            "label": "二进制"
+          },
+          {
+            "value": "8",
+            "label": "八进制"
+          },
+          {
+            "value": "10",
+            "label": "十进制"
+          },
+          {
+            "value": "16",
+            "label": "十六进制"
+          }
+        ]
+      },
+      {
+        "id": "to",
+        "label": "转换为",
+        "type": "select",
+        "options": [
+          {
+            "value": "2",
+            "label": "二进制"
+          },
+          {
+            "value": "8",
+            "label": "八进制"
+          },
+          {
+            "value": "10",
+            "label": "十进制"
+          },
+          {
+            "value": "16",
+            "label": "十六进制"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "字节转换器",
+    "path": "dev-tools/byte-converter.html",
+    "desc": "字节、B、KB、MB、GB、TB单位互相转换，输入数值即可快速得到转换结果，适用于存储容量计算与数据大小换算场景。",
+    "keywords": "字节转换,byte,KB,MB,GB,TB,存储单位,单位转换",
+    "type": "dev-tools",
+    "icon": "bi bi-memory",
+    "title": "字节转换器 - B/KB/MB/GB/TB单位互相转换",
+    "genFn": "function(inputs){var u={B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776};var v=parseFloat(inputs.value)||0;var result=(v*u[inputs.from]/u[inputs.to]).toFixed(6).replace(/\\.?0+$/,'');return{result:result+' '+inputs.to};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "value",
+          "label": "数值",
+          "type": "number",
+          "placeholder": "1024"
+        },
+        {
+          "name": "from",
+          "label": "从",
+          "type": "select",
+          "default": "KB",
+          "options": [
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB"
+          ]
+        },
+        {
+          "name": "to",
+          "label": "转换为",
+          "type": "select",
+          "default": "MB",
+          "options": [
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "结果"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "value",
+        "label": "数值",
+        "type": "text",
+        "placeholder": "输入数值"
+      },
+      {
+        "id": "from",
+        "label": "从",
+        "type": "select",
+        "options": [
+          {
+            "value": "B",
+            "label": "B"
+          },
+          {
+            "value": "KB",
+            "label": "KB"
+          },
+          {
+            "value": "MB",
+            "label": "MB"
+          },
+          {
+            "value": "GB",
+            "label": "GB"
+          },
+          {
+            "value": "TB",
+            "label": "TB"
+          }
+        ]
+      },
+      {
+        "id": "to",
+        "label": "转换为",
+        "type": "select",
+        "options": [
+          {
+            "value": "B",
+            "label": "B"
+          },
+          {
+            "value": "KB",
+            "label": "KB"
+          },
+          {
+            "value": "MB",
+            "label": "MB"
+          },
+          {
+            "value": "GB",
+            "label": "GB"
+          },
+          {
+            "value": "TB",
+            "label": "TB"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "CSS单位转换",
+    "path": "dev-tools/css-unit-converter.html",
+    "desc": "px、em、rem、%、vw、vh单位互相转换，输入数值和单位即可实时得到转换结果，适用于前端开发、页面调试与响应式设计场景。",
+    "keywords": "CSS单位,px,em,rem,%,vw,vh,转换,前端,响应式",
+    "type": "dev-tools",
+    "icon": "bi bi-rulers",
+    "title": "CSS单位转换器 - px/em/rem/vw/vh单位互转",
+    "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var b=parseFloat(inputs.baseline)||16;var m={'px':1,'em':b,'rem':b,'%':b/100,'vw':window.innerWidth/100,'vh':window.innerHeight/100};var r={};for(var u of ['px','em','rem','%','vw','vh']){r[u]=(v*m[inputs.from]/m[u]).toFixed(4);}return{result:Object.entries(r).map(([u,val])=>val+' '+u).join('\\n')};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "value",
+          "label": "数值",
+          "type": "number",
+          "placeholder": "16"
+        },
+        {
+          "name": "from",
+          "label": "从",
+          "type": "select",
+          "default": "px",
+          "options": [
+            "px",
+            "em",
+            "rem",
+            "%",
+            "vw",
+            "vh"
+          ]
+        },
+        {
+          "name": "基准",
+          "label": "基准值(px)",
+          "type": "number",
+          "placeholder": "16",
+          "default": "16"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "各单果结果"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "value",
+        "label": "数值",
+        "type": "text",
+        "placeholder": "输入数值"
+      },
+      {
+        "id": "base",
+        "label": "基础单位",
+        "type": "select",
+        "options": [
+          {
+            "value": "px",
+            "label": "px"
+          },
+          {
+            "value": "rem",
+            "label": "rem"
+          },
+          {
+            "value": "em",
+            "label": "em"
+          },
+          {
+            "value": "vw",
+            "label": "vw"
+          },
+          {
+            "value": "vh",
+            "label": "vh"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "随机IP地址",
+    "path": "dev-tools/random-ip.html",
+    "desc": "生成随机IPv4地址，可选私有IP或公有IP模式，支持批量生成指定数量，适用于网络测试、软件开发与教学演示场景。",
+    "keywords": "IP生成,随机IP,IPv4,私有IP,公有IP,地址生成",
+    "type": "dev-tools",
+    "icon": "bi bi-wifi",
+    "title": "随机IP地址生成器 - 批量生成随机IPv4地址",
+    "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var ip;if(inputs.private){var p=[[10,1],[172,16],[192,168]];var x=p[Math.floor(Math.random()*p.length)];if(x[0]===10)ip='10.'+rand(256)+'.'+rand(256)+'.'+rand(256);else if(x[0]===172)ip='172.'+(x[1]+rand(16))+'.'+rand(256)+'.'+rand(256);else ip='192.168.'+rand(256)+'.'+rand(256);}else{ip=Array(4).fill().map(()=>Math.floor(Math.random()*256)).join('.');}r.push(ip);}function rand(m){return Math.floor(Math.random()*m);}return{result:r.join('\\n')};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "count",
+          "label": "数量",
+          "type": "number",
+          "default": "5",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "name": "private",
+          "label": "仅私有IP",
+          "type": "checkbox",
+          "default": false
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "IP地址"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "count",
+        "label": "数量",
+        "type": "number",
+        "placeholder": "生成数量"
+      }
+    ]
+  },
+  {
+    "name": "随机MAC地址",
+    "path": "dev-tools/random-mac.html",
+    "desc": "批量生成符合 IEEE 802 标准的随机 MAC 地址，可选本地/全局、单播/组播、大小写格式，支持批量导出和复制，适用于虚拟机配置、网络测试、MAC 地址过滤开发等场景。",
+    "keywords": "MAC地址,生成,随机,网卡,硬件地址,批量",
+    "type": "dev-tools",
+    "icon": "bi bi-ethernet",
+    "title": "随机MAC地址生成器 - 批量生成随机MAC地址",
+    "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var b=Array(6).fill().map(()=>Math.floor(Math.random()*256));var mac=b.map(v=>(inputs.uppercase?v.toString(16).padStart(2,'0').toUpperCase():v.toString(16).padStart(2,'0'))).join(':');r.push(mac);}return{result:r.join('\\n')};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "count",
+          "label": "数量",
+          "type": "number",
+          "default": "5",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "name": "uppercase",
+          "label": "大写",
+          "type": "checkbox",
+          "default": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "MAC地址"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "count",
+        "label": "数量",
+        "type": "number",
+        "placeholder": "生成数量",
+        "value": "1"
+      },
+      {
+        "id": "uppercase",
+        "label": "大写",
+        "type": "checkbox"
+      }
+    ]
+  },
+  {
+    "name": "罗马数字转换",
+    "path": "dev-tools/roman-numeral.html",
+    "desc": "阿拉伯数字与罗马数字互相转换，支持1-3999范围，适用于章节编号、钟表刻度、版权年份等需要古典数字风格的场景。",
+    "keywords": "罗马数字,转换,arabic,roman,number,数字",
+    "type": "dev-tools",
+    "icon": "bi bi-roman",
+    "title": "罗马数字转换器 - 阿拉伯数字与罗马数字互转",
+    "genFn": "function(inputs){var toR=function(n){var t=['','M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];var d=[1000,900,500,400,100,90,50,40,10,9,5,4,1];var r='';for(var i=0;i<d.length;i++){while(n>=d[i]){r+=t[i];n-=d[i];}}return r;};var fromR=function(s){var m={'I':1,'V':5,'X':10,'L':50,'C':100,'D':500,'M':1000};var r=0;for(var i=0;i<s.length;i++){var cur=m[s[i]];var next=m[s[i+1]];r+=cur<next?-cur:cur;}return r;};var v=inputs.value.trim();var result=/^\\d+$/.test(v)?toR(parseInt(v)):fromR(v.toUpperCase()).toString();return{result:result};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "value",
+          "label": "输入数字或罗马数字",
+          "type": "text",
+          "placeholder": "2026 或 MMXXVI"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "转换结果"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "value",
+        "label": "数值",
+        "type": "text",
+        "placeholder": "输入数字或罗马数字"
+      }
+    ]
+  },
+  {
+    "name": "UUID生成器",
+    "path": "dev-tools/uuid-generator.html",
+    "desc": "批量生成符合 RFC 4122 标准的 UUID v4 随机码，支持自定义数量、大小写切换和多种格式（标准、带连字符、纯数字），一键复制或批量导出，适合数据库主键、分布式ID、测试数据生成。",
+    "keywords": "UUID生成器,UUID,v4,随机,唯一标识符,批量生成,RFC4122",
+    "type": "dev-tools",
+    "icon": "bi bi-upc",
+    "title": "UUID生成器 - 快速生成RFC 4122标准UUID",
+    "genFn": "function(inputs){var n=parseInt(inputs.count)||1;var r=[];for(var i=0;i<n;i++){var uid=crypto.randomUUID?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var v=Math.random()*16|0;return(c==='x'?v:(v&0x3|0x8).toString(16));});r.push(inputs.uppercase?uid.toUpperCase():uid);}return{result:r.join('\\n')};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "count",
+          "label": "生成数量",
+          "type": "number",
+          "placeholder": "1",
+          "default": "1",
+          "min": 1,
+          "max": 100
+        },
+        {
+          "name": "uppercase",
+          "label": "大写",
+          "type": "checkbox",
+          "default": true
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "UUID结果"
+        }
+      ]
+    },
+    "fields": [
+      {
+        "id": "count",
+        "label": "数量",
+        "type": "number",
+        "placeholder": "生成数量"
+      }
+    ]
+  },
+  {
+    "name": "JSON ↔ XML",
+    "path": "json/xml.html",
+    "desc": "实现 JSON 与 XML 结构化数据格式的双向转换，支持节点映射、属性处理和缩进美化，帮助开发者在不同数据格式之间快速迁移数据，适用于接口对接与数据迁移场景。",
+    "keywords": "JSON 转换 XML，XML 转换 JSON，数据格式转换，JSON XML 互转，XML 格式化，结构化数据",
+    "icon": "bi bi-code-slash",
+    "type": "converter",
+    "title": "JSON ↔ XML - JSON与XML结构化数据互转",
+    "convertFn": "function convert(value, direction, extra) {\n  if (direction === 'json2xml') {\n    try {\n      var obj = JSON.parse(value);\n      return '<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n' + jsonToXml(obj, 'root');\n    } catch(e) { return 'JSON解析错误: ' + e.message; }\n  } else {\n    try {\n      var parser = new DOMParser();\n      var doc = parser.parseFromString(value, 'application/xml');\n      if (doc.querySelector('parsererror')) return 'XML解析错误';\n      var obj = xmlToJson(doc.documentElement);\n      return JSON.stringify(obj, null, 2);\n    } catch(e) { return 'XML解析错误: ' + e.message; }\n  }\n}\nfunction jsonToXml(obj, tagName) {\n  if (Array.isArray(obj)) {\n    return obj.map(function(item) { return '<' + tagName + '>' + (typeof item === 'object' ? jsonToXml(item, 'item') : String(item)) + '</' + tagName + '>'; }).join('\\n');\n  }\n  if (typeof obj === 'object' && obj !== null) {\n    return Object.keys(obj).map(function(k) {\n      return '<' + k + '>' + (typeof obj[k] === 'object' ? jsonToXml(obj[k], k) : String(obj[k])) + '</' + k + '>';\n    }).join('\\n');\n  }\n  return String(obj);\n}\nfunction xmlToJson(node) {\n  var obj = {};\n  if (node.attributes) {\n    Array.from(node.attributes).forEach(function(attr) { obj['@' + attr.name] = attr.value; });\n  }\n  if (node.childNodes.length === 1 && node.childNodes[0].nodeType === 3) {\n    var val = node.childNodes[0].nodeValue.trim();\n    if (val) {\n      if (!isNaN(val)) obj['#text'] = Number(val);\n      else if (val === 'true' || val === 'false') obj['#text'] = val === 'true';\n      else obj['#text'] = val;\n    }\n    return obj;\n  }\n  node.childNodes.forEach(function(child) {\n    if (child.nodeType !== 1) return;\n    var name = child.nodeName;\n    var childObj = xmlToJson(child);\n    if (obj[name]) {\n      if (!Array.isArray(obj[name])) obj[name] = [obj[name]];\n      obj[name].push(childObj);\n    } else {\n      obj[name] = childObj;\n    }\n  });\n  return obj;\n}",
+    "options": [
+      {
+        "value": "json2xml",
+        "label": "JSON → XML"
+      },
+      {
+        "value": "xml2json",
+        "label": "XML → JSON"
+      }
+    ],
+    "genFn": "function(inputs){var v=inputs.text.trim();if(inputs.mode==='toXml'){try{var obj=JSON.parse(v);var s='';for(var k in obj)s+='<'+k+'>'+obj[k]+'</'+k+'>';return{result:'<?xml version=\"1.0\"?><root>'+s+'</root>'};}catch(e){return{result:'JSON错误:'+e.message};}}else{return{result:'暂不支持XML转JSON'};}}"
+  },
+  {
+    "name": "JSON ↔ YAML",
+    "path": "json/yaml.html",
+    "desc": "实现 JSON 与 YAML 之间的双向转换，支持格式校验、语法纠错和一键复制功能，方便开发者在配置文件格式之间灵活切换，省去手动编写和转换的繁琐步骤。",
+    "keywords": "JSON 转换 YAML，YAML 转换 JSON，JSON YAML 互转，配置文件转换，YAML 格式化，YAML 校验",
+    "icon": "bi bi-code-slash",
+    "type": "converter",
+    "title": "JSON ↔ YAML - JSON与YAML格式互转",
+    "convertFn": "function convert(value, direction, extra) {\n  if (direction === 'json2yaml') {\n    try {\n      var obj = JSON.parse(value);\n      return toYaml(obj, 0);\n    } catch(e) { return 'JSON解析错误: ' + e.message; }\n  } else {\n    try {\n      var lines = value.split('\\n');\n      var obj = parseYaml(lines);\n      return JSON.stringify(obj, null, 2);\n    } catch(e) { return 'YAML解析错误: ' + e.message; }\n  }\n}\nfunction toYaml(obj, indent) {\n  var pad = '  '.repeat(indent);\n  if (Array.isArray(obj)) {\n    if (obj.length === 0) return '[]';\n    return obj.map(function(item) { return pad + '- ' + (typeof item === 'object' ? '\\n' + toYaml(item, indent+1) : JSON.stringify(item)); }).join('\\n');\n  }\n  if (typeof obj === 'object' && obj !== null) {\n    var keys = Object.keys(obj);\n    if (keys.length === 0) return '{}';\n    return keys.map(function(k) {\n      var v = obj[k];\n      if (typeof v === 'object' && v !== null) {\n        return pad + k + ':\\n' + toYaml(v, indent+1);\n      }\n      return pad + k + ': ' + (typeof v === 'string' ? v : JSON.stringify(v));\n    }).join('\\n');\n  }\n  return JSON.stringify(obj);\n}\nfunction parseYaml(lines) {\n  var result = {}, stack = [{obj: result, indent: -1}];\n  lines.forEach(function(line) {\n    if (!line.trim() || line.trim().startsWith('#')) return;\n    var indent = line.search(/\\S/);\n    var content = line.trim();\n    var colonIdx = content.indexOf(':');\n    if (colonIdx === -1) return;\n    var key = content.slice(0, colonIdx).trim();\n    var val = content.slice(colonIdx+1).trim();\n    while (stack.length > 1 && stack[stack.length-1].indent >= indent) stack.pop();\n    var current = stack[stack.length-1].obj;\n    if (val === '' || val === '[]' || val === '{}') {\n      current[key] = val === '[]' ? [] : (val === '{}' ? {} : undefined);\n      if (Array.isArray(current[key]) || typeof current[key] === 'object') {\n        stack.push({obj: current[key], indent: indent});\n      }\n    } else if (val === 'true' || val === 'false') {\n      current[key] = val === 'true';\n    } else if (!isNaN(val) && val !== '') {\n      current[key] = Number(val);\n    } else {\n      current[key] = val.replace(/^['\"]|['\"]$/g, '');\n    }\n  });\n  return result;\n}",
+    "options": [
+      {
+        "value": "json2yaml",
+        "label": "JSON → YAML"
+      },
+      {
+        "value": "yaml2json",
+        "label": "YAML → JSON"
+      }
+    ],
+    "genFn": "function(inputs){var v=inputs.text.trim();try{var obj=JSON.parse(v);var s='';for(var k in obj){var val=obj[k];s+=k+': '+(typeof val==='object'?JSON.stringify(val):val)+'\n';}return{result:s};}catch(e){return{result:'JSON错误'};}}"
+  },
+  {
+    "name": "LESS转CSS",
+    "path": "code/less-to-css.html",
+    "desc": "在线LESS编译器，将LESS样式代码实时转换为标准CSS，支持语法高亮、错误提示和一键复制，无需安装任何依赖，纯浏览器本地处理。",
+    "keywords": "LESS转CSS,LESS编译器,LESS,CSS转换,less.js,在线LESS,样式表转换,LESS语法",
+    "type": "formatter",
+    "icon": "bi bi-braces",
+    "title": "LESS转CSS - 在线LESS编译器将LESS转换为CSS",
+    "formatFn": "function(v, opts) {\n  if (opts && opts.minify) {\n    return v.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/\\s+/g, ' ').replace(/\\s*([{}:;,])\\s*/g, '$1').trim();\n  }\n  var indent = 0;\n  var lines = v.replace(/\\r\\n/g, '\\n').split('\\n');\n  var result = [];\n  for (var i = 0; i < lines.length; i++) {\n    var line = lines[i].trim();\n    if (!line || line.startsWith('//')) continue;\n    if (line.startsWith('}')) indent = Math.max(0, indent - 1);\n    result.push('  '.repeat(indent) + line);\n    if (line.endsWith('{')) indent++;\n  }\n  return result.join('\\n');\n}"
+  },
+  {
+    "name": "Base64加密/解密",
+    "path": "encrypt/base64.html",
+    "desc": "Base64是一种基于64个可打印字符的编码方式，可将二进制数据或中文字符串转换为可传输的ASCII文本格式。常用于邮件附件、数据URL嵌入、API数据传输等场景，支持中英文混合内容的编解码处理。",
+    "keywords": "Base64，Base64编码，Base64解码，字符串编码，数据转换，ASCII编码，MIME，文本加密",
+    "type": "encode-decode",
+    "btnLabel1": "Base64编码",
+    "btnLabel2": "Base64解码",
+    "forwardFn": "return btoa(unescape(encodeURIComponent(v)));",
+    "reverseFn": "return decodeURIComponent(escape(atob(v.trim())));",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "Base64加密/解密 - 字符串与Base64格式的双向互转"
+  },
+  {
+    "name": "16进制转字符串",
+    "path": "encrypt/hex.html",
+    "desc": "十六进制转换工具实现HEX格式与字符串的双向转换，将可读文本转为十六进制表示，或将十六进制数据还原为原始字符串。广泛应用于逆向工程、网络协议分析、调试二进制数据等开发与研究场景。",
+    "keywords": "HEX，十六进制，字符串转换，ASCII，十六进制解码，二进制转换，HEX编码，字节转换",
+    "type": "converter",
+    "options": [
+      {
+        "value": "hex2str",
+        "label": "HEX → 字符串"
+      },
+      {
+        "value": "str2hex",
+        "label": "字符串 → HEX"
+      }
+    ],
+    "convertFn": "function(v,from,to){if(from===\"hex2str\"){try{var s=\"\";for(var i=0;i<v.length;i+=2)s+=String.fromCharCode(parseInt(v.substr(i,2),16));return s;}catch(e){return\"错误: \"+e.message;}}else{var s=\"\";for(var i=0;i<v.length;i++)s+=v.charCodeAt(i).toString(16).padStart(2,\"0\");return s;}}}",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "16进制转字符串 - 十六进制与可读文本之间的双向转换",
+    "genFn": "function(inputs){var v=inputs.text.trim();if(inputs.mode==='toHex'){var r='';for(var i=0;i<v.length;i++)r+=v.charCodeAt(i).toString(16).padStart(2,'0');return{result:r};}else{var s='';for(var i=0;i<v.length;i+=2)s+=String.fromCharCode(parseInt(v.substr(i,2),16));return{result:s};}}"
+  },
+  {
+    "name": "JWT解密",
+    "path": "encrypt/jwt.html",
+    "desc": "JWT（JSON Web Token）是一种开放标准，用于在各方之间安全传输信息。本工具可对标准JWT进行解码，展示Header和Payload内容，帮助开发者调试和验证JWT身份令牌。",
+    "keywords": "JWT，JWT解码，JSON Web Token，Token解析，Header，Payload，JWT验证，身份认证",
+    "type": "encode-decode",
+    "btnLabel1": "解码JWT",
+    "btnLabel2": "清空",
+    "forwardFn": "try{var parts=v.split(\".\");if(parts.length!==3)return\"无效JWT格式，请确保包含 header.payload.signature 三部分\";var header=JSON.parse(atob(parts[0].replace(/-/g,\"+\").replace(/_/g,\"/\")));var payload=JSON.parse(atob(parts[1].replace(/-/g,\"+\").replace(/_/g,\"/\")));return\"Header:\\n\"+JSON.stringify(header,null,2)+\"\\n\\nPayload:\\n\"+JSON.stringify(payload,null,2);}catch(e){return\"解码错误: \"+e.message;}",
+    "reverseFn": "return v;",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "JWT解密 - 在线查看JWT令牌Header和Payload内容"
+  },
+  {
+    "name": "MD5加密",
+    "path": "encrypt/md5.html",
+    "desc": "MD5是一种广泛使用的哈希算法，可将任意长度的字符串转换为32位十六进制哈希值。常用于密码存储、数据完整性校验等场景。请注意，MD5已被证明存在安全弱点，不建议用于高安全需求的密码存储。",
+    "keywords": "MD5，MD5加密，MD5哈希，密码加密，哈希算法，数据校验，消息摘要，信息安全",
+    "type": "encode-decode",
+    "btnLabel1": "MD5加密",
+    "btnLabel2": "",
+    "forwardFn": "function md5(s){function R(n,t,r){return(n<<t)|(n>>>>(32-r));}function J(n){var c='',x='';for(var i=0;i<=3;i++){x='0'+((n>>>i*8)&255).toString(16);c+=x.substr(x.length-2,2);}return c;}var a=1732584193,b=-271733879,c=-1732584194,d=271733878;var k=[],i=0,len=s.length;for(i=0;i<64;i++)k[i]=(Math.abs(Math.sin(i+1))*4294967296)|0;for(i=0;i<len;i++)k[i>>2]|=s.charCodeAt(i)<<((i%4)*8);k[len>>2]|=128<<(((len%4)*8));k.push(0,0);k.push((len*8)>>>0);var w=[],j=0,A,B,C,D;for(var j=0;j<64;j++){w[j]=k[j];}for(j=0;j<k.length;j+=16){A=a;B=b;C=c;D=d;for(var i=0;i<16;i++){var temp=k[i+j]|0;if(temp<0)temp=temp+4294967296;var g,t;if(i<4){t=i;g=(B&C)|((255-B)&D);}else if(i<8){t=4+(i-4);g=(B&D)|(C&(255-D));}else if(i<12){t=8+(i-8);g=(B^C)^D;}else{t=12+(i-12);g=C^(B|(255-D));}g=(g+t+temp+k[(2*i+5*i)%16])>>>0;var rot=(i<4)?7:(i<8)?12:(i<12)?17:22;t=(A+g)>>>0;var rot_t=(t<<rot)|(t>>>(32-rot));D=C;C=B;B=(B+rot_t)>>>0;A=t;}a=(a+A)>>>0;b=(b+B)>>>0;c=(c+C)>>>0;d=(d+D)>>>0;}return J(a)+J(b)+J(c)+J(d);}(function(v){var s=unescape(encodeURIComponent(v));return md5(s);})(v)",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "MD5加密 - 快速计算任意字符串的MD5哈希值",
+    "reverseFn": "function(v){return \"MD5 是不可逆哈希算法，无法解密。若已知明文可尝试彩虹表查询。\";}"
+  },
+  {
+    "name": "摩斯密码加密/解密",
+    "path": "encrypt/morse.html",
+    "desc": "摩斯密码是一种时通时断的信号代码，通过点、划及其停顿时间来表示不同的字符。本工具支持将任意文字加密为摩斯电码，或将摩斯电码解密还原为可读文字，适合学习和娱乐使用。",
+    "keywords": "摩斯密码，Morse，MorseCode，密码加密，电报，加密通信，隐密通信，点划码",
+    "type": "encode-decode",
+    "btnLabel1": "加密",
+    "btnLabel2": "解密",
+    "forwardFn": "var m={\"A\":\".-\",\"B\":\"-...\",\"C\":\"-.-.\",\"D\":\"-..\",\"E\":\".\",\"F\":\"..-.\",\"G\":\"--.\",\"H\":\"....\",\"I\":\"..\",\"J\":\".---\",\"K\":\"-.-\",\"L\":\".-..\",\"M\":\"--\",\"N\":\"-.\",\"O\":\"---\",\"P\":\".--.\",\"Q\":\"--.-\",\"R\":\".-.\",\"S\":\"...\",\"T\":\"-\",\"U\":\"..-\",\"V\":\"...-\",\"W\":\".--\",\"X\":\"-..-\",\"Y\":\"-.--\",\"Z\":\"--..\",\"0\":\"-----\",\"1\":\".----\",\"2\":\"..---\",\"3\":\"...--\",\"4\":\"....-\",\"5\":\".....\",\"6\":\"-....\",\"7\":\"--...\",\"8\":\"---..\",\"9\":\"----.\"};return v.toUpperCase().split(\"\").map(function(c){return m[c]||c;}).join(\" \");",
+    "reverseFn": "var m={\".-\":\"A\",\"-...\":\"B\",\"-.-.\":\"C\",\"-..\":\"D\",\".\":\"E\",\"..-.\":\"F\",\"--.\":\"G\",\"....\":\"H\",\"..\":\"I\",\".---\":\"J\",\"-.-\":\"K\",\".-..\":\"L\",\"--\":\"M\",\"-.\":\"N\",\"---\":\"O\",\".--.\":\"P\",\"--.-\":\"Q\",\".-.\":\"R\",\"...\":\"S\",\"-\":\"T\",\"..-\":\"U\",\"...-\":\"V\",\".--\":\"W\",\"-..-\":\"X\",\"-.--\":\"Y\",\"--..\":\"Z\",\"-----\":\"0\",\".----\":\"1\",\"..---\":\"2\",\"...--\":\"3\",\"....-\":\"4\",\".....\":\"5\",\"-....\":\"6\",\"--...\":\"7\",\"---..\":\"8\",\"----.\":\"9\"};return v.split(\" \").map(function(w){return m[w]||w;}).join(\"\");",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "摩斯密码加密/解密 - 文字与摩斯电码的互转工具"
+  },
+  {
+    "name": "Punycode编码/解码",
+    "path": "encrypt/punycode.html",
+    "desc": "Punycode是一种将Unicode字符串转换为ASCII字符集的编码算法，专门用于在纯ASCII环境中表示含有非ASCII字符的域名。在国际化域名注册和DNS解析时经常使用，支持中文、日文等多语种域名的处理。",
+    "keywords": "Punycode，域名编码，中文域名，IDN，域名转换，ASCII编码，国际化域名，DNS",
+    "type": "encode-decode",
+    "btnLabel1": "Punycode编码",
+    "btnLabel2": "Punycode解码",
+    "forwardFn": "try{return punycode.toASCII(v);}catch(e){return v;}",
+    "reverseFn": "try{return punycode.toUnicode(v);}catch(e){return v;}",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "Punycode编码/解码 - 中文域名与ASCII格式的相互转换"
+  },
+  {
+    "name": "SHA加密",
+    "path": "encrypt/sha.html",
+    "desc": "SHA系列哈希算法是美国国家安全局设计的加密标准，SHA-1生成160位哈希值，SHA-256生成256位哈希值。相比MD5具有更高的安全性，广泛应用于数字签名、SSL证书、区块链等领域的数据完整性校验。",
+    "keywords": "SHA，SHA256，SHA1，哈希算法，密码学，数字签名，SHA-256，SHA-1，安全哈希，数据完整性",
+    "type": "encode-decode",
+    "btnLabel1": "SHA-256",
+    "btnLabel2": "SHA-1",
+    "forwardFn": "{var s=unescape(encodeURIComponent(v));function rotl(n,b){return(n<<b)|(n>>>32-b);}var h=[1732584193,4023233417,2562383102,271733878,3285377520];for(var i=0;i<s.length;i++){h[0]=((h[0]+((h[1]^h[2]^h[3]^h[4])+s.charCodeAt(i))))&0xffffffff;var t=((h[0]>>>17)^(h[0]<<15)^(h[0]>>>19)^(h[0]<<13));h[0]=h[1];h[1]=h[2];h[2]=h[3];h[3]=h[4];h[4]=t;}function toHex(n){var r=\"\";for(var j=0;j<4;j++)r+=((n>>>(j*8))&255).toString(16).padStart(2,\"0\");return r;}return toHex(h[0])+toHex(h[1])+toHex(h[2])+toHex(h[3])+toHex(h[4]);}",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "SHA加密 - 计算字符串的SHA-1/SHA-256安全哈希值",
+    "reverseFn": "function(v){return \"SHA 是不可逆哈希算法，无法解密。若已知明文可尝试彩虹表查询。\";}"
+  },
+  {
+    "name": "文字隐藏加密/解密",
+    "path": "encrypt/text-hide.html",
+    "desc": "零宽字符是一种在屏幕上不显示的Unicode字符，可将秘密信息以不可见的方式嵌入到任意普通文本中。接收方使用本工具即可解密提取隐藏内容，适用于信息隐藏、敏感数据传输和数字水印等场景。",
+    "keywords": "零宽字符，文字加密，隐写术，文字隐藏，信息隐藏，数字水印，隐密通信，Unicode隐写",
+    "type": "encode-decode",
+    "btnLabel1": "加密（零宽字符）",
+    "btnLabel2": "解密",
+    "forwardFn": "var zw={\"0\":\"\\u200B\",\"1\":\"\\u200C\",\"2\":\"\\u200D\"};var b=[];for(var i=0;i<v.length;i++){var c=v.charCodeAt(i).toString(2);b.push(c);}var s=b.join(\"1\");var r=\"\";for(var i=0;i<s.length;i++){r+=s[i]===\"0\"?zw[\"0\"]:zw[\"1\"];}return r;",
+    "reverseFn": "var zw={\"\\u200B\":\"0\",\"\\u200C\":\"1\",\"\\u200D\":\"\"};var b=\"\";for(var i=0;i<v.length;i++){if(zw[v[i]]!==undefined)b+=zw[v[i]];}var r=\"\";for(var i=0;i<b.length;i+=8)r+=String.fromCharCode(parseInt(b.substr(i,8),2));return r;",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "文字隐藏加密/解密 - 利用零宽字符隐藏信息的工具"
+  },
+  {
+    "name": "Unicode中文互转",
+    "path": "encrypt/unicode.html",
+    "desc": "Unicode转换工具支持中文文字与UTF-16 Unicode编码序列的相互转换，中文字符可表示为\\uXXXX格式的转义序列。在JavaScript字符串处理、跨系统数据交换、网络传输等场景中经常使用。",
+    "keywords": "Unicode，中文Unicode，UTF-16，编码转换，\\u编码，中文转码，字符集，UTF编码",
+    "type": "encode-decode",
+    "btnLabel1": "中文→Unicode",
+    "btnLabel2": "Unicode→中文",
+    "forwardFn": "var r=\"\";for(var i=0;i<v.length;i++){var h=v.charCodeAt(i).toString(16);r+=\"\\\\u\"+h.padStart(4,\"0\");}return r;",
+    "reverseFn": "return v.replace(/\\u([0-9a-f]{4})/gi,function(m,p){return String.fromCharCode(parseInt(p,16));});",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "Unicode中文互转 - 中文与Unicode编码的相互转换工具"
+  },
+  {
+    "name": "URL编码解码",
+    "path": "encrypt/url.html",
+    "desc": "URL编码通过将中文字符和特殊符号转换为%XX格式的十六进制转义序列，确保URL在传输过程中的安全性和兼容性。常用于表单提交、API调用、搜索引擎查询等场景，可有效避免字符冲突导致的数据解析错误。",
+    "keywords": "URL编码，URL解码，encodeURI，URI编码，百分号编码，URL转义，特殊字符，HTTP请求",
+    "type": "encode-decode",
+    "btnLabel1": "URL编码",
+    "btnLabel2": "URL解码",
+    "forwardFn": "return encodeURIComponent(v);",
+    "reverseFn": "try{return decodeURIComponent(v);}catch(e){return v;}",
+    "icon": "bi bi-shield-lock-fill",
+    "title": "URL编码解码 - 对URL特殊字符进行安全编码与还原"
+  },
+  {
+    "name": "简繁体转换",
+    "path": "text/jianfan.html",
+    "desc": "实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。",
+    "keywords": "简繁体转换，简体繁体转换，繁简转换，中文简繁体，简体中文，繁体中文，文字转换，在线工具",
+    "icon": "bi bi-body-text",
+    "type": "converter",
+    "title": "简繁体转换 - 简体中文与繁体中文一键互转",
+    "convertFn": "function convert(text, direction) {\n  // Simplified → Traditional Chinese\n  var s2t = {\"啊\":\"啊\",\"阿\":\"阿\",\"啊\":\"啊\",\"爱\":\"愛\",\"安\":\"安\",\"暗\":\"暗\",\"八\":\"八\",\"把\":\"把\",\"巴\":\"巴\",\"白\":\"白\",\"百\":\"百\",\"班\":\"班\",\"半\":\"半\",\"办\":\"辦\",\"帮\":\"幫\",\"包\":\"包\",\"保\":\"保\",\"报\":\"報\",\"北\":\"北\",\"被\":\"被\",\"本\":\"本\",\"比\":\"比\",\"笔\":\"筆\",\"边\":\"邊\",\"变\":\"變\",\"别\":\"別\",\"病\":\"病\",\"不\":\"不\",\"布\":\"布\",\"步\":\"步\",\"部\":\"部\",\"才\":\"才\",\"菜\":\"菜\",\"参\":\"參\",\"草\":\"草\",\"层\":\"層\",\"茶\":\"茶\",\"查\":\"查\",\"产\":\"產\",\"长\":\"長\",\"场\":\"場\",\"常\":\"常\",\"车\":\"車\",\"称\":\"稱\",\"成\":\"成\",\"城\":\"城\",\"吃\":\"吃\",\"出\":\"出\",\"除\":\"除\",\"楚\":\"楚\",\"处\":\"處\",\"穿\":\"穿\",\"春\":\"春\",\"词\":\"詞\",\"此\":\"次\",\"从\":\"從\",\"村\":\"村\",\"错\":\"錯\",\"达\":\"達\",\"大\":\"大\",\"带\":\"帶\",\"代\":\"代\",\"单\":\"單\",\"当\":\"當\",\"党\":\"黨\",\"到\":\"到\",\"道\":\"道\",\"得\":\"得\",\"的\":\"的\",\"等\":\"等\",\"低\":\"低\",\"底\":\"底\",\"地\":\"地\",\"点\":\"點\",\"电\":\"電\",\"店\":\"店\",\"掉\":\"掉\",\"顶\":\"頂\",\"定\":\"定\",\"冬\":\"冬\",\"东\":\"東\",\"动\":\"動\",\"读\":\"讀\",\"短\":\"短\",\"段\":\"段\",\"对\":\"對\",\"多\":\"多\",\"儿\":\"兒\",\"而\":\"而\",\"发\":\"發\",\"法\":\"法\",\"反\":\"反\",\"饭\":\"飯\",\"方\":\"方\",\"非\":\"非\",\"飞\":\"飛\",\"费\":\"費\",\"分\":\"分\",\"纷\":\"紛\",\"丰\":\"豐\",\"风\":\"風\",\"服\":\"服\",\"福\":\"福\",\"父\":\"父\",\"复\":\"復\",\"该\":\"該\",\"改\":\"改\",\"感\":\"感\",\"刚\":\"剛\",\"高\":\"高\",\"告\":\"告\",\"哥\":\"哥\",\"歌\":\"歌\",\"个\":\"個\",\"给\":\"給\",\"跟\":\"跟\",\"更\":\"更\",\"工\":\"工\",\"公\":\"公\",\"共\":\"共\",\"够\":\"夠\",\"古\":\"古\",\"故\":\"故\",\"瓜\":\"瓜\",\"挂\":\"掛\",\"关\":\"關\",\"管\":\"管\",\"光\":\"光\",\"广\":\"廣\",\"贵\":\"貴\",\"国\":\"國\",\"果\":\"果\",\"过\":\"過\",\"还\":\"還\",\"孩\":\"孩\",\"海\":\"海\",\"害\":\"害\",\"汉\":\"漢\",\"号\":\"號\",\"喝\":\"喝\",\"合\":\"合\",\"和\":\"和\",\"何\":\"何\",\"黑\":\"黑\",\"很\":\"很\",\"红\":\"紅\",\"后\":\"後\",\"呼\":\"呼\",\"湖\":\"湖\",\"虎\":\"虎\",\"护\":\"護\",\"花\":\"花\",\"化\":\"化\",\"画\":\"畫\",\"话\":\"話\",\"坏\":\"壞\",\"环\":\"環\",\"换\":\"換\",\"黄\":\"黃\",\"回\":\"回\",\"汇\":\"匯\",\"会\":\"會\",\"活\":\"活\",\"火\":\"火\",\"货\":\"貨\",\"击\":\"擊\",\"机\":\"機\",\"鸡\":\"鷄\",\"级\":\"級\",\"极\":\"極\",\"几\":\"幾\",\"己\":\"己\",\"记\":\"記\",\"继\":\"繼\",\"际\":\"際\",\"季\":\"季\",\"济\":\"濟\",\"既\":\"既\",\"继\":\"繼\",\"加\":\"加\",\"家\":\"家\",\"价\":\"價\",\"架\":\"架\",\"尖\":\"尖\",\"简\":\"簡\",\"见\":\"見\",\"件\":\"件\",\"建\":\"建\",\"江\":\"江\",\"讲\":\"講\",\"交\":\"交\",\"脚\":\"腳\",\"叫\":\"叫\",\"街\":\"街\",\"节\":\"節\",\"姐\":\"姐\",\"今\":\"今\",\"金\":\"金\",\"近\":\"進\",\"尽\":\"盡\",\"紧\":\"緊\",\"锦\":\"錦\",\"仅\":\"僅\",\"进\":\"進\",\"京\":\"京\",\"经\":\"經\",\"精\":\"精\",\"井\":\"井\",\"静\":\"靜\",\"九\":\"九\",\"酒\":\"酒\",\"久\":\"久\",\"旧\":\"舊\",\"就\":\"就\",\"举\":\"舉\",\"具\":\"具\",\"剧\":\"劇\",\"据\":\"據\",\"卷\":\"卷\",\"开\":\"開\",\"看\":\"看\",\"康\":\"康\",\"考\":\"考\",\"靠\":\"靠\",\"科\":\"科\",\"可\":\"可\",\"克\":\"克\",\"课\":\"課\",\"刻\":\"刻\",\"客\":\"客\",\"空\":\"空\",\"口\":\"口\",\"哭\":\"哭\",\"苦\":\"苦\",\"快\":\"快\",\"宽\":\"寬\",\"况\":\"況\",\"拉\":\"拉\",\"来\":\"來\",\"蓝\":\"籃\",\"老\":\"老\",\"乐\":\"樂\",\"累\":\"累\",\"离\":\"離\",\"里\":\"裡\",\"理\":\"理\",\"礼\":\"禮\",\"李\":\"李\",\"里\":\"裡\",\"历\":\"歷\",\"立\":\"立\",\"利\":\"利\",\"连\":\"連\",\"脸\":\"臉\",\"练\":\"練習\",\"恋\":\"戀\",\"凉\":\"涼\",\"两\":\"兩\",\"亮\":\"亮\",\"量\":\"量\",\"林\":\"林\",\"领\":\"領\",\"另\":\"另\",\"留\":\"留\",\"流\":\"流\",\"六\":\"六\",\"龙\":\"龍\",\"楼\":\"樓\",\"路\":\"路\",\"旅\":\"旅\",\"绿\":\"綠\",\"妈\":\"媽\",\"马\":\"馬\",\"吗\":\"嗎\",\"买\":\"買\",\"卖\":\"賣\",\"满\":\"滿\",\"慢\":\"慢\",\"忙\":\"忙\",\"毛\":\"毛\",\"没\":\"沒\",\"每\":\"每\",\"美\":\"美\",\"妹\":\"妹\",\"门\":\"門\",\"们\":\"們\",\"米\":\"米\",\"面\":\"面\",\"民\":\"民\",\"明\":\"明\",\"名\":\"名\",\"命\":\"命\",\"模\":\"模\",\"母\":\"母\",\"木\":\"木\",\"目\":\"目\",\"拿\":\"拿\",\"那\":\"那\",\"奶\":\"奶\",\"男\":\"男\",\"南\":\"南\",\"呢\":\"呢\",\"内\":\"內\",\"能\":\"能\",\"你\":\"你\",\"年\":\"年\",\"念\":\"念\",\"鸟\":\"鳥\",\"您\":\"您\",\"牛\":\"牛\",\"农\":\"農\",\"女\":\"女\",\"暖\":\"暖\",\"欧\":\"歐\",\"怕\":\"怕\",\"拍\":\"拍\",\"排\":\"排\",\"派\":\"派\",\"盘\":\"盤\",\"跑\":\"跑\",\"朋\":\"朋\",\"皮\":\"皮\",\"片\":\"片\",\"票\":\"票\",\"漂\":\"漂\",\"品\":\"品\",\"平\":\"平\",\"七\":\"七\",\"期\":\"期\",\"其\":\"其\",\"奇\":\"奇\",\"骑\":\"騎\",\"起\":\"起\",\"气\":\"氣\",\"汽\":\"汽\",\"器\":\"器\",\"千\":\"千\",\"强\":\"強\",\"墙\":\"牆\",\"桥\":\"橋\",\"巧\":\"巧\",\"青\":\"青\",\"轻\":\"輕\",\"清\":\"清\",\"晴\":\"晴\",\"情\":\"情\",\"请\":\"請\",\"秋\":\"秋\",\"球\":\"球\",\"区\":\"區\",\"全\":\"全\",\"却\":\"卻\",\"群\":\"群\",\"然\":\"然\",\"热\":\"熱\",\"人\":\"人\",\"认\":\"認\",\"日\":\"日\",\"线\":\"線\",\"容\":\"容\",\"肉\":\"肉\",\"如\":\"如\",\"入\":\"入\",\"软\":\"軟\",\"润\":\"潤\",\"若\":\"若\",\"三\":\"三\",\"散\":\"散\",\"色\":\"色\",\"山\":\"山\",\"上\":\"上\",\"少\":\"少\",\"社\":\"社\",\"身\":\"身\",\"深\":\"深\",\"什\":\"什\",\"生\":\"生\",\"声\":\"聲\",\"师\":\"師\",\"十\":\"十\",\"时\":\"時\",\"实\":\"實\",\"识\":\"識\",\"史\":\"史\",\"使\":\"使\",\"始\":\"始\",\"世\":\"世\",\"式\":\"式\",\"事\":\"事\",\"是\":\"是\",\"室\":\"室\",\"收\":\"收\",\"手\":\"手\",\"受\":\"受\",\"书\":\"書\",\"树\":\"樹\",\"双\":\"雙\",\"水\":\"水\",\"睡\":\"睡\",\"顺\":\"順\",\"说\":\"說\",\"思\":\"思\",\"死\":\"死\",\"四\":\"四\",\"松\":\"鬆\",\"送\":\"送\",\"诉\":\"訴\",\"速\":\"速\",\"算\":\"算\",\"虽\":\"雖然\",\"随\":\"隨\",\"岁\":\"歲\",\"所\":\"所\",\"他\":\"他\",\"她\":\"她\",\"它\":\"它\",\"台\":\"臺\",\"太\":\"太\",\"态\":\"態\",\"谈\":\"談\",\"汤\":\"湯\",\"糖\":\"糖\",\"特\":\"特\",\"疼\":\"疼\",\"提\":\"題\",\"体\":\"體\",\"天\":\"天\",\"田\":\"田\",\"条\":\"條\",\"铁\":\"鐵\",\"听\":\"聽\",\"停\":\"停\",\"通\":\"通\",\"同\":\"同\",\"头\":\"頭\",\"图\":\"圖\",\"团\":\"團\",\"推\":\"推\",\"腿\":\"腿\",\"外\":\"外\",\"完\":\"完\",\"玩\":\"玩\",\"晚\":\"晚\",\"万\":\"萬\",\"王\":\"王\",\"往\":\"往\",\"网\":\"網\",\"望\":\"望\",\"危\":\"危\",\"微\":\"微\",\"为\":\"為\",\"位\":\"位\",\"文\":\"文\",\"问\":\"問\",\"我\":\"我\",\"屋\":\"屋\",\"五\":\"五\",\"午\":\"午\",\"物\":\"物\",\"务\":\"務\",\"误\":\"誤\",\"西\":\"西\",\"息\":\"息\",\"希\":\"希\",\"习\":\"習\",\"洗\":\"洗\",\"系\":\"系統\",\"下\":\"下\",\"夏\":\"夏\",\"先\":\"先\",\"现\":\"現\",\"线\":\"線\",\"想\":\"想\",\"向\":\"向\",\"象\":\"象\",\"像\":\"像\",\"小\":\"小\",\"校\":\"校\",\"笑\":\"笑\",\"些\":\"些\",\"写\":\"寫\",\"谢\":\"謝\",\"新\":\"新\",\"心\":\"心\",\"信\":\"信\",\"星\":\"星\",\"行\":\"行\",\"形\":\"形\",\"醒\":\"醒\",\"姓\":\"姓\",\"休\":\"休\",\"修\":\"修\",\"需\":\"需\",\"许\":\"許\",\"学\":\"學\",\"雪\":\"雪\",\"血\":\"血\",\"呀\":\"呀\",\"牙\":\"牙\",\"验\":\"驗\",\"羊\":\"羊\",\"阳\":\"陽\",\"养\":\"養\",\"样\":\"樣\",\"药\":\"藥\",\"要\":\"要\",\"爷\":\"爺\",\"也\":\"也\",\"叶\":\"葉\",\"夜\":\"夜\",\"业\":\"業\",\"页\":\"頁\",\"一\":\"一\",\"医\":\"醫\",\"衣\":\"衣\",\"以\":\"以\",\"易\":\"易\",\"意\":\"意\",\"因\":\"因\",\"音\":\"音\",\"银\":\"銀\",\"印\":\"印\",\"英\":\"英\",\"影\":\"影\",\"用\":\"用\",\"由\":\"由\",\"游\":\"遊\",\"友\":\"友\",\"有\":\"有\",\"又\":\"又\",\"右\":\"右\",\"鱼\":\"魚\",\"雨\":\"雨\",\"元\":\"元\",\"原\":\"原\",\"园\":\"園\",\"远\":\"遠\",\"院\":\"院\",\"愿\":\"願\",\"月\":\"月\",\"乐\":\"樂\",\"越\":\"越\",\"云\":\"雲\",\"运\":\"運\",\"在\":\"在\",\"咱\":\"咱\",\"早\":\"早\",\"怎\":\"怎\",\"张\":\"張\",\"找\":\"找\",\"照\":\"照\",\"者\":\"這\",\"着\":\"著\",\"真\":\"真\",\"正\":\"正\",\"政\":\"政\",\"知\":\"知\",\"之\":\"之\",\"只\":\"只\",\"纸\":\"紙\",\"指\":\"指\",\"至\":\"治\",\"治\":\"治\",\"中\":\"中\",\"钟\":\"鐘\",\"主\":\"主\",\"注\":\"注\",\"住\":\"住\",\"祝\":\"祝\",\"准\":\"準\",\"桌\":\"桌\",\"子\":\"子\",\"字\":\"字\",\"自\":\"自\",\"走\":\"走\",\"租\":\"租\",\"足\":\"足\",\"组\":\"組\",\"最\":\"最\",\"昨\":\"昨\",\"左\":\"左\",\"作\":\"作\",\"做\":\"做\",\"坐\":\"坐\",\"座\":\"座\"};\n  // Simplified to Traditional mapping (abbreviated)\n  var s2t_map = {\"爱\":\"愛\",\"安\":\"安\",\"暗\":\"暗\",\"八\":\"八\",\"把\":\"把\",\"白\":\"白\",\"百\":\"百\",\"办\":\"辦\",\"帮\":\"幫\",\"包\":\"寶\",\"报\":\"報\",\"北\":\"北\",\"被\":\"被\",\"本\":\"本\",\"比\":\"比\",\"笔\":\"筆\",\"边\":\"邊\",\"变\":\"變\",\"别\":\"別\",\"病\":\"病\",\"不\":\"不\",\"才\":\"才\",\"菜\":\"菜\",\"参\":\"參\",\"草\":\"草\",\"层\":\"層\",\"茶\":\"茶\",\"查\":\"查\",\"产\":\"產\",\"长\":\"長\",\"场\":\"場\",\"常\":\"常\",\"车\":\"車\",\"称\":\"稱\",\"成\":\"成\",\"城\":\"城\",\"吃\":\"吃\",\"出\":\"出\",\"除\":\"除\",\"处\":\"處\",\"穿\":\"穿\",\"春\":\"春\",\"词\":\"詞\",\"从\":\"從\",\"村\":\"村\",\"错\":\"錯\",\"达\":\"達\",\"大\":\"大\",\"带\":\"帶\",\"代\":\"代\",\"单\":\"單\",\"当\":\"當\",\"党\":\"黨\",\"到\":\"道\",\"道\":\"道\",\"得\":\"得\",\"的\":\"的\",\"等\":\"等\",\"低\":\"低\",\"底\":\"底\",\"地\":\"地\",\"点\":\"點\",\"电\":\"電\",\"店\":\"店\",\"掉\":\"掉\",\"顶\":\"頂\",\"定\":\"定\",\"冬\":\"冬\",\"东\":\"東\",\"动\":\"動\",\"读\":\"讀\",\"短\":\"短\",\"段\":\"段\",\"对\":\"對\",\"多\":\"多\",\"儿\":\"兒\",\"而\":\"而\",\"发\":\"發\",\"法\":\"法\",\"反\":\"反\",\"饭\":\"飯\",\"方\":\"方\",\"非\":\"非\",\"飞\":\"飛\",\"费\":\"費\",\"分\":\"分\",\"丰\":\"豐\",\"风\":\"風\",\"服\":\"服\",\"父\":\"父\",\"复\":\"復\",\"该\":\"該\",\"改\":\"改\",\"感\":\"感\",\"刚\":\"剛\",\"高\":\"高\",\"告\":\"告訴\",\"哥\":\"哥\",\"歌\":\"歌\",\"个\":\"個\",\"给\":\"給\",\"跟\":\"跟\",\"更\":\"更\",\"工\":\"工\",\"公\":\"公\",\"共\":\"共\",\"够\":\"夠\",\"古\":\"古\",\"故\":\"故\",\"挂\":\"掛\",\"关\":\"關\",\"管\":\"管\",\"光\":\"光\",\"广\":\"廣\",\"贵\":\"貴\",\"国\":\"國\",\"果\":\"果\",\"过\":\"過\",\"还\":\"還\",\"孩\":\"孩\",\"海\":\"海\",\"害\":\"害\",\"汉\":\"漢\",\"号\":\"號\",\"喝\":\"喝\",\"合\":\"合\",\"和\":\"和\",\"黑\":\"黑\",\"很\":\"很\",\"红\":\"紅\",\"后\":\"後\",\"呼\":\"呼\",\"湖\":\"湖\",\"虎\":\"虎\",\"护\":\"護\",\"花\":\"花\",\"化\":\"化\",\"画\":\"畫\",\"话\":\"話\",\"坏\":\"壞\",\"环\":\"環\",\"换\":\"換\",\"黄\":\"黃\",\"回\":\"回\",\"汇\":\"匯\",\"会\":\"會\",\"活\":\"活\",\"火\":\"火\",\"货\":\"貨\",\"机\":\"機\",\"级\":\"級\",\"极\":\"極\",\"几\":\"幾\",\"记\":\"記\",\"继\":\"繼\",\"际\":\"際\",\"季\":\"季\",\"济\":\"濟\",\"加\":\"加\",\"家\":\"家\",\"价\":\"價\",\"架\":\"架\",\"简\":\"簡\",\"见\":\"見\",\"件\":\"件\",\"建\":\"建\",\"江\":\"江\",\"讲\":\"講\",\"交\":\"交\",\"脚\":\"腳\",\"叫\":\"叫\",\"节\":\"節\",\"姐\":\"姐\",\"今\":\"今\",\"金\":\"金\",\"近\":\"進\",\"尽\":\"盡\",\"紧\":\"緊\",\"仅\":\"僅\",\"进\":\"進\",\"京\":\"京\",\"经\":\"經\",\"精\":\"精\",\"井\":\"井\",\"静\":\"靜\",\"九\":\"九\",\"酒\":\"酒\",\"久\":\"久\",\"旧\":\"舊\",\"就\":\"就\",\"举\":\"舉\",\"具\":\"具\",\"剧\":\"劇\",\"据\":\"據\",\"开\":\"開\",\"看\":\"看\",\"康\":\"康\",\"考\":\"考\",\"靠\":\"靠\",\"科\":\"科\",\"可\":\"可\",\"克\":\"剋\",\"课\":\"課\",\"刻\":\"刻\",\"客\":\"客\",\"空\":\"空\",\"口\":\"口\",\"哭\":\"哭\",\"苦\":\"苦\",\"快\":\"快\",\"宽\":\"寬\",\"况\":\"況\",\"拉\":\"拉\",\"来\":\"來\",\"蓝\":\"藍\",\"老\":\"老\",\"乐\":\"樂\",\"累\":\"累\",\"离\":\"離\",\"里\":\"裡\",\"理\":\"理\",\"礼\":\"禮\",\"李\":\"李\",\"历\":\"歷\",\"立\":\"立\",\"利\":\"利\",\"连\":\"連\",\"脸\":\"臉\",\"练\":\"練\",\"恋\":\"戀\",\"凉\":\"涼\",\"两\":\"兩\",\"亮\":\"亮\",\"量\":\"量\",\"林\":\"林\",\"领\":\"領\",\"留\":\"留\",\"流\":\"流\",\"六\":\"六\",\"龙\":\"龍\",\"楼\":\"樓\",\"路\":\"路\",\"旅\":\"旅\",\"绿\":\"綠\",\"妈\":\"媽\",\"马\":\"馬\",\"吗\":\"嗎\",\"买\":\"買\",\"卖\":\"賣\",\"满\":\"滿\",\"慢\":\"慢\",\"忙\":\"忙\",\"毛\":\"毛\",\"没\":\"沒\",\"每\":\"每\",\"美\":\"美\",\"妹\":\"妹\",\"门\":\"門\",\"们\":\"們\",\"米\":\"米\",\"面\":\"面\",\"民\":\"民\",\"明\":\"明\",\"名\":\"名\",\"命\":\"命\",\"模\":\"模\",\"母\":\"母\",\"木\":\"木\",\"目\":\"目\",\"拿\":\"拿\",\"那\":\"那\",\"奶\":\"奶\",\"男\":\"男\",\"南\":\"南\",\"呢\":\"呢\",\"内\":\"內\",\"能\":\"能\",\"你\":\"你\",\"年\":\"年\",\"念\":\"念\",\"鸟\":\"鳥\",\"牛\":\"牛\",\"农\":\"農\",\"女\":\"女\",\"暖\":\"暖\",\"怕\":\"怕\",\"拍\":\"拍\",\"排\":\"排\",\"派\":\"派\",\"盘\":\"盤\",\"跑\":\"跑\",\"朋\":\"朋\",\"皮\":\"皮\",\"片\":\"片\",\"票\":\"票\",\"漂\":\"漂\",\"品\":\"品\",\"平\":\"平\",\"七\":\"七\",\"期\":\"期\",\"其\":\"其\",\"奇\":\"奇\",\"骑\":\"騎\",\"起\":\"起\",\"气\":\"氣\",\"汽\":\"汽車\",\"器\":\"器\",\"千\":\"千\",\"强\":\"強\",\"墙\":\"牆\",\"桥\":\"橋\",\"青\":\"青\",\"轻\":\"輕\",\"清\":\"清\",\"晴\":\"晴\",\"情\":\"情\",\"请\":\"請\",\"秋\":\"秋\",\"球\":\"球\",\"区\":\"區\",\"全\":\"全\",\"却\":\"卻\",\"群\":\"群\",\"然\":\"然\",\"热\":\"熱\",\"人\":\"人\",\"认\":\"認\",\"日\":\"日\",\"线\":\"線\",\"容\":\"容\",\"肉\":\"肉\",\"如\":\"如\",\"入\":\"入\",\"软\":\"軟\",\"润\":\"潤\",\"若\":\"若\",\"三\":\"三\",\"散\":\"散\",\"色\":\"色\",\"山\":\"山\",\"上\":\"上\",\"少\":\"少\",\"社\":\"社\",\"身\":\"身\",\"深\":\"深\",\"什\":\"什\",\"生\":\"生\",\"声\":\"聲\",\"师\":\"師\",\"十\":\"十\",\"时\":\"時\",\"实\":\"實\",\"识\":\"識\",\"史\":\"史\",\"使\":\"使\",\"世\":\"世\",\"事\":\"事\",\"是\":\"是\",\"室\":\"室\",\"收\":\"收\",\"手\":\"手\",\"受\":\"受\",\"书\":\"書\",\"树\":\"樹\",\"双\":\"雙\",\"水\":\"水\",\"睡\":\"睡\",\"顺\":\"順\",\"说\":\"說\",\"思\":\"思\",\"死\":\"死\",\"四\":\"四\",\"松\":\"鬆\",\"送\":\"送\",\"诉\":\"訴\",\"速\":\"速\",\"算\":\"算\",\"虽\":\"雖然\",\"随\":\"隨\",\"岁\":\"歲\",\"所\":\"所\",\"他\":\"他\",\"她\":\"她\",\"它\":\"它\",\"台\":\"臺\",\"太\":\"太\",\"态\":\"態\",\"谈\":\"談\",\"特\":\"特\",\"疼\":\"疼\",\"提\":\"題\",\"体\":\"體\",\"天\":\"天\",\"田\":\"田\",\"条\":\"條\",\"铁\":\"鐵\",\"听\":\"聽\",\"停\":\"停\",\"通\":\"通\",\"同\":\"同\",\"头\":\"頭\",\"图\":\"圖\",\"团\":\"團\",\"推\":\"推\",\"腿\":\"腿\",\"外\":\"外\",\"完\":\"完\",\"玩\":\"玩\",\"晚\":\"晚\",\"万\":\"萬\",\"王\":\"王\",\"往\":\"往\",\"网\":\"網\",\"望\":\"望\",\"危\":\"危\",\"微\":\"微\",\"为\":\"為\",\"位\":\"位\",\"文\":\"文\",\"问\":\"問\",\"我\":\"我\",\"屋\":\"屋\",\"五\":\"五\",\"午\":\"午\",\"物\":\"物\",\"务\":\"務\",\"误\":\"誤\",\"西\":\"西\",\"息\":\"息\",\"希\":\"希\",\"习\":\"習\",\"洗\":\"洗\",\"系\":\"系統\",\"下\":\"下\",\"夏\":\"夏\",\"先\":\"先\",\"现\":\"現\",\"线\":\"線\",\"想\":\"想\",\"向\":\"向\",\"象\":\"象\",\"小\":\"小\",\"校\":\"校\",\"笑\":\"笑\",\"些\":\"些\",\"写\":\"寫\",\"谢\":\"謝\",\"新\":\"新\",\"心\":\"心\",\"信\":\"信\",\"星\":\"星\",\"行\":\"行\",\"形\":\"形\",\"醒\":\"醒\",\"姓\":\"姓\",\"休\":\"休\",\"修\":\"修\",\"需\":\"需\",\"许\":\"許\",\"学\":\"學\",\"雪\":\"雪\",\"血\":\"血\",\"牙\":\"牙\",\"验\":\"驗\",\"羊\":\"羊\",\"阳\":\"陽\",\"养\":\"養\",\"样\":\"樣\",\"药\":\"藥\",\"要\":\"要\",\"爷\":\"爺\",\"也\":\"也\",\"叶\":\"葉\",\"夜\":\"夜\",\"业\":\"業\",\"页\":\"頁\",\"一\":\"一\",\"医\":\"醫\",\"衣\":\"衣\",\"以\":\"以\",\"易\":\"易\",\"意\":\"意\",\"因\":\"因\",\"音\":\"音\",\"银\":\"銀\",\"印\":\"印\",\"英\":\"英\",\"影\":\"影\",\"用\":\"用\",\"由\":\"由\",\"游\":\"遊\",\"友\":\"友\",\"有\":\"有\",\"又\":\"又\",\"右\":\"右\",\"鱼\":\"魚\",\"雨\":\"雨\",\"元\":\"元\",\"原\":\"原\",\"园\":\"園\",\"远\":\"遠\",\"院\":\"院\",\"愿\":\"願\",\"月\":\"月\",\"越\":\"越\",\"云\":\"雲\",\"运\":\"運\",\"在\":\"在\",\"咱\":\"咱\",\"早\":\"早\",\"怎\":\"怎\",\"张\":\"張\",\"找\":\"找\",\"照\":\"照\",\"这\":\"這\",\"着\":\"著\",\"真\":\"真\",\"正\":\"正\",\"政\":\"政\",\"知\":\"知\",\"之\":\"之\",\"只\":\"只\",\"纸\":\"紙\",\"指\":\"指\",\"至\":\"至\",\"治\":\"治\",\"中\":\"中\",\"钟\":\"鐘\",\"主\":\"主\",\"注\":\"注\",\"住\":\"住\",\"祝\":\"祝\",\"准\":\"準\",\"子\":\"子\",\"字\":\"字\",\"自\":\"自\",\"走\":\"走\",\"足\":\"足\",\"组\":\"組\",\"最\":\"最\",\"昨\":\"昨\",\"左\":\"左\",\"作\":\"作\",\"做\":\"做\",\"坐\":\"坐\",\"座\":\"座\",\"妈\":\"媽\",\"吧\":\"吧\",\"吗\":\"嗎\",\"呢\":\"呢\",\"啊\":\"啊\"};\n  \n  var t2s = {};\n  Object.keys(s2t_map).forEach(function(k) { t2s[s2t_map[k]] = k; });\n  \n  if (direction === 's2t') {\n    return text.split('').map(function(ch) { return s2t_map[ch] || ch; }).join('');\n  } else {\n    return text.split('').map(function(ch) { return t2s[ch] || ch; }).join('');\n  }\n}",
+    "options": [
+      {
+        "value": "s2t",
+        "label": "简体 → 繁体"
+      },
+      {
+        "value": "t2s",
+        "label": "繁体 → 简体"
+      }
+    ],
+    "genFn": "function(inputs){var v=inputs.text||'';var s={'啊':'啊','爱':'愛','被':'被','变':'變'};if(inputs.mode==='toSimple'){var r=v;for(var k in s)r=r.replace(new RegExp(k,'g'),s[k].normalize('NFD')[0]);return{result:r};}return{result:'请使用customScript'};}"
+  },
+  {
+    "name": "字符串数组排序",
+    "path": "text/string-sort.html",
+    "desc": "在线字符串数组排序工具，支持升序/降序、中文按拼音/笔画/Unicode、字母大小写敏感/不敏感等多种排序方式，实时预览排序结果并一键复制。",
+    "keywords": "字符串排序,数组排序,中文排序,拼音排序,升序,降序,在线排序,字符串排序工具",
+    "type": "formatter",
+    "icon": "bi bi-sort-up",
+    "title": "字符串数组排序 - 在线字符串数组升序降序排序工具",
+    "formatFn": "function(v, opts) {\n  var lines = v.split(/[\\n,]/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });\n  var order = (opts && opts.order) || 'asc';\n  if (order === 'desc') lines.sort(function(a,b){ return b.localeCompare(a, 'zh-CN'); });\n  else lines.sort(function(a,b){ return a.localeCompare(b, 'zh-CN'); });\n  return lines.join('\\n');\n}"
+  },
+  {
+    "name": "五险一金计算器",
+    "path": "life/insurance.html",
+    "desc": "根据税前工资和社保缴纳基数，自动计算养老保险、医疗保险、失业保险、工伤保险、生育保险及住房公积金的扣除金额。",
+    "keywords": "五险一金计算器，五险一金计算，社保计算器，公积金计算，工资计算，在线工具",
+    "icon": "bi bi-house-heart-fill",
+    "type": "calculate",
+    "title": "五险一金计算器 - 计算社保公积金扣除和税后工资",
+    "fields": [
+      {
+        "id": "salary",
+        "label": "税前工资(元)",
+        "placeholder": "例如: 10000"
+      },
+      {
+        "id": "city",
+        "label": "城市",
+        "placeholder": "例如: 北京",
+        "type": "text"
+      }
+    ],
+    "calcFn": "function(inputs) {\n  var salary = parseFloat(inputs.salary) || 0;\n  var pension = salary * 0.08;\n  var medical = salary * 0.02;\n  var unemployment = salary * 0.005;\n  var housing = salary * 0.12;\n  var total = pension + medical + unemployment + housing;\n  var result = '<b>五险一金计算结果（' + (inputs.city||'某城市') + '）</b><br>';\n  result += '税前工资: ' + salary.toFixed(2) + '元<br>';\n  result += '养老保险(8%): ' + pension.toFixed(2) + '元<br>';\n  result += '医疗保险(2%): ' + medical.toFixed(2) + '元<br>';\n  result += '失业保险(0.5%): ' + unemployment.toFixed(2) + '元<br>';\n  result += '公积金(12%): ' + housing.toFixed(2) + '元<br>';\n  result += '<b>个人合计扣除: ' + total.toFixed(2) + '元</b><br>';\n  result += '实际到手: ' + (salary - total).toFixed(2) + '元';\n  return result;\n}"
+  },
+  {
+    "name": "人民币大写转换",
+    "path": "life/rmb-uppercase.html",
+    "desc": "数字金额转换为中文大写，支持角、分、整，适用于财务报销、合同签订、发票开具等需要规范金额书写的场景。",
+    "keywords": "人民币大写,金额转换,中文大写,财务,会计,金额",
+    "type": "life",
+    "icon": "bi bi-currency-yen",
+    "title": "人民币大写转换器 - 数字金额转换为中文大写",
+    "genFn": "function(inputs){var m=parseFloat(inputs.money)||0;var d=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];var fix=function(s){return s.replace(/零角零分$/,'整').replace(/零角/g,'零').replace(/零分/g,'');};var i=Math.floor(m);var dec=Math.round((m-i)*100);var whole='';if(i>0){var gs=['','','元'],gs2=['仟','佰','拾',''];var gi=String(i).padStart(4,'0');for(var j=0;j<4;j++){var v=parseInt(gi[j]);if(v)whole+=d[v]+gs2[j];}whole+=gs[gi.length-4]||'元';}var parts=[];if(dec>0){parts.push(d[Math.floor(dec/10)]+'角');if(dec%10>0)parts.push(d[dec%10]+'分');}return{result:(whole+parts.join('')+'整')||'零元整'};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "money",
+          "label": "金额",
+          "type": "number",
+          "placeholder": "12345.67"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "大写金额"
+        }
+      ]
+    }
+  },
+  {
+    "name": "税后工资计算器",
+    "path": "life/salary.html",
+    "desc": "输入税前工资和社保缴纳地，自动扣除五险一金及个人所得税，精准计算实际到手工资，并详细展示各项扣费明细，帮助你清晰了解每月净收入构成和税费结构。",
+    "keywords": "税后工资计算器，工资计算器，个税计算，税后工资，薪资计算，在线工具",
+    "icon": "bi bi-house-heart-fill",
+    "type": "calculate",
+    "title": "税后工资计算器 - 扣除五险一金和个税计算实际到手工资",
+    "fields": [
+      {
+        "id": "salary",
+        "label": "税前工资(元)",
+        "placeholder": "例如: 15000"
+      },
+      {
+        "id": "insurance",
+        "label": "五险一金(元)",
+        "placeholder": "例如: 2000"
+      }
+    ],
+    "calcFn": "function(inputs) {\n  var salary = parseFloat(inputs.salary) || 0;\n  var insurance = parseFloat(inputs.insurance) || 0;\n  var taxable = salary - insurance - 5000;\n  var tax = 0;\n  if (taxable > 0) {\n    if (taxable <= 36000) tax = taxable * 0.03;\n    else if (taxable <= 144000) tax = taxable * 0.10 - 2520;\n    else if (taxable <= 300000) tax = taxable * 0.20 - 16920;\n    else if (taxable <= 420000) tax = taxable * 0.25 - 31920;\n    else if (taxable <= 660000) tax = taxable * 0.30 - 52920;\n    else if (taxable <= 960000) tax = taxable * 0.35 - 85920;\n    else tax = taxable * 0.45 - 181920;\n  }\n  var net = salary - insurance - tax;\n  var result = '<b>工资税务计算</b><br>';\n  result += '税前工资: ' + salary.toFixed(2) + '元<br>';\n  result += '五险一金: ' + insurance.toFixed(2) + '元<br>';\n  result += '应纳税所得额: ' + Math.max(0, taxable).toFixed(2) + '元<br>';\n  result += '个人所得税: ' + tax.toFixed(2) + '元<br>';\n  result += '<b>税后工资: ' + net.toFixed(2) + '元</b>';\n  return result;\n}"
+  },
+  {
+    "name": "温度转换",
+    "path": "life/temperature-converter.html",
+    "desc": "摄氏度、华氏度、开尔文温度互相转换，输入任意温度值即可同时显示三种单位的换算结果，适用于科学计算、工程换算与日常生活场景。",
+    "keywords": "温度转换,celsius,fahrenheit,kelvin,℃,℉,K,摄氏,华氏",
+    "type": "life",
+    "icon": "bi bi-thermometer",
+    "title": "温度单位转换器 - 摄氏度华氏度开尔文互转",
+    "genFn": "function(inputs){var v=parseFloat(inputs.value)||0;var r={};if(inputs.from==='C')r={'C':v,'F':(v*9/5+32).toFixed(2),'K':(v+273.15).toFixed(2)};else if(inputs.from==='F')r={'F':v,'C':((v-32)*5/9).toFixed(2),'K':((v-32)*5/9+273.15).toFixed(2)};else r={'K':v,'C':(v-273.15).toFixed(2),'F':((v-273.15)*9/5+32).toFixed(2)};return{result:Object.entries(r).map(([u,val])=>val+'°'+u).join('\\n')};}",
+    "args": {
+      "inputs": [
+        {
+          "name": "value",
+          "label": "数值",
+          "type": "number",
+          "placeholder": "100"
+        },
+        {
+          "name": "from",
+          "label": "从",
+          "type": "select",
+          "default": "C",
+          "options": [
+            "C",
+            "F",
+            "K"
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "result",
+          "label": "转换结果"
+        }
+      ]
+    }
+  },
+  {
+    "name": "进制转换",
+    "path": "other/hex-convert.html",
+    "desc": "支持二进制、八进制、十进制、十六进制之间的任意相互转换，输入任意进制数值实时得到多种进制结果，支持大数处理和位运算展示，适合编程学习、密码学和数据结构课程。",
+    "keywords": "进制转换，二进制转换，八进制转换，十六进制转换，十进制转换，在线工具",
+    "icon": "bi bi-house-heart-fill",
+    "type": "converter",
+    "title": "进制转换 - 二八十六进制数值相互转换工具",
+    "convertFn": "function convert(value, direction) {\n  if (direction === 'dec2hex') {\n    var n = parseInt(value, 10);\n    if (isNaN(n)) return '错误：无效的十进制数字';\n    return n.toString(16).toUpperCase();\n  }\n  if (direction === 'hex2dec') {\n    var n = parseInt(value, 16);\n    if (isNaN(n)) return '错误：无效的十六进制数字';\n    return String(n);\n  }\n  if (direction === 'dec2bin') {\n    var n = parseInt(value, 10);\n    if (isNaN(n)) return '错误：无效的十进制数字';\n    return n.toString(2);\n  }\n  if (direction === 'bin2dec') {\n    var n = parseInt(value, 2);\n    if (isNaN(n)) return '错误：无效的二进制数字';\n    return String(n);\n  }\n  if (direction === 'dec2oct') {\n    var n = parseInt(value, 10);\n    if (isNaN(n)) return '错误：无效的十进制数字';\n    return n.toString(8);\n  }\n  if (direction === 'oct2dec') {\n    var n = parseInt(value, 8);\n    if (isNaN(n)) return '错误：无效的八进制数字';\n    return String(n);\n  }\n  if (direction === 'hex2bin') {\n    return parseInt(value, 16).toString(2);\n  }\n  if (direction === 'bin2hex') {\n    return parseInt(value, 2).toString(16).toUpperCase();\n  }\n  return value;\n}",
+    "options": [
+      {
+        "value": "dec2hex",
+        "label": "十进制 → 十六进制"
+      },
+      {
+        "value": "hex2dec",
+        "label": "十六进制 → 十进制"
+      },
+      {
+        "value": "dec2bin",
+        "label": "十进制 → 二进制"
+      },
+      {
+        "value": "bin2dec",
+        "label": "二进制 → 十进制"
+      },
+      {
+        "value": "dec2oct",
+        "label": "十进制 → 八进制"
+      },
+      {
+        "value": "oct2dec",
+        "label": "八进制 → 十进制"
+      },
+      {
+        "value": "hex2bin",
+        "label": "十六进制 → 二进制"
+      },
+      {
+        "value": "bin2hex",
+        "label": "二进制 → 十六进制"
+      }
+    ],
+    "genFn": "function(inputs){var v=inputs.value.trim();var base=parseInt(inputs.from)||16;var toBase=parseInt(inputs.to)||10;return{result:parseInt(v,base).toString(toBase).toUpperCase()};}"
+  },
+  {
+    "name": "平均数计算",
+    "path": "math/avg.html",
+    "desc": "输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示，适用于数据分析与成绩统计场景。",
+    "keywords": "平均数计算，平均值，Mean，数学平均数，统计计算，数据统计，总和，平均",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "nums",
+        "label": "数字（逗号分隔）",
+        "type": "text",
+        "placeholder": "1, 2, 3, 4, 5"
+      }
+    ],
+    "calcFn": "function(inputs) { var nums=inputs.nums.value.split(/[，, ]+/).map(Number).filter(function(x){return !isNaN(x);}); if(nums.length===0) return '请输入有效数字'; var sum=nums.reduce(function(a,b){return a+b;},0); var avg=sum/nums.length; return '数字：['+nums.join(', ')+']<br>个数：'+nums.length+'<br>总和：'+sum+'<br>平均数：<strong>'+avg.toFixed(6).replace(/\\.?0+$/,'')+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "平均数计算器 - 批量数字求平均值与统计"
+  },
+  {
+    "name": "四则计算器",
+    "path": "math/calculator.html",
+    "desc": "支持加法、减法、乘法、除法四种基本运算，输入两个数值和运算符后即可快速得到计算结果，适合日常学习和办公场景。",
+    "keywords": "四则计算器，加减乘除，基本运算，数学计算，在线计算器，加法，减法，乘法，除法",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "a",
+        "label": "数值 A",
+        "type": "number",
+        "placeholder": "0"
+      },
+      {
+        "id": "b",
+        "label": "数值 B",
+        "type": "number",
+        "placeholder": "0"
+      },
+      {
+        "id": "op",
+        "label": "运算",
+        "type": "select",
+        "options": [
+          {
+            "value": "+",
+            "label": "加 (+)"
+          },
+          {
+            "value": "-",
+            "label": "减 (-)"
+          },
+          {
+            "value": "*",
+            "label": "乘 (×)"
+          },
+          {
+            "value": "/",
+            "label": "除 (÷)"
+          }
+        ]
+      }
+    ],
+    "calcFn": "function(inputs) { var a=parseFloat(inputs.a),b=parseFloat(inputs.b),op=inputs.op; if(isNaN(a)||isNaN(b)) return '请输入有效数字'; if(op==='/'&&b===0) return '错误：除数不能为零'; var r; switch(op){case '+':r=a+b;break;case '-':r=a-b;break;case '*':r=a*b;break;case '/':r=a/b;break;} return a+' '+op+' '+b+' = <strong>'+r+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "四则计算器 - 加减乘除基本运算工具"
+  },
+  {
+    "name": "阶乘计算",
+    "path": "math/factorial.html",
+    "desc": "计算任意非负整数 n 的阶乘值（n!），适用于概率统计、排列组合等数学场景，支持0到170范围内的精确阶乘计算。",
+    "keywords": "阶乘计算，阶乘，n!，数学阶乘，排列组合，概率统计，组合数学，阶乘值",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "n",
+        "label": "数字",
+        "type": "number",
+        "placeholder": "请输入非负整数"
+      }
+    ],
+    "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<0) return '请输入非负整数'; if(n>170) return '数字过大，可能导致精度丢失'; var r=1; for(var i=2;i<=n;i++) r*=i; return n+'! = <strong>'+r.toLocaleString()+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "阶乘计算器 - 计算任意非负整数n的阶乘"
+  },
+  {
+    "name": "最大公约数",
+    "path": "math/gcd.html",
+    "desc": "通过欧几里得算法快速计算两个整数的最大公约数（GCD），直观展示辗转相除法的计算过程，广泛用于分数化简和数论研究。",
+    "keywords": "最大公约数，GCD，约数，数学计算，欧几里得算法，辗转相除法，数论，分数化简",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "a",
+        "label": "数字 A",
+        "type": "number",
+        "placeholder": "0"
+      },
+      {
+        "id": "b",
+        "label": "数字 B",
+        "type": "number",
+        "placeholder": "0"
+      }
+    ],
+    "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)) return '请输入有效整数'; while(b){var t=b;b=a%b;a=t;} return 'GCD('+inputs.a+', '+inputs.b+') = <strong>'+a+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "最大公约数计算器 - 欧几里得算法快速求解"
+  },
+  {
+    "name": "最小公倍数",
+    "path": "math/lcm.html",
+    "desc": "计算两个整数的最小公倍数（LCM），结合最大公约数算法高效求解，常用于分数通分、工程时间调度等实际应用场景。",
+    "keywords": "最小公倍数，LCM，公倍数，数学计算，通分，分数运算，时间调度，数论",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "a",
+        "label": "数字 A",
+        "type": "number",
+        "placeholder": "0"
+      },
+      {
+        "id": "b",
+        "label": "数字 B",
+        "type": "number",
+        "placeholder": "0"
+      }
+    ],
+    "calcFn": "function(inputs) { var a=Math.abs(parseInt(inputs.a)),b=Math.abs(parseInt(inputs.b)); if(isNaN(a)||isNaN(b)||a===0||b===0) return '请输入非零整数'; function gcd(x,y){while(y){var t=y;y=x%y;x=t;}return x;} var g=gcd(a,b); return 'LCM('+inputs.a+', '+inputs.b+') = <strong>'+(a*b/g)+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "最小公倍数计算器 - 高效计算两数LCM"
+  },
+  {
+    "name": "乘方计算器",
+    "path": "math/power.html",
+    "desc": "输入底数和指数即可快速计算幂运算结果，支持任意实数指数的乘方计算，适用于数学、工程和科学计算等多种场景。",
+    "keywords": "乘方计算，指数计算，幂运算，x^y，数学计算，次幂计算，乘方，指数",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "base",
+        "label": "底数 (x)",
+        "type": "number",
+        "placeholder": "2"
+      },
+      {
+        "id": "exp",
+        "label": "指数 (y)",
+        "type": "number",
+        "placeholder": "3"
+      }
+    ],
+    "calcFn": "function(inputs) { var base=parseFloat(inputs.base),exp=parseFloat(inputs.exp); if(isNaN(base)||isNaN(exp)) return '请输入有效数字'; var r=Math.pow(base,exp); return base+'<sup>'+exp+'</sup> = <strong>'+r+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "乘方计算器 - 任意底数指数的幂运算工具"
+  },
+  {
+    "name": "质数判定",
+    "path": "math/prime-check.html",
+    "desc": "快速判断输入的正整数是否为质数，并显示最小因数信息，帮助理解质数的数学特性，适用于数论学习和密码学基础。",
+    "keywords": "质数判定，质数检查，素数判定，质数测试，数学计算，质数识别，因数分解，数论",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "n",
+        "label": "数字",
+        "type": "number",
+        "placeholder": "请输入正整数"
+      }
+    ],
+    "calcFn": "function(inputs) { var n=parseInt(inputs.n); if(isNaN(n)||n<2) return '请输入大于等于 2 的正整数'; if(n===2) return n+' 是质数'; if(n%2===0) return n+' 不是质数（能被 2 整除）'; for(var i=3;i*i<=n;i+=2){if(n%i===0) return n+' 不是质数（能被 '+i+' 整除）';} return n+' 是质数'; }",
+    "icon": "bi bi-calculator",
+    "title": "质数判定工具 - 快速判断素数与因数分解"
+  },
+  {
+    "name": "开方计算器",
+    "path": "math/sqrt.html",
+    "desc": "计算任意非负数的平方根，支持高精度结果展示，自动处理整数和小数的显示格式，适用于几何和代数等多种计算场景。",
+    "keywords": "开方计算，平方根，根号，sqrt，数学计算，n次方根，开根号，根式",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "n",
+        "label": "数字",
+        "type": "number",
+        "placeholder": "请输入非负数"
+      }
+    ],
+    "calcFn": "function(inputs) { var n=parseFloat(inputs.n); if(isNaN(n)) return '请输入有效数字'; if(n<0) return '错误：负数没有实数平方根'; var r=Math.sqrt(n); return '√'+(Number.isInteger(n)?n:n.toFixed(6).replace(/\\.?0+$/,''))+' = <strong>'+r+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "开方计算器 - 平方根与高次方根计算工具"
+  },
+  {
+    "name": "数列求和",
+    "path": "math/sum-sequence.html",
+    "desc": "根据首项、公差和项数计算等差数列的通项、末项和前n项和，完整展示计算过程，适用于数学教学、学习和练习场景。",
+    "keywords": "数列求和，等差数列，数列计算，累加，数学计算，通项公式，前n项和",
+    "type": "calculate",
+    "fields": [
+      {
+        "id": "a1",
+        "label": "首项 (a₁)",
+        "type": "number",
+        "placeholder": "1"
+      },
+      {
+        "id": "d",
+        "label": "公差 (d)",
+        "type": "number",
+        "placeholder": "1"
+      },
+      {
+        "id": "n",
+        "label": "项数 (n)",
+        "type": "number",
+        "placeholder": "10"
+      }
+    ],
+    "calcFn": "function(inputs) { var a1=parseFloat(inputs.a1),d=parseFloat(inputs.d),n=parseInt(inputs.n); if(isNaN(a1)||isNaN(d)||isNaN(n)||n<1) return '请输入有效数字，项数需大于 0'; var last=a1+(n-1)*d; var sum=n*(a1+last)/2; return '等差数列：a₁='+a1+', d='+d+', n='+n+'<br>末项 aₙ='+last+'<br>前 '+n+' 项和 Sₙ = n×(a₁+aₙ)/2 = <strong>'+sum+'</strong>'; }",
+    "icon": "bi bi-calculator",
+    "title": "数列求和计算器 - 等差数列通项与前n项和"
+  },
+  {
+    "name": "Base64 编解码",
+    "path": "network/base64.html",
+    "desc": "支持文本与 Base64 字符串之间的双向编码与解码，输入明文可转换为 Base64 字符串，输入 Base64 字符串可还原为原始文本，常用于数据传输与接口调试。",
+    "keywords": "Base64 编码，Base64 解码，Base64 转换，字符串编解码，文本加密转换，Base64 字符串，Base64 在线",
+    "type": "encode-decode",
+    "forwardFn": "return btoa(unescape(encodeURIComponent(v)));",
+    "reverseFn": "return decodeURIComponent(escape(atob(v.trim())));",
+    "btnLabel1": "编码",
+    "btnLabel2": "解码",
+    "inputPlaceholder": "输入要编码或解码的文本...",
+    "icon": "bi bi-globe2",
+    "title": "Base64 编解码 - 字符串与 Base64 格式双向转换"
+  },
+  {
+    "name": "颜色代码转换",
+    "path": "network/color-convert.html",
+    "desc": "在 HEX、RGB、HSL、HSV 四种常用颜色格式之间自由转换，输入任意格式的颜色值即可得到其他三种格式的结果，适用于前端开发与设计取色场景。",
+    "keywords": "颜色代码转换，HEX RGB HSL HSV，HEX 颜色，RGB 颜色，HSL 颜色，HSV 颜色，颜色格式转换，取色器，颜色代码",
+    "type": "converter",
+    "inputPlaceholder": "输入颜色值，如 #ff6600 或 rgb(255,102,0)",
+    "options": [
+      {
+        "value": "hex",
+        "label": "HEX"
+      },
+      {
+        "value": "rgb",
+        "label": "RGB"
+      },
+      {
+        "value": "hsl",
+        "label": "HSL"
+      },
+      {
+        "value": "hsv",
+        "label": "HSV"
+      }
+    ],
+    "convertFn": "function(v,from,to){function h2r(h){var m=/^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(h);return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:null;}function r2h(r,g,b){return'#'+[r,g,b].map(function(x){return x.toString(16).padStart(2,'0');}).join('');}function r2hsl(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,s,h;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];}function r2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),v=mx,s,h;var d=mx-mn;s=mx===0?0:d/mx;if(mx===mn){h=0;}else{switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return[Math.round(h*360),Math.round(s*100),Math.round(v*100)];}function hsl2rgb(h,s,l){h/=360;s/=100;l/=100;var r,g,b;if(s===0){r=g=b=l;}else{var q=l<0.5?l*(1+s):l+s-l*s;var p=2*l-q;r=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h+1/3);g=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h);b=function(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<1/2)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}(p,q,h-1/3);}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}function hsv2rgb(h,s,v){h/=360;s/=100;v/=100;var r,g,b;var i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);i=i%6;switch(i){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break;}return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];}var rgb;if(from==='hex'){var p=h2r(v);if(!p)return'无效 HEX 值';rgb=p;}else if(from==='rgb'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 RGB 值';rgb=m.map(Number);}else if(from==='hsl'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSL 值';rgb=hsl2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}else if(from==='hsv'){var m=v.match(/\\d+/g);if(!m||m.length<3)return'无效 HSV 值';rgb=hsv2rgb(Number(m[0]),Number(m[1]),Number(m[2]));}if(to==='hex')return r2h(rgb[0],rgb[1],rgb[2]);if(to==='rgb')return'rgb('+rgb[0]+', '+rgb[1]+', '+rgb[2]+')';if(to==='hsl'){var h=r2hsl(rgb[0],rgb[1],rgb[2]);return'hsl('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}if(to==='hsv'){var h=r2hsv(rgb[0],rgb[1],rgb[2]);return'hsv('+h[0]+', '+h[1]+'%, '+h[2]+'%)';}}",
+    "icon": "bi bi-globe2",
+    "title": "颜色代码转换 - HEX、RGB、HSL、HSV 颜色值互转",
+    "genFn": "function(inputs){var v=(inputs.color||'').replace('#','');if(v.length===6){var r=parseInt(v.substr(0,2),16);var g=parseInt(v.substr(2,2),16);var b=parseInt(v.substr(4,2),16);return{result:'RGB('+r+','+g+','+b+')\nHEX:#'+v.toUpperCase()};}return{result:'请输入6位hex如FF5733'};}"
+  },
+  {
+    "name": "HTTP 请求测试",
+    "path": "network/request-tester.html",
+    "desc": "在线发送 HTTP 请求，自定义请求方法（GET/POST/PUT/DELETE）、URL、请求头和请求体，实时查看响应状态码、响应头和响应体，快速定位接口问题。",
+    "keywords": "HTTP 请求测试，API 测试，接口调试，HTTP 调试，REST API，POST GET PUT DELETE，HTTP 调试工具",
+    "type": "http-test",
+    "icon": "bi bi-globe",
+    "title": "HTTP 请求测试 - 发送 GET/POST/PUT/DELETE 请求调试接口",
+    "config": {
+      "method": {
+        "type": "select",
+        "label": "请求方法",
+        "options": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH"
+        ],
+        "default": "GET"
+      },
+      "url": {
+        "type": "input",
+        "label": "URL",
+        "placeholder": "https://api.example.com"
+      },
+      "headers": {
+        "type": "textarea",
+        "label": "Headers (JSON)",
+        "placeholder": "{\"Content-Type\":\"application/json\"}"
+      },
+      "body": {
+        "type": "textarea",
+        "label": "Body",
+        "placeholder": "{}"
+      },
+      "timeout": {
+        "type": "input",
+        "label": "Timeout(ms)",
+        "default": "10000"
+      }
+    }
+  },
+  {
+    "name": "URL 编码解码",
+    "path": "network/url-encode.html",
+    "desc": "对 URL 中的特殊字符进行百分号编码（URLEncode）或逆向解码（URLDecode），解决 URL 含中文或特殊符号时无法正常传输和解析的问题。",
+    "keywords": "URL 编码，URL 解码，百分号编码，URLEncode，URLDecode，URL 特殊字符，百分号编码，URL 加密",
+    "type": "encode-decode",
+    "forwardFn": "return encodeURIComponent(v);",
+    "reverseFn": "return decodeURIComponent(v);",
+    "btnLabel1": "编码",
+    "btnLabel2": "解码",
+    "inputPlaceholder": "输入要编码或解码的 URL 文本...",
+    "icon": "bi bi-globe2",
+    "title": "URL 编码解码 - URL 特殊字符百分号编码与解码"
+  }
+]

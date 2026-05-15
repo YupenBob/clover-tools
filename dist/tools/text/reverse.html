@@ -128,12 +128,14 @@
       function runLines() {
         const v = input.value;
         if (!v) { output.value = ''; return; }
-        output.value = v.split('\n').map(l => l.split('').reverse().join('')).join('\n');
+        output.value = v.split('
+').reverse().join('
+');
       }
       function runWords() {
         const v = input.value;
         if (!v) { output.value = ''; return; }
-        output.value = v.split(/\s+/).map(w => w.split('').reverse().join('')).join(' ');
+        output.value = v.split(' ').reverse().join(' ');
       }
       document.getElementById('reverse').onclick = run;
       document.getElementById('reverseLines').onclick = runLines;

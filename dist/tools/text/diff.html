@@ -121,8 +121,10 @@
       const input2 = document.getElementById('input2');
       const output = document.getElementById('output');
       function run() {
-        const t1 = input1.value.split('\n');
-        const t2 = input2.value.split('\n');
+        const t1 = input1.value.split('
+');
+        const t2 = input2.value.split('
+');
         let html = '';
         const max = Math.max(t1.length, t2.length);
         for (let i = 0; i < max; i++) {

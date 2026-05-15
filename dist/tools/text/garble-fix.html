@@ -147,8 +147,7 @@
         try {
           const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
           const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
-          const encoder = new TextEncoder();
-          setOutput(encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), ''));
+          setOutput(gbkStr);
         } catch(e) { setOutput('修复失败: ' + e.message); }
       }
 
@@ -184,9 +183,7 @@
         // Try GBK as UTF-8
         try {
           const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
-          const encoder = new TextEncoder();
-          const reencoded = encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), '');
-          if (reencoded !== v) { setOutput(reencoded); return; }
+          if (gbkStr !== v) { setOutput(gbkStr); return; }
         } catch(e) {}
         setOutput(v);
       }

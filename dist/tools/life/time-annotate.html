@@ -255,12 +255,14 @@
             if (pomodoroState === 'work') {
               pomodoroState = 'break';
               pomodoroRemaining = breakMin * 60000;
+              display.textContent = String(Math.floor(pomodoroRemaining / 60000)).padStart(2,'0') + ':00';
               label.textContent = '☕ 休息时间';
               pomodoroStatus.textContent = '工作完成！休息一下';
               addAnnotation('🍅 番茄完成');
             } else {
               pomodoroState = 'work';
               pomodoroRemaining = workMin * 60000;
+              display.textContent = String(Math.floor(pomodoroRemaining / 60000)).padStart(2,'0') + ':00';
               label.textContent = '🍅 工作时间';
               pomodoroStatus.textContent = '休息结束，继续加油';
               addAnnotation('☕ 休息结束');

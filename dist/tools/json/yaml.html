@@ -146,17 +146,72 @@
       function parseYaml(yaml) {
         const lines = yaml.split('
 ');
-        const result = {};
-        lines.forEach(line => {
+        let idx = 0;
+        function skipBlank() { while (idx < lines.length && !lines[idx].trim()) idx++; }
+        function parseNode(indent) {
+          skipBlank();
+          if (idx >= lines.length) return null;
+          const line = lines[idx];
+          if (!line.slice(indent).trim()) { skipBlank(); return null; }
+          // Array item
+          if (line.match(/^(s*)-s+/)) {
+            const arr = [];
+            while (idx < lines.length) {
+              const cur = lines[idx];
+              const curIndent = cur.match(/^(s*)/)[1].length;
+              if (cur.match(/^s*-s+/) && (curIndent === indent || curIndent === indent + 2)) {
+                idx++;
+                const val = cur.replace(/^s*-s+/, '');
+                if (val.trim()) arr.push(parseValue(val.trim(), indent + 2));
+                else arr.push(parseNode(indent + 2));
+              } else break;
+            }
+            return arr;
+          }
+          // Key-value
           const m = line.match(/^(s*)(.+?):s*(.*)/);
-          if (!m) return;
-          const indent = m[1].length;
-          const key = m[2];
-          let val = m[3];
-          if (!val) { result[key] = {}; return; }
-          val = val.replace(/^["']|["']$/g, '');
-          result[key] = isNaN(val) ? val : Number(val);
-        });
+          if (m) {
+            const key = m[2].trim();
+            const rest = m[3].trim();
+            idx++;
+            if (!rest) return { key, value: parseNode(indent + 2) };
+            return { key, value: parseValue(rest, indent) };
+          }
+          idx++;
+          return null;
+        }
+        function parseValue(str, baseIndent) {
+          if (!str || str === '' || str === '{}' || str === '[]') return str;
+          if (str.startsWith('{') || str.startsWith('[')) {
+            try { return JSON.parse(str.replace(/'/g, '"')); } catch(e) {}
+          }
+          if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
+            return str.slice(1, -1);
+          }
+          if (str === 'true') return true;
+          if (str === 'false') return false;
+          if (str === 'null' || str === '~') return null;
+          if (!isNaN(str) && str !== '') return Number(str);
+          return str;
+        }
+        const result = {};
+        skipBlank();
+        while (idx < lines.length) {
+          const m = lines[idx].match(/^(s*)(.+?):s*(.*)/);
+          if (m) {
+            const key = m[2].trim();
+            const rest = m[3].trim();
+            idx++;
+            if (!rest) {
+              const nested = parseNode(0);
+              if (Array.isArray(nested)) result[key] = nested;
+              else if (nested && typeof nested === 'object) result[key] = nested;
+              else result[key] = {};
+            } else {
+              result[key] = parseValue(rest, 0);
+            }
+          } else idx++;
+        }
         return result;
       }
       document.getElementById('toYaml').onclick = () => { mode='toYaml'; run(); };

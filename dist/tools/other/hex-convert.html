@@ -119,8 +119,8 @@
         try {
           const v = input.value.trim();
           const b = parseInt(base.value);
-          output.value = parseInt(v, b).toString(2) + ' | ' + parseInt(v, b).toString(8) + ' | ' + parseInt(v, b).toString(10) + ' | ' + parseInt(v, b).toString(16).toUpperCase();
-        } catch(e) { output.value = '错误: ' + e.message; }
+          output.textContent = parseInt(v, b).toString(2) + ' | ' + parseInt(v, b).toString(8) + ' | ' + parseInt(v, b).toString(10) + ' | ' + parseInt(v, b).toString(16).toUpperCase();
+        } catch(e) { output.textContent = '错误: ' + e.message; }
       }
       input.addEventListener('input', run);
       base.addEventListener('change', run);

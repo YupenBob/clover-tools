@@ -130,7 +130,8 @@
           const lcFilter = filter.toLowerCase();
           urls = urls.filter(u => u.toLowerCase().includes(lcFilter));
         }
-        output.value = [...new Set(urls)].join('\n');
+        output.value = [...new Set(urls)].join('
+');
       }
       document.getElementById('extractBtn').onclick = run;
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);

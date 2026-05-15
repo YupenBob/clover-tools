@@ -279,7 +279,7 @@ function buildToolScript(tool) {
       const result = document.getElementById('result');
       function count() {
         const v = input.value;
-        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\\u4e00-\\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\\n').length);
+        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\u4e00-\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\n').length);
       }
       input.addEventListener('input', count);
       count();
@@ -327,17 +327,72 @@ function buildToolScript(tool) {
       }
       function parseYaml(yaml) {
         const lines = yaml.split('\n');
-        const result = {};
-        lines.forEach(line => {
+        let idx = 0;
+        function skipBlank() { while (idx < lines.length && !lines[idx].trim()) idx++; }
+        function parseNode(indent) {
+          skipBlank();
+          if (idx >= lines.length) return null;
+          const line = lines[idx];
+          if (!line.slice(indent).trim()) { skipBlank(); return null; }
+          // Array item
+          if (line.match(/^(\s*)-\s+/)) {
+            const arr = [];
+            while (idx < lines.length) {
+              const cur = lines[idx];
+              const curIndent = cur.match(/^(\s*)/)[1].length;
+              if (cur.match(/^\s*-\s+/) && (curIndent === indent || curIndent === indent + 2)) {
+                idx++;
+                const val = cur.replace(/^\s*-\s+/, '');
+                if (val.trim()) arr.push(parseValue(val.trim(), indent + 2));
+                else arr.push(parseNode(indent + 2));
+              } else break;
+            }
+            return arr;
+          }
+          // Key-value
           const m = line.match(/^(\s*)(.+?):\s*(.*)/);
-          if (!m) return;
-          const indent = m[1].length;
-          const key = m[2];
-          let val = m[3];
-          if (!val) { result[key] = {}; return; }
-          val = val.replace(/^["']|["']$/g, '');
-          result[key] = isNaN(val) ? val : Number(val);
-        });
+          if (m) {
+            const key = m[2].trim();
+            const rest = m[3].trim();
+            idx++;
+            if (!rest) return { key, value: parseNode(indent + 2) };
+            return { key, value: parseValue(rest, indent) };
+          }
+          idx++;
+          return null;
+        }
+        function parseValue(str, baseIndent) {
+          if (!str || str === '' || str === '{}' || str === '[]') return str;
+          if (str.startsWith('{') || str.startsWith('[')) {
+            try { return JSON.parse(str.replace(/'/g, '"')); } catch(e) {}
+          }
+          if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
+            return str.slice(1, -1);
+          }
+          if (str === 'true') return true;
+          if (str === 'false') return false;
+          if (str === 'null' || str === '~') return null;
+          if (!isNaN(str) && str !== '') return Number(str);
+          return str;
+        }
+        const result = {};
+        skipBlank();
+        while (idx < lines.length) {
+          const m = lines[idx].match(/^(\s*)(.+?):\s*(.*)/);
+          if (m) {
+            const key = m[2].trim();
+            const rest = m[3].trim();
+            idx++;
+            if (!rest) {
+              const nested = parseNode(0);
+              if (Array.isArray(nested)) result[key] = nested;
+              else if (nested && typeof nested === 'object) result[key] = nested;
+              else result[key] = {};
+            } else {
+              result[key] = parseValue(rest, 0);
+            }
+          } else idx++;
+        }
         return result;
       }
       document.getElementById('toYaml').onclick = () => { mode='toYaml'; run(); };
@@ -630,7 +685,7 @@ function buildToolScript(tool) {
 
         // Unordered list
         html = html.replace(/^[\\-*+] (.+)$/gm, '<li>$1</li>');
-        html = html.replace(/(<li>.*<\\/li>\\n?)+/g, '<ul>$&</ul>');
+        html = html.replace(/(<li>.*?<\\/li>\\n?)+/g, '<ul>$&</ul>');
 
         // Ordered list
         html = html.replace(/^\\d+\\. (.+)$/gm, '<li>$1</li>');
@@ -649,7 +704,7 @@ function buildToolScript(tool) {
         const tableRegex = /^\\|(.+)\\|\\n\\|[\\|:- \\|]+\\|\\n((?:\\|.+\\|\\n?)+)/gm;
         html = html.replace(tableRegex, (_, header, body) => {
           const headers = header.split('|').filter(h => h.trim()).map(h => '<th>' + h.trim() + '</th>').join('');
-          const rows = body.trim().split('\\n').map(row => {
+          const rows = body.trim().split('\n').map(row => {
             const cells = row.split('|').filter(c => c !== undefined && c.trim() !== '').map(c => '<td>' + c.trim() + '</td>').join('');
             return '<tr>' + cells + '</tr>';
           }).join('');
@@ -657,7 +712,7 @@ function buildToolScript(tool) {
         });
 
         // Paragraphs
-        const lines = html.split('\\n');
+          const lines = html.split('\n');
         const result = [];
         let inBlock = false;
         for (const line of lines) {
@@ -674,7 +729,7 @@ function buildToolScript(tool) {
           }
         }
         if (inBlock) result.push('</p>');
-        return result.join('\\n');
+          return result.join('\n');
       }
 
       function update() {
@@ -708,8 +763,8 @@ function buildToolScript(tool) {
       const input2 = document.getElementById('input2');
       const output = document.getElementById('output');
       function run() {
-        const t1 = input1.value.split('\\n');
-        const t2 = input2.value.split('\\n');
+        const t1 = input1.value.split('\n');
+        const t2 = input2.value.split('\n');
         let html = '';
         const max = Math.max(t1.length, t2.length);
         for (let i = 0; i < max; i++) {
@@ -1090,8 +1145,7 @@ function buildToolScript(tool) {
         try {
           const bytes = new Uint8Array([...input.value].map(c => c.charCodeAt(0) & 0xFF));
           const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
-          const encoder = new TextEncoder();
-          setOutput(encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), ''));
+          setOutput(gbkStr);
         } catch(e) { setOutput('修复失败: ' + e.message); }
       }
 
@@ -1127,9 +1181,7 @@ function buildToolScript(tool) {
         // Try GBK as UTF-8
         try {
           const gbkStr = new TextDecoder('gbk', { fatal: false }).decode(bytes);
-          const encoder = new TextEncoder();
-          const reencoded = encoder.encode(gbkStr).reduce((s, b) => s + String.fromCharCode(b), '');
-          if (reencoded !== v) { setOutput(reencoded); return; }
+          if (gbkStr !== v) { setOutput(gbkStr); return; }
         } catch(e) {}
         setOutput(v);
       }
@@ -1617,7 +1669,8 @@ function buildToolScript(tool) {
       saveAnnotationBtn.addEventListener('click', () => { addAnnotation(annotationText.value); annotationText.value = ''; });
       clearTimelineBtn.addEventListener('click', () => { timeline = []; renderTimeline(); });
     `,
-'math/prime-check': `
+
+    'math/prime-check': `
       const inputNum = document.getElementById('inputNum');
       const output = document.getElementById('output');
       function isPrime(n) {
@@ -1941,14 +1994,17 @@ function buildToolScript(tool) {
           .replace(/\\bSELECT\\b/gi, 'SELECT')
           .replace(/\\bFROM\\b/gi, '\\nFROM')
           .replace(/\\bWHERE\\b/gi, '\\nWHERE')
-          .replace(/\\bAND\\b/gi, '\\n  AND')
-          .replace(/\\bOR\\b/gi, '\\n  OR')
-          .replace(/\\bJOIN\\b/gi, '\\nJOIN')
-          .replace(/\\bLEFT JOIN\\b/gi, '\\nLEFT JOIN')
-          .replace(/\\bRIGHT JOIN\\b/gi, '\\nRIGHT JOIN')
-          .replace(/\\bINNER JOIN\\b/gi, '\\nINNER JOIN')
-          .replace(/\\bON\\b/gi, ' ON')
-          .replace(/\\bGROUP BY\\b/gi, '\\nGROUP BY')
+          .replace(/\bOR\b/gi, '\n  OR')
+          .replace(/\bFULL\s+CROSS\s+JOIN\b/gi, '\nFULL CROSS JOIN')
+          .replace(/\bFULL\s+JOIN\b/gi, '\nFULL JOIN')
+          .replace(/\bLEFT\s+OUTER\s+JOIN\b/gi, '\nLEFT OUTER JOIN')
+          .replace(/\bRIGHT\s+OUTER\s+JOIN\b/gi, '\nRIGHT OUTER JOIN')
+          .replace(/\bLEFT\s+JOIN\b/gi, '\nLEFT JOIN')
+          .replace(/\bRIGHT\s+JOIN\b/gi, '\nRIGHT JOIN')
+          .replace(/\bINNER\s+JOIN\b/gi, '\nINNER JOIN')
+          .replace(/\bCROSS\s+JOIN\b/gi, '\nCROSS JOIN')
+          .replace(/\bJOIN\b/gi, '\nJOIN')
+          .replace(/\bON\b/gi, ' ON')
           .replace(/\\bORDER BY\\b/gi, '\\nORDER BY')
           .replace(/\\bHAVING\\b/gi, '\\nHAVING')
           .replace(/\\bLIMIT\\b/gi, '\\nLIMIT')
@@ -2027,12 +2083,12 @@ function buildToolScript(tool) {
       function runLines() {
         const v = input.value;
         if (!v) { output.value = ''; return; }
-        output.value = v.split('\\n').map(l => l.split('').reverse().join('')).join('\\n');
+        output.value = v.split('\n').reverse().join('\n');
       }
       function runWords() {
         const v = input.value;
         if (!v) { output.value = ''; return; }
-        output.value = v.split(/\\s+/).map(w => w.split('').reverse().join('')).join(' ');
+        output.value = v.split(' ').reverse().join(' ');
       }
       document.getElementById('reverse').onclick = run;
       document.getElementById('reverseLines').onclick = runLines;
@@ -2076,7 +2132,7 @@ function buildToolScript(tool) {
         const g = gcd(a, b);
         const l = lcm(a, b);
         output.textContent = l;
-        steps.textContent = 'GCD(' + a + ', ' + b + ') = ' + g + '\\nLCM = |' + a + ' × ' + b + '| ÷ GCD = ' + l;
+        steps.textContent = 'GCD(' + a + ', ' + b + ') = ' + g + '\nLCM = |' + a + ' × ' + b + '| ÷ GCD = ' + l;
       }
       document.getElementById('calcBtn').onclick = calc;
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.textContent);
@@ -2115,7 +2171,7 @@ function buildToolScript(tool) {
           const lcFilter = filter.toLowerCase();
           urls = urls.filter(u => u.toLowerCase().includes(lcFilter));
         }
-        output.value = [...new Set(urls)].join('\\n');
+        output.value = [...new Set(urls)].join('\n');
       }
       document.getElementById('extractBtn').onclick = run;
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
@@ -2126,12 +2182,13 @@ function buildToolScript(tool) {
       const inputNum = document.getElementById('inputNum');
       const fromUnit = document.getElementById('fromUnit');
       const output = document.getElementById('output');
-      const TO_PX = { px: 1, em: 16, rem: 16, vw: 192, vh: 108, pt: 96/72, in: 96, cm: 37.8, mm: 3.78 };
-      const FROM_PX = { px: 1, em: 1/16, rem: 1/16, vw: 1/192, vh: 1/108, pt: 72/96, in: 1/96, cm: 1/37.8, mm: 1/3.78 };
+      const TO_PX = { px: 1, em: 16, rem: 16, vw: 19.2, vh: 10.8, pt: 96/72, in: 96, cm: 37.8, mm: 3.78 };
+      const FROM_PX = { px: 1, em: 1/16, rem: 1/16, vw: 1/19.2, vh: 1/10.8, pt: 72/96, in: 1/96, cm: 1/37.8, mm: 1/3.78 };
       function calc() {
         const val = parseFloat(inputNum.value);
         const from = fromUnit.value;
         if (isNaN(val)) { output.textContent = '请输入有效数值'; return; }
+        if (!TO_PX[from]) { output.textContent = '无效单位: ' + from; return; }
         const px = val * TO_PX[from];
         const results = Object.keys(FROM_PX).map(u => u + ': ' + (px * FROM_PX[u]).toFixed(4)).join('\n');
         output.textContent = results;
@@ -2402,9 +2459,10 @@ function buildToolContentHtml(tool) {
         <div class="tool-card">
           <h3>转换结果</h3>
           <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">毫秒</label>
-          <input type="text" id="tsOutput" readonly style="margin-bottom:1rem;">
-          <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">秒</label>
-          <input type="text" id="tsOutputSec" readonly style="margin-bottom:1rem;">
+          <div style="display:flex;gap:0.5rem;margin-bottom:1rem;">
+            <input type="text" id="tsOutput" readonly style="flex:1;">
+            <button class="btn btn-secondary" id="copyTs">复制</button>
+          </div>
           <label style="font-size:0.85rem;opacity:0.7;margin-bottom:0.3rem;display:block;">日期</label>
           <input type="text" id="dateOutput" readonly>
         </div>
@@ -2418,6 +2476,38 @@ function buildToolContentHtml(tool) {
       </div>
       <div class="output-box">
         <h3>哈希值 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly></textarea>
+      </div>`,
+
+    'encrypt/sha': `
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入文本..."></textarea>
+        <div style="margin-top:0.5rem;">
+          <select id="algo" style="padding:0.4rem;">
+            <option value="SHA-1">SHA-1</option>
+            <option value="SHA-256" selected>SHA-256</option>
+            <option value="SHA-384">SHA-384</option>
+            <option value="SHA-512">SHA-512</option>
+          </select>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>哈希值 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly></textarea>
+      </div>`,
+
+    'encrypt/unicode': `
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入文本..."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="toUnicode">→ Unicode</button>
+          <button class="btn btn-secondary" id="fromUnicode">← Unicode</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="output" readonly></textarea>
       </div>`,
 
@@ -2519,6 +2609,22 @@ function buildToolContentHtml(tool) {
         .pagination { display: flex; justify-content: center; align-items: center; margin-top: 0.75rem; gap: 0.5rem; }
       </style>`,
 
+    'code/markdown': `
+      <div class="tool-layout two-col">
+        <div class="tool-card">
+          <h3>Markdown 输入</h3>
+          <textarea id="input" placeholder="输入 Markdown 文本..." style="min-height:300px;font-family:monospace;"></textarea>
+        </div>
+        <div class="tool-card">
+          <h3>实时预览</h3>
+          <div id="preview" class="md-preview" style="min-height:300px;padding:1rem;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>HTML 代码 <button class="copy-btn" id="copyHtml">复制 HTML</button></h3>
+        <textarea id="htmlOutput" readonly style="font-family:monospace;font-size:0.85rem;"></textarea>
+      </div>`,
+
     'code/html': `
       <div class="tool-card">
         <h3>输入</h3>
@@ -2554,74 +2660,6 @@ function buildToolContentHtml(tool) {
         <div class="btn-row">
           <button class="btn btn-primary" id="format">格式化</button>
           <button class="btn btn-secondary" id="minify">压缩</button>
-        </div>
-      </div>
-      <div class="output-box">
-        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
-        <textarea id="output" readonly></textarea>
-      </div>`,
-
-    'code/markdown': `
-      <div class="tool-layout two-col">
-        <div class="tool-card">
-          <h3>Markdown 输入</h3>
-          <textarea id="input" placeholder="输入 Markdown 文本..." style="min-height:300px;font-family:monospace;"></textarea>
-        </div>
-        <div class="tool-card">
-          <h3>实时预览</h3>
-          <div id="preview" class="md-preview" style="min-height:300px;padding:1rem;overflow-y:auto;"></div>
-        </div>
-      </div>
-      <div class="output-box">
-        <h3>HTML 代码 <button class="copy-btn" id="copyHtml">复制 HTML</button></h3>
-        <textarea id="htmlOutput" readonly style="font-family:monospace;font-size:0.85rem;"></textarea>
-      </div>
-      <style>
-        .md-preview { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; }
-        .md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4, .md-preview h5, .md-preview h6 { margin: 1em 0 0.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
-        .md-preview h1 { font-size: 1.6rem; } .md-preview h2 { font-size: 1.4rem; } .md-preview h3 { font-size: 1.2rem; }
-        .md-preview p { margin: 0.8em 0; }
-        .md-preview ul, .md-preview ol { padding-left: 1.5em; margin: 0.8em 0; }
-        .md-preview li { margin: 0.3em 0; }
-        .md-preview blockquote { border-left: 4px solid #ddd; padding: 0.5em 1em; margin: 0.8em 0; color: #666; background: #f9f9f9; border-radius: 0 8px 8px 0; }
-        .md-preview code { background: #f0f0f0; padding: 0.15em 0.4em; border-radius: 4px; font-family: 'Fira Code', monospace; font-size: 0.88em; }
-        .md-preview pre { background: #1e1e1e; color: #d4d4d4; padding: 1em; border-radius: 10px; overflow-x: auto; margin: 0.8em 0; }
-        .md-preview pre code { background: none; padding: 0; color: inherit; }
-        .md-preview a { color: #4a90e2; text-decoration: none; }
-        .md-preview a:hover { text-decoration: underline; }
-        .md-preview img { max-width: 100%; border-radius: 8px; margin: 0.5em 0; }
-        .md-preview table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
-        .md-preview th, .md-preview td { border: 1px solid #ddd; padding: 0.5em 0.8em; text-align: left; }
-        .md-preview th { background: #f5f5f5; font-weight: 600; }
-        .md-preview hr { border: none; border-top: 2px solid #eee; margin: 1.5em 0; }
-        .md-preview strong { font-weight: 700; }
-      </style>`,
-
-    'encrypt/sha': `
-      <div class="tool-card">
-        <h3>输入</h3>
-        <textarea id="input" placeholder="输入文本..."></textarea>
-        <div style="margin-top:0.5rem;">
-          <select id="algo" style="padding:0.4rem;">
-            <option value="SHA-1">SHA-1</option>
-            <option value="SHA-256" selected>SHA-256</option>
-            <option value="SHA-384">SHA-384</option>
-            <option value="SHA-512">SHA-512</option>
-          </select>
-        </div>
-      </div>
-      <div class="output-box">
-        <h3>哈希值 <button class="copy-btn" id="copyOutput">复制</button></h3>
-        <textarea id="output" readonly></textarea>
-      </div>`,
-
-    'encrypt/unicode': `
-      <div class="tool-card">
-        <h3>输入</h3>
-        <textarea id="input" placeholder="输入文本..."></textarea>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="toUnicode">→ Unicode</button>
-          <button class="btn btn-secondary" id="fromUnicode">← Unicode</button>
         </div>
       </div>
       <div class="output-box">
@@ -3050,7 +3088,8 @@ function buildToolContentHtml(tool) {
         <button class="btn btn-secondary" id="clearTimelineBtn" style="margin-top:0.75rem;width:100%;">🗑️ 清空记录</button>
       </div>
     `,
-'math/prime-check': `
+
+    'math/prime-check': `
       <div class="tool-card">
         <h3>输入数字</h3>
         <input type="number" id="inputNum" placeholder="请输入一个正整数" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);" />
@@ -3549,8 +3588,6 @@ function generate() {
 
       const script = buildToolScript(tool);
       const toolDir = path.join(DIST_DIR, 'tools', path.dirname(tool.path));
-      ensureDir(toolDir);
-
       const toolUrl = 'https://tools.xsanye.cn/tools/' + tool.path;
       const shareBtnScript = 'document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\\u94fe\\u63a5\\u5df2\\u590d\\u5236\\uff01"); }).catch(function() { CT.showToast("\\u590d\\u5236\\u5931\\u8d25"); }); };';
       const footerWithShare = footerHtml.replace(
@@ -3562,8 +3599,9 @@ function generate() {
         .replace(/\{\{TOOL_NAME\}\}/g, tool.name)
         .replace(/\{\{TOOL_DESC\}\}/g, tool.desc || '')
         .replace('{{LAYOUT_CLASS}}', tool.layout || '')
-        .replace('{{TOOL_CONTENT}}', contentHtml)
-        .replace('{{TOOL_SCRIPT}}', script)
+        .replace(/\{\{TOOL_CONTENT\}\}/g, contentHtml)
+        .replace(/\{\{TOOL_SCRIPT\}\}/g, script);
+      pageHtml = pageHtml
         // Component placeholders
         .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
         .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)

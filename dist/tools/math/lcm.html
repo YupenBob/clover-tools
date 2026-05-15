@@ -128,7 +128,8 @@
         const g = gcd(a, b);
         const l = lcm(a, b);
         output.textContent = l;
-        steps.textContent = 'GCD(' + a + ', ' + b + ') = ' + g + '\nLCM = |' + a + ' × ' + b + '| ÷ GCD = ' + l;
+        steps.textContent = 'GCD(' + a + ', ' + b + ') = ' + g + '
+LCM = |' + a + ' × ' + b + '| ÷ GCD = ' + l;
       }
       document.getElementById('calcBtn').onclick = calc;
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.textContent);

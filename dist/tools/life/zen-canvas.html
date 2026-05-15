@@ -156,8 +156,8 @@
           p.vy += 0.05;
           p.life -= 0.003;
           p.alpha *= 0.99;
-          if (p.life <= 0) { particles.splice(i, 1); return; }
-          drawParticle(p);
+          if (p.life <= 0) { particles.splice(i, 1); }
+          else drawParticle(p);
         });
         animId = requestAnimationFrame(animate);
       }
@@ -269,10 +269,10 @@
       soundBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const sound = btn.dataset.sound;
-          document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
           if (currentSound && btn.classList.contains('active')) {
             stopSound(); btn.classList.remove('active');
           } else {
+            document.querySelectorAll('.sound-btn').forEach(b => b.classList.remove('active'));
             createNoise(sound); btn.classList.add('active');
           }
           resetIdle();

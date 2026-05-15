@@ -6,19 +6,25 @@
   'use strict';
 
   // ---- Toast ----
-  function showToast(msg) {
+  function showToast(msg, icon) {
     var t = document.getElementById('toast');
     if (!t) return;
-    t.textContent = msg;
+    if (icon) {
+      t.innerHTML = '<span class="toast-icon">' + icon + '</span><span>' + msg + '</span>';
+    } else {
+      t.innerHTML = '<span>' + msg + '</span>';
+    }
     t.classList.add('show');
-    setTimeout(function () { t.classList.remove('show'); }, 2000);
+    clearTimeout(t._timeout);
+    t._timeout = setTimeout(function () { t.classList.remove('show'); }, 2000);
   }
 
   // ---- Clipboard ----
   function copyToClipboard(text) {
     if (!text) return;
+    var checkSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     navigator.clipboard.writeText(text).then(function () {
-      showToast('\u590d\u5236\u6210\u529f\uff01');
+      showToast('\u590d\u5236\u6210\u529f\uff01', checkSvg);
     }).catch(function () {
       showToast('\u590d\u5236\u5931\u8d25');
     });
@@ -37,7 +43,12 @@
 
   function toggleTheme() {
     var current = document.documentElement.getAttribute('data-theme') || 'light';
-    applyTheme(current === 'dark' ? 'light' : 'dark');
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.classList.add('theme-transitioning');
+    applyTheme(next);
+    setTimeout(function () {
+      document.documentElement.classList.remove('theme-transitioning');
+    }, 450);
   }
 
   function initTheme() {
@@ -49,7 +60,20 @@
     }
   }
 
-  // ---- Global keyboard shortcuts (Escape to dismiss toast) ----
+  // ---- Scroll header effect ----
+function initScrollHeader() {
+  var header = document.querySelector('.site-header');
+  if (!header) return;
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 10) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  }, { passive: true });
+}
+
+// ---- Global keyboard shortcuts (Escape to dismiss toast) ----
   function initKeyboardShortcuts() {
     document.addEventListener('keydown', function (e) {
       var tag = e.target.tagName;
@@ -82,7 +106,8 @@
     toggleTheme: toggleTheme,
     initTheme: initTheme,
     initKeyboardShortcuts: initKeyboardShortcuts,
-    initShare: initShare
+    initShare: initShare,
+    initScrollHeader: initScrollHeader
   };
 
   // ---- Global aliases (so tool scripts can call showToast() directly) ----
