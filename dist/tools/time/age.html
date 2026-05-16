@@ -36,6 +36,7 @@
     .nav-icon-link span { font-size: 0.9rem; }
     .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
   </style>
+<style>
 .time-display {
     font-size: 2.5rem;
     font-weight: 700;
@@ -83,6 +84,7 @@
     font-family: 'SF Mono', 'Fira Code', monospace;
     color: var(--primary);
   }
+</style>
 </head>
 <body>
   <!-- SVG Icon Sprite -->
@@ -127,7 +129,7 @@
         <p class="description">根据生日计算年龄</p>
       </div>
       <div class="tool-layout ">
-        <!-- Optional: common time tool UI elements that tools can include -->
+        
       <div class="tool-card">
         <h3>你的生日</h3>
         <input type="date" id="birth" style="width:100%;padding:0.5rem;font-size:1rem;">
@@ -171,7 +173,7 @@
         result.innerHTML = '<b>' + age + '</b> 岁<br>活了 <b>' + daysSinceBirth + '</b> 天';
       }
       birthInput.addEventListener('change', calc);
-    <!-- Optional: common time tool JS functions -->
+    
   </script>
 </body>
 </html>

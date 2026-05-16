@@ -1025,8 +1025,8 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
         try {
           const v = input.value.trim();
           const b = parseInt(base.value);
-          output.value = parseInt(v, b).toString(2) + ' | ' + parseInt(v, b).toString(8) + ' | ' + parseInt(v, b).toString(10) + ' | ' + parseInt(v, b).toString(16).toUpperCase();
-        } catch(e) { output.value = '错误: ' + e.message; }
+          output.textContent = parseInt(v, b).toString(2) + ' | ' + parseInt(v, b).toString(8) + ' | ' + parseInt(v, b).toString(10) + ' | ' + parseInt(v, b).toString(16).toUpperCase();
+        } catch(e) { output.textContent = '错误: ' + e.message; }
       }
       input.addEventListener('input', run);
       base.addEventListener('change', run);
@@ -1039,7 +1039,7 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       const preview = document.getElementById('preview');
       function toRgb(h) {
         const v = h.replace('#','');
-        return {r:parseInt(v.substr(0,2),16),g:parseInt(v.substr(2,2),16),b:parseInt(v.substr(4,2),16)};
+        return {r:parseInt(v.substring(0,2),16),g:parseInt(v.substring(2,4),16),b:parseInt(v.substring(4,6),16)};
       }
       function toHex(r,g,b) { return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join(''); }
       hex.addEventListener('input', () => {
@@ -1947,7 +1947,7 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       function hexToRgb(hex) {
         const h = hex.replace('#', '');
         const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
-        return [parseInt(full.substr(0, 2), 16), parseInt(full.substr(2, 2), 16), parseInt(full.substr(4, 2), 16)];
+        return [parseInt(full.substring(0, 2), 16), parseInt(full.substring(2, 4), 16), parseInt(full.substring(4, 6), 16)];
       }
       function update() {
         const hex = picker.value.toUpperCase();
@@ -3617,12 +3617,16 @@ function generate() {
         shareBtnHtml
       );
 
-      // Tool base template (category inheritance) - resolved before page generation
       const baseTemplate = resolveToolBase(tool.path);
 
-      // Merge base template into content/script
-      const mergedContent = (baseTemplate && baseTemplate.content ? baseTemplate.content : '') + contentHtml;
-      const mergedScript = script + (baseTemplate && baseTemplate.script ? baseTemplate.script : '');
+      // Strip HTML comments from base template sections (comments inside template markup can't go into <script>/<style>)
+      const baseStyles = baseTemplate ? (baseTemplate.styles || '').replace(/<!--[\s\S]*?-->/g, '').trim() : '';
+      const baseScript = baseTemplate ? (baseTemplate.script || '').replace(/<!--[\s\S]*?-->/g, '').trim() : '';
+      const baseContent = baseTemplate ? (baseTemplate.content || '').replace(/<!--[\s\S]*?-->/g, '').trim() : '';
+
+      // Merge base template into content and script
+      const mergedContent = baseContent + contentHtml;
+      const mergedScript = script + (baseScript ? '\n' + baseScript : '');
 
       let pageHtml = toolTemplate
         .replace(/\{\{TOOL_NAME\}\}/g, tool.name)
@@ -3643,9 +3647,9 @@ function generate() {
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
 
-      // Inject base styles before </head>
-      if (baseTemplate && baseTemplate.styles) {
-        pageHtml = pageHtml.replace('</head>', baseTemplate.styles + '\n</head>');
+      // Inject base styles into <head>
+      if (baseStyles) {
+        pageHtml = pageHtml.replace('</head>', '<style>\n' + baseStyles + '\n</style>\n</head>');
       }
 
       // For tool pages nested in subdirs (dist/tools/{cat}/{tool}.html),

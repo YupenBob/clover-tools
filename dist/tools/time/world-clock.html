@@ -36,6 +36,7 @@
     .nav-icon-link span { font-size: 0.9rem; }
     .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
   </style>
+<style>
 .time-display {
     font-size: 2.5rem;
     font-weight: 700;
@@ -83,6 +84,7 @@
     font-family: 'SF Mono', 'Fira Code', monospace;
     color: var(--primary);
   }
+</style>
 </head>
 <body>
   <!-- SVG Icon Sprite -->
@@ -127,7 +129,7 @@
         <p class="description">世界时钟、时间转换、NTP 校准</p>
       </div>
       <div class="tool-layout ">
-        <!-- Optional: common time tool UI elements that tools can include -->
+        
       <div class="world-clock-container">
         <div class="ntp-panel">
           <div class="ntp-header">
@@ -383,7 +385,7 @@
       updateConversion();
       setInterval(updateLocalTime, 1000);
       setInterval(updateWorldClock, 1000);
-    <!-- Optional: common time tool JS functions -->
+    
   </script>
 </body>
 </html>

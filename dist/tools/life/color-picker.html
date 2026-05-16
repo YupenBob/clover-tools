@@ -151,7 +151,7 @@
       function hexToRgb(hex) {
         const h = hex.replace('#', '');
         const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
-        return [parseInt(full.substr(0, 2), 16), parseInt(full.substr(2, 2), 16), parseInt(full.substr(4, 2), 16)];
+        return [parseInt(full.substring(0, 2), 16), parseInt(full.substring(2, 4), 16), parseInt(full.substring(4, 6), 16)];
       }
       function update() {
         const hex = picker.value.toUpperCase();
