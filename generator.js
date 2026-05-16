@@ -301,7 +301,7 @@ function buildToolScript(tool) {
       const result = document.getElementById('result');
       function count() {
         const v = input.value;
-        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\u4e00-\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\n').length);
+        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\\u4e00-\\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\\n').length);
       }
       input.addEventListener('input', count);
       count();
@@ -629,7 +629,7 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
         try {
           const val = input.value;
           if (mode === 'format') output.value = val.replace(/\{/g, ' {\n  ').replace(/;/g, ';\n  ').replace(/\}/g, '\n}\n').replace(/^\s+}/gm, '}');
-          else output.value = val.replace(/\s+/g, ' ').replace(/\s*\{\s*/g, '{').replace(/\s*;\s*/g, ';').replace(/\s*\}\s*/g, '}').trim();
+          else output.value = val.replace(/\\s+/g, ' ').replace(/\\s*\{\\s*/g, '{').replace(/\\s*;\\s*/g, ';').replace(/\\s*\}\\s*/g, '}').trim();
         } catch(e) { output.value = '错误: ' + e.message; }
       }
       document.getElementById('format').onclick = () => { mode='format'; run(); };
@@ -646,7 +646,7 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
         try {
           const val = input.value;
           if (mode === 'format') output.value = val.replace(/\{/g, ' {\n  ').replace(/;/g, ';\n  ').replace(/\}/g, '\n}');
-          else output.value = val.replace(/\s+/g, ' ').replace(/;\s*/g, ';').trim();
+          else output.value = val.replace(/\\s+/g, ' ').replace(/;\\s*/g, ';').trim();
         } catch(e) { output.value = '错误: ' + e.message; }
       }
       document.getElementById('format').onclick = () => { mode='format'; run(); };
@@ -1839,7 +1839,7 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
         return [...result].sort((a, b) => a - b);
       }
       function getNextMatches(expr) {
-        const parts = expr.trim().split(/\s+/);
+        const parts = expr.trim().split(/\\s+/);
         const [minField, hourField, domField, monField, dowField] = parts;
         const mins = parseField(minField, 60);
         const hours = parseField(hourField, 24);
@@ -2257,14 +2257,14 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       function romanToInt(s) {
         const map = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
         let r = 0, i = 0;
-        s = s.toUpperCase().replace(/\s/g,'');
+        s = s.toUpperCase().replace(/\\s/g,'');
         while (i < s.length) {
           if (i+1 < s.length && map[s.slice(i,i+2)]) { r += map[s.slice(i,i+2)]; i += 2; }
           else { r += map[s[i]] || 0; i++; }
         }
         return r;
       }
-      function isRoman(s) { return /^[MDCLXVI]+$/i.test(s.replace(/\s/g,'')); }
+      function isRoman(s) { return /^[MDCLXVI]+$/i.test(s.replace(/\\s/g,'')); }
       function run() {
         const v = inputText.value.trim();
         if (!v) { output.textContent = ''; return; }

@@ -126,7 +126,7 @@
   ').replace(/}/g, '
 }
 ').replace(/^s+}/gm, '}');
-          else output.value = val.replace(/s+/g, ' ').replace(/s*{s*/g, '{').replace(/s*;s*/g, ';').replace(/s*}s*/g, '}').trim();
+          else output.value = val.replace(/\s+/g, ' ').replace(/\s*{\s*/g, '{').replace(/\s*;\s*/g, ';').replace(/\s*}\s*/g, '}').trim();
         } catch(e) { output.value = '错误: ' + e.message; }
       }
       document.getElementById('format').onclick = () => { mode='format'; run(); };

@@ -126,14 +126,14 @@
       function romanToInt(s) {
         const map = {M:1000,CM:900,D:500,CD:400,C:100,XC:90,L:50,XL:40,X:10,IX:9,V:5,IV:4,I:1};
         let r = 0, i = 0;
-        s = s.toUpperCase().replace(/s/g,'');
+        s = s.toUpperCase().replace(/\s/g,'');
         while (i < s.length) {
           if (i+1 < s.length && map[s.slice(i,i+2)]) { r += map[s.slice(i,i+2)]; i += 2; }
           else { r += map[s[i]] || 0; i++; }
         }
         return r;
       }
-      function isRoman(s) { return /^[MDCLXVI]+$/i.test(s.replace(/s/g,'')); }
+      function isRoman(s) { return /^[MDCLXVI]+$/i.test(s.replace(/\s/g,'')); }
       function run() {
         const v = inputText.value.trim();
         if (!v) { output.textContent = ''; return; }

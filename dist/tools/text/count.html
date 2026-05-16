@@ -115,8 +115,7 @@
       const result = document.getElementById('result');
       function count() {
         const v = input.value;
-        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[一-龥]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('
-').length);
+        result.innerHTML = '<b>字符数（含空格）</b>: ' + v.length + '<br><b>字符数（不含空格）</b>: ' + v.replace(/\s/g,'').length + '<br><b>单词数</b>: ' + v.trim().split(/\s+/).filter(Boolean).length + '<br><b>中文数</b>: ' + (v.match(/[\u4e00-\u9fa5]/g)||[]).length + '<br><b>行数</b>: ' + (v.split('\n').length);
       }
       input.addEventListener('input', count);
       count();
