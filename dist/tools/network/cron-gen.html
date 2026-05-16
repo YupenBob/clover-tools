@@ -188,7 +188,7 @@
         return [...result].sort((a, b) => a - b);
       }
       function getNextMatches(expr) {
-        const parts = expr.trim().split(/\s+/);
+        const parts = expr.trim().split(/s+/);
         const [minField, hourField, domField, monField, dowField] = parts;
         const mins = parseField(minField, 60);
         const hours = parseField(hourField, 24);
