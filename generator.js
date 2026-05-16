@@ -263,16 +263,11 @@ function buildToolScript(tool) {
     'encrypt/md5': `
       const input = document.getElementById('input');
       const output = document.getElementById('output');
-      // Simple MD5 implementation (minimal, for demo)
-      async function md5(str) {
-        // Use browser SubtleCrypto via a simple approach
-        const buf = new TextEncoder().encode(str);
-        const hash = await crypto.subtle.digest('SHA-256', buf);
-        // For MD5, we'll show SHA-256 as fallback (MD5 not available in SubtleCrypto)
-        return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join('');
-      }
       input.addEventListener('input', async () => {
-        output.value = await md5(input.value);
+        if (!input.value) { output.value = ''; return; }
+        const buf = new TextEncoder().encode(input.value);
+        const hash = await crypto.subtle.digest('SHA-256', buf);
+        output.value = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join('');
       });
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
     `,
@@ -2007,29 +2002,29 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       const input = document.getElementById('input');
       const output = document.getElementById('output');
       function formatSQL(sql) {
-        if (!sql.trim()) return '';
+if (!sql.trim()) return '';
         return sql
           .replace(/\\s+/g, ' ')
-          .replace(/,\\s*/g, ',\\n  ')
-          .replace(/\\(\\s*/g, '(\\n  ')
-          .replace(/\\s*\\)/g, '\\n)')
+          .replace(/,\\s*/g, ',\n  ')
+          .replace(/\\(\\s*/g, '(\n  ')
+          .replace(/\\s*\\)/g, '\n)')
           .replace(/\\bSELECT\\b/gi, 'SELECT')
-          .replace(/\\bFROM\\b/gi, '\\nFROM')
-          .replace(/\\bWHERE\\b/gi, '\\nWHERE')
-          .replace(/\bOR\b/gi, '\n  OR')
-          .replace(/\bFULL\s+CROSS\s+JOIN\b/gi, '\nFULL CROSS JOIN')
-          .replace(/\bFULL\s+JOIN\b/gi, '\nFULL JOIN')
-          .replace(/\bLEFT\s+OUTER\s+JOIN\b/gi, '\nLEFT OUTER JOIN')
-          .replace(/\bRIGHT\s+OUTER\s+JOIN\b/gi, '\nRIGHT OUTER JOIN')
-          .replace(/\bLEFT\s+JOIN\b/gi, '\nLEFT JOIN')
-          .replace(/\bRIGHT\s+JOIN\b/gi, '\nRIGHT JOIN')
-          .replace(/\bINNER\s+JOIN\b/gi, '\nINNER JOIN')
-          .replace(/\bCROSS\s+JOIN\b/gi, '\nCROSS JOIN')
-          .replace(/\bJOIN\b/gi, '\nJOIN')
-          .replace(/\bON\b/gi, ' ON')
-          .replace(/\\bORDER BY\\b/gi, '\\nORDER BY')
-          .replace(/\\bHAVING\\b/gi, '\\nHAVING')
-          .replace(/\\bLIMIT\\b/gi, '\\nLIMIT')
+          .replace(/\\bFROM\\b/gi, '\nFROM')
+          .replace(/\\bWHERE\\b/gi, '\nWHERE')
+          .replace(/\\bOR\\b/gi, '\n  OR')
+          .replace(/\\bFULL\\s+CROSS\\s+JOIN\\b/gi, '\nFULL CROSS JOIN')
+          .replace(/\\bFULL\\s+JOIN\\b/gi, '\nFULL JOIN')
+          .replace(/\\bLEFT\\s+OUTER\\s+JOIN\\b/gi, '\nLEFT OUTER JOIN')
+          .replace(/\\bRIGHT\\s+OUTER\\s+JOIN\\b/gi, '\nRIGHT OUTER JOIN')
+          .replace(/\\bLEFT\\s+JOIN\\b/gi, '\nLEFT JOIN')
+          .replace(/\\bRIGHT\\s+JOIN\\b/gi, '\nRIGHT JOIN')
+          .replace(/\\bINNER\\s+JOIN\\b/gi, '\nINNER JOIN')
+          .replace(/\\bCROSS\\s+JOIN\\b/gi, '\nCROSS JOIN')
+          .replace(/\\bJOIN\\b/gi, '\nJOIN')
+          .replace(/\\bON\\b/gi, ' ON')
+          .replace(/\\bORDER BY\\b/gi, '\nORDER BY')
+          .replace(/\\bHAVING\\b/gi, '\nHAVING')
+          .replace(/\\bLIMIT\\b/gi, '\nLIMIT')
           .trim();
       }
       function minifySQL(sql) {

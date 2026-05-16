@@ -120,39 +120,47 @@
       const input = document.getElementById('input');
       const output = document.getElementById('output');
       function formatSQL(sql) {
-        if (!sql.trim()) return '';
+if (!sql.trim()) return '';
         return sql
           .replace(/\s+/g, ' ')
-          .replace(/,\s*/g, ',\n  ')
-          .replace(/\(\s*/g, '(\n  ')
-          .replace(/\s*\)/g, '\n)')
+          .replace(/,\s*/g, ',
+  ')
+          .replace(/\(\s*/g, '(
+  ')
+          .replace(/\s*\)/g, '
+)')
           .replace(/\bSELECT\b/gi, 'SELECT')
-          .replace(/\bFROM\b/gi, '\nFROM')
-          .replace(/\bWHERE\b/gi, '\nWHERE')
-          .replace(/OR/gi, '
+          .replace(/\bFROM\b/gi, '
+FROM')
+          .replace(/\bWHERE\b/gi, '
+WHERE')
+          .replace(/\bOR\b/gi, '
   OR')
-          .replace(/FULLs+CROSSs+JOIN/gi, '
+          .replace(/\bFULL\s+CROSS\s+JOIN\b/gi, '
 FULL CROSS JOIN')
-          .replace(/FULLs+JOIN/gi, '
+          .replace(/\bFULL\s+JOIN\b/gi, '
 FULL JOIN')
-          .replace(/LEFTs+OUTERs+JOIN/gi, '
+          .replace(/\bLEFT\s+OUTER\s+JOIN\b/gi, '
 LEFT OUTER JOIN')
-          .replace(/RIGHTs+OUTERs+JOIN/gi, '
+          .replace(/\bRIGHT\s+OUTER\s+JOIN\b/gi, '
 RIGHT OUTER JOIN')
-          .replace(/LEFTs+JOIN/gi, '
+          .replace(/\bLEFT\s+JOIN\b/gi, '
 LEFT JOIN')
-          .replace(/RIGHTs+JOIN/gi, '
+          .replace(/\bRIGHT\s+JOIN\b/gi, '
 RIGHT JOIN')
-          .replace(/INNERs+JOIN/gi, '
+          .replace(/\bINNER\s+JOIN\b/gi, '
 INNER JOIN')
-          .replace(/CROSSs+JOIN/gi, '
+          .replace(/\bCROSS\s+JOIN\b/gi, '
 CROSS JOIN')
-          .replace(/JOIN/gi, '
+          .replace(/\bJOIN\b/gi, '
 JOIN')
-          .replace(/ON/gi, ' ON')
-          .replace(/\bORDER BY\b/gi, '\nORDER BY')
-          .replace(/\bHAVING\b/gi, '\nHAVING')
-          .replace(/\bLIMIT\b/gi, '\nLIMIT')
+          .replace(/\bON\b/gi, ' ON')
+          .replace(/\bORDER BY\b/gi, '
+ORDER BY')
+          .replace(/\bHAVING\b/gi, '
+HAVING')
+          .replace(/\bLIMIT\b/gi, '
+LIMIT')
           .trim();
       }
       function minifySQL(sql) {

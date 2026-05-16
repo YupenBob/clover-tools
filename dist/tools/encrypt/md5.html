@@ -114,16 +114,11 @@
     
       const input = document.getElementById('input');
       const output = document.getElementById('output');
-      // Simple MD5 implementation (minimal, for demo)
-      async function md5(str) {
-        // Use browser SubtleCrypto via a simple approach
-        const buf = new TextEncoder().encode(str);
-        const hash = await crypto.subtle.digest('SHA-256', buf);
-        // For MD5, we'll show SHA-256 as fallback (MD5 not available in SubtleCrypto)
-        return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join('');
-      }
       input.addEventListener('input', async () => {
-        output.value = await md5(input.value);
+        if (!input.value) { output.value = ''; return; }
+        const buf = new TextEncoder().encode(input.value);
+        const hash = await crypto.subtle.digest('SHA-256', buf);
+        output.value = [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join('');
       });
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
     
