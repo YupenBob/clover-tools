@@ -16,6 +16,28 @@ const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
 const toolsConfig = JSON.parse(fs.readFileSync(TOOLS_JSON_PATH, 'utf8'));
 
+// ============ Load tool base templates (category inheritance) ============
+const TOOL_BASES_DIR = path.join(TEMPLATES_DIR, 'tool-bases');
+let timeToolBase = '';
+try {
+  timeToolBase = fs.readFileSync(path.join(TOOL_BASES_DIR, 'time-tool-base.html'), 'utf8');
+} catch(e) { timeToolBase = ''; }
+
+function resolveToolBase(toolPath) {
+  if (!timeToolBase) return null;
+  if (toolPath.startsWith('time/')) {
+    const styleMatch = timeToolBase.match(/<style data-base="styles">([\s\S]*?)<\/style>/);
+    const contentMatch = timeToolBase.match(/<!-- BASE_CONTENT -->([\s\S]*?)<!-- \/BASE_CONTENT -->/);
+    const scriptMatch = timeToolBase.match(/<!-- BASE_SCRIPT -->([\s\S]*?)<!-- \/BASE_SCRIPT -->/);
+    return {
+      styles: styleMatch ? styleMatch[1].trim() : '',
+      content: contentMatch ? contentMatch[1].trim() : '',
+      script: scriptMatch ? scriptMatch[1].trim() : '',
+    };
+  }
+  return null;
+}
+
 // ============ Load shared assets ============
 const sharedCss = fs.readFileSync(path.join(SRC_DIR, 'shared.css'), 'utf8');
 const sharedJs = fs.readFileSync(path.join(SRC_DIR, 'shared.js'), 'utf8');
@@ -504,7 +526,7 @@ function buildToolScript(tool) {
 
         let html = '<table class="json-table"><thead><tr>';
         cols.forEach(col => {
-          html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select:none;">' + escHtml(col) + sortIcon(col) + '</th>';
+html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select:none;">' + escHtml(col) + sortIcon(col) + '</th>';
         });
         html += '</tr></thead><tbody>';
         pageRows.forEach(row => {
@@ -3595,12 +3617,19 @@ function generate() {
         shareBtnHtml
       );
 
+      // Tool base template (category inheritance) - resolved before page generation
+      const baseTemplate = resolveToolBase(tool.path);
+
+      // Merge base template into content/script
+      const mergedContent = (baseTemplate && baseTemplate.content ? baseTemplate.content : '') + contentHtml;
+      const mergedScript = script + (baseTemplate && baseTemplate.script ? baseTemplate.script : '');
+
       let pageHtml = toolTemplate
         .replace(/\{\{TOOL_NAME\}\}/g, tool.name)
         .replace(/\{\{TOOL_DESC\}\}/g, tool.desc || '')
         .replace('{{LAYOUT_CLASS}}', tool.layout || '')
-        .replace(/\{\{TOOL_CONTENT\}\}/g, contentHtml)
-        .replace(/\{\{TOOL_SCRIPT\}\}/g, script);
+        .replace(/\{\{TOOL_CONTENT\}\}/g, mergedContent)
+        .replace(/\{\{TOOL_SCRIPT\}\}/g, mergedScript);
       pageHtml = pageHtml
         // Component placeholders
         .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
@@ -3613,6 +3642,11 @@ function generate() {
         .replace(/\{\{PAGE_OG_IMAGE\}\}/g, 'https://tools.xsanye.cn/og-image.png')
         .replace(/\{\{PAGE_URL\}\}/g, toolUrl)
         .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, toolUrl);
+
+      // Inject base styles before </head>
+      if (baseTemplate && baseTemplate.styles) {
+        pageHtml = pageHtml.replace('</head>', baseTemplate.styles + '\n</head>');
+      }
 
       // For tool pages nested in subdirs (dist/tools/{cat}/{tool}.html),
       // the relative path to dist/src/shared.css is "../../src/shared.css"
