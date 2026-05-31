@@ -1,576 +1,177 @@
-#!/usr/bin/env python3
-"""Add all new tool entries to generator.js"""
+import json
 
-with open('generator.js', 'r') as f:
-    content = f.read()
-    lines = content.split('\n')
+with open('tools.json', 'r') as f:
+    tools = json.load(f)
 
-# Find insertion points
-# buildToolScript closes with: "  };" at line ~1620 and "return scripts[key]" after
-# buildToolContentHtml closes with: "  };" at line ~2388 and "return contents[key]" after
+# Find category indices
+cat_map = {}
+for i, cat in enumerate(tools):
+    cat_map[cat['category']] = i
 
-# Find the last entry in scripts (before "  };")
-# Look for pattern: backtick-comma-newline-newline-spaces-spaces-spaces-spaces };
-script_end_idx = None
-for i, line in enumerate(lines):
-    if line.strip() == '};' and i > 1500 and i < 1630:
-        # Check if previous lines contain template literal ending
-        if i > 0 and lines[i-1].strip().startswith('`,'):
-            script_end_idx = i
-            break
+# Create 其他工具 category first
+other_cat = {
+    'category': '其他工具',
+    'tools': []
+}
 
-print(f"Found script_end_idx at line {script_end_idx}: {lines[script_end_idx-2][:60]}...")
+# Define new tools to add to 其他工具
+ascii_tool = {
+    'name': 'ASCII码对照表',
+    'path': 'other/ASCII码对照表.html',
+    'category': '其他工具',
+    'type': 'query',
+    'desc': '完整的ASCII字符编码对照表，涵盖可打印字符、控制字符及对应的十进制、十六进制、八进制、HTML实体编码。',
+    'keywords': ['ASCII', 'ASCII码', '字符编码', 'ASCII对照表', 'ASCII码表'],
+    'title': 'ASCII码对照表 - 字符编码参考表',
+    'description': '在线ASCII码对照表查询，涵盖可打印字符、控制字符的十进制、十六进制、HTML实体编码',
+    'icon': 'bi bi-code-square',
+    'searchable': True,
+    'data': [
+        {'char': 'NUL', 'dec': '0', 'hex': '00', 'oct': '000', 'html': '&#0;', 'desc': '空字符'},
+        {'char': 'SOH', 'dec': '1', 'hex': '01', 'oct': '001', 'html': '&#1;', 'desc': '标题开始'},
+        {'char': 'STX', 'dec': '2', 'hex': '02', 'oct': '002', 'html': '&#2;', 'desc': '正文开始'},
+        {'char': 'ETX', 'dec': '3', 'hex': '03', 'oct': '003', 'html': '&#3;', 'desc': '正文结束'},
+        {'char': 'EOT', 'dec': '4', 'hex': '04', 'oct': '004', 'html': '&#4;', 'desc': '传输结束'},
+        {'char': 'ENQ', 'dec': '5', 'hex': '05', 'oct': '005', 'html': '&#5;', 'desc': '询问'},
+        {'char': 'ACK', 'dec': '6', 'hex': '06', 'oct': '006', 'html': '&#6;', 'desc': '确认'},
+        {'char': 'BEL', 'dec': '7', 'hex': '07', 'oct': '007', 'html': '&#7;', 'desc': '响铃'},
+        {'char': 'BS', 'dec': '8', 'hex': '08', 'oct': '010', 'html': '&#8;', 'desc': '退格'},
+        {'char': 'TAB', 'dec': '9', 'hex': '09', 'oct': '011', 'html': '&#9;', 'desc': '水平制表'},
+        {'char': 'LF', 'dec': '10', 'hex': '0A', 'oct': '012', 'html': '&#10;', 'desc': '换行'},
+        {'char': 'VT', 'dec': '11', 'hex': '0B', 'oct': '013', 'html': '&#11;', 'desc': '垂直制表'},
+        {'char': 'FF', 'dec': '12', 'hex': '0C', 'oct': '014', 'html': '&#12;', 'desc': '换页'},
+        {'char': 'CR', 'dec': '13', 'hex': '0D', 'oct': '015', 'html': '&#13;', 'desc': '回车'},
+        {'char': 'SO', 'dec': '14', 'hex': '0E', 'oct': '016', 'html': '&#14;', 'desc': '移出'},
+        {'char': 'SI', 'dec': '15', 'hex': '0F', 'oct': '017', 'html': '&#15;', 'desc': '移入'},
+        {'char': 'DLE', 'dec': '16', 'hex': '10', 'oct': '020', 'html': '&#16;', 'desc': '数据链路转义'},
+        {'char': 'DC1', 'dec': '17', 'hex': '11', 'oct': '021', 'html': '&#17;', 'desc': '设备控制1'},
+        {'char': 'DC2', 'dec': '18', 'hex': '12', 'oct': '022', 'html': '&#18;', 'desc': '设备控制2'},
+        {'char': 'DC3', 'dec': '19', 'hex': '13', 'oct': '023', 'html': '&#19;', 'desc': '设备控制3'},
+        {'char': 'DC4', 'dec': '20', 'hex': '14', 'oct': '024', 'html': '&#20;', 'desc': '设备控制4'},
+        {'char': 'NAK', 'dec': '21', 'hex': '15', 'oct': '025', 'html': '&#21;', 'desc': '否定'},
+        {'char': 'SYN', 'dec': '22', 'hex': '16', 'oct': '026', 'html': '&#22;', 'desc': '同步'},
+        {'char': 'ETB', 'dec': '23', 'hex': '17', 'oct': '027', 'html': '&#23;', 'desc': '传输块结束'},
+        {'char': 'CAN', 'dec': '24', 'hex': '18', 'oct': '030', 'html': '&#24;', 'desc': '取消'},
+        {'char': 'EM', 'dec': '25', 'hex': '19', 'oct': '031', 'html': '&#25;', 'desc': '媒体结束'},
+        {'char': 'SUB', 'dec': '26', 'hex': '1A', 'oct': '032', 'html': '&#26;', 'desc': '替换'},
+        {'char': 'ESC', 'dec': '27', 'hex': '1B', 'oct': '033', 'html': '&#27;', 'desc': '转义'},
+        {'char': 'FS', 'dec': '28', 'hex': '1C', 'oct': '034', 'html': '&#28;', 'desc': '文件分隔符'},
+        {'char': 'GS', 'dec': '29', 'hex': '1D', 'oct': '035', 'html': '&#29;', 'desc': '组分隔符'},
+        {'char': 'RS', 'dec': '30', 'hex': '1E', 'oct': '036', 'html': '&#30;', 'desc': '记录分隔符'},
+        {'char': 'US', 'dec': '31', 'hex': '1F', 'oct': '037', 'html': '&#31;', 'desc': '单元分隔符'},
+        {'char': 'Space', 'dec': '32', 'hex': '20', 'oct': '040', 'html': '&#32;', 'desc': '空格'},
+        {'char': '!', 'dec': '33', 'hex': '21', 'oct': '041', 'html': '&#33;', 'desc': '感叹号'},
+        {'char': '"', 'dec': '34', 'hex': '22', 'oct': '042', 'html': '&#34;', 'desc': '双引号'},
+        {'char': '#', 'dec': '35', 'hex': '23', 'oct': '043', 'html': '&#35;', 'desc': '井号'},
+        {'char': '$', 'dec': '36', 'hex': '24', 'oct': '044', 'html': '&#36;', 'desc': '美元符号'},
+        {'char': '%', 'dec': '37', 'hex': '25', 'oct': '045', 'html': '&#37;', 'desc': '百分号'},
+        {'char': '&', 'dec': '38', 'hex': '26', 'oct': '046', 'html': '&#38;', 'desc': '和号'},
+        {"char": "'", 'dec': '39', 'hex': '27', 'oct': '047', 'html': '&#39;', 'desc': '单引号'},
+        {'char': '(', 'dec': '40', 'hex': '28', 'oct': '050', 'html': '&#40;', 'desc': '左括号'},
+        {'char': ')', 'dec': '41', 'hex': '29', 'oct': '051', 'html': '&#41;', 'desc': '右括号'},
+        {'char': '*', 'dec': '42', 'hex': '2A', 'oct': '052', 'html': '&#42;', 'desc': '星号'},
+        {'char': '+', 'dec': '43', 'hex': '2B', 'oct': '053', 'html': '&#43;', 'desc': '加号'},
+        {'char': ',', 'dec': '44', 'hex': '2C', 'oct': '054', 'html': '&#44;', 'desc': '逗号'},
+        {'char': '-', 'dec': '45', 'hex': '2D', 'oct': '055', 'html': '&#45;', 'desc': '连字符'},
+        {'char': '.', 'dec': '46', 'hex': '2E', 'oct': '056', 'html': '&#46;', 'desc': '句号'},
+        {'char': '/', 'dec': '47', 'hex': '2F', 'oct': '057', 'html': '&#47;', 'desc': '斜杠'},
+        {'char': '0', 'dec': '48', 'hex': '30', 'oct': '060', 'html': '&#48;', 'desc': '数字0'},
+        {'char': '1', 'dec': '49', 'hex': '31', 'oct': '061', 'html': '&#49;', 'desc': '数字1'},
+        {'char': '2', 'dec': '50', 'hex': '32', 'oct': '062', 'html': '&#50;', 'desc': '数字2'},
+        {'char': '3', 'dec': '51', 'hex': '33', 'oct': '063', 'html': '&#51;', 'desc': '数字3'},
+        {'char': '4', 'dec': '52', 'hex': '34', 'oct': '064', 'html': '&#52;', 'desc': '数字4'},
+        {'char': '5', 'dec': '53', 'hex': '35', 'oct': '065', 'html': '&#53;', 'desc': '数字5'},
+        {'char': '6', 'dec': '54', 'hex': '36', 'oct': '066', 'html': '&#54;', 'desc': '数字6'},
+        {'char': '7', 'dec': '55', 'hex': '37', 'oct': '067', 'html': '&#55;', 'desc': '数字7'},
+        {'char': '8', 'dec': '56', 'hex': '38', 'oct': '070', 'html': '&#56;', 'desc': '数字8'},
+        {'char': '9', 'dec': '57', 'hex': '39', 'oct': '071', 'html': '&#57;', 'desc': '数字9'},
+        {'char': ':', 'dec': '58', 'hex': '3A', 'oct': '072', 'html': '&#58;', 'desc': '冒号'},
+        {'char': ';', 'dec': '59', 'hex': '3B', 'oct': '073', 'html': '&#59;', 'desc': '分号'},
+        {'char': '<', 'dec': '60', 'hex': '3C', 'oct': '074', 'html': '&#60;', 'desc': '小于号'},
+        {'char': '=', 'dec': '61', 'hex': '3D', 'oct': '075', 'html': '&#61;', 'desc': '等号'},
+        {'char': '>', 'dec': '62', 'hex': '3E', 'oct': '076', 'html': '&#62;', 'desc': '大于号'},
+        {'char': '?', 'dec': '63', 'hex': '3F', 'oct': '077', 'html': '&#63;', 'desc': '问号'},
+        {'char': '@', 'dec': '64', 'hex': '40', 'oct': '100', 'html': '&#64;', 'desc': '艾特符号'},
+        {'char': 'A', 'dec': '65', 'hex': '41', 'oct': '101', 'html': '&#65;', 'desc': '大写字母A'},
+        {'char': 'B', 'dec': '66', 'hex': '42', 'oct': '102', 'html': '&#66;', 'desc': '大写字母B'},
+        {'char': 'C', 'dec': '67', 'hex': '43', 'oct': '103', 'html': '&#67;', 'desc': '大写字母C'},
+        {'char': 'D', 'dec': '68', 'hex': '44', 'oct': '104', 'html': '&#68;', 'desc': '大写字母D'},
+        {'char': 'E', 'dec': '69', 'hex': '45', 'oct': '105', 'html': '&#69;', 'desc': '大写字母E'},
+        {'char': 'F', 'dec': '70', 'hex': '46', 'oct': '106', 'html': '&#70;', 'desc': '大写字母F'},
+        {'char': 'G', 'dec': '71', 'hex': '47', 'oct': '107', 'html': '&#71;', 'desc': '大写字母G'},
+        {'char': 'H', 'dec': '72', 'hex': '48', 'oct': '110', 'html': '&#72;', 'desc': '大写字母H'},
+        {'char': 'I', 'dec': '73', 'hex': '49', 'oct': '111', 'html': '&#73;', 'desc': '大写字母I'},
+        {'char': 'J', 'dec': '74', 'hex': '4A', 'oct': '112', 'html': '&#74;', 'desc': '大写字母J'},
+        {'char': 'K', 'dec': '75', 'hex': '4B', 'oct': '113', 'html': '&#75;', 'desc': '大写字母K'},
+        {'char': 'L', 'dec': '76', 'hex': '4C', 'oct': '114', 'html': '&#76;', 'desc': '大写字母L'},
+        {'char': 'M', 'dec': '77', 'hex': '4D', 'oct': '115', 'html': '&#77;', 'desc': '大写字母M'},
+        {'char': 'N', 'dec': '78', 'hex': '4E', 'oct': '116', 'html': '&#78;', 'desc': '大写字母N'},
+        {'char': 'O', 'dec': '79', 'hex': '4F', 'oct': '117', 'html': '&#79;', 'desc': '大写字母O'},
+        {'char': 'P', 'dec': '80', 'hex': '50', 'oct': '120', 'html': '&#80;', 'desc': '大写字母P'},
+        {'char': 'Q', 'dec': '81', 'hex': '51', 'oct': '121', 'html': '&#81;', 'desc': '大写字母Q'},
+        {'char': 'R', 'dec': '82', 'hex': '52', 'oct': '122', 'html': '&#82;', 'desc': '大写字母R'},
+        {'char': 'S', 'dec': '83', 'hex': '53', 'oct': '123', 'html': '&#83;', 'desc': '大写字母S'},
+        {'char': 'T', 'dec': '84', 'hex': '54', 'oct': '124', 'html': '&#84;', 'desc': '大写字母T'},
+        {'char': 'U', 'dec': '85', 'hex': '55', 'oct': '125', 'html': '&#85;', 'desc': '大写字母U'},
+        {'char': 'V', 'dec': '86', 'hex': '56', 'oct': '126', 'html': '&#86;', 'desc': '大写字母V'},
+        {'char': 'W', 'dec': '87', 'hex': '57', 'oct': '127', 'html': '&#87;', 'desc': '大写字母W'},
+        {'char': 'X', 'dec': '88', 'hex': '58', 'oct': '130', 'html': '&#88;', 'desc': '大写字母X'},
+        {'char': 'Y', 'dec': '89', 'hex': '59', 'oct': '131', 'html': '&#89;', 'desc': '大写字母Y'},
+        {'char': 'Z', 'dec': '90', 'hex': '5A', 'oct': '132', 'html': '&#90;', 'desc': '大写字母Z'},
+        {'char': '[', 'dec': '91', 'hex': '5B', 'oct': '133', 'html': '&#91;', 'desc': '左方括号'},
+        {'char': '\\', 'dec': '92', 'hex': '5C', 'oct': '134', 'html': '&#92;', 'desc': '反斜杠'},
+        {'char': ']', 'dec': '93', 'hex': '5D', 'oct': '135', 'html': '&#93;', 'desc': '右方括号'},
+        {'char': '^', 'dec': '94', 'hex': '5E', 'oct': '136', 'html': '&#136;', 'desc': '脱字符'},
+        {'char': '_', 'dec': '95', 'hex': '5F', 'oct': '137', 'html': '&#95;', 'desc': '下划线'},
+        {'char': '`', 'dec': '96', 'hex': '60', 'oct': '140', 'html': '&#96;', 'desc': '反引号'},
+        {'char': 'a', 'dec': '97', 'hex': '61', 'oct': '141', 'html': '&#97;', 'desc': '小写字母a'},
+        {'char': 'b', 'dec': '98', 'hex': '62', 'oct': '142', 'html': '&#98;', 'desc': '小写字母b'},
+        {'char': 'c', 'dec': '99', 'hex': '63', 'oct': '143', 'html': '&#99;', 'desc': '小写字母c'},
+        {'char': 'd', 'dec': '100', 'hex': '64', 'oct': '144', 'html': '&#100;', 'desc': '小写字母d'},
+        {'char': 'e', 'dec': '101', 'hex': '65', 'oct': '145', 'html': '&#101;', 'desc': '小写字母e'},
+        {'char': 'f', 'dec': '102', 'hex': '66', 'oct': '146', 'html': '&#102;', 'desc': '小写字母f'},
+        {'char': 'g', 'dec': '103', 'hex': '67', 'oct': '147', 'html': '&#103;', 'desc': '小写字母g'},
+        {'char': 'h', 'dec': '104', 'hex': '68', 'oct': '150', 'html': '&#104;', 'desc': '小写字母h'},
+        {'char': 'i', 'dec': '105', 'hex': '69', 'oct': '151', 'html': '&#105;', 'desc': '小写字母i'},
+        {'char': 'j', 'dec': '106', 'hex': '6A', 'oct': '152', 'html': '&#106;', 'desc': '小写字母j'},
+        {'char': 'k', 'dec': '107', 'hex': '6B', 'oct': '153', 'html': '&#107;', 'desc': '小写字母k'},
+        {'char': 'l', 'dec': '108', 'hex': '6C', 'oct': '154', 'html': '&#108;', 'desc': '小写字母l'},
+        {'char': 'm', 'dec': '109', 'hex': '6D', 'oct': '155', 'html': '&#109;', 'desc': '小写字母m'},
+        {'char': 'n', 'dec': '110', 'hex': '6E', 'oct': '156', 'html': '&#110;', 'desc': '小写字母n'},
+        {'char': 'o', 'dec': '111', 'hex': '6F', 'oct': '157', 'html': '&#111;', 'desc': '小写字母o'},
+        {'char': 'p', 'dec': '112', 'hex': '70', 'oct': '160', 'html': '&#112;', 'desc': '小写字母p'},
+        {'char': 'q', 'dec': '113', 'hex': '71', 'oct': '161', 'html': '&#113;', 'desc': '小写字母q'},
+        {'char': 'r', 'dec': '114', 'hex': '72', 'oct': '162', 'html': '&#114;', 'desc': '小写字母r'},
+        {'char': 's', 'dec': '115', 'hex': '73', 'oct': '163', 'html': '&#115;', 'desc': '小写字母s'},
+        {'char': 't', 'dec': '116', 'hex': '74', 'oct': '164', 'html': '&#116;', 'desc': '小写字母t'},
+        {'char': 'u', 'dec': '117', 'hex': '75', 'oct': '165', 'html': '&#117;', 'desc': '小写字母u'},
+        {'char': 'v', 'dec': '118', 'hex': '76', 'oct': '166', 'html': '&#118;', 'desc': '小写字母v'},
+        {'char': 'w', 'dec': '119', 'hex': '77', 'oct': '167', 'html': '&#119;', 'desc': '小写字母w'},
+        {'char': 'x', 'dec': '120', 'hex': '78', 'oct': '170', 'html': '&#120;', 'desc': '小写字母x'},
+        {'char': 'y', 'dec': '121', 'hex': '79', 'oct': '171', 'html': '&#121;', 'desc': '小写字母y'},
+        {'char': 'z', 'dec': '122', 'hex': '7A', 'oct': '172', 'html': '&#122;', 'desc': '小写字母z'},
+        {'char': '{', 'dec': '123', 'hex': '7B', 'oct': '173', 'html': '&#123;', 'desc': '左花括号'},
+        {'char': '|', 'dec': '124', 'hex': '7C', 'oct': '174', 'html': '&#124;', 'desc': '竖线'},
+        {'char': '}', 'dec': '125', 'hex': '7D', 'oct': '175', 'html': '&#125;', 'desc': '右花括号'},
+        {'char': '~', 'dec': '126', 'hex': '7E', 'oct': '176', 'html': '&#126;', 'desc': '波浪号'},
+        {'char': 'DEL', 'dec': '127', 'hex': '7F', 'oct': '177', 'html': '&#127;', 'desc': '删除'}
+    ],
+    'renderFn': '''function(data, search) {
+        if (!search || search.trim() === "") {
+            return `<table class="table table-sm table-striped"><thead><tr><th>字符</th><th>十进制</th><th>十六进制</th><th>八进制</th><th>HTML实体</th><th>说明</th></tr></thead><tbody>${data.map(row => `<tr><td class="font-monospace fw-bold">${row.char}</td><td class="font-monospace">${row.dec}</td><td class="font-monospace text-muted">${row.hex}</td><td class="font-monospace text-muted">${row.oct}</td><td class="font-monospace">${row.html}</td><td>${row.desc}</td></tr>`).join('')}</tbody></table>`;
+        }
+        const s = search.toLowerCase();
+        const filtered = data.filter(row => row.char.toLowerCase().includes(s) || row.dec.includes(s) || row.hex.toLowerCase().includes(s) || row.desc.includes(s));
+        if (filtered.length === 0) return '<div class="text-muted">未找到匹配结果</div>';
+        return `<div class="mb-2 text-muted small">找到 ${filtered.length} 条结果</div><table class="table table-sm table-striped"><thead><tr><th>字符</th><th>十进制</th><th>十六进制</th><th>八进制</th><th>HTML实体</th><th>说明</th></tr></thead><tbody>${filtered.map(row => `<tr><td class="font-monospace fw-bold">${row.char}</td><td class="font-monospace">${row.dec}</td><td class="font-monospace text-muted">${row.hex}</td><td class="font-monospace text-muted">${row.oct}</td><td class="font-monospace">${row.html}</td><td>${row.desc}</td></tr>`).join('')}</tbody></table>`;
+    }'''
+}
 
-# Find the last entry in contents (before "  };")
-content_end_idx = None
-for i, line in enumerate(lines):
-    if line.strip() == '};' and i > 2350 and i < 2400:
-        if i > 0 and lines[i-1].strip().startswith('`,'):
-            content_end_idx = i
-            break
+other_cat['tools'].append(ascii_tool)
+print(f"Added {ascii_tool['name']}")
 
-print(f"Found content_end_idx at line {content_end_idx}: {lines[content_end_idx-2][:60]}...")
+# Write back
+with open('tools.json', 'w', encoding='utf-8') as f:
+    json.dump(tools, f, ensure_ascii=False, indent=2)
 
-# New script entries
-new_scripts = '''
-    // ---- JSON 工具 ----
-    'json/validator': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function validate() {
-        const val = input.value.trim();
-        if (!val) { output.value = ''; return; }
-        try {
-          const parsed = JSON.parse(val);
-          output.value = '✅ JSON 格式正确\\n\\n解析结果：\\n' + JSON.stringify(parsed, null, 2);
-        } catch(e) {
-          const msg = e.message;
-          const pos = msg.match(/position (\\d+)/);
-          if (pos) {
-            const p = parseInt(pos[1]);
-            const lines = val.split('\\\\n');
-            let lineNo = 1, col = p;
-            for (const l of lines) {
-              if (col <= l.length) break;
-              col -= l.length + 1;
-              lineNo++;
-            }
-            output.value = '❌ JSON 错误：' + msg + '\\\\n位置：第 ' + lineNo + ' 行，第 ' + col + ' 列';
-          } else {
-            output.value = '❌ JSON 错误：' + msg;
-          }
-        }
-      }
-      input.addEventListener('input', validate);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      validate();
-    `,
-
-    'json/to-csv': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function toCsv() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const data = JSON.parse(val);
-          const arr = Array.isArray(data) ? data : [data];
-          if (arr.length === 0) { output.value = ''; return; }
-          const headers = [...new Set(arr.flatMap(o => Object.keys(o)))];
-          const csv = [headers.join(','),
-            ...arr.map(row => headers.map(h => {
-              const v = row[h] === undefined || row[h] === null ? '' : String(row[h]);
-              return v.includes(',') || v.includes('"') || v.includes('\\\\n') ? '"' + v.replace(/"/g, '""') + '"' : v;
-            }).join(','))
-          ].join('\\\\n');
-          output.value = csv;
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      function fromCsv() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const lines = val.split('\\\\n');
-          const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-          const arr = lines.slice(1).filter(l => l.trim()).map(line => {
-            const vals = [];
-            let inQuote = false, cur = '', i = 0;
-            while (i < line.length) {
-              const c = line[i];
-              if (c === '"') {
-                if (inQuote && line[i+1] === '"') { cur += '"'; i += 2; }
-                else { inQuote = !inQuote; i++; }
-              } else if (c === ',' && !inQuote) { vals.push(cur.trim()); cur = ''; i++; }
-              else { cur += c; i++; }
-            }
-            vals.push(cur.trim());
-            const obj = {};
-            headers.forEach((h, idx) => { obj[h] = vals[idx] || ''; });
-            return obj;
-          });
-          output.value = JSON.stringify(arr.length === 1 ? arr[0] : arr, null, 2);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', toCsv);
-      document.getElementById('toCsv').onclick = toCsv;
-      document.getElementById('fromCsv').onclick = fromCsv;
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-    `,
-
-    'json/to-toml': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function toToml(obj, indent = 0) {
-        const pad = '  '.repeat(indent);
-        if (typeof obj !== 'object' || obj === null) return pad + (typeof obj === 'string' ? '"' + obj + '"' : obj);
-        if (Array.isArray(obj)) {
-          return obj.map(v => {
-            const s = toToml(v, indent + 1);
-            return pad + '- ' + (typeof v === 'object' && v !== null ? '\\\\n' + s : s.trim());
-          }).join('\\\\n');
-        }
-        return Object.entries(obj).map(([k,v]) => {
-          if (typeof v !== 'object' || v === null) return pad + k + ' = ' + (typeof v === 'string' ? '"' + v + '"' : v);
-          return pad + '[' + k + ']\\\\n' + toToml(v, indent + 1);
-        }).join('\\\\n');
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          output.value = toToml(obj);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-    `,
-
-    'json/to-ts': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function toTs(obj, name, indent = 0) {
-        const pad = '  '.repeat(indent);
-        if (typeof obj !== 'object' || obj === null) {
-          const typeMap = { string: 'string', number: 'number', boolean: 'boolean' };
-          return pad + (typeMap[typeof obj] || 'unknown');
-        }
-        if (Array.isArray(obj)) {
-          if (obj.length === 0) return pad + 'unknown[]';
-          const types = [...new Set(obj.map(item => toTs(item, '', indent + 1).trim()))];
-          return pad + (types.length === 1 ? types[0] + '[]' : '(' + types.join(' | ') + ')[]');
-        }
-        const entries = Object.entries(obj);
-        if (entries.length === 0) return pad + 'Record<string, unknown>';
-        let result = 'interface ' + name + ' {\\\\n';
-        for (const [k, v] of entries) {
-          const optional = k.startsWith('_') ? '?' : '';
-          const safeKey = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : '\\"' + k + '\\"';
-          result += pad + '  ' + safeKey + optional + ': ' + toTs(v, '', indent + 1).trim() + ';\\\\n';
-        }
-        result += pad + '}';
-        return result;
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          const name = document.getElementById('typeName').value || 'Root';
-          output.value = 'export ' + toTs(obj, name);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      document.getElementById('typeName').addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify({id:1,name:"test",age:30,active:true,address:{city:"北京",zip:"100000"},tags:["a","b"]}, null, 2);
-      run();
-    `,
-
-    'json/to-go': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function toGo(obj, name, indent = 0) {
-        const pad = '  '.repeat(indent);
-        if (typeof obj !== 'object' || obj === null) {
-          const typeMap = { string: 'string', number: 'float64', boolean: 'bool' };
-          return pad + (typeMap[typeof obj] || 'interface{}');
-        }
-        if (Array.isArray(obj)) {
-          if (obj.length === 0) return pad + '[]interface{}';
-          const types = [...new Set(obj.map(item => toGo(item, '', indent + 1).trim()))];
-          if (types.length === 1) return pad + '[]' + types[0].replace(/^\\*/, '');
-          return pad + '[]interface{}';
-        }
-        let result = 'type ' + name + ' struct {\\\\n';
-        for (const [k, v] of Object.entries(obj)) {
-          const safeKey = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k) ? k : '\\"' + k + '\\"';
-          const tag = !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(k) ? ' \\`json:\\"' + k + '\\"\`' : '';
-          result += pad + '  ' + safeKey + ' ' + toGo(v, '', indent + 1).trim() + tag + '\\\\n';
-        }
-        result += pad + '}';
-        return result;
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          const name = document.getElementById('typeName').value || 'Root';
-          output.value = 'package main\\\\n\\\\n' + toGo(obj, name);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      document.getElementById('typeName').addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify({id:1,name:"test",age:30,active:true,address:{city:"北京",zip:"100000"}}, null, 2);
-      run();
-    `,
-
-    'json/to-rust': `
-      const input = document.getElementById('input');
-      const output = document.getElementById('output');
-      function toRust(obj, name, indent = 0) {
-        const pad = '  '.repeat(indent);
-        if (typeof obj !== 'object' || obj === null) {
-          const typeMap = { string: 'String', number: 'f64', boolean: 'bool' };
-          return pad + (typeMap[typeof obj] || 'serde_json::Value');
-        }
-        if (Array.isArray(obj)) {
-          if (obj.length === 0) return pad + 'Vec<serde_json::Value>';
-          const types = [...new Set(obj.map(item => toRust(item, '', indent + 1).trim()))];
-          if (types.length === 1) return pad + 'Vec<' + types[0].replace(/^\\*/, '') + '>';
-          return pad + 'Vec<serde_json::Value>';
-        }
-        let result = '#[derive(Debug, Serialize, Deserialize)]\\\\n' + pad + 'pub struct ' + name + ' {\\\\n';
-        for (const [k, v] of Object.entries(obj)) {
-          const safeKey = /^[a-z_][a-z0-9_]*$/.test(k) ? k : k;
-          result += pad + '  pub ' + safeKey + ': ' + toRust(v, '', indent + 1).trim() + ',\\\\n';
-        }
-        result += pad + '}';
-        return result;
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          const name = document.getElementById('typeName').value || 'Root';
-          output.value = 'use serde::{Serialize, Deserialize};\\\\n\\\\n' + toRust(obj, name);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      document.getElementById('typeName').addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify({id:1,name:"test",age:30,active:true}, null, 2);
-      run();
-    `,
-
-    'json/json-path': `
-      const input = document.getElementById('input');
-      const pathInput = document.getElementById('pathInput');
-      const output = document.getElementById('output');
-      function jsonPath(obj, path) {
-        if (!path.startsWith('$')) path = '$' + path;
-        const tokens = path.split(/\\.(?![^\\[\\]]*\\])|(?<![^\\[\\]]*\\])\\[/).filter(Boolean);
-        let current = [obj];
-        for (const token of tokens) {
-          if (token === '$') continue;
-          const next = [];
-          if (token === '*') { current.forEach(c => { if (Array.isArray(c)) next.push(...c); else if (typeof c === 'object' && c !== null) next.push(...Object.values(c)); }); }
-          else if (/^\\d+$/.test(token)) { const idx = parseInt(token); current.forEach(c => { if (Array.isArray(c) && c[idx] !== undefined) next.push(c[idx]); }); }
-          else if (token.startsWith('[') && token.endsWith(']')) {
-            const indices = token.slice(1,-1).split(',').map(s => s.trim());
-            indices.forEach(idx => {
-              if (/^\\d+$/.test(idx)) current.forEach(c => { if (Array.isArray(c) && c[parseInt(idx)] !== undefined) next.push(c[parseInt(idx)]); });
-            });
-          } else {
-            current.forEach(c => { if (c && typeof c === 'object' && token in c) next.push(c[token]); });
-          }
-          current = next;
-        }
-        return current;
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          const path = pathInput.value.trim() || '$.';
-          if (!val) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          const results = jsonPath(obj, path);
-          output.value = JSON.stringify(results, null, 2);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      pathInput.addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify({"store":{"book":[{"category":" fiction","author":"鲁迅","title":"呐喊","price":9.99},{"category":" fiction","author":"老舍","title":"骆驼祥子","price":12.99}],"bicycle":{"color":"red","price":399}},"home":{"rooms":3,"address":"北京"}}, null, 2);
-      run();
-    `,
-
-    'json/merge': `
-      const input1 = document.getElementById('input1');
-      const input2 = document.getElementById('input2');
-      const output = document.getElementById('output');
-      const deepCheck = document.getElementById('deepMerge');
-      function merge(a, b, deep) {
-        if (deep) {
-          if (typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
-            if (Array.isArray(a) !== Array.isArray(b)) return Array.isArray(b) ? b : a;
-            if (Array.isArray(a)) return [...a, ...b];
-            const result = { ...a };
-            for (const key of Object.keys(b)) {
-              result[key] = merge(a[key], b[key], true);
-            }
-            return result;
-          }
-          return b !== undefined ? b : a;
-        }
-        return { ...a, ...b };
-      }
-      function run() {
-        try {
-          const v1 = input1.value.trim();
-          const v2 = input2.value.trim();
-          if (!v1 && !v2) { output.value = ''; return; }
-          const o1 = v1 ? JSON.parse(v1) : (Array.isArray(JSON.parse(v2||'{}')) ? [] : {});
-          const o2 = v2 ? JSON.parse(v2) : {};
-          const result = merge(o1, o2, deepCheck.checked);
-          output.value = JSON.stringify(result, null, 2);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input1.addEventListener('input', run);
-      input2.addEventListener('input', run);
-      deepCheck.addEventListener('change', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input1.value = JSON.stringify({a:1,b:{c:2}}, null, 2);
-      input2.value = JSON.stringify({b:{d:3},e:4}, null, 2);
-      run();
-    `,
-
-    'json/generator': `
-      const templateInput = document.getElementById('template');
-      const countInput = document.getElementById('count');
-      const output = document.getElementById('output');
-      function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-      function randFloat(min, max, dec) { return (Math.random() * (max - min) + min).toFixed(dec || 2); }
-      function randStr(len) { return Array.from({length: len || randInt(5,12)}, () => String.fromCharCode(randInt(97,122))).join(''); }
-      function randBool() { return Math.random() > 0.5; }
-      const firstNames = ['张','李','王','刘','陈','杨','赵','黄','周','吴'];
-      const lastNames = ['伟','芳','娜','秀英','敏','静','丽','强','磊','军'];
-      const cities = ['北京','上海','广州','深圳','杭州','成都','武汉','西安'];
-      function generate(template) {
-        if (template === null || template === undefined) return null;
-        if (typeof template === 'string') {
-          if (template === '{{firstName}}') return firstNames[randInt(0, firstNames.length-1)];
-          if (template === '{{lastName}}') return lastNames[randInt(0, lastNames.length-1)];
-          if (template === '{{name}}') return firstNames[randInt(0, firstNames.length-1)] + lastNames[randInt(0, lastNames.length-1)];
-          if (template === '{{city}}') return cities[randInt(0, cities.length-1)];
-          if (template === '{{integer}}') return randInt(1, 1000);
-          if (template === '{{float}}') return parseFloat(randFloat(0, 1000));
-          if (template === '{{boolean}}') return randBool();
-          if (template === '{{guid}}' || template === '{{uuid}}') return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); });
-          if (template === '{{date}}') return new Date(Date.now() - randInt(0,365*3)*86400000).toISOString().split('T')[0];
-          if (template === '{{email}}') return randStr(8) + '@example.com';
-          if (template === '{{phone}}') return '1' + randInt(3,9) + Array.from({length:9}, () => randInt(0,9)).join('');
-          if (template.startsWith('{{integer(')) { const m = template.match(/\\d+/g).map(Number); return randInt(m[0], m[1]); }
-          if (template.startsWith('{{float(')) { const m = template.match(/[\\d.]+/g).map(Number); return parseFloat(randFloat(m[0], m[1], m[2]||2)); }
-          if (template.startsWith('{{random(')) { const opts = template.match(/\\[(.*?)\\]/)[1].split(','); return opts[randInt(0,opts.length-1)].trim(); }
-          return template;
-        }
-        if (Array.isArray(template)) return template.map(item => generate(item));
-        if (typeof template === 'object') {
-          const result = {};
-          for (const key of Object.keys(template)) result[key] = generate(template[key]);
-          return result;
-        }
-        return template;
-      }
-      function run() {
-        try {
-          const tpl = templateInput.value.trim();
-          if (!tpl) { output.value = ''; return; }
-          const count = parseInt(countInput.value) || 1;
-          const template = JSON.parse(tpl);
-          const results = [];
-          for (let i = 0; i < Math.min(count, 100); i++) results.push(generate(template));
-          output.value = JSON.stringify(count === 1 ? results[0] : results, null, 2);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      templateInput.addEventListener('input', run);
-      countInput.addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      templateInput.value = JSON.stringify({id:"{{integer(1,1000)}}",name:"{{name}}",email:"{{email}}",age:"{{integer(18,80)}}",city:"{{city}}",active:"{{boolean}}",created:"{{date}}"}, null, 2);
-      run();
-    `,
-
-    'json/sort': `
-      const input = document.getElementById('input');
-      const keyInput = document.getElementById('sortKey');
-      const output = document.getElementById('output');
-      function run() {
-        try {
-          const val = input.value.trim();
-          if (!val) { output.value = ''; return; }
-          const data = JSON.parse(val);
-          if (!Array.isArray(data)) { output.value = JSON.stringify(data, null, 2); return; }
-          const key = keyInput.value.trim();
-          const sorted = [...data].sort((a, b) => {
-            const va = key ? (a[key] ?? '') : a;
-            const vb = key ? (b[key] ?? '') : b;
-            if (va < vb) return -1; if (va > vb) return 1; return 0;
-          });
-          output.value = JSON.stringify(sorted, null, 2);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      keyInput.addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify([{name:"张三",age:28},{name:"李四",age:22},{name:"王五",age:35}], null, 2);
-      run();
-    `,
-
-    'json/search': `
-      const input = document.getElementById('input');
-      const searchInput = document.getElementById('searchInput');
-      const output = document.getElementById('output');
-      const caseSensitive = document.getElementById('caseSensitive');
-      function searchIn(obj, query, cs) {
-        const results = [];
-        function traverse(o, path) {
-          if (typeof o === 'object' && o !== null) {
-            const entries = Object.entries(o);
-            entries.forEach(([k, v]) => traverse(v, path ? path + '.' + k : k));
-          } else {
-            const s = String(o);
-            const q = cs ? s : s.toLowerCase();
-            const m = cs ? query : query.toLowerCase();
-            if (q.includes(m)) results.push({ path, value: o, type: typeof o });
-          }
-        }
-        traverse(obj, '');
-        return results;
-      }
-      function run() {
-        try {
-          const val = input.value.trim();
-          const q = searchInput.value;
-          if (!val || !q) { output.value = ''; return; }
-          const obj = JSON.parse(val);
-          const results = searchIn(obj, q, caseSensitive.checked);
-          if (results.length === 0) { output.value = '未找到匹配结果'; return; }
-          output.value = '找到 ' + results.length + ' 个匹配：\\\\n\\\\n' +
-            results.map(r => '路径: ' + r.path + '\\\\n值: ' + JSON.stringify(r.value) + '\\\\n类型: ' + r.type).join('\\\\n\\\\n---\\\\n\\\\n');
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      input.addEventListener('input', run);
-      searchInput.addEventListener('input', run);
-      caseSensitive.addEventListener('change', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.value = JSON.stringify({name:"张三",age:30,city:"北京",items:[{name:"苹果",price:5},{name:"香蕉",price:3}]}, null, 2);
-      run();
-    `,
-
-    'json/schema': `
-      const jsonInput = document.getElementById('jsonInput');
-      const schemaInput = document.getElementById('schemaInput');
-      const output = document.getElementById('output');
-      function validate(data, schema, path = '') {
-        const errors = [];
-        if (schema.type) {
-          const typeMap = { string: 'string', number: 'number', integer: 'number', boolean: 'boolean', array: 'array', object: 'object', null: 'null' };
-          const actualType = data === null ? 'null' : Array.isArray(data) ? 'array' : typeof data;
-          if (!typeMap[schema.type] || actualType !== typeMap[schema.type]) {
-            errors.push(path + ': 期望类型 ' + schema.type + '，实际类型 ' + actualType);
-            return errors;
-          }
-        }
-        if (schema.type === 'string' && schema.minLength !== undefined && data.length < schema.minLength) errors.push(path + ': 字符串长度不足，最小 ' + schema.minLength);
-        if (schema.type === 'string' && schema.maxLength !== undefined && data.length > schema.maxLength) errors.push(path + ': 字符串长度超出，最大 ' + schema.maxLength);
-        if (schema.type === 'string' && schema.pattern && !new RegExp(schema.pattern).test(data)) errors.push(path + ': 不符合 pattern: ' + schema.pattern);
-        if (schema.type === 'number' || schema.type === 'integer') {
-          if (schema.minimum !== undefined && data < schema.minimum) errors.push(path + ': 小于最小值 ' + schema.minimum);
-          if (schema.maximum !== undefined && data > schema.maximum) errors.push(path + ': 大于最大值 ' + schema.maximum);
-        }
-        if (schema.type === 'array' && schema.items) {
-          data.forEach((item, i) => { errors.push(...validate(item, schema.items, path + '[' + i + ']')); });
-        }
-        if (schema.type === 'object' && schema.properties) {
-          Object.entries(schema.properties).forEach(([k, v]) => {
-            if (data[k] !== undefined) errors.push(...validate(data[k], v, path ? path + '.' + k : k));
-          });
-          if (schema.required) schema.required.forEach(k => { if (!(k in data)) errors.push(path + '.' + k + ': 缺少必需字段'); });
-        }
-        return errors;
-      }
-      function run() {
-        try {
-          const jsonVal = jsonInput.value.trim();
-          const schemaVal = schemaInput.value.trim();
-          if (!jsonVal || !schemaVal) { output.value = ''; return; }
-          const data = JSON.parse(jsonVal);
-          const schema = JSON.parse(schemaVal);
-          const errors = validate(data, schema);
-          if (errors.length === 0) output.value = '✅ JSON 数据符合 Schema 定义';
-          else output.value = '❌ 验证失败 (' + errors.length + ' 个错误)：\\\\n\\\\n' + errors.join('\\\\n');
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      jsonInput.addEventListener('input', run);
-      schemaInput.addEventListener('input', run);
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      jsonInput.value = JSON.stringify({name:"张三",age:25,email:"zhang@example.com"}, null, 2);
-      schemaInput.value = JSON.stringify({type:"object",required:["name","age"],properties:{name:{type:"string"},age:{type:"integer",minimum:0}}});
-      run();
-    `,
-
-    // ---- 编码/加密工具 ----
-    'encrypt/aes': `
-      const input = document.getElementById('input');
-      const keyInput = document.getElementById('keyInput');
-      const ivInput = document.getElementById('ivInput');
-      const output = document.getElementById('output');
-      const modeSelect = document.getElementById('modeSelect');
-      let mode = 'encrypt';
-      async function aes_encrypt(text, key, iv) {
-        const encoder = new TextEncoder();
-        const k = await crypto.subtle.importKey('raw', encoder.encode(key.padEnd(32,'0').slice(0,32)), {name:'AES-CBC'}, false, ['encrypt']);
-        const ivBytes = encoder.encode(iv || '').slice(0,16);
-        const encrypted = await crypto.subtle.encrypt({name:'AES-CBC', iv: ivBytes}, k, encoder.encode(text));
-        return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-      }
-      async function aes_decrypt(text, key, iv) {
-        try {
-          const encoder = new TextEncoder();
-          const k = await crypto.subtle.importKey('raw', encoder.encode(key.padEnd(32,'0').slice(0,32)), {name:'AES-CBC'}, false, ['decrypt']);
-          const ivBytes = encoder.encode(iv || '').slice(0,16);
-          const data = Uint8Array.from(atob(text.trim()), c => c.charCodeAt(0));
-          const decrypted = await crypto.subtle.decrypt({name:'AES-CBC', iv: ivBytes}, k, data);
-          return new TextDecoder().decode(decrypted);
-        } catch(e) { throw new Error('解密失败: ' + e.message); }
-      }
-      async function run() {
-        try {
-          const text = input.value;
-          const key = keyInput.value || 'defaultpassword123456';
-          const iv = ivInput.value || 'randomiv123456789';
-          if (!text) { output.value = ''; return; }
-          output.value = mode === 'encrypt' ? await aes_encrypt(text, key, iv) : await aes_decrypt(text, key, iv);
-        } catch(e) { output.value = '错误: ' + e.message; }
-      }
-      document.getElementById('encrypt').onclick = () => { mode='encrypt'; run(); };
-      document.getElementById('decrypt').onclick = () => { mode='decrypt'; run(); };
-      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
-      input.addEventListener('input', run);
-      keyInput.addEventListener('input', run);
-    `,
-
-    'encrypt/des': `
-      const input = document.getElementById('input');
-      const keyInput = document.getElementById('keyInput');
-      const output = document.getElementById('output');
-      let mode = 'encrypt';
-      // DES implementation using simple lookup tables
-      const IP = [58,50,42,34,26,18,10,2,60,52,44,36,28,20,12,4,62,54,46,38,30,22,14,6,64,56,48,40,32,24,16,8,57,49,41,33,25,17,9,1,59,51,43,35,27,19,11,3,61,53,45,37,29,21,13,5,63,55,47,39,31,23,15,7];
-      const FP = [40,8,48,16,56,24,64,32,39,7,47,15,55,23,63,31,38,6,46,14,54,22,62,30,37,5,45,13,53,21,61,29,36,4,44,12,52,20,60,28,35,3,43,11,51,19,59,27,34,2,42,10,50,18,58,26];
-      function strToBits(s) { const b=[]; for(let i=0;i<s.length;i++) for(let j=7;j>=0;j--) b.push((s.charCodeAt(i)>>j)&1); return b; }
-      function bitsToStr(b) { let s=''; for(let i=0;i<b.length;i+=8) { let v=0; for(let j=0;j<8;j++) v=v*2+(b[i+j]||0); s+=
+print("Step 1 done - Added ASCII tool, 其他工具 category created")
