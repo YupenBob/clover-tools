@@ -3501,7 +3501,7 @@
         "icon": "bi bi-globe2",
         "title": "URL 参数解析 - 解析 URL 查询字符串并表格化展示",
         "customScript": "document.getElementById('parseBtn').onclick=function(){try{var url=document.getElementById('urlInput').value;var a=document.createElement('a');a.href=url;var result='href: '+a.href+'\\norigin: '+a.origin+'\\nprotocol: '+a.protocol+'\\nhost: '+a.hostname+'\\nport: '+a.port+'\\npathname: '+a.pathname+'\\nsearch: '+a.search+'\\nhash: '+a.hash;var params={};a.search.replace(/([^&=]+)=([^&]*)/g,function(k,v){params[k]=v;});result+='\\n参数:\\n';for(var p in params)result+=p+': '+params[p]+'\\n';document.getElementById('output').value=result;}catch(e){document.getElementById('output').value='URL解析错误: '+e.message;}};",
-        "description": "URL 参数解析在线工具"
+        "description": "URL 参数解析工具，输入任意带参数的 URL，自动提取并解析查询字符串，以表格形式展示每个参数名与对应值，支持搜索过滤，适用于前后端调试、链接分析、SEO 检查等场景。"
       },
       {
         "name": "M3U8解析下载",
