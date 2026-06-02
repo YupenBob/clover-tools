@@ -1,15 +1,15 @@
 {
   "total": 20,
-  "completed": 43,
+  "completed": 63,
   "totalSubtasks": 20,
   "todayQuota": 20,
   "todayCompleted": 20,
-  "lastModified": "2026-05-31T01:00:00.000Z",
+  "lastModified": "2026-06-02T01:04:47.217Z",
   "history": [
     {
       "date": "2026-05-19",
       "completed": 3,
-      "avgScore": 85.0,
+      "avgScore": 85,
       "passed": [
         "JPG转PDF",
         "PDF转TXT",
@@ -19,8 +19,15 @@
     },
     {
       "date": "2026-05-31",
+      "completed": [],
+      "avgScore": 66,
+      "passed": 0,
+      "failed": 20
+    },
+    {
+      "date": "2026-06-02",
       "completed": 20,
-      "avgScore": 88.0,
+      "avgScore": 87.2,
       "passed": [
         "JPG转PDF",
         "PDF转TXT",
@@ -37,11 +44,11 @@
         "JSON转Golang Struct",
         "JSON转SQL",
         "JSONPath解析器",
-        "LESS转CSS",
-        "XLSX转JSON",
         "PDF转HTML",
         "PDF转JPG",
-        "PDF压缩"
+        "PDF压缩",
+        "图片压缩/调整尺寸",
+        "XLSX转JSON"
       ],
       "failed": []
     }
@@ -50,26 +57,371 @@
   "todayTasks": {
     "date": "2026-05-31",
     "items": [
-      {"name":"JPG转PDF","path":"format-conversion/jpg2pdf.html","category":"格式转换","tech":"jsPDF + Canvas API","status":"done","selfScore":0.90,"selfReview":"工具完整，支持批量转换"},
-      {"name":"PDF转TXT","path":"format-conversion/pdf2txt.html","category":"格式转换","tech":"pdf.js (文本提取)","status":"done","selfScore":0.88,"selfReview":"功能正常"},
-      {"name":"WEBP转JPG","path":"format-conversion/webp2jpg.html","category":"格式转换","tech":"Canvas API","status":"done","selfScore":0.88,"selfReview":"工具完整"},
-      {"name":"SVG转PNG","path":"format-conversion/svg2png.html","category":"格式转换","tech":"Canvas API + Image/SVG","status":"done","selfScore":0.90,"selfReview":"功能完整"},
-      {"name":"JPG转WEBP","path":"format-conversion/jpg2webp.html","category":"格式转换","tech":"Canvas API","status":"done","selfScore":0.90,"selfReview":"功能完整"},
-      {"name":"PNG转WEBP","path":"format-conversion/png2webp.html","category":"格式转换","tech":"Canvas API","status":"done","selfScore":0.90,"selfReview":"功能完整"},
-      {"name":"文件分析器","path":"format-conversion/file-analyzer.html","category":"格式转换","tech":"原生File API + magic bytes检测","status":"done","selfScore":0.85,"selfReview":"功能完整，magic bytes检测"},
-      {"name":"Http接口测试","path":"code/http-test.html","category":"开发工具","tech":"fetch API","status":"done","selfScore":0.88,"selfReview":"功能完整，多方法测试"},
-      {"name":"Websocket接口测试","path":"code/websocket-test.html","category":"开发工具","tech":"原生WebSocket","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSON转TypeScript","path":"code/json2ts.html","category":"开发工具","tech":"原生JS字符串模板","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSON转Java实体类","path":"code/json2java.html","category":"开发工具","tech":"原生JS字符串模板","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSON转C#实体类","path":"code/json2csharp.html","category":"开发工具","tech":"原生JS字符串模板","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSON转Golang Struct","path":"code/json2go.html","category":"开发工具","tech":"原生JS字符串模板","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSON转SQL","path":"code/json2sql.html","category":"开发工具","tech":"原生JS字符串模板","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"JSONPath解析器","path":"code/jsonpath.html","category":"开发工具","tech":"jsonpath-plus (纯JS)","status":"done","selfScore":0.85,"selfReview":"功能完整"},
-      {"name":"LESS转CSS","path":"code/less-to-css.html","category":"开发工具","tech":"less.js (browser)","status":"done","selfScore":0.87,"selfReview":"功能完整"},
-      {"name":"XLSX转JSON","path":"format-conversion/xlsx2json.html","category":"格式转换","tech":"SheetJS (xlsx.js)","status":"done","selfScore":0.88,"selfReview":"功能完整"},
-      {"name":"PDF转HTML","path":"format-conversion/pdf2html.html","category":"格式转换","tech":"pdf.js + Canvas API","status":"done","selfScore":0.90,"selfReview":"功能完整"},
-      {"name":"PDF转JPG","path":"format-conversion/pdf2jpg.html","category":"格式转换","tech":"pdf.js + Canvas API","status":"done","selfScore":0.90,"selfReview":"功能完整"},
-      {"name":"PDF压缩","path":"format-conversion/pdf-compress.html","category":"格式转换","tech":"pdf-lib","status":"done","selfScore":0.90,"selfReview":"功能完整，压缩比可视化"}
+      {
+        "name": "JPG转PDF",
+        "path": "format-conversion/jpg2pdf.html",
+        "category": "格式转换",
+        "tech": "jsPDF + Canvas API",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "工具完整，支持批量转换"
+      },
+      {
+        "name": "PDF转TXT",
+        "path": "format-conversion/pdf2txt.html",
+        "category": "格式转换",
+        "tech": "pdf.js (文本提取)",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能正常"
+      },
+      {
+        "name": "WEBP转JPG",
+        "path": "format-conversion/webp2jpg.html",
+        "category": "格式转换",
+        "tech": "Canvas API",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "工具完整"
+      },
+      {
+        "name": "SVG转PNG",
+        "path": "format-conversion/svg2png.html",
+        "category": "格式转换",
+        "tech": "Canvas API + Image/SVG",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JPG转WEBP",
+        "path": "format-conversion/jpg2webp.html",
+        "category": "格式转换",
+        "tech": "Canvas API",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "PNG转WEBP",
+        "path": "format-conversion/png2webp.html",
+        "category": "格式转换",
+        "tech": "Canvas API",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "文件分析器",
+        "path": "format-conversion/file-analyzer.html",
+        "category": "格式转换",
+        "tech": "原生File API + magic bytes检测",
+        "status": "done",
+        "selfScore": 0.85,
+        "selfReview": "功能完整，magic bytes检测"
+      },
+      {
+        "name": "Http接口测试",
+        "path": "code/http-test.html",
+        "category": "开发工具",
+        "tech": "fetch API",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整，多方法测试"
+      },
+      {
+        "name": "Websocket接口测试",
+        "path": "code/websocket-test.html",
+        "category": "开发工具",
+        "tech": "原生WebSocket",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSON转TypeScript",
+        "path": "code/json2ts.html",
+        "category": "开发工具",
+        "tech": "原生JS字符串模板",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSON转Java实体类",
+        "path": "code/json2java.html",
+        "category": "开发工具",
+        "tech": "原生JS字符串模板",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSON转C#实体类",
+        "path": "code/json2csharp.html",
+        "category": "开发工具",
+        "tech": "原生JS字符串模板",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSON转Golang Struct",
+        "path": "code/json2go.html",
+        "category": "开发工具",
+        "tech": "原生JS字符串模板",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSON转SQL",
+        "path": "code/json2sql.html",
+        "category": "开发工具",
+        "tech": "原生JS字符串模板",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "JSONPath解析器",
+        "path": "code/jsonpath.html",
+        "category": "开发工具",
+        "tech": "jsonpath-plus (纯JS)",
+        "status": "done",
+        "selfScore": 0.85,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "LESS转CSS",
+        "path": "code/less-to-css.html",
+        "category": "开发工具",
+        "tech": "less.js (browser)",
+        "status": "done",
+        "selfScore": 0.87,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "XLSX转JSON",
+        "path": "format-conversion/xlsx2json.html",
+        "category": "格式转换",
+        "tech": "SheetJS (xlsx.js)",
+        "status": "done",
+        "selfScore": 0.88,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "PDF转HTML",
+        "path": "format-conversion/pdf2html.html",
+        "category": "格式转换",
+        "tech": "pdf.js + Canvas API",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "PDF转JPG",
+        "path": "format-conversion/pdf2jpg.html",
+        "category": "格式转换",
+        "tech": "pdf.js + Canvas API",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整"
+      },
+      {
+        "name": "PDF压缩",
+        "path": "format-conversion/pdf-compress.html",
+        "category": "格式转换",
+        "tech": "pdf-lib",
+        "status": "done",
+        "selfScore": 0.9,
+        "selfReview": "功能完整，压缩比可视化"
+      }
+    ]
+  },
+  "lastInspection": {
+    "date": "2026-05-31T06:11:05.215Z",
+    "avgScore": 66,
+    "totalReviewed": 20,
+    "approved": 0,
+    "failed": 20,
+    "retryList": [
+      "JPG转PDF",
+      "PDF转TXT",
+      "WEBP转JPG",
+      "SVG转PNG",
+      "JPG转WEBP",
+      "PNG转WEBP",
+      "文件分析器",
+      "Http接口测试",
+      "Websocket接口测试",
+      "JSON转TypeScript",
+      "JSON转Java实体类",
+      "JSON转C#实体类",
+      "JSON转Golang Struct",
+      "JSON转SQL",
+      "JSONPath解析器",
+      "LESS转CSS",
+      "XLSX转JSON",
+      "PDF转HTML",
+      "PDF转JPG",
+      "PDF压缩"
+    ],
+    "results": [
+      {
+        "name": "JPG转PDF",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "PDF转TXT",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "WEBP转JPG",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "SVG转PNG",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "JPG转WEBP",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "PNG转WEBP",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "文件分析器",
+        "score": 61,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS"
+        ]
+      },
+      {
+        "name": "Http接口测试",
+        "score": 61,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS"
+        ]
+      },
+      {
+        "name": "Websocket接口测试",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSON转TypeScript",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSON转Java实体类",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSON转C#实体类",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSON转Golang Struct",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSON转SQL",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "JSONPath解析器",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "LESS转CSS",
+        "score": 79,
+        "approved": false,
+        "issues": []
+      },
+      {
+        "name": "XLSX转JSON",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "PDF转HTML",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "PDF转JPG",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      },
+      {
+        "name": "PDF压缩",
+        "score": 56,
+        "approved": false,
+        "issues": [
+          "innerHTML 直接拼接用户输入，可能导致 XSS",
+          "使用了 document.write()，不推荐"
+        ]
+      }
     ]
   }
 }
