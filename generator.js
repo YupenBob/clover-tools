@@ -152,40 +152,108 @@ const TOOL_TYPE_REGISTRY = {
     html: function(tool) {
       const btn1 = tool.btnLabel1 || '编码';
       const btn2 = tool.btnLabel2 || '解码';
+      const sample = tool.sampleData || '';
       const inputPlaceholder = tool.inputPlaceholder || '输入要编码/解码的文本...';
+      const sampleBtn = sample ? '<button class="btn btn-sm btn-ghost" id="fillSample" title="填入示例数据">📝 示例</button>' : '';
       return `
       <div class="tool-card">
-        <h3>输入</h3>
+        <div class="tool-card-header">
+          <h3>输入</h3>
+          <div class="tool-card-actions">
+            ${sampleBtn}
+            <button class="btn btn-sm btn-ghost" id="clearInput" title="清空输入">✕ 清空</button>
+          </div>
+        </div>
         <textarea id="input" placeholder="${inputPlaceholder}"></textarea>
+        <div class="input-stats">
+          <span id="inputCharCount">0 字符</span>
+        </div>
         <div class="btn-row">
           <button class="btn btn-primary" id="action1">${btn1}</button>
           <button class="btn btn-secondary" id="action2">${btn2}</button>
         </div>
       </div>
       <div class="output-box">
-        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <div class="output-box-header">
+          <h3>输出</h3>
+          <button class="copy-btn" id="copyOutput">📋 复制</button>
+        </div>
         <textarea id="output" readonly></textarea>
+        <div class="input-stats">
+          <span id="outputCharCount">0 字符</span>
+        </div>
       </div>`;
     },
     script: function(tool) {
+      const sample = tool.sampleData || '';
       return `
       var mode = 'forward';
       var _fwd = ${JSON.stringify(tool.forwardFn || 'return v')};
       var _rev = ${JSON.stringify(tool.reverseFn || 'return v')};
       var fwd = new Function('v', _fwd);
       var rev = new Function('v', _rev);
-      var fwdLabel = ${JSON.stringify(tool.btnLabel1 || '编码')};
-      var revLabel = ${JSON.stringify(tool.btnLabel2 || '解码')};
+      var sampleData = ${JSON.stringify(sample)};
+
+      function updateStats() {
+        var inp = document.getElementById('input').value;
+        var out = document.getElementById('output').value;
+        document.getElementById('inputCharCount').textContent = inp.length + ' 字符';
+        document.getElementById('outputCharCount').textContent = out.length + ' 字符';
+      }
+
       function run() {
         var v = document.getElementById('input').value;
+        if (!v) { document.getElementById('output').value = ''; updateStats(); return; }
         try {
           document.getElementById('output').value = (mode === 'forward') ? fwd(v) : rev(v);
-        } catch(e) { document.getElementById('output').value = '错误: ' + e.message; }
+          document.getElementById('output').style.borderColor = '';
+        } catch(e) {
+          document.getElementById('output').value = '错误: ' + e.message;
+          document.getElementById('output').style.borderColor = 'var(--error)';
+        }
+        updateStats();
       }
-      document.getElementById('action1').onclick = function() { mode = 'forward'; run(); };
-      document.getElementById('action2').onclick = function() { mode = 'reverse'; run(); };
-      document.getElementById('copyOutput').onclick = function() { copyToClipboard(document.getElementById('output').value); };
-      document.getElementById('input').addEventListener('input', run);
+
+      document.getElementById('action1').onclick = function() {
+        mode = 'forward';
+        this.classList.add('active-btn');
+        document.getElementById('action2').classList.remove('active-btn');
+        run();
+      };
+      document.getElementById('action2').onclick = function() {
+        mode = 'reverse';
+        this.classList.add('active-btn');
+        document.getElementById('action1').classList.remove('active-btn');
+        run();
+      };
+
+      document.getElementById('copyOutput').onclick = function() {
+        CT.copy(document.getElementById('output').value, this);
+      };
+      document.getElementById('input').addEventListener('input', CT.debounce(run, 150));
+      document.getElementById('clearInput').onclick = function() {
+        document.getElementById('input').value = '';
+        document.getElementById('output').value = '';
+        updateStats();
+        document.getElementById('input').focus();
+      };
+      if (sampleData) {
+        document.getElementById('fillSample').onclick = function() {
+          document.getElementById('input').value = sampleData;
+          mode = 'forward';
+          document.getElementById('action1').classList.add('active-btn');
+          document.getElementById('action2').classList.remove('active-btn');
+          run();
+        };
+      }
+      // Keyboard shortcuts
+      document.addEventListener('keydown', function(e) {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+          if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('clearInput').click(); }
+        }
+      });
+      updateStats();
       `;
     }
   },
@@ -208,11 +276,10 @@ const TOOL_TYPE_REGISTRY = {
           }
         });
       }
-      return '<div class="tool-card"><h3>输入参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div><div class="btn-row"><button class="btn btn-primary" id="calcBtn">计算</button></div></div><div class="tool-card"><h3>计算结果</h3><div id="result" style="font-size:1.1rem;padding:1rem;line-height:1.8;"></div></div>';
+      return '<div class="tool-card"><div class="tool-card-header"><h3>输入参数</h3></div><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div><div class="btn-row"><button class="btn btn-primary" id="calcBtn">⚡ 计算</button><button class="btn btn-sm btn-ghost" id="resetBtn">↺ 重置</button></div></div><div class="tool-card"><div class="tool-card-header"><h3>计算结果</h3><button class="copy-btn" id="copyResult">📋 复制</button></div><div id="result" style="font-size:1.1rem;padding:1rem;line-height:1.8;min-height:2rem;"></div></div>';
     },
     script: function(tool) {
       const fn = tool.calcFn || 'function(inputs){return "请实现计算逻辑";}';
-      // Escape single quotes so fn can be safely embedded in single-quoted string
       const fnEscaped = fn.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
       const initPart = tool.initFn || '';
       const autoCalcPart = tool.autoCalc ? 'document.getElementById("calcBtn").onclick();' : '';
@@ -220,7 +287,12 @@ const TOOL_TYPE_REGISTRY = {
         return '  inputs["' + f.id + '"] = document.getElementById("' + f.id + '").value;\n  inputs["' + f.id + '_el"] = document.getElementById("' + f.id + '");';
       });
       const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
-      return 'var calcFn = \'' + fnEscaped + '\';\n' + initPart + '\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var calcFnObj = new Function(\'return \' + calcFn)();\n  var result = calcFnObj(inputs);\n  document.getElementById("result").innerHTML = result;\n};\n' + autoCalcPart;
+      // Store default values for reset
+      const defaultValues = (tool.fields || []).map(function(f) {
+        return '    defaults["' + f.id + '"] = "' + (f.defaultValue || '').replace(/"/g, '\\"') + '";';
+      }).join('\n');
+      const hasDefaults = (tool.fields || []).some(function(f) { return f.defaultValue; });
+      return 'var calcFn = \'' + fnEscaped + '\';\n' + initPart + '\nvar defaults = {};\n' + (hasDefaults ? defaultValues + '\n' : '') + 'function resetFields() {\n  (document.querySelectorAll("#calcBtn").length ? [] : []);\n  var fields = document.querySelectorAll(".input-field input, .input-field select");\n  fields.forEach(function(f) {\n    if (defaults[f.id] !== undefined) f.value = defaults[f.id];\n    else if (f.tagName === "SELECT") f.selectedIndex = 0;\n    else f.value = "";\n  });\n  if (defaults && Object.keys(defaults).length > 0) {\n    Object.keys(defaults).forEach(function(k) {\n      var el = document.getElementById(k);\n      if (el && defaults[k]) el.value = defaults[k];\n    });\n  }\n}\ndocument.getElementById("calcBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var calcFnObj = new Function(\'return \' + calcFn)();\n  var result = calcFnObj(inputs);\n  document.getElementById("result").innerHTML = result;\n  document.getElementById("copyResult").style.display = "";\n};\ndocument.getElementById("resetBtn").onclick = function() { resetFields(); document.getElementById("result").innerHTML = ""; document.getElementById("copyResult").style.display = "none"; };\ndocument.getElementById("copyResult").onclick = function() { CT.copy(document.getElementById("result").textContent, this); };\ndocument.getElementById("copyResult").style.display = "none";\ndocument.addEventListener("keydown", function(e) {\n  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); document.getElementById("calcBtn").click(); }\n});\n' + (hasDefaults ? 'resetFields();\n' : '') + autoCalcPart;
     }
   },
 
@@ -266,12 +338,16 @@ const TOOL_TYPE_REGISTRY = {
       const opts = (tool.options || []).map(function(o) {
         return '<option value="' + o.value + '">' + o.label + '</option>';
       }).join('');
-      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="' + (tool.inputPlaceholder || '输入...') + '" style="min-height:100px;"></textarea><div class="input-row" style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;"><span>从</span><select id="fromBase" style="padding:0.4rem;">' + opts + '</select><span>转换为</span><select id="toBase" style="padding:0.4rem;">' + opts + '</select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">转换</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+      const sample = tool.sampleData || '';
+      const sampleBtn = sample ? '<button class="btn btn-sm btn-ghost" id="fillSample">📝 示例</button>' : '';
+      return '<div class="tool-card"><div class="tool-card-header"><h3>输入</h3><div class="tool-card-actions">' + sampleBtn + '<button class="btn btn-sm btn-ghost" id="clearInput">✕ 清空</button></div></div><textarea id="input" placeholder="' + (tool.inputPlaceholder || '输入...') + '" style="min-height:100px;"></textarea><div class="input-stats"><span id="inputCharCount">0 字符</span></div><div class="input-row" style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;"><span>从</span><select id="fromBase" style="padding:0.4rem;">' + opts + '</select><span>转换为</span><select id="toBase" style="padding:0.4rem;">' + opts + '</select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">⚡ 转换</button></div></div><div class="output-box"><div class="output-box-header"><h3>输出</h3><button class="copy-btn" id="copyOutput">📋 复制</button></div><textarea id="output" readonly></textarea><div class="input-stats"><span id="outputCharCount">0 字符</span></div></div>';
     },
     script: function(tool) {
       const conv = tool.convertFn || 'function(v,from,to){return v;}';
       const convEscaped = conv.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-      return "var convertFn = '" + convEscaped + "';\ndocument.getElementById(\"convertBtn\").onclick = function() {\n  var v = document.getElementById(\"input\").value;\n  var from = document.getElementById(\"fromBase\").value;\n  var to = document.getElementById(\"toBase\").value;\n  var convertFnObj = new Function('return ' + convertFn)();\n  try { document.getElementById(\"output\").value = convertFnObj(v, from, to); }\n  catch(e) { document.getElementById(\"output\").value = \"错误: \" + e.message; }\n};\ndocument.getElementById(\"copyOutput\").onclick = function() { copyToClipboard(document.getElementById(\"output\").value); };\ndocument.getElementById(\"input\").addEventListener(\"input\", function() {\n  if (document.getElementById(\"autoConvert\") && document.getElementById(\"autoConvert\").checked) document.getElementById(\"convertBtn\").click();\n});";
+      const sample = tool.sampleData || '';
+      const hasAuto = tool.autoConvert !== false;
+      return "var convertFn = '" + convEscaped + "';\nvar sampleData = " + JSON.stringify(sample) + ";\nfunction updateConvStats() {\n  document.getElementById('inputCharCount').textContent = document.getElementById('input').value.length + ' 字符';\n  document.getElementById('outputCharCount').textContent = document.getElementById('output').value.length + ' 字符';\n}\nfunction doConvert() {\n  var v = document.getElementById(\"input\").value;\n  if (!v) { document.getElementById(\"output\").value = ''; updateConvStats(); return; }\n  var from = document.getElementById(\"fromBase\").value;\n  var to = document.getElementById(\"toBase\").value;\n  var convertFnObj = new Function('return ' + convertFn)();\n  try { document.getElementById(\"output\").value = convertFnObj(v, from, to); document.getElementById(\"output\").style.borderColor = ''; }\n  catch(e) { document.getElementById(\"output\").value = \"错误: \" + e.message; document.getElementById(\"output\").style.borderColor = 'var(--error)'; }\n  updateConvStats();\n}\ndocument.getElementById(\"convertBtn\").onclick = doConvert;\ndocument.getElementById(\"copyOutput\").onclick = function() { CT.copy(document.getElementById(\"output\").value, this); };\ndocument.getElementById(\"clearInput\").onclick = function() { document.getElementById(\"input\").value = ''; document.getElementById(\"output\").value = ''; updateConvStats(); document.getElementById(\"input\").focus(); };\n" + (sample ? "document.getElementById(\"fillSample\").onclick = function() { document.getElementById(\"input\").value = sampleData; doConvert(); };\n" : "") + "document.getElementById(\"input\").addEventListener(\"input\", CT.debounce(function() {\n  " + (hasAuto ? "doConvert();" : "") + "\n  document.getElementById('inputCharCount').textContent = this.value.length + ' 字符';\n}, 150));\ndocument.addEventListener('keydown', function(e) {\n  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); doConvert(); }\n});\nupdateConvStats();";
     }
   },
 
@@ -312,7 +388,7 @@ const TOOL_TYPE_REGISTRY = {
         });
       }
       const btnLabel = tool.btnLabel || '生成';
-      return '<div class="tool-card">' + (fields ? '<h3>参数</h3><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div>' : '') + '<div class="btn-row"><button class="btn btn-primary" id="genBtn">' + btnLabel + '</button></div></div><div class="output-box"><h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+      return '<div class="tool-card">' + (fields ? '<div class="tool-card-header"><h3>参数</h3></div><div class="input-row" style="display:flex;gap:1rem;flex-wrap:wrap;">' + fields + '</div>' : '') + '<div class="btn-row"><button class="btn btn-primary" id="genBtn">⚡ ' + btnLabel + '</button></div></div><div class="output-box"><div class="output-box-header"><h3>结果</h3><button class="copy-btn" id="copyOutput">📋 复制</button></div><textarea id="output" readonly></textarea><div class="input-stats"><span id="outputStats">0 字符</span></div></div>';
     },
     script: function(tool) {
       const genFn = tool.generateFn || 'function(inputs){ return "请实现生成逻辑"; }';
@@ -322,7 +398,7 @@ const TOOL_TYPE_REGISTRY = {
       });
       const fieldCode = fieldParts.length > 0 ? '\n' + fieldParts.join('\n') + '\n' : '\n';
       const autoGenPart = tool.autoGenerate ? 'document.getElementById("genBtn").onclick();' : '';
-      return 'var genFn = \'' + genFnEscaped + '\';\ndocument.getElementById("genBtn").onclick = function() {\n  var inputs = {};' + fieldCode + '  var genFnObj = new Function(\'return \' + genFn)();\n  var result = genFnObj(inputs);\n  document.getElementById("output").value = result;\n};\ndocument.getElementById("copyOutput").onclick = function() { copyToClipboard(document.getElementById("output").value); };\n' + autoGenPart;
+      return 'var genFn = \'' + genFnEscaped + '\';\nfunction doGenerate() {\n  var inputs = {};' + fieldCode + '  var genFnObj = new Function(\'return \' + genFn)();\n  var result = genFnObj(inputs);\n  document.getElementById("output").value = result;\n  document.getElementById("outputStats").textContent = result.length + " 字符";\n}\ndocument.getElementById("genBtn").onclick = doGenerate;\ndocument.getElementById("copyOutput").onclick = function() { CT.copy(document.getElementById("output").value, this); };\ndocument.addEventListener("keydown", function(e) {\n  if ((e.ctrlKey||e.metaKey) && e.key === "Enter") { e.preventDefault(); doGenerate(); }\n});\n' + autoGenPart;
     }
   },
 
@@ -331,10 +407,13 @@ const TOOL_TYPE_REGISTRY = {
     description: '格式化工具(JSON/HTML/XML)',
     html: function(tool) {
       var inputPlaceholder = tool.inputPlaceholder || '输入内容...';
-      return '<div class="tool-card"><h3>输入</h3><textarea id="input" placeholder="' + inputPlaceholder + '"></textarea><div class="btn-row"><button class="btn btn-primary" id="format">格式化</button><button class="btn btn-secondary" id="minify">压缩</button></div></div><div class="output-box"><h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3><textarea id="output" readonly></textarea></div>';
+      var sample = tool.sampleData || '';
+      var sampleBtn = sample ? '<button class="btn btn-sm btn-ghost" id="fillSample">📝 示例</button>' : '';
+      return '<div class="tool-card"><div class="tool-card-header"><h3>输入</h3><div class="tool-card-actions">' + sampleBtn + '<button class="btn btn-sm btn-ghost" id="clearInput">✕ 清空</button></div></div><textarea id="input" placeholder="' + inputPlaceholder + '"></textarea><div class="input-stats"><span id="inputStats">0 字符 · 0 行</span></div><div class="btn-row"><button class="btn btn-primary" id="format">🎨 格式化</button><button class="btn btn-secondary" id="minify">📦 压缩</button></div></div><div class="output-box"><div class="output-box-header"><h3>输出</h3><button class="copy-btn" id="copyOutput">📋 复制</button></div><textarea id="output" readonly></textarea><div class="input-stats"><span id="outputStats">0 字符</span></div></div>';
     },
     script: function(tool) {
-      return "var mode = 'format';\nvar input = document.getElementById('input');\nvar output = document.getElementById('output');\nfunction detectFormat(text) {\n  var t = text.trim();\n  if (t.startsWith('{') || t.startsWith('[')) return 'json';\n  if (t.startsWith('<')) {\n    if (/<!DOCTYPE\\s+html/i.test(t) || /<html/i.test(t)) return 'html';\n    if (/<\\?xml/i.test(t)) return 'xml';\n    return 'html';\n  }\n  return 'text';\n}\nfunction run() {\n  try {\n    var val = input.value.trim();\n    if (!val) { output.value = ''; return; }\n    var fmt = detectFormat(val);\n    if (fmt === 'json') {\n      var parsed = JSON.parse(val);\n      output.value = mode === 'minify' ? JSON.stringify(parsed) : JSON.stringify(parsed, null, 2);\n    } else if (fmt === 'html' || fmt === 'xml') {\n      var doc = new DOMParser().parseFromString(val, fmt === 'html' ? 'text/html' : 'application/xml');\n      if (fmt === 'xml' && doc.querySelector('parsererror')) throw new Error('XML 解析错误');\n      var formatted = doc.documentElement.outerHTML;\n      output.value = mode === 'minify' ? formatted.replace(/>\\s+</g, '><').trim() : formatted;\n    } else {\n      output.value = val;\n    }\n  } catch(e) { output.value = '错误: ' + e.message; }\n}\ndocument.getElementById('format').onclick = function() { mode = 'format'; run(); };\ndocument.getElementById('minify').onclick = function() { mode = 'minify'; run(); };\ndocument.getElementById('copyOutput').onclick = function() { copyToClipboard(output.value); };\ninput.addEventListener('input', run);\n";
+      var sample = tool.sampleData || '';
+      return "var mode = 'format';\nvar input = document.getElementById('input');\nvar output = document.getElementById('output');\nvar sampleData = " + JSON.stringify(sample) + ";\nfunction updateFormatterStats() {\n  var inv = input.value;\n  document.getElementById('inputStats').textContent = inv.length + ' 字符 · ' + (inv ? inv.split('\\n').length : 0) + ' 行';\n  document.getElementById('outputStats').textContent = output.value.length + ' 字符';\n}\nfunction detectFormat(text) {\n  var t = text.trim();\n  if (t.startsWith('{') || t.startsWith('[')) return 'json';\n  if (t.startsWith('<')) {\n    if (/<!DOCTYPE\\s+html/i.test(t) || /<html/i.test(t)) return 'html';\n    if (/<\\?xml/i.test(t)) return 'xml';\n    return 'html';\n  }\n  return 'text';\n}\nfunction runFormatter() {\n  try {\n    var val = input.value.trim();\n    output.style.borderColor = '';\n    if (!val) { output.value = ''; updateFormatterStats(); return; }\n    var fmt = detectFormat(val);\n    if (fmt === 'json') {\n      var parsed = JSON.parse(val);\n      output.value = mode === 'minify' ? JSON.stringify(parsed) : JSON.stringify(parsed, null, 2);\n    } else if (fmt === 'html' || fmt === 'xml') {\n      var doc = new DOMParser().parseFromString(val, fmt === 'html' ? 'text/html' : 'application/xml');\n      if (fmt === 'xml' && doc.querySelector('parsererror')) throw new Error('XML 解析错误');\n      var formatted = doc.documentElement.outerHTML;\n      output.value = mode === 'minify' ? formatted.replace(/>\\s+</g, '><').trim() : formatted;\n    } else {\n      output.value = val;\n    }\n  } catch(e) { output.value = '错误: ' + e.message; output.style.borderColor = 'var(--error)'; }\n  updateFormatterStats();\n}\ndocument.getElementById('format').onclick = function() { mode = 'format'; this.classList.add('active-btn'); document.getElementById('minify').classList.remove('active-btn'); runFormatter(); };\ndocument.getElementById('minify').onclick = function() { mode = 'minify'; this.classList.add('active-btn'); document.getElementById('format').classList.remove('active-btn'); runFormatter(); };\ndocument.getElementById('copyOutput').onclick = function() { CT.copy(output.value, this); };\ndocument.getElementById('clearInput').onclick = function() { input.value = ''; output.value = ''; updateFormatterStats(); input.focus(); };\n" + (sample ? "document.getElementById('fillSample').onclick = function() { input.value = sampleData; mode = 'format'; document.getElementById('format').classList.add('active-btn'); document.getElementById('minify').classList.remove('active-btn'); runFormatter(); };\n" : "") + "input.addEventListener('input', CT.debounce(runFormatter, 150));\ndocument.addEventListener('keydown', function(e) {\n  if (e.target.tagName === 'TEXTAREA') {\n    if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); runFormatter(); }\n    if ((e.ctrlKey||e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('clearInput').click(); }\n  }\n});\nupdateFormatterStats();\n";
     }
   },
 

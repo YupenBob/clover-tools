@@ -361,6 +361,62 @@ body {
   opacity: 0.6;
   margin-bottom: 0.75rem;
 }
+/* Tool card header with actions */
+.tool-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.tool-card-header h3 {
+  margin-bottom: 0;
+}
+.tool-card-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+/* Compact button variants */
+.btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--text-tertiary); }
+/* Active mode button */
+.active-btn {
+  box-shadow: 0 0 0 2px var(--primary);
+  position: relative;
+}
+/* Input stats bar */
+.input-stats {
+  display: flex;
+  gap: 0.75rem;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  margin-top: 0.4rem;
+  flex-wrap: wrap;
+}
+/* Output box header */
+.output-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.output-box-header h3 {
+  margin-bottom: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
 textarea, input[type="text"], input[type="number"] {
   width: 100%;
   padding: 0.75rem;
@@ -526,6 +582,22 @@ textarea { min-height: 200px; }
   font-size: 0.8rem;
   color: var(--text-secondary);
   opacity: 0.7;
+}
+.kbd-row-sep {
+  opacity: 0.4;
+  margin: 0 0.2rem;
+}
+.shortcut-bar {
+  margin-top: var(--space-10);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  justify-content: center;
+}
+.shortcut-bar .kbd-row {
+  margin-top: 0;
+  opacity: 0.6;
+  font-size: var(--text-xs);
 }
 .site-footer-inner {
   display: flex;
