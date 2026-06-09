@@ -103,58 +103,6 @@ const shareBtnHtml = fs.readFileSync(path.join(TEMPLATES_DIR, 'components/share-
 
 
 
-// ============ Build categories HTML for homepage ============
-const CAT_ICONS = {
-  '格式转换': 'bi-arrow-left-right',
-  '图片工具': 'bi-image',
-  '开发工具': 'bi-code-slash',
-  '编码/加密': 'bi-shield-lock',
-  '文本工具': 'bi-file-earmark-text',
-  '文本处理': 'bi-text-left',
-  '时间工具': 'bi-clock',
-  '生活实用': 'bi-tools',
-  '数学计算': 'bi-calculator',
-  '网络工具': 'bi-globe',
-};
-
-function buildCategoryGridHtml() {
-  let html = '<div class="cat-grid">';
-  mergedToolsConfig.forEach(cat => {
-    const icon = CAT_ICONS[cat.category] || 'bi-grid';
-    html += `
-    <button class="cat-btn" data-cat="${cat.category}">
-      <i class="bi ${icon}"></i>
-      <span>${cat.category}</span>
-      <em>${cat.tools.length}</em>
-    </button>`;
-  });
-  html += '</div>';
-  return html;
-}
-
-function buildCategoriesHtml() {
-  let html = '';
-  mergedToolsConfig.forEach(cat => {
-    let itemsHtml = '';
-    cat.tools.forEach(tool => {
-      itemsHtml += `
-      <li>
-        <a href="/tools/${tool.path}">
-          ${tool.icon ? `<i class="${tool.icon}"></i>` : ''}
-          <span class="tool-name">${tool.name}</span>
-          <span class="tool-desc">${tool.desc}</span>
-        </a>
-      </li>`;
-    });
-    html += `
-    <div class="category">
-      <h2>${cat.category}</h2>
-      <ul>${itemsHtml}</ul>
-    </div>`;
-  });
-  return html;
-}
-
 // ============ Tool content builders ============
 // Each tool is defined as { name, description, category, path, layout, content: {html, script} }
 function buildToolPage(tool) {
@@ -2067,37 +2015,8 @@ function generate() {
     console.log('   Copied og-image.png');
   }
 
-  // Generate home page
-  const categoriesHtml = buildCategoriesHtml();
-  const categoryGridHtml = buildCategoryGridHtml();
+  // Generate home page (unified template: home.html with search + hot tools)
   const toolCount = mergedToolsConfig.reduce((sum, cat) => sum + cat.tools.length, 0);
-  const allToolsData = mergedToolsConfig.flatMap(cat => cat.tools.map(t => ({
-    name: t.name,
-    path: t.path,
-    desc: t.desc || '',
-    tags: t.keywords || '',
-    icon: t.icon || 'bi bi-tools'
-  })));
-  let homeHtml = homeTemplate
-    .replace('{{CATEGORY_GRID_HTML}}', categoryGridHtml)
-    .replace('{{CATEGORIES_HTML}}', categoriesHtml)
-    .replace(/\{\{TOOL_COUNT\}\}/g, String(toolCount))
-    .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
-    .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
-    .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
-    .replace(/\{\{PAGE_OG_TITLE\}\}/g, 'CloverTools - 轻量级开发者工具箱')
-    .replace(/\{\{PAGE_OG_DESC\}\}/g, '轻量级开发者工具箱，无需后端，完全本地运行')
-    .replace(/\{\{PAGE_META_DESC\}\}/g, 'CloverTools 轻量级开发者工具箱，提供 JSON 格式化、加密解码、时间转换、代码美化等实用工具，无需注册，完全免费。')
-    .replace(/\{\{PAGE_KEYWORDS\}\}/g, 'CloverTools，开发者工具，在线工具，JSON 格式化，密码生成，时间转换，代码美化，免费工具')
-    .replace(/\{\{PAGE_OG_IMAGE\}\}/g, BASE_URL + '/src/clover-logo.svg')
-    .replace(/\{\{PAGE_URL\}\}/g, BASE_URL + '/')
-    .replace(/\{\{PAGE_CANONICAL_URL\}\}/g, BASE_URL + '/')
-    .replace('{{ALL_TOOLS_DATA}}', JSON.stringify(allToolsData));
-  fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
-  console.log('   Generated index.html');
-
-  // Generate home-new.html (with search functionality)
-  const homeNewTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home-new.html'), 'utf8');
   const allTools = [];
   mergedToolsConfig.forEach(cat => {
     cat.tools.forEach(tool => {
@@ -2109,26 +2028,14 @@ function generate() {
       });
     });
   });
-  const homeNewFinal = homeNewTemplate
+  let homeHtml = homeTemplate
     .replace('var TOOLS = {{TOOL_COUNT}};', 'var TOOLS = ' + JSON.stringify(allTools) + ';')
     .replace(/\{\{SVG_SPRITE\}\}/g, svgSpriteHtml)
     .replace(/\{\{SITE_HEADER\}\}/g, headerHtml)
     .replace(/\{\{SITE_FOOTER\}\}/g, footerHtml)
-    .replace('{{TOOL_COUNT}}', String(toolCount));
-  fs.writeFileSync(path.join(DIST_DIR, 'home-new.html'), homeNewFinal);
-  console.log('   Generated home-new.html');
-
-  // Copy demo homepage as /demo
-  const demoSrc = path.join(TEMPLATES_DIR, 'home-demo.html');
-  if (fs.existsSync(demoSrc)) {
-    fs.copyFileSync(demoSrc, path.join(DIST_DIR, 'demo.html'));
-    console.log('   Copied demo.html');
-  }
-  const demo2Src = path.join(TEMPLATES_DIR, 'home-demo2.html');
-  if (fs.existsSync(demo2Src)) {
-    fs.copyFileSync(demo2Src, path.join(DIST_DIR, 'demo2.html'));
-    console.log('   Copied demo2.html');
-  }
+    .replace(/\{\{TOOL_COUNT\}\}/g, String(toolCount));
+  fs.writeFileSync(path.join(DIST_DIR, 'index.html'), homeHtml);
+  console.log('   Generated index.html');
 
   
   // ============ Generate category pages ============
@@ -2151,7 +2058,6 @@ function generate() {
   <title>${cat.category} - CloverTools</title>
   <meta name="description" content="CloverTools ${cat.category}类工具,免费在线使用,无需注册。">
   <link rel="stylesheet" href="/src/shared.css">
-  <link rel="stylesheet" href="/src/home-new.css">
 </head>
 <body>
 ${svgSpriteHtml}

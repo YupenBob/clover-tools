@@ -3,177 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{PAGE_OG_TITLE}}</title>
-  <meta name="description" content="{{PAGE_META_DESC}}">
-  <meta name="keywords" content="{{PAGE_KEYWORDS}}">
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="{{PAGE_OG_TITLE}}">
-  <meta property="og:description" content="{{PAGE_OG_DESC}}">
-  <meta property="og:image" content="{{PAGE_OG_IMAGE}}">
-  <meta property="og:url" content="{{PAGE_URL}}">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="CloverTools">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@CloverTools">
-  <meta name="twitter:title" content="{{PAGE_OG_TITLE}}">
-  <meta name="twitter:description" content="{{PAGE_OG_DESC}}">
-  <meta name="twitter:image" content="{{PAGE_OG_IMAGE}}">
-
-  <!-- Canonical -->
-  <link rel="canonical" href="{{PAGE_CANONICAL_URL}}">
+  <title>CloverTools - 实用工具箱</title>
   <link rel="stylesheet" href="/src/shared.css">
-  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
-  <!-- Bootstrap Icons CDN -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <script src="/src/shared.js"></script>
   <style>
-    /* Homepage-only styles */
-    .page-hero { padding: 3.5rem 0 2.5rem; text-align: center; }
-    .page-hero h1 { font-size: 3rem; margin-bottom: 0.75rem; }
-    .page-hero .subtitle { font-size: 1.15rem; opacity: 0.65; }
-    .categories { padding: 0 0 3rem; }
-    footer { margin-top: auto; }
-    /* SVG icon sizing */
-    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
-    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
-    .nav-icon-link span { font-size: 0.9rem; }
-    .btn-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.3rem; }
-    /* Tool list icons (Bootstrap Icons) */
-    .category li a { display: flex; align-items: center; gap: 0.35rem; }
-    .category li a i[class^="bi-"] { font-size: 1.05rem; color: var(--primary); flex-shrink: 0; }
-    .category li a .tool-name { flex-shrink: 0; }
-    .category li a .tool-desc { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* Stats bar */
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1.5rem;
-      margin: 1.25rem auto 0;
-      padding: 0;
-      list-style: none;
-      flex-wrap: wrap;
-    }
-    .stats-bar li {
-      font-size: 1.05rem;
-      color: var(--primary);
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .stats-bar li .stats-num {
-      font-size: 1.35rem;
-      font-weight: 800;
-    }
-    .stats-bar li .stats-label {
-      font-size: 0.9rem;
-      font-weight: 600;
-      opacity: 0.75;
-    }
-    .stats-bar li + li::before {
-      content: '·';
-      color: var(--text-secondary);
-      opacity: 0.4;
-      margin-right: 1.5rem;
-      font-size: 1.5rem;
-      font-weight: 400;
-    }
-    @media (max-width: 480px) {
-      .stats-bar { gap: 0.6rem; }
-      .stats-bar li { font-size: 0.88rem; }
-      .stats-bar li .stats-num { font-size: 1.05rem; }
-      .stats-bar li .stats-label { font-size: 0.75rem; }
-      .stats-bar li + li::before { display: none; }
-    }
-
-    /* Category grid */
-    .cat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 0.75rem;
-      max-width: 750px;
-      margin: 2rem auto 0;
-      padding: 0 0.5rem;
-    }
-    .cat-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 1rem 0.5rem;
-      background: var(--card-bg);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: var(--card-shadow);
-      font-size: 0.8rem;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
       color: var(--text);
-      font-weight: 600;
+      line-height: 1.6;
     }
-    .cat-btn i[class^="bi-"] {
-      font-size: 1.6rem;
-      color: var(--primary);
-    }
-    .cat-btn em {
-      font-style: normal;
-      font-size: 0.7rem;
-      opacity: 0.55;
-    }
-    .cat-btn:hover, .cat-btn.active {
-      transform: translateY(-3px);
-      border-color: var(--primary);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    }
-    .cat-btn.active {
-      background: var(--primary);
-      color: #fff;
-    }
-    .cat-btn.active i[class^="bi-"] {
-      color: #fff;
-    }
-    .cat-btn.active em {
-      color: rgba(255,255,255,0.7);
-    }
-    @media (max-width: 600px) {
-      .cat-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0.5rem;
-      }
-      .cat-btn {
-        padding: 0.7rem 0.25rem;
-        font-size: 0.7rem;
-      }
-      .cat-btn i[class^="bi-"] {
-        font-size: 1.3rem;
-      }
-    }
+    a { text-decoration: none; color: inherit; }
 
-    /* Frosted glass overlay */
-    body.search-focused::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: rgba(240,240,240,0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 999;
-      animation: fadeIn 0.25s ease;
+    /* Header */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: var(--header-h);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
     }
-    [data-theme="dark"] body.search-focused::before {
-      background: rgba(15,15,15,0.85);
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
     }
-    body { overflow-x: hidden; }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .logo span { color: var(--text); }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      transition: color 0.2s;
     }
-    /* Search wrap */
+    .nav-links a:hover { color: var(--primary); }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 60px 20px 48px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+    .hero h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .hero p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+    }
     .search-wrap {
       position: relative;
       max-width: 600px;
@@ -195,7 +83,7 @@
       font-size: 0.95rem;
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      background: var(--card-bg);
+      background: var(--bg-card);
       color: var(--text);
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
@@ -203,10 +91,136 @@
     #hero-search::placeholder { color: var(--text-secondary); }
     #hero-search:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(199,0,57,0.1);
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.18);
     }
-    /* Search overlay backdrop */
+
+    /* Section */
+    .section { padding: 48px 20px; }
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* Tool Cards */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    @media (max-width: 520px) {
+      .tools-grid { grid-template-columns: 1fr; gap: 12px; }
+    }
+    .tool-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      cursor: pointer;
+    }
+    .tool-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px var(--shadow-hover), 0 2px 8px rgba(0,0,0,0.25);
+      border-color: var(--primary);
+    }
+    .tool-card .t-icon {
+      font-size: 1.6rem;
+      color: var(--primary);
+      flex-shrink: 0;
+      width: 40px;
+      text-align: center;
+    }
+    .tool-card .t-info { flex: 1; min-width: 0; }
+    .tool-card .t-name {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tool-card .t-desc {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tool-card .t-tag {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-top: 3px;
+      display: inline-block;
+    }
+    .tool-card .t-arrow {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .tool-card:hover .t-arrow {
+      color: var(--primary);
+      transform: translateX(3px);
+    }
+
+    /* Category Grid */
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 12px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .cat-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 18px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      transition: border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+      cursor: pointer;
+    }
+    .cat-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 6px 18px var(--shadow-hover);
+      transform: translateY(-3px);
+    }
+    .cat-btn i { font-size: 1.6rem; margin-bottom: 2px; }
+    .cat-btn .cat-count {
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+    .cat-btn:hover .cat-count { color: var(--primary); opacity: 1; }
+
+    /* Search Overlay */
     .search-overlay {
+      
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.35);
@@ -233,7 +247,7 @@
       left: 0;
       right: 0;
       top: calc(100% + 8px);
-      background: var(--card-bg);
+      background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: 0 12px 40px rgba(0,0,0,0.12);
@@ -293,403 +307,341 @@
       color: var(--text-secondary);
       font-size: 0.85rem;
     }
-    .search-close-hint {
-      text-align: center;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      margin-top: 0.5rem;
-      opacity: 0.7;
-    }
 
-    /* Hot tools section — card grid */
-    .hot-tools { margin: 2rem auto 0; max-width: 760px; }
-    .hot-tools-title {
-      font-size: 0.85rem;
-      opacity: 0.7;
+    /* Footer */
+    .site-footer {
       text-align: center;
-      margin-bottom: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-    @media (max-width: 520px) {
-      .tools-grid { grid-template-columns: 1fr; }
-    }
-    .tool-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 16px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-      text-decoration: none;
-      color: var(--text);
-      box-shadow: var(--card-shadow);
-    }
-    .tool-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-      border-color: var(--primary);
-    }
-    .tool-card .t-icon {
-      font-size: 1.6rem;
-      color: var(--primary);
-      flex-shrink: 0;
-      width: 40px;
-      text-align: center;
-    }
-    .tool-card .t-info { flex: 1; min-width: 0; }
-    .tool-card .t-name {
-      font-size: 0.92rem;
-      font-weight: 600;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .tool-card .t-desc {
-      font-size: 0.78rem;
+      padding: 24px 20px;
+      font-size: 0.8rem;
       color: var(--text-secondary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      border-top: 1px solid var(--border);
     }
-    .tool-card .t-tag {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
-      background: var(--bg-secondary);
-      border-radius: 4px;
-      padding: 1px 6px;
-      margin-top: 3px;
-      display: inline-block;
-    }
-    .tool-card .t-arrow {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      flex-shrink: 0;
-      transition: color 0.2s, transform 0.2s;
-    }
-    .tool-card:hover .t-arrow {
-      color: var(--primary);
-      transform: translateX(3px);
-    }
-    .view-all-link {
-      color: var(--primary);
-      font-size: 0.85rem;
-      text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-    .view-all-link:hover { opacity: 1; text-decoration: underline; }
   </style>
-  <!-- Counter.dev analytics -->
-  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
   <!-- Vercel Analytics -->
   <!-- Vercel Speed Insights -->
 </head>
 <body>
-  {{SVG_SPRITE}}
 
-  {{SITE_HEADER}}
+{{SITE_HEADER}}
 
-  <main class="page-body">
-    <div class="container">
-      <div class="hero">
-        <h1 style="display:flex;flex-direction:column;align-items:center;gap:0.3em;"><img src="/src/clover-logo.svg" alt="🍀" style="height:4em;margin:0;">CloverTools</h1>
-        <p class="subtitle">开发者的瑞士军刀 · 随手即用，无需注册</p>
-        <div class="search-wrap">
-          <i class="bi bi-search"></i>
-          <input
-            id="hero-search"
-            type="text"
-            placeholder="搜索工具..."
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <div class="search-results-panel" id="searchResultsPanel"></div>
-        </div>
-        <div class="search-overlay" id="searchOverlay"></div>
-        <div class="btn-row" style="justify-content:center;margin-top:1rem;">
-          <button class="btn-random" id="randomToolBtn"><svg class="btn-icon" aria-hidden="true"><use href="#icon-dice"/></svg>随机工具</button>
-        </div>
+<!-- Hero -->
+<section class="hero">
+  <h1>CloverTools 实用工具箱</h1>
+  <p>极简高效，随用即走</p>
+  <div class="search-wrap">
+    <i class="bi bi-search"></i>
+    <input
+      id="hero-search"
+      type="text"
+      placeholder="搜索工具..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button id="randomBtn" class="btn btn-secondary" title="随机工具">🎲 随机</button>
+    <div class="search-results-panel" id="searchResultsPanel"></div>
+  </div>
+</section>
 
-        <!-- Stats bar -->
-        <ul class="stats-bar">
-          <li><span class="stats-num">{{TOOL_COUNT}}</span><span class="stats-label">个在线工具</span></li>
-          <li><span class="stats-num">220</span><span class="stats-label">篇解决文章</span></li>
-          <li><span class="stats-num" id="busuanzi_value_site_pv">-</span><span class="stats-label">次帮助</span></li>
-        </ul>
+<!-- Search Overlay (fixed fullscreen backdrop) -->
+<div class="search-overlay" id="searchOverlay"></div>
 
-        <!-- Hot tools card grid -->
-        <div class="hot-tools">
-          <div class="hot-tools-title">热门工具</div>
-          <div class="tools-grid">
+<!-- Hot Tools -->
+<section class="section">
+  <div class="section-title">热门工具</div>
+  <div class="tools-grid">
 
-            <a class="tool-card" href="/tools/json/formatter.html" data-name="JSON 格式化" data-desc="美化 / 压缩 / 校验" data-tags="开发工具">
-              <i class="bi bi-braces t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">JSON 格式化</div>
-                <div class="t-desc">美化 / 压缩 / 校验</div>
-                <span class="t-tag">开发工具</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/encrypt/base64.html" data-name="Base64 编解码" data-desc="文本与 Base64 互转" data-tags="编码/加密">
-              <i class="bi bi-lock t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">Base64 编解码</div>
-                <div class="t-desc">文本与 Base64 互转</div>
-                <span class="t-tag">编码/加密</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/code/regex-tester.html" data-name="正则测试" data-desc="实时匹配与验证" data-tags="开发工具">
-              <i class="bi bi-code-slash t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">正则测试</div>
-                <div class="t-desc">实时匹配与验证</div>
-                <span class="t-tag">开发工具</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/encrypt/url.html" data-name="URL 编码" data-desc="URL 安全编码解码" data-tags="编码/加密">
-              <i class="bi bi-link-45deg t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">URL 编码</div>
-                <div class="t-desc">URL 安全编码解码</div>
-                <span class="t-tag">编码/加密</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/time/timestamp.html" data-name="时间戳转换" data-desc="时间与时间戳互转" data-tags="时间工具">
-              <i class="bi bi-clock t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">时间戳转换</div>
-                <div class="t-desc">时间与时间戳互转</div>
-                <span class="t-tag">时间工具</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/code/cron-parser.html" data-name="Cron 表达式测试" data-desc="解析与下一次执行时间" data-tags="开发工具">
-              <i class="bi bi-code t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">Cron 表达式测试</div>
-                <div class="t-desc">解析与下一次执行时间</div>
-                <span class="t-tag">开发工具</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/code/color-picker.html" data-name="颜色选择器" data-desc="颜色值互转与预览" data-tags="开发工具">
-              <i class="bi bi-palette2 t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">颜色选择器</div>
-                <div class="t-desc">颜色值互转与预览</div>
-                <span class="t-tag">开发工具</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-            <a class="tool-card" href="/tools/format-conversion/image-resize.html" data-name="图片压缩" data-desc="压缩图片减小文件大小" data-tags="格式转换">
-              <i class="bi bi-image t-icon"></i>
-              <div class="t-info">
-                <div class="t-name">图片压缩</div>
-                <div class="t-desc">压缩图片减小文件大小</div>
-                <span class="t-tag">格式转换</span>
-              </div>
-              <i class="bi bi-arrow-right t-arrow"></i>
-            </a>
-
-          </div>
-          <div style="text-align:center;margin-top:1rem;">
-            <a href="/tools/json/formatter.html" class="view-all-link">查看全部 {{TOOL_COUNT}} 个工具 →</a>
-          </div>
-        </div>
-
+    <a class="tool-card" href="/tools/json/formatter.html" data-name="JSON 格式化" data-desc="美化 / 压缩 / 校验" data-tags="开发工具" data-category="开发工具">
+      <i class="bi bi-braces t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">JSON 格式化</div>
+        <div class="t-desc">美化 / 压缩 / 校验</div>
+        <span class="t-tag">开发工具</span>
       </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-      <!-- Category icon grid -->
-      {{CATEGORY_GRID_HTML}}
-
-      <div class="categories" id="categories">
-        {{CATEGORIES_HTML}}
+    <a class="tool-card" href="/tools/encrypt/base64.html" data-name="Base64 编解码" data-desc="文本与 Base64 互转" data-tags="编码/加密" data-category="编码/加密">
+      <i class="bi bi-lock t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">Base64 编解码</div>
+        <div class="t-desc">文本与 Base64 互转</div>
+        <span class="t-tag">编码/加密</span>
       </div>
-    </div>
-  </main>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-  {{SITE_FOOTER}}
+    <a class="tool-card" href="/tools/code/regex-tester.html" data-name="正则测试" data-desc="实时匹配与验证" data-tags="开发工具" data-category="开发工具">
+      <i class="bi bi-code-slash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">正则测试</div>
+        <div class="t-desc">实时匹配与验证</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-  <div id="toast"></div>
+    <a class="tool-card" href="/tools/encrypt/url.html" data-name="URL 编码" data-desc="URL 安全编码解码" data-tags="编码/加密" data-category="编码/加密">
+      <i class="bi bi-link-45deg t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">URL 编码</div>
+        <div class="t-desc">URL 安全编码解码</div>
+        <span class="t-tag">编码/加密</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-  <script>
-    CT.initTheme();
-    CT.initReveal();
-    CT.initCopyPulse();
-    CT.initKeyboardShortcuts();
+    <a class="tool-card" href="/tools/time/timestamp.html" data-name="时间戳转换" data-desc="时间与时间戳互转" data-tags="时间工具" data-category="时间工具">
+      <i class="bi bi-clock t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">时间戳转换</div>
+        <div class="t-desc">时间与时间戳互转</div>
+        <span class="t-tag">时间工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-    // Category grid filter
-    const catBtns = document.querySelectorAll('.cat-btn');
-    const categoryCards = document.querySelectorAll('.category');
+    <a class="tool-card" href="/tools/code/cron-parser.html" data-name="Cron 表达式测试" data-desc="解析与下一次执行时间" data-tags="开发工具" data-category="开发工具">
+      <i class="bi bi-code-slash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">Cron 表达式测试</div>
+        <div class="t-desc">解析与下一次执行时间</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
 
-    catBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const cat = btn.dataset.cat;
-        const isActive = btn.classList.contains('active');
-        catBtns.forEach(b => b.classList.remove('active'));
-        if (!isActive) {
-          btn.classList.add('active');
-          categoryCards.forEach(card => {
-            const h2 = card.querySelector('h2');
-            card.style.display = h2 && h2.textContent === cat ? '' : 'none';
-          });
-        } else {
-          categoryCards.forEach(card => card.style.display = '');
-        }
-      });
+    <a class="tool-card" href="/tools/code/color-picker.html" data-name="颜色选择器" data-desc="颜色值互转与预览" data-tags="开发工具" data-category="开发工具">
+      <i class="bi bi-palette2 t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">颜色选择器</div>
+        <div class="t-desc">颜色值互转与预览</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/format-conversion/image-resize.html" data-name="图片压缩" data-desc="压缩图片减小文件大小" data-tags="格式转换" data-category="格式转换">
+      <i class="bi bi-image t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">图片压缩</div>
+        <div class="t-desc">压缩图片减小文件大小</div>
+        <span class="t-tag">格式转换</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/qrcode.html" data-name="二维码生成" data-desc="文本 / 链接生成二维码" data-tags="图片工具" data-category="开发工具">
+      <i class="bi bi-qr-code t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">二维码生成</div>
+        <div class="t-desc">文本 / 链接生成二维码</div>
+        <span class="t-tag">图片工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+    <a class="tool-card" href="/tools/code/bytes.html" data-name="字节转换" data-desc="字节与单位互转" data-tags="开发工具" data-category="开发工具">
+      <i class="bi bi-hash t-icon"></i>
+      <div class="t-info">
+        <div class="t-name">字节转换</div>
+        <div class="t-desc">字节与单位互转</div>
+        <span class="t-tag">开发工具</span>
+      </div>
+      <i class="bi bi-arrow-right t-arrow"></i>
+    </a>
+
+  </div>
+</section>
+
+<!-- Category Grid -->
+<section class="section" style="padding-top: 0;">
+  <div class="section-title">全部分类</div>
+  <div class="cat-grid">
+
+    <a class="cat-btn" href="/category/format-conversion.html" data-category="格式转换" data-cat="format-conversion">
+      <i class="bi bi-arrow-left-right"></i>
+      <span>格式转换</span>
+      <span class="cat-count" data-cat="format-conversion">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/image.html" data-category="图片工具" data-cat="image">
+      <i class="bi bi-image"></i>
+      <span>图片工具</span>
+      <span class="cat-count" data-cat="image">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/code.html" data-category="开发工具" data-cat="code">
+      <i class="bi bi-code-slash"></i>
+      <span>开发工具</span>
+      <span class="cat-count" data-cat="code">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/encrypt.html" data-category="编码/加密" data-cat="encrypt">
+      <i class="bi bi-shield-lock"></i>
+      <span>编码/加密</span>
+      <span class="cat-count" data-cat="encrypt">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/text.html" data-category="文本工具" data-cat="text">
+      <i class="bi bi-file-earmark-text"></i>
+      <span>文本工具</span>
+      <span class="cat-count" data-cat="text">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/text-processing.html" data-category="文本处理" data-cat="text-processing">
+      <i class="bi bi-text-left"></i>
+      <span>文本处理</span>
+      <span class="cat-count" data-cat="text-processing">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/time.html" data-category="时间工具" data-cat="time">
+      <i class="bi bi-clock"></i>
+      <span>时间工具</span>
+      <span class="cat-count" data-cat="time">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/life.html" data-category="生活实用" data-cat="life">
+      <i class="bi bi-tools"></i>
+      <span>生活实用</span>
+      <span class="cat-count" data-cat="life">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/math.html" data-category="数学计算" data-cat="math">
+      <i class="bi bi-calculator"></i>
+      <span>数学计算</span>
+      <span class="cat-count" data-cat="math">0 个</span>
+    </a>
+
+    <a class="cat-btn" href="/category/network.html" data-category="网络工具" data-cat="network">
+      <i class="bi bi-globe"></i>
+      <span>网络工具</span>
+      <span class="cat-count" data-cat="network">0 个</span>
+    </a>
+
+  </div>
+</section>
+
+{{SITE_FOOTER}}
+
+{{SVG_SPRITE}}
+
+<script>
+(function () {
+  // Tools registry — populated by generator.js
+  var TOOLS = {{TOOL_COUNT}};
+
+  // Search handler
+  var searchInput = document.getElementById('hero-search');
+  var searchOverlay = document.getElementById('searchOverlay');
+  var searchPanel = document.getElementById('searchResultsPanel');
+  var searchWrap = document.querySelector('.search-wrap');
+
+  var closeTimer;
+  if (searchInput) {
+    // Open overlay on focus
+    searchInput.addEventListener('focus', function () {
+      clearTimeout(closeTimer);
+      if (searchOverlay) searchOverlay.classList.add('active');
+      if (searchWrap) searchWrap.classList.add('overlay-active');
     });
 
-    // Search — new dropdown style
-    var searchInput = document.getElementById('hero-search');
-    var searchOverlay = document.getElementById('searchOverlay');
-    var searchPanel = document.getElementById('searchResultsPanel');
-    var searchWrap = document.querySelector('.search-wrap');
-    var closeTimer;
-
-    if (searchInput) {
-      searchInput.addEventListener('focus', function () {
-        clearTimeout(closeTimer);
-        if (searchOverlay) searchOverlay.classList.add('active');
-        if (searchWrap) searchWrap.classList.add('overlay-active');
-      });
-
-      if (searchOverlay) {
-        searchOverlay.addEventListener('click', function () {
-          var overlay = searchOverlay;
-          var wrap = searchWrap;
-          closeTimer = setTimeout(function () {
-            overlay.classList.remove('active');
-            if (wrap) wrap.classList.remove('overlay-active');
-            if (searchPanel) searchPanel.classList.remove('active');
-            searchInput.value = '';
-            searchInput.blur();
-          }, 0);
-        });
-      }
-
-      searchInput.addEventListener('input', function () {
-        var q = searchInput.value.trim().toLowerCase();
-        if (!q) {
-          if (searchPanel) searchPanel.classList.remove('active');
-          return;
-        }
-        var all = window.__ALL_TOOLS__ || [];
-        var results = all.filter(function (t) {
-          if (t.name.toLowerCase().includes(q)) return true;
-          if ((t.desc || '').toLowerCase().includes(q)) return true;
-          var tags = t.tags ? (Array.isArray(t.tags) ? t.tags : t.tags.split('，')) : [];
-          for (var i = 0; i < tags.length; i++) {
-            if (tags[i].toLowerCase().includes(q)) return true;
-          }
-          return false;
-        }).slice(0, 12);
-
-        if (!searchPanel) return;
-        if (results.length === 0) {
-          searchPanel.innerHTML = '<div class="search-results-empty">未找到相关工具</div>';
-          searchPanel.classList.add('active');
-          return;
-        }
-        var html = '';
-        results.forEach(function (t) {
-          html += '<a class="search-result-item" href="/tools/' + t.path + '">' +
-            '<i class="' + (t.icon || 'bi bi-tools') + ' sr-icon"></i>' +
-            '<div class="sr-info">' +
-            '<div class="sr-name">' + t.name + '</div>' +
-            '<div class="sr-desc">' + (t.desc || t.tags || '') + '</div>' +
-            '</div></a>';
-        });
-        searchPanel.innerHTML = html;
-        searchPanel.classList.add('active');
-      });
-
-      searchInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') {
-          if (searchOverlay) searchOverlay.classList.remove('active');
-          if (searchWrap) searchWrap.classList.remove('overlay-active');
-          if (searchPanel) searchPanel.classList.remove('active');
-          searchInput.value = '';
+    // Close overlay on click outside (0.1s delay to prevent accidental close)
+    if (searchOverlay) {
+      searchOverlay.addEventListener('click', function () {
+        var overlay = searchOverlay;
+        var wrap = searchWrap;
+        closeTimer = setTimeout(function () {
+          overlay.classList.remove('active');
+          if (wrap) wrap.classList.remove('overlay-active');
           searchInput.blur();
+        }, 100);
+      });
+    }
+
+    // Real-time search on input
+    searchInput.addEventListener('input', function () {
+      var q = searchInput.value.trim().toLowerCase();
+      if (!q) {
+        if (searchPanel) searchPanel.classList.remove('active');
+        return;
+      }
+      var results = TOOLS.filter(function (t) {
+        if (t.name.toLowerCase().includes(q)) return true;
+        var tags = t.tags ? t.tags.split('，') : [];
+        for (var i = 0; i < tags.length; i++) {
+          if (tags[i].toLowerCase().includes(q)) return true;
         }
-        if (e.key === 'Enter') {
-          var q = searchInput.value.trim().toLowerCase();
-          if (!q) return;
-          var all = window.__ALL_TOOLS__ || [];
-          var results = all.filter(function (t) {
-            if (t.name.toLowerCase().includes(q)) return true;
-            return false;
-          }).slice(0, 1);
-          if (results.length > 0) {
-            window.location.href = '/tools/' + results[0].path;
-          }
+        return false;
+      }).slice(0, 8);
+
+      if (!searchPanel) return;
+      if (results.length === 0) {
+        searchPanel.innerHTML = '<div class="search-results-empty">未找到相关工具</div>';
+        searchPanel.classList.add('active');
+        return;
+      }
+      var html = '';
+      results.forEach(function (t) {
+        html += '<a class="search-result-item" href="/tools/' + t.path + '">' +
+          '<i class="' + (t.icon || 'bi bi-tools') + ' sr-icon"></i>' +
+          '<div class="sr-info">' +
+          '<div class="sr-name">' + t.name + '</div>' +
+          '<div class="sr-desc">' + (t.desc || t.tags || '') + '</div>' +
+          '</div></a>';
+      });
+      searchPanel.innerHTML = html;
+      searchPanel.classList.add('active');
+    });
+
+    // Random tool button
+    var randomBtn = document.getElementById('randomBtn');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', function () {
+        if (TOOLS && TOOLS.length > 0) {
+          var randomTool = TOOLS[Math.floor(Math.random() * TOOLS.length)];
+          window.location.href = '/tools/' + randomTool.path;
         }
       });
     }
 
-    // Random tool: fetch tools.json and jump to a random tool page
-    document.getElementById('randomToolBtn').addEventListener('click', function() {
-      fetch('/tools.json')
-        .then(function(res) { return res.json(); })
-        .then(function(categories) {
-          var allTools = [];
-          categories.forEach(function(cat) {
-            cat.tools.forEach(function(tool) {
-              allTools.push(tool);
-            });
-          });
-          if (allTools.length === 0) {
-            CT.showToast('暂无可用工具');
-            return;
-          }
-          var idx = Math.floor(Math.random() * allTools.length);
-          var tool = allTools[idx];
-          window.location.href = '/tools/' + tool.path;
-        })
-        .catch(function() {
-          CT.showToast('加载工具列表失败');
-        });
-    });
-  </script>
-  <script>
-    (function() {
-      var base = 112980;
-      var el = document.getElementById('busuanzi_value_site_pv');
-      if (!el) return;
-      function addBase() {
-        var v = parseInt(el.textContent || '0', 10);
-        if (v > 0) {
-          el.textContent = v + base;
-          observer.disconnect();
+    // Enter key → go to first result or show toast
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var q = searchInput.value.trim().toLowerCase();
+      if (!q) return;
+      var results = TOOLS.filter(function (t) {
+        if (t.name.toLowerCase().includes(q)) return true;
+        var tags = t.tags ? t.tags.split('，') : [];
+        for (var i = 0; i < tags.length; i++) {
+          if (tags[i].toLowerCase().includes(q)) return true;
         }
+        return false;
+      }).slice(0, 1);
+      if (results.length > 0) {
+        window.location.href = '/tools/' + results[0].path;
+      } else {
+        searchInput.style.borderColor = 'var(--primary)';
+        setTimeout(function () { searchInput.style.borderColor = ''; }, 1500);
       }
-      addBase();
-      var observer = new MutationObserver(addBase);
-      observer.observe(el, { childList: true, characterData: true, subtree: true });
-    })();
-  </script>
-  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-  <script>
-    window.__ALL_TOOLS__ = {{ALL_TOOLS_DATA}};
-  </script>
+    });
+  }
+
+  // Populate category counts
+  var catCountMap = {};
+  TOOLS.forEach(function (t) {
+    if (t.category) {
+      catCountMap[t.category] = (catCountMap[t.category] || 0) + 1;
+    }
+  });
+  document.querySelectorAll('[data-cat]').forEach(function (el) {
+    var cat = el.getAttribute('data-cat');
+    var count = catCountMap[cat] || 0;
+    el.textContent = count + ' 个';
+  });
+})();
+</script>
+<script src="/src/shared.js"></script>
+<script src="/src/shared-home-new.js"></script>
+<script>CT.initTheme();CT.initReveal();CT.initCopyPulse();</script>
 </body>
 </html>
