@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>描字贴 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="描字贴 - 🍀 CloverTools">
+  <meta property="og:description" content="在线生成可打印的描字帖字帖，支持选择常用汉字、调整字号与行距，方便儿童练字与书法练习。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/text/描字贴.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="描字贴 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线生成可打印的描字帖字帖，支持选择常用汉字、调整字号与行距，方便儿童练字与书法练习。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/text/描字贴.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>描字贴</h1>
+        <p class="description">在线生成可打印的描字帖字帖，支持选择常用汉字、调整字号与行距，方便儿童练字与书法练习。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>字帖设置</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;margin-bottom:0.75rem;">
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;">每页行数</label>
+      <input type="number" id="rowsPerPage" min="4" max="20" value="10" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;">每行字数</label>
+      <input type="number" id="charsPerRow" min="4" max="12" value="6" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;">字号</label>
+      <select id="fontSize" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+        <option value="60">特大 (60px)</option>
+        <option value="48" selected>大 (48px)</option>
+        <option value="36">中 (36px)</option>
+        <option value="28">小 (28px)</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;">格子样式</label>
+      <select id="cellStyle" style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+        <option value="mizi" selected>米字格</option>
+        <option value="tianzi">田字格</option>
+        <option value="hui">回字格</option>
+        <option value="kongxin">空心格</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-bottom:0.75rem;">
+    <label style="font-size:0.85rem;opacity:0.7;">输入汉字（最多 100 个）</label>
+    <textarea id="chars" placeholder="请输入汉字，例如：一二三四五六七八九十" style="width:100%;min-height:70px;padding:0.6rem;border-radius:8px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);font-family:inherit;"></textarea>
+  </div>
+  <div style="margin-bottom:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
+    <button class="btn btn-secondary" data-preset="一二三四五六七八九十">数字 1-10</button>
+    <button class="btn btn-secondary" data-preset="天地人和大小多少上下左右">基础字</button>
+    <button class="btn btn-secondary" data-preset="春夏秋冬风雨雷电云雪">自然字</button>
+    <button class="btn btn-secondary" data-preset="爸爸妈妈哥哥姐姐弟弟妹妹">家人字</button>
+    <button class="btn btn-secondary" data-preset="红黄蓝绿紫黑白粉棕橙">颜色字</button>
+    <button class="btn btn-secondary" data-preset="天地玄黄宇宙洪荒日月盈昃">千字文</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="generateBtn">🎨 生成字帖</button>
+    <button class="btn btn-secondary" id="printBtn">🖨️ 打印</button>
+    <button class="btn btn-secondary" id="clearBtn">🧹 清空</button>
+  </div>
+</div>
+<div class="tool-card" id="worksheetWrap" style="display:none;">
+  <h3>字帖预览 <span style="font-size:0.85rem;font-weight:normal;opacity:0.7;" id="pageInfo"></span></h3>
+  <div id="worksheet" style="background:#fff;padding:1.5rem;border-radius:8px;color:#000;"></div>
+</div>
+<style>
+.worksheet-page { background: #fff; padding: 1rem 1.5rem; margin-bottom: 1rem; border: 1px solid #ccc; page-break-after: always; }
+.worksheet-title { text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
+.worksheet-subtitle { text-align: center; font-size: 0.85rem; color: #666; margin-bottom: 1rem; }
+.cell-row { display: flex; gap: 2px; justify-content: center; margin-bottom: 2px; }
+.cell { display: inline-flex; align-items: center; justify-content: center; position: relative; font-family: "KaiTi", "楷体", "STKaiti", serif; color: #ddd; user-select: none; }
+.cell.mizi { border: 1px solid #333; }
+.cell.mizi::before, .cell.mizi::after { content: ''; position: absolute; background: #999; }
+.cell.mizi::before { width: 1px; height: 100%; left: 50%; top: 0; transform: rotate(45deg); transform-origin: center; }
+.cell.mizi::after { width: 1px; height: 100%; left: 50%; top: 0; transform: rotate(-45deg); transform-origin: center; }
+.cell.tianzi { border: 1px solid #333; }
+.cell.tianzi::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: #999; }
+.cell.tianzi::after { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #999; }
+.cell.hui { border: 1px solid #333; }
+.cell.hui::before { content: ''; position: absolute; left: 8%; top: 8%; right: 8%; bottom: 8%; border: 1px solid #999; }
+.cell.kongxin { border: 1px solid #333; }
+@media print { body * { visibility: hidden; } #worksheet, #worksheet * { visibility: visible; } #worksheet { position: absolute; left: 0; top: 0; width: 100%; } .tool-header, .breadcrumb, .tool-card:not(#worksheetWrap) { display: none !important; } }
+</style>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const charsEl = document.getElementById('chars');
+const rowsPerPageEl = document.getElementById('rowsPerPage');
+const charsPerRowEl = document.getElementById('charsPerRow');
+const fontSizeEl = document.getElementById('fontSize');
+const cellStyleEl = document.getElementById('cellStyle');
+const generateBtn = document.getElementById('generateBtn');
+const printBtn = document.getElementById('printBtn');
+const clearBtn = document.getElementById('clearBtn');
+const worksheetWrap = document.getElementById('worksheetWrap');
+const worksheet = document.getElementById('worksheet');
+const pageInfo = document.getElementById('pageInfo');
+
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => { charsEl.value = btn.dataset.preset; });
+});
+
+function generate() {
+  const text = (charsEl.value || '').replace(/\s+/g, '').slice(0, 100);
+  if (!text) { alert('请输入汉字'); return; }
+  const rowsPerPage = Math.max(4, Math.min(20, parseInt(rowsPerPageEl.value) || 10));
+  const charsPerRow = Math.max(4, Math.min(12, parseInt(charsPerRowEl.value) || 6));
+  const fontSize = parseInt(fontSizeEl.value) || 48;
+  const cellStyle = cellStyleEl.value;
+  const cellSize = Math.round(fontSize * 1.4);
+  const chars = text.split('');
+  const perPage = rowsPerPage * charsPerRow;
+  const pageCount = Math.ceil(chars.length / perPage);
+  let html = '';
+  for (let p = 0; p < pageCount; p++) {
+    html += '<div class="worksheet-page">';
+    html += '<div class="worksheet-title">汉字描红字帖</div>';
+    html += '<div class="worksheet-subtitle">第 ' + (p + 1) + ' / ' + pageCount + ' 页 · 共 ' + chars.length + ' 字</div>';
+    const pageChars = chars.slice(p * perPage, (p + 1) * perPage);
+    for (let r = 0; r < rowsPerPage; r++) {
+      html += '<div class="cell-row">';
+      for (let c = 0; c < charsPerRow; c++) {
+        const ch = pageChars[r * charsPerRow + c];
+        if (ch) {
+          html += '<span class="cell ' + cellStyle + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;font-size:' + fontSize + 'px;">' + ch + '</span>';
+        } else {
+          html += '<span class="cell ' + cellStyle + '" style="width:' + cellSize + 'px;height:' + cellSize + 'px;"></span>'
+        }
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  worksheet.innerHTML = html;
+  worksheetWrap.style.display = '';
+  pageInfo.textContent = '共 ' + pageCount + ' 页 · ' + chars.length + ' 字';
+}
+
+generateBtn.addEventListener('click', generate);
+printBtn.addEventListener('click', () => window.print());
+clearBtn.addEventListener('click', () => { charsEl.value = ''; worksheetWrap.style.display = 'none'; worksheet.innerHTML = ''; });
+generate();
+  </script>
+</body>
+</html>

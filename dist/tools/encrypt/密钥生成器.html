@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密钥生成器 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="密钥生成器 - 🍀 CloverTools">
+  <meta property="og:description" content="在线生成高强度随机密钥，支持随机字符串/AES/HEX/Base64/UUID/密码短语 6 种格式与多档长度，基于 Web Crypto API 密码学安全。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/encrypt/密钥生成器.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="密钥生成器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线生成高强度随机密钥，支持随机字符串/AES/HEX/Base64/UUID/密码短语 6 种格式与多档长度，基于 Web Crypto API 密码学安全。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/encrypt/密钥生成器.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>密钥生成器</h1>
+        <p class="description">在线生成高强度随机密钥，支持随机字符串/AES/HEX/Base64/UUID/密码短语 6 种格式与多档长度，基于 Web Crypto API 密码学安全。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>🔑 密钥生成器</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">密钥类型</label>
+      <select id="keyType" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);">
+        <option value="random">随机字符串</option>
+        <option value="aes">AES 密钥 (Base64)</option>
+        <option value="hex">十六进制 (Hex)</option>
+        <option value="base64">Base64 编码</option>
+        <option value="uuid">UUID v4</option>
+        <option value="passphrase">密码短语</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">长度</label>
+      <select id="keyLength" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);">
+        <option value="16">16 位</option>
+        <option value="32" selected>32 位</option>
+        <option value="64">64 位</option>
+        <option value="128">128 位</option>
+        <option value="256">256 位</option>
+        <option value="512">512 位</option>
+      </select>
+    </div>
+  </div>
+  <div id="extraOptions" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:0.75rem;">
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="useUpper" checked /> 大写
+    </label>
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="useLower" checked /> 小写
+    </label>
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="useDigits" checked /> 数字
+    </label>
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="useSymbols" /> 符号
+    </label>
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="useHexUpper" /> HEX 大写
+    </label>
+    <label style="display:flex;align-items:center;gap:0.4rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;font-size:0.85rem;cursor:pointer;">
+      <input type="checkbox" id="batchMode" /> 批量 5 个
+    </label>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+    <button class="btn btn-primary" id="genBtn">🎲 生成密钥</button>
+    <button class="btn" id="batchBtn" style="background:var(--bg-secondary);">⚡ 生成 5 个</button>
+  </div>
+  <div style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:var(--bg-secondary);border-radius:8px;font-size:0.78rem;opacity:0.75;line-height:1.7;">
+    💡 使用浏览器原生 <b>crypto.getRandomValues()</b> 生成密码学安全随机数，适合作为 API Key、AES 密钥等场景。
+  </div>
+</div>
+<div class="output-box">
+  <h3>生成结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+  <div id="output" style="padding:0.5rem;line-height:1.8;"></div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const typeSel = document.getElementById('keyType');
+const lengthSel = document.getElementById('keyLength');
+const useUpper = document.getElementById('useUpper');
+const useLower = document.getElementById('useLower');
+const useDigits = document.getElementById('useDigits');
+const useSymbols = document.getElementById('useSymbols');
+const useHexUpper = document.getElementById('useHexUpper');
+const batchMode = document.getElementById('batchMode');
+const output = document.getElementById('output');
+
+const CHARS = {
+  upper: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  lower: 'abcdefghijklmnopqrstuvwxyz',
+  digits: '0123456789',
+  symbols: '!@#$%^&*()-_=+[]{}|;:,.<>?/~',
+  hexLower: '0123456789abcdef',
+  hexUpper: '0123456789ABCDEF',
+};
+
+function cryptoRandom(max) {
+  // Unbiased modulo using rejection sampling
+  const range = 0x100000000;
+  const limit = range - (range % max);
+  const buf = new Uint32Array(1);
+  let n;
+  do { crypto.getRandomValues(buf); n = buf[0]; } while (n >= limit);
+  return n % max;
+}
+
+function generateRandom(len, charset) {
+  let s = '';
+  for (let i = 0; i < len; i++) s += charset[cryptoRandom(charset.length)];
+  return s;
+}
+
+function generatePassphrase(wordCount) {
+  // Simple English word list for passphrases
+  const words = ['apple','banana','cherry','dragon','eagle','forest','galaxy','hammer','island','jungle','kettle','lemon','mountain','nebula','ocean','planet','quartz','rocket','silver','thunder','umbrella','violet','whisper','yellow','zenith','amber','bridge','crystal','diamond','ember','feather','glacier','horizon','ivory','jasmine','kingdom','lighthouse','meadow','nimbus','octopus','panther','quasar','rainbow','sapphire','tornado','unicorn','volcano','waterfall','xenon','yacht','zephyr'];
+  const out = [];
+  for (let i = 0; i < wordCount; i++) out.push(words[cryptoRandom(words.length)]);
+  return out.join('-') + '-' + generateRandom(4, CHARS.digits);
+}
+
+function generateUUID() {
+  const buf = new Uint8Array(16);
+  crypto.getRandomValues(buf);
+  buf[6] = (buf[6] & 0x0f) | 0x40; // version 4
+  buf[8] = (buf[8] & 0x3f) | 0x80; // variant
+  const h = Array.from(buf).map(b => b.toString(16).padStart(2, '0'));
+  return h.slice(0,4).join('') + '-' + h.slice(4,6).join('') + '-' + h.slice(6,8).join('') + '-' + h.slice(8,10).join('') + '-' + h.slice(10,16).join('');
+}
+
+function toBase64(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+function generateOne() {
+  const type = typeSel.value;
+  const len = parseInt(lengthSel.value, 10);
+  let result = '';
+  if (type === 'random') {
+    let charset = '';
+    if (useUpper.checked) charset += CHARS.upper;
+    if (useLower.checked) charset += CHARS.lower;
+    if (useDigits.checked) charset += CHARS.digits;
+    if (useSymbols.checked) charset += CHARS.symbols;
+    if (!charset) charset = CHARS.lower + CHARS.digits;
+    result = generateRandom(len, charset);
+  } else if (type === 'aes') {
+    const bytes = new Uint8Array(len / 8);
+    crypto.getRandomValues(bytes);
+    result = toBase64(bytes);
+  } else if (type === 'hex') {
+    const charset = useHexUpper.checked ? CHARS.hexUpper : CHARS.hexLower;
+    result = generateRandom(len, charset);
+  } else if (type === 'base64') {
+    const bytes = new Uint8Array(Math.ceil(len * 6 / 8));
+    crypto.getRandomValues(bytes);
+    result = toBase64(bytes).replace(/[+/=]/g, '').slice(0, len);
+  } else if (type === 'uuid') {
+    result = generateUUID();
+  } else if (type === 'passphrase') {
+    result = generatePassphrase(Math.max(3, Math.min(8, Math.ceil(len / 8))));
+  }
+  return result;
+}
+
+function renderResults(list) {
+  const meta = '<div style="font-size:0.78rem;opacity:0.65;margin-bottom:0.5rem;">'
+    + '📊 类型：<b>' + typeSel.options[typeSel.selectedIndex].text + '</b> | 长度：<b>' + lengthSel.value + '</b> | 生成时间：<b>' + new Date().toLocaleTimeString() + '</b>'
+    + '</div>';
+  const items = list.map((s, i) =>
+    '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.8rem;background:var(--bg-secondary);border-radius:8px;margin-bottom:0.5rem;">'
+    + '<span style="opacity:0.5;font-size:0.8rem;min-width:1.5em;text-align:right;">' + (i+1) + '</span>'
+    + '<code style="flex:1;font-family:monospace;font-size:0.9rem;word-break:break-all;user-select:all;">' + s + '</code>'
+    + '<button class="copy-btn" data-val="' + s.replace(/"/g, '&quot;') + '" style="padding:0.2rem 0.5rem;font-size:0.75rem;">复制</button>'
+    + '</div>'
+  ).join('');
+  output.innerHTML = meta + items;
+  output.querySelectorAll('.copy-btn').forEach(b => {
+    b.onclick = () => copyToClipboard(b.getAttribute('data-val'));
+  });
+}
+
+function gen() {
+  try {
+    const count = batchMode.checked ? 5 : 1;
+    const list = [];
+    for (let i = 0; i < count; i++) list.push(generateOne());
+    renderResults(list);
+  } catch (e) {
+    output.innerHTML = '<div style="padding:1rem;text-align:center;color:#ef4444;">❌ 生成失败：' + e.message + '</div>';
+  }
+}
+
+document.getElementById('genBtn').onclick = gen;
+document.getElementById('batchBtn').onclick = () => {
+  batchMode.checked = true;
+  gen();
+};
+[typeSel, lengthSel, useUpper, useLower, useDigits, useSymbols, useHexUpper, batchMode].forEach(el => el.addEventListener('change', gen));
+document.getElementById('copyOutput').onclick = () => {
+  const codes = Array.from(output.querySelectorAll('code')).map(c => c.textContent);
+  if (codes.length) copyToClipboard(codes.join('\n'));
+};
+gen();
+  </script>
+</body>
+</html>

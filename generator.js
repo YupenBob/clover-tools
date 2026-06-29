@@ -11,6 +11,25 @@ const SRC_DIR = path.join(BASE, 'src');
 const DIST_DIR = path.join(BASE, 'dist');
 const TOOLS_JSON_PATH = path.join(BASE, 'tools.json');
 
+// ============ Sensitive word library (for 敏感词检测 tool) ============
+const WORDS = {
+  high: [
+    '法轮', '反动', '台独', '藏独', '疆独', '港独', '暴动', '颠覆', '渗透', '间谍',
+    '恐怖', '袭击', '枪支', '弹药', '毒品', '海洛因', '冰毒', '大麻', '走私', '洗钱',
+    '诈骗', '传销', '邪教', '政治', '革命', '政变', '游行', '抗议', '示威', '罢工'
+  ],
+  medium: [
+    '色情', '裸聊', '一夜情', '约炮', '包养', '赌博', '博彩', '下注', '外围', '菠菜',
+    '贷款', '高利贷', '办证', '代孕', '安眠药', '迷药', '迷魂药', '监听', '偷拍', '针孔',
+    '发票', '公考', '答案', '代考', '论文代写', '学术造假', '包过', '稳过', '内部指标'
+  ],
+  low: [
+    '最', '第一', '唯一', '顶级', '国家级', '世界级', '宇宙级', '全网', '全网最低', '全网首发',
+    '100%', '百分百', '永久', '终身', '祖传', '秘方', '神药', '包治', '无效退款',
+    '稳赚', '无风险', '高收益', '躺着赚', '刷单', '兼职', '日结', '高佣', '微商', '代理'
+  ]
+};
+
 // ============ Load templates ============
 const homeTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'home.html'), 'utf8');
 const toolTemplate = fs.readFileSync(path.join(TEMPLATES_DIR, 'tool.html'), 'utf8');
@@ -663,6 +682,152 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
     `,
 
+    'encrypt/Shake加密': `
+      // Pure JS implementation of SHAKE128 / SHAKE256 (FIPS 202)
+      // Keccak-f[1600] permutation with configurable rate.
+
+      // Round constants for Keccak (iota step)
+      const RC = [0x0000000000000001n, 0x0000000000008082n, 0x800000000000808an, 0x8000000080008000n, 0x000000000000808bn, 0x0000000080000001n, 0x8000000080008081n, 0x8000000000008009n, 0x000000000000008an, 0x0000000000000088n, 0x0000000080008009n, 0x000000008000000an, 0x000000008000808bn, 0x800000000000008bn, 0x8000000000008089n, 0x8000000000008003n, 0x8000000000008002n, 0x8000000000000080n, 0x000000000000800an, 0x800000008000000an, 0x8000000080008081n, 0x8000000000008080n, 0x0000000080000001n, 0x8000000080008008n];
+
+      // Rotation offsets (rho step)
+      const R = [
+        [0n, 36n, 3n, 41n, 18n],
+        [1n, 44n, 10n, 45n, 2n],
+        [62n, 6n, 43n, 15n, 61n],
+        [28n, 55n, 25n, 21n, 56n],
+        [27n, 20n, 39n, 8n, 14n]
+      ];
+
+      function rotl(x, n) { n = BigInt(n); return ((x << n) | (x >> (64n - n))) & 0xffffffffffffffffn; }
+
+      function keccakF1600(state) {
+        for (let round = 0; round < 24; round++) {
+          // Theta
+          const C = [0n,0n,0n,0n,0n];
+          for (let x = 0; x < 5; x++) C[x] = state[x] ^ state[x+5] ^ state[x+10] ^ state[x+15] ^ state[x+20];
+          const D = [0n,0n,0n,0n,0n];
+          for (let x = 0; x < 5; x++) D[x] = C[(x+4)%5] ^ rotl(C[(x+1)%5], 1n);
+          for (let i = 0; i < 25; i++) state[i] ^= D[i % 5];
+
+          // Rho and Pi
+          const B = new Array(25).fill(0n);
+          for (let x = 0; x < 5; x++) {
+            for (let y = 0; y < 5; y++) {
+              B[y + ((2*x + 3*y) % 5) * 5] = rotl(state[x + 5*y], R[x][y]);
+            }
+          }
+
+          // Chi
+          for (let y = 0; y < 5; y++) {
+            for (let x = 0; x < 5; x++) {
+              state[x + 5*y] = B[x + 5*y] ^ ((~B[((x+1)%5) + 5*y]) & B[((x+2)%5) + 5*y] & 0xffffffffffffffffn);
+            }
+          }
+
+          // Iota
+          state[0] ^= RC[round];
+        }
+      }
+
+      // SHAKE: rate 168 bytes for SHAKE128, 136 bytes for SHAKE256 (in bits: 1344 / 1088)
+      function shake(input, outBytes, bits) {
+        const rateBytes = bits === 128 ? 168 : 136;
+        const data = new TextEncoder().encode(input);
+        // State: 25 x 64-bit lanes
+        let state = new Array(25).fill(0n);
+
+        // Absorbing phase
+        const blockWords = rateBytes / 8; // 21 for shake128, 17 for shake256
+        let offset = 0;
+        while (data.length - offset >= rateBytes) {
+          for (let i = 0; i < blockWords; i++) {
+            let w = 0n;
+            for (let b = 0; b < 8; b++) w = (w << 8n) | BigInt(data[offset + i*8 + b]);
+            state[i] ^= w;
+          }
+          keccakF1600(state);
+          offset += rateBytes;
+        }
+
+        // Last block with padding
+        const last = data.slice(offset);
+        const lastWords = blockWords;
+        const pad = new Uint8Array(rateBytes);
+        pad.set(last);
+        pad[last.length] = 0x1F; // SHAKE padding byte (different from SHA-3 which uses 0x06)
+        pad[rateBytes - 1] |= 0x80;
+        for (let i = 0; i < lastWords; i++) {
+          let w = 0n;
+          for (let b = 0; b < 8; b++) w = (w << 8n) | BigInt(pad[i*8 + b]);
+          state[i] ^= w;
+        }
+        keccakF1600(state);
+
+        // Squeezing phase
+        const out = new Uint8Array(outBytes);
+        let outOff = 0;
+        while (outOff < outBytes) {
+          for (let i = 0; i < blockWords && outOff < outBytes; i++) {
+            let w = state[i];
+            for (let b = 7; b >= 0 && outOff < outBytes; b--) {
+              out[outOff++] = Number((w >> BigInt(b * 8)) & 0xffn);
+            }
+          }
+          if (outOff < outBytes) keccakF1600(state);
+        }
+        return out;
+      }
+
+      function bytesToHex(bytes) {
+        return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      function bytesToBase64(bytes) {
+        let s = '';
+        for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+        return btoa(s);
+      }
+
+      const input = document.getElementById('input');
+      const algo = document.getElementById('algo');
+      const outLen = document.getElementById('outLen');
+      const hexOut = document.getElementById('hexOut');
+      const b64Out = document.getElementById('b64Out');
+      const meta = document.getElementById('meta');
+
+      function run() {
+        const v = input.value;
+        if (!v) { hexOut.value = ''; b64Out.value = ''; meta.textContent = ''; return; }
+        try {
+          const bits = algo.value === 'SHAKE128' ? 128 : 256;
+          const bytes = parseInt(outLen.value) || 32;
+          if (bytes < 1 || bytes > 1024) {
+            hexOut.value = '';
+            b64Out.value = '';
+            meta.textContent = '字节数必须在 1-1024 之间';
+            return;
+          }
+          const t0 = performance.now();
+          const hash = shake(v, bytes, bits);
+          const t1 = performance.now();
+          hexOut.value = bytesToHex(hash);
+          b64Out.value = bytesToBase64(hash);
+          meta.textContent = algo.value + ' · ' + bytes + ' 字节 (' + (bytes*8) + ' bit) · 耗时 ' + (t1-t0).toFixed(2) + ' ms';
+        } catch(e) {
+          hexOut.value = '';
+          b64Out.value = '';
+          meta.textContent = '错误: ' + e.message;
+        }
+      }
+
+      input.addEventListener('input', run);
+      algo.addEventListener('change', run);
+      outLen.addEventListener('input', run);
+      document.getElementById('copyHex').onclick = () => copyToClipboard(hexOut.value);
+      document.getElementById('copyB64').onclick = () => copyToClipboard(b64Out.value);
+      run();
+    `,
+
     'code/markdown': `
       const input = document.getElementById('input');
       const preview = document.getElementById('preview');
@@ -1074,6 +1239,227 @@ html += '<th onclick="sortBy(\'' + col + '\')" style="cursor:pointer;user-select
       input.addEventListener('input', run);
     `,
 
+    'other/键盘按键值大全': `
+// 键盘按键值数据 - 92 entries
+const KEYS_DATA = [
+  // Letters A-Z
+  { key: 'A', code: 'KeyA', keyCode: 65, category: 'letter' },
+  { key: 'B', code: 'KeyB', keyCode: 66, category: 'letter' },
+  { key: 'C', code: 'KeyC', keyCode: 67, category: 'letter' },
+  { key: 'D', code: 'KeyD', keyCode: 68, category: 'letter' },
+  { key: 'E', code: 'KeyE', keyCode: 69, category: 'letter' },
+  { key: 'F', code: 'KeyF', keyCode: 70, category: 'letter' },
+  { key: 'G', code: 'KeyG', keyCode: 71, category: 'letter' },
+  { key: 'H', code: 'KeyH', keyCode: 72, category: 'letter' },
+  { key: 'I', code: 'KeyI', keyCode: 73, category: 'letter' },
+  { key: 'J', code: 'KeyJ', keyCode: 74, category: 'letter' },
+  { key: 'K', code: 'KeyK', keyCode: 75, category: 'letter' },
+  { key: 'L', code: 'KeyL', keyCode: 76, category: 'letter' },
+  { key: 'M', code: 'KeyM', keyCode: 77, category: 'letter' },
+  { key: 'N', code: 'KeyN', keyCode: 78, category: 'letter' },
+  { key: 'O', code: 'KeyO', keyCode: 79, category: 'letter' },
+  { key: 'P', code: 'KeyP', keyCode: 80, category: 'letter' },
+  { key: 'Q', code: 'KeyQ', keyCode: 81, category: 'letter' },
+  { key: 'R', code: 'KeyR', keyCode: 82, category: 'letter' },
+  { key: 'S', code: 'KeyS', keyCode: 83, category: 'letter' },
+  { key: 'T', code: 'KeyT', keyCode: 84, category: 'letter' },
+  { key: 'U', code: 'KeyU', keyCode: 85, category: 'letter' },
+  { key: 'V', code: 'KeyV', keyCode: 86, category: 'letter' },
+  { key: 'W', code: 'KeyW', keyCode: 87, category: 'letter' },
+  { key: 'X', code: 'KeyX', keyCode: 88, category: 'letter' },
+  { key: 'Y', code: 'KeyY', keyCode: 89, category: 'letter' },
+  { key: 'Z', code: 'KeyZ', keyCode: 90, category: 'letter' },
+  // Digits 0-9
+  { key: '0', code: 'Digit0', keyCode: 48, category: 'digit' },
+  { key: '1', code: 'Digit1', keyCode: 49, category: 'digit' },
+  { key: '2', code: 'Digit2', keyCode: 50, category: 'digit' },
+  { key: '3', code: 'Digit3', keyCode: 51, category: 'digit' },
+  { key: '4', code: 'Digit4', keyCode: 52, category: 'digit' },
+  { key: '5', code: 'Digit5', keyCode: 53, category: 'digit' },
+  { key: '6', code: 'Digit6', keyCode: 54, category: 'digit' },
+  { key: '7', code: 'Digit7', keyCode: 55, category: 'digit' },
+  { key: '8', code: 'Digit8', keyCode: 56, category: 'digit' },
+  { key: '9', code: 'Digit9', keyCode: 57, category: 'digit' },
+  // Function keys F1-F12
+  { key: 'F1', code: 'F1', keyCode: 112, category: 'function' },
+  { key: 'F2', code: 'F2', keyCode: 113, category: 'function' },
+  { key: 'F3', code: 'F3', keyCode: 114, category: 'function' },
+  { key: 'F4', code: 'F4', keyCode: 115, category: 'function' },
+  { key: 'F5', code: 'F5', keyCode: 116, category: 'function' },
+  { key: 'F6', code: 'F6', keyCode: 117, category: 'function' },
+  { key: 'F7', code: 'F7', keyCode: 118, category: 'function' },
+  { key: 'F8', code: 'F8', keyCode: 119, category: 'function' },
+  { key: 'F9', code: 'F9', keyCode: 120, category: 'function' },
+  { key: 'F10', code: 'F10', keyCode: 121, category: 'function' },
+  { key: 'F11', code: 'F11', keyCode: 122, category: 'function' },
+  { key: 'F12', code: 'F12', keyCode: 123, category: 'function' },
+  // Control keys
+  { key: 'Enter', code: 'Enter', keyCode: 13, category: 'control' },
+  { key: 'Tab', code: 'Tab', keyCode: 9, category: 'control' },
+  { key: 'Escape', code: 'Escape', keyCode: 27, category: 'control' },
+  { key: ' ', code: 'Space', keyCode: 32, category: 'control' },
+  { key: 'Backspace', code: 'Backspace', keyCode: 8, category: 'control' },
+  { key: 'Delete', code: 'Delete', keyCode: 46, category: 'control' },
+  { key: 'Insert', code: 'Insert', keyCode: 45, category: 'control' },
+  { key: 'ContextMenu', code: 'ContextMenu', keyCode: 93, category: 'control' },
+  // Arrow keys
+  { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38, category: 'arrow' },
+  { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, category: 'arrow' },
+  { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, category: 'arrow' },
+  { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, category: 'arrow' },
+  { key: 'Home', code: 'Home', keyCode: 36, category: 'arrow' },
+  { key: 'End', code: 'End', keyCode: 35, category: 'arrow' },
+  { key: 'PageUp', code: 'PageUp', keyCode: 33, category: 'arrow' },
+  { key: 'PageDown', code: 'PageDown', keyCode: 34, category: 'arrow' },
+  // Modifier keys
+  { key: 'Shift', code: 'ShiftLeft', keyCode: 16, category: 'modifier' },
+  { key: 'Shift', code: 'ShiftRight', keyCode: 16, category: 'modifier' },
+  { key: 'Control', code: 'ControlLeft', keyCode: 17, category: 'modifier' },
+  { key: 'Control', code: 'ControlRight', keyCode: 17, category: 'modifier' },
+  { key: 'Alt', code: 'AltLeft', keyCode: 18, category: 'modifier' },
+  { key: 'Alt', code: 'AltRight', keyCode: 18, category: 'modifier' },
+  { key: 'Meta', code: 'MetaLeft', keyCode: 91, category: 'modifier' },
+  { key: 'Meta', code: 'MetaRight', keyCode: 92, category: 'modifier' },
+  { key: 'CapsLock', code: 'CapsLock', keyCode: 20, category: 'modifier' },
+  { key: 'NumLock', code: 'NumLock', keyCode: 144, category: 'modifier' },
+  { key: 'ScrollLock', code: 'ScrollLock', keyCode: 145, category: 'modifier' },
+  { key: 'ContextMenu', code: 'ContextMenu', keyCode: 93, category: 'modifier' },
+  // Numpad
+  { key: '0', code: 'Numpad0', keyCode: 96, category: 'numpad' },
+  { key: '1', code: 'Numpad1', keyCode: 97, category: 'numpad' },
+  { key: '2', code: 'Numpad2', keyCode: 98, category: 'numpad' },
+  { key: '3', code: 'Numpad3', keyCode: 99, category: 'numpad' },
+  { key: '4', code: 'Numpad4', keyCode: 100, category: 'numpad' },
+  { key: '5', code: 'Numpad5', keyCode: 101, category: 'numpad' },
+  { key: '6', code: 'Numpad6', keyCode: 102, category: 'numpad' },
+  { key: '7', code: 'Numpad7', keyCode: 103, category: 'numpad' },
+  { key: '8', code: 'Numpad8', keyCode: 104, category: 'numpad' },
+  { key: '9', code: 'Numpad9', keyCode: 105, category: 'numpad' },
+  { key: '+', code: 'NumpadAdd', keyCode: 107, category: 'numpad' },
+  { key: '-', code: 'NumpadSubtract', keyCode: 109, category: 'numpad' },
+  { key: '*', code: 'NumpadMultiply', keyCode: 106, category: 'numpad' },
+  { key: '/', code: 'NumpadDivide', keyCode: 111, category: 'numpad' },
+  { key: 'Enter', code: 'NumpadEnter', keyCode: 13, category: 'numpad' },
+  { key: '.', code: 'NumpadDecimal', keyCode: 110, category: 'numpad' },
+];
+
+const CAT_LABEL = {
+  letter: '字母',
+  digit: '数字',
+  function: '功能键',
+  control: '控制键',
+  arrow: '方向键',
+  modifier: '修饰键',
+  numpad: '小键盘',
+};
+
+const CAT_ORDER = ['letter', 'digit', 'function', 'control', 'arrow', 'modifier', 'numpad'];
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  // Fallback
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+const tbody = document.getElementById('keyTableBody');
+const searchInput = document.getElementById('searchInput');
+const catFilter = document.getElementById('catFilter');
+const resultCount = document.getElementById('resultCount');
+const liveArea = document.getElementById('liveArea');
+const liveKey = document.getElementById('liveKey');
+const liveCode = document.getElementById('liveCode');
+const liveKeyCode = document.getElementById('liveKeyCode');
+const liveLocation = document.getElementById('liveLocation');
+
+function renderTable() {
+  const q = (searchInput.value || '').trim().toLowerCase();
+  const cat = catFilter.value;
+  const filtered = KEYS_DATA.filter(k => {
+    if (cat !== 'all' && k.category !== cat) return false;
+    if (!q) return true;
+    return String(k.key).toLowerCase().includes(q)
+      || String(k.code).toLowerCase().includes(q)
+      || String(k.keyCode).includes(q);
+  });
+  resultCount.textContent = \`共 \${filtered.length} 个按键（共 \${KEYS_DATA.length}）\`;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:1.5rem;text-align:center;opacity:0.6;">无匹配结果</td></tr>';
+    return;
+  }
+  // Sort by category order, then by keyCode
+  const catIdx = c => CAT_ORDER.indexOf(c);
+  filtered.sort((a, b) => {
+    const c = catIdx(a.category) - catIdx(b.category);
+    if (c !== 0) return c;
+    return a.keyCode - b.keyCode;
+  });
+  const rows = filtered.map((k, i) => {
+    const bg = i % 2 === 0 ? '' : 'background:var(--bg-secondary);';
+    return \`<tr style="\${bg}">
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);"><span style="display:inline-block;padding:0.15rem 0.5rem;background:var(--primary);color:#fff;border-radius:4px;font-size:0.78rem;">\${escapeHtml(CAT_LABEL[k.category] || k.category)}</span></td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;font-weight:600;">\${escapeHtml(k.key)}</td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;color:var(--primary);">\${escapeHtml(k.code)}</td>
+      <td class="kc-cell" data-kc="\${k.keyCode}" style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;cursor:pointer;user-select:none;" title="点击复制">\${k.keyCode}</td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);">
+        <button class="copy-btn copy-kc" data-kc="\${k.keyCode}" style="padding:0.2rem 0.55rem;font-size:0.78rem;border:1px solid var(--border);background:var(--bg);border-radius:4px;cursor:pointer;">复制</button>
+      </td>
+    </tr>\`;
+  }).join('');
+  tbody.innerHTML = rows;
+}
+
+searchInput.addEventListener('input', renderTable);
+catFilter.addEventListener('change', renderTable);
+
+// Click-to-copy: cell and button
+tbody.addEventListener('click', e => {
+  let kc = null;
+  const cell = e.target.closest('.kc-cell');
+  const btn = e.target.closest('.copy-kc');
+  if (btn) kc = btn.dataset.kc;
+  else if (cell) kc = cell.dataset.kc;
+  if (kc === null || kc === undefined) return;
+  copyToClipboard(kc).then(() => {
+    if (CT && CT.showToast) CT.showToast('已复制 keyCode: ' + kc);
+  });
+});
+
+// Real-time key listener
+function updateLive(e) {
+  e.preventDefault();
+  liveKey.textContent = e.key;
+  liveCode.textContent = e.code || '-';
+  liveKeyCode.textContent = e.keyCode;
+  const locMap = { 0: '标准', 1: '左侧', 2: '右侧', 3: '小键盘' };
+  liveLocation.textContent = locMap[e.location] !== undefined ? locMap[e.location] : e.location;
+  liveArea.style.borderColor = 'var(--primary)';
+  liveArea.style.background = 'var(--bg)';
+  setTimeout(() => {
+    liveArea.style.borderColor = '';
+    liveArea.style.background = '';
+  }, 150);
+}
+
+document.addEventListener('keydown', updateLive);
+
+// Initial render
+renderTable();
+
+    `,
     'text/pinyin': `
       const input = document.getElementById('input');
       const output = document.getElementById('output');
@@ -2213,6 +2599,316 @@ if (!sql.trim()) return '';
       document.getElementById('calcBtn').addEventListener('click', calc);
       document.getElementById('copyOutput').addEventListener('click', () => copyToClipboard(output.textContent));
     `,
+
+    'code/SQLite查看器': `
+      (function() {
+        const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
+        let SQL = null;
+        let db = null;
+        let currentDbName = '';
+        let currentTable = null;
+        let dataPage = 0;
+        const PAGE_SIZE = 50;
+
+        const $ = (id) => document.getElementById(id);
+        const root = $('sqliteRoot');
+        const loadingEl = $('sqliteLoading');
+        const appEl = $('sqliteApp');
+        const dropZone = $('dropZone');
+        const fileInput = $('fileInput');
+        const fileInfo = $('fileInfo');
+        const dbPanel = $('dbPanel');
+        const tableList = $('tableList');
+        const structureContent = $('structureContent');
+        const dataContent = $('dataContent');
+        const sqlInput = $('sqlInput');
+        const sqlResults = $('sqlResults');
+        const sqlError = $('sqlError');
+        const sqlStats = $('sqlStats');
+
+        function loadSqlJs() {
+          return new Promise((resolve, reject) => {
+            if (window.initSqlJs) {
+              window.initSqlJs({ locateFile: f => SQLJS_CDN + f }).then(resolve).catch(reject);
+              return;
+            }
+            const script = document.createElement('script');
+            script.src = SQLJS_CDN + 'sql-wasm.js';
+            script.onload = () => {
+              window.initSqlJs({ locateFile: f => SQLJS_CDN + f }).then(resolve).catch(reject);
+            };
+            script.onerror = () => reject(new Error('无法从 CDN 加载 sql.js'));
+            document.head.appendChild(script);
+          });
+        }
+
+        function escapeHtml(s) {
+          if (s === null || s === undefined) return '<span class="null-val">NULL</span>';
+          return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function setError(msg) {
+          sqlError.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(msg) + '</div>';
+          sqlStats.innerHTML = '';
+          sqlResults.style.display = 'none';
+        }
+
+        function clearError() {
+          sqlError.innerHTML = '';
+        }
+
+        function loadDatabaseFromBuffer(buf, name) {
+          try {
+            db = new SQL.Database(new Uint8Array(buf));
+            currentDbName = name || '未命名数据库';
+            fileInfo.textContent = '📄 ' + currentDbName + ' (' + (buf.byteLength / 1024).toFixed(2) + ' KB)';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            const first = tableList.querySelector('li');
+            if (first) first.click();
+          } catch (e) {
+            alert('加载数据库失败: ' + e.message);
+          }
+        }
+
+        function refreshTableList() {
+          if (!db) return;
+          const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+          const tables = res[0] ? res[0].values.map(r => r[0]) : [];
+          tableList.innerHTML = '';
+          if (tables.length === 0) {
+            tableList.innerHTML = '<li style="opacity:0.6;cursor:default;font-style:italic;">数据库中无表</li>';
+            return;
+          }
+          tables.forEach(name => {
+            const li = document.createElement('li');
+            li.dataset.table = name;
+            li.innerHTML = '<span>📋</span><span class="tname"></span><span class="rowcount"></span>';
+            li.querySelector('.tname').textContent = name;
+            li.addEventListener('click', () => selectTable(name));
+            tableList.appendChild(li);
+          });
+          tables.forEach(name => {
+            try {
+              const c = db.exec('SELECT COUNT(*) FROM "' + name.replace(/"/g,'""') + '"');
+              const cnt = c[0] ? c[0].values[0][0] : 0;
+              const li = tableList.querySelector('li[data-table="' + CSS.escape(name) + '"]');
+              if (li) li.querySelector('.rowcount').textContent = cnt;
+            } catch(e) {}
+          });
+        }
+
+        function selectTable(name) {
+          currentTable = name;
+          dataPage = 0;
+          tableList.querySelectorAll('li').forEach(li => li.classList.toggle('active', li.dataset.table === name));
+          renderStructure(name);
+          renderTableData(name);
+          switchTab('structure');
+        }
+
+        function renderStructure(name) {
+          try {
+            const sqlRes = db.exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='" + name.replace(/'/g,"''") + "'");
+            const createSql = sqlRes[0] ? sqlRes[0].values[0][0] : '';
+            const pragmaRes = db.exec('PRAGMA table_info("' + name.replace(/"/g,'""') + '")');
+            const cols = pragmaRes[0] ? pragmaRes[0] : { columns: ['cid','name','type','notnull','dflt_value','pk'], values: [] };
+            let html = '<div style="margin-bottom:0.75rem;font-size:0.9rem;color:var(--text-secondary);">📋 <strong>' + escapeHtml(name) + '</strong> 的表结构</div>';
+            if (cols.values.length > 0) {
+              html += '<table class="sqlite-schema-table"><thead><tr><th>#</th><th>列名</th><th>类型</th><th>NOT NULL</th><th>默认值</th><th>主键</th></tr></thead><tbody>';
+              cols.values.forEach(row => {
+                const [cid, colName, colType, notnull, dflt, pk] = row;
+                html += '<tr>' +
+                  '<td>' + cid + '</td>' +
+                  '<td><strong>' + escapeHtml(colName) + '</strong></td>' +
+                  '<td><code>' + escapeHtml(colType || '') + '</code></td>' +
+                  '<td class="' + (notnull ? 'nn' : '') + '">' + (notnull ? '✓' : '') + '</td>' +
+                  '<td><code>' + escapeHtml(dflt === null ? '' : dflt) + '</code></td>' +
+                  '<td class="' + (pk ? 'pk' : '') + '">' + (pk ? '🔑 ' + pk : '') + '</td>' +
+                '</tr>';
+              });
+              html += '</tbody></table>';
+            }
+            if (createSql) {
+              html += '<details style="margin-top:1rem;"><summary style="cursor:pointer;font-size:0.85rem;color:var(--text-secondary);">显示建表 SQL</summary><pre style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;font-size:0.8rem;overflow-x:auto;margin-top:0.5rem;">' + escapeHtml(createSql) + '</pre></details>';
+            }
+            const idxRes = db.exec("SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='" + name.replace(/'/g,"''") + "' AND sql IS NOT NULL");
+            if (idxRes[0] && idxRes[0].values.length > 0) {
+              html += '<div style="margin-top:1rem;font-size:0.85rem;"><strong>索引：</strong><ul style="margin:0.25rem 0 0 1rem;">';
+              idxRes[0].values.forEach(r => {
+                html += '<li><code>' + escapeHtml(r[0]) + '</code></li>';
+              });
+              html += '</ul></div>';
+            }
+            structureContent.innerHTML = html;
+          } catch (e) {
+            structureContent.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(e.message) + '</div>';
+          }
+        }
+
+        function renderTableData(name) {
+          try {
+            const safe = name.replace(/"/g,'""');
+            const totalRes = db.exec('SELECT COUNT(*) FROM "' + safe + '"');
+            const total = totalRes[0] ? totalRes[0].values[0][0] : 0;
+            const offset = dataPage * PAGE_SIZE;
+            const dataRes = db.exec('SELECT * FROM "' + safe + '" LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset);
+            let html = '<div style="margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-secondary);">📊 <strong>' + escapeHtml(name) + '</strong> · 共 <strong>' + total + '</strong> 行</div>';
+            if (dataRes[0]) {
+              const { columns, values } = dataRes[0];
+              html += '<div class="sqlite-results"><table><thead><tr>';
+              columns.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+              html += '</tr></thead><tbody>';
+              values.forEach(row => {
+                html += '<tr>';
+                row.forEach(v => { html += '<td>' + escapeHtml(v) + '</td>'; });
+                html += '</tr>';
+              });
+              html += '</tbody></table></div>';
+              const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+              html += '<div class="sqlite-pagination">' +
+                '<button id="dataPrevBtn" ' + (dataPage === 0 ? 'disabled' : '') + '>← 上一页</button>' +
+                '<span>第 ' + (dataPage + 1) + ' / ' + totalPages + ' 页 (每页 ' + PAGE_SIZE + ' 行)</span>' +
+                '<button id="dataNextBtn" ' + (dataPage >= totalPages - 1 ? 'disabled' : '') + '>下一页 →</button>' +
+              '</div>';
+            } else {
+              html += '<div style="padding:1rem;opacity:0.6;text-align:center;">表为空</div>';
+            }
+            dataContent.innerHTML = html;
+            const prev = $('dataPrevBtn'), next = $('dataNextBtn');
+            if (prev) prev.onclick = () => { if (dataPage > 0) { dataPage--; renderTableData(name); } };
+            if (next) next.onclick = () => { dataPage++; renderTableData(name); };
+          } catch (e) {
+            dataContent.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(e.message) + '</div>';
+          }
+        }
+
+        function runSQL(sql) {
+          clearError();
+          if (!sql.trim()) { setError('请输入 SQL 语句'); return; }
+          if (!db) { setError('请先加载数据库'); return; }
+          const t0 = performance.now();
+          try {
+            const results = db.exec(sql);
+            const elapsed = (performance.now() - t0).toFixed(2);
+            if (results.length === 0) {
+              const changes = db.getRowsModified();
+              sqlStats.innerHTML = '<div class="sqlite-stats">✅ 执行成功 · 耗时 ' + elapsed + ' ms · 影响行数 <strong>' + changes + '</strong></div>';
+              sqlResults.style.display = 'none';
+              if (/\\b(insert|update|delete|create|drop|alter)\\b/i.test(sql)) {
+                refreshTableList();
+                if (currentTable) { renderStructure(currentTable); renderTableData(currentTable); }
+              }
+              return;
+            }
+            const { columns, values } = results[0];
+            let totalRows = values.length;
+            sqlStats.innerHTML = '<div class="sqlite-stats">✅ 查询成功 · 耗时 ' + elapsed + ' ms · 返回 <strong>' + totalRows + '</strong> 行 ' + (results.length > 1 ? '（共 ' + results.length + ' 个结果集，仅显示第一个）' : '') + '</div>';
+            const limit = 500;
+            const display = values.slice(0, limit);
+            let html = '<table><thead><tr>';
+            columns.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+            html += '</tr></thead><tbody>';
+            display.forEach(row => {
+              html += '<tr>';
+              row.forEach(v => { html += '<td>' + escapeHtml(v) + '</td>'; });
+              html += '</tr>';
+            });
+            html += '</tbody></table>';
+            if (totalRows > limit) {
+              html += '<div style="padding:0.75rem;text-align:center;opacity:0.6;font-size:0.85rem;background:var(--bg-secondary);">仅显示前 ' + limit + ' 行（共 ' + totalRows + ' 行）</div>';
+            }
+            sqlResults.innerHTML = html;
+            sqlResults.style.display = 'block';
+          } catch (e) {
+            setError(e.message);
+          }
+        }
+
+        function switchTab(tab) {
+          document.querySelectorAll('.sqlite-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+          document.querySelectorAll('.sqlite-panel').forEach(p => p.classList.remove('active'));
+          const panel = $('panel-' + tab);
+          if (panel) panel.classList.add('active');
+        }
+
+        function bindEvents() {
+          dropZone.addEventListener('click', () => fileInput.click());
+          fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => loadDatabaseFromBuffer(ev.target.result, file.name);
+            reader.onerror = () => alert('文件读取失败');
+            reader.readAsArrayBuffer(file);
+          });
+          ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+          ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+          dropZone.addEventListener('drop', e => {
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => loadDatabaseFromBuffer(ev.target.result, file.name);
+            reader.readAsArrayBuffer(file);
+          });
+          document.querySelectorAll('.sqlite-tab').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+          });
+          $('runSqlBtn').addEventListener('click', () => runSQL(sqlInput.value));
+          $('clearSqlBtn').addEventListener('click', () => { sqlInput.value = ''; clearError(); sqlResults.style.display = 'none'; sqlStats.innerHTML = ''; });
+          sqlInput.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runSQL(sqlInput.value); }
+          });
+          document.querySelectorAll('.sqlite-quick').forEach(b => {
+            b.addEventListener('click', () => { sqlInput.value = b.dataset.sql; switchTab('query'); runSQL(sqlInput.value); });
+          });
+          $('exportDbBtn').addEventListener('click', () => {
+            if (!db) return;
+            const data = db.export();
+            const blob = new Blob([data], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentDbName.replace(/\\.(db|sqlite|sqlite3)$/i, '') + '_export.db';
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+          $('sampleBtn').addEventListener('click', () => {
+            db = new SQL.Database();
+            db.run("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE, age INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP); INSERT INTO users (name, email, age) VALUES ('Alice', 'alice@example.com', 28), ('Bob', 'bob@example.com', 34), ('Charlie', 'charlie@example.com', 22), ('Diana', 'diana@example.com', 41); CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL, stock INTEGER DEFAULT 0); INSERT INTO products (name, price, stock) VALUES ('Laptop', 999.99, 12), ('Mouse', 19.99, 100), ('Keyboard', 79.99, 45), ('Monitor', 299.99, 8); CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, product_id INTEGER, quantity INTEGER, order_date TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(product_id) REFERENCES products(id)); INSERT INTO orders (user_id, product_id, quantity, order_date) VALUES (1, 1, 1, '2024-01-15'), (2, 2, 2, '2024-02-03'), (1, 3, 1, '2024-02-10'), (3, 4, 1, '2024-03-22'), (4, 1, 1, '2024-04-05');");
+            currentDbName = 'sample.db';
+            fileInfo.textContent = '📄 示例数据库（内存中）';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            const first = tableList.querySelector('li');
+            if (first) first.click();
+          });
+          $('newDbBtn').addEventListener('click', () => {
+            db = new SQL.Database();
+            currentDbName = 'new.db';
+            fileInfo.textContent = '📄 新建空数据库（内存中）';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            switchTab('query');
+            sqlInput.placeholder = "试试输入: CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT); 然后 INSERT INTO t (name) VALUES ('hello');";
+          });
+        }
+
+        loadSqlJs()
+          .then(sql => {
+            SQL = sql;
+            loadingEl.style.display = 'none';
+            appEl.style.display = 'block';
+            bindEvents();
+          })
+          .catch(err => {
+            loadingEl.innerHTML = '<div class="sqlite-error">❌ 加载 sql.js 失败: ' + escapeHtml(err.message) + '<br><br>请检查网络连接后刷新页面重试。</div>';
+          });
+      })();
+    `,
     'math/fibonacci': `
       const inputNum = document.getElementById('inputNum');
       const output = document.getElementById('output');
@@ -2356,13 +3052,440 @@ if (!sql.trim()) return '';
       document.getElementById('genBtn').addEventListener('click', buildCurl);
       document.getElementById('copyOutput').addEventListener('click', () => copyToClipboard(curlOutput.value));
     `,
+    'other/robots文件生成器': `
+      // === State ===
+      let rules = []; // { id, type: 'disallow' | 'allow', path: string }
+      let ruleSeq = 0;
+      const PRESETS = {
+        all: [
+          { type: 'disallow', path: '' },
+        ],
+        none: [
+          { type: 'allow', path: '/' },
+        ],
+        seo: [
+          { type: 'disallow', path: '/admin/' },
+          { type: 'disallow', path: '/private/' },
+          { type: 'disallow', path: '/tmp/' },
+          { type: 'disallow', path: '/*.json$' },
+          { type: 'allow', path: '/api/public/' },
+        ],
+      };
+
+      // === DOM refs ===
+      const $ = (id) => document.getElementById(id);
+      const uaSelect = $('uaSelect');
+      const uaCustomWrap = $('uaCustomWrap');
+      const uaCustom = $('uaCustom');
+      const rulesList = $('rulesList');
+      const enableCrawlDelay = $('enableCrawlDelay');
+      const crawlDelay = $('crawlDelay');
+      const sitemapUrl = $('sitemapUrl');
+      const hostInput = $('hostInput');
+      const headerComment = $('headerComment');
+      const output = $('output');
+      const validateMsg = $('validateMsg');
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+      }
+
+      function getUserAgent() {
+        const v = uaSelect.value;
+        if (v === '__custom__') return (uaCustom.value || '').trim() || '*';
+        return v;
+      }
+
+      function addRule(type, path) {
+        rules.push({ id: ++ruleSeq, type: type, path: path || '' });
+        renderRules();
+        update();
+      }
+
+      function removeRule(id) {
+        rules = rules.filter(r => r.id !== id);
+        renderRules();
+        update();
+      }
+
+      function updateRulePath(id, val) {
+        const r = rules.find(x => x.id === id);
+        if (r) { r.path = val; update(); }
+      }
+
+      function renderRules() {
+        if (!rules.length) {
+          rulesList.innerHTML = '<div style="opacity:0.55;font-size:0.85rem;padding:0.75rem;text-align:center;background:var(--bg-secondary);border-radius:8px;">还没有规则，点击下方按钮添加 Disallow / Allow</div>';
+          return;
+        }
+        rulesList.innerHTML = rules.map((r, i) => {
+          const color = r.type === 'disallow' ? '#ef4444' : '#22c55e';
+          const icon = r.type === 'disallow' ? '🚫' : '✅';
+          const label = r.type === 'disallow' ? 'Disallow' : 'Allow';
+          return ''
+            + '<div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;padding:0.5rem;background:var(--bg-secondary);border-radius:8px;">'
+            +   '<span style="background:' + color + ';color:#fff;font-weight:600;font-size:0.78rem;padding:0.25rem 0.55rem;border-radius:6px;min-width:5.5rem;text-align:center;">' + icon + ' ' + label + '</span>'
+            +   '<span style="opacity:0.5;font-size:0.78rem;font-family:monospace;min-width:1.5rem;">' + (i + 1) + '.</span>'
+            +   '<input type="text" data-id="' + r.id + '" value="' + escapeHtml(r.path) + '" placeholder="/path/" style="flex:1;padding:0.45rem 0.6rem;border-radius:6px;border:1px solid var(--border);font-size:0.9rem;font-family:monospace;background:var(--bg);color:var(--text);" />'
+            +   '<button data-remove="' + r.id + '" title="删除" style="background:none;border:1px solid var(--border);border-radius:6px;padding:0.4rem 0.6rem;cursor:pointer;color:#ef4444;">✕</button>'
+            + '</div>';
+        }).join('');
+      }
+
+      function generate() {
+        const lines = [];
+        const header = (headerComment.value || '').trim();
+        if (header) {
+          header.split(/\r?\n/).forEach(l => {
+            const t = l.trim();
+            if (t) lines.push(t.startsWith('#') ? t : '# ' + t);
+          });
+          if (lines.length) lines.push('');
+        }
+        const ua = getUserAgent();
+        lines.push('User-agent: ' + ua);
+        if (rules.length === 0) {
+          lines.push('Disallow:');
+        } else {
+          rules.forEach(r => {
+            const directive = r.type === 'disallow' ? 'Disallow' : 'Allow';
+            const path = r.path || '';
+            lines.push(directive + ': ' + path);
+          });
+        }
+        if (enableCrawlDelay.checked) {
+          const v = parseInt(crawlDelay.value, 10);
+          if (!isNaN(v) && v >= 0) {
+            lines.push('Crawl-delay: ' + v);
+          }
+        }
+        const sitemap = (sitemapUrl.value || '').trim();
+        if (sitemap) {
+          lines.push('Sitemap: ' + sitemap);
+        }
+        const host = (hostInput.value || '').trim();
+        if (host) {
+          lines.push('Host: ' + host);
+        }
+        return lines.join('\n') + '\n';
+      }
+
+      function update() {
+        output.value = generate();
+        runValidation();
+      }
+
+      function runValidation() {
+        const msgs = [];
+        if (rules.length === 0) {
+          msgs.push('<span style="color:#f59e0b;">⚠ 当前没有爬取规则，将允许所有路径抓取</span>');
+        }
+        // Check duplicates
+        const seen = {};
+        rules.forEach((r, i) => {
+          const key = r.type + ':' + (r.path || '');
+          if (seen[key] !== undefined) {
+            msgs.push('<span style="color:#f59e0b;">⚠ 规则 ' + (i + 1) + ' 与规则 ' + (seen[key] + 1) + ' 完全重复</span>');
+          } else {
+            seen[key] = i;
+          }
+          // Check path starts with / or is wildcard pattern
+          const p = r.path || '';
+          if (p && !p.startsWith('/') && !p.startsWith('*') && !p.endsWith('$')) {
+            msgs.push('<span style="color:#f59e0b;">⚠ 规则 "' + escapeHtml(p) + '" 路径建议以 / 开头</span>');
+          }
+        });
+        if (enableCrawlDelay.checked) {
+          const v = parseInt(crawlDelay.value, 10);
+          if (isNaN(v) || v < 0) {
+            msgs.push('<span style="color:#ef4444;">✗ Crawl-delay 必须是非负整数</span>');
+          } else if (v > 86400) {
+            msgs.push('<span style="color:#f59e0b;">⚠ Crawl-delay 超过 86400 秒 (24小时)，可能不符合搜索引擎规范</span>');
+          } else if (v < 1) {
+            msgs.push('<span style="color:#f59e0b;">⚠ Crawl-delay 为 0 表示无延迟</span>');
+          }
+        }
+        const sitemap = (sitemapUrl.value || '').trim();
+        if (sitemap && !/^https?:\/\/.+/i.test(sitemap)) {
+          msgs.push('<span style="color:#ef4444;">✗ Sitemap URL 必须以 http:// 或 https:// 开头</span>');
+        }
+        if (msgs.length === 0) {
+          validateMsg.innerHTML = '<span style="color:#22c55e;">✓ 规则有效，可以下载使用</span>';
+        } else {
+          validateMsg.innerHTML = msgs.join('<br>');
+        }
+      }
+
+      // === Wire events ===
+      uaSelect.addEventListener('change', () => {
+        uaCustomWrap.style.display = uaSelect.value === '__custom__' ? '' : 'none';
+        update();
+      });
+      uaCustom.addEventListener('input', update);
+
+      $('addDisallowBtn').addEventListener('click', () => addRule('disallow', '/'));
+      $('addAllowBtn').addEventListener('click', () => addRule('allow', '/'));
+      $('clearRulesBtn').addEventListener('click', () => {
+        if (rules.length && !confirm('确定清空所有规则？')) return;
+        rules = [];
+        renderRules();
+        update();
+      });
+
+      rulesList.addEventListener('input', (e) => {
+        const t = e.target;
+        if (t.matches('input[data-id]')) {
+          updateRulePath(parseInt(t.dataset.id, 10), t.value);
+        }
+      });
+      rulesList.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-remove]');
+        if (!btn) return;
+        removeRule(parseInt(btn.dataset.remove, 10));
+      });
+
+      $('presetAllBtn').addEventListener('click', () => {
+        rules = [];
+        PRESETS.all.forEach(p => addRule(p.type, p.path));
+      });
+      $('presetNoneBtn').addEventListener('click', () => {
+        rules = [];
+        PRESETS.none.forEach(p => addRule(p.type, p.path));
+      });
+      $('presetSeoBtn').addEventListener('click', () => {
+        rules = [];
+        PRESETS.seo.forEach(p => addRule(p.type, p.path));
+      });
+
+      enableCrawlDelay.addEventListener('change', update);
+      crawlDelay.addEventListener('input', update);
+      sitemapUrl.addEventListener('input', update);
+      hostInput.addEventListener('input', update);
+      headerComment.addEventListener('input', update);
+
+      $('copyOutput').addEventListener('click', () => copyToClipboard(output.value));
+      $('validateBtn').addEventListener('click', runValidation);
+
+      $('downloadBtn').addEventListener('click', () => {
+        const text = output.value;
+        if (!text.trim()) return;
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'robots.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        if (window.CT && CT.showToast) CT.showToast('已下载 robots.txt');
+      });
+
+      // === Initial state ===
+      headerComment.value = '# robots.txt for your site\n# Generated by CloverTools (https://clovertools.cn)\n# ' + new Date().toISOString().split('T')[0];
+      rules = [];
+      PRESETS.seo.forEach(p => addRule(p.type, p.path));
+      enableCrawlDelay.checked = false;
+      update();
+    `,
+
+    'text/敏感词检测': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const statEl = document.getElementById('stat');
+      const levelSel = document.getElementById('level');
+      const customWords = document.getElementById('customWords');
+      const customMode = document.getElementById('customMode');
+      const customPanel = document.getElementById('customPanel');
+      customMode.addEventListener('change', () => {
+        customPanel.style.display = customMode.checked ? 'block' : 'none';
+        run();
+      });
+      levelSel.addEventListener('change', run);
+      input.addEventListener('input', run);
+      function getWords() {
+        const base = WORDS[levelSel.value] || [];
+        const extra = customMode.checked
+          ? customWords.value.split(/[\\n,，、\\s]+/).map(s => s.trim()).filter(Boolean)
+          : [];
+        return base.concat(extra);
+      }
+      function run() {
+        const text = input.value;
+        if (!text) { output.innerHTML = '<div style="opacity:.6">请粘贴待检测文本…</div>'; statEl.textContent = ''; return; }
+        const words = getWords();
+        const lower = text.toLowerCase();
+        const found = [];
+        const seen = new Set();
+        words.forEach(w => {
+          if (!w) return;
+          if (lower.indexOf(w.toLowerCase()) !== -1) seen.add(w);
+        });
+        let html = escapeHtml(text);
+        // Highlight: replace each found word (case-insensitive, longest-first)
+        const sorted = Array.from(seen).sort((a, b) => b.length - a.length);
+        sorted.forEach(w => {
+          const re = new RegExp(w.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\\$&'), 'gi');
+          html = html.replace(re, m => '<mark style="background:#fde68a;color:#7c2d12;padding:0 2px;border-radius:3px;">' + m + '</mark>');
+          found.push(w);
+        });
+        output.innerHTML = html;
+        statEl.innerHTML = '检测到 <b>' + found.length + '</b> 个敏感词 / 共 ' + words.length + ' 词库';
+        document.getElementById('copyOutput').onclick = () => copyToClipboard(text);
+      }
+      document.getElementById('clearBtn').onclick = () => { input.value=''; run(); };
+      run();
+    `,
+
+    'text/字数检测': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const trim = document.getElementById('trimSpace');
+      const noPunct = document.getElementById('noPunct');
+      const PUNCT_RE = /[\\u3000-\\u303f\\uff00-\\uffef\\u2000-\\u206f!-/:-@\\[-{}~]/g;
+      const CJK_RE = /[\\u4e00-\\u9fff\\u3400-\\u4dbf\\uff00-\\uffef]/g;
+      const ASCII_RE = /[A-Za-z]/g;
+      const DIGIT_RE = /\\d/g;
+      const SPACE_RE = /\\s/g;
+      function isCJK(c) { return /[\\u4e00-\\u9fff\\u3400-\\u4dbf]/.test(c); }
+      function countWords(v) {
+        // split on whitespace runs
+        return v.trim().split(/\\s+/).filter(Boolean).length;
+      }
+      function run() {
+        let raw = input.value;
+        let v = trim.checked ? raw.replace(/\\s+/g, ' ').trim() : raw;
+        const cjk = (v.match(CJK_RE)||[]).length;
+        const asciiLetters = (v.match(ASCII_RE)||[]).length;
+        const digits = (v.match(DIGIT_RE)||[]).length;
+        const punct = (v.match(PUNCT_RE)||[]).length;
+        const spaces = (v.match(SPACE_RE)||[]).length;
+        const lines = v ? v.split('\\n').length : 0;
+        const paragraphs = v.trim() ? v.trim().split(/\\n\\s*\\n+/).length : 0;
+        const words = countWords(v);
+        const chars = v.length;
+        const noPunctChars = chars - (noPunct.checked ? punct : 0);
+        output.innerHTML =
+          '<div class="stat-grid">' +
+            stat('总字符数', chars) +
+            stat('中文字符', cjk) +
+            stat('英文字母', asciiLetters) +
+            stat('数字', digits) +
+            stat('标点符号', punct) +
+            stat('空白字符', spaces) +
+            stat('行数', lines) +
+            stat('段落数', paragraphs) +
+            stat('英文单词', words) +
+            stat((noPunct.checked?'非标点字符':'去空字符'), noPunct.checked ? noPunctChars : chars - spaces) +
+          '</div>';
+      }
+      function stat(label, val) {
+        return '<div class="stat-cell"><div class="stat-num">' + val + '</div><div class="stat-label">' + label + '</div></div>';
+      }
+      trim.addEventListener('change', run);
+      noPunct.addEventListener('change', run);
+      input.addEventListener('input', run);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(input.value);
+      document.getElementById('clearBtn').onclick = () => { input.value=''; run(); };
+      run();
+    `,
+
+    'text/字符编码检测': `
+      const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const targetEnc = document.getElementById('targetEnc');
+      const detectBtn = document.getElementById('detectBtn');
+      const convertBtn = document.getElementById('convertBtn');
+      const detectOut = document.getElementById('detectOut');
+      const convertOut = document.getElementById('convertOut');
+      const fileInput = document.getElementById('fileInput');
+      function detectEncoding(buf) {
+        // Heuristic BOM detection
+        if (buf.length >= 3 && buf[0]===0xEF && buf[1]===0xBB && buf[2]===0xBF) return 'UTF-8 (BOM)';
+        if (buf.length >= 2 && buf[0]===0xFF && buf[1]===0xFE) return 'UTF-16 LE (BOM)';
+        if (buf.length >= 2 && buf[0]===0xFE && buf[1]===0xFF) return 'UTF-16 BE (BOM)';
+        // Try UTF-8 strict validation
+        try {
+          const dec = new TextDecoder('utf-8', { fatal: true });
+          dec.decode(buf);
+          return 'UTF-8';
+        } catch (e) {}
+        // Try GBK/GB18030 — TextDecoder supports 'gb18030' (superset of GBK/GB2312)
+        try {
+          const dec = new TextDecoder('gb18030', { fatal: true });
+          dec.decode(buf);
+          // Could also be GBK. Heuristic: if many high bytes present, likely GBK
+          return 'GBK/GB18030';
+        } catch (e) {}
+        try {
+          const dec = new TextDecoder('big5', { fatal: true });
+          dec.decode(buf);
+          return 'Big5';
+        } catch (e) {}
+        try {
+          const dec = new TextDecoder('shift_jis', { fatal: true });
+          dec.decode(buf);
+          return 'Shift_JIS';
+        } catch (e) {}
+        return 'ISO-8859-1 (Latin-1, fallback)';
+      }
+      function run() {
+        const text = input.value;
+        if (!text) { output.innerHTML = '<div style="opacity:.6">请输入文本或上传文件…</div>'; detectOut.textContent = ''; return; }
+        const bytes = new TextEncoder().encode(text);
+        const enc = detectEncoding(bytes);
+        detectOut.innerHTML =
+          '<div class="stat-grid">' +
+            '<div class="stat-cell"><div class="stat-num">' + bytes.length + '</div><div class="stat-label">字节数 (UTF-8)</div></div>' +
+            '<div class="stat-cell"><div class="stat-num">' + text.length + '</div><div class="stat-label">字符数</div></div>' +
+          '</div>' +
+          '<div style="margin-top:1rem;padding:.8rem 1rem;background:var(--bg-secondary);border-radius:10px;border-left:3px solid var(--primary);">' +
+            '<b>推断编码：</b><span style="color:var(--primary);font-weight:600;">' + enc + '</span>' +
+          '</div>';
+        document.getElementById('copyOutput').onclick = () => copyToClipboard(text);
+      }
+      function doConvert() {
+        try {
+          const text = input.value;
+          if (!text) { convertOut.textContent = ''; return; }
+          const bytes = new TextEncoder().encode(text);
+          const arr = new Uint8Array(bytes);
+          const enc = targetEnc.value;
+          const dec = new TextDecoder(enc, { fatal: false });
+          const out = dec.decode(arr);
+          convertOut.value = out;
+        } catch (e) {
+          convertOut.value = '转换失败: ' + e.message;
+        }
+      }
+      detectBtn.onclick = run;
+      convertBtn.onclick = doConvert;
+      input.addEventListener('input', run);
+      fileInput.addEventListener('change', ev => {
+        const f = ev.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+          const buf = new Uint8Array(e.target.result);
+          input.value = new TextDecoder('utf-8', { fatal: false }).decode(buf);
+          run();
+        };
+        reader.readAsArrayBuffer(f);
+      });
+      document.getElementById('clearBtn').onclick = () => { input.value=''; convertOut.value=''; run(); };
+      run();
+    `,
   };
 
+  // Custom-script override (for tool-custom entries with customScript field)
+  if (tool.customScript) return tool.customScript;
   return scripts[key] || `// TODO: implement ${tool.path}`;
 }
 
 // ============ Tool content HTML builders ============
 function buildToolContentHtml(tool) {
+  // Custom-HTML override (for tool-custom entries with customHtml field)
+  if (tool.customHtml) return tool.customHtml;
   const key = stripExt(tool.path);
   const contents = {
     'json/formatter': `
@@ -2455,6 +3578,62 @@ function buildToolContentHtml(tool) {
         </div>
       </div>`,
 
+    'other/HTTP协议状态码': `
+      <div class="tool-card">
+        <h3>🔍 HTTP 状态码查询</h3>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <input type="text" id="searchInput" placeholder="按状态码或名称搜索，如 404 或 Not Found..." style="flex:1;min-width:180px;padding:0.6rem 0.75rem;font-family:monospace;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:0.95rem;">
+          <select id="categoryFilter" style="padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:0.95rem;">
+            <option value="all">全部分类</option>
+            <option value="1">1xx 信息响应</option>
+            <option value="2">2xx 成功</option>
+            <option value="3">3xx 重定向</option>
+            <option value="4">4xx 客户端错误</option>
+            <option value="5">5xx 服务器错误</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:8px;background:var(--bg-secondary);font-size:0.9rem;white-space:nowrap;">
+            <input type="checkbox" id="favOnly" style="width:16px;height:16px;"> 仅看常用
+          </label>
+        </div>
+        <div id="statusBar" style="font-size:0.85rem;opacity:0.65;margin-bottom:0.5rem;">共 0 条结果</div>
+        <div id="codeList" style="display:grid;gap:0.6rem;"></div>
+      </div>
+      <div class="output-box">
+        <h3>💡 状态码分类说明</h3>
+        <ul style="margin:0.5rem 0 0 1.25rem;line-height:1.8;font-size:0.92rem;">
+          <li><b style="color:#3b82f6;">1xx 信息响应</b>：请求已收到，继续处理</li>
+          <li><b style="color:#10b981;">2xx 成功</b>：请求已成功被服务器接收、理解并接受</li>
+          <li><b style="color:#f59e0b;">3xx 重定向</b>：需要后续操作才能完成这一请求</li>
+          <li><b style="color:#f97316;">4xx 客户端错误</b>：请求含有词法错误或者无法被执行</li>
+          <li><b style="color:#ef4444;">5xx 服务器错误</b>：服务器在处理某个正确请求时发生错误</li>
+          <li>点击任意状态码卡片可展开/收起详细说明；点击“★ 收藏”可加入常用列表</li>
+        </ul>
+      </div>
+      <style>
+        .http-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;transition:border-color .2s,transform .15s;cursor:pointer;}
+        .http-card:hover{border-color:var(--primary);transform:translateY(-1px);}
+        .http-card.fav{border-color:var(--primary);background:var(--bg-secondary);}
+        .http-row1{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+        .http-badge{display:inline-block;min-width:62px;padding:0.25rem 0.55rem;border-radius:6px;font-family:'SF Mono','Monaco',monospace;font-weight:700;text-align:center;color:#fff;font-size:0.95rem;letter-spacing:0.02em;}
+        .b-1{background:#3b82f6;}
+        .b-2{background:#10b981;}
+        .b-3{background:#f59e0b;}
+        .b-4{background:#f97316;}
+        .b-5{background:#ef4444;}
+        .http-name{font-weight:600;font-size:1rem;color:var(--text);}
+        .http-class{font-size:0.78rem;opacity:0.55;margin-left:0.3rem;}
+        .http-fav-btn{margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.55rem;cursor:pointer;font-size:0.85rem;color:var(--text-secondary);transition:all .15s;}
+        .http-fav-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .http-fav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+        .http-detail{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+        .http-detail.open{max-height:600px;}
+        .http-desc{margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);font-size:0.92rem;line-height:1.7;color:var(--text-secondary);}
+        .http-scenario{background:var(--bg-secondary);padding:0.45rem 0.7rem;border-radius:6px;margin-top:0.5rem;font-size:0.85rem;line-height:1.6;}
+        .http-scenario b{color:var(--primary);}
+        .http-tag{display:inline-block;padding:0.1rem 0.45rem;border-radius:4px;font-size:0.7rem;background:var(--bg-secondary);color:var(--text-secondary);margin-left:0.3rem;font-weight:500;}
+        .http-empty{text-align:center;padding:2rem 1rem;opacity:0.55;font-size:0.95rem;}
+      </style>`,
+
     'time/timestamp': `
       <div class="tool-layout two-col">
         <div class="tool-card">
@@ -2513,6 +3692,38 @@ function buildToolContentHtml(tool) {
         <h3>哈希值 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="output" readonly></textarea>
       </div>`,
+
+    'encrypt/Shake加密': `
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入文本..." style="min-height:120px;"></textarea>
+        <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+          <label style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="opacity:0.8;">算法:</span>
+            <select id="algo" style="padding:0.4rem;">
+              <option value="SHAKE128">SHAKE128 (rate=168)</option>
+              <option value="SHAKE256" selected>SHAKE256 (rate=136)</option>
+            </select>
+          </label>
+          <label style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="opacity:0.8;">输出字节:</span>
+            <input id="outLen" type="number" min="1" max="1024" value="64" style="padding:0.4rem;width:90px;">
+          </label>
+        </div>
+        <p style="font-size:0.78rem;opacity:0.65;margin-top:0.5rem;line-height:1.5;">
+          SHAKE (Secure Hash Algorithm KECCAK) 属于 FIPS 202 可变长输出扩展函数（FIPS 202 中的 SHA-3 系列）。
+          本工具使用纯 JS 实现 Keccak-f[1600] 置换、SHAKE128/256 吸收/挤压阶段，无外部依赖、支持任意字节长度（1-1024）。
+        </p>
+      </div>
+      <div class="output-box">
+        <h3>十六进制 (Hex) <button class="copy-btn" id="copyHex">复制</button></h3>
+        <textarea id="hexOut" readonly style="word-break:break-all;"></textarea>
+      </div>
+      <div class="output-box">
+        <h3>Base64 <button class="copy-btn" id="copyB64">复制</button></h3>
+        <textarea id="b64Out" readonly style="word-break:break-all;"></textarea>
+      </div>
+      <p id="meta" style="font-size:0.8rem;opacity:0.7;margin-top:0.5rem;"></p>`,
 
     'encrypt/unicode': `
       <div class="tool-card">
@@ -2959,6 +4170,74 @@ function buildToolContentHtml(tool) {
       <div class="tool-card">
         <h3>匹配结果</h3>
         <div id="output" style="line-height:1.6;"></div>
+      </div>`,
+
+    'other/键盘按键值大全': `
+      <div class="tool-card">
+        <h3>⌨️ 实时按键监听</h3>
+        <p style="font-size:0.85rem;opacity:0.7;margin:0.25rem 0 0.75rem;">将焦点放在下方输入框或任意位置，然后按下任意键查看对应的 keyCode / code / key 值</p>
+        <div id="liveArea" tabindex="0" style="padding:1.25rem;border:2px dashed var(--border);border-radius:12px;background:var(--bg-secondary);text-align:center;cursor:text;outline:none;transition:border-color .2s,background .2s;">
+          <div style="opacity:0.55;font-size:0.9rem;margin-bottom:0.75rem;">👇 点击此处后按键</div>
+          <div id="liveResult" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;">
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">key</div>
+              <div id="liveKey" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;word-break:break-all;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">code</div>
+              <div id="liveCode" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;word-break:break-all;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">keyCode</div>
+              <div id="liveKeyCode" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">location</div>
+              <div id="liveLocation" style="font-size:1rem;font-weight:500;margin-top:0.2rem;">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>🔍 查询按键表</h3>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <input type="text" id="searchInput" placeholder="搜索 key / code / keyCode..." style="flex:1;min-width:180px;padding:0.5rem 0.75rem;font-family:monospace;border:1px solid var(--border);border-radius:6px;background:var(--bg);">
+          <select id="catFilter" style="padding:0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);">
+            <option value="all">全部分类</option>
+            <option value="letter">字母 (A-Z)</option>
+            <option value="digit">数字 (0-9)</option>
+            <option value="function">功能键 (F1-F12)</option>
+            <option value="control">控制键 (Enter/Tab/Esc/...)</option>
+            <option value="arrow">方向键</option>
+            <option value="modifier">修饰键 (Ctrl/Shift/Alt/Meta)</option>
+            <option value="numpad">小键盘</option>
+          </select>
+        </div>
+        <p id="resultCount" style="font-size:0.85rem;opacity:0.65;margin:0 0 0.5rem;">共 0 个按键</p>
+        <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+          <table id="keyTable" style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+            <thead>
+              <tr style="background:var(--bg-secondary);text-align:left;">
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">分类</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">key</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">code</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">keyCode</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;width:80px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="keyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>💡 使用提示</h3>
+        <ul style="margin:0.5rem 0 0 1.25rem;line-height:1.8;font-size:0.92rem;">
+          <li><b>key</b>：键的字符值（如 <code>a</code>、<code>Enter</code>、<code>ArrowUp</code>）</li>
+          <li><b>code</b>：物理按键标识（与键盘布局无关，如 <code>KeyA</code>、<code>Digit1</code>）</li>
+          <li><b>keyCode</b>：传统数字编码（已弃用，但仍广泛使用）</li>
+          <li>点击表格中的 keyCode 单元格可快速复制到剪贴板</li>
+          <li>实时监听区域支持 modifier、组合键（Ctrl+C 等）检测</li>
+        </ul>
       </div>`,
 
     'life/insurance': `
@@ -3450,6 +4729,113 @@ function buildToolContentHtml(tool) {
         <h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <div id="output" style="padding:1rem;font-family:monospace;white-space:pre-wrap;line-height:1.8;"></div>
       </div>`,
+
+    'code/SQLite查看器': `
+      <style>
+        .sqlite-wrap { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; min-height: 480px; }
+        @media (max-width: 768px) { .sqlite-wrap { grid-template-columns: 1fr; } }
+        .sqlite-sidebar { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem; max-height: 600px; overflow-y: auto; }
+        .sqlite-sidebar h4 { font-size: 0.85rem; margin: 0 0 0.5rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+        .sqlite-sidebar .file-info { font-size: 0.78rem; opacity: 0.6; margin-bottom: 0.75rem; word-break: break-all; }
+        .sqlite-table-list { list-style: none; padding: 0; margin: 0; }
+        .sqlite-table-list li { padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-bottom: 0.25rem; transition: background 0.15s; display: flex; align-items: center; gap: 0.4rem; }
+        .sqlite-table-list li:hover { background: var(--primary-light, rgba(99,102,241,0.1)); }
+        .sqlite-table-list li.active { background: var(--primary); color: white; }
+        .sqlite-table-list li .rowcount { margin-left: auto; font-size: 0.7rem; opacity: 0.7; }
+        .sqlite-main { display: flex; flex-direction: column; gap: 1rem; }
+        .sqlite-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .sqlite-tab { padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; border: none; background: none; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all 0.15s; }
+        .sqlite-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+        .sqlite-tab:hover:not(.active) { color: var(--text); }
+        .sqlite-panel { display: none; }
+        .sqlite-panel.active { display: block; }
+        .sqlite-empty { padding: 3rem 1rem; text-align: center; opacity: 0.6; font-size: 0.95rem; }
+        .sqlite-drop { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg-secondary); }
+        .sqlite-drop:hover, .sqlite-drop.dragover { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+        .sqlite-drop .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .sqlite-drop p { margin: 0.25rem 0; }
+        .sqlite-drop .hint { font-size: 0.8rem; opacity: 0.6; }
+        .sqlite-schema-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .sqlite-schema-table th, .sqlite-schema-table td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+        .sqlite-schema-table th { background: var(--bg-secondary); font-weight: 600; }
+        .sqlite-schema-table .pk { color: #d97706; font-weight: 700; }
+        .sqlite-schema-table .nn { color: #dc2626; }
+        .sqlite-results { max-height: 500px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+        .sqlite-results table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: monospace; }
+        .sqlite-results th, .sqlite-results td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: left; white-space: nowrap; }
+        .sqlite-results th { background: var(--bg-secondary); position: sticky; top: 0; font-weight: 600; z-index: 1; }
+        .sqlite-results tr:hover td { background: rgba(99,102,241,0.05); }
+        .sqlite-results .null-val { opacity: 0.5; font-style: italic; }
+        .sqlite-pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; }
+        .sqlite-pagination button { padding: 0.3rem 0.6rem; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); border-radius: 6px; cursor: pointer; }
+        .sqlite-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sqlite-pagination button:hover:not(:disabled) { background: var(--primary); color: white; }
+        .sqlite-stats { font-size: 0.8rem; color: var(--text-secondary); padding: 0.5rem 0.75rem; background: var(--bg-secondary); border-radius: 8px; margin-top: 0.5rem; }
+        .sqlite-error { padding: 0.75rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace; word-break: break-word; }
+        .sqlite-loading { padding: 2rem; text-align: center; opacity: 0.7; }
+        .sqlite-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: sqlite-spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
+        @keyframes sqlite-spin { to { transform: rotate(360deg); } }
+        .sqlite-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .sqlite-actions button { padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); cursor: pointer; }
+        .sqlite-actions button:hover { background: var(--primary); color: white; }
+        .sqlite-quick { font-size: 0.75rem; padding: 0.2rem 0.5rem !important; font-family: monospace; }
+      </style>
+      <div id="sqliteRoot">
+        <div id="sqliteLoading" class="sqlite-loading">
+          <span class="sqlite-spinner"></span>正在加载 SQL.js 引擎（WASM）...
+        </div>
+        <div id="sqliteApp" style="display:none;">
+          <div id="dropZone" class="sqlite-drop">
+            <div class="icon">📂</div>
+            <p><strong>拖拽 SQLite 文件到此处</strong></p>
+            <p class="hint">或点击选择文件 — 支持 .db / .sqlite / .sqlite3</p>
+            <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3" style="display:none;" />
+            <div style="margin-top:0.75rem;">
+              <button class="btn btn-secondary" id="sampleBtn" style="font-size:0.85rem;padding:0.4rem 0.85rem;">📝 加载示例数据</button>
+              <button class="btn btn-secondary" id="newDbBtn" style="font-size:0.85rem;padding:0.4rem 0.85rem;margin-left:0.4rem;">➕ 创建空数据库</button>
+            </div>
+          </div>
+          <div id="dbPanel" style="display:none;">
+            <div class="sqlite-wrap">
+              <aside class="sqlite-sidebar">
+                <h4>表</h4>
+                <div class="file-info" id="fileInfo"></div>
+                <ul class="sqlite-table-list" id="tableList"></ul>
+              </aside>
+              <div class="sqlite-main">
+                <div class="sqlite-tabs">
+                  <button class="sqlite-tab active" data-tab="structure">表结构</button>
+                  <button class="sqlite-tab" data-tab="data">数据</button>
+                  <button class="sqlite-tab" data-tab="query">SQL 查询</button>
+                </div>
+                <div class="sqlite-panel active" id="panel-structure">
+                  <div id="structureContent"></div>
+                </div>
+                <div class="sqlite-panel" id="panel-data">
+                  <div id="dataContent"></div>
+                </div>
+                <div class="sqlite-panel" id="panel-query">
+                  <textarea id="sqlInput" placeholder="输入 SQL 语句（SELECT / INSERT / UPDATE / DELETE / CREATE ...）" style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-family:monospace;font-size:0.9rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+                  <div class="sqlite-actions">
+                    <button class="btn btn-primary" id="runSqlBtn">▶ 执行 (Ctrl+Enter)</button>
+                    <button class="btn btn-secondary" id="clearSqlBtn">清空</button>
+                    <button class="btn btn-secondary" id="exportDbBtn">💾 导出数据库</button>
+                  </div>
+                  <div style="margin-top:0.5rem;">
+                    <span style="font-size:0.8rem;opacity:0.7;margin-right:0.4rem;">快速:</span>
+                    <button class="sqlite-quick sqlite-actions" data-sql="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;">所有表</button>
+                    <button class="sqlite-quick sqlite-actions" data-sql="SELECT * FROM sqlite_master WHERE type='table';">建表语句</button>
+                  </div>
+                  <div id="sqlStats"></div>
+                  <div id="sqlError"></div>
+                  <div id="sqlResults" class="sqlite-results" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
     'math/fibonacci': `<div class="tool-card">
         <h3>生成斐波那契数列</h3>
         <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
@@ -3550,6 +4936,220 @@ function buildToolContentHtml(tool) {
         <h3>cURL 命令 <button class="copy-btn" id="copyOutput">复制</button></h3>
         <textarea id="curlOutput" readonly style="min-height:100px;font-family:monospace;font-size:0.9rem;word-break:break-all;background:var(--bg-primary);"></textarea>
       </div>`,
+    'other/robots文件生成器': `
+      <div class="tool-card">
+        <h3>🤖 User-agent 设置</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">User-agent 名称</label>
+            <select id="uaSelect" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.95rem;background:var(--bg-secondary);color:var(--text);">
+              <option value="*">* (所有爬虫)</option>
+              <option value="Googlebot">Googlebot</option>
+              <option value="Googlebot-Image">Googlebot-Image</option>
+              <option value="Googlebot-Mobile">Googlebot-Mobile</option>
+              <option value="Baiduspider">Baiduspider</option>
+              <option value="Bingbot">Bingbot</option>
+              <option value="Slurp">Slurp (Yahoo)</option>
+              <option value="DuckDuckBot">DuckDuckBot</option>
+              <option value="YandexBot">YandexBot</option>
+              <option value="Sogou">Sogou</option>
+              <option value="Applebot">Applebot</option>
+              <option value="facebot">facebot (Facebook)</option>
+              <option value="Twitterbot">Twitterbot</option>
+              <option value="__custom__">自定义...</option>
+            </select>
+          </div>
+          <div id="uaCustomWrap" style="display:none;">
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">自定义名称</label>
+            <input type="text" id="uaCustom" placeholder="例如：MyBot" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.95rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button class="btn btn-secondary" id="presetAllBtn">📋 预设：全部允许</button>
+          <button class="btn btn-secondary" id="presetNoneBtn">🚫 预设：全部禁止</button>
+          <button class="btn btn-secondary" id="presetSeoBtn">🌐 预设：SEO 友好</button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>🚧 爬取规则 (Disallow / Allow)</h3>
+        <div id="rulesList"></div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="addDisallowBtn">+ 添加 Disallow</button>
+          <button class="btn btn-secondary" id="addAllowBtn">+ 添加 Allow</button>
+          <button class="btn btn-secondary" id="clearRulesBtn">🗑️ 清空规则</button>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h3>⚙️ 可选配置</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">
+              <input type="checkbox" id="enableCrawlDelay" style="margin-right:0.35rem;"> Crawl-delay (秒)
+            </label>
+            <input type="number" id="crawlDelay" value="10" min="0" max="86400" step="1" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.95rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+          <div>
+            <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Sitemap URL</label>
+            <input type="url" id="sitemapUrl" placeholder="https://example.com/sitemap.xml" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.95rem;background:var(--bg-secondary);color:var(--text);" />
+          </div>
+        </div>
+        <div style="margin-top:0.75rem;">
+          <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">Host (部分搜索引擎支持，如 Yandex)</label>
+          <input type="text" id="hostInput" placeholder="www.example.com" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.95rem;background:var(--bg-secondary);color:var(--text);" />
+        </div>
+        <div style="margin-top:0.75rem;">
+          <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">顶部注释 (可选，每行以 # 开头)</label>
+          <textarea id="headerComment" placeholder="# robots.txt for example.com&#10;# Generated by CloverTools" rows="2" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:0.85rem;font-family:'SF Mono',monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+        </div>
+      </div>
+
+      <div class="output-box">
+        <h3>📄 生成的 robots.txt <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:280px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:0.85rem;line-height:1.55;background:var(--bg-primary);word-break:break-all;"></textarea>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
+          <button class="btn btn-primary" id="downloadBtn">⬇️ 下载 robots.txt</button>
+          <button class="btn btn-secondary" id="validateBtn">✓ 校验规则</button>
+        </div>
+        <div id="validateMsg" style="margin-top:0.6rem;font-size:0.85rem;line-height:1.6;"></div>
+        <div style="margin-top:0.75rem;padding:0.75rem;background:var(--bg-secondary);border-radius:8px;font-size:0.78rem;opacity:0.85;line-height:1.7;">
+          💡 <b>使用提示：</b><br>
+          • <code>*</code> 通配符匹配所有爬虫；<code>/path/</code> 禁止/允许指定路径；<code>$</code> 锚定结尾<br>
+          • <code>Allow</code> 优先级高于 <code>Disallow</code>，更具体的规则优先<br>
+          • robots.txt 必须放在网站根目录 (例如 <code>https://example.com/robots.txt</code>)<br>
+          • 大小写敏感；<code>User-agent</code> 区分大小写；路径区分大小写
+        </div>
+      </div>
+    `,
+
+    'text/敏感词检测': `
+      <div class="tool-card">
+        <h3>📝 待检测文本</h3>
+        <textarea id="input" placeholder="粘贴或输入待检测文本…" style="min-height:200px;"></textarea>
+        <div class="btn-row" style="margin-top:.75rem;flex-wrap:wrap;gap:.5rem;">
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.3rem;">检测等级：
+            <select id="level" style="padding:.4rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+              <option value="high">🔴 高级 (政治/暴力/违法)</option>
+              <option value="medium" selected>🟡 中级 (色情/赌博/灰色)</option>
+              <option value="low">🟢 初级 (广告法/夸大)</option>
+            </select>
+          </label>
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.3rem;margin-left:auto;">
+            <input type="checkbox" id="customMode" /> 自定义词库
+          </label>
+          <button class="btn btn-secondary" id="clearBtn">🗑️ 清空</button>
+        </div>
+        <div id="customPanel" style="display:none;margin-top:.75rem;">
+          <label style="font-size:.85rem;opacity:.75;display:block;margin-bottom:.3rem;">自定义词库（换行 / 逗号 / 空格分隔）</label>
+          <textarea id="customWords" placeholder="例如：违禁词1&#10;违禁词2&#10;违禁词3" style="min-height:80px;font-size:.85rem;"></textarea>
+        </div>
+        <div id="stat" style="margin-top:.75rem;font-size:.9rem;opacity:.85;"></div>
+      </div>
+      <div class="output-box">
+        <h3>📋 检测结果 <button class="copy-btn" id="copyOutput">复制原文</button></h3>
+        <div id="output" style="min-height:160px;padding:1rem;line-height:1.8;background:var(--bg-secondary);border-radius:10px;white-space:pre-wrap;word-break:break-word;"></div>
+      </div>
+      <div class="tool-card" style="background:var(--bg-secondary);">
+        <h3>💡 使用提示</h3>
+        <ul style="margin:0;padding-left:1.2rem;line-height:1.8;font-size:.9rem;opacity:.85;">
+          <li>检测到敏感词后会在文本中<mark style="background:#fde68a;color:#7c2d12;padding:0 3px;border-radius:3px;">黄色高亮</mark>标记</li>
+          <li>支持检测等级切换：高级涵盖政治/暴力/违法，中级覆盖色情/赌博/灰色，初级针对广告法/夸大宣传</li>
+          <li>自定义词库支持换行、逗号、空格分隔多个词，适合团队/行业专属敏感词管理</li>
+          <li>所有检测在本地浏览器完成，文本不上传到服务器</li>
+        </ul>
+      </div>
+    `,
+
+    'text/字数检测': `
+      <div class="tool-card">
+        <h3>📝 输入文本</h3>
+        <textarea id="input" placeholder="在此输入或粘贴文本…" style="min-height:200px;"></textarea>
+        <div class="btn-row" style="margin-top:.75rem;flex-wrap:wrap;gap:.75rem;">
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.3rem;">
+            <input type="checkbox" id="trimSpace" /> 去空统计（合并连续空白）
+          </label>
+          <label style="font-size:.85rem;display:flex;align-items:center;gap:.3rem;">
+            <input type="checkbox" id="noPunct" /> 排除标点
+          </label>
+          <button class="btn btn-secondary" id="clearBtn" style="margin-left:auto;">🗑️ 清空</button>
+          <button class="copy-btn" id="copyOutput" style="margin-left:0;">复制原文</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>📊 统计结果</h3>
+        <div id="output" style="min-height:120px;"></div>
+      </div>
+      <div class="tool-card" style="background:var(--bg-secondary);">
+        <h3>💡 使用提示</h3>
+        <ul style="margin:0;padding-left:1.2rem;line-height:1.8;font-size:.9rem;opacity:.85;">
+          <li><b>中文字符</b>：Unicode CJK 范围（基本汉字 + 扩展A区）</li>
+          <li><b>英文单词</b>：按连续空白字符切分（适合英文/编程场景）</li>
+          <li><b>段落数</b>：以一个或多个空行分隔（Markdown 友好）</li>
+          <li>勾选"去空统计"会把 Tab / 多空格 / 换行统一为单个空格后再计算字符数</li>
+          <li>所有统计实时计算，输入即得结果</li>
+        </ul>
+      </div>
+      <style>
+        .stat-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:.6rem; }
+        .stat-cell { background:var(--bg-secondary); padding:.75rem .5rem; border-radius:8px; text-align:center; border:1px solid var(--border); }
+        .stat-num { font-size:1.5rem; font-weight:700; color:var(--primary); }
+        .stat-label { font-size:.78rem; opacity:.75; margin-top:.2rem; }
+      </style>
+    `,
+
+    'text/字符编码检测': `
+      <div class="tool-card">
+        <h3>🔍 输入文本</h3>
+        <textarea id="input" placeholder="输入或粘贴待检测文本…" style="min-height:160px;font-family:Menlo,Monaco,Consolas,monospace;font-size:.9rem;"></textarea>
+        <div class="btn-row" style="margin-top:.75rem;flex-wrap:wrap;gap:.5rem;">
+          <button class="btn btn-primary" id="detectBtn">🔎 检测编码</button>
+          <label class="btn btn-secondary" style="cursor:pointer;">
+            📁 上传文件
+            <input type="file" id="fileInput" style="display:none;" accept=".txt,.csv,.log,.md,.json,.*" />
+          </label>
+          <button class="btn btn-secondary" id="clearBtn">🗑️ 清空</button>
+        </div>
+        <div id="detectOut" style="margin-top:1rem;"></div>
+      </div>
+      <div class="tool-card">
+        <h3>🔄 编码转换</h3>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+          <label style="font-size:.9rem;">目标编码：</label>
+          <select id="targetEnc" style="padding:.4rem .6rem;border-radius:6px;border:1px solid var(--border);background:var(--bg-secondary);color:var(--text);">
+            <option value="utf-8">UTF-8</option>
+            <option value="gb18030">GB18030 (GBK 兼容)</option>
+            <option value="big5">Big5</option>
+            <option value="shift_jis">Shift_JIS</option>
+            <option value="euc-jp">EUC-JP</option>
+            <option value="euc-kr">EUC-KR</option>
+            <option value="iso-8859-1">ISO-8859-1</option>
+            <option value="windows-1252">Windows-1252</option>
+            <option value="utf-16le">UTF-16 LE</option>
+            <option value="utf-16be">UTF-16 BE</option>
+          </select>
+          <button class="btn btn-primary" id="convertBtn">转换</button>
+          <button class="copy-btn" id="copyOutput" style="margin-left:auto;">复制结果</button>
+        </div>
+        <textarea id="convertOut" placeholder="转换结果将显示在这里…" style="margin-top:.75rem;min-height:120px;font-family:Menlo,Monaco,Consolas,monospace;font-size:.9rem;"></textarea>
+      </div>
+      <div class="tool-card" style="background:var(--bg-secondary);">
+        <h3>💡 使用提示</h3>
+        <ul style="margin:0;padding-left:1.2rem;line-height:1.8;font-size:.9rem;opacity:.85;">
+          <li>编码检测基于 <code>TextDecoder</code> 严格模式尝试，按 UTF-8 → GB18030 → Big5 → Shift_JIS 顺序回退</li>
+          <li>BOM 文件头会被优先识别（UTF-8 BOM / UTF-16 LE/BE BOM）</li>
+          <li>上传文件时会按二进制读取，避免浏览器默认 UTF-8 解码造成的乱码</li>
+          <li>转换功能可将 UTF-8 输入重新解释为其他编码（适合乱码排查）</li>
+          <li>所有处理在本地完成，文本不上传</li>
+        </ul>
+      </div>
+      <style>
+        .stat-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:.6rem; }
+        .stat-cell { background:var(--bg-secondary); padding:.75rem .5rem; border-radius:8px; text-align:center; border:1px solid var(--border); }
+        .stat-num { font-size:1.5rem; font-weight:700; color:var(--primary); }
+        .stat-label { font-size:.78rem; opacity:.75; margin-top:.2rem; }
+      </style>
+    `,
   };
 
   return contents[key] || '';

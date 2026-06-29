@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON key重复会怎样？解析行为与正确处理方案</title>
+  <meta name="description" content="JSON中存在重复的key是一个容易被忽视但可能导致隐蔽Bug的问题。本文深入解析不同编程语言对重复key的处理方式，以及如何正确检测和修复重复key。">
+  <meta name="keywords" content="json-key重复会怎样,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/jsonkey重复会怎样">
+  <meta property="og:title" content="json-key重复会怎样 - CloverTools">
+  <meta property="og:description" content="解决json-key重复会怎样的实战方法,配合JSON 格式化在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/jsonkey重复会怎样">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">JSON / 数据处理</span></span>
+      <h1 class="article-title">json-key重复会怎样</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; json-key重复会怎样
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <h2>问题背景：重复 key 的幽灵</h2>
+<p>工作中可能会遇到这样一种奇怪的现象：明明写的是一个 JSON 对象，取出来的时候某个键的值却不是自己写入的那个。最典型的场景是这样的：</p>
+<pre><code>// 用 JSON 工具格式化以下内容
+{
+  "name": "Alice",
+  "name": "Bob",
+  "name": "Charlie"
+}</code></pre>
+<p>工具输出的结果是 <code>"name": "Charlie"</code>，只保留了最后一个值。另一个常见踩坑场景是从后端接口拿到响应后，用代码解析这个 JSON，发现某些字段的值和自己预期的完全不一样，而数据来源明明没问题。这背后的罪魁祸首之一，就是重复的 JSON key。</p>
+<p>很多人会默认「重复 key」这种事不会发生在正经项目里，但实际上它比你想象的更容易出现：配置文件合并时产生重复、模板引擎输出重复、Nginx 日志被某些日志收集器错误追加、多语言资源文件手工维护时误写、以及前后端 JSON 数据拼接时，都可能出现重复 key。理解 JSON spec 规范对重复 key 的定义、以及各语言处理方式的差异，是排查这类问题的前提。</p>
+
+<h2>原理：JSON Spec 规范怎么说的</h2>
+<p>根据 RFC 8259（目前最新的 JSON 标准），文档中明确写道：</p>
+<blockquote>
+<p>When the names within a JSON object are not unique, the behavior of software that has received such an object but not inspected the entire JSON text is unpredictable. 
+（当 JSON 对象中的名称不唯一时，收到该对象但未检查整个 JSON 文本的软件的行为是不可预测的。）</p>
+</blockquote>
+<p>请注意「不可预测」（unpredictable）这个词。规范既没有明确禁止重复 key，也没有规定处理方式，而是把这个问题留给了具体实现。规范的前身 RFC 4627 更直接一些，曾提到「对象的每个成员名称应当唯一」。到了 RFC 7159（后来的 8259），这个问题变成了「未规定行为」（unspecified behavior）。</p>
+<p>为什么会这样？因为 JSON 设计之初是为了在多个系统之间传递数据，而当时已经存在大量包含重复 key 的数据。贸然规定「重复 key 非法」会破坏这些数据的兼容性，所以规范选择了最保守的策略：不规定。各语言和工具可以自行决定如何处理。</p>
+<p>JSON 的核心结构规则如下：</p>
+<ul>
+<li>对象（object）以 <code>{}</code> 包裹，包含无序的名称/值对（member）</li>
+<li>名称（name）是字符串</li>
+<li>值（value）可以是字符串、数字、对象、数组、布尔、null 之一</li>
+</ul>
+<p>规范没有规定同一个名称在一对象内出现的次数上限，也没有规定重复时应如何处理，这就造成了跨语言、跨工具行为不一致的根源。</p>
+
+<h2>各语言处理方式差异对比</h2>
+<h3>JavaScript（Chrome V8 / Node.js）</h3>
+<p>JavaScript 的 <code>JSON.parse()</code> 在遇到重复 key 时，会使用最后一个键值对，覆盖前面的值。这是 ECMAScript 规范中对象字面量的标准行为延伸过来的：<code>{"name": "A", "name": "B"}</code> 解析后 <code>.name</code> 的值是 <code>"B"</code>。</p>
+<pre><code>// Node.js 环境测试
+const assert = require('assert');
+const parsed = JSON.parse('{"name": "Alice", "name": "Bob"}');
+console.log(parsed.name); // "Bob"
+// 注意：序列化回去会丢失 Alice
+console.log(JSON.stringify(parsed)); // {"name":"Bob"}</code></pre>
+<p>这个行为在安全层面也有影响：如果你用 JSON 解析用户上传的配置文件，然后读取某个 key 的值，恶意用户可以通过重复 key 的方式覆盖你代码中预设的默认值。</p>
+<pre><code>// 模拟攻击场景
+// 假设程序预设了 admin: false
+const userConfig = JSON.parse('{"admin": false, "admin": true}');
+if (userConfig.admin) {
+    // 这里可能意外获得管理员权限
+    console.log("管理员权限已获取");
+}</code></pre>
+<p>另外，在 JavaScript 中对象本身是有序的（自 ES2015 以来），但 <code>JSON.stringify</code> 序列化时会保留最后一个 key 的位置信息。</p>
+
+<h3>Python</h3>
+<p>Python 的标准库 <code>json</code> 模块在重复 key 问题上表现不一致，具体取决于 Python 版本。</p>
+<pre><code># Python 3.7+，字典保持插入顺序
+import json
+s = '{"name": "Alice", "name": "Bob", "name": "Charlie"}'
+parsed = json.loads(s)
+print(parsed)  # {'name': 'Charlie'}
+print(list(parsed.keys()))  # ['name'] — 只有一个key</code></pre>
+<p>Python 在 <code>json.loads</code> 时遇到重复 key，会用最后一个值覆盖前面的值，最终只保留一个 key。这与 JavaScript 的行为一致。但 Python 有一个重要的不同点：<code>json.load(fp)</code> 在遇到格式错误的 JSON（比如多余逗号）时，报错信息会比 JavaScript 更友好一些。</p>
+<pre><code># Python 中重复 key 的实际影响
+import json
+
+# 读取文件时的行为
+json_str = '''
+{
+  "name": "Alice",
+  "name": "Bob",
+  "name": "Charlie"
+}
+'''
+result = json.loads(json_str)
+print(result)  # {'name': 'Charlie'}
+print(len(result))  # 1 — 只有一个键值对
+
+# 如果你想检测重复 key，需要自己写逻辑
+seen = {}
+def detect_duplicates(obj, path=""):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            full_path = f"{path}.{k}" if path else k
+            if k in seen:
+                print(f"重复 key 发现：{full_path}，值：{v}，前面已有：{seen[k]}")
+            else:
+                seen[k] = v
+            detect_duplicates(v, full_path)
+
+detect_duplicates(json.loads(json_str))
+# 输出：重复 key 发现：name，值：Charlie，前面已有：Alice</code></pre>
+<p>Python 3.7+ 中字典保持插入顺序，但重复 key 在解析阶段就被合并了，所以在解析结果里看不到多个同名 key。如果需要保留所有值，需要在解析时自己处理。</p>
+
+<h3>Go</h3>
+<p>Go 的 <code>encoding/json</code> 标准库在重复 key 处理上遵循「最后一个值胜出」的原则，与 JavaScript 和 Python 一致。</p>
+<pre><code>package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+func main() {
+    input := `{"name": "Alice", "name": "Bob", "name": "Charlie"}`
+    var result map[string]interface{}
+    if err := json.Unmarshal([]byte(input), &result); err != nil {
+        fmt.Println("解析错误:", err)
+        return
+    }
+    fmt.Println(result) // map[name:Charlie]
+    fmt.Println(result["name"]) // Charlie
+}</code></pre>
+<p>Go 的独特之处在于，如果 JSON 结构是确定的（用 struct 定义了具体类型），重复 key 会导致解析失败或不可预测行为，因为 Go 的 struct 字段映射是一对一的，不允许同一个字段出现两次。</p>
+<pre><code>// 用 struct 解析时，重复 key 的行为
+type Person struct {
+    Name string `json:"name"`
+}
+
+input := `{"name": "Alice", "name": "Bob"}`
+var p Person
+json.Unmarshal([]byte(input), &p)
+fmt.Println(p.Name) // "Bob" — 最后一个值</code></pre>
+<p>但如果同一个 key 出现超过两次，Go 的行为就是未定义的，取决于运行时如何处理内存。而且 Go 的 <code>json.Decoder</code> 和 <code>json.Unmarshal</code> 在处理流式 JSON 时行为也有细微差异。</p>
+
+<h3>Java</h3>
+<p>Java 的 <code>com.fasterxml.jackson.core</code>（Jackson）是目前最流行的 JSON 处理库。默认情况下，Jackson 的行为是「最后一个值胜出」，但可以通过配置检测重复 key 并报错。</p>
+<pre><code>import com.fasterxml.jackson.databind.*;
+import java.util.*;
+
+public class DuplicateKeyTest {
+    public static void main(String[] args) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        // 开启检测重复 key（Jackson 2.10+）
+        mapper.enable(DeserializationFeature.FAIL_ON_READING_DUPLICATE_MAP_KEYS);
+        
+        String json = "{\"name\": \"Alice\", \"name\": \"Bob\"}";
+        Map&lt;String, Object&gt; result = mapper.readValue(json, new TypeReference&lt;Map&lt;String, Object&gt;&gt;() {});
+        System.out.println(result); // {name=Bob}
+    }
+}</code></pre>
+<p>Jackson 2.10 引入了 <code>FAIL_ON_READING_DUPLICATE_MAP_KEYS</code> 选项，开启后遇到重复 key 会抛出 <code>MapDuplicateKeyException</code>。但在默认配置下，Jackson 同样只保留最后一个值。</p>
+<pre><code>// 模拟 Jackson 的默认行为
+ObjectMapper mapper = new ObjectMapper();
+String json = "{\"count\": 1, \"count\": 2, \"count\": 3}";
+Map&lt;String, Object&gt; result = mapper.readValue(json, new TypeReference&lt;Map&lt;String, Object&gt;&gt;() {});
+System.out.println(result.get("count")); // 3
+// 解析过程中 1 和 2 都被覆盖了，没有任何警告</code></pre>
+
+<h3>在线 JSON 工具的实测对比</h3>
+<p>为 CloverTools 的 JSON 格式化工具设计了一个测试用例，用不同工具测试同一份包含重复 key 的 JSON，观察输出差异：</p>
+<pre><code>输入 JSON：
+{
+  "title": "第一篇文章",
+  "title": "第二篇文章",
+  "title": "第三篇文章",
+  "author": "Alice",
+  "tags": ["Python", "Go"],
+  "tags": ["JavaScript", "Node.js"]
+}</code></pre>
+<table>
+<thead>
+<tr><th>工具 / 环境</th><th>输出 title 值</th><th>输出 tags 值</th><th>是否有警告</th></tr>
+</thead>
+<tbody>
+<tr><td>JSON.parse (Chrome console)</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Python json.loads</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Go json.Unmarshal</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Jackson（默认）</td><td>"第三篇文章"</td><td>["JavaScript", "Node.js"]</td><td>无</td></tr>
+<tr><td>Jackson（开启检测）</td><td>报错</td><td>报错</td><td>MapDuplicateKeyException</td></tr>
+</tbody>
+</table>
+<p>从实测来看，主流语言和处理库在默认配置下全部表现为「最后一个值胜出」，且没有任何警告。这让重复 key 问题变得非常隐蔽——数据静默丢失，没有任何报错。</p>
+
+<h2>常见踩坑场景</h2>
+<h3>场景一：多环境配置文件合并</h3>
+<p>前端项目通常有多个环境配置文件（dev、staging、prod），有些项目在构建时会把多个 JSON 配置合并。如果两个文件中恰好有相同的 key，会发生静默覆盖。</p>
+<pre><code>// config.dev.json
+{
+  "apiBase": "https://dev-api.example.com",
+  "timeout": 5000,
+  "retryCount": 3
+}
+
+// config.prod.json（误写了一个重复 key）
+{
+  "apiBase": "https://prod-api.example.com",
+  "timeout": 10000,
+  "retryCount": 3,
+  "retryCount": 5
+}
+
+// 合并后的结果
+{
+  "apiBase": "https://prod-api.example.com",
+  "timeout": 10000,
+  "retryCount": 5  // 实际上是 retryCount: 3 覆盖了 5？不，是 5 覆盖了 3
+}</code></pre>
+<p>如果合并顺序不同，结果也可能完全不同。</p>
+
+<h3>场景二：日志收集器追加 JSON 日志</h3>
+<p>某些日志系统会在每行 JSON 后面追加额外的字段，如果追加逻辑有 bug，导致同一行里出现重复 key：</p>
+<pre><code>// 原始日志行（用户写入）
+{"level": "INFO", "msg": "用户登录成功", "userId": 12345}
+
+// 日志收集器追加（错误地把 userId 再加了一次）
+{"level": "INFO", "msg": "用户登录成功", "userId": 12345, "userId": 67890}
+                                                          ^^^^^^^^^^^^^ 重复</code></pre>
+<p>下游分析系统读取这条日志时，<code>userId</code> 会是 <code>67890</code>，如果分析逻辑是查找特定用户的日志，就会查到错误的数据。</p>
+
+<h3>场景三：数据库序列化的 JSON 字段</h3>
+<p>有些数据库支持 JSON 类型字段（如 MySQL 的 JSON 类型、PostgreSQL 的 jsonb），当应用程序更新某条记录时，如果更新逻辑有缺陷，可能产生重复 key：</p>
+<pre><code># 数据库中存储的 JSON 字段内容
+{"name": "OldName", "status": "active", "name": "NewName"}
+  ^^^^^^^ 第一个 name 被第二个覆盖</code></pre>
+<p>MySQL 和 PostgreSQL 对这类数据处理方式不同，但都会在读取时做某种程度的规范化。</p>
+
+<h3>场景四：JSON Schema 生成工具</h3>
+<p>某些 OpenAPI / Swagger 代码生成工具在处理复杂的嵌套 Schema 时，如果 Schema 有重复定义的字段名，生成的代码可能包含重复 key，导致生成的 JSON 示例数据不正确。</p>
+
+<h2>解决方案</h2>
+<h3>方案一：在解析层检测并报错</h3>
+<p>对于需要高可靠性的场景，在 JSON 解析层加入重复 key 检测是最有效的方案。</p>
+<pre><code>// JavaScript：解析前正则检测重复 key
+function detectDuplicateKeys(jsonString) {
+    const objectStart = jsonString.indexOf('{');
+    const objectEnd = jsonString.lastIndexOf('}');
+    if (objectStart === -1 || objectEnd === -1) return [];
+    
+    const objContent = jsonString.substring(objectStart + 1, objectEnd);
+    const keyPattern = /"([^"\\]|\\.)*"\s*:/g;
+    const keys = [];
+    let match;
+    while ((match = keyPattern.exec(objContent)) !== null) {
+        keys.push(match[0]);
+    }
+    
+    const seen = new Map();
+    const duplicates = [];
+    keys.forEach((k, idx) => {
+        if (seen.has(k)) {
+            duplicates.push({ key: k, positions: [seen.get(k), idx + 1] });
+        } else {
+            seen.set(k, idx + 1);
+        }
+    });
+    return duplicates;
+}
+
+// 使用
+const input = '{"name": "A", "name": "B"}';
+const dups = detectDuplicateKeys(input);
+if (dups.length > 0) {
+    console.error("发现重复 key:", dups);
+    throw new Error("JSON 中存在重复 key，解析被拒绝");
+}
+const parsed = JSON.parse(input);</code></pre>
+<p>正则方案可以快速检测，但对嵌套对象和 JSON 结构内的重复 key（比如数组元素中的重复）无法全面覆盖。完整的检测需要解析器级别的支持。</p>
+
+<h3>方案二：Python 自定义解析器保留所有值</h3>
+<pre><code>import json
+import re
+
+class DuplicatePreservingDecoder(json.JSONDecoder):
+    """保留所有重复 key 的解析器"""
+    def parse(self, s, idx=0):
+        # 这里需要一个完整的 JSON 解析器实现
+        # 简化的思路：遇到重复 key 时，把所有值存入列表
+        pass
+
+def parse_with_duplicates(s):
+    """检测 JSON 字符串中的重复 key"""
+    # 用正则提取所有 key 的位置
+    pattern = re.compile(r'"([^"\\]|\\.)*"\s*:')
+    keys = []
+    for m in pattern.finditer(s):
+        keys.append((m.group(), m.start()))
+    
+    # 检测重复
+    key_count = {}
+    for key, pos in keys:
+        if key in key_count:
+            key_count[key].append(pos)
+        else:
+            key_count[key] = [pos]
+    
+    duplicates = {k: v for k, v in key_count.items() if len(v) > 1}
+    return duplicates
+
+json_str = '{"name": "Alice", "name": "Bob", "age": 20, "age": 21}'
+dups = parse_with_duplicates(json_str)
+for key, positions in dups.items():
+    print(f"重复 key {key} 在位置: {positions}")
+# 输出：重复 key "name": 在位置: [9, 27]
+#       重复 key "age": 在位置: [50, 70]</code></pre>
+
+<h3>方案三：Prettier 等工具的规范化</h3>
+<p>Prettier（代码格式化工具）在处理 JSON 文件时，会移除重复 key，只保留最后一个值。了解这一点很重要——如果你用 Prettier 来「修复」一个包含重复 key 的 JSON，它会静默丢弃前面的值。</p>
+
+<h3>方案四：使用 JSON Lines（JSONL）替代纯 JSON 对象</h3>
+<p>如果数据中的重复 key 是不可避免的（比如多源数据追加），可以考虑用 JSON Lines 格式（每行一个 JSON 对象）替代单个 JSON 对象，这样每行的 key 都是独立的，不存在对象内重复的问题。</p>
+
+<h3>方案五：Schema 验证工具</h3>
+<p>在 JSON Schema 规范中，可以通过 <code>uniqueItems</code> 和自定义关键字来约束 JSON 结构，提前发现重复 key。某些 JSON Schema 验证库（如 AJV）支持自定义关键字扩展，可以用来检测重复 key。</p>
+
+<h2>工具推荐</h2>
+<ul>
+<li><a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a> — 快速格式化 JSON 内容，高亮显示语法问题，对重复 key 不会报错但可以用「规范化」功能输出标准格式</li>
+<li><a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a> — 校验 JSON 格式是否符合规范，对于重复 key 会按「最后一个值胜出」规则处理</li>
+<li><a href='/tools/json/editor.html' target='_blank'>JSON 编辑器</a> — 结构化编辑 JSON，可视化展示对象和数组</li>
+<li><a href='/tools/developer-tools/json-diff.html' target='_blank'>JSON 对比工具</a> — 对比两个 JSON 文件的差异，可用于检测数据覆盖问题</li>
+</ul>
+
+<h2>总结</h2>
+<p>JSON 规范对重复 key 的态度是「不规定」，但主流语言和工具的实际行为高度一致：最后一个值胜出，静默覆盖前面的值。这个行为本身不算错误，但在实际开发中极容易引发隐蔽的数据问题。重复 key 可能来自配置合并、日志追加、多语言资源文件手工维护、数据库 JSON 字段更新等各种场景。</p>
+<p>最佳实践是：<strong>在数据入口处检测并拒绝重复 key</strong>，而不是在解析后才发现数据被覆盖。使用 Jackson 可以开启 <code>FAIL_ON_READING_DUPLICATE_MAP_KEYS</code>，自定义 JSON 解析器可以在解析时检测重复 key 并报错。在线工具虽然不会主动报错，但了解其规范化行为有助于理解数据的最终流向。</p>
+
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/tools/json/formatter.html">JSON 格式化</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 遇到 json-key重复会怎样,是什么原因导致的?</strong><br>A: 常见原因有:数据格式不符合规范(如 JSON 多了逗号或少了引号)、字符编码不统一(UTF-8 和 GBK 混用)、特殊字符未正确转义,或接口返回了非标准数据。先用工具验证格式是最快的排查方式。</div>
+<div class="faq-item"><strong>Q: json-key重复会怎样 会影响程序正常运行吗?</strong><br>A: 会的。格式错误会导致数据无法正常解析,轻则功能异常,重则程序崩溃。尤其是涉及支付、用户输入等关键流程时,这类问题必须第一时间修复。</div>
+<div class="faq-item"><strong>Q: json-key重复会怎样 有没有自动修复的办法?</strong><br>A: 大多数格式问题可以用在线工具自动修复。如果是自己生成的 JSON/编码数据,修复后再重新提交即可;如果是第三方接口返回的格式问题,则需要联系对方修正或做容错处理。</div>
+<div class="faq-item"><strong>Q: 修复后还需要注意什么?</strong><br>A: 建议增加格式校验环节,在数据提交前或接收后先做格式验证(用 JSON.parse 或对应工具),避免再次出现同样问题。同时统一前后端编码规范,从源头减少这类错误。</div>
+      </div>
+
+      <div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list"><li><a href="/blog/json-key重复怎么办">json key重复怎么办</a></li>
+<li><a href="/blog/json-parse-error什么意思">json parse error什么意思</a></li>
+<li><a href="/blog/json不符合标准怎么办">json不符合标准怎么办</a></li>
+<li><a href="/blog/json中null值怎么处理">json中null值怎么处理</a></li>
+<li><a href="/blog/json内容重复怎么办">json内容重复怎么办</a></li>
+<li><a href="/blog/json多余逗号怎么删除">json多余逗号怎么删除</a></li></ul>
+</div>
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

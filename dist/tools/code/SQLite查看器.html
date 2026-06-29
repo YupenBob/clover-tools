@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLite查看器 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SQLite查看器 - 🍀 CloverTools">
+  <meta property="og:description" content="在线查看与编辑 SQLite 数据库文件，无需安装软件，支持 SQL 查询与表结构浏览">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/code/SQLite查看器.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="SQLite查看器 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线查看与编辑 SQLite 数据库文件，无需安装软件，支持 SQL 查询与表结构浏览">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/code/SQLite查看器.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>SQLite查看器</h1>
+        <p class="description">在线查看与编辑 SQLite 数据库文件，无需安装软件，支持 SQL 查询与表结构浏览</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <style>
+        .sqlite-wrap { display: grid; grid-template-columns: 240px 1fr; gap: 1rem; min-height: 480px; }
+        @media (max-width: 768px) { .sqlite-wrap { grid-template-columns: 1fr; } }
+        .sqlite-sidebar { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 0.75rem; max-height: 600px; overflow-y: auto; }
+        .sqlite-sidebar h4 { font-size: 0.85rem; margin: 0 0 0.5rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+        .sqlite-sidebar .file-info { font-size: 0.78rem; opacity: 0.6; margin-bottom: 0.75rem; word-break: break-all; }
+        .sqlite-table-list { list-style: none; padding: 0; margin: 0; }
+        .sqlite-table-list li { padding: 0.5rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-bottom: 0.25rem; transition: background 0.15s; display: flex; align-items: center; gap: 0.4rem; }
+        .sqlite-table-list li:hover { background: var(--primary-light, rgba(99,102,241,0.1)); }
+        .sqlite-table-list li.active { background: var(--primary); color: white; }
+        .sqlite-table-list li .rowcount { margin-left: auto; font-size: 0.7rem; opacity: 0.7; }
+        .sqlite-main { display: flex; flex-direction: column; gap: 1rem; }
+        .sqlite-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+        .sqlite-tab { padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem; border: none; background: none; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all 0.15s; }
+        .sqlite-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; }
+        .sqlite-tab:hover:not(.active) { color: var(--text); }
+        .sqlite-panel { display: none; }
+        .sqlite-panel.active { display: block; }
+        .sqlite-empty { padding: 3rem 1rem; text-align: center; opacity: 0.6; font-size: 0.95rem; }
+        .sqlite-drop { border: 2px dashed var(--border); border-radius: 12px; padding: 2rem 1rem; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg-secondary); }
+        .sqlite-drop:hover, .sqlite-drop.dragover { border-color: var(--primary); background: rgba(99,102,241,0.05); }
+        .sqlite-drop .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .sqlite-drop p { margin: 0.25rem 0; }
+        .sqlite-drop .hint { font-size: 0.8rem; opacity: 0.6; }
+        .sqlite-schema-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .sqlite-schema-table th, .sqlite-schema-table td { padding: 0.5rem 0.75rem; border: 1px solid var(--border); text-align: left; }
+        .sqlite-schema-table th { background: var(--bg-secondary); font-weight: 600; }
+        .sqlite-schema-table .pk { color: #d97706; font-weight: 700; }
+        .sqlite-schema-table .nn { color: #dc2626; }
+        .sqlite-results { max-height: 500px; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+        .sqlite-results table { width: 100%; border-collapse: collapse; font-size: 0.85rem; font-family: monospace; }
+        .sqlite-results th, .sqlite-results td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: left; white-space: nowrap; }
+        .sqlite-results th { background: var(--bg-secondary); position: sticky; top: 0; font-weight: 600; z-index: 1; }
+        .sqlite-results tr:hover td { background: rgba(99,102,241,0.05); }
+        .sqlite-results .null-val { opacity: 0.5; font-style: italic; }
+        .sqlite-pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.85rem; }
+        .sqlite-pagination button { padding: 0.3rem 0.6rem; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); border-radius: 6px; cursor: pointer; }
+        .sqlite-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .sqlite-pagination button:hover:not(:disabled) { background: var(--primary); color: white; }
+        .sqlite-stats { font-size: 0.8rem; color: var(--text-secondary); padding: 0.5rem 0.75rem; background: var(--bg-secondary); border-radius: 8px; margin-top: 0.5rem; }
+        .sqlite-error { padding: 0.75rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; color: #b91c1c; font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace; word-break: break-word; }
+        .sqlite-loading { padding: 2rem; text-align: center; opacity: 0.7; }
+        .sqlite-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: sqlite-spin 0.8s linear infinite; margin-right: 0.5rem; vertical-align: middle; }
+        @keyframes sqlite-spin { to { transform: rotate(360deg); } }
+        .sqlite-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+        .sqlite-actions button { padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text); cursor: pointer; }
+        .sqlite-actions button:hover { background: var(--primary); color: white; }
+        .sqlite-quick { font-size: 0.75rem; padding: 0.2rem 0.5rem !important; font-family: monospace; }
+      </style>
+      <div id="sqliteRoot">
+        <div id="sqliteLoading" class="sqlite-loading">
+          <span class="sqlite-spinner"></span>正在加载 SQL.js 引擎（WASM）...
+        </div>
+        <div id="sqliteApp" style="display:none;">
+          <div id="dropZone" class="sqlite-drop">
+            <div class="icon">📂</div>
+            <p><strong>拖拽 SQLite 文件到此处</strong></p>
+            <p class="hint">或点击选择文件 — 支持 .db / .sqlite / .sqlite3</p>
+            <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3" style="display:none;" />
+            <div style="margin-top:0.75rem;">
+              <button class="btn btn-secondary" id="sampleBtn" style="font-size:0.85rem;padding:0.4rem 0.85rem;">📝 加载示例数据</button>
+              <button class="btn btn-secondary" id="newDbBtn" style="font-size:0.85rem;padding:0.4rem 0.85rem;margin-left:0.4rem;">➕ 创建空数据库</button>
+            </div>
+          </div>
+          <div id="dbPanel" style="display:none;">
+            <div class="sqlite-wrap">
+              <aside class="sqlite-sidebar">
+                <h4>表</h4>
+                <div class="file-info" id="fileInfo"></div>
+                <ul class="sqlite-table-list" id="tableList"></ul>
+              </aside>
+              <div class="sqlite-main">
+                <div class="sqlite-tabs">
+                  <button class="sqlite-tab active" data-tab="structure">表结构</button>
+                  <button class="sqlite-tab" data-tab="data">数据</button>
+                  <button class="sqlite-tab" data-tab="query">SQL 查询</button>
+                </div>
+                <div class="sqlite-panel active" id="panel-structure">
+                  <div id="structureContent"></div>
+                </div>
+                <div class="sqlite-panel" id="panel-data">
+                  <div id="dataContent"></div>
+                </div>
+                <div class="sqlite-panel" id="panel-query">
+                  <textarea id="sqlInput" placeholder="输入 SQL 语句（SELECT / INSERT / UPDATE / DELETE / CREATE ...）" style="width:100%;min-height:120px;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-family:monospace;font-size:0.9rem;background:var(--bg-secondary);color:var(--text);resize:vertical;"></textarea>
+                  <div class="sqlite-actions">
+                    <button class="btn btn-primary" id="runSqlBtn">▶ 执行 (Ctrl+Enter)</button>
+                    <button class="btn btn-secondary" id="clearSqlBtn">清空</button>
+                    <button class="btn btn-secondary" id="exportDbBtn">💾 导出数据库</button>
+                  </div>
+                  <div style="margin-top:0.5rem;">
+                    <span style="font-size:0.8rem;opacity:0.7;margin-right:0.4rem;">快速:</span>
+                    <button class="sqlite-quick sqlite-actions" data-sql="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;">所有表</button>
+                    <button class="sqlite-quick sqlite-actions" data-sql="SELECT * FROM sqlite_master WHERE type='table';">建表语句</button>
+                  </div>
+                  <div id="sqlStats"></div>
+                  <div id="sqlError"></div>
+                  <div id="sqlResults" class="sqlite-results" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+      (function() {
+        const SQLJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/';
+        let SQL = null;
+        let db = null;
+        let currentDbName = '';
+        let currentTable = null;
+        let dataPage = 0;
+        const PAGE_SIZE = 50;
+
+        const $ = (id) => document.getElementById(id);
+        const root = $('sqliteRoot');
+        const loadingEl = $('sqliteLoading');
+        const appEl = $('sqliteApp');
+        const dropZone = $('dropZone');
+        const fileInput = $('fileInput');
+        const fileInfo = $('fileInfo');
+        const dbPanel = $('dbPanel');
+        const tableList = $('tableList');
+        const structureContent = $('structureContent');
+        const dataContent = $('dataContent');
+        const sqlInput = $('sqlInput');
+        const sqlResults = $('sqlResults');
+        const sqlError = $('sqlError');
+        const sqlStats = $('sqlStats');
+
+        function loadSqlJs() {
+          return new Promise((resolve, reject) => {
+            if (window.initSqlJs) {
+              window.initSqlJs({ locateFile: f => SQLJS_CDN + f }).then(resolve).catch(reject);
+              return;
+            }
+            const script = document.createElement('script');
+            script.src = SQLJS_CDN + 'sql-wasm.js';
+            script.onload = () => {
+              window.initSqlJs({ locateFile: f => SQLJS_CDN + f }).then(resolve).catch(reject);
+            };
+            script.onerror = () => reject(new Error('无法从 CDN 加载 sql.js'));
+            document.head.appendChild(script);
+          });
+        }
+
+        function escapeHtml(s) {
+          if (s === null || s === undefined) return '<span class="null-val">NULL</span>';
+          return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+
+        function setError(msg) {
+          sqlError.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(msg) + '</div>';
+          sqlStats.innerHTML = '';
+          sqlResults.style.display = 'none';
+        }
+
+        function clearError() {
+          sqlError.innerHTML = '';
+        }
+
+        function loadDatabaseFromBuffer(buf, name) {
+          try {
+            db = new SQL.Database(new Uint8Array(buf));
+            currentDbName = name || '未命名数据库';
+            fileInfo.textContent = '📄 ' + currentDbName + ' (' + (buf.byteLength / 1024).toFixed(2) + ' KB)';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            const first = tableList.querySelector('li');
+            if (first) first.click();
+          } catch (e) {
+            alert('加载数据库失败: ' + e.message);
+          }
+        }
+
+        function refreshTableList() {
+          if (!db) return;
+          const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+          const tables = res[0] ? res[0].values.map(r => r[0]) : [];
+          tableList.innerHTML = '';
+          if (tables.length === 0) {
+            tableList.innerHTML = '<li style="opacity:0.6;cursor:default;font-style:italic;">数据库中无表</li>';
+            return;
+          }
+          tables.forEach(name => {
+            const li = document.createElement('li');
+            li.dataset.table = name;
+            li.innerHTML = '<span>📋</span><span class="tname"></span><span class="rowcount"></span>';
+            li.querySelector('.tname').textContent = name;
+            li.addEventListener('click', () => selectTable(name));
+            tableList.appendChild(li);
+          });
+          tables.forEach(name => {
+            try {
+              const c = db.exec('SELECT COUNT(*) FROM "' + name.replace(/"/g,'""') + '"');
+              const cnt = c[0] ? c[0].values[0][0] : 0;
+              const li = tableList.querySelector('li[data-table="' + CSS.escape(name) + '"]');
+              if (li) li.querySelector('.rowcount').textContent = cnt;
+            } catch(e) {}
+          });
+        }
+
+        function selectTable(name) {
+          currentTable = name;
+          dataPage = 0;
+          tableList.querySelectorAll('li').forEach(li => li.classList.toggle('active', li.dataset.table === name));
+          renderStructure(name);
+          renderTableData(name);
+          switchTab('structure');
+        }
+
+        function renderStructure(name) {
+          try {
+            const sqlRes = db.exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='" + name.replace(/'/g,"''") + "'");
+            const createSql = sqlRes[0] ? sqlRes[0].values[0][0] : '';
+            const pragmaRes = db.exec('PRAGMA table_info("' + name.replace(/"/g,'""') + '")');
+            const cols = pragmaRes[0] ? pragmaRes[0] : { columns: ['cid','name','type','notnull','dflt_value','pk'], values: [] };
+            let html = '<div style="margin-bottom:0.75rem;font-size:0.9rem;color:var(--text-secondary);">📋 <strong>' + escapeHtml(name) + '</strong> 的表结构</div>';
+            if (cols.values.length > 0) {
+              html += '<table class="sqlite-schema-table"><thead><tr><th>#</th><th>列名</th><th>类型</th><th>NOT NULL</th><th>默认值</th><th>主键</th></tr></thead><tbody>';
+              cols.values.forEach(row => {
+                const [cid, colName, colType, notnull, dflt, pk] = row;
+                html += '<tr>' +
+                  '<td>' + cid + '</td>' +
+                  '<td><strong>' + escapeHtml(colName) + '</strong></td>' +
+                  '<td><code>' + escapeHtml(colType || '') + '</code></td>' +
+                  '<td class="' + (notnull ? 'nn' : '') + '">' + (notnull ? '✓' : '') + '</td>' +
+                  '<td><code>' + escapeHtml(dflt === null ? '' : dflt) + '</code></td>' +
+                  '<td class="' + (pk ? 'pk' : '') + '">' + (pk ? '🔑 ' + pk : '') + '</td>' +
+                '</tr>';
+              });
+              html += '</tbody></table>';
+            }
+            if (createSql) {
+              html += '<details style="margin-top:1rem;"><summary style="cursor:pointer;font-size:0.85rem;color:var(--text-secondary);">显示建表 SQL</summary><pre style="background:var(--bg-secondary);padding:0.75rem;border-radius:8px;font-size:0.8rem;overflow-x:auto;margin-top:0.5rem;">' + escapeHtml(createSql) + '</pre></details>';
+            }
+            const idxRes = db.exec("SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='" + name.replace(/'/g,"''") + "' AND sql IS NOT NULL");
+            if (idxRes[0] && idxRes[0].values.length > 0) {
+              html += '<div style="margin-top:1rem;font-size:0.85rem;"><strong>索引：</strong><ul style="margin:0.25rem 0 0 1rem;">';
+              idxRes[0].values.forEach(r => {
+                html += '<li><code>' + escapeHtml(r[0]) + '</code></li>';
+              });
+              html += '</ul></div>';
+            }
+            structureContent.innerHTML = html;
+          } catch (e) {
+            structureContent.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(e.message) + '</div>';
+          }
+        }
+
+        function renderTableData(name) {
+          try {
+            const safe = name.replace(/"/g,'""');
+            const totalRes = db.exec('SELECT COUNT(*) FROM "' + safe + '"');
+            const total = totalRes[0] ? totalRes[0].values[0][0] : 0;
+            const offset = dataPage * PAGE_SIZE;
+            const dataRes = db.exec('SELECT * FROM "' + safe + '" LIMIT ' + PAGE_SIZE + ' OFFSET ' + offset);
+            let html = '<div style="margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-secondary);">📊 <strong>' + escapeHtml(name) + '</strong> · 共 <strong>' + total + '</strong> 行</div>';
+            if (dataRes[0]) {
+              const { columns, values } = dataRes[0];
+              html += '<div class="sqlite-results"><table><thead><tr>';
+              columns.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+              html += '</tr></thead><tbody>';
+              values.forEach(row => {
+                html += '<tr>';
+                row.forEach(v => { html += '<td>' + escapeHtml(v) + '</td>'; });
+                html += '</tr>';
+              });
+              html += '</tbody></table></div>';
+              const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+              html += '<div class="sqlite-pagination">' +
+                '<button id="dataPrevBtn" ' + (dataPage === 0 ? 'disabled' : '') + '>← 上一页</button>' +
+                '<span>第 ' + (dataPage + 1) + ' / ' + totalPages + ' 页 (每页 ' + PAGE_SIZE + ' 行)</span>' +
+                '<button id="dataNextBtn" ' + (dataPage >= totalPages - 1 ? 'disabled' : '') + '>下一页 →</button>' +
+              '</div>';
+            } else {
+              html += '<div style="padding:1rem;opacity:0.6;text-align:center;">表为空</div>';
+            }
+            dataContent.innerHTML = html;
+            const prev = $('dataPrevBtn'), next = $('dataNextBtn');
+            if (prev) prev.onclick = () => { if (dataPage > 0) { dataPage--; renderTableData(name); } };
+            if (next) next.onclick = () => { dataPage++; renderTableData(name); };
+          } catch (e) {
+            dataContent.innerHTML = '<div class="sqlite-error">❌ ' + escapeHtml(e.message) + '</div>';
+          }
+        }
+
+        function runSQL(sql) {
+          clearError();
+          if (!sql.trim()) { setError('请输入 SQL 语句'); return; }
+          if (!db) { setError('请先加载数据库'); return; }
+          const t0 = performance.now();
+          try {
+            const results = db.exec(sql);
+            const elapsed = (performance.now() - t0).toFixed(2);
+            if (results.length === 0) {
+              const changes = db.getRowsModified();
+              sqlStats.innerHTML = '<div class="sqlite-stats">✅ 执行成功 · 耗时 ' + elapsed + ' ms · 影响行数 <strong>' + changes + '</strong></div>';
+              sqlResults.style.display = 'none';
+              if (/\b(insert|update|delete|create|drop|alter)\b/i.test(sql)) {
+                refreshTableList();
+                if (currentTable) { renderStructure(currentTable); renderTableData(currentTable); }
+              }
+              return;
+            }
+            const { columns, values } = results[0];
+            let totalRows = values.length;
+            sqlStats.innerHTML = '<div class="sqlite-stats">✅ 查询成功 · 耗时 ' + elapsed + ' ms · 返回 <strong>' + totalRows + '</strong> 行 ' + (results.length > 1 ? '（共 ' + results.length + ' 个结果集，仅显示第一个）' : '') + '</div>';
+            const limit = 500;
+            const display = values.slice(0, limit);
+            let html = '<table><thead><tr>';
+            columns.forEach(c => { html += '<th>' + escapeHtml(c) + '</th>'; });
+            html += '</tr></thead><tbody>';
+            display.forEach(row => {
+              html += '<tr>';
+              row.forEach(v => { html += '<td>' + escapeHtml(v) + '</td>'; });
+              html += '</tr>';
+            });
+            html += '</tbody></table>';
+            if (totalRows > limit) {
+              html += '<div style="padding:0.75rem;text-align:center;opacity:0.6;font-size:0.85rem;background:var(--bg-secondary);">仅显示前 ' + limit + ' 行（共 ' + totalRows + ' 行）</div>';
+            }
+            sqlResults.innerHTML = html;
+            sqlResults.style.display = 'block';
+          } catch (e) {
+            setError(e.message);
+          }
+        }
+
+        function switchTab(tab) {
+          document.querySelectorAll('.sqlite-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+          document.querySelectorAll('.sqlite-panel').forEach(p => p.classList.remove('active'));
+          const panel = $('panel-' + tab);
+          if (panel) panel.classList.add('active');
+        }
+
+        function bindEvents() {
+          dropZone.addEventListener('click', () => fileInput.click());
+          fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => loadDatabaseFromBuffer(ev.target.result, file.name);
+            reader.onerror = () => alert('文件读取失败');
+            reader.readAsArrayBuffer(file);
+          });
+          ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+          ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+          dropZone.addEventListener('drop', e => {
+            const file = e.dataTransfer.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => loadDatabaseFromBuffer(ev.target.result, file.name);
+            reader.readAsArrayBuffer(file);
+          });
+          document.querySelectorAll('.sqlite-tab').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+          });
+          $('runSqlBtn').addEventListener('click', () => runSQL(sqlInput.value));
+          $('clearSqlBtn').addEventListener('click', () => { sqlInput.value = ''; clearError(); sqlResults.style.display = 'none'; sqlStats.innerHTML = ''; });
+          sqlInput.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runSQL(sqlInput.value); }
+          });
+          document.querySelectorAll('.sqlite-quick').forEach(b => {
+            b.addEventListener('click', () => { sqlInput.value = b.dataset.sql; switchTab('query'); runSQL(sqlInput.value); });
+          });
+          $('exportDbBtn').addEventListener('click', () => {
+            if (!db) return;
+            const data = db.export();
+            const blob = new Blob([data], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentDbName.replace(/\.(db|sqlite|sqlite3)$/i, '') + '_export.db';
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+          $('sampleBtn').addEventListener('click', () => {
+            db = new SQL.Database();
+            db.run("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE, age INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP); INSERT INTO users (name, email, age) VALUES ('Alice', 'alice@example.com', 28), ('Bob', 'bob@example.com', 34), ('Charlie', 'charlie@example.com', 22), ('Diana', 'diana@example.com', 41); CREATE TABLE products (id INTEGER PRIMARY KEY, name TEXT NOT NULL, price REAL, stock INTEGER DEFAULT 0); INSERT INTO products (name, price, stock) VALUES ('Laptop', 999.99, 12), ('Mouse', 19.99, 100), ('Keyboard', 79.99, 45), ('Monitor', 299.99, 8); CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, product_id INTEGER, quantity INTEGER, order_date TEXT, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(product_id) REFERENCES products(id)); INSERT INTO orders (user_id, product_id, quantity, order_date) VALUES (1, 1, 1, '2024-01-15'), (2, 2, 2, '2024-02-03'), (1, 3, 1, '2024-02-10'), (3, 4, 1, '2024-03-22'), (4, 1, 1, '2024-04-05');");
+            currentDbName = 'sample.db';
+            fileInfo.textContent = '📄 示例数据库（内存中）';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            const first = tableList.querySelector('li');
+            if (first) first.click();
+          });
+          $('newDbBtn').addEventListener('click', () => {
+            db = new SQL.Database();
+            currentDbName = 'new.db';
+            fileInfo.textContent = '📄 新建空数据库（内存中）';
+            dropZone.style.display = 'none';
+            dbPanel.style.display = 'block';
+            refreshTableList();
+            switchTab('query');
+            sqlInput.placeholder = "试试输入: CREATE TABLE t (id INTEGER PRIMARY KEY, name TEXT); 然后 INSERT INTO t (name) VALUES ('hello');";
+          });
+        }
+
+        loadSqlJs()
+          .then(sql => {
+            SQL = sql;
+            loadingEl.style.display = 'none';
+            appEl.style.display = 'block';
+            bindEvents();
+          })
+          .catch(err => {
+            loadingEl.innerHTML = '<div class="sqlite-error">❌ 加载 sql.js 失败: ' + escapeHtml(err.message) + '<br><br>请检查网络连接后刷新页面重试。</div>';
+          });
+      })();
+    
+  </script>
+</body>
+</html>

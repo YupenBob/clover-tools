@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR 文字识别 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="OCR 文字识别 - 🍀 CloverTools">
+  <meta property="og:description" content="在线图片转文字工具，基于 Tesseract.js 实现，支持中英文混合识别、批量上传与结果导出，所有处理均在浏览器本地完成，隐私安全。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/text/OCR文字识别.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="OCR 文字识别 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线图片转文字工具，基于 Tesseract.js 实现，支持中英文混合识别、批量上传与结果导出，所有处理均在浏览器本地完成，隐私安全。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/text/OCR文字识别.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>OCR 文字识别</h1>
+        <p class="description">在线图片转文字工具，基于 Tesseract.js 实现，支持中英文混合识别、批量上传与结果导出，所有处理均在浏览器本地完成，隐私安全。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>📤 上传图片</h3>
+  <div id="dropZone" style="border:2px dashed var(--border);border-radius:14px;padding:2.2rem 1rem;text-align:center;cursor:pointer;transition:all .2s ease;background:var(--bg-secondary);">
+    <div style="font-size:2.4rem;line-height:1;margin-bottom:.5rem;">🖼️</div>
+    <div style="font-size:1rem;font-weight:600;margin-bottom:.35rem;">点击或拖拽图片到此处</div>
+    <div style="font-size:.82rem;opacity:.65;">支持 JPG / PNG / WEBP / BMP / GIF，可批量上传多张</div>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display:none;" />
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1rem;align-items:end;">
+    <div>
+      <label style="font-size:.85rem;opacity:.75;display:block;margin-bottom:.3rem;">识别语言</label>
+      <select id="langSel" style="width:100%;padding:.6rem;border-radius:10px;border:1px solid var(--border);font-size:.95rem;background:var(--bg-secondary);color:var(--text);">
+        <option value="chi_sim+eng">中英文混合（推荐）</option>
+        <option value="chi_sim">仅简体中文</option>
+        <option value="eng">仅英文</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" id="startBtn" style="height:42px;">🚀 开始识别</button>
+  </div>
+
+  <div id="fileList" style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem;"></div>
+</div>
+
+<div class="tool-card" id="progressCard" style="display:none;">
+  <h3>⏳ 识别进度</h3>
+  <div style="display:flex;justify-content:space-between;font-size:.85rem;opacity:.75;margin-bottom:.4rem;">
+    <span id="progressLabel">准备中...</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div id="progressWrap" style="background:var(--bg-secondary);border-radius:99px;height:14px;overflow:hidden;border:1px solid var(--border);">
+    <div id="progressBar" style="background:linear-gradient(90deg,var(--primary),#7dd3fc);height:100%;width:0%;transition:width .25s ease;border-radius:99px;"></div>
+  </div>
+  <div id="status" style="margin-top:.6rem;font-size:.78rem;opacity:.6;line-height:1.5;"></div>
+</div>
+
+<div class="output-box">
+  <h3>📝 识别结果 <button class="copy-btn" id="copyOutput">复制</button> <button class="copy-btn" id="downloadBtn" style="background:var(--bg-secondary);color:var(--text);margin-left:.4rem;">下载TXT</button> <button class="copy-btn" id="clearBtn" style="background:var(--bg-secondary);color:var(--text);margin-left:.4rem;">清空</button></h3>
+  <textarea id="output" placeholder="识别完成后，结果将显示在这里（可直接编辑修改）..." style="width:100%;min-height:260px;padding:.75rem;border-radius:10px;border:1px solid var(--border);font-size:.92rem;font-family:monospace;background:var(--bg-secondary);color:var(--text);resize:vertical;line-height:1.6;"></textarea>
+  <div id="summary" style="margin-top:.6rem;font-size:.78rem;opacity:.6;"></div>
+</div>
+
+<div class="tool-card" style="background:rgba(125,211,252,.08);border-left:3px solid var(--primary);">
+  <div style="font-size:.85rem;line-height:1.7;">
+    💡 <strong>使用提示</strong>：<br>
+    · 首次识别需联网下载语言模型（中文约 12MB，英文约 11MB），之后会缓存到浏览器<br>
+    · 图片越清晰、对比度越高，识别准确率越好；建议宽度 ≥ 800px<br>
+    · 支持批量上传多张图片，结果会按顺序以 <code>=== 文件名 ===</code> 分隔拼接<br>
+    · 所有处理均在浏览器本地完成，图片不会上传到任何服务器，隐私安全
+  </div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    (function() {
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const langSel = document.getElementById('langSel');
+  const startBtn = document.getElementById('startBtn');
+  const fileList = document.getElementById('fileList');
+  const progressCard = document.getElementById('progressCard');
+  const progressBar = document.getElementById('progressBar');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressPct = document.getElementById('progressPct');
+  const status = document.getElementById('status');
+  const output = document.getElementById('output');
+  const summary = document.getElementById('summary');
+  const copyBtn = document.getElementById('copyOutput');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const clearBtn = document.getElementById('clearBtn');
+
+  let selectedFiles = [];
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(2) + ' MB';
+  }
+
+  function renderFileList() {
+    if (!selectedFiles.length) {
+      fileList.innerHTML = '';
+      return;
+    }
+    fileList.innerHTML = selectedFiles.map((f, i) =>
+      '<div data-idx="' + i + '" style="display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;background:var(--bg-secondary);border-radius:8px;border:1px solid var(--border);">' +
+        '<div style="width:38px;height:38px;border-radius:6px;background:linear-gradient(135deg,var(--primary),#7dd3fc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;flex-shrink:0;">' + (f.type.indexOf('png') > -1 ? '🖼️' : '🖼️') + '</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(f.name) + '</div>' +
+          '<div style="font-size:.72rem;opacity:.6;">' + fmtSize(f.size) + '</div>' +
+        '</div>' +
+        '<button class="copy-btn" data-rm="' + i + '" style="background:var(--bg-secondary);color:var(--text);font-size:.7rem;padding:.25rem .55rem;">移除</button>' +
+      '</div>'
+    ).join('');
+    fileList.querySelectorAll('[data-rm]').forEach(btn => {
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-rm'));
+        selectedFiles.splice(idx, 1);
+        renderFileList();
+      };
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function addFiles(files) {
+    const arr = Array.from(files).filter(f => f.type.indexOf('image/') === 0);
+    if (!arr.length) {
+      showToast('请选择图片文件', '⚠️');
+      return;
+    }
+    selectedFiles = selectedFiles.concat(arr);
+    renderFileList();
+  }
+
+  dropZone.onclick = function() { fileInput.click(); };
+  dropZone.ondragover = function(e) { e.preventDefault(); dropZone.style.borderColor = 'var(--primary)'; dropZone.style.background = 'rgba(125,211,252,.1)'; };
+  dropZone.ondragleave = function(e) { e.preventDefault(); dropZone.style.borderColor = 'var(--border)'; dropZone.style.background = 'var(--bg-secondary)'; };
+  dropZone.ondrop = function(e) {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--border)';
+    dropZone.style.background = 'var(--bg-secondary)';
+    if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  };
+  fileInput.onchange = function(e) {
+    if (e.target.files) addFiles(e.target.files);
+    fileInput.value = '';
+  };
+
+  function setProgress(pct, label, sub) {
+    progressCard.style.display = 'block';
+    progressBar.style.width = pct + '%';
+    progressPct.textContent = Math.round(pct) + '%';
+    if (label) progressLabel.textContent = label;
+    if (sub) status.textContent = sub;
+  }
+
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      if (window.Tesseract) return resolve();
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = function() { resolve(); };
+      s.onerror = function() { reject(new Error('无法加载 Tesseract.js CDN')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function run() {
+    if (!selectedFiles.length) {
+      showToast('请先选择图片', '⚠️');
+      return;
+    }
+    if (typeof Tesseract === 'undefined') {
+      setProgress(5, '加载 OCR 引擎...', '首次加载约需几秒，请稍候');
+      try {
+        await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+      } catch (err) {
+        showToast('OCR 引擎加载失败：' + err.message, '❌');
+        status.textContent = '加载失败，请检查网络后重试';
+        return;
+      }
+    }
+
+    startBtn.disabled = true;
+    startBtn.textContent = '识别中...';
+    startBtn.style.opacity = '0.6';
+    output.value = '';
+    summary.textContent = '';
+
+    const lang = langSel.value || 'chi_sim+eng';
+    const total = selectedFiles.length;
+    const results = [];
+    const t0 = Date.now();
+
+    try {
+      for (let i = 0; i < total; i++) {
+        const file = selectedFiles[i];
+        const fileStart = Date.now();
+        setProgress(
+          (i / total) * 100,
+          '识别 ' + (i + 1) + ' / ' + total + '：' + file.name,
+          '准备识别...'
+        );
+
+        const r = await Tesseract.recognize(file, lang, {
+          logger: function(m) {
+            if (m && typeof m.progress === 'number') {
+              const filePct = m.progress;
+              const overall = ((i + filePct) / total) * 100;
+              const phaseMap = {
+                'loading tesseract core': '加载 OCR 内核',
+                'initializing tesseract': '初始化引擎',
+                'loading language traineddata': '下载语言模型',
+                'initializing api': '初始化 API',
+                'recognizing text': '识别文字'
+              };
+              const phaseName = phaseMap[m.status] || (m.status || '');
+              setProgress(overall, '识别 ' + (i + 1) + ' / ' + total + '：' + file.name, phaseName + ' ' + Math.round(filePct * 100) + '%');
+            }
+          }
+        });
+
+        const text = (r && r.data && r.data.text) ? r.data.text.trim() : '';
+        const elapsed = ((Date.now() - fileStart) / 1000).toFixed(1);
+        results.push({ name: file.name, text: text, elapsed: elapsed, confidence: (r && r.data && r.data.confidence) ? Math.round(r.data.confidence) : null });
+      }
+
+      const finalText = results.map(function(r) {
+        return '=== ' + r.name + ' ===\n\n' + (r.text || '（未识别到文字）');
+      }).join('\n\n');
+
+      output.value = finalText;
+      const totalElapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      const confList = results.map(function(r) { return r.confidence; }).filter(function(c) { return c !== null; });
+      const avgConf = confList.length ? Math.round(confList.reduce(function(a,b){return a+b;}, 0) / confList.length) : null;
+      summary.textContent = '✅ 完成 ' + total + ' 张图片，总耗时 ' + totalElapsed + ' 秒' +
+        (avgConf !== null ? '，平均置信度 ' + avgConf + '%' : '');
+
+      setProgress(100, '✅ 识别完成', '共处理 ' + total + ' 张图片，耗时 ' + totalElapsed + ' 秒');
+      showToast('识别完成！', '✅');
+    } catch (err) {
+      console.error(err);
+      status.textContent = '识别出错：' + (err && err.message ? err.message : err);
+      showToast('识别失败：' + err.message, '❌');
+    } finally {
+      startBtn.disabled = false;
+      startBtn.textContent = '🚀 开始识别';
+      startBtn.style.opacity = '1';
+    }
+  }
+
+  startBtn.onclick = run;
+
+  copyBtn.onclick = function() {
+    if (!output.value.trim()) { showToast('暂无内容可复制', '⚠️'); return; }
+    copyToClipboard(output.value);
+  };
+
+  downloadBtn.onclick = function() {
+    if (!output.value.trim()) { showToast('暂无内容可下载', '⚠️'); return; }
+    const blob = new Blob([output.value], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    a.href = url;
+    a.download = 'OCR-识别结果-' + stamp + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('已下载 TXT 文件', '✅');
+  };
+
+  clearBtn.onclick = function() {
+    output.value = '';
+    summary.textContent = '';
+    selectedFiles = [];
+    renderFileList();
+    progressCard.style.display = 'none';
+    progressBar.style.width = '0%';
+    showToast('已清空', '🧹');
+  };
+
+  // 初始状态
+  summary.textContent = '提示：请上传图片后点击"开始识别"';
+})();
+  </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识图谱构建器 - CloverTools</title>
+  <meta name="description" content="在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。,无需注册,完全免费。">
+  <meta name="keywords" content="知识图谱,实体识别,关系抽取,知识构建,文本分析,实体关系图,知识可视化,AI知识库">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="知识图谱构建器 - CloverTools">
+  <meta property="og:description" content="在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/code/knowledge-graph.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="知识图谱构建器 - CloverTools">
+  <meta name="twitter:description" content="在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/code/knowledge-graph.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>知识图谱构建器</h1>
+        <p class="description">在线知识图谱构建工具，输入文本后自动提取其中的实体和关系，以交互式图谱方式呈现。支持节点分类、关系筛选、缩放拖拽，适合知识整理和信息分析。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<div class="tool-card">
+<h3>输入文本</h3>
+<textarea id="inputText" placeholder="输入一段包含多个实体和关系的文本，例如：
+
+苹果公司由史蒂夫·乔布斯于1976年创立，总部位于美国加利福尼亚州库比蒂诺。乔布斯是苹果公司的联合创始人和CEO。苹果公司推出了iPhone、iPad、Mac等产品。谷歌是一家总部位于加州山景城的科技公司。"></textarea>
+<button class="btn" id="buildBtn" style="margin-top:.75rem">构建知识图谱</button>
+</div>
+
+<div id="resultSection" style="display:none">
+<div class="tool-card" style="padding:1rem">
+<h3>图谱预览</h3>
+<div class="graph-container">
+<canvas id="graphCanvas" class="graph-canvas"></canvas>
+<div class="graph-controls">
+<button id="zoomInBtn" title="放大">+</button>
+<button id="zoomOutBtn" title="缩小">−</button>
+<button id="resetViewBtn" title="重置视图">⌂</button>
+</div>
+<div class="legend" id="graphLegend"></div>
+</div>
+</div>
+<div class="output-box" id="entityBox">
+<h3>实体列表 <span id="entityCount" style="font-size:.8rem;color:var(--text-secondary);font-weight:400"></span></h3>
+<div style="max-height:200px;overflow-y:auto">
+<table class="entity-table" id="entityTable"><thead><tr><th>实体</th><th>类型</th></tr></thead><tbody id="entityTbody"></tbody></table>
+</div>
+</div>
+<div class="output-box" id="relBox">
+<h3>关系列表 <span id="relCount" style="font-size:.8rem;color:var(--text-secondary);font-weight:400"></span></h3>
+<div style="max-height:200px;overflow-y:auto">
+<table class="entity-table" id="relTable"><thead><tr><th>主体</th><th>关系</th><th>客体</th></tr></thead><tbody id="relTbody"></tbody></table>
+</div>
+</div>
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    var COLORS={"PERSON":"#e74c3c","ORG":"#3498db","LOC":"#27ae60","PRODUCT":"#9b59b6","EVENT":"#f39c12","OTHER":"#95a5a6","TECH":"#1abc9c","DATE":"#e67e22"};
+var RELATIONS=[{patterns:["是","为","名为","叫做","称为","属于"],type:"类型"},{patterns:["创立","创建","成立"],type:"创立"},{patterns:["总部位于","位于","坐落于"],type:"位于"},{patterns:["推出","发布","生产","制造"],type:"推出"},{patterns:["被称为","称为","尊称为"],type:"称为"},{patterns:["CEO","首席执行官","董事长","总裁"],type:"担任"},{patterns:["合作","合伙","与"],type:"合作"},{patterns:["收购","并购"],type:"收购"},{patterns:["发明","研发","创造"],type:"发明"},{patterns:["使用","采用"],type:"使用"},{patterns:["基于","来自","源于"],type:"基于"},{patterns:["毕业于","曾在","就读于"],type:"关联"}];
+var entities=[];
+function extractEntities(text){
+var result=[];var seen={};
+var personRe=/([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)+)|(史蒂夫·[^\\s，、。]+|乔布斯|盖茨|马斯克|埃隆·马斯克|库克|蒂姆·库克|张三|李四|王五|赵六|刘七|周八|吴九|郑十)/g,m;
+while((m=personRe.exec(text))!==null){var name=m[0];if(!seen[name]){seen[name]=1;result.push({name:name,type:"PERSON"});}}
+var orgs={"苹果公司":1,"Apple":1,"谷歌":1,"Google":1,"微软":1,"Microsoft":1,"Meta":1,"亚马逊":1,"腾讯":1,"阿里巴巴":1,"华为":1,"字节跳动":1,"OpenAI":1,"特斯拉":1,"SpaceX":1};
+for(var org in orgs){if(text.indexOf(org)>-1&&!seen[org]){seen[org]=1;result.push({name:org,type:"ORG"});}}
+var locs={"美国":1,"中国":1,"北京":1,"上海":1,"深圳":1,"杭州":1,"加州":1,"库比蒂诺":1,"山景城":1,"纽约":1,"硅谷":1,"日本":1,"德国":1,"英国":1,"法国":1};
+for(var loc in locs){if(text.indexOf(loc)>-1&&!seen[loc]){seen[loc]=1;result.push({name:loc,type:"LOC"});}}
+var prods={"iPhone":1,"iPad":1,"Mac":1,"iMac":1,"Apple Watch":1,"AirPods":1,"Windows":1,"Android":1,"Linux":1,"ChatGPT":1,"GPT-4":1};
+for(var prod in prods){if(text.indexOf(prod)>-1&&!seen[prod]){seen[prod]=1;result.push({name:prod,type:"PRODUCT"});}}
+var techs={"人工智能":1,"AI":1,"机器学习":1,"深度学习":1,"神经网络":1,"区块链":1,"云计算":1,"大数据":1,"5G":1,"物联网":1};
+for(var tech in techs){if(text.indexOf(tech)>-1&&!seen[tech]){seen[tech]=1;result.push({name:tech,type:"TECH"});}}
+var dateRe=/(\\d{4}年|\\d{4}年\\d{1,2}月|\\d+世纪)/g;
+while((m=dateRe.exec(text))!==null){var d=m[0];if(!seen[d]){seen[d]=1;result.push({name:d,type:"DATE"});}}
+var acrRe=/\\b([A-Z]{2,}(?:\\s+[A-Z]{2,})*)\\b/g;
+while((m=acrRe.exec(text))!==null){var a=m[0];if(!seen[a]&&a.length>2){seen[a]=1;result.push({name:a,type:"ORG"});}}
+return result;
+}
+function extractRelations(text,ents){
+var rels=[];var entNames=ents.map(function(e){return e.name;});
+for(var i=0;i<ents.length;i++){for(var j=0;j<ents.length;j++){if(i===j)continue;var e1=ents[i].name,e2=ents[j].name;if(e1.length<2||e2.length<2)continue;var idx=text.indexOf(e1);while(idx>-1){var after=text.substring(idx+e1.length,Math.min(idx+e1.length+20,text.length));for(var k=0;k<RELATIONS.length;k++){var rel=RELATIONS[k];for(var p=0;p<rel.patterns.length;p++){var pat=rel.patterns[p];var patIdx=after.indexOf(pat);if(patIdx>-1&&patIdx<15){var rest=text.substring(idx+e1.length+patIdx);var e2Idx=rest.indexOf(e2);if(e2Idx>-1&&e2Idx<20){rels.push({source:e1,target:e2,relation:rel.type});}idx=text.indexOf(e1,idx+1);break;}}break;}idx=text.indexOf(e1,idx+1);}}}
+return rels;
+}
+var canvas,ctx,scale=1,offsetX=0,offsetY=0,isDragging=false,lastX,lastY,nodes=[],edges=[],nodeMap={};
+window.buildGraph=function(){
+var text=document.getElementById("inputText").value.trim();
+if(!text||text.length<10){alert("请输入至少10字的文本");return;}
+document.getElementById("resultSection").style.display="block";
+entities=extractEntities(text);
+var relations=extractRelations(text,entities);
+if(entities.length===0){canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);alert("未检测到实体");return;}
+document.getElementById("entityCount").textContent="("+entities.length+"个)";
+document.getElementById("relCount").textContent="("+relations.length+"条)";
+var et=document.getElementById("entityTbody");et."";
+entities.forEach(function(e){var tr=document.createElement("tr");var typeSpan=document.createElement("span");typeSpan.style.background=COLORS[e.type]||"#95a5a6";typeSpan.textContent=e.type;var td1=document.createElement("td");td1.textContent=e.name;var td2=document.createElement("td");td2.appendChild(typeSpan);tr.appendChild(td1);tr.appendChild(td2);et.appendChild(tr);});
+var rt=document.getElementById("relTbody");rt."";
+relations.slice(0,30).forEach(function(r){var tr=document.createElement("tr");var tds=[document.createElement("td"),document.createElement("td"),document.createElement("td")];tds[0].textContent=r.source;tds[1].textContent=r.relation;tds[2].textContent=r.target;tds.forEach(function(td){tr.appendChild(td);});rt.appendChild(tr);});
+renderGraph(entities,relations);
+};
+function renderGraph(ents,rels){
+nodes=[];edges=[];nodeMap={};
+var w=canvas.width,h=canvas.height;
+ents.forEach(function(e,i){var angle=(2*Math.PI*i)/ents.length;var r=Math.min(w,h)*0.35;nodes.push({id:e.name,x:w/2+r*Math.cos(angle),y:h/2+r*Math.sin(angle),vx:0,vy:0,type:e.type,label:e.name,radius:24});nodeMap[e.name]=nodes[nodes.length-1];});
+rels.forEach(function(r){if(nodeMap[r.source]&&nodeMap[r.target]){edges.push({source:r.source,target:r.target,relation:r.relation});}});
+for(var iter=0;iter<150;iter++){for(var i=0;i<nodes.length;i++){for(var j=i+1;j<nodes.length;j++){var dx=nodes[j].x-nodes[i].x,dy=nodes[j].y-nodes[i].y;var dist=Math.sqrt(dx*dx+dy*dy)||1;var force=(400)/(dist*dist);nodes[i].vx-=(dx/dist)*force;nodes[i].vy-=(dy/dist)*force;nodes[j].vx+=(dx/dist)*force;nodes[j].vy+=(dy/dist)*force;}}edges.forEach(function(e){var n1=nodeMap[e.source],n2=nodeMap[e.target];if(!n1||!n2)return;var dx=n2.x-n1.x,dy=n2.y-n1.y;var dist=Math.sqrt(dx*dx+dy*dy)||1;var force=(dist-120)*0.05;n1.vx+=(dx/dist)*force;n1.vy+=(dy/dist)*force;n2.vx-=(dx/dist)*force;n2.vy-=(dy/dist)*force;});nodes.forEach(function(n){n.vx-=(n.x-w/2)*0.01;n.vy-=(n.y-h/2)*0.01;});nodes.forEach(function(n){n.vx*=0.85;n.vy*=0.85;n.x+=n.vx;n.y+=n.vy;n.x=Math.max(50,Math.min(w-50,n.x));n.y=Math.max(50,Math.min(h-50,n.y));});}drawGraph();}
+function drawGraph(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(scale,scale);
+ctx.lineWidth=1.5;
+edges.forEach(function(e){var n1=nodeMap[e.source],n2=nodeMap[e.target];if(!n1||!n2)return;ctx.beginPath();ctx.strokeStyle="#bdc3c7";ctx.moveTo(n1.x,n1.y);ctx.lineTo(n2.x,n2.y);ctx.stroke();var mx=(n1.x+n2.x)/2,my=(n1.y+n2.y)/2;ctx.fillStyle="#7f8c8d";ctx.font="11px system-ui";ctx.textAlign="center";ctx.fillText(e.relation,mx,my-4);});
+nodes.forEach(function(n){ctx.beginPath();ctx.arc(n.x+2,n.y+2,n.radius,0,2*Math.PI);ctx.fillStyle="rgba(0,0,0,.15)";ctx.fill();ctx.beginPath();ctx.arc(n.x,n.y,n.radius,0,2*Math.PI);ctx.fillStyle=COLORS[n.type]||"#95a5a6";ctx.fill();ctx.strokeStyle="rgba(255,255,255,.8)";ctx.lineWidth=2;ctx.stroke();ctx.fillStyle="#fff";ctx.font="bold 11px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";var label=n.label.length>8?n.label.substring(0,7)+"…":n.label;ctx.fillText(label,n.x,n.y);});
+ctx.restore();
+var legend=document.getElementById("graphLegend");var types={};
+nodes.forEach(function(n){types[n.type]=(types[n.type]||0)+1;});
+legend."";
+for(var t in types){var item=document.createElement("div");item.className="legend-item";var dot=document.createElement("span");dot.className="legend-dot";dot.style.background=COLORS[t]||"#95a5a6";var label=document.createTextNode(t+" ("+types[t]+")");item.appendChild(dot);item.appendChild(label);legend.appendChild(item);}}
+document.getElementById("buildBtn").onclick=buildGraph;
+document.getElementById("zoomInBtn").onclick=function(){scale*=1.2;drawGraph();};
+document.getElementById("zoomOutBtn").onclick=function(){scale/=1.2;drawGraph();};
+document.getElementById("resetViewBtn").onclick=function(){scale=1;offsetX=0;offsetY=0;drawGraph();};
+canvas=document.getElementById("graphCanvas");
+ctx=canvas.getContext("2d");
+function resizeCanvas(){var rect=canvas.parentElement.getBoundingClientRect();canvas.width=rect.width;canvas.height=rect.height;if(nodes.length>0)drawGraph();}
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
+canvas.addEventListener("wheel",function(e){e.preventDefault();scale*=e.deltaY>0?0.9:1.1;scale=Math.max(0.3,Math.min(3,scale));drawGraph();},{passive:false});
+canvas.addEventListener("mousedown",function(e){isDragging=true;lastX=e.offsetX;lastY=e.offsetY;canvas.style.cursor="grabbing";});
+canvas.addEventListener("mousemove",function(e){if(!isDragging)return;offsetX+=e.offsetX-lastX;offsetY+=e.offsetY-lastY;lastX=e.offsetX;lastY=e.offsetY;drawGraph();});
+canvas.addEventListener("mouseup",function(){isDragging=false;canvas.style.cursor="grab";});
+canvas.addEventListener("mouseleave",function(){isDragging=false;canvas.style.cursor="grab";});
+canvas.style.cursor="grab";
+  </script>
+</body>
+</html>

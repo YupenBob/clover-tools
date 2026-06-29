@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于 - CloverTools</title>
+  <meta name="description" content="CloverTools 由 York 和 AI 助手 Clover 共同打造,是一款轻量级开发者工具箱,无需注册,完全本地运行。">
+  <link rel="canonical" href="https://clovertools.cn/about">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/shared.css">
+  <script src="/src/shared.js"></script>
+  <style>
+    /* ── Base reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Scroll fade-in ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.7s cubic-bezier(.22,1,.36,1), transform 0.7s cubic-bezier(.22,1,.36,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Background radial glow */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(139,92,246,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Grain texture overlay - tiny SVG noise tiled */
+    .hero-grain {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+    /* Floating gradient orbs */
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-orb-1 {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(139,92,246,0.5) 0%, transparent 70%);
+      top: -80px;
+      left: -100px;
+      animation: floatOrb1 12s ease-in-out infinite;
+    }
+    .hero-orb-2 {
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(240,171,252,0.5) 0%, transparent 70%);
+      top: 80px;
+      right: -80px;
+      animation: floatOrb2 15s ease-in-out infinite;
+    }
+    .hero-orb-3 {
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(251,191,36,0.4) 0%, transparent 70%);
+      bottom: 80px;
+      left: 15%;
+      animation: floatOrb3 10s ease-in-out infinite;
+    }
+    @keyframes floatOrb1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, 25px) scale(1.08); }
+      66% { transform: translate(-15px, 40px) scale(0.96); }
+    }
+    @keyframes floatOrb2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      40% { transform: translate(-40px, -25px) scale(1.05); }
+      70% { transform: translate(25px, 30px) scale(0.92); }
+    }
+    @keyframes floatOrb3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, -30px) scale(1.12); }
+    }
+    .hero-logo-wrap {
+      margin-bottom: 3rem;
+      position: relative;
+      z-index: 2;
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+    .hero-logo-wrap img {
+      height: 140px;
+      filter: drop-shadow(0 0 40px rgba(139,92,246,0.55)) drop-shadow(0 0 90px rgba(167,139,250,0.25));
+      color-scheme: light;
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 1.2rem;
+      font-weight: 600;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-title {
+      font-size: clamp(3.2rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, #c084fc 0%, #a78bfa 25%, #f0abfc 55%, #fbbf24 85%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 2;
+      text-shadow: 0 0 80px rgba(167,139,250,0.25);
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.8;
+      margin-bottom: 3rem;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-tags {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 4rem;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-tag {
+      padding: 0.35rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+    }
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-secondary);
+      font-size: 0.7rem;
+      opacity: 0.5;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(6px); }
+    }
+
+    /* ── Story Section ── */
+    .story {
+      padding: 8rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .story-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+      margin-top: 4rem;
+    }
+    .story-text p {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+    }
+    .story-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      transition: border-color 0.3s;
+    }
+    .stat-card:hover { border-color: var(--primary); }
+    .stat-num {
+      font-size: 2.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-light), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ── Creators ── */
+    .creators {
+      padding: 6rem 2rem;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .creators-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .creators-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .creator-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      padding: 2rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .creator-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+    }
+    .creator-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      border: 2px solid var(--border);
+    }
+    .creator-info { flex: 1; }
+    .creator-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .creator-link {
+      display: inline-block;
+      font-size: 0.82rem;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+    .creator-link:hover { text-decoration: underline; }
+    .creator-bio {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ── Links ── */
+    .links-section {
+      padding: 6rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .links-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 2.5rem;
+    }
+    .link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.88rem;
+      color: var(--text);
+      text-decoration: none;
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+    }
+    .link-pill:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(139,92,246,0.08);
+    }
+
+    /* ── Changelog ── */
+    .changelog {
+      padding: 6rem 2rem 8rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .changelog-layout {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 5rem;
+      align-items: start;
+      margin-top: 3rem;
+    }
+    .changelog-heading-block {
+      position: sticky;
+      top: 6rem;
+    }
+    .changelog-heading-block .section-title { font-size: 2rem; }
+    .changelog-heading-block p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-top: 1rem;
+    }
+    .changelog-list { display: flex; flex-direction: column; gap: 0; }
+    .changelog-entry {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: start;
+      gap: 1rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .changelog-entry:last-child { border-bottom: none; }
+    .changelog-entry:hover { background: rgba(139,92,246,0.03); }
+    .changelog-hash {
+      font-family: 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.78rem;
+      color: var(--primary-light);
+      text-decoration: none;
+      padding-top: 0.1rem;
+      white-space: nowrap;
+    }
+    .changelog-hash:hover { color: var(--primary); }
+    .changelog-msg {
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .changelog-date {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      padding-top: 0.1rem;
+    }
+
+    /* ── Back link ── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+      padding: 0 2rem 3rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .back-link:hover { color: var(--primary); }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .hero { min-height: 80vh; padding: 5rem 1.5rem 3rem; }
+      .hero-logo-wrap img { height: 100px; }
+      .story { padding: 5rem 1.5rem; }
+      .story-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .story-stats { grid-template-columns: 1fr 1fr; }
+      .creators { padding: 4rem 1.5rem; }
+      .creators-grid { grid-template-columns: 1fr; }
+      .links-section { padding: 4rem 1.5rem; }
+      .changelog { padding: 4rem 1.5rem 5rem; }
+      .changelog-layout { grid-template-columns: 1fr; gap: 2rem; }
+      .changelog-heading-block { position: static; }
+      .changelog-entry { grid-template-columns: 60px 1fr auto; gap: 0.75rem; }
+      .creators-inner { max-width: 100%; }
+      .story, .changelog, .back-link { max-width: 100%; padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    @media (max-width: 480px) {
+      .hero-tags { gap: 0.5rem; }
+      .story-stats { grid-template-columns: 1fr; }
+      .creator-card { flex-direction: column; align-items: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+    <div class="hero-orb hero-orb-3"></div>
+    <div class="hero-grain"></div>
+    <div class="hero-logo-wrap">
+      <img src="/src/clover-logo.svg" alt="CloverTools Logo">
+    </div>
+    <div class="hero-eyebrow">Developer Toolkit · Est. 2024</div>
+    <h1 class="hero-title">CloverTools</h1>
+    <p class="hero-sub">
+      由 York 与 AI 助手 Clover 共同打造。<br>
+      告别繁琐,专注创造。用完即走,不留痕迹。
+    </p>
+    <div class="hero-tags">
+      <span class="hero-tag">⚡ 轻量级</span>
+      <span class="hero-tag">🔒 本地运行</span>
+      <span class="hero-tag">🚫 无需注册</span>
+      <span class="hero-tag">🍀 开源免费</span>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>scroll</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </section>
+
+  <!-- Our Story -->
+  <section class="story reveal">
+    <div class="section-label">Our Story</div>
+    <h2 class="section-title">🎯 一个工具箱的诞生</h2>
+    <div class="story-grid">
+      <div class="story-text">
+        <p>
+          CloverTools 起源于 2024 年,York 在日常开发中发现自己在各个网站之间来回切换--JSON 格式化要用一个站,Base64 编解码要用另一个站,cron 表达式又要找第三个。于是他决定做一个自己的工具箱,把所有常用的功能聚在一起。
+        </p>
+        <p>
+          后来,AI 助手 Clover 加入,成为这个项目的联合创造者。她帮助设计了架构,优化了工具分类逻辑,并持续为工具箱注入新的功能。
+        </p>
+        <p>
+          今天,CloverTools 已经拥有 50+ 工具,目标是一个拥有 1000+ 工具的开发者生态平台。每一次提交、每一个新工具,都是为了让"用完即走"变得更优雅。
+        </p>
+      </div>
+      <div class="story-stats">
+        <div class="stat-card">
+          <div class="stat-num">🛠️ 50+</div>
+          <div class="stat-label">在线工具</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">🚀 2024</div>
+          <div class="stat-label">项目启动</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">👥 2</div>
+          <div class="stat-label">联合创造者</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">工具目标</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Creators -->
+  <section class="creators">
+    <div class="creators-inner">
+      <div class="section-label">The Team</div>
+      <h2 class="section-title">👥 创造者</h2>
+      <div class="creators-grid">
+        <div class="creator-card">
+          <img class="creator-avatar" src="/src/york-avatar.png" alt="York">
+          <div class="creator-info">
+            <div class="creator-name">York</div>
+            <a class="creator-link" href="https://github.com/YupenBob" target="_blank">@YupenBob</a>
+            <div class="creator-bio">YupenBob(别名),CloverTools 发起者。从 6 岁开始学编程,2024 年开始构建 CloverTools,想做自己的开发者工具生态。</div>
+          </div>
+        </div>
+        <div class="creator-card">
+          <img class="creator-avatar" src="/src/clover-avatar.png" alt="Clover">
+          <div class="creator-info">
+            <div class="creator-name">Clover 🍀</div>
+            <a class="creator-link" href="https://github.com/YupenBob/clover-tools" target="_blank">OpenClaw AI</a>
+            <div class="creator-bio">AI 助手,CloverTools 联合创造者。帮助设计架构、优化分类逻辑、持续注入新工具,让工具箱越来越智能。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links -->
+  <section class="links-section reveal">
+    <div class="section-label">Explore More</div>
+    <h2 class="section-title">🚀 探索更多</h2>
+    <div class="links-nav">
+      <a class="link-pill" href="/">🧰 工具首页</a>
+      <a class="link-pill" href="https://dev.xsanye.cn" target="_blank">🧭 开发者导航</a>
+      <a class="link-pill" href="https://api.xsanye.cn" target="_blank">⚡ API速查</a>
+      <a class="link-pill" href="https://cheat.xsanye.cn" target="_blank">📋 速查表</a>
+      <a class="link-pill" href="https://blog.xsanye.cn" target="_blank">✍️ 技术博客</a>
+      <a class="link-pill" href="https://aiti.xsanye.cn" target="_blank">🤖 AITI</a>
+      <a class="link-pill" href="https://github.com/YupenBob/clover-tools" target="_blank">⭐ GitHub</a>
+    </div>
+  </section>
+
+  <!-- Changelog -->
+  <section class="changelog reveal">
+    <div class="section-label">Changelog</div>
+    <h2 class="section-title">📝 开发日志</h2>
+    <div class="changelog-layout">
+      <div class="changelog-heading-block">
+        <div class="section-label" style="margin-bottom:0.5rem;">Based on Git Log</div>
+        <h3 style="font-size:1.4rem;font-weight:700;margin-bottom:0.75rem;">每一次提交<br>都在让工具箱更好</h3>
+        <p>以下是根据 Git 提交记录自动生成的历史变更列表,每一次 commit 都是一个进化的印记。</p>
+      </div>
+      <div class="changelog-list">
+        <div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/7d064f9" target="_blank">7d064f9</a><span class="changelog-msg">generate 2026-06-19 tools + self-review (20/20 passed, avg 1.00)</span><span class="changelog-date">2026-06-19 09:06:49 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/36621bc" target="_blank">36621bc</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-18 10:03:58 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/71e41ec" target="_blank">71e41ec</a><span class="changelog-msg">generate 2026-06-17 tools + self-review (20/20 passed, avg 1.00)</span><span class="changelog-date">2026-06-17 09:09:17 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/f8e05cb" target="_blank">f8e05cb</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-16 10:03:11 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/e7719f9" target="_blank">e7719f9</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-15 10:06:27 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/438a187" target="_blank">438a187</a><span class="changelog-msg">generate 2026-06-15 tools + self-review (no-op, 0 pending, dist verified 224 pages)</span><span class="changelog-date">2026-06-15 09:05:31 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/af1a337" target="_blank">af1a337</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-13 10:03:15 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/14f17c2" target="_blank">14f17c2</a><span class="changelog-msg">generate 2026-06-13 tools + self-review</span><span class="changelog-date">2026-06-13 09:16:08 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/861ea72" target="_blank">861ea72</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-11 10:04:57 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/400e4a2" target="_blank">400e4a2</a><span class="changelog-msg">upgrade tool quality — standard features across all tool types</span><span class="changelog-date">2026-06-09 21:35:02 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/609dd35" target="_blank">609dd35</a><span class="changelog-msg">design system + component library</span><span class="changelog-date">2026-06-09 21:30:53 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/ea0224f" target="_blank">ea0224f</a><span class="changelog-msg">unify architecture — eliminate dual-track system</span><span class="changelog-date">2026-06-09 21:24:50 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/afd9ead" target="_blank">afd9ead</a><span class="changelog-msg">add comprehensive improvement plan for CloverTools</span><span class="changelog-date">2026-06-09 21:17:43 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/a22732a" target="_blank">a22732a</a><span class="changelog-msg">add10 new SEO articles 2026-06-09</span><span class="changelog-date">2026-06-09 10:07:24 +0800</span></div><div class="changelog-entry"><a class="changelog-hash" href="https://github.com/YupenBob/clover-tools/commit/3195450" target="_blank">3195450</a><span class="changelog-msg">add 10 new SEO articles 2026-04-18</span><span class="changelog-date">2026-06-08 10:02:59 +0800</span></div>
+      </div>
+    </div>
+  </section>
+
+  <a href="/" class="back-link">← 返回工具首页</a>
+
+  <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  <div id="toast"></div>
+  <script>CT.initTheme();CT.initReveal();CT.initCopyPulse();</script>
+</body>
+</html>

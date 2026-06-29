@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP协议状态码 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="HTTP协议状态码 - 🍀 CloverTools">
+  <meta property="og:description" content="完整 HTTP 状态码查询表，包含 1xx-5xx 全部状态码含义与常见使用场景说明">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/other/HTTP协议状态码.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="HTTP协议状态码 - 🍀 CloverTools">
+  <meta name="twitter:description" content="完整 HTTP 状态码查询表，包含 1xx-5xx 全部状态码含义与常见使用场景说明">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/other/HTTP协议状态码.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>HTTP协议状态码</h1>
+        <p class="description">完整 HTTP 状态码查询表，包含 1xx-5xx 全部状态码含义与常见使用场景说明</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>🔍 HTTP 状态码查询</h3>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <input type="text" id="searchInput" placeholder="按状态码或名称搜索，如 404 或 Not Found..." style="flex:1;min-width:180px;padding:0.6rem 0.75rem;font-family:monospace;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:0.95rem;">
+          <select id="categoryFilter" style="padding:0.6rem 0.75rem;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:0.95rem;">
+            <option value="all">全部分类</option>
+            <option value="1">1xx 信息响应</option>
+            <option value="2">2xx 成功</option>
+            <option value="3">3xx 重定向</option>
+            <option value="4">4xx 客户端错误</option>
+            <option value="5">5xx 服务器错误</option>
+          </select>
+          <label style="display:flex;align-items:center;gap:0.3rem;cursor:pointer;padding:0.4rem 0.75rem;border-radius:8px;background:var(--bg-secondary);font-size:0.9rem;white-space:nowrap;">
+            <input type="checkbox" id="favOnly" style="width:16px;height:16px;"> 仅看常用
+          </label>
+        </div>
+        <div id="statusBar" style="font-size:0.85rem;opacity:0.65;margin-bottom:0.5rem;">共 0 条结果</div>
+        <div id="codeList" style="display:grid;gap:0.6rem;"></div>
+      </div>
+      <div class="output-box">
+        <h3>💡 状态码分类说明</h3>
+        <ul style="margin:0.5rem 0 0 1.25rem;line-height:1.8;font-size:0.92rem;">
+          <li><b style="color:#3b82f6;">1xx 信息响应</b>：请求已收到，继续处理</li>
+          <li><b style="color:#10b981;">2xx 成功</b>：请求已成功被服务器接收、理解并接受</li>
+          <li><b style="color:#f59e0b;">3xx 重定向</b>：需要后续操作才能完成这一请求</li>
+          <li><b style="color:#f97316;">4xx 客户端错误</b>：请求含有词法错误或者无法被执行</li>
+          <li><b style="color:#ef4444;">5xx 服务器错误</b>：服务器在处理某个正确请求时发生错误</li>
+          <li>点击任意状态码卡片可展开/收起详细说明；点击“★ 收藏”可加入常用列表</li>
+        </ul>
+      </div>
+      <style>
+        .http-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;transition:border-color .2s,transform .15s;cursor:pointer;}
+        .http-card:hover{border-color:var(--primary);transform:translateY(-1px);}
+        .http-card.fav{border-color:var(--primary);background:var(--bg-secondary);}
+        .http-row1{display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+        .http-badge{display:inline-block;min-width:62px;padding:0.25rem 0.55rem;border-radius:6px;font-family:'SF Mono','Monaco',monospace;font-weight:700;text-align:center;color:#fff;font-size:0.95rem;letter-spacing:0.02em;}
+        .b-1{background:#3b82f6;}
+        .b-2{background:#10b981;}
+        .b-3{background:#f59e0b;}
+        .b-4{background:#f97316;}
+        .b-5{background:#ef4444;}
+        .http-name{font-weight:600;font-size:1rem;color:var(--text);}
+        .http-class{font-size:0.78rem;opacity:0.55;margin-left:0.3rem;}
+        .http-fav-btn{margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;padding:0.25rem 0.55rem;cursor:pointer;font-size:0.85rem;color:var(--text-secondary);transition:all .15s;}
+        .http-fav-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .http-fav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+        .http-detail{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+        .http-detail.open{max-height:600px;}
+        .http-desc{margin-top:0.6rem;padding-top:0.6rem;border-top:1px dashed var(--border);font-size:0.92rem;line-height:1.7;color:var(--text-secondary);}
+        .http-scenario{background:var(--bg-secondary);padding:0.45rem 0.7rem;border-radius:6px;margin-top:0.5rem;font-size:0.85rem;line-height:1.6;}
+        .http-scenario b{color:var(--primary);}
+        .http-tag{display:inline-block;padding:0.1rem 0.45rem;border-radius:4px;font-size:0.7rem;background:var(--bg-secondary);color:var(--text-secondary);margin-left:0.3rem;font-weight:500;}
+        .http-empty{text-align:center;padding:2rem 1rem;opacity:0.55;font-size:0.95rem;}
+      </style>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // TODO: implement other/HTTP协议状态码.html
+  </script>
+</body>
+</html>

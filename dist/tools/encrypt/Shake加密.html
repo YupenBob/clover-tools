@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shake加密 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Shake加密 - 🍀 CloverTools">
+  <meta property="og:description" content="在线生成 Shake (SHAKE128/SHAKE256) 哈希值，支持自定义输出长度">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/encrypt/Shake加密.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="Shake加密 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线生成 Shake (SHAKE128/SHAKE256) 哈希值，支持自定义输出长度">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/encrypt/Shake加密.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>Shake加密</h1>
+        <p class="description">在线生成 Shake (SHAKE128/SHAKE256) 哈希值，支持自定义输出长度</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>输入</h3>
+        <textarea id="input" placeholder="输入文本..." style="min-height:120px;"></textarea>
+        <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+          <label style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="opacity:0.8;">算法:</span>
+            <select id="algo" style="padding:0.4rem;">
+              <option value="SHAKE128">SHAKE128 (rate=168)</option>
+              <option value="SHAKE256" selected>SHAKE256 (rate=136)</option>
+            </select>
+          </label>
+          <label style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="opacity:0.8;">输出字节:</span>
+            <input id="outLen" type="number" min="1" max="1024" value="64" style="padding:0.4rem;width:90px;">
+          </label>
+        </div>
+        <p style="font-size:0.78rem;opacity:0.65;margin-top:0.5rem;line-height:1.5;">
+          SHAKE (Secure Hash Algorithm KECCAK) 属于 FIPS 202 可变长输出扩展函数（FIPS 202 中的 SHA-3 系列）。
+          本工具使用纯 JS 实现 Keccak-f[1600] 置换、SHAKE128/256 吸收/挤压阶段，无外部依赖、支持任意字节长度（1-1024）。
+        </p>
+      </div>
+      <div class="output-box">
+        <h3>十六进制 (Hex) <button class="copy-btn" id="copyHex">复制</button></h3>
+        <textarea id="hexOut" readonly style="word-break:break-all;"></textarea>
+      </div>
+      <div class="output-box">
+        <h3>Base64 <button class="copy-btn" id="copyB64">复制</button></h3>
+        <textarea id="b64Out" readonly style="word-break:break-all;"></textarea>
+      </div>
+      <p id="meta" style="font-size:0.8rem;opacity:0.7;margin-top:0.5rem;"></p>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+      // Pure JS implementation of SHAKE128 / SHAKE256 (FIPS 202)
+      // Keccak-f[1600] permutation with configurable rate.
+
+      // Round constants for Keccak (iota step)
+      const RC = [0x0000000000000001n, 0x0000000000008082n, 0x800000000000808an, 0x8000000080008000n, 0x000000000000808bn, 0x0000000080000001n, 0x8000000080008081n, 0x8000000000008009n, 0x000000000000008an, 0x0000000000000088n, 0x0000000080008009n, 0x000000008000000an, 0x000000008000808bn, 0x800000000000008bn, 0x8000000000008089n, 0x8000000000008003n, 0x8000000000008002n, 0x8000000000000080n, 0x000000000000800an, 0x800000008000000an, 0x8000000080008081n, 0x8000000000008080n, 0x0000000080000001n, 0x8000000080008008n];
+
+      // Rotation offsets (rho step)
+      const R = [
+        [0n, 36n, 3n, 41n, 18n],
+        [1n, 44n, 10n, 45n, 2n],
+        [62n, 6n, 43n, 15n, 61n],
+        [28n, 55n, 25n, 21n, 56n],
+        [27n, 20n, 39n, 8n, 14n]
+      ];
+
+      function rotl(x, n) { n = BigInt(n); return ((x << n) | (x >> (64n - n))) & 0xffffffffffffffffn; }
+
+      function keccakF1600(state) {
+        for (let round = 0; round < 24; round++) {
+          // Theta
+          const C = [0n,0n,0n,0n,0n];
+          for (let x = 0; x < 5; x++) C[x] = state[x] ^ state[x+5] ^ state[x+10] ^ state[x+15] ^ state[x+20];
+          const D = [0n,0n,0n,0n,0n];
+          for (let x = 0; x < 5; x++) D[x] = C[(x+4)%5] ^ rotl(C[(x+1)%5], 1n);
+          for (let i = 0; i < 25; i++) state[i] ^= D[i % 5];
+
+          // Rho and Pi
+          const B = new Array(25).fill(0n);
+          for (let x = 0; x < 5; x++) {
+            for (let y = 0; y < 5; y++) {
+              B[y + ((2*x + 3*y) % 5) * 5] = rotl(state[x + 5*y], R[x][y]);
+            }
+          }
+
+          // Chi
+          for (let y = 0; y < 5; y++) {
+            for (let x = 0; x < 5; x++) {
+              state[x + 5*y] = B[x + 5*y] ^ ((~B[((x+1)%5) + 5*y]) & B[((x+2)%5) + 5*y] & 0xffffffffffffffffn);
+            }
+          }
+
+          // Iota
+          state[0] ^= RC[round];
+        }
+      }
+
+      // SHAKE: rate 168 bytes for SHAKE128, 136 bytes for SHAKE256 (in bits: 1344 / 1088)
+      function shake(input, outBytes, bits) {
+        const rateBytes = bits === 128 ? 168 : 136;
+        const data = new TextEncoder().encode(input);
+        // State: 25 x 64-bit lanes
+        let state = new Array(25).fill(0n);
+
+        // Absorbing phase
+        const blockWords = rateBytes / 8; // 21 for shake128, 17 for shake256
+        let offset = 0;
+        while (data.length - offset >= rateBytes) {
+          for (let i = 0; i < blockWords; i++) {
+            let w = 0n;
+            for (let b = 0; b < 8; b++) w = (w << 8n) | BigInt(data[offset + i*8 + b]);
+            state[i] ^= w;
+          }
+          keccakF1600(state);
+          offset += rateBytes;
+        }
+
+        // Last block with padding
+        const last = data.slice(offset);
+        const lastWords = blockWords;
+        const pad = new Uint8Array(rateBytes);
+        pad.set(last);
+        pad[last.length] = 0x1F; // SHAKE padding byte (different from SHA-3 which uses 0x06)
+        pad[rateBytes - 1] |= 0x80;
+        for (let i = 0; i < lastWords; i++) {
+          let w = 0n;
+          for (let b = 0; b < 8; b++) w = (w << 8n) | BigInt(pad[i*8 + b]);
+          state[i] ^= w;
+        }
+        keccakF1600(state);
+
+        // Squeezing phase
+        const out = new Uint8Array(outBytes);
+        let outOff = 0;
+        while (outOff < outBytes) {
+          for (let i = 0; i < blockWords && outOff < outBytes; i++) {
+            let w = state[i];
+            for (let b = 7; b >= 0 && outOff < outBytes; b--) {
+              out[outOff++] = Number((w >> BigInt(b * 8)) & 0xffn);
+            }
+          }
+          if (outOff < outBytes) keccakF1600(state);
+        }
+        return out;
+      }
+
+      function bytesToHex(bytes) {
+        return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      function bytesToBase64(bytes) {
+        let s = '';
+        for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+        return btoa(s);
+      }
+
+      const input = document.getElementById('input');
+      const algo = document.getElementById('algo');
+      const outLen = document.getElementById('outLen');
+      const hexOut = document.getElementById('hexOut');
+      const b64Out = document.getElementById('b64Out');
+      const meta = document.getElementById('meta');
+
+      function run() {
+        const v = input.value;
+        if (!v) { hexOut.value = ''; b64Out.value = ''; meta.textContent = ''; return; }
+        try {
+          const bits = algo.value === 'SHAKE128' ? 128 : 256;
+          const bytes = parseInt(outLen.value) || 32;
+          if (bytes < 1 || bytes > 1024) {
+            hexOut.value = '';
+            b64Out.value = '';
+            meta.textContent = '字节数必须在 1-1024 之间';
+            return;
+          }
+          const t0 = performance.now();
+          const hash = shake(v, bytes, bits);
+          const t1 = performance.now();
+          hexOut.value = bytesToHex(hash);
+          b64Out.value = bytesToBase64(hash);
+          meta.textContent = algo.value + ' · ' + bytes + ' 字节 (' + (bytes*8) + ' bit) · 耗时 ' + (t1-t0).toFixed(2) + ' ms';
+        } catch(e) {
+          hexOut.value = '';
+          b64Out.value = '';
+          meta.textContent = '错误: ' + e.message;
+        }
+      }
+
+      input.addEventListener('input', run);
+      algo.addEventListener('change', run);
+      outLen.addEventListener('input', run);
+      document.getElementById('copyHex').onclick = () => copyToClipboard(hexOut.value);
+      document.getElementById('copyB64').onclick = () => copyToClipboard(b64Out.value);
+      run();
+    
+  </script>
+</body>
+</html>

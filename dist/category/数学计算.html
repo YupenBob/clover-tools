@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数学计算 - CloverTools</title>
+  <meta name="description" content="CloverTools 数学计算类工具,免费在线使用,无需注册。">
+  <link rel="stylesheet" href="/src/shared.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+<main class="container">
+  <div class="category-header">
+    <h1>数学计算</h1>
+    <p>共 14 个工具</p>
+  </div>
+  <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem 0">
+    
+    <div class="tool-card" onclick="location.href='/tools/math/avg.html'">
+      <div class="tool-card-name">平均数计算</div>
+      <div class="tool-card-desc">输入任意数量逗号分隔的数字，自动计算平均值、总和及数据个数，支持小数和负数，提供详细的统计结果展示，适用于数据分析与成绩统计场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/calculator.html'">
+      <div class="tool-card-name">四则计算器</div>
+      <div class="tool-card-desc">支持加法、减法、乘法、除法四种基本运算，输入两个数值和运算符后即可快速得到计算结果，适合日常学习和办公场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/factorial.html'">
+      <div class="tool-card-name">阶乘计算</div>
+      <div class="tool-card-desc">计算任意非负整数 n 的阶乘值（n!），适用于概率统计、排列组合等数学场景，支持0到170范围内的精确阶乘计算。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/gcd.html'">
+      <div class="tool-card-name">最大公约数</div>
+      <div class="tool-card-desc">通过欧几里得算法快速计算两个整数的最大公约数（GCD），直观展示辗转相除法的计算过程，广泛用于分数化简和数论研究。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/lcm.html'">
+      <div class="tool-card-name">最小公倍数</div>
+      <div class="tool-card-desc">计算两个整数的最小公倍数（LCM），结合最大公约数算法高效求解，常用于分数通分、工程时间调度等实际应用场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/power.html'">
+      <div class="tool-card-name">乘方计算器</div>
+      <div class="tool-card-desc">输入底数和指数即可快速计算幂运算结果，支持任意实数指数的乘方计算，适用于数学、工程和科学计算等多种场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/prime-check.html'">
+      <div class="tool-card-name">质数判定</div>
+      <div class="tool-card-desc">快速判断输入的正整数是否为质数，并显示最小因数信息，帮助理解质数的数学特性，适用于数论学习和密码学基础。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/random.html'">
+      <div class="tool-card-name">随机数生成器</div>
+      <div class="tool-card-desc">在用户指定的最小值和最大值范围内生成随机整数，适用于抽样调查、随机抽样、抽奖活动、游戏开发等多种应用场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/sqrt.html'">
+      <div class="tool-card-name">开方计算器</div>
+      <div class="tool-card-desc">计算任意非负数的平方根，支持高精度结果展示，自动处理整数和小数的显示格式，适用于几何和代数等多种计算场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/sum-sequence.html'">
+      <div class="tool-card-name">数列求和</div>
+      <div class="tool-card-desc">根据首项、公差和项数计算等差数列的通项、末项和前n项和，完整展示计算过程，适用于数学教学、学习和练习场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/pi.html'">
+      <div class="tool-card-name">圆周率计算器</div>
+      <div class="tool-card-desc">在线圆周率 π 计算器，支持指定小数位数（最高 10000 位）查看。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/loan-calculator.html'">
+      <div class="tool-card-name">贷款计算器</div>
+      <div class="tool-card-desc">根据贷款金额、年利率、贷款期限计算月供和总利息，支持等额本息/本金两种还款方式，附带还款明细表。</div>
+      <div class="tool-card-tags"><span class="tag">贷款计算器</span><span class="tag">房贷计算器</span><span class="tag">月供计算</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/compound-interest.html'">
+      <div class="tool-card-name">复利计算器</div>
+      <div class="tool-card-desc">根据本金、年利率和年限计算复利终值，支持月复利/年复利切换，显示每年本息变化曲线。</div>
+      <div class="tool-card-tags"><span class="tag">复利计算器</span><span class="tag">复利终值</span><span class="tag">年化收益</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/math/percentage-calculator.html'">
+      <div class="tool-card-name">百分比计算器</div>
+      <div class="tool-card-desc">快速计算百分比/增长率/折扣率，支持百分比增加减少和占比多种场景，附常用百分比速查表。</div>
+      <div class="tool-card-tags"><span class="tag">百分比计算器</span><span class="tag">折扣计算</span><span class="tag">增长率</span></div>
+    </div>
+  </div>
+</main>
+<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+</body>
+</html>

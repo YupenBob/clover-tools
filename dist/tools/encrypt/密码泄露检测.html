@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密码泄露检测 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="密码泄露检测 - 🍀 CloverTools">
+  <meta property="og:description" content="在线检查密码是否已在公开数据泄露中出现，采用 k-anonymity 模型仅上传 SHA-1 哈希前 5 位，不传输完整密码，安全可靠。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/encrypt/密码泄露检测.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="密码泄露检测 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线检查密码是否已在公开数据泄露中出现，采用 k-anonymity 模型仅上传 SHA-1 哈希前 5 位，不传输完整密码，安全可靠。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/encrypt/密码泄露检测.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>密码泄露检测</h1>
+        <p class="description">在线检查密码是否已在公开数据泄露中出现，采用 k-anonymity 模型仅上传 SHA-1 哈希前 5 位，不传输完整密码，安全可靠。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>🔐 密码泄露检测</h3>
+  <div style="margin-bottom:0.75rem;">
+    <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">输入要检测的密码</label>
+    <div style="position:relative;">
+      <input type="text" id="passwordInput" placeholder="请输入待检测的密码（不会上传完整密码）" style="width:100%;padding:0.75rem 3rem 0.75rem 0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);font-family:monospace;" />
+      <button id="toggleMask" type="button" title="显示/隐藏" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:1.1rem;opacity:0.6;padding:0.3rem 0.5rem;">👁️</button>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="checkBtn" style="width:100%;">检查是否已泄露</button>
+  <div id="status" style="margin-top:0.6rem;font-size:0.85rem;opacity:0.7;text-align:center;min-height:1.2em;"></div>
+  <div style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:var(--bg-secondary);border-radius:8px;font-size:0.78rem;opacity:0.75;line-height:1.7;">
+    💡 <b>k-anonymity 隐私保护</b>：只将密码的 SHA-1 哈希前 5 位发送给 HIBP 服务器，您的完整密码与哈希后缀始终留在本地。
+  </div>
+</div>
+<div class="output-box">
+  <h3>检测结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+  <div id="output" style="padding:0.5rem;line-height:1.8;"></div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // SHA-1 hex digest using Web Crypto API
+async function sha1Hex(str) {
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-1', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+}
+
+const pwdInput = document.getElementById('passwordInput');
+const toggleBtn = document.getElementById('toggleMask');
+const checkBtn = document.getElementById('checkBtn');
+const status = document.getElementById('status');
+const output = document.getElementById('output');
+
+function setMask() {
+  pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+  toggleBtn.textContent = pwdInput.type === 'password' ? '👁️' : '🙈';
+}
+toggleBtn.onclick = setMask;
+pwdInput.type = 'password';
+
+function strengthMeter(pwd) {
+  if (!pwd) return { score: 0, label: '无' };
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const labels = ['极弱', '较弱', '一般', '良好', '强', '极强'];
+  return { score: score, label: labels[score] || '极弱' };
+}
+
+function renderStrength(pwd) {
+  const s = strengthMeter(pwd);
+  if (!pwd) return '';
+  const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981', '#06b6d4'];
+  const c = colors[s.score];
+  const pct = ((s.score + 1) / 6 * 100).toFixed(0);
+  return '<div style="margin-top:0.6rem;background:var(--bg-secondary);padding:0.6rem 0.8rem;border-radius:8px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:0.3rem;">'
+    +   '<span style="opacity:0.7;">本地强度评估</span>'
+    +   '<span style="font-weight:600;color:' + c + ';">' + s.label + '</span>'
+    + '</div>'
+    + '<div style="height:6px;background:rgba(127,127,127,0.15);border-radius:3px;overflow:hidden;">'
+    +   '<div style="height:100%;width:' + pct + '%;background:' + c + ';border-radius:3px;transition:width 0.3s;"></div>'
+    + '</div>'
+    + '</div>';
+}
+
+async function runCheck() {
+  const pwd = pwdInput.value;
+  output.innerHTML = '';
+  status.innerHTML = '';
+  if (!pwd) {
+    output.innerHTML = '<div style="padding:1rem;text-align:center;opacity:0.6;">请输入密码</div>';
+    return;
+  }
+  if (pwd.length < 4) {
+    output.innerHTML = '<div style="padding:1rem;text-align:center;opacity:0.6;">密码长度至少 4 位</div>';
+    return;
+  }
+  checkBtn.disabled = true;
+  checkBtn.textContent = '检查中...';
+  status.innerHTML = '⏳ 正在计算 SHA-1 并向 HIBP 查询...';
+  try {
+    const hash = await sha1Hex(pwd);
+    const prefix = hash.slice(0, 5);
+    const suffix = hash.slice(5);
+    // k-anonymity: only send first 5 chars of hash
+    const url = 'https://api.pwnedpasswords.com/range/' + prefix;
+    const resp = await fetch(url, { headers: { 'Add-Padding': 'true' } });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const text = await resp.text();
+    const lines = text.split('\n');
+    let count = 0;
+    for (const line of lines) {
+      const [h, c] = line.trim().split(':');
+      if (h && h.toUpperCase() === suffix) {
+        count = parseInt(c, 10) || 0;
+        break;
+      }
+    }
+    let html = '';
+    if (count > 0) {
+      html += '<div style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);padding:1rem;border-radius:12px;margin-bottom:0.75rem;">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:#ef4444;margin-bottom:0.4rem;">⚠️ 密码已泄露</div>'
+        + '<div style="font-size:0.9rem;line-height:1.7;">该密码在公开数据泄露事件中出现 <b style="color:#ef4444;font-size:1.3rem;font-family:monospace;">' + count.toLocaleString() + '</b> 次。'
+        +   '<br>🚫 强烈建议立即更换此密码！</div>'
+        + '</div>';
+    } else {
+      html += '<div style="background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.4);padding:1rem;border-radius:12px;margin-bottom:0.75rem;">'
+        + '<div style="font-size:1.4rem;font-weight:700;color:#22c55e;margin-bottom:0.4rem;">✅ 密码安全</div>'
+        + '<div style="font-size:0.9rem;line-height:1.7;">未在 HIBP 已知泄露数据中发现此密码。'
+        +   '<br>👍 但请注意：未泄露不等于绝对安全，仍建议使用密码管理器生成强密码。</div>'
+        + '</div>';
+    }
+    html += renderStrength(pwd);
+    html += '<div style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:var(--bg-secondary);border-radius:8px;font-size:0.78rem;opacity:0.7;line-height:1.7;">'
+      + '🔍 SHA-1 前缀：<code style="font-family:monospace;">' + prefix + '*****</code><br>'
+      + '🛡️ 查询由 <a href="https://haveibeenpwned.com/Passwords" target="_blank" rel="noopener" style="color:var(--primary);">Have I Been Pwned</a> 提供，k-anonymity 模型确保完整哈希不会离开您的设备。'
+      + '</div>';
+    output.innerHTML = html;
+    status.innerHTML = count > 0 ? '❌ 查询完成，发现 ' + count.toLocaleString() + ' 次泄露记录' : '✅ 查询完成，未发现泄露';
+  } catch (e) {
+    output.innerHTML = '<div style="padding:1rem;text-align:center;color:#ef4444;">❌ 查询失败：' + e.message + '<br><span style="font-size:0.8rem;opacity:0.7;">请检查网络连接或稍后重试</span></div>';
+    status.innerHTML = '❌ 查询失败';
+  } finally {
+    checkBtn.disabled = false;
+    checkBtn.textContent = '检查是否已泄露';
+  }
+}
+
+checkBtn.onclick = runCheck;
+pwdInput.addEventListener('keydown', e => { if (e.key === 'Enter') runCheck(); });
+document.getElementById('copyOutput').onclick = () => {
+  const text = output.innerText;
+  if (text) copyToClipboard(text);
+};
+output.innerHTML = '<div style="padding:1.5rem;text-align:center;opacity:0.5;">👆 输入密码后点击"检查"按钮</div>';
+  </script>
+</body>
+</html>

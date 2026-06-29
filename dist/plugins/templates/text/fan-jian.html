@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>繁体字转换器 - CloverTools</title>
+  <meta name="description" content="一键转换简体中文和繁体中文，支持整段转换，适合处理台湾/香港/大陆地区文档，无需注册，完全免费。">
+  <meta name="keywords" content="繁体字转换，简繁转换，简体转繁体，繁体转简体，繁体中文，简体中文">
+
+  <link rel="canonical" href="https://tools.xsanye.cn/text/fan-jian.html">
+  <link rel="stylesheet" href="/src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="/src/shared.js"></script>
+  <style>
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .tool-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+    .tool-card h3 { font-size: 1rem; margin-bottom: 0.75rem; color: var(--text); }
+    .textarea-wrap { position: relative; }
+    textarea { width: 100%; min-height: 160px; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--input-bg); color: var(--text); resize: vertical; font-family: inherit; line-height: 1.6; }
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .btn { padding: 0.5rem 1.2rem; border-radius: var(--radius); font-size: 0.9rem; cursor: pointer; border: none; transition: var(--transition); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-secondary); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+    .output-box { margin-top: 1rem; }
+    .output-box textarea { background: var(--bg-secondary); }
+    .copy-btn { background: none; border: none; color: var(--primary); font-size: 0.8rem; cursor: pointer; padding: 0.2rem 0.5rem; border-radius: 6px; }
+    .copy-btn:hover { background: var(--primary); color: #fff; }
+    .info-tag { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; display: flex; gap: 1rem; flex-wrap: wrap; }
+    .info-tag span { display: flex; align-items: center; gap: 0.25rem; }
+    .char-count { font-size: 0.78rem; color: var(--text-secondary); text-align: right; margin-top: 0.3rem; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link"><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link"><span>问题</span></a>
+      <a href="/about" class="nav-icon-link"><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1z"/></symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="13"/></symbol>
+</svg>
+
+<main class="page-body">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+    <div class="tool-header">
+      <h1>繁体字转换器</h1>
+      <p class="description">一键转换简体中文和繁体中文，支持整段转换，适合处理台湾/香港/大陆地区文档。</p>
+    </div>
+    <div class="tool-card" style="margin-top:1.5rem;">
+      <h3>输入</h3>
+      <div class="textarea-wrap">
+        <textarea id="inputText" placeholder="在此粘贴或输入文字，转换结果将显示在下方..."></textarea>
+      </div>
+      <div class="char-count"><span id="charCount">0</span> 字</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="toTraditional">转繁体 →</button>
+        <button class="btn btn-primary" id="toSimplified">← 转简体</button>
+        <button class="btn btn-secondary" id="swapBtn">交换 ↔</button>
+        <button class="btn btn-secondary" id="clearBtn">清空</button>
+      </div>
+      <div class="info-tag">
+        <span>✅ 纯前端处理，不上传服务器</span>
+        <span>🔒 隐私安全</span>
+        <span>🌐 支持整段转换</span>
+      </div>
+    </div>
+
+    <div class="tool-card output-box" style="margin-top:1rem;">
+      <h3>输出 <button class="copy-btn" id="copyBtn">复制</button></h3>
+      <div class="textarea-wrap">
+        <textarea id="outputText" readonly placeholder="转换结果将显示在这里..."></textarea>
+      </div>
+      <div class="char-count"><span id="outCharCount">0</span> 字</div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking</p>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+// Simplified → Traditional mapping (key = simplified, value = traditional)
+var JIAN = {
+"与":"與","为":"為","无":"無","来":"來","用":"用","因":"因","此":"此","当":"當","你":"你","我":"我","他":"他","她":"她","们":"們","把":"把","被":"被","对":"對","给":"給","从":"從","国":"國","时":"時","会":"會","说":"說","于":"於","开":"開","关":"關","头":"頭","东":"東","西":"西","南":"南","北":"北","发":"發","里":"裡","气":"氣","电":"電","车":"車","见":"見","进":"進","远":"遠","还":"還","长":"長","点":"點","变":"變","别":"別","最":"最","机":"機","许":"許","区":"區","实":"實","学":"學","没":"沒","总":"總","动":"動","运":"運","现":"現","资料":"資料","经常":"經常","其实":"其實","时间":"時間","应该":"應該","因为":"因為","通过":"通過","这样":"這樣","问题":"問題","这个":"這個","什么":"什麼","怎么":"怎麼","为什么":"為什麼","运动":"運動","已经":"已經","总共":"總共","产":"產","织":"織","参":"參","结":"結","层":"層","业":"業","号":"號","网":"網","员":"員","钟":"鐘","铁":"鐵","链":"鏈","锁":"鎖","错":"錯","键":"鍵","场":"場","坏":"壞","复":"復","够":"夠","奖":"獎","好":"好","妈":"媽","姐":"姐","妹":"妹","孙":"孫","宁":"寧","它":"它","完":"完","客":"家","家":"家","将":"將","小":"小","少":"少","尔":"爾","尘":"塵","儿":"兒","先":"先","光":"光","克":"克","免":"免","党":"黨","兵":"兵","册":"冊","冬":"冬","冰":"冰","冲":"沖","减":"減","几":"幾","出":"出","击":"擊","刀":"刀","切":"切","到":"到","制":"製","刷":"刷","刺":"劍","刻":"刻","剂":"劑","剑":"劍","力":"力","办":"辦","助":"助","努":"努","劫":"劫","劳":"勞","势":"勢","勤":"勤","汇":"匯","晕":"暈","尽":"盡","历":"歷","县":"縣","叉":"叉","及":"及","友":"友","反":"反","取":"取","受":"受","叙":"敘","叠":"疊","弯":"彎","弹":"彈","强":"強","录":"錄","形":"形","彩":"彩","影":"影","彻":"徹","径":"徑","御":"禦","后":"後","行":"行","卫":"衛","凉":"涼","准":"準","凡":"凡","凭":"憑","断":"斷","新":"新","方":"方","施":"施","旋":"旋","旗":"旗","旨":"旨","早":"早","旺":"旺","明":"明","星":"星","昨":"昨","春":"春","是":"是","显":"顯","普":"普","曾":"曾","替":"替","月":"月","有":"有","朋":"朋","服":"服務","望":"望","朝":"朝","期":"期","木":"木","朴":"樸","权":"權","杨":"楊","松":"松","板":"板","极":"極","构":"構","样":"樣","树":"樹","桥":"橋","检":"檢","条":"條","杯":"杯","柜":"櫃","果":"果","架":"架","枪":"槍","案":"案","档":"檔","棉":"棉","棕":"棕","九":"九","也":"也","习":"習","书":"書","买":"買","乡":"鄉","乱":"亂","乳":"乳","了":"了","争":"爭","事":"事","云":"雲","互":"互","五":"五","亚":"亞","些":"些","亡":"亡","交":"交","仆":"僕","仇":"仇","仿":"仿","企":"企","伊":"伊","众":"眾","优":"優","传":"傳","伤":"傷","价":"價","伦":"倫","伯":"伯","估":"估","伴":"伴","伸":"伸","似":"似","但":"但","位":"位","低":"低","住":"住","佐":"佐","佑":"佑","体":"體","何":"何","余":"餘","佛":"佛","作":"作","佳":"佳","侦":"偵","侧":"側","侨":"僑","供":"供","依":"依","侠":"俠","侍":"侍","使":"使","佩":"佩","你":"你","位":"位","低":"低","住":"住","佐":"佐","佑":"佑","体":"體","何":"何","余":"餘","佛":"佛","作":"作","佳":"佳","侦":"偵","侧":"側","侨":"僑","供":"供","依":"依","侠":"俠","侍":"侍","使":"使","佩":"佩","价":"價","伦":"倫","伯":"伯","估":"估","伴":"伴","伸":"伸","似":"似","但":"但"
+};
+
+// Reverse mapping (traditional → simplified)
+var FAN = {};
+Object.keys(JIAN).forEach(function(k) { FAN[JIAN[k]] = k; });
+
+function toTraditional(text) {
+  return text.replace(/[^\u4e00-\u9fa5]/g, function(c) {
+    return JIAN[c] || c;
+  }).replace(/台湾|香港|中国|电脑|网络|软件|硬件|系统|程序|数据|信息|服务|网络|电子|数码|科技|科学|技术|工程|管理|经营|营销|广告|宣传|媒体|新闻|记者|编辑|出版|发行|销售|购买|购买|租赁|投资|理财|金融|银行|货币|股票|债券|基金|保险|贸易|商业|企业|公司|工厂|生产|制造|加工|包装|运输|物流|仓储|库存|原料|材料|能源|资源|农业|林业|渔业|畜牧|兽医/g, function(w) {
+    return JIAN[w] || w;
+  });
+}
+
+function toSimplified(text) {
+  return text.replace(/[^\u4e00-\u9fa5]/g, function(c) {
+    return FAN[c] || c;
+  });
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var inputText = document.getElementById('inputText');
+var outputText = document.getElementById('outputText');
+var charCount = document.getElementById('charCount');
+var outCharCount = document.getElementById('outCharCount');
+
+inputText.addEventListener('input', function() {
+  charCount.textContent = inputText.value.length;
+});
+
+document.getElementById('toTraditional').onclick = function() {
+  if (!inputText.value.trim()) return;
+  outputText.value = toTraditional(inputText.value);
+  outCharCount.textContent = outputText.value.length;
+};
+
+document.getElementById('toSimplified').onclick = function() {
+  if (!inputText.value.trim()) return;
+  outputText.value = toSimplified(inputText.value);
+  outCharCount.textContent = outputText.value.length;
+};
+
+document.getElementById('swapBtn').onclick = function() {
+  var t = inputText.value;
+  inputText.value = outputText.value;
+  outputText.value = t;
+  charCount.textContent = inputText.value.length;
+  outCharCount.textContent = outputText.value.length;
+};
+
+document.getElementById('clearBtn').onclick = function() {
+  inputText.value = '';
+  outputText.value = '';
+  charCount.textContent = '0';
+  outCharCount.textContent = '0';
+};
+
+document.getElementById('copyBtn').onclick = function() {
+  if (!outputText.value) return;
+  navigator.clipboard.writeText(outputText.value).then(function() {
+    CT.showToast('已复制！');
+  }).catch(function() {
+    CT.showToast('复制失败');
+  });
+};
+
+CT.initTheme();
+</script>
+</body>
+</html>

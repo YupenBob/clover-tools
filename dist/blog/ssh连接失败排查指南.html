@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSH 连接失败？这篇帮你排查所有原因</title>
+  <meta name="description" content="SSH连接失败6种报错排查：Connection refused/Timeout/Permission denied，网络层/端口/密钥/防火墙/known_hosts全覆盖，附SSH Config配置示例。">
+  <meta name="keywords" content="ssh连接失败排查指南,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/ssh连接失败排查指南">
+  <meta property="og:title" content="ssh连接失败排查指南 - CloverTools">
+  <meta property="og:description" content="解决ssh连接失败排查指南的实战方法,CloverTools在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/ssh连接失败排查指南">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">SSH</span></span>
+      <h1 class="article-title">ssh连接失败排查指南</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; ssh连接失败排查指南
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SSH连接失败全面排查指南，涵盖Connection refused、Timeout、Permission denied、端口错误、密钥权限、known_hosts等常见问题，配详细命令行示例，帮你5分钟内定位问题。">
+    <meta name="keywords" content="SSH连接失败, SSH Connection refused, SSH Timeout, SSH Permission denied, SSH密钥权限, SSH known_hosts, SSH config, SSH端口, SSH排查, SSH教程">
+    <title>SSH 连接失败？这篇帮你排查所有原因</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px 24px; background: #fafafa; }
+        .container { background: #fff; border-radius: 12px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); padding: 40px 48px; }
+        h1 { font-size: 26px; color: #1a1a1a; margin-bottom: 16px; line-height: 1.4; }
+        .lead { font-size: 16px; color: #666; margin-bottom: 32px; line-height: 1.7; }
+        h2 { font-size: 20px; color: #222; margin: 40px 0 16px; padding-top: 20px; border-top: 2px solid #f0f0f0; }
+        h3 { font-size: 17px; color: #333; margin: 24px 0 12px; }
+        p { margin-bottom: 16px; font-size: 15px; color: #444; }
+        .scene { background: #fff3cd; border-left: 4px solid #ffc107; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 15px; color: #5d4a00; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', Consolas, monospace; font-size: 13.5px; color: #c0392b; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 20px 24px; border-radius: 8px; overflow-x: auto; margin: 16px 0; font-size: 13.5px; line-height: 1.7; }
+        pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+        .cmd { color: #9cdcfe; }
+        .str { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .keyword { color: #569cd6; }
+        .output { color: #b5cea8; font-style: italic; }
+        .tip { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; color: #2e7d32; }
+        .error-box { background: #fdecea; border-left: 4px solid #e53935; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .error-box .err-title { font-weight: 700; color: #c62828; margin-bottom: 8px; font-size: 15px; }
+        .error-box .err-msg { font-family: 'Courier New', monospace; font-size: 13px; color: #b71c1c; background: #fff; padding: 8px 12px; border-radius: 4px; display: inline-block; }
+        .warning { background: #fff8e1; border-left: 4px solid #ff9800; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; font-size: 14px; color: #5d4037; }
+        ul, ol { margin: 12px 0 16px 24px; }
+        li { margin-bottom: 8px; font-size: 15px; color: #444; }
+        .cta { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; padding: 24px 28px; border-radius: 12px; margin: 36px 0 16px; text-align: center; }
+        .cta h3 { color: #fff; margin: 0 0 8px; font-size: 18px; }
+        .cta p { color: #e0d7f5; margin: 0 0 14px; font-size: 14px; }
+        .cta a { display: inline-block; background: #fff; color: #667eea; padding: 10px 24px; border-radius: 30px; text-decoration: none; font-weight: 700; font-size: 14px; }
+        .cta a:hover { background: #f0e8ff; }
+        .toc { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px 24px; margin: 24px 0; }
+        .toc h3 { margin-top: 0; font-size: 15px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+        .toc ol { margin: 0; padding-left: 20px; }
+        .toc li { font-size: 14px; color: #666; }
+        .toc li a { color: #667eea; text-decoration: none; }
+        .toc li a:hover { text-decoration: underline; }
+        .hash { color: #999; font-size: 12px; margin-top: 4px; display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1>SSH 连接失败？这篇帮你排查所有原因</h1>
+
+<p class="lead">深夜登服务器踩坑，SSH 连不上，网络没动，密码没改，可就是 Connection refused。急得像热锅上的蚂蚁，结果问题可能就藏在某个权限数字或者某个被遗忘的配置里。这篇指南把所有常见的 SSH 连接失败场景全拆开，配上命令行演示，帮你 5 分钟定位根因，不再盲猜。</p>
+
+<div class="toc">
+<h3>目录</h3>
+<ol>
+    <li><a href="#scene">你正在经历哪种报错？</a></li>
+    <li><a href="#network">方向一：网络层面 — 能通吗？</a></li>
+    <li><a href="#port">方向二：端口 — 22 还是 2222？</a></li>
+    <li><a href="#key">方向三：密钥 — 权限对了没？</a></li>
+    <li><a href="#firewall">方向四：防火墙 — 被墙了？</a></li>
+    <li><a href="#known">方向五：known_hosts — 被中间人拦截了？</a></li>
+    <li><a href="#config">进阶：SSH Config 这么配才靠谱</a></li>
+    <li><a href="#summary">总结：6 步排查 checklist</a></li>
+</ol>
+</div>
+
+<h2 id="scene">你正在经历哪种报错？</h2>
+
+<p>先认清楚自己碰到了什么，这比盲目试错重要得多。以下是几个最常见的 SSH 报错，先对号入座：</p>
+
+<div class="error-box">
+    <div class="err-title">报错 1：Connection refused</div>
+    <span class="err-msg">ssh: connect to host example.com port 22: Connection refused</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 2：Connection timed out</div>
+    <span class="err-msg">ssh: connect to host example.com port 22: Connection timed out</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 3：Permission denied (publickey)</div>
+    <span class="err-msg">Permission denied (publickey).</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 4：Permission denied (password)</div>
+    <span class="err-msg">Permission denied (password).</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 5：Connection closed by remote host</div>
+    <span class="err-msg">ssh_exchange_identification: Connection closed by remote host</span>
+</div>
+
+<div class="error-box">
+    <div class="err-title">报错 6：Host key verification failed</div>
+    <span class="err-msg">Host key verification failed.</span>
+</div>
+
+<p>以上六种，涵盖了 90% 以上的 SSH 连接失败场景。下面的排查思路就按这个顺序来，层层过滤，快的话 2 分钟定位，慢的话也不超过 15 分钟。</p>
+
+<h2 id="network">方向一：网络层面 — 能通吗？</h2>
+
+<h3>先 ping 一下</h3>
+
+<pre><code><span class="comment"># 最基础的连通性测试</span>
+ping -c 4 example.com
+</code></pre>
+
+<div class="tip">如果 ping 不通，说明网络层面有问题，这时候 SSH 连不上的根因不是 SSH 本身，是网络。先检查目标服务器是否宕机，或者自己这边的路由/DNS 有没有问题。</div>
+
+<h3>telnet 测端口通不通</h3>
+
+<pre><code><span class="comment"># 检查 22 端口是否可达</span>
+telnet example.com 22
+</code></pre>
+
+<p>如果提示 <code>Connected to example.com</code>，说明端口层是通的，问题在别处。如果 <code>Connection refused</code>，说明目标机器 TCP 22 端口没有服务在监听，或者被防火墙挡了。</p>
+
+<h3>nc 更精确的端口扫描</h3>
+
+<pre><code><span class="comment"># -zv 意思是仅测试连接，不发数据</span>
+nc -zv example.com 22
+</code></pre>
+
+<p>输出类似 <code>Connection to example.com 22 port [tcp/ssh] succeeded!</code> 则说明 SSH 端口是通的。</p>
+
+<div class="warning">
+    <strong>注意：</strong>telnet 和 nc 不自带的话，macOS / Linux 装一下：<br>
+    <code>sudo apt install netcat</code> 或 <code>brew install netcat</code>
+</div>
+
+<h2 id="port">方向二：端口 — 22 还是 2222？</h2>
+
+<p>这个被问得最多。很多服务为了安全把 SSH 端口改成了非 22 端口，结果自己忘了，对着默认 22 狂试，还以为被封了。</p>
+
+<h3>查看当前连接用的端口</h3>
+
+<pre><code><span class="comment"># 明确指定端口连接</span>
+ssh -p 2222 user@example.com
+</code></pre>
+
+<h3>服务器上查看 SSH 端口配置</h3>
+
+<pre><code><span class="comment"># 在服务器上执行，查看 sshd 监听的端口</span>
+sudo grep "Port " /etc/ssh/sshd_config
+</code></pre>
+
+<p>默认是 22，如果改成其他数字，客户端也必须用 <code>-p</code> 指定。</p>
+
+<h3>端口改了但客户端没改？</h3>
+
+<p>有一种情况很阴险：服务端确实改了端口，但客户端还是用默认的 22，结果碰到的是一个什么服务都没有的 22，于是 Connection refused。</p>
+
+<pre><code><span class="comment"># 同时扫描常见 SSH 端口，找出哪个在跑 SSH</span>
+nc -zv example.com 22
+nc -zv example.com 2222
+nc -zv example.com 22022
+</code></pre>
+
+<div class="tip">也可以直接让服务器管理员执行 <code>ss -tlnp | grep sshd</code> 查看 sshd 实际监听的端口。</div>
+
+<h2 id="key">方向三：密钥 — 权限对了没？</h2>
+
+<p>密钥登录是最常见的方式，也是最容易被权限坑的。SSH 对文件权限极其敏感，错了直接拒绝。</p>
+
+<h3>Permission denied (publickey)？先查这三点：</h3>
+
+<ol>
+    <li>私钥文件权限是 <code>600</code> 吗？</li>
+    <li>公钥在服务器上的 <code>~/.ssh/authorized_keys</code> 里有吗？</li>
+    <li>用户目录 <code>~</code> 和 <code>.ssh</code> 目录权限对吗？</li>
+</ol>
+
+<pre><code><span class="comment"># 检查私钥权限</span>
+ls -la ~/.ssh/id_rsa
+<span class="comment"># 权限必须是 600，如果不是，修复它：</span>
+chmod 600 ~/.ssh/id_rsa
+</code></pre>
+
+<div class="warning">
+    <strong>警告：</strong>严禁把私钥权限设为 777，这等于把钥匙公开，SSH 会主动拒绝使用这种私钥。
+</div>
+
+<pre><code><span class="comment"># 检查 .ssh 目录权限</span>
+ls -la ~/.ssh/
+<span class="comment"># 输出应该类似：</span>
+<span class="comment"># drwx------  2 user  4096 ... .ssh/</span>
+<span class="comment"># -rw-------  1 user  ... authorized_keys</span>
+</code></pre>
+
+<pre><code><span class="comment"># 如果 .ssh 目录权限不对，修复：</span>
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/id_rsa
+</code></pre>
+
+<h3>用 -v 参数看详细认证过程</h3>
+
+<pre><code><span class="comment"># -v 参数开启 verbose 模式，可以看到每一步在干嘛</span>
+ssh -v user@example.com
+</code></pre>
+
+<p>输出里找 <code>Authentications that can continue:</code> 和 <code>Permission denied</code> 相关行，能帮你判断认证卡在哪一步。</p>
+
+<pre><code><span class="comment"># 更详细的 -vvv，适合深度排查</span>
+ssh -vvv user@example.com
+</code></pre>
+
+<h3>指定密钥文件登录</h3>
+
+<pre><code><span class="comment"># 明确指定用哪个私钥文件</span>
+ssh -i ~/.ssh/my_key user@example.com
+</code></pre>
+
+<p>如果密钥文件名不是默认的 id_rsa，就必须用 <code>-i</code> 指定，否则 SSH 会用默认密钥然后得到 Permission denied。</p>
+
+<h2 id="firewall">方向四：防火墙 — 被墙了？</h2>
+
+<p>网络层通了，端口也对了，但还是连不上？大概率是防火墙在作怪。</p>
+
+<h3>本地防火墙检查</h3>
+
+<pre><code><span class="comment"># Linux 查看防火墙规则（ufw）</span>
+sudo ufw status
+
+<span class="comment"># 或 iptables</span>
+sudo iptables -L -n | grep 22
+</code></pre>
+
+<h3>服务器防火墙（云服务器最常踩坑）</h3>
+
+<p>如果用的是阿里云、腾讯云、AWS 等云服务，<strong>安全组规则</strong>是最容易被忽略的地方。本地防火墙关了都没用，云厂商控制台的安全组没开 TCP 22 入站，一样 Connection refused。</p>
+
+<pre><code><span class="comment"># 在服务器上直接查 iptables INPUT 链</span>
+sudo iptables -L INPUT -n | grep -E "22|ssh"
+</code></pre>
+
+<div class="tip">
+    <strong>云服务器排查顺序：</strong><br>
+    1. 云厂商控制台 → 安全组 → 确认入站规则有 TCP 22（或你自定义的端口）<br>
+    2. 服务器内部防火墙：<code>sudo ufw allow 22/tcp</code><br>
+    3. 再测试连接
+</div>
+
+<h3>firewalld 用户</h3>
+
+<pre><code><span class="comment"># 检查 firewalld 是否在运行</span>
+sudo firewall-cmd --state
+<span class="comment"># 开放 SSH 端口</span>
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+</code></pre>
+
+<h2 id="known">方向五：known_hosts — 被中间人拦截了？</h2>
+
+<h3>Host key verification failed</h3>
+
+<p>这是 SSH 在告诉你：服务器的身份变了。可能是服务器重装了系统、换了 IP，或者……真的有人在搞中间人攻击。</p>
+
+<h3>先确认是真的服务器还是假服务器</h3>
+
+<pre><code><span class="comment"># 查看服务器的 fingerprint</span>
+ssh-keyscan example.com | head -1
+</code></pre>
+
+<p>联系服务器管理员，确认当前正确的 fingerprint。如果 fingerprint 对上了，说明之前记录的信息过期了，清掉旧的就行。</p>
+
+<h3>清除旧的 known_hosts 记录</h3>
+
+<pre><code><span class="comment"># 清除单台服务器的记录</span>
+ssh-keygen -R example.com
+
+<span class="comment"># 清除指定 IP 的记录</span>
+ssh-keygen -R 192.168.1.100
+
+<span class="comment"># 清除特定主机的特定 IP:port 组合</span>
+ssh-keygen -R [example.com]:2222
+</code></pre>
+
+<p>清除后再连接，SSH 会让你确认并写入新的 fingerprint：</p>
+
+<pre><code><span class="comment"># 首次连接会看到类似提示，输入 yes 即可</span>
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+</code></pre>
+
+<div class="warning">
+    <strong>安全提醒：</strong>如果服务器没换过，但你突然收到 "Host key changed" 警告，<strong>不要直接 yes</strong>。先联系服务器管理员确认。这可能是真实的中间人攻击。
+</div>
+
+<h3>已知 hosts 的指纹文件在哪？</h3>
+
+<pre><code><span class="comment"># 用户级 known_hosts</span>
+cat ~/.ssh/known_hosts
+
+<span class="comment"># 系统级 known_hosts</span>
+cat /etc/ssh/ssh_known_hosts
+</code></pre>
+
+<h2 id="config">进阶：SSH Config 这么配才靠谱</h2>
+
+<p>每次输长长一串命令很烦？Host 别名、默认用户、端口、密钥文件，都可以写进 <code>~/.ssh/config</code>，一劳永逸。</p>
+
+<pre><code><span class="comment"># 编辑 SSH 配置文件</span>
+nano ~/.ssh/config
+</code></pre>
+
+<h3>配置示例：</h3>
+
+<pre><code><span class="comment"># 生产服务器</span>
+Host prod
+    HostName     123.45.67.89
+    User         deploy
+    Port         2222
+    IdentityFile ~/.ssh/id_rsa_prod
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+<span class="comment"># 开发服务器</span>
+Host dev
+    HostName     dev.example.com
+    User         developer
+    Port         22
+    IdentityFile ~/.ssh/id_rsa
+
+<span class="comment"># GitHub（注意这里用 git@github.com 作为 HostName）</span>
+Host github.com
+    HostName     github.com
+    User         git
+    IdentityFile ~/.ssh/github_ed25519
+</code></pre>
+
+<div class="tip">
+    配置好之后，连接只需要输入 <code>ssh prod</code> 或 <code>ssh dev</code>，所有参数自动生效，不用记 IP、端口、密钥路径。
+</div>
+
+<h3>配置文件权限也要注意</h3>
+
+<pre><code><span class="comment"># config 文件权限必须是 600</span>
+chmod 600 ~/.ssh/config
+</code></pre>
+
+<h3>用 ProxyJump 穿透跳板机</h3>
+
+<pre><code><span class="comment"># 假设要访问内网机器，但要先登跳板机</span>
+Host internal
+    HostName     192.168.1.100
+    User         developer
+    ProxyJump    bastion@example.com
+</code></pre>
+
+<p>连 <code>ssh internal</code> 时，SSH 会自动先登跳板机，再跳到内网机器，全程透明。</p>
+
+<h2 id="summary">总结：SSH 连接失败排查 checklist</h2>
+
+<p>快速复盘，6 步锁定问题：</p>
+
+<ol>
+    <li><strong>ping 通不通？</strong> → 不通先查网络层</li>
+    <li><strong>端口对不对？</strong> → 默认 22，改过用 <code>-p</code> 指定</li>
+    <li><strong>密钥权限 600？</strong> → <code>chmod 600 ~/.ssh/id_rsa</code></li>
+    <li><strong>authorized_keys 有你的公钥？</strong> → 服务器上 <code>~/.ssh/</code> 目录检查</li>
+    <li><strong>防火墙和安全组开了吗？</strong> → 云服务器安全组最容易被忽略</li>
+    <li><strong>known_hosts 过期了？</strong> → <code>ssh-keygen -R example.com</code> 清除旧记录</li>
+</ol>
+
+<p>这六步走完，99% 的 SSH 连接问题都能定位。如果还是不行，把 <code>ssh -vvv</code> 的完整输出发给身边有经验的朋友，或者搜索引擎搜报错关键字，通常很快能找到答案。</p>
+
+<div class="cta">
+    <h3>不想折腾命令行？试试在线 SSH 工具</h3>
+    <p>CloverTools 提供可视化 SSH 连接工具，支持密钥上传、端口配置、known_hosts 管理，打开浏览器就能连服务器。</p>
+    <a href="https://clovertools.cn/tools/network/ssh-connect.html" target="_blank">立即使用 SSH 连接工具</a>
+</div>
+
+<p style="font-size:12px;color:#999;text-align:center;margin-top:32px;border-top:1px solid #eee;padding-top:16px;">
+本文由 <a href="https://clovertools.cn" style="color:#667eea;">CloverTools</a> 整理编写
+</p>
+
+</div>
+</body>
+</html>
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/">浏览所有工具</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 如何使用 ssh连接失败排查指南 相关工具?</strong><br>A: 这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。</div>
+<div class="faq-item"><strong>Q: ssh连接失败排查指南 适合在什么场景使用?</strong><br>A: 根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。</div>
+<div class="faq-item"><strong>Q: 有没有更好的替代工具?</strong><br>A: 不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。</div>
+      </div>
+
+      
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

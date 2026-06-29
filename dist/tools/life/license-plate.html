@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>车牌号查询 - CloverTools</title>
+  <meta name="description" content="根据车牌号前缀查询所属省份/城市,自动校验车牌号格式合法性,支持新能源车牌。,无需注册,完全免费。">
+  <meta name="keywords" content="车牌号查询,车牌归属地,车牌省份,车牌城市,车牌识别,车牌校验,新能源车牌">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="车牌号查询 - CloverTools">
+  <meta property="og:description" content="根据车牌号前缀查询所属省份/城市,自动校验车牌号格式合法性,支持新能源车牌。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/life/license-plate.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="车牌号查询 - CloverTools">
+  <meta name="twitter:description" content="根据车牌号前缀查询所属省份/城市,自动校验车牌号格式合法性,支持新能源车牌。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/life/license-plate.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>车牌号查询</h1>
+        <p class="description">根据车牌号前缀查询所属省份/城市,自动校验车牌号格式合法性,支持新能源车牌。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<div class="tool-card"><h3>输入车牌号</h3><input type="text" id="plateInput" placeholder="如:京A12345 或 粤B·D12345 (新能源)" maxlength="9" style="width:100%;padding:0.6rem;font-size:1.1rem;font-family:monospace;text-transform:uppercase;letter-spacing:0.1em;border:1px solid var(--border);border-radius:8px;text-align:center;"><div class="btn-row"><button class="btn btn-primary" id="queryBtn">查询</button><button class="btn btn-secondary" id="clearBtn">清空</button></div></div><div id="resultBox" style="display:none;">
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    var PLATE_DATA={"京":["北京"],"津":["天津"],"沪":["上海"],"渝":["重庆"],"冀":["河北"],"豫":["河南"],"云":["云南"],"辽":["辽宁"],"黑":["黑龙江"],"湘":["湖南"],"皖":["安徽"],"鲁":["山东"],"新":["新疆"],"苏":["江苏"],"浙":["浙江"],"赣":["江西"],"鄂":["湖北"],"桂":["广西"],"甘":["甘肃"],"晋":["山西"],"蒙":["内蒙古"],"陕":["陕西"],"吉":["吉林"],"闽":["福建"],"贵":["贵州"],"粤":["广东"],"青":["青海"],"藏":["西藏"],"川":["四川"],"宁":["宁夏"],"琼":["海南"],"使":["使领馆"],"学":["驾校"],"港":["香港"],"澳":["澳门"],"台":["台湾"],"军":["军队"]};var CITY_HINT={"京A":"北京(城区)","京B":"北京(城区)","京C":"北京(城区外)","京D":"北京(城区外)","京E":"北京(城区)","京F":"北京(房山等)","京G":"北京(远郊)","京H":"北京(远郊)","津A":"天津(城区)","津B":"天津(城区)","津C":"天津(郊区)","津D":"天津(郊区)","津E":"天津(出租车)","沪A":"上海(城区)","沪B":"上海(城区)","沪C":"上海(远郊)","沪D":"上海(远郊)","渝A":"重庆(城区)","渝B":"重庆(永川等)","渝C":"重庆(万州等)","渝D":"重庆(黔江等)","渝E":"重庆(城区)","渝F":"重庆(城区)","粤A":"广州","粤B":"深圳","粤C":"珠海","粤D":"汕头","粤E":"佛山","粤F":"韶关","粤G":"肇庆","粤H":"湛江","粤J":"江门","粤K":"茂名","粤L":"惠州","粤M":"梅州","粤N":"汕尾","粤O":"广东省公安厅","粤P":"河源","粤Q":"阳江","粤R":"清远","粤S":"东莞","粤T":"中山","粤U":"潮州","粤V":"揭阳","粤W":"云浮","粤X":"顺德","粤Y":"南海","粤Z":"港澳进入内地","苏A":"南京","苏B":"无锡","苏C":"徐州","苏D":"常州","苏E":"苏州","苏F":"南通","苏G":"连云港","苏H":"淮安","苏J":"盐城","苏K":"扬州","苏L":"镇江","苏M":"泰州","苏N":"宿迁","浙A":"杭州","浙B":"宁波","浙C":"温州","浙D":"绍兴","浙E":"湖州","浙F":"嘉兴","浙G":"金华","浙H":"衢州","浙J":"台州","浙K":"丽水","浙L":"舟山"};var plateInput=document.getElementById('plateInput');var queryBtn=document.getElementById('queryBtn');var clearBtn=document.getElementById('clearBtn');var resultBox=document.getElementById('resultBox');function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}function query(){var raw=plateInput.value.trim().toUpperCase().replace(/[·•]/g,'');if(!raw){if(window.CT&&CT.showToast)CT.showToast('请输入车牌号');return;}var newEnergy=/^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z][DF]\d{5}$/.test(raw);var normal=/^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼][A-Z]\d{5}$/.test(raw);var embassy=/^[使领][A-Z0-9]{4,6}$/.test(raw);var valid=newEnergy||normal||embassy;var province=raw[0];var letter=raw[1];var provinceName=PLATE_DATA[province]?PLATE_DATA[province][0]:'未知';var cityKey=raw.slice(0,2);var cityHint=CITY_HINT[cityKey]||provinceName;var type=newEnergy?'新能源车牌':embassy?'使领馆车牌':'普通车牌';var html='<div class="tool-card"><h3>查询结果</h3><div style="font-size:1.5rem;font-weight:700;letter-spacing:0.15em;text-align:center;padding:1rem;background:var(--bg-secondary);border-radius:8px;font-family:monospace;">'+esc(raw)+'</div><div style="margin-top:1rem;line-height:2;font-size:0.95rem;">';html+='<div><b>车牌类型:</b> <span style="color:'+(newEnergy?'#22c55e':'#3b82f6')+';">'+type+'</span></div>';html+='<div><b>所属省份:</b> '+esc(provinceName)+'</div>';html+='<div><b>发证地:</b> '+esc(cityHint)+'</div>';html+='<div><b>格式校验:</b> '+(valid?'<span style="color:#22c55e;">✓ 合法</span>':'<span style="color:#ef4444;">✗ 不合法</span>')+'</div>';html+='<div style="margin-top:0.5rem;padding:0.5rem;background:var(--bg);border-radius:6px;font-size:0.8rem;opacity:0.7;">说明:车牌归属地信息仅供参考,实际以车管所登记为准。</div>';html+='</div></div>';resultBox.innerHTML=html;resultBox.style.display='block';}queryBtn.onclick=query;plateInput.addEventListener('keydown',function(e){if(e.key==='Enter')query();});clearBtn.onclick=function(){plateInput.value='';resultBox.style.display='none';};
+  </script>
+</body>
+</html>

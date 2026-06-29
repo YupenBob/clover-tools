@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片加水印 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="图片加水印 - 🍀 CloverTools">
+  <meta property="og:description" content="在线给图片添加文字或图片水印，自定义字体、颜色、透明度、布局">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/image/图片加水印.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="图片加水印 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线给图片添加文字或图片水印，自定义字体、颜色、透明度、布局">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/image/图片加水印.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>图片加水印</h1>
+        <p class="description">在线给图片添加文字或图片水印，自定义字体、颜色、透明度、布局</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>🖼️ 选择图片</h3>
+  <label for="fileInput" style="display:block;padding:2.5rem 1rem;text-align:center;border:2px dashed var(--border);border-radius:8px;cursor:pointer;background:var(--bg-secondary);" id="dropZone">
+    <div style="font-size:2.5rem;">🖼️</div>
+    <div style="font-weight:600;margin-top:.5rem;">点击或拖拽图片</div>
+    <div style="opacity:.6;font-size:.85rem;margin-top:.25rem;">支持 PNG / JPG / WebP</div>
+    <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" style="display:none;">
+  </label>
+
+  <h3 style="margin-top:1.25rem;">💧 水印类型</h3>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+    <label style="display:flex;align-items:center;gap:.35rem;">
+      <input type="radio" name="wmType" value="text" checked> 文字水印
+    </label>
+    <label style="display:flex;align-items:center;gap:.35rem;">
+      <input type="radio" name="wmType" value="image"> 图片水印
+    </label>
+  </div>
+
+  <div id="textSettings" style="margin-top:.75rem;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;">
+      <label>水印文字
+        <input id="wmText" type="text" value="🍀 CloverTools" style="width:100%;">
+      </label>
+      <label>字号
+        <input id="wmFontSize" type="number" min="8" max="200" value="36" style="width:100%;">
+      </label>
+      <label>字体颜色
+        <input id="wmColor" type="color" value="#ffffff" style="width:100%;height:2.5rem;">
+      </label>
+      <label>透明度 (0-1)
+        <input id="wmOpacity" type="number" min="0" max="1" step="0.05" value="0.6" style="width:100%;">
+      </label>
+      <label>阴影
+        <select id="wmShadow" style="width:100%;">
+          <option value="none">无</option>
+          <option value="light" selected>淡阴影</option>
+          <option value="strong">深阴影</option>
+          <option value="stroke">描边</option>
+        </select>
+      </label>
+      <label>旋转角度
+        <input id="wmRotate" type="number" min="-90" max="90" value="-30" style="width:100%;">
+      </label>
+    </div>
+  </div>
+
+  <div id="imageSettings" style="margin-top:.75rem;display:none;">
+    <label>上传水印图片（建议 PNG 透明图）
+      <input id="wmImage" type="file" accept="image/png,image/jpeg,image/webp" style="display:block;margin-top:.35rem;">
+    </label>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-top:.5rem;">
+      <label>缩放比例 (0.05-1)
+        <input id="wmImgScale" type="number" min="0.05" max="1" step="0.05" value="0.25" style="width:100%;">
+      </label>
+      <label>透明度 (0-1)
+        <input id="wmImgOpacity" type="number" min="0" max="1" step="0.05" value="0.7" style="width:100%;">
+      </label>
+    </div>
+  </div>
+
+  <h3 style="margin-top:1.25rem;">📐 布局</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;">
+    <label>平铺模式
+      <select id="wmLayout" style="width:100%;">
+        <option value="single">单个</option>
+        <option value="tile" selected>平铺</option>
+        <option value="diagonal">对角线（3 个）</option>
+      </select>
+    </label>
+    <label>边距 (px)
+      <input id="wmMargin" type="number" min="0" max="500" value="40" style="width:100%;">
+    </label>
+    <label>输出格式
+      <select id="outFormat" style="width:100%;">
+        <option value="png">PNG</option>
+        <option value="jpeg" selected>JPEG</option>
+        <option value="webp">WebP</option>
+      </select>
+    </label>
+    <label>JPEG 质量 (1-100)
+      <input id="outQuality" type="number" min="1" max="100" value="92" style="width:100%;">
+    </label>
+  </div>
+
+  <div class="btn-row" style="margin-top:1rem;">
+    <button class="btn btn-primary" id="applyBtn" disabled>生成水印</button>
+    <button class="btn btn-secondary" id="downloadBtn" disabled>下载</button>
+  </div>
+  <div id="status" style="margin-top:.75rem;font-size:.9rem;opacity:.85;"></div>
+</div>
+
+<div class="output-box">
+  <h3>🖼️ 预览</h3>
+  <div id="previewWrap" style="background:#fafafa;padding:1rem;border-radius:8px;text-align:center;min-height:120px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);">
+    <span style="opacity:.5;">上传图片后预览将出现在此处</span>
+  </div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const wmImage = document.getElementById('wmImage');
+const applyBtn = document.getElementById('applyBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const previewWrap = document.getElementById('previewWrap');
+const statusEl = document.getElementById('status');
+
+let sourceImage = null; // HTMLImageElement
+let sourceBitmap = null; // ImageBitmap / canvas source
+let watermarkImage = null; // HTMLImageElement for image watermark
+let resultBlob = null;
+let resultUrl = null;
+let resultExt = 'png';
+
+function $(id) { return document.getElementById(id); }
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => { resolve({ img, url }); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片加载失败')); };
+    img.src = url;
+  });
+}
+
+async function handleSourceFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    statusEl.textContent = '请选择图片文件';
+    return;
+  }
+  statusEl.textContent = '加载图片...';
+  try {
+    const { img, url } = await loadImage(file);
+    if (sourceBitmap && sourceBitmap._url) URL.revokeObjectURL(sourceBitmap._url);
+    sourceImage = img;
+    sourceBitmap = { width: img.naturalWidth, height: img.naturalHeight, _url: url };
+    applyBtn.disabled = false;
+    statusEl.textContent = `已加载 ${img.naturalWidth} × ${img.naturalHeight}`;
+    applyWatermark();
+  } catch (err) {
+    statusEl.textContent = '加载失败：' + err.message;
+  }
+}
+
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) handleSourceFile(f);
+  fileInput.value = '';
+});
+
+wmImage.addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const { img } = await loadImage(f);
+    watermarkImage = img;
+    statusEl.textContent = '水印图片已就绪';
+    if (sourceImage) applyWatermark();
+  } catch (err) {
+    statusEl.textContent = '水印图片加载失败：' + err.message;
+  }
+});
+
+['dragenter', 'dragover'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.style.background = 'var(--bg-primary)'; })
+);
+['dragleave', 'drop'].forEach(ev =>
+  dropZone.addEventListener(ev, e => { e.preventDefault(); dropZone.style.background = ''; })
+);
+dropZone.addEventListener('drop', e => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) handleSourceFile(f);
+});
+
+// Toggle settings visibility based on waterType
+document.querySelectorAll('input[name="wmType"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const isText = $('textSettings').style.display = document.querySelector('input[name="wmType"]:checked').value === 'text' ? '' : 'none';
+    $('imageSettings').style.display = document.querySelector('input[name="wmType"]:checked').value === 'image' ? '' : 'none';
+    if (sourceImage) applyWatermark();
+  });
+});
+
+// Re-render when any control changes
+['wmText','wmFontSize','wmColor','wmOpacity','wmShadow','wmRotate','wmLayout','wmMargin','wmImgScale','wmImgOpacity','outFormat','outQuality'].forEach(id => {
+  const el = $(id);
+  if (!el) return;
+  el.addEventListener('input', () => { if (sourceImage) applyWatermark(); });
+  el.addEventListener('change', () => { if (sourceImage) applyWatermark(); });
+});
+
+function drawWatermarks(ctx, w, h) {
+  const wmType = document.querySelector('input[name="wmType"]:checked').value;
+  const layout = $('wmLayout').value;
+  const margin = parseInt($('wmMargin').value, 10) || 0;
+
+  if (wmType === 'image') {
+    if (!watermarkImage) return;
+    const scale = parseFloat($('wmImgScale').value) || 0.25;
+    const opacity = parseFloat($('wmImgOpacity').value) || 0.7;
+    drawImageWatermark(ctx, w, h, layout, scale, opacity, margin);
+  } else {
+    const text = $('wmText').value || '';
+    if (!text) return;
+    const fontSize = parseInt($('wmFontSize').value, 10) || 36;
+    const color = $('wmColor').value || '#ffffff';
+    const opacity = parseFloat($('wmOpacity').value) || 0.6;
+    const shadow = $('wmShadow').value;
+    const rotate = parseInt($('wmRotate').value, 10) || 0;
+    drawTextWatermark(ctx, w, h, layout, text, fontSize, color, opacity, shadow, rotate, margin);
+  }
+}
+
+function drawTextWatermark(ctx, W, H, layout, text, fontSize, color, opacity, shadow, rotate, margin) {
+  ctx.save();
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.globalAlpha = opacity;
+
+  if (shadow === 'light') {
+    ctx.shadowColor = 'rgba(0,0,0,0.35)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+  } else if (shadow === 'strong') {
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+  }
+
+  const positions = layoutPositions(layout, W, H, margin);
+  for (const pos of positions) {
+    ctx.save();
+    ctx.translate(pos.x, pos.y);
+    ctx.rotate((rotate * Math.PI) / 180);
+    if (shadow === 'stroke') {
+      ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+      ctx.lineWidth = Math.max(2, fontSize / 12);
+      ctx.strokeText(text, 0, 0);
+    }
+    ctx.fillStyle = color;
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawImageWatermark(ctx, W, H, layout, scale, opacity, margin) {
+  ctx.save();
+  ctx.globalAlpha = opacity;
+  const wmW = watermarkImage.naturalWidth;
+  const wmH = watermarkImage.naturalHeight;
+  const targetW = W * scale;
+  const ratio = wmH / wmW;
+  const targetH = targetW * ratio;
+
+  const positions = layoutPositions(layout, W, H, margin);
+  for (const pos of positions) {
+    ctx.drawImage(watermarkImage, pos.x - targetW / 2, pos.y - targetH / 2, targetW, targetH);
+  }
+  ctx.restore();
+}
+
+function layoutPositions(layout, W, H, margin) {
+  if (layout === 'single') {
+    return [{ x: W / 2, y: H / 2 }];
+  }
+  if (layout === 'diagonal') {
+    return [
+      { x: W * 0.25, y: H * 0.25 },
+      { x: W * 0.75, y: H * 0.5 },
+      { x: W * 0.5, y: H * 0.8 },
+    ];
+  }
+  // tile: spaced grid
+  const positions = [];
+  const stepX = Math.max(80, W / 4);
+  const stepY = Math.max(80, H / 5);
+  for (let y = margin + stepY / 2; y < H - margin; y += stepY) {
+    const offset = (Math.floor(y / stepY) % 2) * (stepX / 2);
+    for (let x = margin + stepX / 2 + offset; x < W - margin; x += stepX) {
+      positions.push({ x, y });
+    }
+  }
+  return positions;
+}
+
+function applyWatermark() {
+  if (!sourceImage) return;
+  const W = sourceImage.naturalWidth;
+  const H = sourceImage.naturalHeight;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(sourceImage, 0, 0);
+  drawWatermarks(ctx, W, H);
+
+  const format = $('outFormat').value;
+  resultExt = format === 'jpeg' ? 'jpg' : format;
+  const mime = 'image/' + format;
+  const quality = (parseInt($('outQuality').value, 10) || 92) / 100;
+
+  canvas.toBlob(blob => {
+    if (!blob) {
+      statusEl.textContent = '生成失败';
+      return;
+    }
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    resultBlob = blob;
+    resultUrl = URL.createObjectURL(blob);
+    previewWrap.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = resultUrl;
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '60vh';
+    img.style.borderRadius = '4px';
+    previewWrap.appendChild(img);
+    downloadBtn.disabled = false;
+    statusEl.textContent = `✅ 已生成 ${(blob.size / 1024).toFixed(1)} KB，可下载`;
+  }, mime, quality);
+}
+
+applyBtn.addEventListener('click', applyWatermark);
+
+downloadBtn.addEventListener('click', () => {
+  if (!resultUrl) return;
+  const a = document.createElement('a');
+  a.href = resultUrl;
+  a.download = `watermarked_${Date.now()}.${resultExt}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if (CT && CT.showToast) CT.showToast('已下载');
+});
+  </script>
+</body>
+</html>

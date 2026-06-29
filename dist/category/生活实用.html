@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生活实用 - CloverTools</title>
+  <meta name="description" content="CloverTools 生活实用类工具,免费在线使用,无需注册。">
+  <link rel="stylesheet" href="/src/shared.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+<main class="container">
+  <div class="category-header">
+    <h1>生活实用</h1>
+    <p>共 21 个工具</p>
+  </div>
+  <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem 0">
+    
+    <div class="tool-card" onclick="location.href='/tools/life/bmi-calculator.html'">
+      <div class="tool-card-name">BMI计算器</div>
+      <div class="tool-card-desc">身体质量指数计算，支持中国成人BMI参考标准，输入身高体重即可快速得出BMI值与健康区间提示，适用于健康管理、体检参考与健身监测场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/grid-splitter.html'">
+      <div class="tool-card-name">朋友圈九宫格分图</div>
+      <div class="tool-card-desc">将任意图片自动切割为 3×3 九宫格样式，保留完整画面的同时呈现精致排版效果，支持自定义切割线和边距，适用于朋友圈九图、Instagram 配图等社交媒体内容制作。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/insurance.html'">
+      <div class="tool-card-name">五险一金计算器</div>
+      <div class="tool-card-desc">根据税前工资和社保缴纳基数，自动计算养老保险、医疗保险、失业保险、工伤保险、生育保险及住房公积金的扣除金额。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/keyboard-test.html'">
+      <div class="tool-card-name">键盘按键测试</div>
+      <div class="tool-card-desc">按下键盘任意按键后，页面实时显示对应的keyCode键码和key值，方便前端开发者快速测试和查阅键盘按键信息。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/lottery.html'">
+      <div class="tool-card-name">年会抽奖工具</div>
+      <div class="tool-card-desc">输入参与者名单后点击抽奖，系统从名单中随机抽取一名中奖者，适用于公司年会、晚会、团建活动等多种场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/price-compare.html'">
+      <div class="tool-card-name">商品比价</div>
+      <div class="tool-card-desc">输入不同商品的价格和单位信息，自动计算单位价格，帮你快速比较同类商品的真实性价比，找出最划算的购买选择。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/rmb-uppercase.html'">
+      <div class="tool-card-name">人民币大写转换</div>
+      <div class="tool-card-desc">数字金额转换为中文大写，支持角、分、整，适用于财务报销、合同签订、发票开具等需要规范金额书写的场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/salary.html'">
+      <div class="tool-card-name">税后工资计算器</div>
+      <div class="tool-card-desc">输入税前工资和社保缴纳地，自动扣除五险一金及个人所得税，精准计算实际到手工资，并详细展示各项扣费明细，帮助你清晰了解每月净收入构成和税费结构。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/temperature-converter.html'">
+      <div class="tool-card-name">温度转换</div>
+      <div class="tool-card-desc">摄氏度、华氏度、开尔文温度互相转换，输入任意温度值即可同时显示三种单位的换算结果，适用于科学计算、工程换算与日常生活场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/time-annotate.html'">
+      <div class="tool-card-name">专注计时器</div>
+      <div class="tool-card-desc">支持秒表计时和番茄工作法模式，设定25分钟专注时间与5分钟休息时间交替循环，有效提升工作和学习效率。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/zen-canvas.html'">
+      <div class="tool-card-name">专注白噪音画板</div>
+      <div class="tool-card-desc">在画板上打字或滑动鼠标即可生成唯美的粒子艺术效果，同时播放舒缓的白噪音背景音，帮助你快速进入专注状态。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/other/click-speed.html'">
+      <div class="tool-card-name">点击速度测试</div>
+      <div class="tool-card-desc">在倒计时10秒内尽可能多地点击屏幕，系统实时统计点击次数并计算出每秒点击次数（CPS），与好友一较高下。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/other/color.html'">
+      <div class="tool-card-name">颜色选择器</div>
+      <div class="tool-card-desc">通过色盘可视化快速选取颜色，实时转换 RGB、HEX、HSL、HSV 等多种格式，支持色值历史记录、色盲友好模式和渐变色生成，一键复制任意格式，适合网页设计和前端开发。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/other/hex-convert.html'">
+      <div class="tool-card-name">进制转换</div>
+      <div class="tool-card-desc">支持二进制、八进制、十进制、十六进制之间的任意相互转换，输入任意进制数值实时得到多种进制结果，支持大数处理和位运算展示，适合编程学习、密码学和数据结构课程。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/other/password.html'">
+      <div class="tool-card-name">密码生成器</div>
+      <div class="tool-card-desc">自定义密码长度与字符类型（大小写字母、数字、特殊符号），一键生成高强度随机密码，有效提升账户安全等级。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/other/reaction-test.html'">
+      <div class="tool-card-name">反应力测试</div>
+      <div class="tool-card-desc">屏幕随机变色时快速点击，记录每次反应时间，共进行 5 轮测试取平均值，科学评估视觉反应速度，支持历史记录和分享结果，适合趣味测试和注意力训练。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/license-plate.html'">
+      <div class="tool-card-name">车牌号查询</div>
+      <div class="tool-card-desc">根据车牌号前缀查询所属省份/城市,自动校验车牌号格式合法性,支持新能源车牌。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/week-number.html'">
+      <div class="tool-card-name">周数计算器</div>
+      <div class="tool-card-desc">输入日期计算该天所在的 ISO 周数与周开始/结束日期,支持反向查询第N周对应的日期范围。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/fuel-consumption.html'">
+      <div class="tool-card-name">油耗计算器</div>
+      <div class="tool-card-desc">根据加油量和行驶里程计算百公里油耗，支持L/100km和km/L两种单位切换，可记录多次加油数据。</div>
+      <div class="tool-card-tags"><span class="tag">油耗计算器</span><span class="tag">百公里油耗</span><span class="tag">汽车油耗</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/common-phone-list.html'">
+      <div class="tool-card-name">常用电话列表</div>
+      <div class="tool-card-desc">收录常用服务电话（报警、急救、客服、投诉等），按类别分组，支持快速搜索与一键拨号，适合应急查询与日常使用。</div>
+      <div class="tool-card-tags"><span class="tag">常用电话</span><span class="tag">服务电话</span><span class="tag">报警电话</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/life/family-kinship.html'">
+      <div class="tool-card-name">中国家庭称谓计算器</div>
+      <div class="tool-card-desc">查询中国亲戚关系称谓，支持反向计算（如爸爸的妹妹叫什么）、关系链可视化与多代查询，适合节日称呼与文化学习。</div>
+      <div class="tool-card-tags"><span class="tag">亲戚称谓</span><span class="tag">家庭关系</span><span class="tag">称呼计算</span></div>
+    </div>
+  </div>
+</main>
+<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+</body>
+</html>

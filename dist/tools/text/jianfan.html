@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>简繁体转换 - CloverTools</title>
+  <meta name="description" content="实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。,无需注册,完全免费。">
+  <meta name="keywords" content="简繁体转换，简体繁体转换，繁简转换，中文简繁体，简体中文，繁体中文，文字转换，在线工具">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="简繁体转换 - CloverTools">
+  <meta property="og:description" content="实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/text/jianfan.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="简繁体转换 - CloverTools">
+  <meta name="twitter:description" content="实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/text/jianfan.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>简繁体转换</h1>
+        <p class="description">实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card"><div class="tool-card-header"><h3>输入</h3><div class="tool-card-actions"><button class="btn btn-sm btn-ghost" id="clearInput">✕ 清空</button></div></div><textarea id="input" placeholder="输入..." style="min-height:100px;"></textarea><div class="input-stats"><span id="inputCharCount">0 字符</span></div><div class="input-row" style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;"><span>从</span><select id="fromBase" style="padding:0.4rem;"><option value="s2t">简体 → 繁体</option><option value="t2s">繁体 → 简体</option></select><span>转换为</span><select id="toBase" style="padding:0.4rem;"><option value="s2t">简体 → 繁体</option><option value="t2s">繁体 → 简体</option></select></div><div class="btn-row"><button class="btn btn-primary" id="convertBtn">⚡ 转换</button></div></div><div class="output-box"><div class="output-box-header"><h3>输出</h3><button class="copy-btn" id="copyOutput">📋 复制</button></div><textarea id="output" readonly></textarea><div class="input-stats"><span id="outputCharCount">0 字符</span></div></div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    var convertFn = 'function convert(text, direction) {
+  // Simplified → Traditional Chinese
+  var s2t = {"啊":"啊","阿":"阿","啊":"啊","爱":"愛","安":"安","暗":"暗","八":"八","把":"把","巴":"巴","白":"白","百":"百","班":"班","半":"半","办":"辦","帮":"幫","包":"包","保":"保","报":"報","北":"北","被":"被","本":"本","比":"比","笔":"筆","边":"邊","变":"變","别":"別","病":"病","不":"不","布":"布","步":"步","部":"部","才":"才","菜":"菜","参":"參","草":"草","层":"層","茶":"茶","查":"查","产":"產","长":"長","场":"場","常":"常","车":"車","称":"稱","成":"成","城":"城","吃":"吃","出":"出","除":"除","楚":"楚","处":"處","穿":"穿","春":"春","词":"詞","此":"次","从":"從","村":"村","错":"錯","达":"達","大":"大","带":"帶","代":"代","单":"單","当":"當","党":"黨","到":"到","道":"道","得":"得","的":"的","等":"等","低":"低","底":"底","地":"地","点":"點","电":"電","店":"店","掉":"掉","顶":"頂","定":"定","冬":"冬","东":"東","动":"動","读":"讀","短":"短","段":"段","对":"對","多":"多","儿":"兒","而":"而","发":"發","法":"法","反":"反","饭":"飯","方":"方","非":"非","飞":"飛","费":"費","分":"分","纷":"紛","丰":"豐","风":"風","服":"服","福":"福","父":"父","复":"復","该":"該","改":"改","感":"感","刚":"剛","高":"高","告":"告","哥":"哥","歌":"歌","个":"個","给":"給","跟":"跟","更":"更","工":"工","公":"公","共":"共","够":"夠","古":"古","故":"故","瓜":"瓜","挂":"掛","关":"關","管":"管","光":"光","广":"廣","贵":"貴","国":"國","果":"果","过":"過","还":"還","孩":"孩","海":"海","害":"害","汉":"漢","号":"號","喝":"喝","合":"合","和":"和","何":"何","黑":"黑","很":"很","红":"紅","后":"後","呼":"呼","湖":"湖","虎":"虎","护":"護","花":"花","化":"化","画":"畫","话":"話","坏":"壞","环":"環","换":"換","黄":"黃","回":"回","汇":"匯","会":"會","活":"活","火":"火","货":"貨","击":"擊","机":"機","鸡":"鷄","级":"級","极":"極","几":"幾","己":"己","记":"記","继":"繼","际":"際","季":"季","济":"濟","既":"既","继":"繼","加":"加","家":"家","价":"價","架":"架","尖":"尖","简":"簡","见":"見","件":"件","建":"建","江":"江","讲":"講","交":"交","脚":"腳","叫":"叫","街":"街","节":"節","姐":"姐","今":"今","金":"金","近":"進","尽":"盡","紧":"緊","锦":"錦","仅":"僅","进":"進","京":"京","经":"經","精":"精","井":"井","静":"靜","九":"九","酒":"酒","久":"久","旧":"舊","就":"就","举":"舉","具":"具","剧":"劇","据":"據","卷":"卷","开":"開","看":"看","康":"康","考":"考","靠":"靠","科":"科","可":"可","克":"克","课":"課","刻":"刻","客":"客","空":"空","口":"口","哭":"哭","苦":"苦","快":"快","宽":"寬","况":"況","拉":"拉","来":"來","蓝":"籃","老":"老","乐":"樂","累":"累","离":"離","里":"裡","理":"理","礼":"禮","李":"李","里":"裡","历":"歷","立":"立","利":"利","连":"連","脸":"臉","练":"練習","恋":"戀","凉":"涼","两":"兩","亮":"亮","量":"量","林":"林","领":"領","另":"另","留":"留","流":"流","六":"六","龙":"龍","楼":"樓","路":"路","旅":"旅","绿":"綠","妈":"媽","马":"馬","吗":"嗎","买":"買","卖":"賣","满":"滿","慢":"慢","忙":"忙","毛":"毛","没":"沒","每":"每","美":"美","妹":"妹","门":"門","们":"們","米":"米","面":"面","民":"民","明":"明","名":"名","命":"命","模":"模","母":"母","木":"木","目":"目","拿":"拿","那":"那","奶":"奶","男":"男","南":"南","呢":"呢","内":"內","能":"能","你":"你","年":"年","念":"念","鸟":"鳥","您":"您","牛":"牛","农":"農","女":"女","暖":"暖","欧":"歐","怕":"怕","拍":"拍","排":"排","派":"派","盘":"盤","跑":"跑","朋":"朋","皮":"皮","片":"片","票":"票","漂":"漂","品":"品","平":"平","七":"七","期":"期","其":"其","奇":"奇","骑":"騎","起":"起","气":"氣","汽":"汽","器":"器","千":"千","强":"強","墙":"牆","桥":"橋","巧":"巧","青":"青","轻":"輕","清":"清","晴":"晴","情":"情","请":"請","秋":"秋","球":"球","区":"區","全":"全","却":"卻","群":"群","然":"然","热":"熱","人":"人","认":"認","日":"日","线":"線","容":"容","肉":"肉","如":"如","入":"入","软":"軟","润":"潤","若":"若","三":"三","散":"散","色":"色","山":"山","上":"上","少":"少","社":"社","身":"身","深":"深","什":"什","生":"生","声":"聲","师":"師","十":"十","时":"時","实":"實","识":"識","史":"史","使":"使","始":"始","世":"世","式":"式","事":"事","是":"是","室":"室","收":"收","手":"手","受":"受","书":"書","树":"樹","双":"雙","水":"水","睡":"睡","顺":"順","说":"說","思":"思","死":"死","四":"四","松":"鬆","送":"送","诉":"訴","速":"速","算":"算","虽":"雖然","随":"隨","岁":"歲","所":"所","他":"他","她":"她","它":"它","台":"臺","太":"太","态":"態","谈":"談","汤":"湯","糖":"糖","特":"特","疼":"疼","提":"題","体":"體","天":"天","田":"田","条":"條","铁":"鐵","听":"聽","停":"停","通":"通","同":"同","头":"頭","图":"圖","团":"團","推":"推","腿":"腿","外":"外","完":"完","玩":"玩","晚":"晚","万":"萬","王":"王","往":"往","网":"網","望":"望","危":"危","微":"微","为":"為","位":"位","文":"文","问":"問","我":"我","屋":"屋","五":"五","午":"午","物":"物","务":"務","误":"誤","西":"西","息":"息","希":"希","习":"習","洗":"洗","系":"系統","下":"下","夏":"夏","先":"先","现":"現","线":"線","想":"想","向":"向","象":"象","像":"像","小":"小","校":"校","笑":"笑","些":"些","写":"寫","谢":"謝","新":"新","心":"心","信":"信","星":"星","行":"行","形":"形","醒":"醒","姓":"姓","休":"休","修":"修","需":"需","许":"許","学":"學","雪":"雪","血":"血","呀":"呀","牙":"牙","验":"驗","羊":"羊","阳":"陽","养":"養","样":"樣","药":"藥","要":"要","爷":"爺","也":"也","叶":"葉","夜":"夜","业":"業","页":"頁","一":"一","医":"醫","衣":"衣","以":"以","易":"易","意":"意","因":"因","音":"音","银":"銀","印":"印","英":"英","影":"影","用":"用","由":"由","游":"遊","友":"友","有":"有","又":"又","右":"右","鱼":"魚","雨":"雨","元":"元","原":"原","园":"園","远":"遠","院":"院","愿":"願","月":"月","乐":"樂","越":"越","云":"雲","运":"運","在":"在","咱":"咱","早":"早","怎":"怎","张":"張","找":"找","照":"照","者":"這","着":"著","真":"真","正":"正","政":"政","知":"知","之":"之","只":"只","纸":"紙","指":"指","至":"治","治":"治","中":"中","钟":"鐘","主":"主","注":"注","住":"住","祝":"祝","准":"準","桌":"桌","子":"子","字":"字","自":"自","走":"走","租":"租","足":"足","组":"組","最":"最","昨":"昨","左":"左","作":"作","做":"做","坐":"坐","座":"座"};
+  // Simplified to Traditional mapping (abbreviated)
+  var s2t_map = {"爱":"愛","安":"安","暗":"暗","八":"八","把":"把","白":"白","百":"百","办":"辦","帮":"幫","包":"寶","报":"報","北":"北","被":"被","本":"本","比":"比","笔":"筆","边":"邊","变":"變","别":"別","病":"病","不":"不","才":"才","菜":"菜","参":"參","草":"草","层":"層","茶":"茶","查":"查","产":"產","长":"長","场":"場","常":"常","车":"車","称":"稱","成":"成","城":"城","吃":"吃","出":"出","除":"除","处":"處","穿":"穿","春":"春","词":"詞","从":"從","村":"村","错":"錯","达":"達","大":"大","带":"帶","代":"代","单":"單","当":"當","党":"黨","到":"道","道":"道","得":"得","的":"的","等":"等","低":"低","底":"底","地":"地","点":"點","电":"電","店":"店","掉":"掉","顶":"頂","定":"定","冬":"冬","东":"東","动":"動","读":"讀","短":"短","段":"段","对":"對","多":"多","儿":"兒","而":"而","发":"發","法":"法","反":"反","饭":"飯","方":"方","非":"非","飞":"飛","费":"費","分":"分","丰":"豐","风":"風","服":"服","父":"父","复":"復","该":"該","改":"改","感":"感","刚":"剛","高":"高","告":"告訴","哥":"哥","歌":"歌","个":"個","给":"給","跟":"跟","更":"更","工":"工","公":"公","共":"共","够":"夠","古":"古","故":"故","挂":"掛","关":"關","管":"管","光":"光","广":"廣","贵":"貴","国":"國","果":"果","过":"過","还":"還","孩":"孩","海":"海","害":"害","汉":"漢","号":"號","喝":"喝","合":"合","和":"和","黑":"黑","很":"很","红":"紅","后":"後","呼":"呼","湖":"湖","虎":"虎","护":"護","花":"花","化":"化","画":"畫","话":"話","坏":"壞","环":"環","换":"換","黄":"黃","回":"回","汇":"匯","会":"會","活":"活","火":"火","货":"貨","机":"機","级":"級","极":"極","几":"幾","记":"記","继":"繼","际":"際","季":"季","济":"濟","加":"加","家":"家","价":"價","架":"架","简":"簡","见":"見","件":"件","建":"建","江":"江","讲":"講","交":"交","脚":"腳","叫":"叫","节":"節","姐":"姐","今":"今","金":"金","近":"進","尽":"盡","紧":"緊","仅":"僅","进":"進","京":"京","经":"經","精":"精","井":"井","静":"靜","九":"九","酒":"酒","久":"久","旧":"舊","就":"就","举":"舉","具":"具","剧":"劇","据":"據","开":"開","看":"看","康":"康","考":"考","靠":"靠","科":"科","可":"可","克":"剋","课":"課","刻":"刻","客":"客","空":"空","口":"口","哭":"哭","苦":"苦","快":"快","宽":"寬","况":"況","拉":"拉","来":"來","蓝":"藍","老":"老","乐":"樂","累":"累","离":"離","里":"裡","理":"理","礼":"禮","李":"李","历":"歷","立":"立","利":"利","连":"連","脸":"臉","练":"練","恋":"戀","凉":"涼","两":"兩","亮":"亮","量":"量","林":"林","领":"領","留":"留","流":"流","六":"六","龙":"龍","楼":"樓","路":"路","旅":"旅","绿":"綠","妈":"媽","马":"馬","吗":"嗎","买":"買","卖":"賣","满":"滿","慢":"慢","忙":"忙","毛":"毛","没":"沒","每":"每","美":"美","妹":"妹","门":"門","们":"們","米":"米","面":"面","民":"民","明":"明","名":"名","命":"命","模":"模","母":"母","木":"木","目":"目","拿":"拿","那":"那","奶":"奶","男":"男","南":"南","呢":"呢","内":"內","能":"能","你":"你","年":"年","念":"念","鸟":"鳥","牛":"牛","农":"農","女":"女","暖":"暖","怕":"怕","拍":"拍","排":"排","派":"派","盘":"盤","跑":"跑","朋":"朋","皮":"皮","片":"片","票":"票","漂":"漂","品":"品","平":"平","七":"七","期":"期","其":"其","奇":"奇","骑":"騎","起":"起","气":"氣","汽":"汽車","器":"器","千":"千","强":"強","墙":"牆","桥":"橋","青":"青","轻":"輕","清":"清","晴":"晴","情":"情","请":"請","秋":"秋","球":"球","区":"區","全":"全","却":"卻","群":"群","然":"然","热":"熱","人":"人","认":"認","日":"日","线":"線","容":"容","肉":"肉","如":"如","入":"入","软":"軟","润":"潤","若":"若","三":"三","散":"散","色":"色","山":"山","上":"上","少":"少","社":"社","身":"身","深":"深","什":"什","生":"生","声":"聲","师":"師","十":"十","时":"時","实":"實","识":"識","史":"史","使":"使","世":"世","事":"事","是":"是","室":"室","收":"收","手":"手","受":"受","书":"書","树":"樹","双":"雙","水":"水","睡":"睡","顺":"順","说":"說","思":"思","死":"死","四":"四","松":"鬆","送":"送","诉":"訴","速":"速","算":"算","虽":"雖然","随":"隨","岁":"歲","所":"所","他":"他","她":"她","它":"它","台":"臺","太":"太","态":"態","谈":"談","特":"特","疼":"疼","提":"題","体":"體","天":"天","田":"田","条":"條","铁":"鐵","听":"聽","停":"停","通":"通","同":"同","头":"頭","图":"圖","团":"團","推":"推","腿":"腿","外":"外","完":"完","玩":"玩","晚":"晚","万":"萬","王":"王","往":"往","网":"網","望":"望","危":"危","微":"微","为":"為","位":"位","文":"文","问":"問","我":"我","屋":"屋","五":"五","午":"午","物":"物","务":"務","误":"誤","西":"西","息":"息","希":"希","习":"習","洗":"洗","系":"系統","下":"下","夏":"夏","先":"先","现":"現","线":"線","想":"想","向":"向","象":"象","小":"小","校":"校","笑":"笑","些":"些","写":"寫","谢":"謝","新":"新","心":"心","信":"信","星":"星","行":"行","形":"形","醒":"醒","姓":"姓","休":"休","修":"修","需":"需","许":"許","学":"學","雪":"雪","血":"血","牙":"牙","验":"驗","羊":"羊","阳":"陽","养":"養","样":"樣","药":"藥","要":"要","爷":"爺","也":"也","叶":"葉","夜":"夜","业":"業","页":"頁","一":"一","医":"醫","衣":"衣","以":"以","易":"易","意":"意","因":"因","音":"音","银":"銀","印":"印","英":"英","影":"影","用":"用","由":"由","游":"遊","友":"友","有":"有","又":"又","右":"右","鱼":"魚","雨":"雨","元":"元","原":"原","园":"園","远":"遠","院":"院","愿":"願","月":"月","越":"越","云":"雲","运":"運","在":"在","咱":"咱","早":"早","怎":"怎","张":"張","找":"找","照":"照","这":"這","着":"著","真":"真","正":"正","政":"政","知":"知","之":"之","只":"只","纸":"紙","指":"指","至":"至","治":"治","中":"中","钟":"鐘","主":"主","注":"注","住":"住","祝":"祝","准":"準","子":"子","字":"字","自":"自","走":"走","足":"足","组":"組","最":"最","昨":"昨","左":"左","作":"作","做":"做","坐":"坐","座":"座","妈":"媽","吧":"吧","吗":"嗎","呢":"呢","啊":"啊"};
+  
+  var t2s = {};
+  Object.keys(s2t_map).forEach(function(k) { t2s[s2t_map[k]] = k; });
+  
+  if (direction === \'s2t\') {
+    return text.split(\'\').map(function(ch) { return s2t_map[ch] || ch; }).join(\'\');
+  } else {
+    return text.split(\'\').map(function(ch) { return t2s[ch] || ch; }).join(\'\');
+  }
+}';
+var sampleData = "";
+function updateConvStats() {
+  document.getElementById('inputCharCount').textContent = document.getElementById('input').value.length + ' 字符';
+  document.getElementById('outputCharCount').textContent = document.getElementById('output').value.length + ' 字符';
+}
+function doConvert() {
+  var v = document.getElementById("input").value;
+  if (!v) { document.getElementById("output").value = ''; updateConvStats(); return; }
+  var from = document.getElementById("fromBase").value;
+  var to = document.getElementById("toBase").value;
+  var convertFnObj = new Function('return ' + convertFn)();
+  try { document.getElementById("output").value = convertFnObj(v, from, to); document.getElementById("output").style.borderColor = ''; }
+  catch(e) { document.getElementById("output").value = "错误: " + e.message; document.getElementById("output").style.borderColor = 'var(--error)'; }
+  updateConvStats();
+}
+document.getElementById("convertBtn").onclick = doConvert;
+document.getElementById("copyOutput").onclick = function() { CT.copy(document.getElementById("output").value, this); };
+document.getElementById("clearInput").onclick = function() { document.getElementById("input").value = ''; document.getElementById("output").value = ''; updateConvStats(); document.getElementById("input").focus(); };
+document.getElementById("input").addEventListener("input", CT.debounce(function() {
+  doConvert();
+  document.getElementById('inputCharCount').textContent = this.value.length + ' 字符';
+}, 150));
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); doConvert(); }
+});
+updateConvStats();
+  </script>
+</body>
+</html>

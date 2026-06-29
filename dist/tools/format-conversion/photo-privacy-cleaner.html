@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片隐私信息去除 - CloverTools</title>
+  <meta name="description" content="一键去除照片中的GPS位置、拍摄设备信息等隐私EXIF数据，防止照片分享时泄露个人位置和设备信息。,无需注册,完全免费。">
+  <meta name="keywords" content="照片隐私,EXIF去除,GPS去除,位置隐私,照片安全,元信息清理">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="照片隐私信息去除 - CloverTools">
+  <meta property="og:description" content="一键去除照片中的GPS位置、拍摄设备信息等隐私EXIF数据，防止照片分享时泄露个人位置和设备信息。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/format-conversion/photo-privacy-cleaner.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="照片隐私信息去除 - CloverTools">
+  <meta name="twitter:description" content="一键去除照片中的GPS位置、拍摄设备信息等隐私EXIF数据，防止照片分享时泄露个人位置和设备信息。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/format-conversion/photo-privacy-cleaner.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>照片隐私信息去除</h1>
+        <p class="description">一键去除照片中的GPS位置、拍摄设备信息等隐私EXIF数据，防止照片分享时泄露个人位置和设备信息。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<div>
+            <div class="upload-zone" id="uploadZone">
+                <div class="icon">🖼️</div>
+                <p>点击或拖拽上传照片</p>
+                <div class="formats">支持 JPG、JPEG、PNG 格式</div>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <div class="card preview-section" id="previewSection">
+            <div class="preview-row">
+                <div class="preview-box">
+                    <h3>📷 原图（含EXIF）</h3>
+                    <img id="originalPreview" class="preview-image" alt="Original">
+                </div>
+                <div class="preview-box">
+                    <h3>✅ 已去除隐私信息</h3>
+                    <img id="cleanedPreview" class="preview-image" alt="Cleaned">
+                </div>
+            </div>
+            <div id="exifTable"></div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="icon">📍</span>
+                    <div>
+                        <div class="label">GPS位置</div>
+                        <div class="value" id="gpsInfo">—</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="icon">📅</span>
+                    <div>
+                        <div class="label">拍摄时间</div>
+                        <div class="value" id="dateInfo">—</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="icon">📱</span>
+                    <div>
+                        <div class="label">设备信息</div>
+                        <div class="value" id="deviceInfo">—</div>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="icon">🔢</span>
+                    <div>
+                        <div class="label">剩余EXIF字段</div>
+                        <div class="value" id="fieldCount">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="downloadBtn">💾 下载已清理图片</button>
+                <button class="btn btn-secondary" id="resetBtn">🔄 重新上传</button>
+            </div>
+        </div>
+
+        <div class="card tips">
+            <h4>💡 关于EXIF隐私信息</h4>
+            <ul>
+                <li>GPS坐标：精确记录拍照地点，移除后无法追溯位置</li>
+                <li>拍摄时间：暴露拍照时间，可能涉及隐私</li>
+                <li>设备型号：泄露手机/相机型号信息</li>
+                <li>软件信息：包含修图软件签名，影响原始性</li>
+                <li>去除EXIF不影响图片正常显示和画质</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const status = document.getElementById('status');
+        let currentFile = null;
+        let cleanedBlob = null;
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+        uploadZone.addEventListener('drop', (e) => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+        document.getElementById('downloadBtn').addEventListener('click', downloadCleaned);
+        document.getElementById('resetBtn').addEventListener('click', reset);
+
+        function showStatus(msg, type) {
+            status.textContent = msg;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            if (!file.type.match(/image\/(jpeg|png)/)) {
+                showStatus('请上传 JPG 或 PNG 格式的图片', 'error');
+                return;
+            }
+            currentFile = file;
+            processFile(file);
+        }
+
+        function processFile(file) {
+            showStatus('正在读取图片...', 'info');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    document.getElementById('originalPreview').src = e.target.result;
+                    showExifData(file, e.target.result, img);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showExifData(file, dataUrl, img) {
+            EXIF.getData(file, function() {
+                const allTags = EXIF.getAllTags(this);
+                const gps = getGPSInfo(allTags);
+                const date = allTags.DateTime || allTags.DateTimeOriginal || '—';
+                const device = [allTags.Make, allTags.Model].filter(Boolean).join(' ') || '—';
+                const software = allTags.Software || '—';
+                const fieldCount = Object.keys(allTags).length;
+
+                document.getElementById('gpsInfo').textContent = gps.lat ? `${gps.lat}, ${gps.lng}` : '无';
+                document.getElementById('gpsInfo').style.color = gps.lat ? 'var(--danger)' : 'var(--success)';
+                document.getElementById('dateInfo').textContent = date;
+                document.getElementById('deviceInfo').textContent = device !== '—' ? device : '无';
+                document.getElementById('deviceInfo').style.color = device !== '—' ? 'var(--warning)' : 'var(--success)';
+                document.getElementById('fieldCount').textContent = fieldCount + ' 个字段';
+
+                let tableHtml = '<table class="exif-table"><tr><th>字段</th><th>值</th><th>敏感度</th></tr>';
+                const sensitiveKeys = ['GPSLatitude', 'GPSLongitude', 'GPSAltitude', 'DateTime', 'DateTimeOriginal', 'Make', 'Model', 'Software', 'Artist', 'Copyright', 'SerialNumber', 'LensModel'];
+                for (const [key, val] of Object.entries(allTags).slice(0, 20)) {
+                    const isSensitive = sensitiveKeys.includes(key) || key.startsWith('GPS');
+                    const displayVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
+                    tableHtml += `<tr><td>${key}</td><td>${displayVal.substring(0, 50)}</td><td class="${isSensitive ? 'sensitive' : 'safe'}">${isSensitive ? '⚠️ 敏感' : '✓'}</td></tr>`;
+                }
+                tableHtml += '</table>';
+                document.getElementById('exifTable').innerHTML = tableHtml;
+
+                showStatus(`检测到 ${fieldCount} 个EXIF字段，其中 ${Object.keys(allTags).filter(k => k.startsWith('GPS')).length} 个GPS位置字段需要去除`, 'info');
+
+                cleanImage(img);
+            });
+        }
+
+        function getGPSInfo(tags) {
+            if (tags.GPSLatitude && tags.GPSLongitude) {
+                const lat = convertDMSToDD(tags.GPSLatitude, tags.GPSLatitudeRef);
+                const lng = convertDMSToDD(tags.GPSLongitude, tags.GPSLongitudeRef);
+                return { lat, lng };
+            }
+            return {};
+        }
+
+        function convertDMSToDD(dms, ref) {
+            if (!dms || !Array.isArray(dms) || dms.length < 3) return null;
+            let dd = dms[0] + dms[1] / 60 + dms[2] / 3600;
+            if (ref === 'S' || ref === 'W') dd = -dd;
+            return dd.toFixed(6);
+        }
+
+        function cleanImage(img) {
+            showStatus('正在去除EXIF隐私信息...', 'info');
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                cleanedBlob = blob;
+                const cleanedUrl = URL.createObjectURL(blob);
+                document.getElementById('cleanedPreview').src = cleanedUrl;
+                document.getElementById('cleanedPreview').style.display = 'block';
+                previewSection.style.display = 'block';
+
+                // Verify cleaned image has no EXIF
+                EXIF.getData(blob, function() {
+                    const tags = EXIF.getAllTags(this);
+                    const remainingFields = Object.keys(tags).filter(k => !['imageWidth','imageHeight','imageSize'].includes(k));
+                    if (remainingFields.length === 0) {
+                        showStatus('✅ EXIF已全部清除，图片安全', 'info');
+                    } else {
+                        showStatus(`⚠️ 仍有 ${remainingFields.length} 个字段（${remainingFields.slice(0,3).join(', ')}...）`, 'error');
+                    }
+                });
+            }, 'image/jpeg', 0.95);
+        }
+
+        function downloadCleaned() {
+            if (!cleanedBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(cleanedBlob);
+            const originalName = currentFile.name.replace(/\.[^.]+$/, '');
+            a.download = originalName + '_cleaned.jpg';
+            a.click();
+        }
+
+        function reset() {
+            currentFile = null;
+            cleanedBlob = null;
+            previewSection.style.display = 'none';
+            status.style.display = 'none';
+            fileInput.value = '';
+        }
+    </script>
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // tool-custom: JS 由 tools.json 的 customScript 提供
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>照片元信息编辑器 - CloverTools</title>
+  <meta name="description" content="批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。,无需注册,完全免费。">
+  <meta name="keywords" content="照片元信息,EXIF编辑,GPS坐标修改,拍摄时间修改,照片编辑">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="照片元信息编辑器 - CloverTools">
+  <meta property="og:description" content="批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/format-conversion/photo-meta-editor.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="照片元信息编辑器 - CloverTools">
+  <meta name="twitter:description" content="批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/format-conversion/photo-meta-editor.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>照片元信息编辑器</h1>
+        <p class="description">批量查看和修改照片的EXIF元数据，包括GPS坐标、拍摄时间、相机型号等，支持可视化编辑并下载修改后的文件。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<div>
+            <h2 class="card-title"><i class="bi bi-cloud-upload"></i> 上传照片</h2>
+            <div class="upload-zone" id="uploadZone">
+                <i class="bi bi-image"></i>
+                <p>拖拽照片到这里，或点击选择文件</p>
+                <p class="formats">支持 JPG 格式</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg">
+            <div class="preview-container" id="previewContainer">
+                <div class="preview-row">
+                    <div class="preview-col">
+                        <h4><span class="badge badge-before">修改前</span></h4>
+                        <img id="previewBefore" alt="修改前">
+                    </div>
+                    <div class="preview-col">
+                        <h4><span class="badge badge-after">修改后</span></h4>
+                        <img id="previewAfter" alt="修改后">
+                    </div>
+                </div>
+            </div>
+            <div id="errorContainer"></div>
+        </div>
+
+        <div class="card" id="metadataCard">
+            <h2 class="card-title"><i class="bi bi-info-circle"></i> 图片元信息</h2>
+            <div id="metadataContent">
+                <p class="no-exif">请上传照片以查看元信息</p>
+            </div>
+        </div>
+
+        <div class="card" id="editCard">
+            <h2 class="card-title"><i class="bi bi-pencil"></i> 编辑元信息</h2>
+            <form class="edit-form" id="editForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gpsLatitude">GPS 纬度 (decimal，如 25.0330)</label>
+                        <input type="text" id="gpsLatitude" placeholder="正值=N，负值=S，如 25.0330">
+                    </div>
+                    <div class="form-group">
+                        <label for="gpsLongitude">GPS 经度 (decimal，如 121.5654)</label>
+                        <input type="text" id="gpsLongitude" placeholder="正值=E，负值=W，如 121.5654">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="dateTime">拍摄时间 (EXIF格式，如 2024:01:15 10:30:00)</label>
+                    <input type="text" id="dateTime" placeholder="格式: 2024:01:15 10:30:00">
+                </div>
+                <div class="btn-container">
+                    <button type="submit" class="btn btn-primary" id="downloadBtn" disabled>
+                        <i class="bi bi-download"></i> 下载编辑后的图片
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="resetBtn">
+                        <i class="bi bi-arrow-counterclockwise"></i> 重置
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p>© 2024 CloverTools - 照片元信息编辑器</p>
+    </footer>
+
+    <script>
+    (function() {
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewBefore = document.getElementById('previewBefore');
+        const previewAfter = document.getElementById('previewAfter');
+        const metadataContent = document.getElementById('metadataContent');
+        const editForm = document.getElementById('editForm');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const errorContainer = document.getElementById('errorContainer');
+        const gpsLatitudeInput = document.getElementById('gpsLatitude');
+        const gpsLongitudeInput = document.getElementById('gpsLongitude');
+        const dateTimeInput = document.getElementById('dateTime');
+
+        let currentFile = null;
+        let originalExifData = null;
+        let hasExifData = false;
+
+        function showError(message) {
+            errorContainer.innerHTML = '<div class="error-message"><i class="bi bi-exclamation-triangle"></i> ' + message + '</div>';
+            setTimeout(function() { errorContainer.innerHTML = ''; }, 5000);
+        }
+
+        function showSuccess(message) {
+            errorContainer.innerHTML = '<div class="success-message"><i class="bi bi-check-circle"></i> ' + message + '</div>';
+            setTimeout(function() { errorContainer.innerHTML = ''; }, 3000);
+        }
+
+        function formatGPSCoordinate(coordinate, ref) {
+            if (!coordinate || !Array.isArray(coordinate) || coordinate.length < 3) return null;
+            var degrees = coordinate[0];
+            var minutes = coordinate[1];
+            var seconds = coordinate[2];
+            var decimal = degrees + minutes / 60 + seconds / 3600;
+            if (ref === 'S' || ref === 'W') decimal = -decimal;
+            return decimal.toFixed(6);
+        }
+
+        function decimalToDMS(value) {
+            var abs = Math.abs(value);
+            var deg = Math.floor(abs);
+            var minFloat = (abs - deg) * 60;
+            var min = Math.floor(minFloat);
+            var sec = Math.round((minFloat - min) * 60 * 100);
+            return [deg, min, sec];
+        }
+
+        function readExifData(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var img = new Image();
+                    img.onload = function() {
+                        EXIF.getData(img, function() {
+                            var allTags = EXIF.getAllTags(this);
+                            var exifData = {
+                                GPSLatitude: allTags.GPSLatitude,
+                                GPSLongitude: allTags.GPSLongitude,
+                                GPSLatitudeRef: allTags.GPSLatitudeRef,
+                                GPSLongitudeRef: allTags.GPSLongitudeRef,
+                                DateTimeOriginal: allTags.DateTimeOriginal,
+                                DateTime: allTags.DateTime,
+                                Make: allTags.Make,
+                                Model: allTags.Model,
+                                Software: allTags.Software,
+                                LensModel: allTags.LensModel,
+                                imageWidth: allTags.PixelXDimension || allTags.imageWidth,
+                                imageHeight: allTags.PixelYDimension || allTags.imageHeight
+                            };
+                            resolve(exifData);
+                        });
+                    };
+                    img.onerror = function() { reject(new Error('无法加载图片')); };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() { reject(new Error('读取文件失败')); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function displayMetadata(exifData) {
+            var html = '';
+            hasExifData = false;
+
+            var gpsLat = formatGPSCoordinate(exifData.GPSLatitude, exifData.GPSLatitudeRef);
+            var gpsLng = formatGPSCoordinate(exifData.GPSLongitude, exifData.GPSLongitudeRef);
+
+            var fields = [
+                { label: 'GPS 纬度', value: gpsLat, key: 'GPSLatitude' },
+                { label: 'GPS 经度', value: gpsLng, key: 'GPSLongitude' },
+                { label: '拍摄时间', value: exifData.DateTimeOriginal || exifData.DateTime, key: 'DateTimeOriginal' },
+                { label: '相机品牌', value: exifData.Make, key: 'Make' },
+                { label: '相机型号', value: exifData.Model, key: 'Model' },
+                { label: '软件', value: exifData.Software, key: 'Software' },
+                { label: '镜头型号', value: exifData.LensModel, key: 'LensModel' },
+                { label: '图片尺寸', value: (exifData.imageWidth && exifData.imageHeight) ? exifData.imageWidth + ' x ' + exifData.imageHeight : null, key: 'Size' }
+            ];
+
+            for (var i = 0; i < fields.length; i++) {
+                var field = fields[i];
+                if (field.value) {
+                    hasExifData = true;
+                    html += '<tr><th>' + field.label + '</th><td>' + field.value + '</td></tr>';
+                }
+            }
+
+            if (!hasExifData) {
+                metadataContent.innerHTML = '<p class="no-exif">此照片没有EXIF信息</p>';
+                gpsLatitudeInput.value = '';
+                gpsLongitudeInput.value = '';
+                dateTimeInput.value = '';
+            } else {
+                metadataContent.innerHTML = '<table class="metadata-table"><tbody>' + html + '</tbody></table>';
+
+                if (gpsLat) gpsLatitudeInput.value = gpsLat;
+                if (gpsLng) gpsLongitudeInput.value = gpsLng;
+                if (exifData.DateTimeOriginal) dateTimeInput.value = exifData.DateTimeOriginal;
+                else if (exifData.DateTime) dateTimeInput.value = exifData.DateTime;
+            }
+
+            downloadBtn.disabled = false;
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+
+            if (!file.type.match(/^image\/jpeg$/)) {
+                showError('请上传 JPG 格式的图片（编辑EXIF需要JPEG格式）');
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                showError('文件大小不能超过 50MB');
+                return;
+            }
+
+            currentFile = file;
+            errorContainer.innerHTML = '';
+            previewContainer.classList.add('active');
+
+            var beforeUrl = URL.createObjectURL(file);
+            previewBefore.src = beforeUrl;
+            previewAfter.src = beforeUrl;
+
+            readExifData(file).then(function(exifData) {
+                originalExifData = exifData;
+                displayMetadata(exifData);
+            }).catch(function(error) {
+                showError('读取图片信息时出错：' + error.message);
+                metadataContent.innerHTML = '<p class="no-exif">此照片没有EXIF信息</p>';
+                hasExifData = false;
+                downloadBtn.disabled = false;
+            });
+        }
+
+        uploadZone.addEventListener('click', function() { fileInput.click(); });
+        fileInput.addEventListener('change', function(e) { handleFile(e.target.files[0]); });
+        uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); uploadZone.classList.add('dragover'); });
+        uploadZone.addEventListener('dragleave', function(e) { e.preventDefault(); uploadZone.classList.remove('dragover'); });
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        resetBtn.addEventListener('click', function() {
+            if (originalExifData) {
+                displayMetadata(originalExifData);
+                showSuccess('已重置为原始数据');
+            }
+        });
+
+        function dataURLToArrayBuffer(dataURL) {
+            var base64 = dataURL.split(',')[1];
+            var binary = atob(base64);
+            var arr = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+            return arr.buffer;
+        }
+
+        function arrayBufferToDataURL(buffer) {
+            var bytes = new Uint8Array(buffer);
+            var binary = '';
+            for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return 'data:image/jpeg;base64,' + btoa(binary);
+        }
+
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!currentFile) {
+                showError('请先上传图片');
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    var imageData = event.target.result;
+                    var binaryStr;
+                    if (imageData.indexOf('data:image/jpeg;base64,') === 0) {
+                        binaryStr = atob(imageData.split(',')[1]);
+                    } else {
+                        showError('不支持的图片格式');
+                        return;
+                    }
+
+                    var exifObj;
+                    try {
+                        exifObj = piexif.load(binaryStr);
+                    } catch (err) {
+                        exifObj = {
+                            '0th': {}, 'Exif': {}, 'GPS': {},
+                            '1st': {}, 'thumbnail': null
+                        };
+                    }
+
+                    var lat = gpsLatitudeInput.value.trim();
+                    var lng = gpsLongitudeInput.value.trim();
+                    var datetime = dateTimeInput.value.trim();
+
+                    if (lat !== '') {
+                        var latVal = parseFloat(lat);
+                        if (isNaN(latVal)) { showError('纬度格式错误'); return; }
+                        var latRef = latVal >= 0 ? 'N' : 'S';
+                        var latDMS = decimalToDMS(latVal);
+                        exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef] = latRef;
+                        exifObj['GPS'][piexif.GPSIFD.GPSLatitude] = latDMS;
+                    } else {
+                        delete exifObj['GPS'][piexif.GPSIFD.GPSLatitudeRef];
+                        delete exifObj['GPS'][piexif.GPSIFD.GPSLatitude];
+                    }
+
+                    if (lng !== '') {
+                        var lngVal = parseFloat(lng);
+                        if (isNaN(lngVal)) { showError('经度格式错误'); return; }
+                        var lngRef = lngVal >= 0 ? 'E' : 'W';
+                        var lngDMS = decimalToDMS(lngVal);
+                        exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef] = lngRef;
+                        exifObj['GPS'][piexif.GPSIFD.GPSLongitude] = lngDMS;
+                    } else {
+                        delete exifObj['GPS'][piexif.GPSIFD.GPSLongitudeRef];
+                        delete exifObj['GPS'][piexif.GPSIFD.GPSLongitude];
+                    }
+
+                    if (datetime !== '') {
+                        exifObj['Exif'][piexif.ExifIFD.DateTimeOriginal] = datetime;
+                        exifObj['0th'][piexif.ImageIFD.DateTime] = datetime;
+                    }
+
+                    var exifBytes = piexif.dump(exifObj);
+                    var newData = piexif.insert(exifBytes, binaryStr);
+
+                    var newDataURL;
+                    if (typeof Buffer !== 'undefined') {
+                        newDataURL = 'data:image/jpeg;base64,' + Buffer.from(newData).toString('base64');
+                    } else {
+                        var binary = '';
+                        for (var i = 0; i < newData.length; i++) binary += String.fromCharCode(newData.charCodeAt(i) & 0xff);
+                        newDataURL = 'data:image/jpeg;base64,' + btoa(binary);
+                    }
+
+                    previewAfter.src = newDataURL;
+
+                    var link = document.createElement('a');
+                    var fileName = currentFile.name.replace(/\.[^.]+$/, '') + '_edited.jpg';
+                    link.download = fileName;
+                    link.href = newDataURL;
+                    link.click();
+
+                    showSuccess('图片已成功下载！');
+                } catch (error) {
+                    showError('处理图片时出错：' + error.message);
+                    console.error(error);
+                }
+            };
+            reader.onerror = function() { showError('读取文件失败'); };
+            reader.readAsDataURL(currentFile);
+        });
+    })();
+    </script>
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // tool-custom: JS 由 tools.json 的 customScript 提供
+
+  </script>
+</body>
+</html>

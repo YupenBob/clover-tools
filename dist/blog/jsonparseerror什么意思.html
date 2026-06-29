@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>json parse error什么意思？常见原因与解决方法</title>
+  <meta name="description" content="JSON.parse报错是什么意思？本文详解5种最常见的触发原因：引号错误、尾部逗号、BOM头、数字格式、非数字值，并提供调试技巧和在线工具。">
+  <meta name="keywords" content="json-parse-error什么意思,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/jsonparseerror什么意思">
+  <meta property="og:title" content="json-parse-error什么意思 - CloverTools">
+  <meta property="og:description" content="解决json-parse-error什么意思的实战方法,配合JSON 格式化在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/jsonparseerror什么意思">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">JSON处理</span></span>
+      <h1 class="article-title">json-parse-error什么意思</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; json-parse-error什么意思
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <h2>什么是 JSON Parse Error？</h2>
+<p>JSON Parse Error 是 JavaScript 在尝试解析 JSON 字符串时发生的错误。当你的代码试图用 <code>JSON.parse()</code> 把一个字符串转成 JavaScript 对象，但字符串的格式不符合 JSON 规范时，就会抛出这个错误。</p>
+
+<pre><code>// 触发 JSON Parse Error 的典型情况
+const jsonStr = '{"name": "Clover", age: 16}';
+// age 没有加引号，不是合法的 JSON
+JSON.parse(jsonStr);
+// SyntaxError: Unexpected token 'a', ... is not valid JSON
+
+const badJson = '{"greeting": "hello"}';  // 末尾多了不可见字符
+JSON.parse(badJson);  // 可能报错：Unexpected end of JSON input</code></pre>
+
+<h2>最常见的 5 种触发原因</h2>
+
+<h3>1. 键或字符串值没加引号</h3>
+<p>JSON 标准要求所有键和字符串值必须用双引号包裹。单引号、不加引号都会报错。</p>
+<pre><code>// ❌ 错误示例
+{"name": "Clover"}   // 正确
+{name: "Clover"}    // 错误：键没引号
+{'name': "Clover"}  // 错误：单引号不行
+
+// ✅ 正确示例
+{"name": "Clover"}</code></pre>
+
+<h3>2. 尾部多余逗号</h3>
+<p>JavaScript 对象可以写尾部逗号，但 JSON 不允许。</p>
+<pre><code>// ❌ 错误
+{"name": "Clover",}
+
+// ✅ 正确
+{"name": "Clover"}</code></pre>
+
+<h3>3. 单引号或反引号作为字符串边界</h3>
+<pre><code>// ❌ 错误
+const data = JSON.parse("{'name': 'Clover'}");
+// JavaScript字符串可以用单引号，但解析时JSON只认双引号
+
+// ✅ 正确
+const data = JSON.parse('{"name": "Clover"}');</code></pre>
+
+<h3>4. 数字格式错误</h3>
+<p>JSON 数字不能有前导零（<code>01</code>），不能是非数字（<code>NaN</code>、<code>Infinity</code>）。</p>
+<pre><code>// ❌ 错误
+{"count": 007}     // 前导零
+{"ratio": .5}      // 必须写 0.5
+{"bad": NaN}       // JSON 里没有 NaN
+
+// ✅ 正确
+{"count": 7}
+{"ratio": 0.5}
+{"bad": null}      // 用 null 表示无值</code></pre>
+
+<h3>5. BOM 头或隐藏字符</h3>
+<p>从文件或某些接口返回的 JSON 前面可能有 UTF-8 BOM（<code>\uFEFF</code>），肉眼看不见，但会导致解析失败。</p>
+<pre><code>const raw = '\uFEFF{"ok": true}';
+JSON.parse(raw);  // SyntaxError: Unexpected token '﻿'
+
+// ✅ 解决：去掉 BOM
+const clean = raw.replace(/^\uFEFF/, '');
+JSON.parse(clean);  // OK</code></pre>
+
+<h2>如何快速定位 JSON 错误？</h2>
+<p>手动找 JSON 里的格式问题很痛苦，最快的方法是用在线工具校验。</p>
+<ul>
+<li>打开 <a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a>，粘贴你的 JSON，工具会告诉你哪一行哪一列出错</li>
+<li>用 <a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a>，直接高亮错误位置</li>
+</ul>
+
+<pre><code>// 手动调试：在 JSON.parse 外面包 try-catch
+try {
+    const data = JSON.parse(responseText);
+} catch (e) {
+    console.error('JSON解析失败:', e.message);
+    console.log('原始内容:', responseText);
+    // 找到报错位置后，通常附近就是问题所在
+}
+
+// 进阶：用 reviver 函数获取具体路径
+JSON.parse(text, (key, value) => {
+    console.log('解析到:', key, value);
+    return value;
+});</code></pre>
+
+<h2>后端返回的 JSON 报错了怎么办？</h2>
+<p>很多时候 JSON Parse Error 不是你的代码问题，而是后端返回的数据格式不对。</p>
+
+<h3>第一步：打印原始响应</h3>
+<pre><code>fetch('/api/data')
+    .then(r => r.text())  // 先不用 .json()，拿到原始文本
+    .then(text => {
+        console.log('原始响应:', text);
+        // 检查：是否有意外的 HTML 包裹？是否有异常字符？
+        return JSON.parse(text);
+    })
+    .catch(e => console.error(e));</code></pre>
+
+<h3>第二步：检查 Content-Type</h3>
+<pre><code>// 如果后端返回的是 text/html（错误页），解析 JSON 当然失败
+// 响应头里应该是：
+Content-Type: application/json; charset=utf-8
+
+// 如果是：
+Content-Type: text/html; charset=utf-8
+// 说明后端报错了，返回的是 HTML 错误页面，不是 JSON</code></pre>
+
+<h3>第三步：后端返回脏数据</h3>
+<p>有时后端数据库里存了特殊字符，或者序列化时出了问题，导致输出的 JSON 不规范。</p>
+<pre><code>// Node.js 调试：打印中间变量
+const serialized = JSON.stringify(dataFromDB);
+console.log(serialized);  // 看看是不是有乱码或多余字符</code></pre>
+
+<h2>安全地解析 JSON（防止崩溃）</h2>
+<pre><code>// 方法一：try-catch 包裹
+function safeJsonParse(str, fallback = null) {
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        console.warn('JSON解析失败:', e.message);
+        return fallback;
+    }
+}
+
+// 方法二：先校验再解析（推荐性能敏感场景）
+function isValidJson(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch { return false; }
+}
+
+// 方法三：使用 reviver 深度检查（生产环境推荐）
+const data = JSON.parse(text, (key, value) => {
+    if (typeof value === 'string' && value.includes('\u0000')) {
+        throw new Error(`Null character in key: ${key}`);
+    }
+    return value;
+});</code></pre>
+
+<h2>常见错误对照表</h2>
+
+<table>
+<tr><th>错误信息</th><th>原因</th><th>解决方法</th></tr>
+<tr><td>Unexpected token</td><td>格式错误（引号/逗号/括号不匹配）</td><td>用工具格式化并定位错误位置</td></tr>
+<tr><td>Unexpected end of JSON input</td><td>字符串被截断，或多了特殊字符</td><td>检查是否有 BOM 头或多余字符</td></tr>
+<tr><td>Expected ',' or '}'</td><td>对象或数组里少了逗号/括号</td><td>逐行检查格式</td></tr>
+<tr><td>Expected property name or '}'</td><td>键没有用双引号</td><td>所有键必须用双引号</td></tr>
+</table>
+
+<h2>工具推荐</h2>
+<ul>
+<li><a href='/tools/json/formatter.html' target='_blank'>JSON 格式化工具</a> — 一键美化，错误位置高亮</li>
+<li><a href='/tools/json/validator.html' target='_blank'>JSON 校验工具</a> — 严格校验，发现不合规字段</li>
+<li><a href='/tools/json/yaml.html' target='_blank'>JSON ↔ YAML 互转</a> — 如果你搞混了格式</li>
+</ul>
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/tools/json/formatter.html">JSON 格式化</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 遇到 json-parse-error什么意思,是什么原因导致的?</strong><br>A: 常见原因有:数据格式不符合规范(如 JSON 多了逗号或少了引号)、字符编码不统一(UTF-8 和 GBK 混用)、特殊字符未正确转义,或接口返回了非标准数据。先用工具验证格式是最快的排查方式。</div>
+<div class="faq-item"><strong>Q: json-parse-error什么意思 会影响程序正常运行吗?</strong><br>A: 会的。格式错误会导致数据无法正常解析,轻则功能异常,重则程序崩溃。尤其是涉及支付、用户输入等关键流程时,这类问题必须第一时间修复。</div>
+<div class="faq-item"><strong>Q: json-parse-error什么意思 有没有自动修复的办法?</strong><br>A: 大多数格式问题可以用在线工具自动修复。如果是自己生成的 JSON/编码数据,修复后再重新提交即可;如果是第三方接口返回的格式问题,则需要联系对方修正或做容错处理。</div>
+<div class="faq-item"><strong>Q: 修复后还需要注意什么?</strong><br>A: 建议增加格式校验环节,在数据提交前或接收后先做格式验证(用 JSON.parse 或对应工具),避免再次出现同样问题。同时统一前后端编码规范,从源头减少这类错误。</div>
+      </div>
+
+      <div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list"><li><a href="/blog/jsonparse报错终结方案">jsonparse报错终结方案</a></li>
+<li><a href="/blog/json数据对比">json数据对比</a></li>
+<li><a href="/blog/json怎么解析序列化">json怎么解析序列化</a></li></ul>
+</div>
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

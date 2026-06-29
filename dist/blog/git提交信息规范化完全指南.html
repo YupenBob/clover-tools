@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git提交信息乱七八糟？这篇帮你规范化</title>
+  <meta name="description" content="Git提交信息规范化完全指南：Conventional Commits格式、husky/lint-staged配置、commitlint规则、自动生成CHANGELOG，团队协作必备。">
+  <meta name="keywords" content="git提交信息规范化完全指南,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/git提交信息规范化完全指南">
+  <meta property="og:title" content="git提交信息规范化完全指南 - CloverTools">
+  <meta property="og:description" content="解决git提交信息规范化完全指南的实战方法,CloverTools在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/git提交信息规范化完全指南">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">Git</span></span>
+      <h1 class="article-title">git提交信息规范化完全指南</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; git提交信息规范化完全指南
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git提交信息乱七八糟？这篇帮你规范化</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.8;
+    color: #24292e;
+    background: #fafbfc;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+  h1 {
+    font-size: 2em;
+    margin-bottom: 16px;
+    color: #1a1a1a;
+    line-height: 1.3;
+  }
+  .subtitle {
+    font-size: 1.1em;
+    color: #586069;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e1e4e8;
+    color: #1a1a1a;
+  }
+  h3 {
+    font-size: 1.15em;
+    margin-top: 28px;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  p { margin-bottom: 16px; }
+  a { color: #0366d6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .hero-box {
+    background: linear-gradient(135deg, #2ea44f 0%, #28a745 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 12px;
+    margin-bottom: 40px;
+  }
+  .hero-box h1 { color: white; margin-bottom: 8px; }
+  .hero-box .subtitle { color: rgba(255,255,255,0.85); margin-bottom: 0; }
+
+  .pain-point {
+    background: #fff1f0;
+    border-left: 4px solid #ff4d4f;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .pain-point strong { color: #cf1322; }
+
+  .code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 16px 0;
+    overflow-x: auto;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.875em;
+    line-height: 1.6;
+  }
+  .code-block .c-keyword { color: #569cd6; }
+  .code-block .c-string { color: #ce9178; }
+  .code-block .c-comment { color: #6a9955; }
+  .code-block .c-tag { color: #808080; }
+  .code-block .c-attr { color: #9cdcfe; }
+  .code-block .c-value { color: #ce9178; }
+  .code-block .c-number { color: #b5cea8; }
+  .code-block .c-key { color: #9cdcfe; }
+
+  .inline-code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.88em;
+    color: #e83e8c;
+  }
+
+  .tag-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .tag-item {
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 12px 16px;
+  }
+  .tag-item .tag-name { font-weight: 700; color: #0366d6; font-family: monospace; }
+  .tag-item .tag-desc { font-size: 0.85em; color: #586069; margin-top: 4px; }
+
+  .success-box {
+    background: #f0fff4;
+    border-left: 4px solid #2ea44f;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+  }
+
+  .error-box {
+    background: #fff7e6;
+    border-left: 4px solid #ffa500;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.9em;
+  }
+  th {
+    background: #f6f8fa;
+    padding: 10px 16px;
+    text-align: left;
+    border: 1px solid #e1e4e8;
+    font-weight: 600;
+  }
+  td {
+    padding: 10px 16px;
+    border: 1px solid #e1e4e8;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  .cta-box {
+    background: linear-gradient(135deg, #0366d6 0%, #024c9e 100%);
+    color: white;
+    padding: 32px;
+    border-radius: 12px;
+    margin-top: 48px;
+    text-align: center;
+  }
+  .cta-box h2 { color: white; border: none; margin: 0 0 12px; padding: 0; }
+  .cta-box p { opacity: 0.9; margin-bottom: 20px; }
+  .cta-box a {
+    display: inline-block;
+    background: white;
+    color: #0366d6;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.05em;
+  }
+  .cta-box a:hover { text-decoration: none; opacity: 0.9; }
+
+  .author-note {
+    font-size: 0.85em;
+    color: #999;
+    margin-top: 40px;
+    text-align: center;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-box">
+  <h1>Git提交信息乱七八糟？这篇帮你规范化</h1>
+  <p class="subtitle">从「凭心情写」到团队统一格式，聊聊真实落地方案</p>
+</div>
+
+<p>不知道你们团队有没有这种场景：打开 Git 历史，看到的是一堆「update」「fix bug」「修改」「666」——好不容易写的代码，提交记录却像朋友圈文案一样随意。等你想找某个功能什么时候加的、为什么改了，对不起，大海捞针。</p>
+
+<p>或者另一种：review 代码的时候，提交信息写的是「优化」，结果这个提交干了两百件事——加功能、改样式、修 bug、删文件全塞一块，reviewer 看了想打人。这种提交历史对于团队协作来说，几乎等于没有历史。</p>
+
+<p>本文聊聊怎么用 <strong>Conventional Commits</strong>（约定式提交）配合 <strong>husky + lint-staged + commitlint</strong> 这套工具链，真正让团队提交信息统一、可维护、自动生成 CHANGELOG。实操向，不废话。</p>
+
+<h2>一、痛点场景——你中了几条？</h2>
+
+<div class="pain-point">
+  <strong>场景 1：项目写了一年，回头看 Git 历史，全是「update」「fix」「改了」</strong><br>
+  想找「登录模块是什么时候加的？」——只能靠猜，翻到吐血。
+</div>
+
+<div class="pain-point">
+  <strong>场景 2：每次发版手动整理 CHANGELOG，复制粘贴累死人</strong><br>
+  产品问「这次更新了哪些功能？」你埋头在几百条提交里挑，眼睛都快瞎了。
+</div>
+
+<div class="pain-point">
+  <strong>场景 3：团队十个人，十种提交风格</strong><br>
+  有人写中文，有人写英文，有人用 feat:有人用 feature:，还有人在里面写小作文。
+</div>
+
+<div class="pain-point">
+  <strong>场景 4：CI 跑完才发现提交信息格式不对，被 block 了</strong><br>
+  提交代码 push 上去，CI 报红，原来是 commit message 格式被 lint 拦了——这时你已经在 PR 里躺好了。
+</div>
+
+<p>这些问题，约定式提交 + 自动化工具可以一套带走。</p>
+
+<h2>二、Conventional Commits：约定式提交是什么？</h2>
+
+<p><strong>Conventional Commits</strong> 是一套社区约定的提交信息规范，核心思路很简单：<em>用固定格式描述每次提交，让历史可读、可解析、可自动化。</em></p>
+
+<h3>2.1 格式长这样</h3>
+
+<div class="code-block"><span class="c-keyword">&lt;type&gt;</span>(<span class="c-attr">&lt;scope&gt;</span>): <span class="c-string">&lt;description&gt;</span>
+
+[<span class="c-keyword">optional body</span>]
+
+[<span class="c-keyword">optional footer(s)</span>]</div>
+
+<ul>
+  <li><strong>type（必需）</strong>：提交类型，英文小写</li>
+  <li><strong>scope（可选）</strong>：影响范围，用括号包裹——比如 <span class="inline-code">feat(auth):</span>、<span class="inline-code">fix(payment):</span></li>
+  <li><strong>description（必需）</strong>：简短描述，一句话说明这次干了什么，用中文或英文都行，团队统一即可</li>
+  <li><strong>body（可选）</strong>：详细说明，换行写</li>
+  <li><strong>footer（可选）</strong>：用于写关联的 issue、breakding change 等</li>
+</ul>
+
+<h3>2.2 常用 type 清单</h3>
+
+<div class="tag-list">
+  <div class="tag-item">
+    <div class="tag-name">feat</div>
+    <div class="tag-desc">新增功能（新功能上线）</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">fix</div>
+    <div class="tag-desc">修复 bug</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">docs</div>
+    <div class="tag-desc">文档变更（仅文档内容）</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">style</div>
+    <div class="tag-desc">代码格式（不影响逻辑的改动）</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">refactor</div>
+    <div class="tag-desc">重构（不是修 bug 也不是加功能）</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">test</div>
+    <div class="tag-desc">测试相关</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">chore</div>
+    <div class="tag-desc">构建/工具/依赖更新等杂活</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">perf</div>
+    <div class="tag-desc">性能优化</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">ci</div>
+    <div class="tag-desc">CI/CD 配置变更</div>
+  </div>
+  <div class="tag-item">
+    <div class="tag-name">revert</div>
+    <div class="tag-desc">回滚之前的提交</div>
+  </div>
+</div>
+
+<h3>2.3 正面 vs 反面对比</h3>
+
+<table>
+  <tr><th>❌ 别这样写</th><th>✅ 规范写法</th></tr>
+  <tr><td>update</td><td><code>feat(user): 添加第三方登录功能</code></td></tr>
+  <tr><td>fix bug</td><td><code>fix(order): 修复结算页金额显示错误</code></td></tr>
+  <tr><td>改了点东西</td><td><code>refactor(payment): 重构支付回调逻辑</code></td></tr>
+  <tr><td>1</td><td><code>docs: 更新 README 安装说明</code></td></tr>
+  <tr><td>Merge branch 'xxx'</td><td><em>（merge 提交例外，不需要改）</em></td></tr>
+</table>
+
+<h3>2.4 带 body 和 footer 的完整示例</h3>
+
+<div class="code-block"><span class="c-keyword">feat</span>(<span class="c-attr">payment</span>): <span class="c-string">新增支付宝支付渠道</span>
+
+新增了支付宝沙箱环境支持，包含以下改动：
+- 集成 alipay SDK
+- 添加支付回调通知接口
+- 支付表单渲染组件
+
+<span class="c-keyword">BREAKING CHANGE</span>: 旧版支付配置字段 payment_channel 已废弃
+请迁移至新字段 payment_providers
+
+<span class="c-keyword">Closes</span> #<span class="c-number">234</span></div>
+
+<p>这就是一份标准的好提交。reviewer 一眼就知道这次干了什么、有没有破坏性变更、关联了哪个 issue。</p>
+
+<h2>三、工具配置：husky + lint-staged + commitlint</h2>
+
+<p>规范定好了，得有人执行才行。总不能靠人工 code review 来纠正提交格式——太慢了，而且人总有疏忽。</p>
+
+<h3>3.1 husky——Git 钩子自动化</h3>
+
+<p><strong>husky</strong> 的作用是让你在 Git 操作时自动触发脚本。比如你 <code>git commit</code> 的时候，自动跑一个脚本来检查提交信息格式。</p>
+
+<p>安装（以 npm 为例）：</p>
+
+<div class="code-block"><span class="c-comment"># 推荐用最新版本（v9+）</span>
+<span class="c-keyword">npm</span> install <span class="c-attr">-D</span> husky
+
+<span class="c-comment"># 初始化，生成 .husky 目录</span>
+<span class="c-keyword">npx</span> husky init</div>
+
+<p>这会在你项目里创建一个 <code>.husky/</code> 目录，里面放各种 Git hook 脚本。初始化后会生成一个 <code>.husky/pre-commit</code> 文件，每次 <code>git commit</code> 之前会自动执行这个脚本。</p>
+
+<h3>3.2 lint-staged——只检查暂存区的文件</h3>
+
+<p><strong>lint-staged</strong> 的作用很明确：只检查<strong>被 staged（暂存区）的文件）</strong>，而不是整个项目。这很重要——你的修改文件可能是半成品，不在暂存区的根本不该被检查。</p>
+
+<div class="code-block"><span class="c-keyword">npm</span> install <span class="c-attr">-D</span> lint-staged</div>
+
+<p>在 <code>package.json</code> 里加配置：</p>
+
+<div class="code-block">{
+  <span class="c-key">"lint-staged"</span>: {
+    <span class="c-string">"*.{js,ts,tsx,jsx}"</span>: [<span class="c-string">"eslint --fix"</span>, <span class="c-string">"prettier --write"</span>],
+    <span class="c-string">"*.{css,scss}"</span>: [<span class="c-string">"stylelint --fix"</span>],
+    <span class="c-string">"*.{md,json,yml,yaml}"</span>: [<span class="c-string">"prettier --write"</span>]
+  }
+}</div>
+
+<p>这样每次 commit，lint-staged 会自动用对应的 linter 检查暂存区文件，不影响你正在写的其他文件。</p>
+
+<h3>3.3 commitlint——检查提交信息格式</h3>
+
+<p><strong>commitlint</strong> 是核心：它读取你写的 commit message，按规则校验，不合格就直接拒绝 commit。配合 husky 的 pre-commit 钩子，你 push 之前就能发现问题。</p>
+
+<div class="code-block"><span class="c-keyword">npm</span> install <span class="c-attr">-D</span> @commitlint/config-conventional <span class="c-keyword">@commitlint/cli</span></div>
+
+<p>创建配置文件 <code>commitlint.config.js</code>（或 <code>.js</code> / <code>.ts</code> / <code>.yaml</code> 都可以）：</p>
+
+<div class="code-block"><span class="c-comment">// commitlint.config.js</span>
+<span class="c-keyword">module.exports</span> = {
+  <span class="c-key">extends</span>: [<span class="c-string">'@commitlint/config-conventional'</span>],
+  <span class="c-key">rules</span>: {
+    <span class="c-comment">// type-enum: 强制要求 type 必须是下面列表之一</span>
+    <span class="c-string">'type-enum'</span>: [
+      <span class="c-number">2</span>, <span class="c-string">'always'</span>,
+      [<span class="c-string">'feat'</span>, <span class="c-string">'fix'</span>, <span class="c-string">'docs'</span>, <span class="c-string">'style'</span>, <span class="c-string">'refactor'</span>, <span class="c-string">'test'</span>, <span class="c-string">'chore'</span>, <span class="c-string">'perf'</span>, <span class="c-string">'ci'</span>, <span class="c-string">'revert'</span>]
+    ],
+    <span class="c-comment">// type-case: 强制 type 小写</span>
+    <span class="c-string">'type-case'</span>: [<span class="c-number">2</span>, <span class="c-string">'always'</span>, <span class="c-string">'lower-case'</span>],
+    <span class="c-comment">// type-empty: type 不能为空</span>
+    <span class="c-string">'type-empty'</span>: [<span class="c-number">2</span>, <span class="c-string">'never'</span>],
+    <span class="c-comment">// subject-empty: 描述不能为空</span>
+    <span class="c-string">'subject-empty'</span>: [<span class="c-number">2</span>, <span class="c-string">'never'</span>],
+    <span class="c-comment">// subject-full-stop: 描述不以句号结尾</span>
+    <span class="c-string">'subject-full-stop'</span>: [<span class="c-number">2</span>, <span class="c-string">'never'</span>, <span class="c-string">'.'</span>],
+    <span class="c-comment">// header-max-length: 标题最大长度</span>
+    <span class="c-string">'header-max-length'</span>: [<span class="c-number">2</span>, <span class="c-string">'always'</span>, <span class="c-number">72</span>]
+  }
+};</div>
+
+<p>用 YAML 格式的等效配置：</p>
+
+<div class="code-block"><span class="c-comment"># commitlint.config.yaml</span>
+<span class="c-key">extends</span>: <span class="c-value">@commitlint/config-conventional</span>
+<span class="c-key">rules</span>:
+  <span class="c-key">type-enum</span>:
+    <span class="c-key">-</span> <span class="c-number">2</span>
+    <span class="c-key">-</span> <span class="c-value">always</span>
+    <span class="c-key">-</span>
+      <span class="c-key">-</span> <span class="c-value">feat</span>
+      <span class="c-key">-</span> <span class="c-value">fix</span>
+      <span class="c-key">-</span> <span class="c-value">docs</span>
+      <span class="c-key">-</span> <span class="c-value">style</span>
+      <span class="c-key">-</span> <span class="c-value">refactor</span>
+      <span class="c-key">-</span> <span class="c-value">test</span>
+      <span class="c-key">-</span> <span class="c-value">chore</span>
+  <span class="c-key">type-case</span>: [<span class="c-number">2</span>, <span class="c-value">always</span>, <span class="c-value">lower-case</span>]
+  <span class="c-key">type-empty</span>: [<span class="c-number">2</span>, <span class="c-value">never</span>]
+  <span class="c-key">subject-empty</span>: [<span class="c-number">2</span>, <span class="c-value">never</span>]
+  <span class="c-key">subject-full-stop</span>: [<span class="c-number">2</span>, <span class="c-value">never</span>, <span class="c-value">'.'</span>]
+  <span class="c-key">header-max-length</span>: [<span class="c-number">2</span>, <span class="c-value">always</span>, <span class="c-number">72</span>]</div>
+
+<p>然后把 commitlint 加入 husky pre-commit 钩子：</p>
+
+<div class="code-block"><span class="c-comment"># 创建 commit-msg 钩子（husky 会自动配置）</span>
+<span class="c-keyword">npx</span> husky add .husky/commit-msg <span class="c-string">'npx --no -- commitlint --edit ${1}'</span></div>
+
+<p>这行命令会在 <code>.husky/commit-msg</code> 文件里写入：每次 commit 时，用 commitlint 校验提交信息，不合格就拒绝 commit。</p>
+
+<h3>3.4 完整 pre-commit 钩子内容</h3>
+
+<p>最终你的 <code>.husky/pre-commit</code> 大概长这样：</p>
+
+<div class="code-block"><span class="c-comment">#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+<span class="c-comment"># 先 lint-staged 检查代码质量</span>
+<span class="c-keyword">npx</span> lint-staged
+
+<span class="c-comment"># commit-msg 钩子在另一个文件里，这里不需要再调 commitlint</span></div>
+
+<p><code>.husky/commit-msg</code> 长这样：</p>
+
+<div class="code-block"><span class="c-comment">#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+<span class="c-keyword">npx</span> --no -- commitlint --edit ${1}</div>
+
+<p>配置完成后，体验是这样的：</p>
+
+<div class="success-box">
+  ✅ <code>git commit -m "feat: 新增用户注册功能"</code> → 成功提交<br>
+  ❌ <code>git commit -m "update"</code> → 被 commitlint 拦截，提示格式错误，拒绝提交
+</div>
+
+<h2>四、自动生成 CHANGELOG</h2>
+
+<p>这是规范提交的最大福利之一。提交格式统一了，CHANGELOG 就能自动生成。</p>
+
+<h3>4.1 standard-version / release-please</h3>
+
+<p><strong>standard-version</strong>（npm 包）根据提交类型自动决定版本号并生成 CHANGELOG：</p>
+
+<div class="code-block"><span class="c-keyword">npm</span> install <span class="c-attr">-D</span> standard-version</div>
+
+<p>运行：</p>
+
+<div class="code-block"><span class="c-keyword">npx</span> standard-version</div>
+
+<p>它会：</p>
+<ul>
+  <li>读取所有 Conventional Commits</li>
+  <li>根据 <code>feat:</code> → 升级 minor 版本，<code>fix:</code> → 升级 patch 版本</li>
+  <li>自动生成/更新 <code>CHANGELOG.md</code></li>
+  <li>生成一个 git tag</li>
+</ul>
+
+<p>生成的 CHANGELOG 大概长这样：</p>
+
+<div class="code-block"><span class="c-comment"># Changelog</span>
+
+<span class="c-key">## [2.1.0](https://github.com/xxx/yyy/compare/v2.0.0...v2.1.0) (2026-05-09)</span>
+
+<span class="c-comment">### Features</span>
+
+<span class="c-key">*</span> <span class="c-string">feat(auth): add third-party login (google/github) ([#234](https://github.com/xxx/yyy/issues/234))</span>
+<span class="c-key">*</span> <span class="c-string">feat(order): support split payment ([#230](https://github.com/xxx/yyy/issues/230))</span>
+
+<span class="c-comment">### Bug Fixes</span>
+
+<span class="c-key">*</span> <span class="c-string">fix(order): fix amount display error on checkout page ([#235](https://github.com/xxx/yyy/issues/235))</span>
+
+<span class="c-comment">### Documentation</span>
+
+<span class="c-key">*</span> <span class="c-string">docs: update README installation guide</span></div>
+
+<h3>4.2 conventional-changelog-cli</h3>
+
+<p>如果你想更灵活一点，用 <strong>conventional-changelog-cli</strong>：</p>
+
+<div class="code-block"><span class="c-keyword">npm</span> install <span class="c-attr">-D</span> conventional-changelog-cli
+
+<span class="c-comment"># 生成完整 CHANGELOG（包含所有历史）</span>
+<span class="c-keyword">npx</span> conventional-changelog <span class="c-attr">-p angular</span> <span class="c-attr">-i CHANGELOG.md</span> <span class="c-attr">-s</span>
+
+<span class="c-comment"># 只生成自上一个 tag 以来的变更</span>
+<span class="c-keyword">npx</span> conventional-changelog <span class="c-attr">-p angular</span> <span class="c-attr">-r 1</span> <span class="c-attr">-i CHANGELOG.md</span> <span class="c-attr">-s</span></div>
+
+<p>加上 <code>-r 1</code>（release count = 1）表示只输出上一个 tag 以来的变更，适合在发版时执行。</p>
+
+<h2>五、常见错误和避坑</h2>
+
+<h3>❌ 错误 1：type 用了大写</h3>
+
+<div class="error-box">
+  <code>git commit -m "FEAT: 新增登录功能"</code> — ❌ 大写会被 commitlint 拒绝<br>
+  <code>git commit -m "feat: 新增登录功能"</code> — ✅ 必须全小写
+</div>
+
+<h3>❌ 错误 2：description 为空或写太模糊</h3>
+
+<div class="error-box">
+  <code>git commit -m "feat: update"</code> — ❌ update 是啥？<br>
+  <code>git commit -m "feat(user): add login with phone verification"</code> — ✅ 说清楚做了什么
+</div>
+
+<h3>❌ 错误 3：description 以句号结尾</h3>
+
+<div class="error-box">
+  <code>git commit -m "feat: 新增用户注册功能."</code> — ❌ 不要句号结尾<br>
+  <code>git commit -m "feat: 新增用户注册功能"</code> — ✅ 简洁直接
+</div>
+
+<h3>❌ 错误 4：一个提交干了 N 件事</h3>
+
+<div class="error-box">
+  <code>git commit -m "fix: 修 bug + 加功能 + 改样式"</code> — ❌ 一个提交只做一件事<br>
+  分成三个 commit：<code>fix: ...</code>、<code>feat: ...</code>、<code>style: ...</code> — ✅ 每件事独立可追溯
+</div>
+
+<h3>❌ 错误 5：忘了安装 husky hook</h3>
+
+<p>换机器后记得重新跑 <code>npx husky install</code>，否则本地 hook 不生效，CI 上才被拦就很尴尬了。建议在 <code>package.json</code> 的 <code>postinstall</code> 里加上：</p>
+
+<div class="code-block">{
+  <span class="c-key">"scripts"</span>: {
+    <span class="c-string">"postinstall"</span>: <span class="c-string">"husky install"</span>
+  }
+}</div>
+
+<h3>❌ 错误 6：Merge commit 不走 commitlint</h3>
+
+<p>Merge commit（合并分支时产生的提交）格式是 <code>Merge branch 'xxx'</code>，不符合规范，会被拦。通常在 <code>commitlint.config.js</code> 里跳过这类：</p>
+
+<div class="code-block"><span class="c-comment">// commitlint.config.js</span>
+<span class="c-key">module.exports</span> = {
+  <span class="c-key">extends</span>: [<span class="c-string">'@commitlint/config-conventional'</span>],
+  <span class="c-key">rules</span>: {
+    <span class="c-comment">// ... 其他规则</span>
+  },
+  <span class="c-key">ignores</span>: [
+    (commit) => commit === <span class="c-string">''</span> || commit.includes(<span class="c-string">'Merge branch'</span>)
+  ]
+};</div>
+
+<h3>❌ 错误 7：commit message 标题超长</h3>
+
+<div class="error-box">
+  commitlint 默认限制 header（第一行）最大 72 字符。超长会被拒。养成习惯：标题一句话说清楚，不要超过 72 字符。详细说明放 body 里。
+</div>
+
+<h2>六、给团队的一点建议</h2>
+
+<p>规范落地最重要的一点不是工具，是<strong>共识</strong>。工具只是辅助，团队成员真正理解「为什么要这样写」才能长期坚持。</p>
+
+<p>几个实操建议：</p>
+
+<ol style="margin-bottom: 16px; padding-left: 24px;">
+  <li><strong>新成员 onboarding</strong>：把提交规范写进 README 或 CONTRIBUTING.md，第一天就让新人知道该怎么写</li>
+  <li><strong>CI 也要装 commitlint</strong>：本地可能被绕过，CI 一定要有，防止漏网之鱼</li>
+  <li><strong>从小团队开始</strong>：不要一开始就搞一堆规则，先从 feat/fix/docs/chore 四个 type 开始，够了再加</li>
+  <li><strong>别过度工程化</strong>：有些团队配了一堆工具，最后大家都在想办法绕过它。够用就行</li>
+  <li><strong>善用 AI</strong>：写提交信息不知道用哪个 type？让 AI 帮你判断，然后你审核——比硬背快多了</li>
+</ol>
+
+<p>规范的价值在于长期维护。一份好的提交历史，在半年后做技术回顾、追查 bug、准备发版说明的时候，价值就体现出来了。</p>
+
+<div class="cta-box">
+  <h2>工具全在这，一个就够</h2>
+  <p>Conventional Commits 规范速查、命令生成器、配置模板——都在 CloverTools</p>
+  <a href="https://clovertools.cn/tools/code/git-summary.html" target="_blank">👉 Git 工具集</a>
+</div>
+
+<p class="author-note">本文基于 Conventional Commits 规范 v1.0.0 + husky v9 + commitlint v19 编写</p>
+
+</body>
+</html>
+
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/">浏览所有工具</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 如何使用 git提交信息规范化完全指南 相关工具?</strong><br>A: 这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。</div>
+<div class="faq-item"><strong>Q: git提交信息规范化完全指南 适合在什么场景使用?</strong><br>A: 根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。</div>
+<div class="faq-item"><strong>Q: 有没有更好的替代工具?</strong><br>A: 不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。</div>
+      </div>
+
+      <div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list"><li><a href="/blog/git冲突3种解决方法实战指南">git冲突3种解决方法实战指南</a></li></ul>
+</div>
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

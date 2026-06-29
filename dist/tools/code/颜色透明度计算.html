@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色透明度计算 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="颜色透明度计算 - 🍀 CloverTools">
+  <meta property="og:description" content="在线调整颜色透明度（alpha）工具，支持 HEX/RGB/HSL 三种格式输入，输出 HEX8/RGBA/HSLA 与棋盘格实时预览。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/code/颜色透明度计算.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="颜色透明度计算 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线调整颜色透明度（alpha）工具，支持 HEX/RGB/HSL 三种格式输入，输出 HEX8/RGBA/HSLA 与棋盘格实时预览。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/code/颜色透明度计算.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>颜色透明度计算</h1>
+        <p class="description">在线调整颜色透明度（alpha）工具，支持 HEX/RGB/HSL 三种格式输入，输出 HEX8/RGBA/HSLA 与棋盘格实时预览。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>颜色透明度调整</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">颜色格式</label>
+      <select id="format" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);">
+        <option value="hex">HEX</option>
+        <option value="rgb">RGB</option>
+        <option value="hsl">HSL</option>
+      </select>
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">颜色值</label>
+      <input type="text" id="colorInput" placeholder="#6366f1" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);font-family:monospace;" />
+    </div>
+  </div>
+  <div style="margin-bottom:0.75rem;">
+    <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">透明度 (alpha)：<span id="alphaLabel" style="font-weight:600;color:var(--primary);">0.80</span></label>
+    <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.8" style="width:100%;" />
+  </div>
+  <div style="font-size:0.8rem;opacity:0.75;line-height:1.6;background:var(--bg-secondary);padding:0.6rem 0.8rem;border-radius:8px;margin-bottom:0.5rem;">
+    💡 支持 HEX（如 <code>#f00</code> / <code>#ff0000</code>）、RGB（如 <code>rgb(255,0,0)</code>）、HSL（如 <code>hsl(0,100%,50%)</code>）。
+  </div>
+  <div style="font-size:0.8rem;opacity:0.75;line-height:1.6;background:var(--bg-secondary);padding:0.6rem 0.8rem;border-radius:8px;">
+    💡 透明度 0 = 完全透明，1 = 完全不透明。输出含 HEX8 / RGBA / HSLA 三种格式。
+  </div>
+</div>
+<div class="output-box">
+  <h3>预览 & 结果 <button class="copy-btn" id="copyOutput">复制结果</button></h3>
+  <div id="previewWrap" style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div style="height:90px;border-radius:12px;background:repeating-conic-gradient(#e5e7eb 0% 25%, #ffffff 0% 50%) 50% / 16px 16px;border:1px solid var(--border);position:relative;overflow:hidden;">
+      <div id="preview" style="position:absolute;inset:0;"></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;font-size:0.9rem;background:var(--bg-secondary);border-radius:12px;padding:0.5rem;">
+      <span id="contrastLabel" style="text-align:center;"></span>
+    </div>
+  </div>
+  <div id="output" style="font-family:monospace;font-size:0.92rem;line-height:1.9;background:var(--bg-secondary);border-radius:10px;padding:0.85rem;white-space:pre-wrap;"></div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const formatSel = document.getElementById('format');
+const colorInput = document.getElementById('colorInput');
+const alphaInput = document.getElementById('alpha');
+const alphaLabel = document.getElementById('alphaLabel');
+const output = document.getElementById('output');
+const preview = document.getElementById('preview');
+const contrastLabel = document.getElementById('contrastLabel');
+
+formatSel.value = 'hex';
+colorInput.value = '#6366f1';
+
+function clampHex(s) {
+  s = s.replace('#', '').trim();
+  if (s.length === 3) s = s.split('').map(c => c + c).join('');
+  if (s.length === 4) s = s.slice(0, 3).split('').map(c => c + c).join('');
+  return s;
+}
+
+function parseHex(s) {
+  s = clampHex(s);
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0, 2), 16), g: parseInt(s.slice(2, 4), 16), b: parseInt(s.slice(4, 6), 16) };
+}
+
+function parseRgb(s) {
+  const m = s.match(/rgba?\s*\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i);
+  if (!m) return null;
+  return { r: +m[1], g: +m[2], b: +m[3] };
+}
+
+function parseHsl(s) {
+  const m = s.match(/hsla?\s*\(\s*(\d+(?:\.\d+)?)[\s,]+(\d+(?:\.\d+)?)%\s*[,\s]+(\d+(?:\.\d+)?)%/i);
+  if (!m) return null;
+  const h = +m[1] / 360, s2 = +m[2] / 100, l = +m[3] / 100;
+  function hue2rgb(p, q, t) {
+    if (t < 0) t += 1; if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  }
+  if (s2 === 0) { const v = Math.round(l * 255); return { r: v, g: v, b: v }; }
+  const q = l < 0.5 ? l * (1 + s2) : l + s2 - l * s2;
+  const p = 2 * l - q;
+  return {
+    r: Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+    g: Math.round(hue2rgb(p, q, h) * 255),
+    b: Math.round(hue2rgb(p, q, h - 1 / 3) * 255)
+  };
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4;
+    }
+    h *= 60;
+  }
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+function toHex2(n) { return Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0'); }
+function alphaHex(a) { return Math.round(a * 255).toString(16).padStart(2, '0'); }
+
+function parseInput() {
+  const fmt = formatSel.value;
+  const raw = colorInput.value.trim();
+  if (fmt === 'hex') return parseHex(raw);
+  if (fmt === 'rgb') return parseRgb(raw);
+  if (fmt === 'hsl') return parseHsl(raw);
+  return null;
+}
+
+function calc() {
+  try {
+    const rgb = parseInput();
+    const a = parseFloat(alphaInput.value);
+    if (!rgb) {
+      output.textContent = '⚠️ 颜色解析失败，请检查格式';
+      preview.style.background = 'transparent';
+      contrastLabel.textContent = '';
+      return;
+    }
+    if (isNaN(a) || a < 0 || a > 1) {
+      output.textContent = '⚠️ alpha 必须在 0-1 之间';
+      return;
+    }
+    alphaLabel.textContent = a.toFixed(2);
+    const { r, g, b } = rgb;
+    const hex6 = '#' + toHex2(r) + toHex2(g) + toHex2(b);
+    const hex8 = hex6 + alphaHex(a);
+    const rgba = 'rgba(' + r + ', ' + g + ', ' + b + ', ' + a + ')';
+    const hsl = rgbToHsl(r, g, b);
+    const hsla = 'hsla(' + hsl.h + ', ' + hsl.s + '%, ' + hsl.l + '%, ' + a + ')';
+    const fill = a >= 1 ? hex6 : rgba;
+    preview.style.background = fill;
+    if (a < 1) {
+      preview.style.background = 'linear-gradient(' + rgba + ', ' + rgba + ')';
+    } else {
+      preview.style.background = hex6;
+    }
+    const luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const textCol = luma > 0.55 ? '#111' : '#fff';
+    contrastLabel.innerHTML = '<div style="background:' + hex6 + ';color:' + textCol + ';padding:0.6rem 0.9rem;border-radius:8px;width:100%;font-weight:600;">' + hex6 + '<br/><span style="opacity:0.8;font-size:0.8rem;">alpha = ' + a + '</span></div>';
+    output.textContent =
+      'HEX8  : ' + hex8 + '\n' +
+      'RGBA  : ' + rgba + '\n' +
+      'HSLA  : ' + hsla + '\n' +
+      '------\n' +
+      'R = ' + r + '  G = ' + g + '  B = ' + b + '\n' +
+      'H = ' + hsl.h + '  S = ' + hsl.s + '%  L = ' + hsl.l + '%';
+  } catch (e) {
+    output.textContent = '错误：' + (e && e.message ? e.message : e);
+  }
+}
+
+[formatSel, colorInput, alphaInput].forEach(el => el.addEventListener('input', calc));
+document.getElementById('copyOutput').onclick = () => copyToClipboard(output.textContent);
+calc();
+  </script>
+</body>
+</html>

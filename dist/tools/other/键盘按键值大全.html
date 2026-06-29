@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>键盘按键值大全 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="键盘按键值大全 - 🍀 CloverTools">
+  <meta property="og:description" content="查询键盘按键对应的 keyCode、code、key 值表，支持搜索筛选与实时按键监听">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/other/键盘按键值大全.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="键盘按键值大全 - 🍀 CloverTools">
+  <meta name="twitter:description" content="查询键盘按键对应的 keyCode、code、key 值表，支持搜索筛选与实时按键监听">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/other/键盘按键值大全.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>键盘按键值大全</h1>
+        <p class="description">查询键盘按键对应的 keyCode、code、key 值表，支持搜索筛选与实时按键监听</p>
+      </div>
+      <div class="tool-layout ">
+        
+      <div class="tool-card">
+        <h3>⌨️ 实时按键监听</h3>
+        <p style="font-size:0.85rem;opacity:0.7;margin:0.25rem 0 0.75rem;">将焦点放在下方输入框或任意位置，然后按下任意键查看对应的 keyCode / code / key 值</p>
+        <div id="liveArea" tabindex="0" style="padding:1.25rem;border:2px dashed var(--border);border-radius:12px;background:var(--bg-secondary);text-align:center;cursor:text;outline:none;transition:border-color .2s,background .2s;">
+          <div style="opacity:0.55;font-size:0.9rem;margin-bottom:0.75rem;">👇 点击此处后按键</div>
+          <div id="liveResult" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;">
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">key</div>
+              <div id="liveKey" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;word-break:break-all;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">code</div>
+              <div id="liveCode" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;word-break:break-all;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">keyCode</div>
+              <div id="liveKeyCode" style="font-size:1.2rem;font-weight:600;font-family:'SF Mono',monospace;margin-top:0.2rem;">-</div>
+            </div>
+            <div style="background:var(--bg);padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+              <div style="font-size:0.7rem;opacity:0.6;text-transform:uppercase;letter-spacing:0.05em;">location</div>
+              <div id="liveLocation" style="font-size:1rem;font-weight:500;margin-top:0.2rem;">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>🔍 查询按键表</h3>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+          <input type="text" id="searchInput" placeholder="搜索 key / code / keyCode..." style="flex:1;min-width:180px;padding:0.5rem 0.75rem;font-family:monospace;border:1px solid var(--border);border-radius:6px;background:var(--bg);">
+          <select id="catFilter" style="padding:0.5rem;border:1px solid var(--border);border-radius:6px;background:var(--bg);">
+            <option value="all">全部分类</option>
+            <option value="letter">字母 (A-Z)</option>
+            <option value="digit">数字 (0-9)</option>
+            <option value="function">功能键 (F1-F12)</option>
+            <option value="control">控制键 (Enter/Tab/Esc/...)</option>
+            <option value="arrow">方向键</option>
+            <option value="modifier">修饰键 (Ctrl/Shift/Alt/Meta)</option>
+            <option value="numpad">小键盘</option>
+          </select>
+        </div>
+        <p id="resultCount" style="font-size:0.85rem;opacity:0.65;margin:0 0 0.5rem;">共 0 个按键</p>
+        <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;">
+          <table id="keyTable" style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+            <thead>
+              <tr style="background:var(--bg-secondary);text-align:left;">
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">分类</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">key</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">code</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;">keyCode</th>
+                <th style="padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);font-weight:600;width:80px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="keyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>💡 使用提示</h3>
+        <ul style="margin:0.5rem 0 0 1.25rem;line-height:1.8;font-size:0.92rem;">
+          <li><b>key</b>：键的字符值（如 <code>a</code>、<code>Enter</code>、<code>ArrowUp</code>）</li>
+          <li><b>code</b>：物理按键标识（与键盘布局无关，如 <code>KeyA</code>、<code>Digit1</code>）</li>
+          <li><b>keyCode</b>：传统数字编码（已弃用，但仍广泛使用）</li>
+          <li>点击表格中的 keyCode 单元格可快速复制到剪贴板</li>
+          <li>实时监听区域支持 modifier、组合键（Ctrl+C 等）检测</li>
+        </ul>
+      </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+// 键盘按键值数据 - 92 entries
+const KEYS_DATA = [
+  // Letters A-Z
+  { key: 'A', code: 'KeyA', keyCode: 65, category: 'letter' },
+  { key: 'B', code: 'KeyB', keyCode: 66, category: 'letter' },
+  { key: 'C', code: 'KeyC', keyCode: 67, category: 'letter' },
+  { key: 'D', code: 'KeyD', keyCode: 68, category: 'letter' },
+  { key: 'E', code: 'KeyE', keyCode: 69, category: 'letter' },
+  { key: 'F', code: 'KeyF', keyCode: 70, category: 'letter' },
+  { key: 'G', code: 'KeyG', keyCode: 71, category: 'letter' },
+  { key: 'H', code: 'KeyH', keyCode: 72, category: 'letter' },
+  { key: 'I', code: 'KeyI', keyCode: 73, category: 'letter' },
+  { key: 'J', code: 'KeyJ', keyCode: 74, category: 'letter' },
+  { key: 'K', code: 'KeyK', keyCode: 75, category: 'letter' },
+  { key: 'L', code: 'KeyL', keyCode: 76, category: 'letter' },
+  { key: 'M', code: 'KeyM', keyCode: 77, category: 'letter' },
+  { key: 'N', code: 'KeyN', keyCode: 78, category: 'letter' },
+  { key: 'O', code: 'KeyO', keyCode: 79, category: 'letter' },
+  { key: 'P', code: 'KeyP', keyCode: 80, category: 'letter' },
+  { key: 'Q', code: 'KeyQ', keyCode: 81, category: 'letter' },
+  { key: 'R', code: 'KeyR', keyCode: 82, category: 'letter' },
+  { key: 'S', code: 'KeyS', keyCode: 83, category: 'letter' },
+  { key: 'T', code: 'KeyT', keyCode: 84, category: 'letter' },
+  { key: 'U', code: 'KeyU', keyCode: 85, category: 'letter' },
+  { key: 'V', code: 'KeyV', keyCode: 86, category: 'letter' },
+  { key: 'W', code: 'KeyW', keyCode: 87, category: 'letter' },
+  { key: 'X', code: 'KeyX', keyCode: 88, category: 'letter' },
+  { key: 'Y', code: 'KeyY', keyCode: 89, category: 'letter' },
+  { key: 'Z', code: 'KeyZ', keyCode: 90, category: 'letter' },
+  // Digits 0-9
+  { key: '0', code: 'Digit0', keyCode: 48, category: 'digit' },
+  { key: '1', code: 'Digit1', keyCode: 49, category: 'digit' },
+  { key: '2', code: 'Digit2', keyCode: 50, category: 'digit' },
+  { key: '3', code: 'Digit3', keyCode: 51, category: 'digit' },
+  { key: '4', code: 'Digit4', keyCode: 52, category: 'digit' },
+  { key: '5', code: 'Digit5', keyCode: 53, category: 'digit' },
+  { key: '6', code: 'Digit6', keyCode: 54, category: 'digit' },
+  { key: '7', code: 'Digit7', keyCode: 55, category: 'digit' },
+  { key: '8', code: 'Digit8', keyCode: 56, category: 'digit' },
+  { key: '9', code: 'Digit9', keyCode: 57, category: 'digit' },
+  // Function keys F1-F12
+  { key: 'F1', code: 'F1', keyCode: 112, category: 'function' },
+  { key: 'F2', code: 'F2', keyCode: 113, category: 'function' },
+  { key: 'F3', code: 'F3', keyCode: 114, category: 'function' },
+  { key: 'F4', code: 'F4', keyCode: 115, category: 'function' },
+  { key: 'F5', code: 'F5', keyCode: 116, category: 'function' },
+  { key: 'F6', code: 'F6', keyCode: 117, category: 'function' },
+  { key: 'F7', code: 'F7', keyCode: 118, category: 'function' },
+  { key: 'F8', code: 'F8', keyCode: 119, category: 'function' },
+  { key: 'F9', code: 'F9', keyCode: 120, category: 'function' },
+  { key: 'F10', code: 'F10', keyCode: 121, category: 'function' },
+  { key: 'F11', code: 'F11', keyCode: 122, category: 'function' },
+  { key: 'F12', code: 'F12', keyCode: 123, category: 'function' },
+  // Control keys
+  { key: 'Enter', code: 'Enter', keyCode: 13, category: 'control' },
+  { key: 'Tab', code: 'Tab', keyCode: 9, category: 'control' },
+  { key: 'Escape', code: 'Escape', keyCode: 27, category: 'control' },
+  { key: ' ', code: 'Space', keyCode: 32, category: 'control' },
+  { key: 'Backspace', code: 'Backspace', keyCode: 8, category: 'control' },
+  { key: 'Delete', code: 'Delete', keyCode: 46, category: 'control' },
+  { key: 'Insert', code: 'Insert', keyCode: 45, category: 'control' },
+  { key: 'ContextMenu', code: 'ContextMenu', keyCode: 93, category: 'control' },
+  // Arrow keys
+  { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38, category: 'arrow' },
+  { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, category: 'arrow' },
+  { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37, category: 'arrow' },
+  { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39, category: 'arrow' },
+  { key: 'Home', code: 'Home', keyCode: 36, category: 'arrow' },
+  { key: 'End', code: 'End', keyCode: 35, category: 'arrow' },
+  { key: 'PageUp', code: 'PageUp', keyCode: 33, category: 'arrow' },
+  { key: 'PageDown', code: 'PageDown', keyCode: 34, category: 'arrow' },
+  // Modifier keys
+  { key: 'Shift', code: 'ShiftLeft', keyCode: 16, category: 'modifier' },
+  { key: 'Shift', code: 'ShiftRight', keyCode: 16, category: 'modifier' },
+  { key: 'Control', code: 'ControlLeft', keyCode: 17, category: 'modifier' },
+  { key: 'Control', code: 'ControlRight', keyCode: 17, category: 'modifier' },
+  { key: 'Alt', code: 'AltLeft', keyCode: 18, category: 'modifier' },
+  { key: 'Alt', code: 'AltRight', keyCode: 18, category: 'modifier' },
+  { key: 'Meta', code: 'MetaLeft', keyCode: 91, category: 'modifier' },
+  { key: 'Meta', code: 'MetaRight', keyCode: 92, category: 'modifier' },
+  { key: 'CapsLock', code: 'CapsLock', keyCode: 20, category: 'modifier' },
+  { key: 'NumLock', code: 'NumLock', keyCode: 144, category: 'modifier' },
+  { key: 'ScrollLock', code: 'ScrollLock', keyCode: 145, category: 'modifier' },
+  { key: 'ContextMenu', code: 'ContextMenu', keyCode: 93, category: 'modifier' },
+  // Numpad
+  { key: '0', code: 'Numpad0', keyCode: 96, category: 'numpad' },
+  { key: '1', code: 'Numpad1', keyCode: 97, category: 'numpad' },
+  { key: '2', code: 'Numpad2', keyCode: 98, category: 'numpad' },
+  { key: '3', code: 'Numpad3', keyCode: 99, category: 'numpad' },
+  { key: '4', code: 'Numpad4', keyCode: 100, category: 'numpad' },
+  { key: '5', code: 'Numpad5', keyCode: 101, category: 'numpad' },
+  { key: '6', code: 'Numpad6', keyCode: 102, category: 'numpad' },
+  { key: '7', code: 'Numpad7', keyCode: 103, category: 'numpad' },
+  { key: '8', code: 'Numpad8', keyCode: 104, category: 'numpad' },
+  { key: '9', code: 'Numpad9', keyCode: 105, category: 'numpad' },
+  { key: '+', code: 'NumpadAdd', keyCode: 107, category: 'numpad' },
+  { key: '-', code: 'NumpadSubtract', keyCode: 109, category: 'numpad' },
+  { key: '*', code: 'NumpadMultiply', keyCode: 106, category: 'numpad' },
+  { key: '/', code: 'NumpadDivide', keyCode: 111, category: 'numpad' },
+  { key: 'Enter', code: 'NumpadEnter', keyCode: 13, category: 'numpad' },
+  { key: '.', code: 'NumpadDecimal', keyCode: 110, category: 'numpad' },
+];
+
+const CAT_LABEL = {
+  letter: '字母',
+  digit: '数字',
+  function: '功能键',
+  control: '控制键',
+  arrow: '方向键',
+  modifier: '修饰键',
+  numpad: '小键盘',
+};
+
+const CAT_ORDER = ['letter', 'digit', 'function', 'control', 'arrow', 'modifier', 'numpad'];
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  // Fallback
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  return Promise.resolve();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+const tbody = document.getElementById('keyTableBody');
+const searchInput = document.getElementById('searchInput');
+const catFilter = document.getElementById('catFilter');
+const resultCount = document.getElementById('resultCount');
+const liveArea = document.getElementById('liveArea');
+const liveKey = document.getElementById('liveKey');
+const liveCode = document.getElementById('liveCode');
+const liveKeyCode = document.getElementById('liveKeyCode');
+const liveLocation = document.getElementById('liveLocation');
+
+function renderTable() {
+  const q = (searchInput.value || '').trim().toLowerCase();
+  const cat = catFilter.value;
+  const filtered = KEYS_DATA.filter(k => {
+    if (cat !== 'all' && k.category !== cat) return false;
+    if (!q) return true;
+    return String(k.key).toLowerCase().includes(q)
+      || String(k.code).toLowerCase().includes(q)
+      || String(k.keyCode).includes(q);
+  });
+  resultCount.textContent = `共 ${filtered.length} 个按键（共 ${KEYS_DATA.length}）`;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:1.5rem;text-align:center;opacity:0.6;">无匹配结果</td></tr>';
+    return;
+  }
+  // Sort by category order, then by keyCode
+  const catIdx = c => CAT_ORDER.indexOf(c);
+  filtered.sort((a, b) => {
+    const c = catIdx(a.category) - catIdx(b.category);
+    if (c !== 0) return c;
+    return a.keyCode - b.keyCode;
+  });
+  const rows = filtered.map((k, i) => {
+    const bg = i % 2 === 0 ? '' : 'background:var(--bg-secondary);';
+    return `<tr style="${bg}">
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);"><span style="display:inline-block;padding:0.15rem 0.5rem;background:var(--primary);color:#fff;border-radius:4px;font-size:0.78rem;">${escapeHtml(CAT_LABEL[k.category] || k.category)}</span></td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;font-weight:600;">${escapeHtml(k.key)}</td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;color:var(--primary);">${escapeHtml(k.code)}</td>
+      <td class="kc-cell" data-kc="${k.keyCode}" style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);font-family:'SF Mono',monospace;cursor:pointer;user-select:none;" title="点击复制">${k.keyCode}</td>
+      <td style="padding:0.55rem 0.75rem;border-bottom:1px solid var(--border);">
+        <button class="copy-btn copy-kc" data-kc="${k.keyCode}" style="padding:0.2rem 0.55rem;font-size:0.78rem;border:1px solid var(--border);background:var(--bg);border-radius:4px;cursor:pointer;">复制</button>
+      </td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML = rows;
+}
+
+searchInput.addEventListener('input', renderTable);
+catFilter.addEventListener('change', renderTable);
+
+// Click-to-copy: cell and button
+tbody.addEventListener('click', e => {
+  let kc = null;
+  const cell = e.target.closest('.kc-cell');
+  const btn = e.target.closest('.copy-kc');
+  if (btn) kc = btn.dataset.kc;
+  else if (cell) kc = cell.dataset.kc;
+  if (kc === null || kc === undefined) return;
+  copyToClipboard(kc).then(() => {
+    if (CT && CT.showToast) CT.showToast('已复制 keyCode: ' + kc);
+  });
+});
+
+// Real-time key listener
+function updateLive(e) {
+  e.preventDefault();
+  liveKey.textContent = e.key;
+  liveCode.textContent = e.code || '-';
+  liveKeyCode.textContent = e.keyCode;
+  const locMap = { 0: '标准', 1: '左侧', 2: '右侧', 3: '小键盘' };
+  liveLocation.textContent = locMap[e.location] !== undefined ? locMap[e.location] : e.location;
+  liveArea.style.borderColor = 'var(--primary)';
+  liveArea.style.background = 'var(--bg)';
+  setTimeout(() => {
+    liveArea.style.borderColor = '';
+    liveArea.style.background = '';
+  }, 150);
+}
+
+document.addEventListener('keydown', updateLive);
+
+// Initial render
+renderTable();
+
+    
+  </script>
+</body>
+</html>

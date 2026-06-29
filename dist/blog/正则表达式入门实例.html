@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正则表达式入门与实例完全指南</title>
+  <meta name="description" content="从零掌握正则表达式，含Flags、元字符、5个实战示例（邮箱/手机号/URL/IP/脱敏）、6种常见错误，JS/Python双语言示例。">
+  <meta name="keywords" content="正则表达式入门实例,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/正则表达式入门实例">
+  <meta property="og:title" content="正则表达式入门实例 - CloverTools">
+  <meta property="og:description" content="解决正则表达式入门实例的实战方法,配合正则表达式测试器在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/正则表达式入门实例">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">正则表达式</span></span>
+      <h1 class="article-title">正则表达式入门实例</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; 正则表达式入门实例
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <h1>正则表达式入门与实例：用JavaScript搞定文本校验</h1>
+
+<p>你一定见过这种场景：用户在注册表单里填了个 <code>abc@def</code>，你想拦却拦不住；后端传来一串手机号，你肉眼看不出是不是多了个空格；领导让你从一段日志里提取所有 IP 地址，你只能一行行复制粘贴。这些问题，正则表达式（Regular Expression，简称 <code>regex</code>）一个模式就能解决。</p>
+
+<p>正则表达式是程序员的文本瑞士军刀。无论是表单验证、日志分析、数据清洗还是 URL 路由匹配，它都是首选工具。本文用 <strong>JavaScript（ES6+）</strong> 做示例，覆盖从语法基础到实战避坑，帮助你真正上手。</p>
+
+<h2>一、正则能解决什么问题？</h2>
+
+<p>先把痛点说清楚。正则表达式的核心能力就三个：</p>
+
+<ul>
+<li><strong>匹配（Test）</strong>：这段文本是否符合某个模式？如验证邮箱格式。</li>
+<li><strong>提取（Match）</strong>：从文本中捞出符合条件的片段。如从日志提取 IP 地址。</li>
+<li><strong>替换（Replace）</strong>：把符合模式的内容替换成别的。如敏感词脱敏。</li>
+</ul>
+
+<p>没有正则的时候，你可能要写一堆 <code>String.indexOf</code> + <code>substring</code> 的拼接代码，复杂且难维护。用正则，一行搞定。</p>
+
+<h2>二、JavaScript 中创建正则的两种方式</h2>
+
+<p>JavaScript 中有两种创建正则的方式，各有适用场景：</p>
+
+<h3>1. 字面量语法（推荐）</h3>
+
+<pre><code>const re = /pattern/flags;
+</code></pre>
+
+<p>适用于pattern在写代码时就确定的情况。性能更好（引擎在编译期就解析好了）。</p>
+
+<h3>2. 构造函数（动态构建）</h3>
+
+<pre><code>const re = new RegExp('pattern', 'flags');
+</code></pre>
+
+<p>适用于pattern需要动态拼接的情况，比如根据变量组装正则。</p>
+
+<pre><code>const fieldName = 'email';
+const re = new RegExp(`^${fieldName}:\\s*(.+)<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正则表达式入门与实例完全指南</title>
+  <meta name="description" content="从零掌握正则表达式，含Flags、元字符、5个实战示例（邮箱/手机号/URL/IP/脱敏）、6种常见错误，JS/Python双语言示例。">
+  <meta name="keywords" content="正则表达式入门实例,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/正则表达式入门实例">
+  <meta property="og:title" content="正则表达式入门实例 - CloverTools">
+  <meta property="og:description" content="解决正则表达式入门实例的实战方法,配合正则表达式测试器在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/正则表达式入门实例">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">正则表达式</span></span>
+      <h1 class="article-title">正则表达式入门实例</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; 正则表达式入门实例
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      , 'm');
+// 匹配 "email: test@example.com"
+</code></pre>
+
+<h3>Flags（标志位）一览</h3>
+
+<table>
+<tr><th>Flag</th><th>含义</th><th>说明</th></tr>
+<tr><td><code>g</code></td><td>全局匹配</td><td>找出所有匹配，不只是第一个</td></tr>
+<tr><td><code>i</code></td><td>忽略大小写</td><td><code>A</code> 匹配 <code>a</code></td></tr>
+<tr><td><code>m</code></td><td>多行模式</td><td><code>^</code> 和 <code>$</code> 匹配每行开头/结尾</td></tr>
+<tr><td><code>s</code></td><td>单行模式</td><td><code>.</code> 匹配换行符</td></tr>
+<tr><td><code>u</code></td><td>Unicode 模式</td><td>正确处理 Unicode 字符</td></tr>
+</table>
+
+<h2>三、基础语法：元字符速查</h2>
+
+<h3>字符类</h3>
+
+<pre><code>[abc]   // 匹配 a、b 或 c 中的任意一个
+[^abc]  // 匹配除了 a、b、c 以外的任意字符
+[a-z]   // 匹配小写字母
+[A-Z]   // 匹配大写字母
+[0-9]   // 匹配数字，等价于 \d
+</code></pre>
+
+<h3>预定义字符类</h3>
+
+<pre><code>\d  // 数字 [0-9]
+\D  // 非数字 [^0-9]
+\w  // 单词字符 [A-Za-z0-9_]
+\W  // 非单词字符
+\s  // 空白字符（空格、制表符、换行等）
+\S  // 非空白字符
+.   // 任意字符（换行符除外，s模式下包含换行）
+</code></pre>
+
+<h3>锚点（Assertion）</h3>
+
+<pre><code>^   // 字符串开头（多行模式下为行开头）
+$   // 字符串结尾（多行模式下为行结尾）
+\b  // 单词边界
+\B  // 非单词边界
+</code></pre>
+
+<p>注意：<code>^</code> 在字符类 <code>[]</code> 内部时是"取反"的意思，在外部是"开头锚点"。这是很多人容易搞混的地方。</p>
+
+<h3>量词（Quantifier）</h3>
+
+<pre><code>{n}      // 恰好 n 次
+{n,}     // 至少 n 次
+{n,m}    // n 到 m 次
+*        // 0次或多次，等价于 {0,}
++        // 1次或多次，等价于 {1,}
+?        // 0次或1次，也用于非贪婪模式
+</code></pre>
+
+<h3>量词默认是贪婪的，会尽可能多匹配。加上 <code>?</code> 变成非贪婪（lazy）模式：</h3>
+
+<pre><code>'1234'.match(/\d+/g)      // ["1234"]  贪婪：全拿
+'1234'.match(/\d+?/g)     // ["1","2","3","4"]  非贪婪：够用就行
+</code></pre>
+
+<h3>分组与引用</h3>
+
+<pre><code>(abc)       // 捕获组，匹配并记住
+(?:abc)      // 非捕获组，匹配但不记住（性能更好）
+(?&lt;name&gt;abc) // 命名捕获组（ES2018+）
+
+// 引用分组
+'2026-05-08'.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2/$3/$1')
+// 结果: "05/08/2026"
+</code></pre>
+
+<h3>或运算</h3>
+
+<pre><code>cat|dog    // 匹配 "cat" 或 "dog"
+</code></pre>
+
+<h2>四、实战示例：用 JavaScript 验证常见数据</h2>
+
+<h3>示例1：验证邮箱格式</h3>
+
+<p>邮箱格式看似简单，但完整的 RFC 5322 规范极其复杂。实际开发中通常用简化版即可：</p>
+
+<pre><code>function isValidEmail(email) {
+  const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return re.test(email);
+}
+
+console.log(isValidEmail('test@example.com')); // true
+console.log(isValidEmail('invalid-email'));     // false
+console.log(isValidEmail('@example.com'));     // false
+</code></pre>
+
+<p><strong>解释：</strong></p>
+<ul>
+<li><code>^</code> 和 <code>$</code> 确保从头到尾整个字符串符合格式，防止 <code>abc@test.com.abc</code> 这样的非法邮箱通过。</li>
+<li><code>[a-zA-Z0-9._%+-]+</code> 匹配本地部分（@前面的部分），允许字母、数字和常见符号。</li>
+<li><code>@[a-zA-Z0-9.-]+</code> 匹配域名。</li>
+<li><code>\.[a-zA-Z]{2,}</code> 匹配顶域（如 .com、.cn），至少2个字母。</li>
+</ul>
+
+<h3>示例2：验证中国手机号（11位）</h3>
+
+<pre><code>function isValidPhone(phone) {
+  // 严格：1开头，第二位是3-9，后面9位数字
+  const re = /^1[3-9]\d{9}$/;
+  return re.test(phone);
+}
+
+console.log(isValidPhone('13812345678'));  // true
+console.log(isValidPhone('1381234567'));   // false（10位）
+console.log(isValidPhone('23812345678'));  // false（非1开头）
+console.log(isValidPhone('138123456789')); // false（12位）
+console.log(isValidPhone('138 1234 5678')); // false（含空格）
+</code></pre>
+
+<p>如果需要兼容空格或横杠分隔的格式：</p>
+
+<pre><code>function isValidPhoneFlexible(phone) {
+  const re = /^1[3-9][\s-]?\d{4}[\s-]?\d{4}$/;
+  return re.test(phone.replace(/\s/g, '')); // 先去掉空格再验证
+}
+</code></pre>
+
+<h3>示例3：提取 URL 中的域名和路径</h3>
+
+<pre><code>const url = 'https://clovertools.cn/tools/code/regex-tester.html?from=article';
+
+// 捕获组：协议、域名、路径、查询参数
+const re = /^([https]+):\/\/([^\/]+)(\/[^?]*)?(\?.*)?$/;
+const match = url.match(re);
+
+if (match) {
+  console.log('协议:', match[1]);      // https
+  console.log('域名:', match[2]);      // tools.xsanye.cn
+  console.log('路径:', match[3]);      // /tools/code/regex-tester.html
+  console.log('查询:', match[4]);      // ?from=article
+}
+
+// 用命名捕获组（更清晰）
+const reNamed = /^(?&lt;protocol&gt;https?):\/\/(?&lt;host&gt;[^\/]+)(?&lt;path&gt;\/[^\?]*)?(?&lt;query&gt;\?.*)?$/;
+const named = url.match(reNamed);
+console.log(named.groups?.host); // tools.xsanye.cn
+</code></pre>
+
+<h3>示例4：提取日志中的 IP 地址</h3>
+
+<pre><code>const log = `2026-05-08 10:23:45 请求来自 192.168.1.100，处理完成
+2026-05-08 10:24:11 请求来自 10.0.0.255，异常: 超时
+2026-05-08 10:25:33 请求来自 192.168.1.100，限流触发`;
+
+// 提取所有 IP（简化版，符合 IPv4）
+const ipRe = /\b(\d{1,3}\.){3}\d{1,3}\b/g;
+const ips = log.match(ipRe);
+console.log([...new Set(ips)]); 
+// ["192.168.1.100", "10.0.0.255"]
+// 用 Set 去重
+</code></pre>
+
+<h3>示例5：敏感信息脱敏（手机号、身份证）</h3>
+
+<pre><code>function maskPhone(phone) {
+  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+}
+function maskId(id) {
+  return id.replace(/(\d{6})\d{8}(\w{4})/, '$1********$2');
+}
+
+console.log(maskPhone('13812345678')); // 138****5678
+console.log(maskId('110101199001011234')); // 110101********1234
+</code></pre>
+
+<h2>五、常见错误与排坑指南</h2>
+
+<h3>错误1：忘记 ^ 和 $ 锚点，匹配到部分内容</h3>
+
+<pre><code>// 错误写法：验证是否包含邮箱
+const re = /[a-z]+@[a-z]+\.[a-z]+/;
+re.test('我的邮箱是abc@def.com，不是这个'); 
+// true —— 但你可能只想验证整个字符串是邮箱
+
+// 正确写法：要求整个字符串是邮箱
+const reStrict = /^[a-z]+@[a-z]+\.[a-z]+$/;
+reStrict.test('我的邮箱是abc@def.com'); 
+// false —— 只有 "abc@def.com" 才会通过
+</code></pre>
+
+<h3>错误2：. 不匹配换行符，导致多行文本匹配失败</h3>
+
+<pre><code>const text = '第一行\n第二行';
+text.match(/.+/.source);     // ["第一行"] —— . 不匹配 \n
+text.match(/.+/s.source);     // ["第一行\n第二行"] —— s 标志让 . 匹配换行
+text.match(/.+/gs.source);    // ["第一行", "第二行"] —— 多行+全局
+</code></pre>
+
+<h3>错误3：字符类里忘了转义，匹配到意外字符</h3>
+
+<pre><code>// 想匹配点号，但点号在字符类外是正则特殊字符
+const re1 = /[a.b]/;   // 匹配 a、.、b 中的任意一个
+const re2 = /[a\\.b]/; // 正确匹配字面点号，需要转义
+
+// 想匹配 \ ，要写四个反斜杠
+const re3 = /[\\]/;   // 匹配反斜杠
+</code></pre>
+
+<h3>错误4：量词位置错误导致匹配不符合预期</h3>
+
+<pre><code>// 想匹配 1-100 的数字
+const re = /[1-9]{1,2}|100/;  
+// 问题：| 优先级很低，等价于 ([1-9]{1,2}) | (100)
+// "99" 通过，"100" 中的 "10" 也会先通过
+
+// 正确：整体加括号控制优先级
+const reFixed = /^([1-9]{1,2}|100)$/;
+console.log(reFixed.test('99'));   // true
+console.log(reFixed.test('100'));  // true
+console.log(reFixed.test('101'));  // false
+console.log(reFixed.test('0'));    // false
+</code></pre>
+
+<h3>错误5：字符串转义陷阱（动态正则）</h3>
+
+<pre><code>// 用户输入可能包含正则特殊字符，直接拼接会出错
+const userInput = 'google.com'; // 用户可能输入的域名
+const re = new RegExp('^' + userInput + '
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/tools/code/regex-tester.html">正则表达式测试器</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 如何使用 正则表达式入门实例 相关工具?</strong><br>A: 这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。</div>
+<div class="faq-item"><strong>Q: 正则表达式入门实例 适合在什么场景使用?</strong><br>A: 根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。</div>
+<div class="faq-item"><strong>Q: 有没有更好的替代工具?</strong><br>A: 不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。</div>
+      </div>
+
+      <div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list"><li><a href="/blog/正则永远匹配不到这篇帮你彻底搞懂">正则永远匹配不到这篇帮你彻底搞懂</a></li></ul>
+</div>
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>
+);
+// 生成的是 /^google.com$/ —— . 被当成了通配符
+// "googleXcom" 也会匹配通过
+
+// 正确：转义特殊字符
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\{{ARTICLE_CONTENT}}');
+}
+const reSafe = new RegExp('^' + escapeRegExp(userInput) + '
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        {{TOOL_LINKS}}
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        {{FAQ_CONTENT}}
+      </div>
+
+      {{RELATED_QUESTIONS}}
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>
+);
+reSafe.test('google.com');  // true
+reSafe.test('googleXcom'); // false
+</code></pre>
+
+<h3>错误6：捕获组编号搞混，特别是替换时</h3>
+
+<pre><code>// 替换时 $1 $2 指的顺序是括号出现顺序，不是内容顺序
+const html = '&lt;span&gt;Hello&lt;/span&gt;';
+// 想替换标签为 div，但结果不对
+html.replace(/&lt;(\w+)&gt;(.*?)&lt;\/\1&gt;/, '&lt;div&gt;$2&lt;/div&gt;');
+// 结果: "&lt;div&gt;Hello&lt;/div&gt;" —— 正确！\1 引用 (&lt;span&gt;) 的标签名
+
+// 如果有嵌套捕获组，按左括号顺序数
+'</code></pre>
+
+<h2>六、RegExp 常用方法速查</h2>
+
+<pre><code>// test() —— 返回布尔值，最快判断是否匹配
+/\d+/.test('abc123'); // true
+
+// exec() —— 返回匹配详情（含捕获组、索引位置），全局下可反复调用
+const re = /\d+/g;
+let m;
+while ((m = re.exec('a1b2c3')) !== null) {
+  console.log('匹配到:', m[0], '位置:', m.index);
+}
+
+// match() —— 字符串方法，全局下返回所有匹配数组，非全局返回 exec 类似结果
+'a1b2c3'.match(/\d/g);     // ["1","2","3"]
+'a1b2c3'.match(/(\d)/g);   // ["1","2","3"] —— capture group 不影响全局结果
+'a1b2c3'.match(/\d/);      // ["1", index: 1, ...] 非全局返回详细信息
+
+// replace() —— 字符串方法，支持捕获组和函数替换
+'Hello World'.replace(/(\w+)\s(\w+)/, '$2 $1'); // "World Hello"
+'price: 100'.replace(/\d+/, m => '
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        {{TOOL_LINKS}}
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        {{FAQ_CONTENT}}
+      </div>
+
+      {{RELATED_QUESTIONS}}
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>
+ + m); // "price: $100"
+</code></pre>
+
+<h2>七、学习建议与进阶路径</h2>
+
+<p>正则不难，但需要动手练习。不要光看，一定要写。</p>
+
+<ul>
+<li>从简单场景开始：验证数字、字母、固定格式。</li>
+<li>学会用 <code>console.log</code> 输出匹配结果，观察捕获组内容。</li>
+<li>了解正则引擎的"最左优先"匹配原则，理解贪婪和非贪婪的区别。</li>
+<li>进阶学习：环视（lookahead/lookbehind）、递归匹配、Unicode 属性（<code>\p{L}</code>）。</li>
+</ul>
+
+<h2>八、在线练习与工具推荐</h2>
+
+<p>看得懂不代表写得对。正则一定要动手试。</p>
+
+<p>推荐使用 CloverTools 的 <a href="https://clovertools.cn/tools/code/regex-tester.html">正则表达式测试器</a>，支持实时匹配、捕获组高亮、JavaScript 代码导出，可以边写边验证，遇到复杂模式时特别有用。</p>
+
+<hr />
+
+<p>正则表达式是每个开发者都应该掌握的基础技能。学会它，数据校验从烦琐变优雅，文本处理从手工变自动。从今天开始，少用字符串拼接，多用正则模式，你会发现代码质量和效率都会上一个台阶。</p>
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        {{TOOL_LINKS}}
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        {{FAQ_CONTENT}}
+      </div>
+
+      {{RELATED_QUESTIONS}}
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

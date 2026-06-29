@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>时间工具 - CloverTools</title>
+  <meta name="description" content="CloverTools 时间工具类工具,免费在线使用,无需注册。">
+  <link rel="stylesheet" href="/src/shared.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+<main class="container">
+  <div class="category-header">
+    <h1>时间工具</h1>
+    <p>共 21 个工具</p>
+  </div>
+  <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem 0">
+    
+    <div class="tool-card" onclick="location.href='/tools/time/age.html'">
+      <div class="tool-card-name">年龄计算器</div>
+      <div class="tool-card-desc">根据输入的出生日期精确计算周岁、虚岁和具体天数，同时显示距离下一个生日的倒计时，帮助用户了解自己的精确年龄和生命历程。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/calendar.html'">
+      <div class="tool-card-name">在线万年历</div>
+      <div class="tool-card-desc">在线万年历，支持1900年至2100年任意公历日期查询，显示公历、农历、星期、节气、节假日信息。界面简洁美观，适合日程规划与历史日期查询。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/countdown.html'">
+      <div class="tool-card-name">在线倒计时</div>
+      <div class="tool-card-desc">在线倒计时器，支持设定目标时间或自定义时长，实时显示剩余的日、时、分、秒，适用于活动报名、考试、赛事等需要精确把握时间的场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/interval.html'">
+      <div class="tool-card-name">日期间隔计算</div>
+      <div class="tool-card-desc">计算两个日期之间相隔的天数，支持从开始日期到结束日期的精确天数统计，可用于项目工期规划、合同期限计算或旅行计划安排。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/lunar-birthday.html'">
+      <div class="tool-card-name">农历生日转换器</div>
+      <div class="tool-card-desc">将农历出生日期转换为公历日期的工具，支持计算转换后的公历生日对应的周岁年龄，并显示当年的生肖属相信息，适合农历生日纪念和年龄核对。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/lunar-solar-converter.html'">
+      <div class="tool-card-name">公历农历互转器</div>
+      <div class="tool-card-desc">公历与农历日期互相转换的工具，支持公历转农历和农历转公历的双向查询，同时显示对应的星期、生肖和二十四节气等详细信息。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/timestamp.html'">
+      <div class="tool-card-name">时间戳转换</div>
+      <div class="tool-card-desc">Unix 时间戳与北京时间、UTC 时间之间的互相转换工具，支持十位和十三位时间戳格式，适用于程序员调试和日志分析场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/world-clock.html'">
+      <div class="tool-card-name">标准时间</div>
+      <div class="tool-card-desc">提供精确的世界时钟显示、时间单位换算以及 NTP 服务器校准功能，帮助用户将本地设备时间与国际标准时间同步，适用于对时间精度有较高要求的场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/world.html'">
+      <div class="tool-card-name">世界各地时间</div>
+      <div class="tool-card-desc">查看全球主要城市当前时间的在线工具，支持多时区同时对比，方便跨国沟通、会议安排和旅行规划时快速了解各地不同时区的当前时刻。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/unix-timestamp.html'">
+      <div class="tool-card-name">Unix 时间戳转换</div>
+      <div class="tool-card-desc">Unix 时间戳与北京时间互相转换，支持毫秒/秒级时间戳。</div>
+      <div class="tool-card-tags"><span class="tag">Unix</span><span class="tag">时间戳</span><span class="tag">timestamp</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/lunar-solar-bidir.html'">
+      <div class="tool-card-name">公历农历日期转换</div>
+      <div class="tool-card-desc">在线公历与农历日期双向转换，支持生肖、干支、农历月份查询。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/solar-terms.html'">
+      <div class="tool-card-name">二十四节气</div>
+      <div class="tool-card-desc">在线查询二十四节气时间与含义，支持节气倒计时与当年节气列表。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/expiry-calculator.html'">
+      <div class="tool-card-name">保质期计算</div>
+      <div class="tool-card-desc">在线保质期到期日计算器，根据生产日期和保质期推算过期时间。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/date-diff.html'">
+      <div class="tool-card-name">日期间隔查询</div>
+      <div class="tool-card-desc">在线计算两个日期之间间隔的天数、工作日、周数、月数。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/zodiac.html'">
+      <div class="tool-card-name">生肖星座查询</div>
+      <div class="tool-card-desc">在线生肖星座查询工具，输入生日查询对应生肖、星座、属相。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/dynasty.html'">
+      <div class="tool-card-name">中国历史朝代</div>
+      <div class="tool-card-desc">在线中国历史朝代查询表，支持朝代起止时间、都城、开国君主。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/stopwatch.html'">
+      <div class="tool-card-name">秒表计时器</div>
+      <div class="tool-card-desc">在线秒表计时器，支持精确到毫秒、计次/计圈、分段计时、历史记录。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/timezone-converter.html'">
+      <div class="tool-card-name">时区转换器</div>
+      <div class="tool-card-desc">全球主要时区时间互转，支持DST夏令时调整，可同时显示多个城市当前时间对照。</div>
+      <div class="tool-card-tags"><span class="tag">时区转换</span><span class="tag">世界时间</span><span class="tag">夏令时</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/workday-calculator.html'">
+      <div class="tool-card-name">工作日计算器</div>
+      <div class="tool-card-desc">计算两个日期之间的工作日天数，排除周末和自定义节假日列表，支持显示每天日期详情。</div>
+      <div class="tool-card-tags"><span class="tag">工作日计算</span><span class="tag">节假日</span><span class="tag">工期计算</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/schedule-memo.html'">
+      <div class="tool-card-name">日程表/备忘录</div>
+      <div class="tool-card-desc">在线日程管理与备忘录工具，支持日、周、月视图，分类标签、优先级标记与本地存储，适合个人事务规划与待办清单。</div>
+      <div class="tool-card-tags"><span class="tag">日程表</span><span class="tag">备忘录</span><span class="tag">待办事项</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/time/holiday-2026.html'">
+      <div class="tool-card-name">2026年放假安排</div>
+      <div class="tool-card-desc">查询 2026 年法定节假日放假安排，支持调休上班日标注、假期天数计算与日历导出，适合出行规划与排班参考。</div>
+      <div class="tool-card-tags"><span class="tag">2026放假</span><span class="tag">节假日</span><span class="tag">放假安排</span></div>
+    </div>
+  </div>
+</main>
+<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+</body>
+</html>

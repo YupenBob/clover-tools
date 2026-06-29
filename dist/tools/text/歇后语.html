@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>歇后语 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="歇后语 - 🍀 CloverTools">
+  <meta property="og:description" content="在线查询常用歇后语，支持按类型、字数与关键词筛选，提供完整答案与背景解释。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/text/歇后语.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="歇后语 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线查询常用歇后语，支持按类型、字数与关键词筛选，提供完整答案与背景解释。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/text/歇后语.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>歇后语</h1>
+        <p class="description">在线查询常用歇后语，支持按类型、字数与关键词筛选，提供完整答案与背景解释。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>查询歇后语</h3>
+  <div style="display:grid;grid-template-columns:1fr auto;gap:0.5rem;margin-bottom:0.75rem;">
+    <input type="text" id="searchInput" placeholder="输入关键词搜索（如：外甥、八仙、猪）..." style="padding:0.6rem;border-radius:8px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);">
+    <button class="btn btn-primary" id="randomBtn">🎲 随机</button>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;align-items:center;font-size:0.85rem;">
+    <span style="opacity:0.7;">类型：</span>
+    <label><input type="checkbox" class="catFilter" value="动物" checked> 动物</label>
+    <label><input type="checkbox" class="catFilter" value="人物" checked> 人物</label>
+    <label><input type="checkbox" class="catFilter" value="生活" checked> 生活</label>
+    <label><input type="checkbox" class="catFilter" value="神话" checked> 神话</label>
+    <label><input type="checkbox" class="catFilter" value="谐音" checked> 谐音</label>
+  </div>
+  <div id="stats" style="font-size:0.85rem;opacity:0.7;margin-bottom:0.5rem;"></div>
+</div>
+<div id="resultList"></div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const XIEHOUYU = [
+  { front: "外甥打灯笼", back: "照旧（舅）", cat: "谐音", exp: "外甥与舅是亲戚关系，谐音'旧'，比喻按原来的样子或方法去做。" },
+  { front: "八仙过海", back: "各显神通", cat: "神话", exp: "传说八位神仙过海时各自施展本领，比喻各人有各人的办法。" },
+  { front: "猪八戒照镜子", back: "里外不是人", cat: "人物", exp: "猪八戒是猪，照镜子后镜子里还是猪，比喻两头都不讨好。" },
+  { front: "姜太公钓鱼", back: "愿者上钩", cat: "人物", exp: "传说姜子牙用直钩离水三尺垂钓，等周文王来访，比喻心甘情愿地上当。" },
+  { front: "老虎屁股", back: "摸不得", cat: "动物", exp: "形容某些人脾气很大或很厉害，不能冒犯。" },
+  { front: "兔子尾巴", back: "长不了", cat: "动物", exp: "比喻某种状况或关系不会持续太久。" },
+  { front: "黄鼠狼给鸡拜年", back: "没安好心", cat: "动物", exp: "黄鼠狼爱吃鸡，比喻表面亲热，实际不怀好意。" },
+  { front: "泥菩萨过江", back: "自身难保", cat: "神话", exp: "连自己都保护不了，比喻自顾不暇，无力帮助别人。" },
+  { front: "飞机上挂暖瓶", back: "高水平（瓶）", cat: "谐音", exp: "水瓶谐音'水平'，比喻技艺或能力很高。" },
+  { front: "小葱拌豆腐", back: "一清（青）二白", cat: "生活", exp: "葱青豆白，形容事情清清楚楚、明明白白。" },
+  { front: "飞蛾扑火", back: "自取灭亡", cat: "动物", exp: "比喻自己找死，自取毁灭。" },
+  { front: "茶壶里煮饺子", back: "有货倒不出", cat: "生活", exp: "比喻心里有本事或学问，但表达不出来。" },
+  { front: "猫哭耗子", back: "假慈悲", cat: "动物", exp: "比喻虚假的同情心。" },
+  { front: "麻雀虽小", back: "五脏俱全", cat: "动物", exp: "比喻事物体积或规模虽小，但内容齐全。" },
+  { front: "王婆卖瓜", back: "自卖自夸", cat: "人物", exp: "比喻自我吹嘘。" },
+  { front: "周瑜打黄盖", back: "一个愿打，一个愿挨", cat: "人物", exp: "比喻双方心甘情愿地做某事。" },
+  { front: "哑巴吃黄连", back: "有苦说不出", cat: "人物", exp: "黄连味苦，哑巴说不出，比喻心里有苦无处诉说。" },
+  { front: "孔夫子搬家", back: "净是书（输）", cat: "谐音", exp: "书谐音'输'，比喻总是失败。" },
+  { front: "秀才遇见兵", back: "有理说不清", cat: "人物", exp: "比喻跟不讲道理的人无法讲理。" },
+  { front: "狗拿耗子", back: "多管闲事", cat: "动物", exp: "比喻爱管不该管的事。" },
+  { front: "老鼠过街", back: "人人喊打", cat: "动物", exp: "比喻害人的东西大家都痛恨。" },
+  { front: "肉包子打狗", back: "有去无回", cat: "动物", exp: "比喻东西一去不复返。" },
+  { front: "擀面杖吹火", back: "一窍不通", cat: "生活", exp: "擀面杖是实心的，吹不进气，比喻对某事一无所知。" },
+  { front: "打破砂锅", back: "问（纹）到底", cat: "谐音", exp: "砂锅打破裂纹到底，'纹'谐音'问'，比喻追根究底。" },
+  { front: "铁公鸡", back: "一毛不拔", cat: "动物", exp: "形容人非常吝啬。" },
+  { front: "屎壳郎搬家", back: "滚蛋", cat: "动物", exp: "屎壳郎推粪球，滚来滚去，比喻让人离开。" },
+  { front: "大水冲了龙王庙", back: "一家人认不得一家人", cat: "神话", exp: "比喻自己人之间发生冲突。" },
+  { front: "千里送鹅毛", back: "礼轻情意重", cat: "生活", exp: "礼物虽轻，情谊深厚。" },
+  { front: "孙悟空大闹天宫", back: "慌了神", cat: "神话", exp: "天宫众神惊慌，比喻不知所措。" },
+  { front: "孙悟空翻跟头", back: "一步十万八千里", cat: "神话", exp: "形容飞跃式的进展。" },
+  { front: "刘备借荆州", back: "有借无还", cat: "人物", exp: "比喻借了东西不归还。" },
+  { front: "关公面前耍大刀", back: "班门弄斧", cat: "人物", exp: "在行家面前卖弄本领。" },
+  { front: "包公断案", back: "铁面无私", cat: "人物", exp: "比喻公正严明，不徇私情。" },
+  { front: "韩信点兵", back: "多多益善", cat: "人物", exp: "越多越好。" },
+  { front: "张飞穿针", back: "大眼瞪小眼", cat: "人物", exp: "形容双方都感到意外而不知所措。" },
+  { front: "司马昭之心", back: "路人皆知", cat: "人物", exp: "比喻人所共知的阴谋野心。" },
+  { front: "黑芝麻掉进锅灰里", back: "找不着（找）", cat: "生活", exp: "形容东西难找。" },
+  { front: "上鞋不用锥子", back: "真（针）行", cat: "谐音", exp: "针谐音'真'，赞美对方确实有本事。" },
+  { front: "隔着门缝看人", back: "把人看扁了", cat: "生活", exp: "比喻小看别人。" },
+  { front: "竹篮打水", back: "一场空", cat: "生活", exp: "竹篮有缝打不住水，比喻徒劳无功。" }
+];
+
+const searchInput = document.getElementById('searchInput');
+const randomBtn = document.getElementById('randomBtn');
+const resultList = document.getElementById('resultList');
+const stats = document.getElementById('stats');
+
+function getFiltered() {
+  const cats = Array.from(document.querySelectorAll('.catFilter:checked')).map(c => c.value);
+  const q = searchInput.value.trim().toLowerCase();
+  return XIEHOUYU.filter(x => {
+    if (!cats.includes(x.cat)) return false;
+    if (q && !(x.front.toLowerCase().includes(q) || x.back.toLowerCase().includes(q) || x.exp.includes(q))) return false;
+    return true;
+  });
+}
+
+function render() {
+  const list = getFiltered();
+  stats.textContent = '共找到 ' + list.length + ' 条歇后语';
+  if (!list.length) {
+    resultList.innerHTML = '<div style="text-align:center;padding:2rem;opacity:0.6;">没有匹配的歇后语</div>';
+    return;
+  }
+  resultList.innerHTML = list.map((x, i) =>
+    '<div class="tool-card" style="cursor:pointer;" data-idx="' + i + '">' +
+    '<div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">' +
+    '<div style="flex:1;">' +
+    '<div style="font-size:1.05rem;font-weight:600;">' + x.front + ' <span style="color:var(--primary);">—— ' + x.back + '</span></div>' +
+    '<div style="margin-top:0.4rem;font-size:0.85rem;opacity:0.8;">' + x.exp + '</div>' +
+    '</div>' +
+    '<span style="font-size:0.7rem;background:var(--bg-secondary);padding:2px 8px;border-radius:10px;">' + x.cat + '</span>' +
+    '</div>' +
+    '</div>'
+  ).join('');
+  resultList.querySelectorAll('.tool-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const idx = parseInt(card.dataset.idx);
+      const item = list[idx];
+      copyToClipboard(item.front + ' —— ' + item.back);
+    });
+  });
+}
+
+function randomOne() {
+  const list = getFiltered();
+  if (!list.length) return;
+  const item = list[Math.floor(Math.random() * list.length)];
+  resultList.innerHTML = '<div class="tool-card" style="border:2px solid var(--primary);">' +
+    '<div style="font-size:1.2rem;font-weight:600;">🎲 ' + item.front + '</div>' +
+    '<div style="margin-top:0.5rem;color:var(--primary);font-size:1.1rem;font-weight:600;">—— ' + item.back + '</div>' +
+    '<div style="margin-top:0.5rem;font-size:0.85rem;opacity:0.8;">' + item.exp + '</div>' +
+    '<div style="margin-top:0.5rem;font-size:0.75rem;opacity:0.6;">分类：' + item.cat + ' · 点击复制</div>' +
+    '</div>';
+  copyToClipboard(item.front + ' —— ' + item.back);
+}
+
+searchInput.addEventListener('input', render);
+randomBtn.addEventListener('click', randomOne);
+document.querySelectorAll('.catFilter').forEach(c => c.addEventListener('change', render));
+render();
+  </script>
+</body>
+</html>

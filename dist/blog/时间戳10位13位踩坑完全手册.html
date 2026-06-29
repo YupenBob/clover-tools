@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10位还是13位？时间戳踩坑完全手册</title>
+  <meta name="description" content="时间戳10位vs13位区别，各语言踩坑实录（JS/Python/Java/Go），时区问题、2038年问题、Bash date精度问题，6种常见错误解决方案。">
+  <meta name="keywords" content="时间戳10位13位踩坑完全手册,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/时间戳10位13位踩坑完全手册">
+  <meta property="og:title" content="时间戳10位13位踩坑完全手册 - CloverTools">
+  <meta property="og:description" content="解决时间戳10位13位踩坑完全手册的实战方法,配合时间戳转换在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/时间戳10位13位踩坑完全手册">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">时间处理</span></span>
+      <h1 class="article-title">时间戳10位13位踩坑完全手册</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; 时间戳10位13位踩坑完全手册
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10位还是13位？时间戳踩坑完全手册</title>
+    <meta name="description" content="时间戳10位和13位有什么区别？JavaScript、Python、Java、Go各语言时间戳踩坑实录，附时区问题和2038年问题解决方案。">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; background: #fafafa; }
+        .article-header { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; margin-bottom: 30px; }
+        .article-header h1 { font-size: 2em; margin-bottom: 10px; }
+        .article-header .subtitle { opacity: 0.9; font-size: 1.1em; }
+        .article-header .date { margin-top: 10px; opacity: 0.7; font-size: 0.9em; }
+        h2 { font-size: 1.5em; color: #667eea; margin: 35px 0 15px; padding-left: 12px; border-left: 4px solid #667eea; }
+        h3 { font-size: 1.2em; color: #444; margin: 20px 0 10px; }
+        p { margin-bottom: 15px; color: #555; font-size: 1.05em; }
+        .highlight-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .danger-box { background: #ffeaea; border-left: 4px solid #e74c3c; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .success-box { background: #eafaf1; border-left: 4px solid #27ae60; padding: 15px 20px; border-radius: 0 8px 8px 0; margin: 20px 0; }
+        .code-block { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; margin: 15px 0; overflow-x: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; line-height: 1.6; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .string { color: #ce9178; }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .number { color: #b5cea8; }
+        .lang-tab { display: flex; gap: 8px; margin: 20px 0 0; flex-wrap: wrap; }
+        .lang-tab button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 600; background: #e0e0e0; color: #555; transition: all 0.2s; }
+        .lang-tab button.active { background: #667eea; color: white; }
+        .code-panel { display: none; }
+        .code-panel.active { display: block; }
+        .footer-cta { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; margin-top: 40px; }
+        .footer-cta h2 { color: white; border: none; padding: 0; margin: 0 0 15px; font-size: 1.6em; }
+        .footer-cta a { display: inline-block; margin-top: 15px; padding: 14px 32px; background: white; color: #667eea; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 1.1em; transition: transform 0.2s; }
+        .footer-cta a:hover { transform: scale(1.05); }
+        .toc { background: white; border-radius: 8px; padding: 20px 25px; margin-bottom: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+        .toc h3 { margin-top: 0; }
+        .toc ol { padding-left: 20px; }
+        .toc li { margin-bottom: 6px; color: #667eea; }
+        .toc li a { color: #555; text-decoration: none; }
+        .toc li a:hover { color: #667eea; }
+        .tag { display: inline-block; background: #667eea; color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.8em; margin-right: 6px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="article-header">
+    <h1>「10位还是13位？」时间戳踩坑完全手册</h1>
+    <p class="subtitle">为什么你的时间总是差8小时？为什么2038年还有人踩坑？这篇讲透</p>
+    <p class="date">☘️ Clover · 2026-05-09</p>
+</div>
+
+<div class="toc">
+    <h3>📋 目录</h3>
+    <ol>
+        <li><a href="#scene">那个让我熬到凌晨3点的坑</a></li>
+        <li><a href="#diff">10位 vs 13位：到底什么区别</a></li>
+        <li><a href="#tz">时区问题：UTC时间戳转本地时间总是差8小时</a></li>
+        <li><a href="#bash">Bash date：精度居然不是你想的那样</a></li>
+        <li><a href="#lang">各语言踩坑实录</a></li>
+        <li><a href="#2038">2038年问题：你以为离你很远？</a></li>
+        <li><a href="#tool">在线工具推荐</a></li>
+    </ol>
+</div>
+
+<h2 id="scene">1. 那个让我熬到凌晨3点的坑</h2>
+
+<p>讲个真实的故事。</p>
+
+<p>去年做的一个用户行为分析系统，上线后客户反馈"数据时间总是不对，晚了8个小时"。我排查了半天，发现是后端用 Node.js 生成的时间戳传给前端，前端用 JavaScript 的 <code>Date</code> 解析，显示出来就差了8小时。</p>
+
+<p>然后我以为是时区问题，加了 <code>toLocaleString()</code> 里的时区参数。结果……还是差8小时。</p>
+
+<p>最后发现，前端那个13位时间戳是毫秒级，后端存的时候用的是秒级（乘了1000存的），解析的时候又除了一次1000，相当于除了两遍，多除了一次，就差了整整8小时——其实不是8小时，是 <code>3600000 × 8 = 28800000</code> 毫秒，差了整整9.6年。</p>
+
+<p>……我对着这个数字愣了10分钟。</p>
+
+<p>这不是时区问题，这是10位和13位混用导致的世纪级精度灾难。</p>
+
+<p class="highlight-box">💡 <strong>核心教训：</strong>时间戳的位数不仅仅是数字长短的问题，它是<strong>单位</strong>的问题（秒 vs 毫秒）。团队里第一个拿到时间戳处理逻辑的人，应该写一份文档，或者——用工具做标准化。</p>
+
+<h2 id="diff">2. 10位 vs 13位：到底什么区别</h2>
+
+<p>先搞清楚最基本的。</p>
+
+<p><strong>10位时间戳</strong>：单位是<strong>秒</strong>（second），从1970-01-01 00:00:00 UTC开始计算，到现在大概17亿多。写法：<code>1715260800</code></p>
+
+<p><strong>13位时间戳</strong>：单位是<strong>毫秒</strong>（millisecond），从1970-01-01 00:00:00 UTC开始计算，到现在大概1.7万亿。写法：<code>1715260800000</code></p>
+
+<p class="highlight-box">📐 换算关系：<code>13位 = 10位 × 1000</code>，反过来 <code>10位 = 13位 ÷ 1000</code></p>
+
+<p>注意，我说的是"大概"，因为精确的数值每次都不一样。但你记住这个关系就够了：13位就是10位后面加三个0（乘以1000）。</p>
+
+<p>那么问题来了——为什么会有两种标准？</p>
+
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li><strong>10位（秒）</strong>：UNIX原生标准，大多数后端语言默认（Python <code>time.time()</code>、PHP <code>time()</code>、Go <code>time.Now().Unix()</code>）</li>
+    <li><strong>13位（毫秒）</strong>：JavaScript原生标准，前端和移动端常用，以及某些HTTP API要求</li>
+</ul>
+
+<p>所以你经常遇到的场景是：后端给你一个10位时间戳，前端当13位处理，或者反过来——这就出事了。</p>
+
+<p>最烦的是，两种处理方式都不会报错。数字还是那个数字，只是差了1000倍。系统跑得好好的，只有当数据需要和时间对应的时候，才发现时间全是错的。</p>
+
+<h2 id="tz">3. 时区问题：UTC时间戳转本地时间总是差8小时</h2>
+
+<p>这个坑90%的人都踩过。</p>
+
+<p>你用服务器生成时间戳，是UTC时间。存到数据库没问题。但前端展示的时候，浏览器会把它当成你本地时区的时间来显示。</p>
+
+<p>中国是 <strong>UTC+8</strong>，所以你北京时间 <code>2026-05-09 08:00:00</code> 的时间戳，转成UTC就是 <code>2026-05-09 00:00:00</code>，差了正好8小时。</p>
+
+<p>但如果你在代码里这样写：</p>
+
+<div class="code-block">
+<span class="comment">// 错误示例：直接用时间戳创建Date</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC时间戳（秒）</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts); <span class="comment">// ❌ JS会把ts当毫秒处理，得到的日期完全错误</span>
+console.log(date.toString());
+<span class="comment">// 输出：Wed Jan 21 1970 04:21:00 GMT+0800 (CST)</span>
+<span class="comment">// 1970年1月！就因为单位搞错了！</span>
+</div>
+
+<p>JavaScript 的 <code>Date</code> 构造函数，当传入一个数字时，<strong>默认单位是毫秒</strong>。你传10位秒级时间戳，它会当成毫秒来处理，等于只过了几十万毫秒——1970年。</p>
+
+<p>所以正确写法是：</p>
+
+<div class="code-block">
+<span class="comment">// ✅ 正确：乘以1000转毫秒</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC时间戳（秒）</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts * <span class="number">1000</span>); <span class="comment">// 乘以1000转毫秒</span>
+console.log(date.toLocaleString(<span class="string">'zh-CN'</span>, { timeZone: <span class="string">'Asia/Shanghai'</span> }));
+<span class="comment">// 输出：2026/5/9 00:00:00（北京时间）</span>
+</div>
+
+<p class="danger-box">⚠️ <strong>血的教训：</strong>后端返回时间戳时，一定要在接口文档里写清楚是秒级还是毫秒级！不要假设对方会猜到！接口文档是契约，不是猜测游戏。</p>
+
+<h2 id="bash">4. Bash date：精度居然不是你想的那样</h2>
+
+<p>很多人用 <code>date</code> 命令生成时间戳，但你可能不知道——默认行为在不同系统上是不一样的。</p>
+
+<div class="code-block">
+<span class="comment"># Linux（GNU date）——默认秒级，加 %3N 得毫秒</span>
+date +<span class="string">%s</span>           <span class="comment"># 10位：1715260800</span>
+date +<span class="string">%s%3N</span>        <span class="comment"># 13位（取前13位）：1715260800123（实际输出可能不是这样）</span>
+date +<span class="string">%s%3N</span> | head -c <span class="number">13</span>  <span class="comment"># 截取13位：1715260800000（但实际上GNU date的%N是纳秒，不完全等于毫秒）</span>
+</div>
+
+<p>等等，<code>%N</code> 是纳秒（9位），不是毫秒（3位）。你截取前13位的话，得到的是"秒+纳秒前3位"，这和真正的13位毫秒时间戳不完全一样。</p>
+
+<div class="code-block">
+<span class="comment"># 真正精确的毫秒级时间戳（Linux）</span>
+date +<span class="string">%s%3N</span>        <span class="comment"># 输出例如：1715260800123（13位）</span>
+<span class="comment"># 但注意：某些精简版Linux没有%N支持</span>
+</div>
+
+<div class="code-block">
+<span class="comment"># macOS（BSD date）——根本没有 %N，需要自己算</span>
+date +<span class="string">%s</span>           <span class="comment"># 10位秒级时间戳</span>
+<span class="comment"># 想要毫秒？只能这样：</span>
+python3 -c <span class="string">"import time; print(int(time.time()*1000))"</span>
+<span class="comment"># 或者用perl：perl -MTime::HiRes -e 'printf "%d\n", Time::HiRes::time()*1000'</span>
+</div>
+
+<p class="danger-box">⚠️ <strong>跨平台坑：</strong>你在Mac上写的 <code>date +%s%3N</code> 脚本，丢到Linux服务器上跑，<code>%N</code> 可能不支持，或者行为完全不同。生产服务器尽量用Python/Node做时间操作，别依赖Shell的date命令。</p>
+
+<p>还有一个常见坑——时区。</p>
+
+<div class="code-block">
+<span class="comment"># 系统时区不同，date输出的时间也不同，但时间戳本身是一样的</span>
+TZ=Asia/Shanghai date +<span class="string">"%Y-%m-%d %H:%M:%S"</span>   <span class="comment"># 北京时间</span>
+TZ=UTC date +<span class="string">"%Y-%m-%d %H:%M:%S"</span>       <span class="comment"># UTC时间</span>
+<span class="comment"># 上面两条命令输出的数字时间部分差8小时，但 +%s 时间戳完全一样</span>
+</div>
+
+<h2 id="lang">5. 各语言踩坑实录</h2>
+
+<h3>🟡 JavaScript / TypeScript</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('js-ms')">毫秒（正确）</button>
+    <button onclick="showPanel('js-s')">秒级（错误）</button>
+</div>
+
+<div id="js-ms" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ 获取当前时间戳（毫秒）</span>
+<span class="keyword">const</span> now = Date.now();           <span class="comment">// 1715260800000</span>
+<span class="keyword">const</span> now2 = <span class="keyword">new</span> Date().getTime();  <span class="comment">// 同上</span>
+
+<span class="comment">// ✅ 秒转毫秒（服务器返回秒级时间戳时）</span>
+<span class="keyword">const</span> serverTs = <span class="number">1715260800</span>; <span class="comment">// 服务器返回的UTC秒级时间戳</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(serverTs * <span class="number">1000</span>);  <span class="comment">// ✅ 乘1000转毫秒</span>
+
+<span class="comment">// ✅ 毫秒转秒（发给后端时）</span>
+<span class="keyword">const</span> tsForBackend = Math.floor(Date.now() / <span class="number">1000</span>);  <span class="comment">// 10位秒级</span>
+</div>
+</div>
+
+<div id="js-s" class="code-panel">
+<div class="code-block"><span class="comment">// ❌ 错误做法：直接把秒级时间戳给Date</span>
+<span class="keyword">const</span> ts = <span class="number">1715260800</span>;
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(ts);  <span class="comment">// JS默认单位是毫秒！</span>
+<span class="comment">// 结果：得到1970年的某个时间</span>
+
+<span class="comment">// ❌ 另一个错误：用 valueOf()</span>
+<span class="keyword">const</span> date = <span class="keyword">new</span> Date(<span class="number">1715260800</span> * <span class="number">1000</span>);  <span class="comment">// 这才对，但别忘了乘1000</span>
+</div>
+</div>
+
+<h3>🐍 Python</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('py-correct')">常用方法</button>
+    <button onclick="showPanel('py-ms')">毫秒级</button>
+</div>
+
+<div id="py-correct" class="code-panel active">
+<div class="code-block"><span class="comment"># ✅ 获取当前时间戳（秒，float）</span>
+<span class="keyword">import</span> time
+ts = time.time()           <span class="comment"># 1715260800.123（float，包含小数）</span>
+
+<span class="comment"># ✅ 整数秒级时间戳</span>
+ts_int = <span class="keyword">int</span>(time.time())     <span class="comment"># 1715260800（10位）</span>
+
+<span class="comment"># ✅ 时间戳转datetime（UTC转本地，自动处理时区）</span>
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timezone
+dt = datetime.fromtimestamp(ts, tz=timezone.utc)  <span class="comment"># UTC时间</span>
+dt_local = datetime.fromtimestamp(ts)             <span class="comment"># 本地时间（自动用系统时区）</span>
+
+<span class="comment"># ⚠️ 注意：如果没有时区信息，fromtimestamp会假设时间已是本地时间</span>
+<span class="comment"># 这在夏令时切换时可能出bug——建议始终用timezone.utc</span>
+</div>
+</div>
+
+<div id="py-ms" class="code-panel">
+<div class="code-block"><span class="comment"># ✅ 获取毫秒级时间戳</span>
+<span class="keyword">import</span> time
+ts_ms = <span class="keyword">int</span>(time.time() * <span class="number">1000</span>)  <span class="comment"># 1715260800000（13位）</span>
+
+<span class="comment"># ✅ 毫秒转datetime</span>
+<span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timezone
+ts_ms = <span class="number">1715260800000</span>
+dt = datetime.fromtimestamp(ts_ms / <span class="number">1000</span>, tz=timezone.utc)
+</div>
+</div>
+
+<h3>☕ Java</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('java-correct')">常用方法</button>
+    <button onclick="showPanel('java-old')">旧版API</button>
+</div>
+
+<div id="java-correct" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ Java 8+ 的正确做法</span>
+<span class="keyword">import</span> java.time.*;
+<span class="keyword">import</span> java.time.format.DateTimeFormatter;
+
+<span class="comment">// 当前毫秒时间戳</span>
+<span class="keyword">long</span> tsMs = System.currentTimeMillis();  <span class="comment">// 1715260800000</span>
+
+<span class="comment">// 当前秒时间戳</span>
+<span class="keyword">long</span> ts = Instant.now().getEpochSecond();  <span class="comment">// 1715260800</span>
+
+<span class="comment">// 毫秒时间戳转LocalDateTime（UTC转本地）</span>
+LocalDateTime ldt = LocalDateTime.ofInstant(
+    Instant.ofEpochMilli(tsMs),
+    ZoneId.systemDefault()  <span class="comment">// 自动用系统时区</span>
+);
+
+<span class="comment">// 格式化输出</span>
+DateTimeFormatter fmt = DateTimeFormatter.ofPattern(<span class="string">"yyyy-MM-dd HH:mm:ss"</span>);
+System.out.println(ldt.format(fmt));  <span class="comment">// 2026-05-09 00:00:00</span>
+</div>
+</div>
+
+<div id="java-old" class="code-panel">
+<div class="code-block"><span class="comment">// ⚠️ Java 7 及之前的坑爹做法（知道就行，别用）</span>
+<span class="comment">// Date.getTime() 返回毫秒</span>
+<span class="keyword">long</span> tsMs = <span class="keyword">new</span> Date().getTime();  <span class="comment">// 毫秒时间戳</span>
+
+<span class="comment">// ❌ 易错：直接 new Date(long) 时，参数是毫秒，不是秒</span>
+<span class="comment">// Date.setTime(long) 也是毫秒</span>
+<span class="comment">// 但很多旧代码把秒级时间戳直接传给 Date，会出1970年问题</span>
+</div>
+</div>
+
+<h3>🐹 Go</h3>
+
+<div class="lang-tab">
+    <button class="active" onclick="showPanel('go-correct')">常用方法</button>
+    <button onclick="showPanel('go-ms')">毫秒级</button>
+</div>
+
+<div id="go-correct" class="code-panel active">
+<div class="code-block"><span class="comment">// ✅ 秒级时间戳（Unix内置）</span>
+ts := time.Now().Unix()  <span class="comment">// int64: 1715260800</span>
+
+<span class="comment">// ✅ 时间戳转时间（自动UTC转本地）</span>
+t := time.Unix(ts, <span class="number">0</span>)  <span class="comment">// time.Time（本地时区）</span>
+fmt.Println(t.Format(<span class="string">"2006-01-02 15:04:05"</span>))  <span class="comment">// 2026-05-09 00:00:00</span>
+
+<span class="comment">// ✅ 指定UTC时区</span>
+utc := time.Unix(ts, <span class="number">0</span>).In(time.UTC)
+fmt.Println(utc.Format(<span class="string">"2006-01-02 15:04:05"</span>))  <span class="comment">// 2026-05-09 00:00:00（UTC，数字不变但输出差8小时）</span>
+</div>
+</div>
+
+<div id="go-ms" class="code-panel">
+<div class="code-block"><span class="comment">// ✅ 毫秒级时间戳（需要手动算）</span>
+tsMs := time.Now().UnixNano() / <span class="number">1e6</span>  <span class="comment">// int64: 1715260800000</span>
+
+<span class="comment">// ✅ 毫秒时间戳转时间（注意参数是纳秒，第二个位置）</span>
+t := time.Unix(<span class="number">0</span>, tsMs*<span class="number">1e6</span>)  <span class="comment">// 毫秒转纳秒</span>
+
+<span class="comment">// ⚠️ 易错：time.Unix(秒, 纳秒) 的第二个参数是纳秒，不是毫秒</span>
+<span class="comment">// 写成 毫秒 就会差1000倍：time.Unix(0, tsMs) ❌ 错误！</span>
+<span class="comment">// 正确：time.Unix(0, tsMs*1e6) ✅</span>
+</div>
+</div>
+
+<h2 id="2038">6. 2038年问题：你以为离你很远？</h2>
+
+<p>2038年问题（Y2038 Bug）和经典的2000年问题齐名，但知道的人少得多。</p>
+
+<p>问题的根源是：<strong>32位系统的有符号整数（int32）最大值是 2147483647，即 2^31 - 1</strong>。如果用这个整数存储秒级时间戳，能表示的最大时间是：</p>
+
+<div class="code-block">
+<span class="comment"># 2038-01-19 03:14:07 UTC</span>
+<span class="keyword">const</span> max32 = <span class="number">2147483647</span>;
+<span class="keyword">const</span> maxDate = <span class="keyword">new</span> Date(max32 * <span class="number">1000</span>);
+console.log(maxDate.toString());
+<span class="comment">// 输出：Tue Jan 19 2038 11:14:07 GMT+0800 (CST)</span>
+<span class="comment">// （本地时间比UTC快8小时）</span>
+</div>
+
+<p>过了这个时间，32位系统会整数溢出，变成负数，日期会跳到 <strong>1901-12-13</strong>（或者更早）。</p>
+
+<p class="danger-box">🚨 <strong>谁会中招：</strong></p>
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li>用 <code>int32</code> 存储时间戳的老系统（很多嵌入式设备和传统数据库）</li>
+    <li>32位Linux/Unix服务器（虽然新服务器基本都是64位了，但Docker容器里可能跑着32位镜像）</li>
+    <li>某些编程语言的旧版时间库（PHP的 <code>DateTime</code> 在32位系统上就有这个问题）</li>
+</ul>
+
+<p class="success-box">✅ <strong>怎么避免：</strong></p>
+<ul style="padding-left:25px; margin-bottom:15px;">
+    <li>用 <code>int64</code>（64位整数）存储时间戳，这是现代系统的标准做法</li>
+    <li>避免用32位系统跑生产服务，2026年了，应该没有理由还用32位服务器了</li>
+    <li>数据库里时间字段用 <code>DATETIME</code> 或 <code>TIMESTAMP</code>，不要用整数存时间戳</li>
+    <li>如果你在做跨系统集成，确保对方系统用的是64位时间戳</li>
+</ul>
+
+<p>好消息是，13位毫秒时间戳的最大值是 <code>9,223,372,036,854,775,807</code>（2^63-1），对应大约 <strong>292,278,994年</strong>——所以只要你用毫秒级的64位时间戳，暂时不用担心2038年问题。</p>
+
+<h2 id="tool">7. 在线工具推荐</h2>
+
+<p>说了这么多，最实用的还是——别自己算，用工具。</p>
+
+<p>你可能在各种时间戳转换网站之间来回切换，有时候复制错了，有时候格式不对。我整理了一个在线工具，功能全，支持10位/13位互转，支持时区切换：</p>
+
+<div class="footer-cta">
+    <h2>🛠️ 时间戳在线转换工具</h2>
+    <p style="opacity:0.9; margin-bottom:5px;">支持秒↔毫秒互转 · 实时显示 · 时区切换</p>
+    <a href="https://clovertools.cn/tools/time/timestamp.html" target="_blank">👉 立即使用 clovertools.cn</a>
+</div>
+
+<p style="margin-top:20px; text-align:center; color:#888; font-size:0.9em;">如果你觉得这篇文章有用，欢迎收藏。需要批量转换也可以用这个工具搞定。</p>
+
+<script>
+function showPanel(id) {
+    document.querySelectorAll('.code-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.lang-tab button').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.lang-tab button').forEach(b => {
+        if (b.getAttribute('onclick').includes(id)) b.classList.add('active');
+    });
+}
+</script>
+
+</body>
+</html>
+
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/tools/time/timestamp.html">时间戳转换</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 如何使用 时间戳10位13位踩坑完全手册 相关工具?</strong><br>A: 这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。</div>
+<div class="faq-item"><strong>Q: 时间戳10位13位踩坑完全手册 适合在什么场景使用?</strong><br>A: 根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。</div>
+<div class="faq-item"><strong>Q: 有没有更好的替代工具?</strong><br>A: 不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。</div>
+      </div>
+
+      <div class="related-questions">
+  <h2>相关问题</h2>
+  <ul class="related-list"><li><a href="/blog/时间戳转换完全指南">时间戳转换完全指南</a></li></ul>
+</div>
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

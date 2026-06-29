@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文本工具 - CloverTools</title>
+  <meta name="description" content="CloverTools 文本工具类工具,免费在线使用,无需注册。">
+  <link rel="stylesheet" href="/src/shared.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+<header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+<main class="container">
+  <div class="category-header">
+    <h1>文本工具</h1>
+    <p>共 21 个工具</p>
+  </div>
+  <div class="tool-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem 0">
+    
+    <div class="tool-card" onclick="location.href='/tools/ai-email-assistant/ai-email-assistant.html'">
+      <div class="tool-card-name">AI邮件助手</div>
+      <div class="tool-card-desc">聚合多个AI模型，一键完成邮件摘要、邮件起草、邮件分类。无需注册，支持OpenAI/Anthropic/MiniMax等主流模型。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/ai-detector.html'">
+      <div class="tool-card-name">AI检测器</div>
+      <div class="tool-card-desc">在线AI文本检测工具，通过分析文本的语言模式、词汇丰富度、句子长度变化等特征，判断文本是否由ChatGPT、Claude、GPT-4等AI生成。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/camel.html'">
+      <div class="tool-card-name">驼峰 ↔ 下划线</div>
+      <div class="tool-card-desc">在驼峰命名法（CamelCase）和下划线命名法（snake_case）之间进行一键互转，支持变量名、函数名、类名等程序员常用命名风格的快速转换。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/case.html'">
+      <div class="tool-card-name">大小写转换</div>
+      <div class="tool-card-desc">支持将英文字母在大小写之间快速转换，可选择全部转为大写、全部转为小写或首字母大写等多种模式，适用于文本格式规范化处理。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/count.html'">
+      <div class="tool-card-name">字数统计</div>
+      <div class="tool-card-desc">实时统计文本框内字符数、单词数、中文字数、标点符号数量及段落数，支持中英文混合统计，帮助用户精准把控文本长度。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/diff.html'">
+      <div class="tool-card-name">文本差异对比</div>
+      <div class="tool-card-desc">左右分栏对比两段文本内容，自动标注出增加、删除和修改的部分，直观呈现文本差异，广泛用于代码比对、文档修订等场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/extract.html'">
+      <div class="tool-card-name">提取邮箱/手机/链接</div>
+      <div class="tool-card-desc">从大段文本或网页内容中自动识别并提取邮箱地址、手机号码、URL 链接等信息，支持一键复制提取结果，适用于数据整理和信息采集。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/garble-fix.html'">
+      <div class="tool-card-name">乱码修复</div>
+      <div class="tool-card-desc">自动检测文本乱码类型（如 UTF-8、GBK、Latin-1 等编码混淆导致的乱码），智能推断原始编码并还原为正常文字，修复网页抓取和文件传输中的乱码问题。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/jianfan.html'">
+      <div class="tool-card-name">简繁体转换</div>
+      <div class="tool-card-desc">实现简体中文与繁体中文（正体中文）之间的一键互转，转换准确率高，适用于文档本地化、台港澳地区内容适配及中文繁简学习等场景。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/pinyin.html'">
+      <div class="tool-card-name">汉字转拼音</div>
+      <div class="tool-card-desc">将中文汉字快速转换为拼音标注，支持带声调、不带声调、只保留首字母等多种输出模式，适用于拼音学习、注音辅助及文字检索等用途。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/regex-replace.html'">
+      <div class="tool-card-name">正则替换字符串</div>
+      <div class="tool-card-desc">在线正则表达式批量替换工具，支持正则和普通字符串替换，可使用捕获组（$1,$2）、预览替换前后对比效果，适合批量文本处理和内容清洗。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/string-sort.html'">
+      <div class="tool-card-name">字符串数组排序</div>
+      <div class="tool-card-desc">在线字符串数组排序工具，支持升序/降序、中文按拼音/笔画/Unicode、字母大小写敏感/不敏感等多种排序方式，实时预览排序结果并一键复制。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/md-preview.html'">
+      <div class="tool-card-name">Markdown预览</div>
+      <div class="tool-card-desc">实时预览 Markdown 渲染效果,支持代码高亮、数学公式和导出 HTML,所见即所得。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/mars-text.html'">
+      <div class="tool-card-name">火星文转换器</div>
+      <div class="tool-card-desc">在线火星文转换工具，支持普通文字与火星文（异体繁体）互转。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/han-stroke.html'">
+      <div class="tool-card-name">汉字笔画查询</div>
+      <div class="tool-card-desc">在线汉字笔画数查询工具，支持单字查询、部首、笔顺提示。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/idiom.html'">
+      <div class="tool-card-name">成语查询</div>
+      <div class="tool-card-desc">在线成语词典查询工具，支持成语搜索、拼音、释义查询。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/han2unicode.html'">
+      <div class="tool-card-name">中文转Unicode</div>
+      <div class="tool-card-desc">在线中文汉字转 Unicode 编码工具，支持字符与 Unicode 双向转换、批量处理。</div>
+      <div class="tool-card-tags"></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/lorem-ipsum.html'">
+      <div class="tool-card-name">Lorem ipsum生成器</div>
+      <div class="tool-card-desc">生成占位文本(乱数假文)，可指定段落数/每段句子数/单词数/起始词，支持中文乱数假文。</div>
+      <div class="tool-card-tags"><span class="tag">Lorem ipsum</span><span class="tag">占位文本</span><span class="tag">乱数假文</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/hanzi-to-wubi.html'">
+      <div class="tool-card-name">汉字转五笔码</div>
+      <div class="tool-card-desc">在线查询汉字的五笔字型编码，支持 86 版与 98 版五笔，支持词组查询与批量转换，适合五笔输入法学习与速录。</div>
+      <div class="tool-card-tags"><span class="tag">汉字转五笔</span><span class="tag">五笔查询</span><span class="tag">五笔编码</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/superscript-phone.html'">
+      <div class="tool-card-name">上标电话生成器</div>
+      <div class="tool-card-desc">生成 Unicode 上标字符的电话装饰文本（™ ℡ ☎），适合昵称、个性签名与社交平台装饰，纯前端即时生成。</div>
+      <div class="tool-card-tags"><span class="tag">上标电话</span><span class="tag">Unicode装饰</span><span class="tag">个性签名</span></div>
+    </div>
+    <div class="tool-card" onclick="location.href='/tools/text/subscript-phone.html'">
+      <div class="tool-card-name">下标电话生成器</div>
+      <div class="tool-card-desc">生成 Unicode 下标字符的电话装饰文本，适合昵称、个性签名、学术标注与社交平台装饰，纯前端即时生成。</div>
+      <div class="tool-card-tags"><span class="tag">下标电话</span><span class="tag">Unicode下标</span><span class="tag">个性签名</span></div>
+    </div>
+  </div>
+</main>
+<!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+</body>
+</html>

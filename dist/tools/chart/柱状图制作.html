@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>柱状图制作 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="柱状图制作 - 🍀 CloverTools">
+  <meta property="og:description" content="在线制作柱状图，支持多组数据、自定义颜色和样式，导出 PNG 图片">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/chart/柱状图制作.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="柱状图制作 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线制作柱状图，支持多组数据、自定义颜色和样式，导出 PNG 图片">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/chart/柱状图制作.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>柱状图制作</h1>
+        <p class="description">在线制作柱状图，支持多组数据、自定义颜色和样式，导出 PNG 图片</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>📊 数据输入</h3>
+  <p style="opacity:0.75;font-size:0.9rem;margin:0.25rem 0 0.75rem;">每行一组：<code>标签,数值</code>（支持负数、小数）</p>
+  <textarea id="dataInput" rows="6" style="width:100%;font-family:monospace;" placeholder="一月,120&#10;二月,98&#10;三月,150&#10;四月,170&#10;五月,135">一月,120
+二月,98
+三月,150
+四月,170
+五月,135
+六月,200</textarea>
+
+  <h3 style="margin-top:1.25rem;">🎨 样式设置</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;">
+    <label>图表标题
+      <input id="chartTitle" type="text" value="月度销售数据" style="width:100%;">
+    </label>
+    <label>X 轴标签
+      <input id="xLabel" type="text" value="月份" style="width:100%;">
+    </label>
+    <label>Y 轴标签
+      <input id="yLabel" type="text" value="销量（万件）" style="width:100%;">
+    </label>
+    <label>柱体颜色
+      <input id="barColor" type="color" value="#4f46e5" style="width:100%;height:2.5rem;">
+    </label>
+    <label>图例位置
+      <select id="legendPos" style="width:100%;">
+        <option value="top">顶部</option>
+        <option value="bottom">底部</option>
+        <option value="left">左侧</option>
+        <option value="right">右侧</option>
+        <option value="none">不显示</option>
+      </select>
+    </label>
+    <label>横向柱图
+      <select id="orientation" style="width:100%;">
+        <option value="v">纵向</option>
+        <option value="h">横向</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" id="renderBtn">生成柱状图</button>
+    <button class="btn btn-secondary" id="downloadBtn">下载 PNG</button>
+    <button class="btn btn-secondary" id="loadSample">加载示例</button>
+  </div>
+</div>
+
+<div class="output-box">
+  <h3>📈 图表预览</h3>
+  <div style="background:#fff;padding:1rem;border-radius:8px;border:1px solid var(--border);">
+    <canvas id="chartCanvas" style="max-width:100%;"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    let chartInstance = null;
+
+function parseData() {
+  const raw = document.getElementById('dataInput').value.trim();
+  if (!raw) return { labels: [], values: [] };
+  const lines = raw.split(/\r?\n/).filter(l => l.trim());
+  const labels = [];
+  const values = [];
+  for (const line of lines) {
+    const parts = line.split(/[,，\t]/);
+    if (parts.length >= 2) {
+      const label = parts[0].trim();
+      const val = parseFloat(parts[1].trim());
+      if (!isNaN(val)) {
+        labels.push(label);
+        values.push(val);
+      }
+    }
+  }
+  return { labels, values };
+}
+
+function renderChart() {
+  const { labels, values } = parseData();
+  if (!labels.length) {
+    CT && CT.showToast ? CT.showToast('请输入有效数据') : alert('请输入有效数据');
+    return;
+  }
+  const title = document.getElementById('chartTitle').value || '柱状图';
+  const xLabel = document.getElementById('xLabel').value || '';
+  const yLabel = document.getElementById('yLabel').value || '';
+  const color = document.getElementById('barColor').value || '#4f46e5';
+  const legendPos = document.getElementById('legendPos').value;
+  const orientation = document.getElementById('orientation').value;
+
+  const ctx = document.getElementById('chartCanvas').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  const baseColor = color;
+  const bgColors = values.map(v => v < 0 ? 'rgba(239,68,68,0.7)' : hexToRgba(baseColor, 0.75));
+  const borderColors = values.map(v => v < 0 ? 'rgba(239,68,68,1)' : baseColor);
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: title,
+        data: values,
+        backgroundColor: bgColors,
+        borderColor: borderColors,
+        borderWidth: 2,
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      indexAxis: orientation === 'h' ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        title: {
+          display: true,
+          text: title,
+          font: { size: 18, weight: 'bold' },
+          padding: { top: 8, bottom: 16 },
+        },
+        legend: {
+          display: legendPos !== 'none',
+          position: legendPos === 'none' ? 'top' : legendPos,
+        },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label || ''}: ${ctx.parsed[orientation === 'h' ? 'x' : 'y']}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          title: { display: !!xLabel, text: xLabel },
+          beginAtZero: true,
+        },
+        y: {
+          title: { display: !!yLabel, text: yLabel },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+}
+
+function hexToRgba(hex, alpha) {
+  const m = hex.replace('#', '').match(/.{2}/g);
+  if (!m) return hex;
+  const [r, g, b] = m.map(h => parseInt(h, 16));
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function downloadPNG() {
+  if (!chartInstance) {
+    renderChart();
+  }
+  const canvas = document.getElementById('chartCanvas');
+  const url = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (document.getElementById('chartTitle').value || 'chart') + '.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  if (CT && CT.showToast) CT.showToast('已下载 PNG');
+}
+
+function loadSample() {
+  document.getElementById('dataInput').value = '一月,120\n二月,98\n三月,150\n四月,170\n五月,135\n六月,200\n七月,180\n八月,210';
+  document.getElementById('chartTitle').value = '2026 年度销售数据';
+  document.getElementById('xLabel').value = '月份';
+  document.getElementById('yLabel').value = '销量（万件）';
+  renderChart();
+}
+
+document.getElementById('renderBtn').addEventListener('click', renderChart);
+document.getElementById('downloadBtn').addEventListener('click', downloadPNG);
+document.getElementById('loadSample').addEventListener('click', loadSample);
+
+// Auto-render on load with default data
+window.addEventListener('load', () => {
+  setTimeout(renderChart, 100);
+});
+  </script>
+</body>
+</html>

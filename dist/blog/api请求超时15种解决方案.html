@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API请求超时？我翻了15个案例总结的</title>
+  <meta name="description" content="API请求超时15种解决方案：axios timeout/AbortController/exponential backoff重试、Nginx超时配置、接口超时设计、熔断降级、前后端 checklist。">
+  <meta name="keywords" content="api请求超时15种解决方案,开发者工具,问题解决">
+  <link rel="canonical" href="https://clovertools.cn/blog/api请求超时15种解决方案">
+  <meta property="og:title" content="api请求超时15种解决方案 - CloverTools">
+  <meta property="og:description" content="解决api请求超时15种解决方案的实战方法,配合API测试工具在线工具免费使用">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://clovertools.cn/blog/api请求超时15种解决方案">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <link rel="stylesheet" href="/src/shared.css">
+  <style>
+    .article-header { text-align: center; max-width: 720px; margin: 0 auto 2rem; }
+    .article-category { display: inline-block; background: var(--primary); color: #fff; padding: 0.2rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 1rem; }
+    .article-title { font-size: 1.8rem; line-height: 1.4; margin-bottom: 0.8rem; color: var(--text); }
+    .article-meta { font-size: 0.85rem; opacity: 0.6; margin-bottom: 1.5rem; }
+    .article-body { max-width: 720px; margin: 0 auto; line-height: 1.8; }
+    .article-body h2 { font-size: 1.3rem; margin: 2rem 0 1rem; color: var(--primary); }
+    .article-body p { margin-bottom: 1rem; }
+    .article-body ul, .article-body ol { margin: 1rem 0 1rem 1.5rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+    .article-body code { background: var(--bg-secondary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.9em; font-family: monospace; }
+    .article-body pre { background: var(--bg-secondary); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 1rem 0; }
+    .article-body pre code { background: none; padding: 0; }
+    .tool-cta { background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%); color: #fff; padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0; text-align: center; }
+    .tool-cta h3 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .tool-cta a { display: inline-block; background: #fff; color: #c9a96e; padding: 0.5rem 1.5rem; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 0.5rem; transition: transform 0.2s; }
+    .tool-cta a:hover { transform: translateY(-2px); }
+    .faq { margin-top: 2.5rem; }
+    .faq-item { margin-bottom: 1.2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px; }
+    .faq-item strong { color: var(--primary); }
+    .breadcrumb { max-width: 720px; margin: 0 auto 1.5rem; font-size: 0.85rem; opacity: 0.7; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); text-decoration: none; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .back-link:hover { text-decoration: underline; }
+    .keyword-block { background: linear-gradient(135deg, #667eea22 0%, #764ba222 100%); border: 1px solid #667eea33; border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 2rem; }
+    .keyword-block p { margin: 0 0 0.5rem; font-size: 0.82rem; opacity: 0.7; font-weight: 500; }
+    .keyword-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .keyword-tags a { background: var(--primary); color: #fff; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.8rem; text-decoration: none; transition: opacity 0.2s; }
+    .keyword-tags a:hover { opacity: 0.8; }
+    .related-questions { margin-top: 2.5rem; padding-top: 2rem; border-top: 2px solid var(--border); }
+    .related-questions h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+    .related-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.8rem; }
+    .related-list li a { display: block; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 1rem; text-decoration: none; color: var(--text); font-size: 0.9rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; }
+    .related-list li a:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--card-shadow); }
+    @media (max-width: 768px) {
+      .article-body { max-width: 100%; padding: 0 1rem; }
+      .article-title { font-size: 1.4rem; }
+      .related-list { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .article-body { padding: 0 0.75rem; }
+      .article-title { font-size: 1.2rem; }
+    }
+    .related-list li a::before { content: '→ '; color: var(--primary); }
+  </style>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+  <div class="container"></parameter>
+
+    <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+    <div class="article-header">
+      <span class="article-category"><span class="cat-label">API</span></span>
+      <h1 class="article-title">api请求超时15种解决方案</h1>
+      <div class="article-meta">2026-06-20 · CloverTools · 问题解决</div>
+    </div>
+    <div class="article-body">
+      <div class="breadcrumb">
+        <a href="/">首页</a> &gt; <a href="/blog/">博客</a> &gt; api请求超时15种解决方案
+      </div>
+      <a href="/" class="back-link">← 返回工具首页</a>
+
+      <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API请求超时？我翻了15个案例总结的</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #0f0f1a; color: #e8e8f0; line-height: 1.8; font-size: 15px; }
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 20px; }
+  .header { text-align: center; margin-bottom: 50px; }
+  .header h1 { font-size: 2em; font-weight: 800; background: linear-gradient(135deg, #f093fb, #f5576c, #ffd89b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+  .header .subtitle { color: #888; font-size: 14px; }
+  .header .author { margin-top: 12px; color: #666; font-size: 13px; }
+  h2 { font-size: 1.35em; color: #fff; margin: 40px 0 16px; padding-left: 14px; border-left: 4px solid #f5576c; }
+  h3 { font-size: 1.1em; color: #f093fb; margin: 28px 0 12px; }
+  p { margin-bottom: 14px; color: #c8c8d8; }
+  .lead { font-size: 16px; color: #b0b0c0; border-left: 4px solid #f093fb; padding: 12px 16px; background: rgba(240,147,251,0.06); border-radius: 0 8px 8px 0; margin-bottom: 30px; }
+  .case-box { background: #16162a; border: 1px solid #2a2a4a; border-radius: 12px; padding: 20px 24px; margin: 20px 0; }
+  .case-box h4 { color: #ffd89b; font-size: 14px; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .case-box p { margin-bottom: 8px; font-size: 14px; }
+  code { background: #1e1e38; color: #7dd3fc; padding: 2px 7px; border-radius: 4px; font-family: 'Courier New', Consolas, monospace; font-size: 13px; }
+  pre { background: #1a1a30; border: 1px solid #2a2a4a; border-radius: 10px; padding: 20px; margin: 16px 0; overflow-x: auto; }
+  pre code { background: none; color: #c8c8d8; padding: 0; font-size: 13px; line-height: 1.7; }
+  .comment { color: #6b7280; font-style: italic; }
+  .tag { display: inline-block; background: rgba(245,87,108,0.15); color: #f5576c; padding: 2px 10px; border-radius: 20px; font-size: 12px; margin-right: 6px; margin-bottom: 6px; }
+  .warn { background: rgba(255,216,155,0.08); border: 1px solid rgba(255,216,155,0.2); border-radius: 10px; padding: 16px 20px; margin: 16px 0; font-size: 14px; color: #ffd89b; }
+  .success { background: rgba(125,211,252,0.06); border: 1px solid rgba(125,211,252,0.15); border-radius: 10px; padding: 16px 20px; margin: 16px 0; font-size: 14px; color: #7dd3fc; }
+  ul { padding-left: 24px; margin-bottom: 14px; }
+  li { margin-bottom: 8px; color: #c8c8d8; }
+  .cta-box { background: linear-gradient(135deg, #1a1040, #2d1060); border: 1px solid #6b3fa0; border-radius: 14px; padding: 28px 32px; text-align: center; margin: 40px 0 20px; }
+  .cta-box h3 { color: #f093fb; font-size: 18px; margin-bottom: 10px; }
+  .cta-box p { color: #a0a0c0; font-size: 14px; margin-bottom: 16px; }
+  .cta-box a { color: #7dd3fc; font-weight: 600; text-decoration: none; }
+  .toc { background: #16162a; border-radius: 12px; padding: 20px 24px; margin-bottom: 36px; }
+  .toc h3 { color: #fff; font-size: 15px; margin-top: 0; }
+  .toc a { color: #a78bfa; text-decoration: none; display: block; padding: 4px 0; font-size: 14px; }
+  .toc a:hover { color: #f093fb; }
+  .divider { border: none; border-top: 1px solid #2a2a4a; margin: 36px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>API请求超时？我翻了15个案例总结的</h1>
+  <div class="subtitle">前端 · 后端 · 降级策略 — 全栈超时处理手册</div>
+  <div class="author">☘️ Clover · 2026</div>
+</div>
+
+<div class="toc">
+  <h3>📋 文章目录</h3>
+  <a href="#scene">一、超时是怎么发生的</a>
+  <a href="#frontend">二、前端处理方案</a>
+  <a href="#backend">三、后端处理方案</a>
+  <a href="#degrade">四、降级与熔断</a>
+  <a href="#summary">五、实战 checklist</a>
+</div>
+
+<div class="lead">
+  接口超时是全栈开发里最容易被忽视、却最影响用户体验的问题之一。你以为设个 timeout 就完事了？实际场景下，网络抖动、慢查询、连接池耗尽、CDN 节点故障，每一样都能让你的"超时"形同虚设。这篇文章，我从 15 个真实项目案例里提炼出一套完整的超时处理方案，覆盖前端、后端、降级三层。看完就能用。
+</div>
+
+<h2 id="scene">一、超时到底是怎么发生的</h2>
+
+<p>在说解决方案之前，先搞清楚超时从哪来。总结 15 个项目案例，超时的根因无非这几类：</p>
+
+<div class="case-box">
+  <h4>🔍 常见超时场景</h4>
+  <p><strong>网络层：</strong>用户弱网（地铁、电梯）、跨区跨境延迟（200ms → 5s）、DNS 解析慢、TCP 握手卡住</p>
+  <p><strong>服务端层：</strong>数据库慢查询（没索引，扫全表）、外部 API 调用超时（第三方支付/短信）、连接池耗尽（高并发）、GC 暂停（老年代大对象）</p>
+  <p><strong>代理层：</strong>Nginx/Koa/Express 默认 timeout 太长或根本没配、负载均衡器 idle timeout</p>
+  <p><strong>客户端层：</strong>axios 默认没设 timeout、fetch 没配 AbortController、请求发了就收不回来</p>
+</div>
+
+<p>关键认知：<strong>超时不是单点问题，是整条链路的短板决定上限。</strong>你前端 retry 三次，但 Nginx 5 秒就断了，看起来"重试"没生效。所以超时处理要从前端→网关→后端→数据库全链路一起配，缺一不可。</p>
+
+<h2 id="frontend">二、前端处理方案</h2>
+
+<h3>1. axios 配置 timeout — 最基础的保命项</h3>
+
+<p>很多人 axios 用了一年，timeout 还是默认的 <code>0</code>（永不超时）。这是最常见的坑。</p>
+
+<pre><code>// ❌ 危险：永不超时，请求卡死用户无感知
+const api = axios.create({ baseURL: 'https://api.example.com' });
+
+// ✅ 正确：根据业务场景设 timeout
+const api = axios.create({
+  baseURL: 'https://api.example.com',
+  timeout: 8000,  // 8 秒，大多数接口够用
+  timeoutErrorMessage: '请求超时，请检查网络后重试'
+});
+
+// 全局错误拦截里区分超时
+api.interceptors.response.use(
+  res => res,
+  err => {
+    if (axios.isAxiosError(err)) {
+      if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+        console.error('⏰ 请求超时:', err.config?.url);
+      }
+    }
+    return Promise.reject(err);
+  }
+);</code></pre>
+
+<p>注意：axios 的 <code>timeout</code> 指的是从发请求到收到响应的时间，不包括 DNS 解析和 TCP 握手。所以 8 秒看起来够用，实际链路可能已经 12 秒了。</p>
+
+<h3>2. AbortController — 手动取消请求的标配</h3>
+
+<p>fetch 默认不支持取消，但现代浏览器都支持 <code>AbortController</code>。用好它，你可以做到：请求超过 5 秒自动取消、页面切换时取消上一个列表请求、用户点取消按钮即时终止。</p>
+
+<pre><code>class HttpService {
+  private controller = new AbortController();
+  private timer: ReturnType&lt;typeof setTimeout&gt;;
+
+  request(url: string, timeoutMs = 6000) {
+    // 超时控制器
+    this.controller = new AbortController();
+    this.timer = setTimeout(() => this.controller.abort(), timeoutMs);
+
+    return fetch(url, { signal: this.controller.signal })
+      .then(res => {
+        clearTimeout(this.timer);
+        return res.json();
+      })
+      .catch(err => {
+        clearTimeout(this.timer);
+        if (err.name === 'AbortError') {
+          throw new Error(`请求超时（${timeoutMs}ms）`);
+        }
+        throw err;
+      });
+  }
+
+  cancel() {
+    this.controller.abort();
+    clearTimeout(this.timer);
+  }
+}
+
+// 使用
+const http = new HttpService();
+
+// 页面切换时取消
+onMount(() => {
+  fetchList();
+});
+onUnmounted(() => {
+  http.cancel();
+});</code></pre>
+
+<h3>3. 重试机制 — exponential backoff 是核心</h3>
+
+<p>超时不等于失败，很多临时抖动重试一次就好了。但<strong>绝对不要无脑重试</strong>（立即重试三次），只会把已经压力很大的服务端打爆。标准做法是 <strong>指数退避 + 随机抖动</strong>。</p>
+
+<pre><code>async function fetchWithRetry(
+  fn: () =&gt; Promise&lt;any&gt;,
+  maxRetries = 3,
+  baseDelayMs = 1000
+): Promise&lt;any&gt; {
+  let lastError: Error;
+
+  for (let attempt = 0; attempt &lt;= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+
+      // 最后一次尝试不等待
+      if (attempt === maxRetries) break;
+
+      // 指数退避：1s → 2s → 4s
+      const delay = baseDelayMs * Math.pow(2, attempt);
+      // 加随机抖动，避免多客户端同时重试造成惊群效应
+      const jitter = delay * (0.5 + Math.random() * 0.5);
+      console.warn(`⏳ 第 ${attempt + 1} 次失败，${Math.round(jitter)}ms 后重试...`);
+      await sleep(jitter);
+    }
+  }
+
+  throw lastError!;
+}
+
+// 配合 axios 的用法
+const api = axios.create({ baseURL: BASE_URL, timeout: 5000 });
+
+const res = await fetchWithRetry(
+  () => api.get('/user/profile'),
+  3,
+  1000
+);</code></pre>
+
+<div class="warn">
+  <strong>⚠️ 注意事项：</strong>只有 <code>5xx</code> 和网络错误值得重试。<code>4xx</code>（401、403、422）重试没有意义，只会让问题更糟。重试前判断错误类型。
+</div>
+
+<pre><code>// 判断是否可重试
+function isRetryable(err: any): boolean {
+  if (!err.response) return true; // 网络错误，可重试
+  const status = err.response?.status;
+  return status &gt;= 500 || status === 429; // 服务器错误或限流
+}</code></pre>
+
+<h3>4. 请求队列 + 并发控制</h3>
+
+<p>大量请求同时发出时，超时会呈指数级放大。不是所有请求都要第一时间发出去的。做一个请求队列，限制并发数，既能保活又能提升整体成功率。</p>
+
+<pre><code>class RequestQueue {
+  private queue: Array&lt;() =&gt; Promise&lt;any&gt;&gt; = [];
+  private running = 0;
+  private readonly limit: number;
+
+  constructor(limit = 4) {
+    this.limit = limit;
+  }
+
+  add(fn: () =&gt; Promise&lt;any&gt;) {
+    return new Promise((resolve, reject) =&gt; {
+      this.queue.push(async () =&gt; {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (e) {
+          reject(e);
+        }
+      });
+      this.process();
+    });
+  }
+
+  private process() {
+    if (this.running &gt;= this.limit) return;
+    const task = this.queue.shift();
+    if (!task) return;
+
+    this.running++;
+    task().finally(() =&gt; {
+      this.running--;
+      this.process();
+    });
+  }
+}</code></pre>
+
+<h2 id="backend">三、后端处理方案</h2>
+
+<h3>1. Nginx 超时配置 — 最容易被忽略的瓶颈</h3>
+
+<p>后端接口再快，Nginx 超时不配好，一切白搭。15 个案例里，有 4 个项目的超时问题根因都在 Nginx 配置。这里给一个生产可用的配置模板：</p>
+
+<pre><code># Nginx 超时配置（server 区块内）
+
+# 读取上游响应超时（接口处理完成后数据传给客户端的时间）
+proxy_read_timeout 30s;
+
+# 向 upstream 发送请求的超时（还没到接口逻辑，Nginx 等待连接的时间）
+proxy_connect_timeout 10s;
+
+# 发送请求体到 upstream 的超时
+proxy_send_timeout 30s;
+
+# 客户端请求超时（读请求头 + 请求体）
+client_body_timeout 10s;
+client_header_timeout 10s;
+
+# keepalive 保持连接不断开
+proxy_http_version 1.1;
+proxy_set_header Connection "";
+
+# 失败重试到另一台 upstream
+proxy_next_upstream error timeout invalid_header http_500 http_502 http_503;</code></pre>
+
+<div class="warn">
+  <strong>⚠️ 重点：</strong><code>proxy_read_timeout</code> 指的是 Nginx 等待上游响应的<strong>总时间</strong>，不是单次数据传输时间。如果你的接口正常要 20 秒处理，就设 30s 以上，否则到 20 秒 Nginx 会主动断开，后端还在跑，白浪费资源。
+</div>
+
+<h3>2. 接口超时设计 — 从根上控制</h3>
+
+<p>服务端要给每个接口设一个"业务超时"，不是物理超时，而是业务允许的最大等待时间。超过这个时间，接口直接返回超时错误，而不是让请求继续消耗资源。</p>
+
+<pre><code>// Node.js / Express：给每个路由加超时中间件
+const asyncHandler = (fn) =&gt; (req, res, next) =&gt;
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+const withTimeout = (ms, fallbackMsg = '接口处理超时') =&gt; {
+  return (req, res, next) =&gt; {
+    const timer = setTimeout(() =&gt; {
+      console.warn(`⏰ 接口超时: ${req.path}`);
+      res.status(504).json({ code: 504, msg: fallbackMsg });
+    }, ms);
+    res.on('finish', () =&gt; clearTimeout(timer));
+  };
+};
+
+// 用法
+app.get('/api/export', withTimeout(15000), asyncHandler(async (req, res) =&gt; {
+  const data = await heavyQuery();
+  res.json({ data });
+}));</code></pre>
+
+<pre><code>// Java Spring Boot：全局超时配置
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void configureAsyncSupport(AsyncSupportConfigurer config) {
+        config.setDefaultTimeout(8000); // 8 秒全局超时
+    }
+}
+
+// 或者注解方式
+@HystrixCommand(
+    commandProperties = {
+        @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "5000")
+    }
+)
+public String slowMethod() {
+    return externalApi.call();
+}</code></pre>
+
+<h3>3. 慢查询 — 超时最常见的根因</h3>
+
+<p>接口超时 80% 的情况是数据库慢查询。一个没建索引的 SQL，在百万级表上能跑 30 秒。处理方案：</p>
+
+<pre><code>-- 1. 慢查询日志定位（MySQL）
+slow_query_log = 1
+long_query_time = 2  -- 超过 2 秒的记录
+slow_query_log_file = /var/log/mysql/slow.log
+
+-- 2. EXPLAIN 分析执行计划
+EXPLAIN SELECT * FROM orders WHERE user_id = 123 AND status = 'paid' ORDER BY created_at DESC;
+
+-- 3. 给高频查询加索引
+CREATE INDEX idx_orders_user_status ON orders(user_id, status);
+
+-- 4. 超时熔断：单次查询超过 5 秒直接取消
+SET MAX_EXECUTION_TIME = 5000; -- MySQL 8.0+</code></pre>
+
+<p>业务层面，给数据库操作加超时：</p>
+
+<pre><code>// Node.js + MySQL 加 timeout
+const db = mysql.createPool({
+  connectionLimit: 20,
+  connectTimeout: 10000,   // 连接建立超时 10s
+  // 每个查询不单独设 timeout，但配合后端的请求超时就够了
+});
+
+// 给查询加执行超时
+async function safeQuery(sql: string, params: any[], timeoutMs = 5000) {
+  return Promise.race([
+    db.execute(sql, params),
+    new Promise((_, reject) =&gt;
+      setTimeout(() =&gt; reject(new Error('DB query timeout')), timeoutMs)
+    )
+  ]);
+}</code></pre>
+
+<h2 id="degrade">四、降级与熔断 — 兜底思维</h2>
+
+<h3>1. 为什么要熔断</h3>
+
+<p>想象这个场景：上游服务 A 开始变慢，超时率从 1% 升到 30%。你的前端疯狂重试，请求全打到你这里，你的服务也开始变慢，最终自己也崩了。<strong>熔断就是当上游失败率过高时，主动"断路"，不再把请求发过去，直接返回降级结果</strong>，保护自己也保护上游。</p>
+
+<h3>2. 熔断器实现（TypeScript）</h3>
+
+<pre><code>class CircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  constructor(
+    private readonly threshold = 5,      // 失败 5 次就开路
+    private readonly timeout = 30000,    // 30 秒后半开尝试
+    private readonly resetInterval = 60000 // 1 分钟后重置计数器
+  ) {}
+
+  async call&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, fallback: () =&gt; T): Promise&lt;T&gt; {
+    if (this.state === 'OPEN') {
+      const elapsed = Date.now() - this.lastFailureTime;
+      if (elapsed &gt; this.timeout) {
+        this.state = 'HALF_OPEN'; // 半开，允许一个请求试试
+        console.log('🔄 熔断器半开');
+      } else {
+        console.warn('⚡ 熔断中，直接返回降级数据');
+        return fallback();
+      }
+    }
+
+    try {
+      const result = await fn();
+      this.onSuccess();
+      return result;
+    } catch (err) {
+      this.onFailure();
+      return fallback();
+    }
+  }
+
+  private onSuccess() {
+    this.failures = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onFailure() {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (this.failures &gt;= this.threshold) {
+      this.state = 'OPEN';
+      console.warn('🔴 熔断器打开！');
+    }
+  }
+}
+
+// 使用
+const breaker = new CircuitBreaker(5, 30000);
+const result = await breaker.call(
+  () => userService.getUser(openId),
+  () =&gt; ({ id: openId, name: '游客', avatar: '/default.png' }) // 降级兜底数据
+);</code></pre>
+
+<h3>3. 前端降级 — 服务降级三件套</h3>
+
+<p>超时发生时，前端不应该让用户看到空白或报错，而是给一个有意义的降级结果。</p>
+
+<pre><code>// 请求结果降级
+async function fetchBanner() {
+  try {
+    const res = await api.get('/banner', { timeout: 3000 });
+    return { type: 'data', content: res.data };
+  } catch (e) {
+    // 降级：缓存优先，缓存也没有返回兜底
+    const cached = localStorage.getItem('banner_cache');
+    if (cached) {
+      return { type: 'cache', content: JSON.parse(cached) };
+    }
+    return {
+      type: 'fallback',
+      content: [{ id: 0, title: '网络不给力，请稍后再试', image: '/default-banner.jpg' }]
+    };
+  }
+}
+
+// 接口超时 → 显示骨架屏 + 重试按钮
+// 第三方服务超时 → 用本地假数据先顶着
+// 非核心接口 → 直接隐藏，不影响主流程</code></pre>
+
+<div class="success">
+  <strong>降级设计原则：</strong>核心功能（如商品展示、下单）必须保；非核心功能（如推荐、评价）可降级或隐藏。不要让非核心接口的超时阻塞用户主流程。
+</div>
+
+<h3>4. 接口超时设计的核心原则</h3>
+
+<p>作为后端工程师，你要给前端一个"可信"的接口契约：</p>
+
+<ul>
+  <li><strong>接口最大响应时间</strong>写入 API 文档，超时返回 504，不返回 200 + 空数据</li>
+  <li><strong>分页接口</strong>设 maxLimit，防止用户请求 10 万条数据导致超时</li>
+  <li><strong>长任务用异步</strong>：导出、统计这种耗时操作，不要让前端同步等待，改用任务队列 + 查询进度接口</li>
+  <li><strong>健康检查独立</strong>：别把监控探针和业务接口绑一起，健康检查要优先返回</li>
+</ul>
+
+<pre><code># Nginx 健康检查（独立路径，不受业务超时影响）
+location /health {
+    access_log off;
+    return 200 'ok';
+    add_header Content-Type text/plain;
+}
+
+# 大文件导出：走异步任务队列
+# 前端: POST /api/export  →  返回 { taskId: "xxx" }
+# 前端: GET  /api/export/xxx/status  →  { progress: 75, status: "running" }
+# 前端: GET  /api/export/xxx/download  →  文件 URL</code></pre>
+
+<h2 id="summary">五、实战 checklist — 15 分钟自检清单</h2>
+
+<p>对照这个清单，检查你现在项目里的超时处理：</p>
+
+<div class="case-box">
+  <h4>✅ 前端检查</h4>
+  <p>□ axios 请求是否配置了合理的 timeout（5-10s）</p>
+  <p>□ 是否有统一的 AbortController 管理页面生命周期请求</p>
+  <p>□ 重试是否有指数退避 + 错误类型判断（5xx 重试，4xx 不重试）</p>
+  <p>□ 超时后是否有降级 UI（骨架屏、兜底数据、错误提示）</p>
+  <p>□ 高频请求是否做了并发控制（避免打爆服务端）</p>
+</div>
+
+<div class="case-box">
+  <h4>✅ 后端检查</h4>
+  <p>□ Nginx <code>proxy_read_timeout</code> 是否覆盖接口最大处理时间</p>
+  <p>□ 慢查询日志是否开启，>2s 的 SQL 有没有优化计划</p>
+  <p>□ 核心接口是否加了业务超时限制（防止极端情况）</p>
+  <p>□ 是否有熔断器，防止故障级联</p>
+  <p>□ 长耗时操作是否改成了异步任务（导出、批量处理）</p>
+</div>
+
+<hr class="divider">
+
+<div class="cta-box">
+  <h3>☘️ 工具推荐</h3>
+  <p>想快速测试接口响应时间和超时行为？去 CloverTools 看看这个工具：</p>
+  <p><a href="https://clovertools.cn/tools/network/api-tester.html">🔧 API 调试工具 - 快速验证接口超时表现</a></p>
+  <p style="margin-top:12px; font-size:12px; color:#666;">支持自定义超时时间、查看响应头、自动生成请求代码</p>
+</div>
+
+<p style="text-align:center; color:#555; font-size:12px; margin-top:40px;">© CloverTools · 全栈开发工具站 · <a href="https://clovertools.cn" style="color:#888;">clovertools.cn</a></p>
+
+</div>
+</body>
+</html>
+
+      <div class="tool-cta">
+        <h3>💡 遇到同类问题？用工具快速解决</h3>
+        <p style="opacity:0.9;font-size:0.9rem;margin-bottom:0.8rem;">试试这些配套工具，无需注册，打开即用</p>
+        <a href="/tools/network/api-tester.html">API测试工具</a>
+      </div>
+
+      <div class="faq">
+        <h2>常见问题</h2>
+        <div class="faq-item"><strong>Q: 如何使用 api请求超时15种解决方案 相关工具?</strong><br>A: 这类工具一般有明确的输入框和输出框,按提示输入内容,点击对应按钮即可得到结果。建议先用简单示例测试功能是否正常,再处理实际数据。</div>
+<div class="faq-item"><strong>Q: api请求超时15种解决方案 适合在什么场景使用?</strong><br>A: 根据具体工具类型决定。格式转换工具适合处理第三方数据,编码工具适合加密传输,压缩工具适合文件上传前处理。多积累工具使用经验,遇到问题时能快速判断用哪个工具解决。</div>
+<div class="faq-item"><strong>Q: 有没有更好的替代工具?</strong><br>A: 不同工具有不同侧重,重点是理解原理。可以同时安装多个类似工具,实际使用中对比效果,选择最顺手的一个。随着使用经验增加,你也能判断工具的好坏。</div>
+      </div>
+
+      
+    </div>
+    <!-- FOOTER_SHARE_BTN will be replaced by generator.js for tool pages -->
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+  </div>
+  <script src="/src/shared.js"></script>
+</body>
+</html>

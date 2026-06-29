@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国家庭称谓计算器 - CloverTools</title>
+  <meta name="description" content="查询中国亲戚关系称谓，支持反向计算（如爸爸的妹妹叫什么）、关系链可视化与多代查询，适合节日称呼与文化学习。,无需注册,完全免费。">
+  <meta name="keywords" content="亲戚称谓,家庭关系,称呼计算,中国称谓,亲戚关系">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="中国家庭称谓计算器 - CloverTools">
+  <meta property="og:description" content="查询中国亲戚关系称谓，支持反向计算（如爸爸的妹妹叫什么）、关系链可视化与多代查询，适合节日称呼与文化学习。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/life/family-kinship.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="中国家庭称谓计算器 - CloverTools">
+  <meta name="twitter:description" content="查询中国亲戚关系称谓，支持反向计算（如爸爸的妹妹叫什么）、关系链可视化与多代查询，适合节日称呼与文化学习。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/life/family-kinship.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>中国家庭称谓计算器</h1>
+        <p class="description">查询中国亲戚关系称谓，支持反向计算（如爸爸的妹妹叫什么）、关系链可视化与多代查询，适合节日称呼与文化学习。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<div class="input-section">
+        <div class="input-row">
+            <div class="input-group">
+                <label>关系链（用"的"分隔）</label>
+                <input type="text" id="relationInput" class="relation-input" placeholder="例：爸爸的妹妹" value="爸爸的妹妹">
+            </div>
+        </div>
+        <div class="quick-picks">
+            <span style="font-size:13px;color:#8b949e;align-self:center;">快速测试：</span>
+            <span class="quick-pick" onclick="setQuery('爸爸的妹妹')">爸爸的妹妹</span>
+            <span class="quick-pick" onclick="setQuery('妈妈的哥哥')">妈妈的哥哥</span>
+            <span class="quick-pick" onclick="setQuery('爸爸的爸爸')">爸爸的爸爸</span>
+            <span class="quick-pick" onclick="setQuery('姐姐的丈夫')">姐姐的丈夫</span>
+            <span class="quick-pick" onclick="setQuery('儿子的儿子')">儿子的儿子</span>
+            <span class="quick-pick" onclick="setQuery('妻子的妈妈')">妻子的妈妈</span>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:16px;">
+            <button class="btn" onclick="calculate()">
+                <i class="bi bi-search"></i> 查询称谓
+            </button>
+            <button class="btn btn-secondary" onclick="clearInput()">
+                <i class="bi bi-arrow-counterclockwise"></i> 清空
+            </button>
+        </div>
+    </div>
+
+    <div class="result-section" id="resultSection">
+        <div class="result-main">
+            <div class="result-label">这位亲戚的称谓是：</div>
+            <div class="result-name" id="resultName">-</div>
+            <div class="result-chain" id="resultChain">-</div>
+        </div>
+        <div class="result-details">
+            <div class="detail-item">
+                <div class="detail-label">关系类型</div>
+                <div class="detail-value" id="resultType">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">所属长辈</div>
+                <div class="detail-value" id="resultGen">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">亲属分类</div>
+                <div class="detail-value" id="resultCate">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">对称称呼</div>
+                <div class="detail-value" id="resultMirror">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="common-section">
+        <div class="common-title"><i class="bi bi-list-ul"></i> 常用称谓速查</div>
+        <div class="common-grid" id="commonGrid"></div>
+    </div>
+
+    <script>
+        // 称谓表（关系链 → 称谓）
+        // 关系关键词：父/爸爸/爹, 母/妈妈/娘, 兄/哥哥, 姐/姐姐, 弟/弟弟, 妹/妹妹, 
+        //              子/儿子, 女/女儿, 夫/丈夫/老公, 妻/妻子/老婆, 配偶,
+        //              兄/哥, 弟, 姐, 妹  （祖父母辈:爷爷/外公,奶奶/外婆 等）
+        const KINSHIP = {
+            // 直系长辈
+            '父': { name: '爸爸', type: '直系长辈', gen: '上一辈', cate: '血亲' },
+            '母': { name: '妈妈', type: '直系长辈', gen: '上一辈', cate: '血亲' },
+            '父之父': { name: '爷爷（祖父）', type: '直系长辈', gen: '上两辈', cate: '血亲' },
+            '父之母': { name: '奶奶（祖母）', type: '直系长辈', gen: '上两辈', cate: '血亲' },
+            '母之父': { name: '外公（外祖父）', type: '直系长辈', gen: '上两辈', cate: '血亲' },
+            '母之母': { name: '外婆（外祖母）', type: '直系长辈', gen: '上两辈', cate: '血亲' },
+            '父之兄': { name: '伯父（伯伯）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '父之弟': { name: '叔叔（叔父）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '父之姐': { name: '姑妈（大姑）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '父之妹': { name: '姑姑（小姑）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '母之兄': { name: '舅舅（舅父）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '母之弟': { name: '舅舅（舅父）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '母之姐': { name: '姨（大姨）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            '母之妹': { name: '姨（小姨）', type: '旁系长辈', gen: '上一辈', cate: '血亲' },
+            
+            // 旁系同辈（堂表）
+            '父之兄之子': { name: '堂哥/堂弟', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '父之兄之女': { name: '堂姐/堂妹', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '父之姐之子': { name: '姑表哥', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '父之姐之女': { name: '姑表姐', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '母之兄之子': { name: '舅表哥', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '母之兄之女': { name: '舅表姐', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '母之姐之子': { name: '姨表哥', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            '母之姐之女': { name: '姨表姐', type: '旁系同辈', gen: '同辈', cate: '血亲' },
+            
+            // 同辈
+            '兄': { name: '哥哥', type: '直系同辈', gen: '同辈', cate: '血亲' },
+            '弟': { name: '弟弟', type: '直系同辈', gen: '同辈', cate: '血亲' },
+            '姐': { name: '姐姐', type: '直系同辈', gen: '同辈', cate: '血亲' },
+            '妹': { name: '妹妹', type: '直系同辈', gen: '同辈', cate: '血亲' },
+            '兄之妻': { name: '嫂子', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '弟之妻': { name: '弟妹', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '姐之夫': { name: '姐夫', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '妹之夫': { name: '妹夫', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            
+            // 晚辈
+            '子': { name: '儿子', type: '直系晚辈', gen: '下一辈', cate: '血亲' },
+            '女': { name: '女儿', type: '直系晚辈', gen: '下一辈', cate: '血亲' },
+            '子之子': { name: '孙子', type: '直系晚辈', gen: '下两辈', cate: '血亲' },
+            '子之女': { name: '孙女', type: '直系晚辈', gen: '下两辈', cate: '血亲' },
+            '女之子': { name: '外孙', type: '直系晚辈', gen: '下两辈', cate: '血亲' },
+            '女之女': { name: '外孙女', type: '直系晚辈', gen: '下两辈', cate: '血亲' },
+            '子之子之子': { name: '曾孙（重孙）', type: '直系晚辈', gen: '下三辈', cate: '血亲' },
+            
+            // 配偶
+            '妻': { name: '妻子', type: '直系同辈', gen: '同辈', cate: '姻亲' },
+            '夫': { name: '丈夫', type: '直系同辈', gen: '同辈', cate: '姻亲' },
+            '配偶之父': { name: '岳父（公公）', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            '配偶之母': { name: '岳母（婆婆）', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            '配偶之兄': { name: '大舅子/大伯子', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '配偶之弟': { name: '小舅子/小叔子', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '配偶之姐': { name: '大姨子/大姑子', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '配偶之妹': { name: '小姨子/小姑子', type: '旁系同辈', gen: '同辈', cate: '姻亲' },
+            '妻之父': { name: '岳父', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            '妻之母': { name: '岳母', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            '夫之父': { name: '公公', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            '夫之母': { name: '婆婆', type: '旁系长辈', gen: '上一辈', cate: '姻亲' },
+            
+            // 子女的配偶
+            '子之妻': { name: '儿媳', type: '旁系晚辈', gen: '下一辈', cate: '姻亲' },
+            '女之夫': { name: '女婿', type: '旁系晚辈', gen: '下一辈', cate: '姻亲' },
+        };
+
+        // 关键词标准化映射（口语 → 内部关系链）
+        const NORMALIZE = [
+            [/(?:爸爸|父亲|爹爹|爸|父)/g, '父'],
+            [/(?:妈妈|母亲|娘|妈|母)/g, '母'],
+            [/(?:爷爷|祖父|阿公)/g, '父之父'],
+            [/(?:奶奶|祖母|阿嬷)/g, '父之母'],
+            [/(?:外公|外祖父|姥爷)/g, '母之父'],
+            [/(?:外婆|外祖母|姥姥)/g, '母之母'],
+            [/(?:伯父|伯伯|大伯)/g, '父之兄'],
+            [/(?:叔叔|叔父|叔)/g, '父之弟'],
+            [/(?:姑妈|大姑|姑姑|姑)/g, '父之姐'],  // 简化处理
+            [/(?:舅舅|舅父|舅)/g, '母之兄'],
+            [/(?:姨妈|大姨|小姨|姨)/g, '母之姐'],  // 简化
+            [/(?:哥哥|兄长|哥)/g, '兄'],
+            [/(?:弟弟|弟)/g, '弟'],
+            [/(?:姐姐|姐)/g, '姐'],
+            [/(?:妹妹|妹)/g, '妹'],
+            [/(?:儿子|子)/g, '子'],
+            [/(?:女儿|女)/g, '女'],
+            [/(?:孙子|孙)/g, '子之子'],
+            [/(?:孙女)/g, '子之女'],
+            [/(?:外孙)/g, '女之子'],
+            [/(?:外孙女)/g, '女之女'],
+            [/(?:曾孙|重孙)/g, '子之子之子'],
+            [/(?:妻子|老婆|媳妇|妻)/g, '妻'],
+            [/(?:丈夫|老公|夫)/g, '夫'],
+            [/(?:岳父|老丈人)/g, '妻之父'],
+            [/(?:岳母|丈母娘)/g, '妻之母'],
+            [/(?:公公|公爹)/g, '夫之父'],
+            [/(?:婆婆|婆母)/g, '夫之母'],
+            [/(?:嫂子|嫂)/g, '兄之妻'],
+            [/(?:弟妹|弟媳)/g, '弟之妻'],
+            [/(?:姐夫)/g, '姐之夫'],
+            [/(?:妹夫)/g, '妹之夫'],
+            [/(?:儿媳|儿媳妇)/g, '子之妻'],
+            [/(?:女婿)/g, '女之夫'],
+            [/(?:大舅子|大舅)/g, '配偶之兄'],
+            [/(?:小舅子|小舅)/g, '配偶之弟'],
+            [/(?:大姨子|大姨)/g, '配偶之姐'],
+            [/(?:小姨子|小姨)/g, '配偶之妹'],
+            [/(?:堂哥|堂兄)/g, '父之兄之子'],
+            [/(?:堂弟)/g, '父之兄之子'],
+            [/(?:堂姐)/g, '父之兄之女'],
+            [/(?:堂妹)/g, '父之兄之女'],
+        ];
+
+        function normalize(input) {
+            let result = input;
+            for (const [re, rep] of NORMALIZE) {
+                result = result.replace(re, rep);
+            }
+            return result;
+        }
+
+        function calculate() {
+            const input = document.getElementById('relationInput').value.trim();
+            const resultSection = document.getElementById('resultSection');
+            
+            if (!input) {
+                resultSection.classList.remove('show');
+                return;
+            }
+
+            const normalized = normalize(input);
+            // 优先尝试长链，再尝试短链
+            const parts = normalized.split('的').filter(Boolean);
+            
+            let found = null;
+            let chain = '';
+            
+            // 尝试匹配整个链
+            for (let i = parts.length; i >= 1; i--) {
+                const subChain = parts.slice(0, i).join('之');
+                if (KINSHIP[subChain]) {
+                    found = KINSHIP[subChain];
+                    chain = parts.slice(0, i).join('的');
+                    break;
+                }
+                // 尝试带"的"格式
+                const subChain2 = parts.slice(0, i).join('之');
+                if (KINSHIP[subChain2]) {
+                    found = KINSHIP[subChain2];
+                    chain = parts.slice(0, i).join('的');
+                    break;
+                }
+            }
+            
+            // 简单直系/同辈匹配
+            if (!found) {
+                const direct = KINSHIP[parts[0]];
+                if (direct) {
+                    found = direct;
+                    chain = parts[0];
+                }
+            }
+
+            if (found) {
+                document.getElementById('resultName').textContent = found.name;
+                document.getElementById('resultChain').textContent = '关系链：' + chain;
+                document.getElementById('resultType').textContent = found.type;
+                document.getElementById('resultGen').textContent = found.gen;
+                document.getElementById('resultCate').textContent = found.cate;
+                // 简单对称称呼
+                const mirrorMap = {
+                    '直系长辈': '晚辈（子/女）',
+                    '直系晚辈': '长辈（父/母）',
+                    '旁系长辈': '侄/甥',
+                    '旁系同辈': '兄弟姐妹',
+                    '直系同辈': '配偶/兄弟姐妹',
+                };
+                document.getElementById('resultMirror').textContent = mirrorMap[found.type] || '请根据场景称呼';
+                resultSection.classList.add('show');
+            } else {
+                resultSection.classList.remove('show');
+                alert('未找到该关系链的称谓，请尝试更简单的描述。
+示例：爸爸、妈妈的哥哥、爸爸的妹妹、儿子的儿子、姐姐的丈夫');
+            }
+        }
+
+        function setQuery(q) {
+            document.getElementById('relationInput').value = q;
+            calculate();
+        }
+
+        function clearInput() {
+            document.getElementById('relationInput').value = '';
+            document.getElementById('resultSection').classList.remove('show');
+        }
+
+        // 渲染常用称谓速查表
+        function renderCommon() {
+            const items = [
+                { q: '爸爸', name: '爸爸' },
+                { q: '妈妈', name: '妈妈' },
+                { q: '哥哥', name: '哥哥' },
+                { q: '姐姐', name: '姐姐' },
+                { q: '弟弟', name: '弟弟' },
+                { q: '妹妹', name: '妹妹' },
+                { q: '儿子', name: '儿子' },
+                { q: '女儿', name: '女儿' },
+                { q: '爷爷', name: '爷爷' },
+                { q: '奶奶', name: '奶奶' },
+                { q: '外公', name: '外公' },
+                { q: '外婆', name: '外婆' },
+                { q: '叔叔', name: '叔叔' },
+                { q: '姑姑', name: '姑姑' },
+                { q: '舅舅', name: '舅舅' },
+                { q: '姨妈', name: '姨妈' },
+                { q: '丈夫', name: '丈夫' },
+                { q: '妻子', name: '妻子' },
+            ];
+            const grid = document.getElementById('commonGrid');
+            grid.innerHTML = items.map(it => 
+                `<div class="common-item" onclick="setQuery('${it.q}')">
+                    <div class="common-from">${it.q} 的称谓</div>
+                    <div class="common-to">${it.name}</div>
+                </div>`
+            ).join('');
+        }
+
+        document.getElementById('relationInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculate();
+        });
+
+        renderCommon();
+    </script>
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    var mode = 'format';
+var input = document.getElementById('input');
+var output = document.getElementById('output');
+var sampleData = "";
+function updateFormatterStats() {
+  var inv = input.value;
+  document.getElementById('inputStats').textContent = inv.length + ' 字符 · ' + (inv ? inv.split('\n').length : 0) + ' 行';
+  document.getElementById('outputStats').textContent = output.value.length + ' 字符';
+}
+function detectFormat(text) {
+  var t = text.trim();
+  if (t.startsWith('{') || t.startsWith('[')) return 'json';
+  if (t.startsWith('<')) {
+    if (/<!DOCTYPE\s+html/i.test(t) || /<html/i.test(t)) return 'html';
+    if (/<\?xml/i.test(t)) return 'xml';
+    return 'html';
+  }
+  return 'text';
+}
+function runFormatter() {
+  try {
+    var val = input.value.trim();
+    output.style.borderColor = '';
+    if (!val) { output.value = ''; updateFormatterStats(); return; }
+    var fmt = detectFormat(val);
+    if (fmt === 'json') {
+      var parsed = JSON.parse(val);
+      output.value = mode === 'minify' ? JSON.stringify(parsed) : JSON.stringify(parsed, null, 2);
+    } else if (fmt === 'html' || fmt === 'xml') {
+      var doc = new DOMParser().parseFromString(val, fmt === 'html' ? 'text/html' : 'application/xml');
+      if (fmt === 'xml' && doc.querySelector('parsererror')) throw new Error('XML 解析错误');
+      var formatted = doc.documentElement.outerHTML;
+      output.value = mode === 'minify' ? formatted.replace(/>\s+</g, '><').trim() : formatted;
+    } else {
+      output.value = val;
+    }
+  } catch(e) { output.value = '错误: ' + e.message; output.style.borderColor = 'var(--error)'; }
+  updateFormatterStats();
+}
+document.getElementById('format').onclick = function() { mode = 'format'; this.classList.add('active-btn'); document.getElementById('minify').classList.remove('active-btn'); runFormatter(); };
+document.getElementById('minify').onclick = function() { mode = 'minify'; this.classList.add('active-btn'); document.getElementById('format').classList.remove('active-btn'); runFormatter(); };
+document.getElementById('copyOutput').onclick = function() { CT.copy(output.value, this); };
+document.getElementById('clearInput').onclick = function() { input.value = ''; output.value = ''; updateFormatterStats(); input.focus(); };
+input.addEventListener('input', CT.debounce(runFormatter, 150));
+document.addEventListener('keydown', function(e) {
+  if (e.target.tagName === 'TEXTAREA') {
+    if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); runFormatter(); }
+    if ((e.ctrlKey||e.metaKey) && e.key === 'k') { e.preventDefault(); document.getElementById('clearInput').click(); }
+  }
+});
+updateFormatterStats();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日幸运色 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="每日幸运色 - 🍀 CloverTools">
+  <meta property="og:description" content="基于日期与五行理论生成每日幸运颜色、幸运数字与穿衣配色建议，支持历史回看和生肖结合，纯前端本地存储。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/life/每日幸运色.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="每日幸运色 - 🍀 CloverTools">
+  <meta name="twitter:description" content="基于日期与五行理论生成每日幸运颜色、幸运数字与穿衣配色建议，支持历史回看和生肖结合，纯前端本地存储。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/life/每日幸运色.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>每日幸运色</h1>
+        <p class="description">基于日期与五行理论生成每日幸运颜色、幸运数字与穿衣配色建议，支持历史回看和生肖结合，纯前端本地存储。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>🎨 每日幸运色</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">选择日期</label>
+      <input type="date" id="dateInput" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);" />
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">您的生肖 (可选)</label>
+      <select id="zodiacSel" style="width:100%;padding:0.75rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);">
+        <option value="">不指定</option>
+        <option value="鼠">鼠</option><option value="牛">牛</option><option value="虎">虎</option><option value="兔">兔</option>
+        <option value="龙">龙</option><option value="蛇">蛇</option><option value="马">马</option><option value="羊">羊</option>
+        <option value="猴">猴</option><option value="鸡">鸡</option><option value="狗">狗</option><option value="猪">猪</option>
+      </select>
+    </div>
+  </div>
+  <div style="display:flex;gap:0.5rem;">
+    <button class="btn btn-primary" id="genBtn" style="flex:1;">🌈 生成幸运色</button>
+    <button class="btn" id="todayBtn" style="flex:1;background:var(--bg-secondary);">📅 回到今天</button>
+  </div>
+  <div style="margin-top:0.75rem;padding:0.6rem 0.8rem;background:var(--bg-secondary);border-radius:8px;font-size:0.78rem;opacity:0.75;line-height:1.7;">
+    💡 基于<b>五行理论</b>（金木水火土）与日期能量场生成，结果每天不同；点击"历史回看"查看近期记录。
+  </div>
+</div>
+<div class="output-box">
+  <h3>今日色彩能量 <button class="copy-btn" id="copyOutput">复制</button></h3>
+  <div id="output" style="padding:0.5rem;line-height:1.8;"></div>
+  <div id="historySection" style="margin-top:1rem;padding-top:0.8rem;border-top:1px dashed var(--border);"></div>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // Five-element theory: 金木水火土 with associated colors
+const ELEMENTS = {
+  金: { name: '金', color: '#FFD700', en: 'Metal', traits: '果断、刚毅、领导力' },
+  木: { name: '木', color: '#22C55E', en: 'Wood',  traits: '成长、创造、仁慈' },
+  水: { name: '水', color: '#0EA5E9', en: 'Water', traits: '智慧、灵活、沟通' },
+  火: { name: '火', color: '#EF4444', en: 'Fire',  traits: '热情、活力、表达' },
+  土: { name: '土', color: '#A16207', en: 'Earth', traits: '稳重、诚信、包容' }
+};
+
+// Expanded palette for more variety
+const PALETTES = {
+  金: [
+    { hex: '#FFD700', name: '金黄',   cn: '金' },
+    { hex: '#FFC107', name: '琥珀金', cn: '金' },
+    { hex: '#E6B800', name: '麦穗金', cn: '金' },
+    { hex: '#F4E5A1', name: '沙金',   cn: '金' },
+    { hex: '#C9A227', name: '古铜金', cn: '金' },
+    { hex: '#FFFFFF', name: '雪白银', cn: '金' },
+  ],
+  木: [
+    { hex: '#22C55E', name: '翠绿',   cn: '木' },
+    { hex: '#16A34A', name: '森林绿', cn: '木' },
+    { hex: '#84CC16', name: '嫩芽绿', cn: '木' },
+    { hex: '#10B981', name: '薄荷绿', cn: '木' },
+    { hex: '#4ADE80', name: '青草绿', cn: '木' },
+    { hex: '#059669', name: '松针绿', cn: '木' },
+  ],
+  水: [
+    { hex: '#0EA5E9', name: '海蓝',   cn: '水' },
+    { hex: '#0284C7', name: '深蓝',   cn: '水' },
+    { hex: '#1E40AF', name: '宝蓝',   cn: '水' },
+    { hex: '#06B6D4', name: '青蓝',   cn: '水' },
+    { hex: '#3730A3', name: '靛蓝',   cn: '水' },
+    { hex: '#000000', name: '玄黑',   cn: '水' },
+  ],
+  火: [
+    { hex: '#EF4444', name: '朱红',   cn: '火' },
+    { hex: '#DC2626', name: '赤红',   cn: '火' },
+    { hex: '#F97316', name: '橙红',   cn: '火' },
+    { hex: '#EC4899', name: '桃粉',   cn: '火' },
+    { hex: '#F59E0B', name: '暖橙',   cn: '火' },
+    { hex: '#B91C1C', name: '深绛',   cn: '火' },
+  ],
+  土: [
+    { hex: '#A16207', name: '赭黄',   cn: '土' },
+    { hex: '#92400E', name: '棕褐',   cn: '土' },
+    { hex: '#78350F', name: '深咖',   cn: '土' },
+    { hex: '#D97706', name: '焦糖',   cn: '土' },
+    { hex: '#CA8A04', name: '土黄',   cn: '土' },
+    { hex: '#A16207', name: '橄榄土', cn: '土' },
+  ]
+};
+
+const COLOR_MEANINGS = {
+  金: '象征财富、坚定、刚毅。今日宜处理重要决策、签订合约、佩戴金属饰品。',
+  木: '象征生机、成长、创造。今日宜学习新技能、户外运动、接触自然。',
+  水: '象征智慧、流动、灵活。今日宜沟通谈判、写作创作、保持冷静。',
+  火: '象征热情、活力、表达。今日宜社交聚会、主动表白、运动健身。',
+  土: '象征稳重、诚信、包容。今日宜处理家务、关心家人、踏实工作。',
+};
+
+// Zodiac lucky element mapping (12 生肖)
+const ZODIAC_ELE = {
+  '鼠':'水','牛':'土','虎':'木','兔':'木',
+  '龙':'土','蛇':'火','马':'火','羊':'土',
+  '猴':'金','鸡':'金','狗':'土','猪':'水'
+};
+
+const ZODIAC_NUM = {
+  '鼠':2,'牛':1,'虎':7,'兔':9,
+  '龙':5,'蛇':0,'马':8,'羊':6,
+  '猴':3,'鸡':4,'狗':1,'猪':6
+};
+
+function hashCode(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function dayElement(dateStr, zodiac) {
+  // Base on date seed
+  const d = new Date(dateStr);
+  const seed = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+  const h = hashCode(seed + 'day');
+  const order = ['金','木','水','火','土'];
+  return order[h % 5];
+}
+
+function pickPalette(dateStr, ele) {
+  const d = new Date(dateStr);
+  const seed = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+  const h = hashCode(seed + 'color');
+  const arr = PALETTES[ele];
+  return arr[h % arr.length];
+}
+
+function pickNumber(dateStr, zodiac) {
+  const d = new Date(dateStr);
+  const seed = d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+  const h = hashCode(seed + 'num');
+  const base = (h % 9) + 1;
+  if (zodiac && ZODIAC_NUM[zodiac] !== undefined) {
+    return [base, ZODIAC_NUM[zodiac], (base + ZODIAC_NUM[zodiac]) % 10 || 10];
+  }
+  return [base, ((base + 3) % 9) + 1, ((base * 2) % 9) + 1];
+}
+
+function pickOutfit(ele, palette) {
+  const tips = {
+    金: { main: '白色或金色上衣', accent: '深色下装 (黑/深灰)',  avoid: '避开过于鲜艳的红绿撞色' },
+    木: { main: '绿色或米色系',   accent: '浅蓝/白色单品',        avoid: '避免全黑压抑搭配' },
+    水: { main: '蓝色或黑色上衣', accent: '白色/银色配饰',        avoid: '避免过多暖橙黄' },
+    火: { main: '红色或橙色单品', accent: '米白/黑色平衡',        avoid: '避免一身素白冷感' },
+    土: { main: '棕色/赭色系',    accent: '金黄/米色层次',        avoid: '避免冷色调过于集中' },
+  };
+  return tips[ele];
+}
+
+function luminance(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+
+function contrastText(hex) {
+  return luminance(hex) > 0.6 ? '#1a1a1a' : '#ffffff';
+}
+
+const dateInput = document.getElementById('dateInput');
+const zodiacSel = document.getElementById('zodiacSel');
+const genBtn = document.getElementById('genBtn');
+const todayBtn = document.getElementById('todayBtn');
+const output = document.getElementById('output');
+const histSection = document.getElementById('historySection');
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+}
+
+function saveHistory(dateStr, palette, ele) {
+  try {
+    const list = JSON.parse(localStorage.getItem('clover-lucky-color-history') || '[]');
+    const filtered = list.filter(item => item.date !== dateStr);
+    filtered.unshift({ date: dateStr, hex: palette.hex, name: palette.name, ele: ele, ts: Date.now() });
+    const trimmed = filtered.slice(0, 10);
+    localStorage.setItem('clover-lucky-color-history', JSON.stringify(trimmed));
+    return trimmed;
+  } catch (e) { return []; }
+}
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem('clover-lucky-color-history') || '[]'); }
+  catch (e) { return []; }
+}
+
+function renderHistory() {
+  const list = loadHistory();
+  if (!list.length) { histSection.innerHTML = ''; return; }
+  let html = '<div style="font-size:0.85rem;font-weight:600;margin-bottom:0.4rem;">📅 历史回看（最近 ' + list.length + ' 天）</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.4rem;">';
+  list.forEach(item => {
+    html += '<div style="text-align:center;">'
+      + '<div style="height:38px;border-radius:6px;background:' + item.hex + ';"></div>'
+      + '<div style="font-size:0.7rem;margin-top:0.25rem;opacity:0.7;">' + item.date.slice(5) + '</div>'
+      + '<div style="font-size:0.7rem;">' + item.name + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  histSection.innerHTML = html;
+}
+
+function gen() {
+  try {
+    let dateStr = dateInput.value || todayStr();
+    dateInput.value = dateStr;
+    const zodiac = zodiacSel.value;
+    const ele = dayElement(dateStr, zodiac);
+    const palette = pickPalette(dateStr, ele);
+    const numbers = pickNumber(dateStr, zodiac);
+    const outfit = pickOutfit(ele, palette);
+    const textColor = contrastText(palette.hex);
+
+    let html = '';
+    // Main color block
+    html += '<div style="background:' + palette.hex + ';color:' + textColor + ';padding:1.5rem 1rem;border-radius:14px;text-align:center;margin-bottom:0.75rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);">';
+    html += '<div style="font-size:0.85rem;opacity:0.85;margin-bottom:0.3rem;">' + dateStr + ' 幸运色</div>';
+    html += '<div style="font-size:1.8rem;font-weight:700;letter-spacing:0.05em;margin-bottom:0.3rem;">' + palette.name + '</div>';
+    html += '<div style="font-family:monospace;font-size:0.95rem;opacity:0.9;">' + palette.hex.toUpperCase() + '</div>';
+    html += '</div>';
+
+    // Five element
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.75rem;">';
+    html += '<div style="background:var(--bg-secondary);padding:0.7rem 0.9rem;border-radius:10px;">'
+      + '<div style="font-size:0.75rem;opacity:0.65;margin-bottom:0.25rem;">五行属性</div>'
+      + '<div style="font-size:1.15rem;font-weight:600;">' + ele + ' <span style="opacity:0.6;font-size:0.85rem;">(' + ELEMENTS[ele].en + ')</span></div>'
+      + '<div style="font-size:0.75rem;opacity:0.7;margin-top:0.2rem;">' + ELEMENTS[ele].traits + '</div>'
+      + '</div>';
+    html += '<div style="background:var(--bg-secondary);padding:0.7rem 0.9rem;border-radius:10px;">'
+      + '<div style="font-size:0.75rem;opacity:0.65;margin-bottom:0.25rem;">今日幸运数字</div>'
+      + '<div style="font-size:1.15rem;font-weight:600;font-family:monospace;">' + numbers.map(n => '<span style="display:inline-block;background:' + ELEMENTS[ele].color + '22;color:' + ELEMENTS[ele].color + ';padding:0.15rem 0.5rem;border-radius:6px;margin-right:0.3rem;">' + n + '</span>').join('') + '</div>'
+      + (zodiac ? '<div style="font-size:0.75rem;opacity:0.7;margin-top:0.2rem;">结合生肖' + zodiac + '的喜用数</div>' : '<div style="font-size:0.75rem;opacity:0.7;margin-top:0.2rem;">含个人能量日主</div>')
+      + '</div>';
+    html += '</div>';
+
+    // Meaning
+    html += '<div style="background:var(--bg-secondary);padding:0.7rem 0.9rem;border-radius:10px;margin-bottom:0.5rem;font-size:0.85rem;line-height:1.7;">'
+      + '✨ <b>色彩能量解读</b>：' + COLOR_MEANINGS[ele]
+      + '</div>';
+
+    // Outfit
+    html += '<div style="background:var(--bg-secondary);padding:0.7rem 0.9rem;border-radius:10px;font-size:0.85rem;line-height:1.8;">'
+      + '👔 <b>穿衣配色建议</b><br>'
+      + '   • 主色：' + outfit.main + '<br>'
+      + '   • 点缀：' + outfit.accent + '<br>'
+      + '   • ⚠️ ' + outfit.avoid
+      + '</div>';
+
+    output.innerHTML = html;
+    saveHistory(dateStr, palette, ele);
+    renderHistory();
+  } catch (e) {
+    output.innerHTML = '<div style="padding:1rem;text-align:center;color:#ef4444;">❌ 生成失败：' + e.message + '</div>';
+  }
+}
+
+genBtn.onclick = gen;
+todayBtn.onclick = () => { dateInput.value = todayStr(); gen(); };
+dateInput.addEventListener('change', gen);
+zodiacSel.addEventListener('change', gen);
+document.getElementById('copyOutput').onclick = () => {
+  const text = output.innerText;
+  if (text) copyToClipboard(text);
+};
+dateInput.value = todayStr();
+gen();
+renderHistory();
+  </script>
+</body>
+</html>

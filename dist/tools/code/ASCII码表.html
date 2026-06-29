@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASCII 码表 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="ASCII 码表 - 🍀 CloverTools">
+  <meta property="og:description" content="在线 ASCII 码表查询工具，0-127 字符与十进制/十六进制/八进制/二进制/Unicode 五种进制实时互转，支持过滤搜索。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/code/ASCII码表.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="ASCII 码表 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线 ASCII 码表查询工具，0-127 字符与十进制/十六进制/八进制/二进制/Unicode 五种进制实时互转，支持过滤搜索。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/code/ASCII码表.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>ASCII 码表</h1>
+        <p class="description">在线 ASCII 码表查询工具，0-127 字符与十进制/十六进制/八进制/二进制/Unicode 五种进制实时互转，支持过滤搜索。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>字符 ⇄ ASCII 互转</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">输入字符</label>
+      <input type="text" id="charInput" maxlength="10" placeholder="输入 1 个字符..." style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:1.1rem;background:var(--bg-secondary);color:var(--text);font-family:monospace;" />
+    </div>
+    <div>
+      <label style="font-size:0.85rem;opacity:0.7;display:block;margin-bottom:0.3rem;">或输入十进制 0-127</label>
+      <input type="number" id="decInput" min="0" max="127" style="width:100%;padding:0.6rem;border-radius:10px;border:1px solid var(--border);font-size:1rem;background:var(--bg-secondary);color:var(--text);font-family:monospace;" />
+    </div>
+  </div>
+  <div id="charInfo" style="background:var(--bg-secondary);border-radius:10px;padding:0.85rem;font-size:0.9rem;line-height:1.8;"></div>
+  <div style="font-size:0.8rem;opacity:0.75;line-height:1.6;background:var(--bg-secondary);padding:0.6rem 0.8rem;border-radius:8px;margin-top:0.5rem;">
+    💡 ASCII 表 0-127 共 128 个字符。32-126 为可打印字符；0-31 与 127 为控制字符（不可见）。
+  </div>
+</div>
+<div class="output-box">
+  <h3>ASCII 码表 (32-126 可打印字符) <button class="copy-btn" id="copyOutput">复制</button></h3>
+  <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;align-items:center;">
+    <input type="text" id="filter" placeholder="🔍 过滤（十进制/字符/描述）..." style="flex:1;min-width:180px;padding:0.5rem 0.75rem;border-radius:10px;border:1px solid var(--border);font-size:0.9rem;background:var(--bg-secondary);color:var(--text);" />
+    <label style="font-size:0.85rem;display:flex;align-items:center;gap:0.3rem;">
+      <input type="checkbox" id="showAll" /> 显示 0-127 全部
+    </label>
+  </div>
+  <div id="tableWrap" style="max-height:480px;overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--bg-secondary);"></div>
+  <textarea id="output" rows="3" readonly style="display:none;"></textarea>
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const charInput = document.getElementById('charInput');
+const decInput = document.getElementById('decInput');
+const charInfo = document.getElementById('charInfo');
+const tableWrap = document.getElementById('tableWrap');
+const filter = document.getElementById('filter');
+const showAll = document.getElementById('showAll');
+const outputEl = document.getElementById('output');
+
+const DESCRIPTIONS = {
+  0: 'NUL (空字符)', 1: 'SOH (标题开始)', 2: 'STX (正文开始)', 3: 'ETX (正文结束)',
+  4: 'EOT (传输结束)', 5: 'ENQ (询问)', 6: 'ACK (确认)', 7: 'BEL (响铃)',
+  8: 'BS  (退格)', 9: 'HT  (水平制表 \\t)', 10: 'LF  (换行 \\n)', 11: 'VT  (垂直制表)',
+  12: 'FF  (换页)', 13: 'CR  (回车 \\r)', 14: 'SO  (移出)', 15: 'SI  (移入)',
+  16: 'DLE (数据链路转义)', 17: 'DC1 (设备控制 1)', 18: 'DC2 (设备控制 2)', 19: 'DC3 (设备控制 3)',
+  20: 'DC4 (设备控制 4)', 21: 'NAK (否定应答)', 22: 'SYN (同步空闲)', 23: 'ETB (传输块结束)',
+  24: 'CAN (取消)', 25: 'EM  (介质结束)', 26: 'SUB (替换)', 27: 'ESC (转义)',
+  28: 'FS  (文件分隔)', 29: 'GS  (组分隔)', 30: 'RS  (记录分隔)', 31: 'US  (单元分隔)',
+  32: 'SPACE (空格)', 127: 'DEL (删除)'
+};
+
+function charLabel(code) {
+  if (code === 32) return "' '";
+  if (code === 127) return 'DEL';
+  if (code < 32) return DESCRIPTIONS[code] || '(控制字符)';
+  return "'" + String.fromCharCode(code) + "'";
+}
+
+function renderInfo(code) {
+  if (code === null || isNaN(code) || code < 0 || code > 127) {
+    charInfo.innerHTML = '<span style="opacity:0.6;">请输入有效字符或 0-127 的十进制数字</span>';
+    return;
+  }
+  const c = String.fromCharCode(code);
+  const desc = DESCRIPTIONS[code] || (code >= 33 && code <= 126 ? '可打印字符' : '');
+  const bin = code.toString(2).padStart(8, '0');
+  charInfo.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">' +
+    '<div><b>字符：</b><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:1.05rem;">' + (code < 32 || code === 127 ? charLabel(code) : c) + '</code></div>' +
+    '<div><b>描述：</b>' + desc + '</div>' +
+    '<div><b>十进制：</b>' + code + '</div>' +
+    '<div><b>十六进制：</b>0x' + code.toString(16).toUpperCase().padStart(2, '0') + '</div>' +
+    '<div><b>八进制：</b>0' + code.toString(8) + '</div>' +
+    '<div><b>二进制：</b>' + bin + '</div>' +
+    '<div><b>Unicode：</b>U+' + code.toString(16).toUpperCase().padStart(4, '0') + '</div>' +
+    '<div><b>JS 转义：</b>\\u' + code.toString(16).padStart(4, '0') + '</div>' +
+    '</div>';
+}
+
+function renderTable() {
+  const f = filter.value.trim().toLowerCase();
+  const range = showAll.checked ? [0, 127] : [32, 126];
+  let html = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;font-family:monospace;">';
+  html += '<thead style="position:sticky;top:0;background:var(--bg);z-index:1;"><tr>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">Dec</th>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">Hex</th>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">Oct</th>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">Bin</th>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">Char</th>' +
+    '<th style="padding:6px;text-align:left;border-bottom:1px solid var(--border);">描述</th>' +
+    '</tr></thead><tbody>';
+  let rows = [];
+  for (let i = range[0]; i <= range[1]; i++) {
+    let display = i >= 32 && i !== 127 ? String.fromCharCode(i) : '';
+    let desc = DESCRIPTIONS[i] || '';
+    const blob = (i + '|' + i.toString(16) + '|' + i.toString(8) + '|' + i.toString(2) + '|' + display + '|' + desc).toLowerCase();
+    if (f && blob.indexOf(f) === -1) continue;
+    rows.push('<tr style="cursor:pointer;" data-code="' + i + '">' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);">' + i + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);">' + i.toString(16).toUpperCase().padStart(2, '0') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);">' + i.toString(8) + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);color:var(--primary);">' + i.toString(2).padStart(8, '0') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);font-weight:600;">' + (display || '<span style="opacity:0.4;">·</span>') + '</td>' +
+      '<td style="padding:5px 8px;border-bottom:1px solid var(--border);opacity:0.75;">' + (desc || '可打印') + '</td>' +
+      '</tr>');
+  }
+  html += rows.join('');
+  html += '</tbody></table>';
+  if (rows.length === 0) {
+    html = '<div style="padding:1.5rem;text-align:center;opacity:0.6;">没有匹配的项</div>';
+  }
+  tableWrap.innerHTML = html;
+  // Click to fill input
+  tableWrap.querySelectorAll('tr[data-code]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const code = parseInt(tr.getAttribute('data-code'), 10);
+      decInput.value = code;
+      charInput.value = code >= 32 && code !== 127 ? String.fromCharCode(code) : '';
+      renderInfo(code);
+    });
+  });
+}
+
+function onCharInput() {
+  const v = charInput.value;
+  if (v.length === 0) { renderInfo(null); return; }
+  const code = v.charCodeAt(0);
+  if (code > 127) {
+    charInfo.innerHTML = '<span style="color:#ef4444;">⚠️ 字符 "' + v + '" 超出 ASCII 范围 (0-127)，其 Unicode 为 U+' + code.toString(16).toUpperCase() + '</span>';
+    return;
+  }
+  decInput.value = code;
+  renderInfo(code);
+}
+
+function onDecInput() {
+  const v = parseInt(decInput.value, 10);
+  if (isNaN(v)) { renderInfo(null); return; }
+  if (v < 0 || v > 127) {
+    charInfo.innerHTML = '<span style="color:#ef4444;">⚠️ ASCII 仅支持 0-127</span>';
+    return;
+  }
+  charInput.value = v >= 32 && v !== 127 ? String.fromCharCode(v) : '';
+  renderInfo(v);
+}
+
+charInput.addEventListener('input', onCharInput);
+decInput.addEventListener('input', onDecInput);
+filter.addEventListener('input', renderTable);
+showAll.addEventListener('change', renderTable);
+
+document.getElementById('copyOutput').onclick = () => {
+  // Copy current table as text
+  const lines = ['Dec\tHex\tOct\tBin\tChar\t描述'];
+  const range = showAll.checked ? [0, 127] : [32, 126];
+  for (let i = range[0]; i <= range[1]; i++) {
+    const c = i >= 32 && i !== 127 ? String.fromCharCode(i) : '';
+    const desc = DESCRIPTIONS[i] || '可打印';
+    lines.push([i, i.toString(16).toUpperCase().padStart(2, '0'), i.toString(8), i.toString(2).padStart(8, '0'), c, desc].join('\t'));
+  }
+  copyToClipboard(lines.join('\n'));
+};
+
+charInput.value = 'A';
+onCharInput();
+renderTable();
+  </script>
+</body>
+</html>

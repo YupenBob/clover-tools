@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>颜色格式转换 - CloverTools</title>
+  <meta name="description" content="颜色格式转换工具，支持 HEX、RGB、HSL、HSV、CMYK 等格式互相转换。,无需注册,完全免费。">
+  <meta name="keywords" content="颜色,HEX,RGB,HSL">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="颜色格式转换 - CloverTools">
+  <meta property="og:description" content="颜色格式转换工具，支持 HEX、RGB、HSL、HSV、CMYK 等格式互相转换。">
+  <meta property="og:image" content="https://clovertools.cn/src/og-image.png">
+  <meta property="og:url" content="https://clovertools.cn/tools/format-conversion/color-converter.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="颜色格式转换 - CloverTools">
+  <meta name="twitter:description" content="颜色格式转换工具，支持 HEX、RGB、HSL、HSV、CMYK 等格式互相转换。">
+  <meta name="twitter:image" content="https://clovertools.cn/src/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://clovertools.cn/tools/format-conversion/color-converter.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="/src/clover-logo.svg" type="image/svg+xml">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+  <!-- Counter.dev analytics -->
+  <script src="https://cdn.counter.dev/script.js" data-id="4e8cb07b-485c-4bc4-a3d0-c2839c943037" data-utcoffset="8"></script>
+  <!-- Vercel Analytics -->
+  <!-- Vercel Speed Insights -->
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+    <polyline points="16 6 12 2 8 6"/>
+    <line x1="12" y1="2" x2="12" y2="13"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 18c-.83 0-1.5-.67-1.5-1.5S6.67 15 7.5 15s1.5.67 1.5 1.5S8.33 18 7.5 18zm0-9C6.67 9 6 8.33 6 7.5S6.67 6 7.5 6 9 6.67 9 7.5 8.33 9 7.5 9zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm0-9c-.83 0-1.5-.67-1.5-1.5S15.67 6 16.5 6s1.5.67 1.5 1.5S17.33 9 16.5 9z"/>
+  </symbol>
+  <symbol id="icon-blog" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+  </symbol>
+  <symbol id="icon-sun" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+  </symbol>
+  <symbol id="icon-moon" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
+  </symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">CloverTools</a>
+    <nav class="site-nav site-nav-desktop">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="/blog/" class="nav-icon-link" title="问题解决博客"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg><span>问题</span></a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="nav-icon-link aiti-nav-link" title="AITI 硅基人格测评"><span style="color:#F59E0B;font-weight:700;">AITI</span></a>
+      <a href="/about" class="nav-icon-link" title="关于"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg><span>关于</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">
+        <svg class="icon-sun" style="display:none"><use href="#icon-sun"/></svg>
+        <svg class="icon-moon"><use href="#icon-moon"/></svg>
+      </button>
+    </nav>
+    <button class="hamburger-btn" id="hamburgerBtn" title="菜单">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<div class="mobile-sidebar" id="mobileSidebar">
+  <div class="mobile-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="mobile-sidebar-panel">
+    <div class="mobile-sidebar-header">
+      <span class="mobile-sidebar-title">菜单</span>
+      <button class="mobile-sidebar-close" id="sidebarCloseBtn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-sidebar-links">
+      <a href="/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg>工具首页</a>
+      <a href="/blog/" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-blog"/></svg>问题博客</a>
+      <a href="https://aiti.xsanye.cn" target="_blank" class="mobile-sidebar-link aiti-mobile-link"><span style="color:#F59E0B;font-weight:700;">AITI</span> 硅基人格测试</a>
+      <div class="mobile-sidebar-divider"></div>
+      <a href="/about" class="mobile-sidebar-link"><svg class="nav-icon" aria-hidden="true"><use href="#icon-info"/></svg>关于</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var sidebar = document.getElementById('mobileSidebar');
+  var overlay = document.getElementById('sidebarOverlay');
+  var closeBtn = document.getElementById('sidebarCloseBtn');
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  if (btn) btn.addEventListener('click', openSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+  if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+})();
+</script>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>颜色格式转换</h1>
+        <p class="description">颜色格式转换工具，支持 HEX、RGB、HSL、HSV、CMYK 等格式互相转换。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+<!-- Color Preview -->
+        <div class="preview-section">
+            <div class="color-preview" id="colorPreview"></div>
+            <div class="input-group">
+                <div class="input-wrapper" style="flex: 2;">
+                    <label>颜色输入</label>
+                    <span class="input-icon">💬</span>
+                    <input type="text" id="colorInput" value="#ff0000" placeholder="输入颜色值，如 #ff0000">
+                </div>
+                <div class="color-picker-wrapper">
+                    <label style="display: block; font-size: 12px; color: #8b949e; margin-bottom: 6px;">取色器</label>
+                    <input type="color" id="colorPicker" value="#ff0000">
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Wheel Section -->
+        <div class="color-wheel-section">
+            <div class="section-title">🎯 色轮调节</div>
+            <div class="color-wheel-container">
+                <div class="hue-slider-wrapper">
+                    <label>色相 (Hue): <span id="hueValue">0</span>°</label>
+                    <input type="range" class="hue-slider" id="hueSlider" min="0" max="360" value="0">
+                </div>
+            </div>
+            <div class="sliders-row" style="margin-top: 16px;">
+                <div class="saturation-slider-wrapper">
+                    <label>饱和度 (Saturation): <span id="satValue">100</span>%</label>
+                    <input type="range" class="saturation-slider" id="satSlider" min="0" max="100" value="100" 
+                           style="background: linear-gradient(to right, hsl(0, 0%, 50%), hsl(0, 100%, 50%));">
+                </div>
+                <div class="lightness-slider-wrapper">
+                    <label>亮度 (Lightness): <span id="lightValue">50</span>%</label>
+                    <input type="range" class="saturation-slider" id="lightSlider" min="0" max="100" value="50"
+                           style="background: linear-gradient(to right, #000, #fff);">
+                </div>
+            </div>
+            <div class="sliders-row" style="margin-top: 16px;">
+                <div class="alpha-slider-wrapper">
+                    <label>不透明度 (Alpha): <span id="alphaValue">100</span>%</label>
+                    <input type="range" class="alpha-slider" id="alphaSlider" min="0" max="100" value="100">
+                </div>
+            </div>
+        </div>
+
+        <!-- Palette Section -->
+        <div class="palette-section">
+            <div class="section-title">🎨 快速调色板</div>
+            <div class="palette-grid" id="paletteGrid">
+                <!-- Colors will be generated by JS -->
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="output-section">
+            <div class="section-title">📋 格式输出</div>
+            <div class="output-grid" id="outputGrid">
+                <!-- Output items will be generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">已复制到剪贴板!</div>
+
+    <script>
+        // Color conversion utilities
+        class ColorConverter {
+            // HEX to RGB
+            static hexToRgb(hex) {
+                hex = hex.replace('#', '');
+                if (hex.length === 3) {
+                    hex = hex.split('').map(c => c + c).join('');
+                }
+                const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            }
+
+            // RGB to HEX
+            static rgbToHex(r, g, b) {
+                return '#' + [r, g, b].map(x => {
+                    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                }).join('').toUpperCase();
+            }
+
+            // RGB to HSL
+            static rgbToHsl(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, l = (max + min) / 2;
+
+                if (max === min) {
+                    h = s = 0;
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                    }
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    l: Math.round(l * 100)
+                };
+            }
+
+            // HSL to RGB
+            static hslToRgb(h, s, l) {
+                h /= 360;
+                s /= 100;
+                l /= 100;
+
+                let r, g, b;
+
+                if (s === 0) {
+                    r = g = b = l;
+                } else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1/6) return p + (q - p) * 6 * t;
+                        if (t < 1/2) return q;
+                        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    };
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+
+                return {
+                    r: Math.round(r * 255),
+                    g: Math.round(g * 255),
+                    b: Math.round(b * 255)
+                };
+            }
+
+            // RGB to HSV
+            static rgbToHsv(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const max = Math.max(r, g, b);
+                const min = Math.min(r, g, b);
+                let h, s, v = max;
+                const d = max - min;
+                s = max === 0 ? 0 : d / max;
+
+                if (max === min) {
+                    h = 0;
+                } else {
+                    switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                    }
+                }
+
+                return {
+                    h: Math.round(h * 360),
+                    s: Math.round(s * 100),
+                    v: Math.round(v * 100)
+                };
+            }
+
+            // HSV to RGB
+            static hsvToRgb(h, s, v) {
+                h /= 360;
+                s /= 100;
+                v /= 100;
+                let r, g, b;
+                const i = Math.floor(h * 6);
+                const f = h * 6 - i;
+                const p = v * (1 - s);
+                const q = v * (1 - f * s);
+                const t = v * (1 - (1 - f) * s);
+
+                switch (i % 6) {
+                    case 0: r = v; g = t; b = p; break;
+                    case 1: r = q; g = v; b = p; break;
+                    case 2: r = p; g = v; b = t; break;
+                    case 3: r = p; g = q; b = v; break;
+                    case 4: r = t; g = p; b = v; break;
+                    case 5: r = v; g = p; b = q; break;
+                }
+
+                return {
+                    r: Math.round(r * 255),
+                    g: Math.round(g * 255),
+                    b: Math.round(b * 255)
+                };
+            }
+
+            // RGB to CMYK
+            static rgbToCmyk(r, g, b) {
+                r /= 255;
+                g /= 255;
+                b /= 255;
+                const k = 1 - Math.max(r, g, b);
+                if (k === 1) {
+                    return { c: 0, m: 0, y: 0, k: 100 };
+                }
+                const c = (1 - r - k) / (1 - k);
+                const m = (1 - g - k) / (1 - k);
+                const y = (1 - b - k) / (1 - k);
+                return {
+                    c: Math.round(c * 100),
+                    m: Math.round(m * 100),
+                    y: Math.round(y * 100),
+                    k: Math.round(k * 100)
+                };
+            }
+
+            // Parse any color format
+            static parseColor(input) {
+                input = input.trim();
+                
+                // HEX format
+                if (input.startsWith('#')) {
+                    const rgb = this.hexToRgb(input);
+                    if (rgb) return rgb;
+                }
+                
+                // RGB/RGBA format
+                const rgbMatch = input.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+                if (rgbMatch) {
+                    return {
+                        r: parseInt(rgbMatch[1]),
+                        g: parseInt(rgbMatch[2]),
+                        b: parseInt(rgbMatch[3])
+                    };
+                }
+                
+                // HSL/HSLA format
+                const hslMatch = input.match(/hsla?\s*\(\s*(\d+)\s*,\s*(\d+)%?\s*,\s*(\d+)%?/i);
+                if (hslMatch) {
+                    return this.hslToRgb(
+                        parseInt(hslMatch[1]),
+                        parseInt(hslMatch[2]),
+                        parseInt(hslMatch[3])
+                    );
+                }
+                
+                // HSV format
+                const hsvMatch = input.match(/hsb\s*\(\s*(\d+)\s*,\s*(\d+)%?\s*,\s*(\d+)%?/i);
+                if (hsvMatch) {
+                    return this.hsvToRgb(
+                        parseInt(hsvMatch[1]),
+                        parseInt(hsvMatch[2]),
+                        parseInt(hsvMatch[3])
+                    );
+                }
+
+                return null;
+            }
+
+            // Get all format strings
+            static getAllFormats(rgb, alpha = 1) {
+                const hex = this.rgbToHex(rgb.r, rgb.g, rgb.b);
+                const hsl = this.rgbToHsl(rgb.r, rgb.g, rgb.b);
+                const hsv = this.rgbToHsv(rgb.r, rgb.g, rgb.b);
+                const cmyk = this.rgbToCmyk(rgb.r, rgb.g, rgb.b);
+                
+                return {
+                    HEX: hex,
+                    RGB: `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`,
+                    RGBA: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha.toFixed(2)})`,
+                    HSL: `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`,
+                    HSV: `hsb(${hsv.h}, ${hsv.s}%, ${hsv.v}%)`,
+                    CMYK: `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`
+                };
+            }
+        }
+
+        // Main application
+        class ColorConverterApp {
+            constructor() {
+                this.currentRgb = { r: 255, g: 0, b: 0 };
+                this.currentAlpha = 1;
+                this.initElements();
+                this.initEventListeners();
+                this.generatePalette();
+                this.updateDisplay();
+            }
+
+            initElements() {
+                this.colorInput = document.getElementById('colorInput');
+                this.colorPicker = document.getElementById('colorPicker');
+                this.colorPreview = document.getElementById('colorPreview');
+                this.outputGrid = document.getElementById('outputGrid');
+                this.paletteGrid = document.getElementById('paletteGrid');
+                this.toast = document.getElementById('toast');
+                
+                // Sliders
+                this.hueSlider = document.getElementById('hueSlider');
+                this.satSlider = document.getElementById('satSlider');
+                this.lightSlider = document.getElementById('lightSlider');
+                this.alphaSlider = document.getElementById('alphaSlider');
+                
+                // Value displays
+                this.hueValue = document.getElementById('hueValue');
+                this.satValue = document.getElementById('satValue');
+                this.lightValue = document.getElementById('lightValue');
+                this.alphaValue = document.getElementById('alphaValue');
+            }
+
+            initEventListeners() {
+                // Input events
+                this.colorInput.addEventListener('input', (e) => this.onInputChange(e.target.value));
+                this.colorPicker.addEventListener('input', (e) => this.onPickerChange(e.target.value));
+
+                // Slider events
+                this.hueSlider.addEventListener('input', () => this.onSliderChange());
+                this.satSlider.addEventListener('input', () => this.onSliderChange());
+                this.lightSlider.addEventListener('input', () => this.onSliderChange());
+                this.alphaSlider.addEventListener('input', () => this.onSliderChange());
+            }
+
+            onInputChange(value) {
+                const rgb = ColorConverter.parseColor(value);
+                if (rgb) {
+                    this.currentRgb = rgb;
+                    this.updateFromRgb();
+                }
+            }
+
+            onPickerChange(hex) {
+                this.colorInput.value = hex;
+                this.currentRgb = ColorConverter.hexToRgb(hex);
+                this.updateFromRgb();
+            }
+
+            onSliderChange() {
+                const h = parseInt(this.hueSlider.value);
+                const s = parseInt(this.satSlider.value);
+                const l = parseInt(this.lightSlider.value);
+                const a = parseInt(this.alphaSlider.value) / 100;
+
+                this.hueValue.textContent = h;
+                this.satValue.textContent = s;
+                this.lightValue.textContent = l;
+                this.alphaValue.textContent = Math.round(a * 100);
+
+                this.currentAlpha = a;
+                this.currentRgb = ColorConverter.hslToRgb(h, s, l);
+
+                // Update slider backgrounds
+                this.updateSliderBackgrounds(h, s, l);
+                
+                // Update color picker
+                const hex = ColorConverter.rgbToHex(this.currentRgb.r, this.currentRgb.g, this.currentRgb.b);
+                this.colorPicker.value = hex;
+                this.colorInput.value = hex;
+
+                this.updateDisplay();
+            }
+
+            updateSliderBackgrounds(h, s, l) {
+                // Saturation slider background
+                this.satSlider.style.background = `linear-gradient(to right, hsl(${h}, 0%, ${l}%), hsl(${h}, 100%, ${l}%))`;
+                
+                // Lightness slider background
+                this.lightSlider.style.background = `linear-gradient(to right, hsl(${h}, ${s}%, 0%), hsl(${h}, ${s}%, 50%), hsl(${h}, ${s}%, 100%))`;
+                
+                // Alpha slider
+                const hex = ColorConverter.rgbToHex(this.currentRgb.r, this.currentRgb.g, this.currentRgb.b);
+                this.alphaSlider.style.background = `linear-gradient(to right, transparent, ${hex})`;
+            }
+
+            updateFromRgb() {
+                const hsl = ColorConverter.rgbToHsl(this.currentRgb.r, this.currentRgb.g, this.currentRgb.b);
+                const hex = ColorConverter.rgbToHex(this.currentRgb.r, this.currentRgb.g, this.currentRgb.b);
+
+                this.hueSlider.value = hsl.h;
+                this.satSlider.value = hsl.s;
+                this.lightSlider.value = hsl.l;
+                this.alphaSlider.value = this.currentAlpha * 100;
+
+                this.hueValue.textContent = hsl.h;
+                this.satValue.textContent = hsl.s;
+                this.lightValue.textContent = hsl.l;
+                this.alphaValue.textContent = Math.round(this.currentAlpha * 100);
+
+                this.updateSliderBackgrounds(hsl.h, hsl.s, hsl.l);
+                this.colorPicker.value = hex;
+
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                const hex = ColorConverter.rgbToHex(this.currentRgb.r, this.currentRgb.g, this.currentRgb.b);
+                
+                // Update preview
+                this.colorPreview.style.backgroundColor = `rgba(${this.currentRgb.r}, ${this.currentRgb.g}, ${this.currentRgb.b}, ${this.currentAlpha})`;
+
+                // Get all formats
+                const formats = ColorConverter.getAllFormats(this.currentRgb, this.currentAlpha);
+
+                // Update output grid
+                this.outputGrid.innerHTML = Object.entries(formats).map(([label, value]) => `
+                    <div class="output-item">
+                        <span class="output-label">${label}</span>
+                        <span class="output-value">${value}</span>
+                        <button class="copy-btn" onclick="app.copyToClipboard('${value.replace(/'/g, "\\'")}', this)">复制</button>
+                    </div>
+                `).join('');
+            }
+
+            generatePalette() {
+                // Predefined color palette
+                const paletteColors = [
+                    // Reds
+                    '#FF0000', '#FF4444', '#CC0000', '#990000', '#FF6666',
+                    // Oranges
+                    '#FF8800', '#FFA500', '#FFB347', '#CC6600', '#FF9933',
+                    // Yellows
+                    '#FFFF00', '#FFD700', '#FFCC00', '#F0E68C', '#FFFACD',
+                    // Greens
+                    '#00FF00', '#32CD32', '#228B22', '#006400', '#90EE90',
+                    // Cyans
+                    '#00FFFF', '#00CED1', '#20B2AA', '#008B8B', '#40E0D0',
+                    // Blues
+                    '#0000FF', '#4169E1', '#0000CD', '#000080', '#6495ED',
+                    // Purples
+                    '#800080', '#8B008B', '#9932CC', '#BA55D3', '#DA70D6',
+                    // Pinks
+                    '#FF00FF', '#FF1493', '#C71585', '#DB7093', '#FF69B4',
+                    // Grays
+                    '#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF',
+                    // Browns
+                    '#8B4513', '#A0522D', '#CD853F', '#DEB887', '#F5DEB3'
+                ];
+
+                this.paletteGrid.innerHTML = paletteColors.map(color => `
+                    <div class="palette-color" 
+                         style="background-color: ${color}" 
+                         onclick="app.selectPaletteColor('${color}')"
+                         title="${color}">
+                    </div>
+                `).join('');
+            }
+
+            selectPaletteColor(hex) {
+                this.colorInput.value = hex;
+                this.currentRgb = ColorConverter.hexToRgb(hex);
+                this.updateFromRgb();
+            }
+
+            copyToClipboard(text, button) {
+                navigator.clipboard.writeText(text).then(() => {
+                    button.textContent = '已复制!';
+                    button.classList.add('copied');
+                    
+                    // Show toast
+                    this.toast.classList.add('show');
+                    
+                    setTimeout(() => {
+                        button.textContent = '复制';
+                        button.classList.remove('copied');
+                        this.toast.classList.remove('show');
+                    }, 1500);
+                }).catch(err => {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    button.textContent = '已复制!';
+                    button.classList.add('copied');
+                    this.toast.classList.add('show');
+                    
+                    setTimeout(() => {
+                        button.textContent = '复制';
+                        button.classList.remove('copied');
+                        this.toast.classList.remove('show');
+                    }, 1500);
+                });
+            }
+        }
+
+        // Initialize app
+        const app = new ColorConverterApp();
+    </script>
+</div>
+      </div>
+      <!-- Keyboard Shortcut Bar -->
+      <div class="shortcut-bar">
+        <div class="kbd-row">
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Enter</kbd> 执行操作
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">K</kbd> 清空输入
+          <span class="kbd-row-sep">·</span>
+          <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">Shift</kbd> + <kbd class="kbd">C</kbd> 复制结果
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;"><img src="/src/clover-logo.svg" alt="Clover" style="height:2em;vertical-align:middle;"> Made by York · YupenBob · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+    CT.initReveal();
+    CT.initCopyPulse();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    // tool-custom: JS 由 tools.json 的 customScript 提供
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>密码强度检测 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="密码强度检测 - 🍀 CloverTools">
+  <meta property="og:description" content="在线检测密码强度评分，支持字符类型分析、熵值计算、破解时间估算与改进建议，所有计算在本地完成，密码不会上传。">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/encrypt/密码强度检测.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="密码强度检测 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线检测密码强度评分，支持字符类型分析、熵值计算、破解时间估算与改进建议，所有计算在本地完成，密码不会上传。">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/encrypt/密码强度检测.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>密码强度检测</h1>
+        <p class="description">在线检测密码强度评分，支持字符类型分析、熵值计算、破解时间估算与改进建议，所有计算在本地完成，密码不会上传。</p>
+      </div>
+      <div class="tool-layout ">
+        <div class="tool-card">
+  <h3>🔐 输入要检测的密码</h3>
+  <div style="position:relative;margin-bottom:.5rem">
+    <input type="text" id="passwordInput" placeholder="输入密码（默认明文显示，方便查看实际效果）" style="width:100%;padding:.7rem 3rem .7rem .9rem;font-size:1rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-secondary);color:var(--text);font-family:monospace;letter-spacing:.03em" autocomplete="new-password" spellcheck="false">
+    <button id="toggleVisibility" style="position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;padding:.4rem .6rem;font-size:1rem;border-radius:6px;color:var(--text-secondary)" title="显示/隐藏密码">🙈</button>
+  </div>
+  <div style="background:var(--bg-secondary);height:10px;border-radius:5px;overflow:hidden;margin:.5rem 0">
+    <div id="strengthBar" style="height:100%;width:0%;background:#ef4444;transition:width .3s,background .3s;border-radius:5px"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;flex-wrap:wrap;gap:.5rem">
+    <div>
+      <span style="font-size:.9rem;color:var(--text-secondary)">强度：</span>
+      <strong id="levelText" style="font-size:1rem">请输入密码</strong>
+    </div>
+    <div>
+      <span style="font-size:.9rem;color:var(--text-secondary)">评分：</span>
+      <strong id="scoreText" style="font-size:1.1rem">0</strong><span style="color:var(--text-secondary);font-size:.85rem"> / 4</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem;font-size:.85rem">
+    <div style="padding:.5rem .7rem;background:var(--bg-secondary);border-radius:6px"><span style="color:var(--text-secondary)">字符数：</span><strong id="lengthText">0</strong></div>
+    <div style="padding:.5rem .7rem;background:var(--bg-secondary);border-radius:6px"><span style="color:var(--text-secondary)">熵值：</span><strong id="entropyText">0</strong> bits</div>
+    <div style="padding:.5rem .7rem;background:var(--bg-secondary);border-radius:6px;grid-column:1/-1"><span style="color:var(--text-secondary)">在线慢速破解（100 次/秒）：</span><strong id="crackSlow">—</strong></div>
+    <div style="padding:.5rem .7rem;background:var(--bg-secondary);border-radius:6px;grid-column:1/-1"><span style="color:var(--text-secondary)">离线 GPU 攻击（1e10 次/秒）：</span><strong id="crackFast">—</strong></div>
+  </div>
+  <div style="margin-top:.75rem;padding:.65rem .85rem;background:var(--bg-secondary);border-left:3px solid var(--primary);border-radius:6px;font-size:.85rem;line-height:1.55">
+    💡 <strong>使用提示</strong>：所有计算均在浏览器本地完成，<strong>密码不会上传到任何服务器</strong>。评分越高越安全，建议至少 12 位且包含大小写+数字+特殊字符。
+  </div>
+</div>
+<div class="output-box">
+  <h3>📊 详细分析与建议 <button class="copy-btn" id="copyOutput">复制</button></h3>
+  <div id="pwResult" style="padding:1rem;min-height:80px;font-size:.88rem"></div>
+</div>
+<div style="margin-top:1rem;padding:.7rem .9rem;background:var(--bg-secondary);border-radius:8px;font-size:.82rem;line-height:1.6;color:var(--text-secondary)">
+  💡 <strong>评分维度</strong>：长度（最重要） + 字符种类（大小写/数字/特殊） + 熵值（信息论随机度） + 常见模式检测（连续字符、键盘序列、常见密码）。熵值 ≥ 60 bits 视为安全，≥ 80 bits 为强密码。
+</div>
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    const pwInput = document.getElementById('passwordInput');
+const toggleBtn = document.getElementById('toggleVisibility');
+const strengthBar = document.getElementById('strengthBar');
+const levelText = document.getElementById('levelText');
+const scoreText = document.getElementById('scoreText');
+const lengthText = document.getElementById('lengthText');
+const entropyText = document.getElementById('entropyText');
+const crackSlow = document.getElementById('crackSlow');
+const crackFast = document.getElementById('crackFast');
+const pwResult = document.getElementById('pwResult');
+
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatTime(seconds) {
+  if (!isFinite(seconds) || seconds <= 0) return '瞬间';
+  if (seconds < 1) return '< 1 秒';
+  if (seconds < 60) return Math.round(seconds) + ' 秒';
+  if (seconds < 3600) return Math.round(seconds / 60) + ' 分钟';
+  if (seconds < 86400) return Math.round(seconds / 3600) + ' 小时';
+  if (seconds < 86400 * 30) return Math.round(seconds / 86400) + ' 天';
+  if (seconds < 86400 * 365) return Math.round(seconds / 86400 / 30) + ' 个月';
+  const years = seconds / 86400 / 365;
+  if (years < 1e3) return Math.round(years) + ' 年';
+  if (years < 1e6) return Math.round(years / 1e3) + ' 千年';
+  if (years < 1e9) return Math.round(years / 1e6) + ' 百万年';
+  if (years < 1e12) return Math.round(years / 1e9) + ' 十亿年';
+  if (years < 1e15) return Math.round(years / 1e12) + ' 万亿年';
+  const log10 = Math.log10(years);
+  if (log10 < 30) return '10^' + Math.round(log10 * 10) / 10 + ' 年';
+  return '10^' + Math.floor(log10) + ' 年';
+}
+
+const COMMON = [
+  '123456', 'password', '123456789', '12345678', '12345', '111111', '1234567',
+  'sunshine', 'qwerty', 'iloveyou', 'princess', 'admin', 'welcome', '666666',
+  'abc123', 'football', '123123', 'monkey', '654321', '!@#$%^&*', 'charlie',
+  'aa123456', 'donald', 'password1', 'qwerty123', '11111111', '000000',
+  'letmein', 'dragon', 'baseball', 'shadow', 'master', 'michael'
+];
+const COMMON_SET = new Set(COMMON);
+
+const KEYBOARD_ROWS = [
+  'qwertyuiop', 'asdfghjkl', 'zxcvbnm',
+  '1234567890', '0987654321',
+  '!@#$%^&*()', ')(*&^%$#!'
+];
+
+function hasSequential(pw) {
+  if (pw.length < 4) return null;
+  const lower = pw.toLowerCase();
+  for (let i = 0; i <= lower.length - 4; i++) {
+    const sub = lower.slice(i, i + 4);
+    for (const row of KEYBOARD_ROWS) {
+      if (row.indexOf(sub) >= 0) return sub;
+    }
+  }
+  for (let i = 0; i <= pw.length - 4; i++) {
+    let asc = true, desc = true;
+    for (let j = 1; j < 4; j++) {
+      const a = pw.charCodeAt(i + j - 1);
+      const b = pw.charCodeAt(i + j);
+      if (b - a !== 1) asc = false;
+      if (a - b !== 1) desc = false;
+    }
+    if (asc || desc) return pw.slice(i, i + 4);
+  }
+  return null;
+}
+
+function hasRepeats(pw) {
+  if (pw.length < 3) return null;
+  const m = pw.match(/(.)\1{2,}/);
+  if (m) return m[0];
+  const m2 = pw.match(/(..)\1{2,}/);
+  if (m2) return m2[0];
+  return null;
+}
+
+function calcEntropy(pw) {
+  if (!pw) return 0;
+  let pool = 0;
+  if (/[a-z]/.test(pw)) pool += 26;
+  if (/[A-Z]/.test(pw)) pool += 26;
+  if (/[0-9]/.test(pw)) pool += 10;
+  if (/[^a-zA-Z0-9\s]/.test(pw)) pool += 32;
+  if (/\s/.test(pw)) pool += 1;
+  if (pool === 0) return 0;
+  return pw.length * Math.log2(pool);
+}
+
+function scorePassword(pw) {
+  const issues = [];
+  const positives = [];
+
+  if (!pw) {
+    return { score: 0, level: '请输入密码', color: '#9ca3af', issues, positives, entropy: 0, hasLower: false, hasUpper: false, hasDigit: false, hasSpecial: false };
+  }
+
+  let score = 0;
+
+  if (pw.length >= 8) score += 1;
+  if (pw.length >= 12) score += 1;
+  if (pw.length >= 16) score += 1;
+  if (pw.length < 8) issues.push('密码长度不足 8 位（建议 ≥ 12 位）');
+
+  if (pw.length >= 12) positives.push('长度 ≥ 12 位');
+
+  const hasLower = /[a-z]/.test(pw);
+  const hasUpper = /[A-Z]/.test(pw);
+  const hasDigit = /[0-9]/.test(pw);
+  const hasSpecial = /[^a-zA-Z0-9]/.test(pw);
+  const classes = [hasLower, hasUpper, hasDigit, hasSpecial].filter(Boolean).length;
+  if (classes >= 3) score += 1;
+  if (classes === 4) positives.push('包含 4 种字符类型');
+  if (classes < 3) issues.push('字符种类不足（建议大小写+数字+特殊）');
+
+  if (COMMON_SET.has(pw.toLowerCase())) {
+    score = Math.max(0, score - 2);
+    issues.push('⚠️ 这是常见弱密码，请勿使用');
+  }
+
+  const seq = hasSequential(pw);
+  if (seq) {
+    score = Math.max(0, score - 1);
+    issues.push('包含键盘序列或连续字符：' + seq);
+  }
+
+  const rep = hasRepeats(pw);
+  if (rep) {
+    score = Math.max(0, score - 1);
+    issues.push('包含重复模式：' + rep);
+  }
+
+  const entropy = calcEntropy(pw);
+  if (entropy >= 60) positives.push('熵值 ≥ 60 bits');
+  if (entropy < 36) issues.push('熵值过低（<' + Math.round(entropy) + ' bits）');
+
+  score = Math.min(4, Math.max(0, score));
+
+  let level, color;
+  if (score === 0) { level = '极弱'; color = '#ef4444'; }
+  else if (score === 1) { level = '弱'; color = '#f97316'; }
+  else if (score === 2) { level = '一般'; color = '#f59e0b'; }
+  else if (score === 3) { level = '良好'; color = '#3b82f6'; }
+  else { level = '强'; color = '#22c55e'; }
+
+  if (pw.length < 16) issues.push('建议使用 16 位以上随机字符');
+  if (!hasSpecial) issues.push('建议加入特殊字符（!@#$% 等）');
+  if (/^[a-zA-Z]+$/.test(pw)) issues.push('建议混入数字和特殊字符');
+
+  return { score, level, color, issues, positives, entropy, hasLower, hasUpper, hasDigit, hasSpecial };
+}
+
+function render() {
+  const pw = pwInput.value;
+  const r = scorePassword(pw);
+
+  const percent = (r.score / 4) * 100;
+  strengthBar.style.width = percent + '%';
+  strengthBar.style.background = r.color;
+
+  levelText.textContent = r.level;
+  levelText.style.color = r.color;
+  scoreText.textContent = r.score;
+  scoreText.style.color = r.color;
+
+  lengthText.textContent = pw.length;
+
+  if (pw) {
+    const entropy = r.entropy;
+    entropyText.textContent = entropy.toFixed(1);
+    const tSlow = Math.pow(2, entropy) / 100;
+    const tFast = Math.pow(2, entropy) / 1e10;
+    crackSlow.textContent = formatTime(tSlow);
+    crackFast.textContent = formatTime(tFast);
+  } else {
+    entropyText.textContent = '0';
+    crackSlow.textContent = '—';
+    crackFast.textContent = '—';
+  }
+
+  let html = '';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.5rem;margin-bottom:.7rem">';
+  const checks = [
+    { ok: r.hasLower, label: '小写字母' },
+    { ok: r.hasUpper, label: '大写字母' },
+    { ok: r.hasDigit, label: '数字' },
+    { ok: r.hasSpecial, label: '特殊字符' }
+  ];
+  for (const c of checks) {
+    html += '<div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .7rem;background:var(--bg-secondary);border-radius:6px"><span style="font-size:1.1rem">' + (c.ok ? '✅' : '❌') + '</span><span style="font-size:.85rem">' + c.label + '</span></div>';
+  }
+  html += '</div>';
+
+  if (r.positives.length) {
+    html += '<div style="margin-bottom:.5rem"><div style="font-size:.85rem;font-weight:600;margin-bottom:.3rem;color:#22c55e">👍 优点</div><ul style="margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.7;color:var(--text-secondary)">';
+    for (const p of r.positives) html += '<li>' + escHtml(p) + '</li>';
+    html += '</ul></div>';
+  }
+
+  if (r.issues.length) {
+    html += '<div><div style="font-size:.85rem;font-weight:600;margin-bottom:.3rem;color:#f59e0b">💡 改进建议</div><ul style="margin:0;padding-left:1.2rem;font-size:.85rem;line-height:1.7;color:var(--text-secondary)">';
+    for (const i of r.issues) html += '<li>' + escHtml(i) + '</li>';
+    html += '</ul></div>';
+  }
+
+  if (!pw) {
+    html = '<div style="color:var(--text-secondary);text-align:center;padding:2rem 1rem">👆 输入密码查看详细分析</div>';
+  } else if (r.score === 4) {
+    html += '<div style="margin-top:.6rem;padding:.6rem .8rem;background:#22c55e22;border-left:4px solid #22c55e;border-radius:6px;font-size:.88rem"><strong>🎉 优秀！</strong>这是一个强密码。</div>';
+  }
+
+  pwResult.innerHTML = html;
+
+  const reportLines = [
+    '密码强度报告',
+    '============',
+    '长度: ' + pw.length,
+    '评分: ' + r.score + '/4 (' + r.level + ')',
+    '熵值: ' + r.entropy.toFixed(2) + ' bits',
+    '在线慢速破解(100/秒): ' + (pw ? formatTime(Math.pow(2, r.entropy) / 100) : '—'),
+    '离线GPU攻击(1e10/秒): ' + (pw ? formatTime(Math.pow(2, r.entropy) / 1e10) : '—'),
+    '',
+    '字符类型:',
+    '  小写: ' + (r.hasLower ? '✓' : '✗'),
+    '  大写: ' + (r.hasUpper ? '✓' : '✗'),
+    '  数字: ' + (r.hasDigit ? '✓' : '✗'),
+    '  特殊: ' + (r.hasSpecial ? '✓' : '✗'),
+    ''
+  ];
+  if (r.issues.length) {
+    reportLines.push('改进建议:');
+    r.issues.forEach(function (i) { reportLines.push('  - ' + i); });
+  }
+  pwResult.dataset.text = reportLines.join('\n');
+}
+
+pwInput.addEventListener('input', render);
+
+toggleBtn.addEventListener('click', function () {
+  if (pwInput.type === 'password') {
+    pwInput.type = 'text';
+    toggleBtn.textContent = '🙈';
+  } else {
+    pwInput.type = 'password';
+    toggleBtn.textContent = '👁';
+  }
+});
+
+document.getElementById('copyOutput').addEventListener('click', function () {
+  const text = pwResult.dataset.text || pwResult.innerText;
+  copyToClipboard(text);
+});
+
+render();
+  </script>
+</body>
+</html>
