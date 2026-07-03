@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>幸运数字 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="幸运数字 - 🍀 CloverTools">
+  <meta property="og:description" content="在线幸运数字生成器，支持生日/姓名/星座多维度算法">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/life/lucky-number.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="幸运数字 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线幸运数字生成器，支持生日/姓名/星座多维度算法">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/life/lucky-number.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>幸运数字</h1>
+        <p class="description">在线幸运数字生成器，支持生日/姓名/星座多维度算法</p>
+      </div>
+      <div class="tool-layout ">
+        
+<div class="tool-card">
+        <h3>个人信息</h3>
+        <div class="options-row">
+          <label>姓名: <input type="text" id="name" value="张三" style="width:140px;padding:0.3rem;"></label>
+          <label>生日: <input type="date" id="birth" value="1995-06-15" style="padding:0.3rem;"></label>
+          <label>数量: <input type="number" id="count" value="5" min="1" max="20" style="width:60px;padding:0.3rem;"></label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="gen">生成</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>幸运结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:240px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>基于姓名哈希 + 生日种子的稳定伪随机算法</li>
+          <li>相同输入始终生成相同结果，便于复现</li>
+          <li>提供星座、生肖、幸运色、幸运数字四维度</li>
+          <li>仅供娱乐，请勿作为决策依据</li>
+        </ul>
+      </div>
+    
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+const nameIn = document.getElementById('name');
+      const birthIn = document.getElementById('birth');
+      const countIn = document.getElementById('count');
+      const out = document.getElementById('output');
+      function hashCode(s) {
+        let h = 0;
+        for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) & 0xffffffff;
+        return Math.abs(h);
+      }
+      function dateSeed(date) {
+        const d = new Date(date);
+        return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+      }
+      const ZODIAC = ['摩羯','水瓶','双鱼','白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手'];
+      function zodiac(month, day) {
+        const edges = [[1,20],[2,19],[3,21],[4,20],[5,21],[6,22],[7,23],[8,23],[9,23],[10,24],[11,23],[12,22]];
+        let i = month - 1;
+        if (day < edges[i][1]) i = (i + 11) % 12;
+        return ZODIAC[i];
+      }
+      const SHENGXIAO = ['猴','鸡','狗','猪','鼠','牛','虎','兔','龙','蛇','马','羊'];
+      function shengxiao(year) { return SHENGXIAO[year % 12]; }
+      function run() {
+        const name = (nameIn.value || '匿名').trim();
+        const birth = birthIn.value || '1990-01-01';
+        const count = Math.max(1, Math.min(20, parseInt(countIn.value)||5));
+        const ds = dateSeed(birth);
+        const nameHash = hashCode(name);
+        const [y, m, d] = birth.split('-').map(Number);
+        const z = zodiac(m, d);
+        const sx = shengxiao(y);
+        const baseSeed = (ds + nameHash) >>> 0;
+        const nums = [];
+        for (let i=0;i<count;i++) {
+          let s = (baseSeed + i*2654435761) >>> 0;
+          s = (s + 0x6D2B79F5) >>> 0;
+          let t = s;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          const num = Math.floor(r * 100) + 1;
+          nums.push(num);
+        }
+        const colors = ['红','橙','黄','绿','青','蓝','紫','金','银','白'];
+        const luckyColor = colors[nameHash % colors.length];
+        out.value = '姓名: ' + name + '\n' +
+          '生日: ' + birth + '\n' +
+          '星座: ' + z + '\n' +
+          '生肖: ' + sx + '\n' +
+          '幸运色: ' + luckyColor + '\n\n' +
+          '您的 ' + count + ' 个幸运数字:\n' + nums.join('、') + '\n\n' +
+          '（基于姓名哈希 + 生日种子的稳定伪随机）';
+      }
+      document.getElementById('gen').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    
+  </script>
+</body>
+</html>

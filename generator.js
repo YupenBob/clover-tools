@@ -3475,6 +3475,653 @@ if (!sql.trim()) return '';
       document.getElementById('clearBtn').onclick = () => { input.value=''; convertOut.value=''; run(); };
       run();
     `,
+
+    'math/随机数序列': `
+const output = document.getElementById('output');
+      const countInput = document.getElementById('count');
+      const minInput = document.getElementById('min');
+      const maxInput = document.getElementById('max');
+      const distSelect = document.getElementById('dist');
+      const integerChk = document.getElementById('integer');
+      function gauss() { let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+      function gen() {
+        const n = parseInt(countInput.value)||10;
+        const min = parseFloat(minInput.value)||0;
+        const max = parseFloat(maxInput.value)||100;
+        const integer = integerChk.checked;
+        const dist = distSelect.value;
+        const out = [];
+        for (let i=0;i<n;i++) {
+          let v;
+          if (dist==='normal') {
+            const mean = (min+max)/2;
+            const std = (max-min)/6;
+            v = mean + gauss()*std;
+          } else { v = min + Math.random()*(max-min); }
+          if (integer) v = Math.round(v);
+          out.push(integer ? v.toString() : v.toFixed(4));
+        }
+        output.value = out.join(integer ? ', ' : '\\n');
+      }
+      document.getElementById('generate').onclick = gen;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      gen();
+    `,
+    'math/圆周率查询': `
+const output = document.getElementById('output');
+      const digitsInput = document.getElementById('digits');
+      const PI_100 = '1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';
+      const PI_10000 = '14159265358979323846264338327950288419716939937510'+
+'58209749445923078164062862089986280348253421170679'+
+'82148086513282306647093844609550582231725359408128'+
+'48111745028410270193852110555964462294895493038196'+
+'44288109756659334461284756482337867831652712019091'+
+'45648566923460348610454326648213393607260249141273'+
+'72458700660631558817488152092096282925409171536436'+
+'78925903600113305305488204665213841469519415116094'+
+'33057270365759591953092186117381932611793105118548'+
+'07446237996274956735188575272489122793818301194912'+
+'98336733624406566430860213949463952247371907021798'+
+'60943702770539217176293176752384674818467669405132'+
+'00056812714526356082778577134275778960917363717872'+
+'14684409012249534301465495853710507922796892589235'+
+'42019956112129021960864034418159813629774771309960'+
+'51870721134999999837297804995105973173281609631859'+
+'50244594553469083026425223082533446850352619311881'+
+'71010003137838752886587533208381420617177669147303'+
+'59825349042875546873115956286388235378759375195778'+
+'18577805321712268066130019278766111959092164201989';
+
+      function show() {
+        const n = Math.max(1, Math.min(10000, parseInt(digitsInput.value)||100));
+        let s;
+        if (n <= 100) s = '3.' + PI_100.slice(0, n);
+        else s = '3.' + PI_10000.slice(0, n);
+        output.value = s;
+      }
+      document.getElementById('show').onclick = show;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      show();
+    `,
+    'math/矩阵计算器': `
+const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const opSelect = document.getElementById('op');
+      const bInput = document.getElementById('b');
+      function parse(s) { return s.trim().split('\\n').map(r => r.trim().split(/[\s,]+/).map(Number)); }
+      function matStr(m) { return m.map(r => r.map(v => Number.isFinite(v) ? v.toFixed(4) : 'NaN').join('\\t')).join('\\n'); }
+      function det(m) {
+        const n = m.length;
+        if (n === 1) return m[0][0];
+        if (n === 2) return m[0][0]*m[1][1] - m[0][1]*m[1][0];
+        const M = m.map(r => r.slice());
+        let d = 1;
+        for (let i=0;i<n;i++) {
+          let p = i; while (p<n && Math.abs(M[p][i])<1e-12) p++;
+          if (p===n) return 0;
+          if (p!==i) { [M[i],M[p]]=[M[p],M[i]]; d*=-1; }
+          d *= M[i][i];
+          for (let k=i+1;k<n;k++) M[i][k]/=M[i][i];
+          for (let j=i+1;j<n;j++) for (let k=i+1;k<n;k++) M[j][k] -= M[j][i]*M[i][k];
+        }
+        return d;
+      }
+      function transpose(m) { return m[0].map((_,j) => m.map(r => r[j])); }
+      function add(a,b) { return a.map((r,i) => r.map((v,j) => v + b[i][j])); }
+      function mul(a,b) {
+        const r = a.length, c = b[0].length, k = b.length;
+        const out = Array.from({length:r}, () => Array(c).fill(0));
+        for (let i=0;i<r;i++) for (let j=0;j<c;j++) for (let x=0;x<k;x++) out[i][j] += a[i][x]*b[x][j];
+        return out;
+      }
+      function inverse(m) {
+        const n = m.length;
+        const A = m.map((r,i) => [...r, ...Array.from({length:n}, (_,j) => i===j?1:0)]);
+        for (let i=0;i<n;i++) {
+          let p=i; while(p<n && Math.abs(A[p][i])<1e-12) p++;
+          if (p===n) throw new Error('矩阵不可逆');
+          [A[i],A[p]]=[A[p],A[i]];
+          for (let k=i;k<2*n;k++) A[i][k]/=A[i][i];
+          for (let j=0;j<n;j++) if (j!==i) { const f=A[j][i]; for (let k=i;k<2*n;k++) A[j][k]-=f*A[i][k]; }
+        }
+        return A.map(r => r.slice(n));
+      }
+      function run() {
+        try {
+          const A = parse(input.value);
+          const op = opSelect.value;
+          if (op==='det') output.value = '行列式 = ' + det(A);
+          else if (op==='transpose') output.value = matStr(transpose(A));
+          else if (op==='inverse') output.value = matStr(inverse(A));
+          else {
+            const B = parse(bInput.value);
+            if (op==='add') output.value = matStr(add(A,B));
+            else if (op==='sub') output.value = matStr(add(A, B.map((r,i)=>r.map((v,j)=>-v))));
+            else if (op==='mul') output.value = matStr(mul(A,B));
+          }
+        } catch(e) { output.value = '错误: ' + e.message; }
+      }
+      document.getElementById('calc').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+    `,
+    'math/进制算术运算': `
+const aIn = document.getElementById('a');
+      const bIn = document.getElementById('b');
+      const baseA = document.getElementById('baseA');
+      const baseB = document.getElementById('baseB');
+      const op = document.getElementById('op');
+      const out = document.getElementById('output');
+      function run() {
+        try {
+          const a = parseInt(aIn.value, parseInt(baseA.value));
+          const b = parseInt(bIn.value, parseInt(baseB.value));
+          if (!Number.isFinite(a) || !Number.isFinite(b)) throw new Error('无法解析数字');
+          let r;
+          switch(op.value) {
+            case 'add': r = a + b; break;
+            case 'sub': r = a - b; break;
+            case 'mul': r = a * b; break;
+            case 'div': if (b===0) throw new Error('除数不能为 0'); r = Math.floor(a/b); break;
+            case 'and': r = a & b; break;
+            case 'or': r = a | b; break;
+            case 'xor': r = a ^ b; break;
+            case 'shl': r = a << b; break;
+            case 'shr': r = a >> b; break;
+          }
+          out.value = '十进制: ' + r + '\\n' +
+            '二进制: ' + (r>>>0).toString(2) + '\\n' +
+            '八进制: ' + r.toString(8) + '\\n' +
+            '十六进制: ' + r.toString(16).toUpperCase();
+        } catch(e) { out.value = '错误: ' + e.message; }
+      }
+      ['a','b'].forEach(id => document.getElementById(id).addEventListener('input', run));
+      document.getElementById('baseA').addEventListener('change', run);
+      document.getElementById('baseB').addEventListener('change', run);
+      document.getElementById('op').addEventListener('change', run);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    `,
+    'math/对数计算': `
+const xIn = document.getElementById('x');
+      const baseIn = document.getElementById('base');
+      const out = document.getElementById('output');
+      function run() {
+        try {
+          const x = parseFloat(xIn.value);
+          const base = parseFloat(baseIn.value);
+          if (x <= 0) throw new Error('真数必须 > 0');
+          if (base <= 0 || base === 1) throw new Error('底数必须 > 0 且 ≠ 1');
+          const ln = Math.log(x);
+          const lg = Math.log10(x);
+          const custom = Math.log(x) / Math.log(base);
+          const expOf2 = Math.log2(x);
+          out.value = '自然对数 ln(x)     = ' + ln.toFixed(10) + '\\n' +
+            '常用对数 log10(x) = ' + lg.toFixed(10) + '\\n' +
+            '二进制对数 log2(x)= ' + expOf2.toFixed(10) + '\\n' +
+            '自定义底数 log_' + base + '(x) = ' + custom.toFixed(10) + '\\n' +
+            '--- 指数互算 ---' + '\\n' +
+            'e^x = ' + Math.exp(x).toFixed(6) + '\\n' +
+            '10^x = ' + Math.pow(10, x).toFixed(6) + '\\n' +
+            base + '^x = ' + Math.pow(base, x).toFixed(6);
+        } catch(e) { out.value = '错误: ' + e.message; }
+      }
+      xIn.addEventListener('input', run);
+      baseIn.addEventListener('input', run);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    `,
+    'network/browser-fingerprint': `
+const output = document.getElementById('output');
+      async function fingerprint() {
+        const info = {};
+        info['User-Agent'] = navigator.userAgent;
+        info['平台 Platform'] = navigator.platform;
+        info['语言 Languages'] = navigator.languages ? navigator.languages.join(', ') : navigator.language;
+        info['时区 Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        info['时区偏移'] = new Date().getTimezoneOffset() + ' 分钟';
+        info['屏幕分辨率'] = screen.width + ' × ' + screen.height;
+        info['可用屏幕'] = screen.availWidth + ' × ' + screen.availHeight;
+        info['颜色深度'] = screen.colorDepth + ' bit';
+        info['设备像素比'] = window.devicePixelRatio;
+        info['硬件并发'] = navigator.hardwareConcurrency + ' 核';
+        info['设备内存'] = (navigator.deviceMemory || '未知') + ' GB';
+        info['触屏支持'] = ('ontouchstart' in window) ? '是' : '否';
+        info['Cookie 启用'] = navigator.cookieEnabled ? '是' : '否';
+        info['Do Not Track'] = navigator.doNotTrack || '未设置';
+        try {
+          const c = document.createElement('canvas');
+          const ctx = c.getContext('2d');
+          ctx.textBaseline = 'top';
+          ctx.font = "14px Arial";
+          ctx.fillStyle = '#f60';
+          ctx.fillRect(125, 1, 62, 20);
+          ctx.fillStyle = '#069';
+          ctx.fillText('CloverTools-FP', 2, 15);
+          info['Canvas 指纹'] = c.toDataURL().slice(0, 80) + '...';
+        } catch(e) { info['Canvas 指纹'] = '不支持'; }
+        try {
+          const gl = document.createElement('canvas').getContext('webgl');
+          if (gl) {
+            const ext = gl.getExtension('WEBGL_debug_renderer_info');
+            info['WebGL 厂商'] = ext ? gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) : '已隐藏';
+            info['WebGL 渲染器'] = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '已隐藏';
+          } else info['WebGL'] = '不支持';
+        } catch(e) { info['WebGL'] = '检测失败'; }
+        info['在线状态'] = navigator.onLine ? '在线' : '离线';
+        const lines = Object.entries(info).map(([k,v]) => k + ': ' + v);
+        output.value = lines.join('\\n');
+      }
+      document.getElementById('refresh').onclick = fingerprint;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      fingerprint();
+    `,
+    'network/mdn-search': `
+const query = document.getElementById('query');
+      const out = document.getElementById('output');
+      const suggestions = ['Array','Map','Promise','async','fetch','localStorage','Canvas','Flexbox','Grid','CSS variables','WebSocket','Event'];
+      function go(q) {
+        const url = 'https://developer.mozilla.org/zh-CN/search?q=' + encodeURIComponent(q);
+        out.value = '搜索关键词: ' + q + '\\n' +
+          'MDN 中文搜索: ' + url + '\\n' +
+          'MDN 英文搜索: https://developer.mozilla.org/en-US/search?q=' + encodeURIComponent(q) + '\\n\\n' +
+          '点击下方按钮在 MDN 打开，或直接复制链接。';
+        document.getElementById('openBtn').onclick = () => window.open(url, '_blank');
+        document.getElementById('openEnBtn').onclick = () => window.open('https://developer.mozilla.org/en-US/search?q=' + encodeURIComponent(q), '_blank');
+      }
+      document.getElementById('search').onclick = () => go(query.value.trim() || 'JavaScript');
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      const sugBox = document.getElementById('suggestions');
+      suggestions.forEach(s => {
+        const b = document.createElement('button');
+        b.className = 'btn btn-secondary';
+        b.style.cssText = 'margin:.2rem;font-size:.85rem;';
+        b.textContent = s;
+        b.onclick = () => { query.value = s; go(s); };
+        sugBox.appendChild(b);
+      });
+      go('JavaScript');
+    `,
+    'network/webhook-test': `
+const urlOut = document.getElementById('urlOut');
+      const reqLog = document.getElementById('reqLog');
+      const payload = document.getElementById('payload');
+      const token = 'whk_' + Math.random().toString(36).slice(2, 10);
+      const targetUrl = window.location.origin + '/webhook/' + token;
+      urlOut.value = targetUrl;
+      document.getElementById('copyUrl').onclick = () => copyToClipboard(targetUrl);
+      document.getElementById('copyPayload').onclick = () => copyToClipboard(payload.value);
+      document.getElementById('send').onclick = async () => {
+        try {
+          const r = await fetch(targetUrl, { method: 'POST', body: payload.value, headers: {'Content-Type': 'application/json'} });
+          reqLog.value = '状态: ' + r.status + '\\n' + '由于浏览器同源策略，本工具生成的 URL 仅作演示。\\n实际场景请使用 webhook.site 等公共服务。';
+        } catch(e) {
+          reqLog.value = '请求失败（CORS 限制符合预期）: ' + e.message + '\\n\\n推荐使用 https://webhook.site 获取真实的回调 URL';
+        }
+      };
+      const services = [
+        'https://webhook.site',
+        'https://pipedream.com',
+        'https://requestbin.com',
+        'https://beeceptor.com',
+      ];
+      reqLog.value = '本工具生成的 URL: ' + targetUrl + '\\n\\n由于浏览器同源策略，本页无法直接接收外部请求。\\n推荐使用以下公共服务获取真实的回调 URL：\\n' + services.join('\\n');
+    `,
+    'text/base64-image': `
+const fileIn = document.getElementById('file');
+      const b64Out = document.getElementById('b64Out');
+      const imgOut = document.getElementById('imgOut');
+      const b64In = document.getElementById('b64In');
+      const imgPreview = document.getElementById('imgPreview');
+      fileIn.addEventListener('change', e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = () => {
+          b64Out.value = r.result;
+          imgOut.src = r.result;
+          imgOut.style.display = 'block';
+        };
+        r.readAsDataURL(f);
+      });
+      document.getElementById('copyB64').onclick = () => copyToClipboard(b64Out.value);
+      function decodeB64() {
+        try {
+          const v = b64In.value.trim();
+          if (!v) return;
+          const dataUrl = v.startsWith('data:') ? v : 'data:image/png;base64,' + v;
+          imgPreview.src = dataUrl;
+          imgPreview.style.display = 'block';
+        } catch(e) { alert('解码失败: ' + e.message); }
+      }
+      document.getElementById('decode').onclick = decodeB64;
+      b64In.addEventListener('input', decodeB64);
+    `,
+    'text/banned-words': `
+const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const AD_LAW = ['最','第一','唯一','顶级','国家级','世界级','宇宙级','全网','全网最低','全网首发','100%','百分百','永久','终身','祖传','秘方','神药','包治','包好','无效退款','稳赚','无风险','高收益','躺着赚','刷单','销量冠军','立竿见影'];
+      const POLITICS = ['反动','台独','藏独','疆独','港独','法轮','邪教','暴动','政变','颠覆'];
+      const PROFESSIONAL = ['最佳','最好','最优','最高级','首家','独有','独家','绝无仅有','绝对','顶级','顶尖','尖端','极品','国家级产品','填补国内空白','中国第一','全网第一','驰名商标','名牌','免检','第一品牌'];
+      function check() {
+        const text = input.value;
+        if (!text.trim()) { output.value = '请输入待检测文本'; return; }
+        const found = { '广告法违禁词': [], '敏感政治词': [], '极限词/绝对化用语': [] };
+        AD_LAW.forEach(w => { if (text.includes(w)) found['广告法违禁词'].push(w); });
+        POLITICS.forEach(w => { if (text.includes(w)) found['敏感政治词'].push(w); });
+        PROFESSIONAL.forEach(w => { if (text.includes(w)) found['极限词/绝对化用语'].push(w); });
+        let total = 0;
+        const lines = [];
+        Object.entries(found).forEach(([cat, words]) => {
+          if (words.length) { total += words.length; lines.push('【' + cat + '】命中 ' + words.length + ' 个：'); lines.push(words.join('、')); lines.push(''); }
+        });
+        if (total === 0) lines.push('✓ 未发现违禁词');
+        else lines.unshift('合计命中 ' + total + ' 个违禁词\\n');
+        output.value = lines.join('\\n');
+      }
+      document.getElementById('check').onclick = check;
+      document.getElementById('clear').onclick = () => { input.value=''; output.value=''; };
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', check);
+    `,
+    'text/typing-speed': `
+const TEXT = 'CloverTools 致力于为开发者提供简洁高效的在线工具，所有数据处理均在本地完成，保护您的隐私安全。';
+      const target = document.getElementById('target');
+      const input = document.getElementById('input');
+      const wpmEl = document.getElementById('wpm');
+      const cpmEl = document.getElementById('cpm');
+      const accEl = document.getElementById('acc');
+      const timeEl = document.getElementById('time');
+      let startTime = null, finished = false, timerInt = null;
+      target.textContent = TEXT;
+      function reset() {
+        startTime = null; finished = false;
+        wpmEl.textContent = '0'; cpmEl.textContent = '0'; accEl.textContent = '100%'; timeEl.textContent = '0s';
+        input.value = ''; input.disabled = false; input.focus();
+        if (timerInt) clearInterval(timerInt);
+      }
+      function tick() {
+        if (!startTime || finished) return;
+        const elapsed = (Date.now() - startTime) / 1000;
+        timeEl.textContent = elapsed.toFixed(1) + 's';
+      }
+      input.addEventListener('input', () => {
+        if (finished) return;
+        if (!startTime && input.value.length > 0) {
+          startTime = Date.now();
+          timerInt = setInterval(tick, 100);
+        }
+        const typed = input.value;
+        const elapsed = (Date.now() - startTime) / 60;
+        const cpm = elapsed > 0 ? Math.round(typed.length / elapsed) : 0;
+        const words = typed.replace(/\s+/g, ' ').trim().split(' ').filter(x => x).length;
+        const wpm = elapsed > 0 ? Math.round(words / elapsed) : 0;
+        let correct = 0;
+        for (let i=0;i<typed.length;i++) if (typed[i] === TEXT[i]) correct++;
+        const acc = typed.length > 0 ? Math.round(100*correct/typed.length) : 100;
+        wpmEl.textContent = wpm; cpmEl.textContent = cpm; accEl.textContent = acc + '%';
+        if (typed === TEXT) {
+          finished = true;
+          if (timerInt) clearInterval(timerInt);
+          input.disabled = true;
+        }
+      });
+      document.getElementById('reset').onclick = reset;
+      reset();
+    `,
+    'code/px-rem': `
+const pxIn = document.getElementById('px');
+      const remIn = document.getElementById('rem');
+      const rootIn = document.getElementById('root');
+      const table = document.getElementById('table');
+      function calc() {
+        const root = parseFloat(rootIn.value) || 16;
+        const px = parseFloat(pxIn.value);
+        const rem = parseFloat(remIn.value);
+        if (Number.isFinite(px)) remIn.value = (px / root).toFixed(4);
+        else if (Number.isFinite(rem)) pxIn.value = (rem * root).toFixed(2);
+        const sizes = [8,10,12,14,16,18,20,24,28,32,40,48,64,80];
+        table.value = '像素 (px) -> REM (根字号 ' + root + ')\\n' + sizes.map(s => s + 'px = ' + (s/root).toFixed(4) + 'rem').join('\\n');
+      }
+      pxIn.addEventListener('input', () => { if (pxIn.value) { remIn.value=''; calc(); } });
+      remIn.addEventListener('input', () => { if (remIn.value) { pxIn.value=''; calc(); } });
+      rootIn.addEventListener('input', calc);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(table.value);
+      calc();
+    `,
+    'code/box-shadow': `
+const xIn = document.getElementById('x');
+      const yIn = document.getElementById('y');
+      const blurIn = document.getElementById('blur');
+      const spreadIn = document.getElementById('spread');
+      const colorIn = document.getElementById('color');
+      const alphaIn = document.getElementById('alpha');
+      const insetChk = document.getElementById('inset');
+      const code = document.getElementById('code');
+      const preview = document.getElementById('preview');
+      function hexToRgba(hex, a) {
+        const h = hex.replace('#','');
+        const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+      }
+      function update() {
+        const x = xIn.value, y = yIn.value, blur = blurIn.value, spread = spreadIn.value;
+        const color = hexToRgba(colorIn.value, alphaIn.value);
+        const inset = insetChk.checked ? 'inset ' : '';
+        const css = 'box-shadow: ' + inset + x + 'px ' + y + 'px ' + blur + 'px ' + spread + 'px ' + color + ';';
+        code.value = css;
+        preview.style.boxShadow = css;
+        document.getElementById('xv').textContent = x;
+        document.getElementById('yv').textContent = y;
+        document.getElementById('bv').textContent = blur;
+        document.getElementById('sv').textContent = spread;
+        document.getElementById('av').textContent = alphaIn.value;
+      }
+      [xIn,yIn,blurIn,spreadIn,colorIn,alphaIn,insetChk].forEach(el => el.addEventListener('input', update));
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(code.value);
+      update();
+    `,
+    'encrypt/md5-query': `
+const input = document.getElementById('input');
+      const output = document.getElementById('output');
+      const DICT = {
+        'admin':'21232f297a57a5a743894a0e4a801fc3',
+        'password':'5f4dcc3b5aa765d61d8327deb882cf99',
+        '123456':'e10adc3949ba59abbe56e057f20f883e',
+        '12345678':'25d55ad283aa400af464c76d713c07ad',
+        'qwerty':'d8578edf8458ce06fbc5bb76a58c5ca4',
+        'abc123':'e99a18c428cb38d5f260853678922e03',
+        'letmein':'0d107d09f5bbe40cade3de5c71e9e9b7',
+        '111111':'96e79218965eb72c92a549dd5a330112',
+        'iloveyou':'f25a2fc72690b780b2a14e140ef6a9e0',
+        'root':'63a9f0ea7bb98050796b649e85481845',
+        'administrator':'200ceb26807d6bf99fd6f4f0d1ca54d4',
+        'welcome':'7b502c3a1f48c8609ae212cdfbb639de',
+      };
+      function run() {
+        const q = input.value.trim().toLowerCase();
+        if (!q) { output.value = '请输入 MD5 值'; return; }
+        const matches = [];
+        for (const [plain, hash] of Object.entries(DICT)) {
+          if (hash.startsWith(q) || q === hash) matches.push(plain + '  ->  ' + hash);
+        }
+        if (matches.length) output.value = '找到 ' + matches.length + ' 个匹配（前缀匹配）：\\n' + matches.join('\\n');
+        else output.value = '未在本地字典中找到匹配。\\n\\n说明：MD5 是单向哈希，理论上不可逆。\\n本工具使用小型内置字典做前缀匹配演示。\\n在线查询推荐：https://md5decrypt.net';
+      }
+      document.getElementById('query').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      input.addEventListener('input', run);
+      run();
+    `,
+    'encrypt/entropy-calc': `
+const input = document.getElementById('input');
+      const out = document.getElementById('output');
+      function calcEntropy(s) {
+        if (!s) return 0;
+        const freq = {};
+        for (const c of s) freq[c] = (freq[c]||0) + 1;
+        const len = s.length;
+        let h = 0;
+        for (const k in freq) {
+          const p = freq[k] / len;
+          h -= p * Math.log2(p);
+        }
+        return h;
+      }
+      function run() {
+        const s = input.value;
+        if (!s) { out.value = '请输入字符串'; return; }
+        const H = calcEntropy(s);
+        const bits = (H * s.length).toFixed(2);
+        let level = '极弱', score = 0;
+        if (H > 3.5) { level = '强'; score = 4; }
+        else if (H > 3.0) { level = '良好'; score = 3; }
+        else if (H > 2.5) { level = '中等'; score = 2; }
+        else if (H > 1.5) { level = '弱'; score = 1; }
+        out.value = '输入长度: ' + s.length + ' 字符\\n' +
+          '字符集基数: ' + Object.keys([...new Set(s)]).length + ' 个不同字符\\n' +
+          '信息熵 H(X) = ' + H.toFixed(4) + ' bits/字符\\n' +
+          '总信息量: ' + bits + ' bits\\n' +
+          '密码强度: ' + level + ' (' + '★'.repeat(score) + '☆'.repeat(4-score) + ')\\n\\n' +
+          '说明：\\n' +
+          '• 熵 < 1.5：可预测 (如 1111)\\n' +
+          '• 熵 1.5-2.5：弱 (如 1234)\\n' +
+          '• 熵 2.5-3.0：中等 (含大小写)\\n' +
+          '• 熵 3.0-3.5：良好 (含特殊字符)\\n' +
+          '• 熵 > 3.5：强 (随机字符串)';
+      }
+      document.getElementById('calc').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      input.addEventListener('input', run);
+      run();
+    `,
+    'life/length': `
+const val = document.getElementById('val');
+      const from = document.getElementById('from');
+      const out = document.getElementById('output');
+      const TO_M = {
+        'km': 1000, 'm': 1, 'dm': 0.1, 'cm': 0.01, 'mm': 0.001,
+        'um': 1e-6, 'nm': 1e-9,
+        'mile': 1609.344, 'yard': 0.9144, 'foot': 0.3048, 'inch': 0.0254,
+        'nautical-mile': 1852, 'li': 500, 'chi': 0.333, 'cun': 0.0333,
+        'light-year': 9.461e15, 'astronomical': 1.496e11,
+      };
+      const NAMES = {
+        'km':'千米','m':'米','dm':'分米','cm':'厘米','mm':'毫米','um':'微米','nm':'纳米',
+        'mile':'英里','yard':'码','foot':'英尺','inch':'英寸','nautical-mile':'海里',
+        'li':'里','chi':'尺','cun':'寸',
+        'light-year':'光年','astronomical':'天文单位',
+      };
+      function run() {
+        const v = parseFloat(val.value);
+        if (!Number.isFinite(v)) { out.value = '请输入有效数值'; return; }
+        const meters = v * TO_M[from.value];
+        const lines = [];
+        Object.entries(TO_M).forEach(([k, factor]) => {
+          const r = meters / factor;
+          lines.push((NAMES[k] + ' (' + k + ')').padEnd(14,' ') + ': ' + r.toPrecision(8));
+        });
+        out.value = lines.join('\\n');
+      }
+      val.addEventListener('input', run);
+      from.addEventListener('change', run);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    `,
+    'life/temperature': `
+const val = document.getElementById('val');
+      const from = document.getElementById('from');
+      const out = document.getElementById('output');
+      function toC(v, f) {
+        if (f==='C') return v;
+        if (f==='F') return (v - 32) * 5 / 9;
+        if (f==='K') return v - 273.15;
+        if (f==='R') return (v - 491.67) * 5 / 9;
+      }
+      function fromC(c, f) {
+        if (f==='C') return c;
+        if (f==='F') return c * 9/5 + 32;
+        if (f==='K') return c + 273.15;
+        if (f==='R') return (c + 273.15) * 9/5;
+      }
+      function run() {
+        const v = parseFloat(val.value);
+        if (!Number.isFinite(v)) { out.value = '请输入有效数值'; return; }
+        const c = toC(v, from.value);
+        const r = {
+          '摄氏度 C': fromC(c,'C'),
+          '华氏度 F': fromC(c,'F'),
+          '开尔文 K': fromC(c,'K'),
+          '兰氏度 R': fromC(c,'R'),
+        };
+        out.value = Object.entries(r).map(([k,v]) => k + ': ' + v.toFixed(4)).join('\\n') + '\\n\\n--- 常用温度参考 ---\\n' +
+          '水结冰:  0C = 32F = 273.15 K\\n' +
+          '水沸腾: 100C = 212F = 373.15 K\\n' +
+          '人体体温: 37C = 98.6F = 310.15 K\\n' +
+          '绝对零度: -273.15C = -459.67F = 0 K';
+      }
+      val.addEventListener('input', run);
+      from.addEventListener('change', run);
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    `,
+    'life/lucky-number': `
+const nameIn = document.getElementById('name');
+      const birthIn = document.getElementById('birth');
+      const countIn = document.getElementById('count');
+      const out = document.getElementById('output');
+      function hashCode(s) {
+        let h = 0;
+        for (let i=0;i<s.length;i++) h = (h*31 + s.charCodeAt(i)) & 0xffffffff;
+        return Math.abs(h);
+      }
+      function dateSeed(date) {
+        const d = new Date(date);
+        return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+      }
+      const ZODIAC = ['摩羯','水瓶','双鱼','白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手'];
+      function zodiac(month, day) {
+        const edges = [[1,20],[2,19],[3,21],[4,20],[5,21],[6,22],[7,23],[8,23],[9,23],[10,24],[11,23],[12,22]];
+        let i = month - 1;
+        if (day < edges[i][1]) i = (i + 11) % 12;
+        return ZODIAC[i];
+      }
+      const SHENGXIAO = ['猴','鸡','狗','猪','鼠','牛','虎','兔','龙','蛇','马','羊'];
+      function shengxiao(year) { return SHENGXIAO[year % 12]; }
+      function run() {
+        const name = (nameIn.value || '匿名').trim();
+        const birth = birthIn.value || '1990-01-01';
+        const count = Math.max(1, Math.min(20, parseInt(countIn.value)||5));
+        const ds = dateSeed(birth);
+        const nameHash = hashCode(name);
+        const [y, m, d] = birth.split('-').map(Number);
+        const z = zodiac(m, d);
+        const sx = shengxiao(y);
+        const baseSeed = (ds + nameHash) >>> 0;
+        const nums = [];
+        for (let i=0;i<count;i++) {
+          let s = (baseSeed + i*2654435761) >>> 0;
+          s = (s + 0x6D2B79F5) >>> 0;
+          let t = s;
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          const num = Math.floor(r * 100) + 1;
+          nums.push(num);
+        }
+        const colors = ['红','橙','黄','绿','青','蓝','紫','金','银','白'];
+        const luckyColor = colors[nameHash % colors.length];
+        out.value = '姓名: ' + name + '\\n' +
+          '生日: ' + birth + '\\n' +
+          '星座: ' + z + '\\n' +
+          '生肖: ' + sx + '\\n' +
+          '幸运色: ' + luckyColor + '\\n\\n' +
+          '您的 ' + count + ' 个幸运数字:\\n' + nums.join('、') + '\\n\\n' +
+          '（基于姓名哈希 + 生日种子的稳定伪随机）';
+      }
+      document.getElementById('gen').onclick = run;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(out.value);
+      run();
+    `,
   };
 
   // Custom-script override (for tool-custom entries with customScript field)
@@ -5149,6 +5796,510 @@ function buildToolContentHtml(tool) {
         .stat-num { font-size:1.5rem; font-weight:700; color:var(--primary); }
         .stat-label { font-size:.78rem; opacity:.75; margin-top:.2rem; }
       </style>
+    `,
+
+    'math/随机数序列': `
+<div class="tool-card">
+        <h3>参数</h3>
+        <div class="options-row">
+          <label>数量: <input type="number" id="count" value="10" min="1" max="10000" style="width:80px;padding:0.3rem;"></label>
+          <label>最小值: <input type="number" id="min" value="0" style="width:90px;padding:0.3rem;"></label>
+          <label>最大值: <input type="number" id="max" value="100" style="width:90px;padding:0.3rem;"></label>
+        </div>
+        <div class="options-row" style="margin-top:.5rem;">
+          <label>分布:
+            <select id="dist" style="padding:0.3rem;">
+              <option value="uniform">均匀分布</option>
+              <option value="normal">正态分布</option>
+            </select>
+          </label>
+          <label><input type="checkbox" id="integer"> 仅整数</label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="generate">生成</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>输出 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:240px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>均匀分布：每个值出现概率相同</li>
+          <li>正态分布：大部分值集中在中间，使用 Box-Muller 变换</li>
+          <li>整数模式：结果四舍五入为整数</li>
+        </ul>
+      </div>
+    `,
+    'math/圆周率查询': `
+<div class="tool-card">
+        <h3>查询位数</h3>
+        <div class="options-row">
+          <label>位数: <input type="number" id="digits" value="100" min="1" max="10000" style="width:120px;padding:0.3rem;"></label>
+          <button class="btn btn-primary" id="show">查询</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>π 数值 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:300px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>关于 π</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>π 是圆的周长与直径之比，约等于 3.14159265358979...</li>
+          <li>支持最多 10,000 位高精度查询</li>
+          <li>结果可用于数学研究、记忆口诀、编程测试</li>
+        </ul>
+      </div>
+    `,
+    'math/矩阵计算器': `
+<div class="tool-card">
+        <h3>矩阵 A (空格或逗号分隔，行用换行)</h3>
+        <textarea id="input" placeholder="1 2 3&#10;4 5 6" style="min-height:90px;">1 2&#10;3 4</textarea>
+        <h3 style="margin-top:1rem;">操作</h3>
+        <div class="options-row">
+          <label>运算:
+            <select id="op" style="padding:0.3rem;">
+              <option value="det">行列式</option>
+              <option value="transpose">转置</option>
+              <option value="inverse">求逆</option>
+              <option value="add">A + B</option>
+              <option value="sub">A - B</option>
+              <option value="mul">A × B</option>
+            </select>
+          </label>
+        </div>
+        <h3 style="margin-top:1rem;">矩阵 B (用于加减乘)</h3>
+        <textarea id="b" placeholder="5 6&#10;7 8" style="min-height:80px;">5 6&#10;7 8</textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="calc">计算</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:200px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>支持的运算</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li><b>行列式</b>：n×n 方阵的标量值</li>
+          <li><b>转置</b>：行列互换</li>
+          <li><b>求逆</b>：高斯-约旦消元法</li>
+          <li><b>加减乘</b>：标准矩阵运算</li>
+        </ul>
+      </div>
+    `,
+    'math/进制算术运算': `
+<div class="tool-card">
+        <h3>操作数</h3>
+        <div class="options-row">
+          <label>A:
+            <input type="text" id="a" value="FF" style="width:140px;padding:0.3rem;">
+            <select id="baseA" style="padding:0.3rem;">
+              <option value="2">二进制</option>
+              <option value="8">八进制</option>
+              <option value="10" selected>十进制</option>
+              <option value="16">十六进制</option>
+            </select>
+          </label>
+          <label>运算符:
+            <select id="op" style="padding:0.3rem;">
+              <option value="add">+ 加</option>
+              <option value="sub">- 减</option>
+              <option value="mul">× 乘</option>
+              <option value="div">÷ 除</option>
+              <option value="and">AND</option>
+              <option value="or">OR</option>
+              <option value="xor">XOR</option>
+              <option value="shl">左移</option>
+              <option value="shr">右移</option>
+            </select>
+          </label>
+          <label>B:
+            <input type="text" id="b" value="1" style="width:140px;padding:0.3rem;">
+            <select id="baseB" style="padding:0.3rem;">
+              <option value="2">二进制</option>
+              <option value="8">八进制</option>
+              <option value="10" selected>十进制</option>
+              <option value="16">十六进制</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>结果（同时显示四进制） <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:160px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>两个操作数可使用不同的进制</li>
+          <li>支持四则运算与位运算 (AND/OR/XOR/移位)</li>
+          <li>结果自动转换为二/八/十/十六进制</li>
+        </ul>
+      </div>
+    `,
+    'math/对数计算': `
+<div class="tool-card">
+        <h3>参数</h3>
+        <div class="options-row">
+          <label>真数 x: <input type="number" id="x" value="100" step="any" style="width:140px;padding:0.3rem;"></label>
+          <label>底数 base: <input type="number" id="base" value="2" step="any" style="width:100px;padding:0.3rem;"></label>
+        </div>
+        <p style="font-size:.85rem;opacity:.75;margin-top:.5rem;">真数必须 > 0，底数必须 > 0 且 ≠ 1</p>
+      </div>
+      <div class="output-box">
+        <h3>对数结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:200px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>对数公式</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>ln(x)：以自然常数 e 为底的对数</li>
+          <li>log10(x)：常用对数（工程领域）</li>
+          <li>log2(x)：信息论与计算机科学</li>
+          <li>log_b(x) = ln(x) / ln(b)：换底公式</li>
+        </ul>
+      </div>
+    `,
+    'network/browser-fingerprint': `
+<div class="tool-card">
+        <h3>浏览器指纹信息</h3>
+        <p style="font-size:.9rem;opacity:.8;">收集以下特征生成本机唯一指纹（仅本地计算，不上传）</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="refresh">重新检测</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>指纹详情 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:380px;font-family:monospace;font-size:.85rem;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>浏览器指纹是网站识别用户设备的常用技术</li>
+          <li>包含 User-Agent、Canvas、WebGL、屏幕、时区等多种特征</li>
+          <li>所有计算均在本地完成，不会上传到任何服务器</li>
+        </ul>
+      </div>
+    `,
+    'network/mdn-search': `
+<div class="tool-card">
+        <h3>搜索 MDN 文档</h3>
+        <div class="options-row">
+          <input type="text" id="query" placeholder="输入关键词，如 Array.map" value="Promise" style="flex:1;padding:0.5rem;">
+          <button class="btn btn-primary" id="search">搜索</button>
+        </div>
+        <h3 style="margin-top:1rem;">常用搜索</h3>
+        <div id="suggestions"></div>
+      </div>
+      <div class="output-box">
+        <h3>搜索链接 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:160px;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="openBtn">在 MDN 中文站打开</button>
+          <button class="btn btn-secondary" id="openEnBtn">英文站</button>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>关于 MDN</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>MDN Web Docs 是 Web 开发的权威文档库</li>
+          <li>支持 HTML、CSS、JavaScript、Web API 等查询</li>
+          <li>本工具自动生成 MDN 搜索 URL 并打开</li>
+        </ul>
+      </div>
+    `,
+    'network/webhook-test': `
+<div class="tool-card">
+        <h3>生成的回调 URL（演示）</h3>
+        <div class="options-row">
+          <input type="text" id="urlOut" readonly style="flex:1;padding:0.5rem;background:var(--bg-secondary);">
+          <button class="btn btn-secondary" id="copyUrl">复制</button>
+        </div>
+        <p style="font-size:.85rem;opacity:.75;margin-top:.5rem;">由于浏览器同源策略，本页无法直接接收外部请求。请使用公共 webhook 服务。</p>
+      </div>
+      <div class="tool-card">
+        <h3>POST Payload (JSON)</h3>
+        <textarea id="payload" style="min-height:120px;">{"event":"test","timestamp":"2026-07-03T01:00:00Z","data":{"id":1,"name":"CloverTools"}}</textarea>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="copyPayload">复制 Payload</button>
+          <button class="btn btn-primary" id="send">发送测试请求</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>请求日志 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="reqLog" readonly style="min-height:200px;font-family:monospace;font-size:.85rem;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>推荐 Webhook 测试服务</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li><a href="https://webhook.site" target="_blank">webhook.site</a> - 最常用，实时查看 Header/Body</li>
+          <li><a href="https://pipedream.com" target="_blank">pipedream.com</a> - 支持工作流编排</li>
+          <li><a href="https://beeceptor.com" target="_blank">beeceptor.com</a> - 可模拟响应</li>
+        </ul>
+      </div>
+    `,
+    'text/base64-image': `
+<div class="tool-card">
+        <h3>图片 → Base64</h3>
+        <input type="file" id="file" accept="image/*">
+        <h3 style="margin-top:1rem;">Base64 结果</h3>
+        <textarea id="b64Out" readonly style="min-height:160px;font-family:monospace;font-size:.8rem;word-break:break-all;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="copyB64">复制 Base64</button>
+        </div>
+        <img id="imgOut" style="max-width:100%;margin-top:1rem;border:1px solid var(--border);border-radius:8px;display:none;">
+      </div>
+      <div class="tool-card">
+        <h3>Base64 → 图片</h3>
+        <textarea id="b64In" placeholder="粘贴 Base64 字符串（可含 data:image/... 前缀）" style="min-height:120px;font-family:monospace;font-size:.8rem;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="decode">解码为图片</button>
+        </div>
+        <img id="imgPreview" style="max-width:100%;margin-top:1rem;border:1px solid var(--border);border-radius:8px;display:none;">
+      </div>
+    `,
+    'text/banned-words': `
+<div class="tool-card">
+        <h3>待检测文本</h3>
+        <textarea id="input" placeholder="粘贴文案、标题、广告语等，工具将自动检测违禁词" style="min-height:200px;">我们的产品是行业第一！100%有效，包治百病，立竿见影，错过就没了！</textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="check">检测</button>
+          <button class="btn btn-secondary" id="clear">清空</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>检测结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:240px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>基于《广告法》第九条等规定的极限词库</li>
+          <li>包含广告违禁词、绝对化用语、政治敏感词等</li>
+          <li>词库为内置示例，实际使用建议扩展专业词库</li>
+          <li>仅供内容参考，不替代专业合规审查</li>
+        </ul>
+      </div>
+    `,
+    'text/typing-speed': `
+<div class="tool-card">
+        <h3>请输入以下文本</h3>
+        <div id="target" style="background:var(--bg-secondary);padding:1rem;border-radius:8px;line-height:1.8;font-size:1.05rem;border:1px solid var(--border);"></div>
+        <h3 style="margin-top:1rem;">输入区</h3>
+        <textarea id="input" placeholder="开始打字..." style="min-height:120px;font-size:1.05rem;line-height:1.8;"></textarea>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="reset">重新开始</button>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>实时统计</h3>
+        <div class="stat-grid">
+          <div class="stat-cell"><div class="stat-num" id="wpm">0</div><div class="stat-label">WPM (字/分)</div></div>
+          <div class="stat-cell"><div class="stat-num" id="cpm">0</div><div class="stat-label">CPM (字符/分)</div></div>
+          <div class="stat-cell"><div class="stat-num" id="acc">100%</div><div class="stat-label">正确率</div></div>
+          <div class="stat-cell"><div class="stat-num" id="time">0s</div><div class="stat-label">用时</div></div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>WPM (Words Per Minute)：每分钟单词数</li>
+          <li>CPM (Characters Per Minute)：每分钟字符数</li>
+          <li>正确率 = 已匹配正确字符 / 已输入字符</li>
+        </ul>
+      </div>
+      <style>
+        .stat-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:.6rem; }
+        .stat-cell { background:var(--bg-secondary); padding:.75rem .5rem; border-radius:8px; text-align:center; border:1px solid var(--border); }
+        .stat-num { font-size:1.5rem; font-weight:700; color:var(--primary); }
+        .stat-label { font-size:.78rem; opacity:.75; margin-top:.2rem; }
+      </style>
+    `,
+    'code/px-rem': `
+<div class="tool-card">
+        <h3>单位换算</h3>
+        <div class="options-row">
+          <label>PX: <input type="number" id="px" value="32" style="width:120px;padding:0.3rem;"></label>
+          <label>REM: <input type="number" id="rem" value="" style="width:120px;padding:0.3rem;"></label>
+          <label>根字号: <input type="number" id="root" value="16" min="1" style="width:80px;padding:0.3rem;"></label>
+        </div>
+        <p style="font-size:.85rem;opacity:.75;margin-top:.5rem;">输入 PX 自动计算 REM，输入 REM 自动计算 PX</p>
+      </div>
+      <div class="output-box">
+        <h3>常用数值速查 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="table" readonly style="min-height:280px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>关于 REM</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>rem 是相对于根元素（html）字体大小的单位</li>
+          <li>1rem = 根字号（默认 16px）</li>
+          <li>常用根字号 16px，因此 32px = 2rem</li>
+          <li>使用 rem 可实现页面整体等比缩放</li>
+        </ul>
+      </div>
+    `,
+    'code/box-shadow': `
+<div class="tool-card">
+        <h3>阴影参数</h3>
+        <div class="options-row">
+          <label>X 偏移: <input type="range" id="x" min="-50" max="50" value="0" style="width:140px;"> <span id="xv">0</span>px</label>
+        </div>
+        <div class="options-row" style="margin-top:.4rem;">
+          <label>Y 偏移: <input type="range" id="y" min="-50" max="50" value="4" style="width:140px;"> <span id="yv">4</span>px</label>
+        </div>
+        <div class="options-row" style="margin-top:.4rem;">
+          <label>模糊: <input type="range" id="blur" min="0" max="100" value="12" style="width:140px;"> <span id="bv">12</span>px</label>
+        </div>
+        <div class="options-row" style="margin-top:.4rem;">
+          <label>扩散: <input type="range" id="spread" min="-20" max="50" value="0" style="width:140px;"> <span id="sv">0</span>px</label>
+        </div>
+        <div class="options-row" style="margin-top:.4rem;">
+          <label>颜色: <input type="color" id="color" value="#000000"></label>
+          <label>透明度: <input type="range" id="alpha" min="0" max="1" step="0.05" value="0.25" style="width:120px;"> <span id="av">0.25</span></label>
+          <label><input type="checkbox" id="inset"> 内阴影</label>
+        </div>
+      </div>
+      <div class="tool-card">
+        <h3>预览</h3>
+        <div id="preview" style="width:200px;height:120px;margin:1rem auto;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);"></div>
+      </div>
+      <div class="output-box">
+        <h3>CSS 代码 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="code" readonly style="min-height:60px;font-family:monospace;"></textarea>
+      </div>
+    `,
+    'encrypt/md5-query': `
+<div class="tool-card">
+        <h3>MD5 值（前缀或完整）</h3>
+        <div class="options-row">
+          <input type="text" id="input" placeholder="粘贴 MD5 哈希值" value="5f4dcc3b5aa765d61d8327deb882cf99" style="flex:1;padding:0.5rem;font-family:monospace;">
+          <button class="btn btn-primary" id="query">查询</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>查询结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:200px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>MD5 是单向哈希函数，理论上无法反推明文</li>
+          <li>本工具使用内置小型字典（常见弱密码）做前缀匹配</li>
+          <li>完整数据库查询推荐使用专业服务（md5decrypt.net 等）</li>
+          <li>请勿用于非法破解他人密码</li>
+        </ul>
+      </div>
+    `,
+    'encrypt/entropy-calc': `
+<div class="tool-card">
+        <h3>待评估字符串</h3>
+        <textarea id="input" placeholder="输入密码或字符串" style="min-height:100px;font-family:monospace;">P@ssw0rd!2026</textarea>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="calc">计算熵</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>熵值与强度 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:260px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>关于信息熵</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>香农熵衡量信息的"随机性"或"不可预测性"</li>
+          <li>熵越高，字符串越难被猜测或暴力破解</li>
+          <li>理想随机字符的熵约为 log₂(字符集大小)</li>
+          <li>高强度密码熵值应 > 3.5 bits/字符</li>
+        </ul>
+      </div>
+    `,
+    'life/length': `
+<div class="tool-card">
+        <h3>换算参数</h3>
+        <div class="options-row">
+          <label>数值: <input type="number" id="val" value="1" step="any" style="width:140px;padding:0.3rem;"></label>
+          <label>从:
+            <select id="from" style="padding:0.3rem;">
+              <option value="m" selected>米 (m)</option>
+              <option value="km">千米 (km)</option>
+              <option value="cm">厘米 (cm)</option>
+              <option value="mm">毫米 (mm)</option>
+              <option value="mile">英里 (mile)</option>
+              <option value="yard">码 (yard)</option>
+              <option value="foot">英尺 (foot)</option>
+              <option value="inch">英寸 (inch)</option>
+              <option value="nautical-mile">海里</option>
+              <option value="li">里</option>
+              <option value="chi">尺</option>
+              <option value="cun">寸</option>
+              <option value="light-year">光年</option>
+              <option value="astronomical">天文单位</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>所有单位换算结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:360px;font-family:monospace;"></textarea>
+      </div>
+    `,
+    'life/temperature': `
+<div class="tool-card">
+        <h3>温度换算</h3>
+        <div class="options-row">
+          <label>数值: <input type="number" id="val" value="25" step="any" style="width:140px;padding:0.3rem;"></label>
+          <label>原始单位:
+            <select id="from" style="padding:0.3rem;">
+              <option value="C" selected>摄氏度 C</option>
+              <option value="F">华氏度 F</option>
+              <option value="K">开尔文 K</option>
+              <option value="R">兰氏度 R</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>换算结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:240px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>温度单位说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>°C 摄氏度：水的冰点 0°C，沸点 100°C</li>
+          <li>°F 华氏度：水的冰点 32°F，沸点 212°F</li>
+          <li>K 开尔文：绝对温标，0K = 绝对零度</li>
+          <li>°R 兰氏度：基于华氏的绝对温标</li>
+        </ul>
+      </div>
+    `,
+    'life/lucky-number': `
+<div class="tool-card">
+        <h3>个人信息</h3>
+        <div class="options-row">
+          <label>姓名: <input type="text" id="name" value="张三" style="width:140px;padding:0.3rem;"></label>
+          <label>生日: <input type="date" id="birth" value="1995-06-15" style="padding:0.3rem;"></label>
+          <label>数量: <input type="number" id="count" value="5" min="1" max="20" style="width:60px;padding:0.3rem;"></label>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="gen">生成</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>幸运结果 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:240px;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>说明</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>基于姓名哈希 + 生日种子的稳定伪随机算法</li>
+          <li>相同输入始终生成相同结果，便于复现</li>
+          <li>提供星座、生肖、幸运色、幸运数字四维度</li>
+          <li>仅供娱乐，请勿作为决策依据</li>
+        </ul>
+      </div>
     `,
   };
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>圆周率查询 - 🍀 CloverTools</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="圆周率查询 - 🍀 CloverTools">
+  <meta property="og:description" content="在线查询圆周率π指定位数，支持百万位高精度查询">
+  <meta property="og:image" content="https://tools.xsanye.cn/og-image.png">
+  <meta property="og:url" content="https://tools.xsanye.cn/tools/math/圆周率查询.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="🍀 CloverTools">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@CloverTools">
+  <meta name="twitter:title" content="圆周率查询 - 🍀 CloverTools">
+  <meta name="twitter:description" content="在线查询圆周率π指定位数，支持百万位高精度查询">
+  <meta name="twitter:image" content="https://tools.xsanye.cn/og-image.png">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tools.xsanye.cn/tools/math/圆周率查询.html">
+  <link rel="stylesheet" href="../../src/shared.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍀</text></svg>">
+  <script src="../../src/shared.js"></script>
+  <style>
+    /* Tool page layout - override defaults */
+    .page-body { padding: 2.5rem 0 4rem; }
+    .breadcrumb { font-size: 0.85rem; opacity: 0.6; margin-bottom: 0.5rem; }
+    .breadcrumb a { color: var(--primary); text-decoration: none; }
+    /* SVG icon sizing */
+    .nav-icon { width: 1.1rem; height: 1.1rem; vertical-align: middle; margin-right: 0.25rem; }
+    .nav-icon-link { display: inline-flex !important; align-items: center; gap: 0.1rem; }
+    .nav-icon-link span { font-size: 0.9rem; }
+    .share-icon { width: 1rem; height: 1rem; vertical-align: middle; margin-right: 0.25rem; }
+  </style>
+</head>
+<body>
+  <!-- SVG Icon Sprite -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+    <polyline points="9 22 9 12 15 12 15 22"/>
+  </symbol>
+  <symbol id="icon-github" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </symbol>
+  <symbol id="icon-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </symbol>
+  <symbol id="icon-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="3"/>
+    <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"/>
+    <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+  <header class="site-header">
+  <div class="container">
+    <a href="/" class="site-logo">🍀 CloverTools</a>
+    <nav class="site-nav">
+      <a href="/" class="nav-icon-link" title="工具首页"><svg class="nav-icon" aria-hidden="true"><use href="#icon-home"/></svg><span>工具</span></a>
+      <a href="https://github.com/YupenBob/clover-tools" target="_blank" class="nav-icon-link" title="GitHub"><svg class="nav-icon" aria-hidden="true"><use href="#icon-github"/></svg><span>GitHub</span></a>
+      <button class="theme-toggle" id="themeToggle" title="切换主题">☀️</button>
+    </nav>
+  </div>
+</header>
+
+  <main class="page-body">
+    <div class="container">
+      <div class="breadcrumb"><a href="/">← 返回工具箱</a></div>
+      <div class="tool-header">
+        <h1>圆周率查询</h1>
+        <p class="description">在线查询圆周率π指定位数，支持百万位高精度查询</p>
+      </div>
+      <div class="tool-layout ">
+        
+<div class="tool-card">
+        <h3>查询位数</h3>
+        <div class="options-row">
+          <label>位数: <input type="number" id="digits" value="100" min="1" max="10000" style="width:120px;padding:0.3rem;"></label>
+          <button class="btn btn-primary" id="show">查询</button>
+        </div>
+      </div>
+      <div class="output-box">
+        <h3>π 数值 <button class="copy-btn" id="copyOutput">复制</button></h3>
+        <textarea id="output" readonly style="min-height:300px;font-family:monospace;"></textarea>
+      </div>
+      <div class="tool-card">
+        <h3>关于 π</h3>
+        <ul style="line-height:1.8;padding-left:1.4rem;">
+          <li>π 是圆的周长与直径之比，约等于 3.14159265358979...</li>
+          <li>支持最多 10,000 位高精度查询</li>
+          <li>结果可用于数学研究、记忆口诀、编程测试</li>
+        </ul>
+      </div>
+    
+      </div>
+    </div>
+  </main>
+
+  <button class="share-btn" id="shareBtn" title="分享此工具"><svg class="share-icon" aria-hidden="true"><use href="#icon-share"/></svg>分享</button>
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <p style="margin:0;">Made with 🍀 by Clover · Open Source · No tracking · No server</p>
+  </div>
+</footer>
+
+  <div id="toast"></div>
+
+  <script>
+    CT.initTheme();
+
+    CT.initKeyboardShortcuts();
+
+    // Share: copy current URL to clipboard
+    document.getElementById("shareBtn").onclick = function() { navigator.clipboard.writeText(window.location.href).then(function() { CT.showToast("\u94fe\u63a5\u5df2\u590d\u5236\uff01"); }).catch(function() { CT.showToast("\u590d\u5236\u5931\u8d25"); }); };
+
+    
+const output = document.getElementById('output');
+      const digitsInput = document.getElementById('digits');
+      const PI_100 = '1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';
+      const PI_10000 = '14159265358979323846264338327950288419716939937510'+
+'58209749445923078164062862089986280348253421170679'+
+'82148086513282306647093844609550582231725359408128'+
+'48111745028410270193852110555964462294895493038196'+
+'44288109756659334461284756482337867831652712019091'+
+'45648566923460348610454326648213393607260249141273'+
+'72458700660631558817488152092096282925409171536436'+
+'78925903600113305305488204665213841469519415116094'+
+'33057270365759591953092186117381932611793105118548'+
+'07446237996274956735188575272489122793818301194912'+
+'98336733624406566430860213949463952247371907021798'+
+'60943702770539217176293176752384674818467669405132'+
+'00056812714526356082778577134275778960917363717872'+
+'14684409012249534301465495853710507922796892589235'+
+'42019956112129021960864034418159813629774771309960'+
+'51870721134999999837297804995105973173281609631859'+
+'50244594553469083026425223082533446850352619311881'+
+'71010003137838752886587533208381420617177669147303'+
+'59825349042875546873115956286388235378759375195778'+
+'18577805321712268066130019278766111959092164201989';
+
+      function show() {
+        const n = Math.max(1, Math.min(10000, parseInt(digitsInput.value)||100));
+        let s;
+        if (n <= 100) s = '3.' + PI_100.slice(0, n);
+        else s = '3.' + PI_10000.slice(0, n);
+        output.value = s;
+      }
+      document.getElementById('show').onclick = show;
+      document.getElementById('copyOutput').onclick = () => copyToClipboard(output.value);
+      show();
+    
+  </script>
+</body>
+</html>
