@@ -1,19 +1,133 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ToolCard from '../components/ToolCard.astro';
-import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
+import { CATEGORIES, TOOLS, getToolHref, type ToolCategory } from '../lib/tools';
 import { SITE } from '../lib/site';
+import { pinyin } from 'pinyin-pro';
 
 const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
   (sum, cat) => sum + TOOLS[cat].length,
   0,
 );
+
+const allTools = (Object.keys(TOOLS) as ToolCategory[]).flatMap((category) =>
+  TOOLS[category].map((tool) => ({ ...tool, category })),
+);
+
+const HOT_SLUGS = [
+  'json-formatter', 'timestamp', 'base64', 'qrcode',
+  'password-generator', 'jianfan', 'calculator', 'random-number',
+];
+
+const hotTools = HOT_SLUGS
+  .map((slug) => allTools.find((t) => t.slug === slug))
+  .filter((t): t is NonNullable<typeof t> => Boolean(t));
+
+const ALIASES: Record<string, string[]> = {
+  'json-formatter': ['json格式化', 'json压缩', 'json校验', '格式化'],
+  'json-convert': ['json转csv', 'json转excel', 'csv', '表格'],
+  'json-xml-yaml': ['json转xml', 'json转yaml', 'yaml', 'xml转json'],
+  'json-codegen': ['json转ts', 'json转java', 'json转go', '实体类'],
+  'jsonpath': ['jsonpath', 'json查询'],
+  diff: ['diff', '对比', '比较'],
+  base64: ['base64', '编码'],
+  'url-encode': ['urlencode', 'url编码'],
+  'html-formatter': ['html格式化', 'html压缩', '实体编码'],
+  'css-formatter': ['css格式化', 'css压缩'],
+  'js-formatter': ['js格式化', 'javascript', 'js压缩'],
+  'sql-formatter': ['sql', 'sql美化'],
+  'xml-formatter': ['xml格式化', 'xml压缩'],
+  markdown: ['md', 'markdown', 'markdown转html'],
+  'regex-tester': ['正则', 'regex', '正则表达式'],
+  'text-transform': ['大小写', '驼峰', '全角', '半角', '下划线'],
+  'text-toolbox': ['去重', '排序', '空行', '文本处理'],
+  jianfan: ['简繁', '繁体', '简体', '繁简'],
+  pinyin: ['拼音', 'pinyin', 'piny', '汉字转拼音'],
+  timestamp: ['时间戳', 'unix', '毫秒'],
+  cron: ['cron', '定时任务', '调度', '表达式'],
+  'base-converter': ['进制', '二进制', '十六进制', '八进制'],
+  'unicode-converter': ['unicode', 'ascii码', '\\u', '转义'],
+  hash: ['md5', 'sha', 'sha1', 'sha256', '哈希', '摘要', '文件哈希'],
+  'symmetric-encrypt': ['aes', 'des', 'rc4', 'rabbit', '对称加密', '加密'],
+  'rsa-encrypt': ['rsa', '公钥', '私钥', '非对称'],
+  bcrypt: ['bcrypt', '密码哈希'],
+  'jwt-decoder': ['jwt', 'token', '令牌', '验签'],
+  'password-strength': ['密码强度', '强密码', '弱口令'],
+  'password-generator': ['密码', '随机密码'],
+  'uuid-generator': ['uuid', 'nanoid', 'id生成'],
+  qrcode: ['二维码', 'qr', '条形码'],
+  'http-tester': ['http', '接口', 'api', '请求'],
+  'ip-lookup': ['ip', 'ip地址', '归属地'],
+  'ua-parser': ['ua', 'user-agent'],
+  'url-parse': ['url解析', '链接', '参数'],
+  'color-convert': ['颜色', 'hex', 'rgb', 'hsl', '取色'],
+  'image-to-base64': ['图片base64', 'img2base64'],
+  calendar: ['日历', '万年历', '节假日', '节气'],
+  'lunar-converter': ['农历', '公历', '阴历'],
+  'world-clock': ['世界时钟', '时区', '时钟'],
+  'date-diff': ['日期', '间隔', '天数'],
+  workday: ['工作日', '考勤'],
+  'age-calculator': ['年龄', '周岁'],
+  timer: ['倒计时', '秒表', '计时', '专注'],
+  bmi: ['bmi', '体重指数', '体重'],
+  salary: ['工资', '五险一金', '税后', '个税'],
+  finance: ['贷款', '复利', '理财', '百分比'],
+  calculator: ['计算器', '数学', '科学计算'],
+  'unit-converter': ['单位换算', '换算', '温度', '存储'],
+  'rmb-uppercase': ['人民币大写', '金额', '大写'],
+  fuel: ['油耗', '百公里'],
+  expiry: ['保质期', '到期'],
+  'keyboard-test': ['键盘', '按键', '键盘测试'],
+  'grid-splitter': ['九宫格', '切图', '朋友圈'],
+  'sensitive-check': ['敏感词', '审核'],
+  zodiac: ['生肖', '星座', '五行'],
+  'ascii-art': ['ascii', '艺术字', '字符画'],
+  'click-speed': ['手速', '点击', 'apm'],
+  'reaction-test': ['反应', '反应力'],
+  lottery: ['抽奖', '摇号', '转盘'],
+  'meme-generator': ['表情包', 'meme'],
+  'fancy-text': ['火星文', '花字', '昵称'],
+  'random-number': ['随机数', '抽签', '随机'],
+  'palette-generator': ['色板', '配色', '色卡'],
+  'browser-info': ['浏览器信息', '设备信息'],
+  'image-filter': ['滤镜', '照片'],
+  morse: ['摩斯', 'morse', '电码'],
+};
+
+function pyOf(text: string): string {
+  return pinyin(text, { toneType: 'none', type: 'array' })
+    .join('')
+    .toLowerCase()
+    .replace(/[\s\u3000，。、！？；：（）【】""''·\-—_]/g, '');
+}
+
+function initialsOf(text: string): string {
+  return pinyin(text, { toneType: 'none', pattern: 'first', type: 'array' })
+    .join('')
+    .toLowerCase()
+    .replace(/[\s\u3000，。、！？；：（）【】""''·\-—_]/g, '');
+}
+
+const searchIndex = allTools.map((tool) => {
+  const text = `${tool.name} ${tool.oneLiner} ${tool.description} ${tool.keywords.join(' ')}`;
+  return {
+    slug: tool.slug,
+    text,
+    py: pyOf(text),
+    initials: initialsOf(text),
+    aliases: ALIASES[tool.slug] || [],
+    built: tool.tier === 'P0',
+  };
+});
+
+const searchIndexJson = JSON.stringify(searchIndex).replace(/</g, '\\u003c');
 ---
 
 <BaseLayout>
   <section class="hero">
     <div class="hero-glow" aria-hidden="true"></div>
     <div class="hero-inner">
+      <img class="hero-logo" src="/clover-logo.svg" alt="CloverTools 图标" width="72" height="72" />
       <span class="hero-badge">
         <i class="bi bi-shield-check" aria-hidden="true"></i>
         纯浏览器处理 · 即开即用 · 无需注册
@@ -28,7 +142,7 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
           class="search-input"
           id="toolSearch"
           type="search"
-          placeholder="搜索工具，如 JSON、时间戳、密码……"
+          placeholder="搜索工具（支持拼音，如 json / piny / md5）……"
           autocomplete="off"
           aria-label="搜索工具"
         />
@@ -41,6 +155,23 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
         <span class="hero-stat"><b>3</b> 大分类</span>
         <span class="hero-stat"><i class="bi bi-shield-lock" aria-hidden="true"></i> 数据不出浏览器</span>
       </div>
+      <div class="hero-actions">
+        <button class="btn btn-ghost btn-sm" id="randomBtn" type="button">
+          <i class="bi bi-shuffle" aria-hidden="true"></i> 随便逛逛
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="hot-tools" aria-label="常用工具">
+    <div class="hot-label"><i class="bi bi-fire" aria-hidden="true"></i> 常用工具</div>
+    <div class="hot-row">
+      {hotTools.map((tool) => (
+        <a class="hot-tool" href={getToolHref(tool.category, tool.slug)}>
+          <span class="hot-icon"><i class={`bi ${tool.icon}`} aria-hidden="true"></i></span>
+          <span>{tool.name}</span>
+        </a>
+      ))}
     </div>
   </section>
 
@@ -83,22 +214,51 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
   </div>
 </BaseLayout>
 
+<script type="application/json" id="searchIndex" set:html={searchIndexJson} />
+
 <script>
+  type SearchEntry = {
+    slug: string;
+    text: string;
+    py: string;
+    initials: string;
+    aliases: string[];
+    built: boolean;
+  };
+
   const input = document.getElementById('toolSearch') as HTMLInputElement;
   const empty = document.getElementById('searchEmpty') as HTMLElement;
   const clearBtn = document.getElementById('searchClear') as HTMLButtonElement;
   const emptyReset = document.getElementById('emptyReset') as HTMLButtonElement;
   const countEl = document.getElementById('searchCount') as HTMLElement;
+  const randomBtn = document.getElementById('randomBtn') as HTMLButtonElement;
   const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-category]'));
   const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.home-tab'));
+  const indexRaw = (document.getElementById('searchIndex') as HTMLElement).textContent || '[]';
+  const index = JSON.parse(indexRaw) as SearchEntry[];
+  const indexBySlug = new Map(index.map((e) => [e.slug, e]));
   const totalTools = sections.reduce(
     (sum, section) => sum + section.querySelectorAll('.tool-card').length,
     0,
   );
   let activeTab = 'all';
 
+  function matches(entry: SearchEntry | undefined, terms: string[], fallback: string): boolean {
+    if (!entry) {
+      const f = fallback.toLowerCase();
+      return terms.every((t) => f.includes(t));
+    }
+    return terms.every((term) => {
+      if (entry.text.toLowerCase().includes(term)) return true;
+      if (entry.py.includes(term)) return true;
+      if (entry.initials.includes(term)) return true;
+      return entry.aliases.some((a) => a.toLowerCase().includes(term));
+    });
+  }
+
   function applyFilter() {
     const query = input.value.trim().toLowerCase();
+    const terms = query.split(/\s+/).filter(Boolean);
     clearBtn.hidden = query === '';
     let visibleSections = 0;
     let matchedCards = 0;
@@ -111,8 +271,8 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
       let visibleCards = 0;
       const cards = Array.from(section.querySelectorAll<HTMLElement>('.tool-card'));
       for (const card of cards) {
-        const haystack = (card.dataset.search || '').toLowerCase();
-        const show = !query || haystack.includes(query);
+        const slug = card.dataset.slug || '';
+        const show = terms.length === 0 || matches(indexBySlug.get(slug), terms, card.dataset.search || '');
         card.style.display = show ? '' : 'none';
         if (show) visibleCards++;
       }
@@ -162,6 +322,24 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
     for (const t of tabs) t.classList.toggle('active', t.dataset.tab === 'all');
     applyFilter();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  randomBtn.addEventListener('click', () => {
+    const pool = Array.from(document.querySelectorAll<HTMLElement>('.tool-card')).filter((card) => {
+      const entry = indexBySlug.get(card.dataset.slug || '');
+      return entry ? entry.built : false;
+    });
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pick) window.location.href = pick.getAttribute('href') || '/';
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== '/') return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    e.preventDefault();
+    input.focus();
+    input.select();
   });
 
   applyFilter();

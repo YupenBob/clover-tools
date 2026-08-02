@@ -14,7 +14,7 @@ const href = getToolHref(category, tool.slug);
 const tags = tool.keywords.slice(0, 2);
 ---
 
-<a class="tool-card" href={href} data-search={searchText} style={`--delay:${delay}ms`}>
+<a class="tool-card" href={href} data-search={searchText} data-slug={tool.slug} style={`--delay:${delay}ms`}>
   <div class="tool-card-head">
     <span class="tool-card-icon"><i class={`bi ${tool.icon}`} aria-hidden="true"></i></span>
     <h3 class="tool-card-title">{tool.name}</h3>
