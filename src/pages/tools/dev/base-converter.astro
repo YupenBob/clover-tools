@@ -1,0 +1,101 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'base-converter')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="数值转换" icon="bi-123">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="bcSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="bcClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="bcValue">数值</label>
+        <input class="input mono" id="bcValue" type="text" placeholder="输入要转换的数字" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="bcFrom">原进制</label>
+        <select class="select" id="bcFrom">
+          <option value="2">二进制</option>
+          <option value="8">八进制</option>
+          <option value="10" selected>十进制</option>
+          <option value="16">十六进制</option>
+          <option value="32">三十二进制</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="bcTo">目标进制</label>
+        <select class="select" id="bcTo">
+          <option value="2">二进制</option>
+          <option value="8">八进制</option>
+          <option value="10">十进制</option>
+          <option value="16" selected>十六进制</option>
+          <option value="32">三十二进制</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcBtn" type="button"><i class="bi bi-arrow-repeat"></i> 转换</button>
+    </div>
+    <div class="status-msg" id="bcStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="转换结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="bcOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+
+  const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+  function convert() {
+    hideStatus('bcStatus');
+    const raw = byId<HTMLInputElement>('bcValue').value.trim();
+    const from = Number(byId<HTMLSelectElement>('bcFrom').value);
+    const to = Number(byId<HTMLSelectElement>('bcTo').value);
+    if (!raw) {
+      showStatus('bcStatus', 'error', '请输入数值');
+      return;
+    }
+    const neg = raw.startsWith('-');
+    const digits = (neg ? raw.slice(1) : raw).toLowerCase();
+    try {
+      let value = BigInt(0);
+      for (const ch of digits) {
+        const d = DIGITS.indexOf(ch);
+        if (d === -1 || d >= from) throw new Error(`字符 ${ch} 不是 ${from} 进制数字`);
+        value = value * BigInt(from) + BigInt(d);
+      }
+      if (value === BigInt(0)) {
+        byId<HTMLTextAreaElement>('bcOutput').value = '0';
+      } else {
+        let out = '';
+        let v = value;
+        while (v > BigInt(0)) {
+          out = DIGITS[Number(v % BigInt(to))] + out;
+          v /= BigInt(to);
+        }
+        byId<HTMLTextAreaElement>('bcOutput').value = (neg ? '-' : '') + out;
+      }
+      showStatus('bcStatus', 'success', '转换完成（支持任意大整数）');
+    } catch (e) {
+      showStatus('bcStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('bcBtn').addEventListener('click', convert);
+  bindSample('bcSample', 'bcValue', '255');
+  bindClear('bcClear', ['bcValue'], ['bcOutput'], 'bcStatus');
+  bindCopyBtn('bcCopy', () => byId<HTMLTextAreaElement>('bcOutput').value);
+</script>

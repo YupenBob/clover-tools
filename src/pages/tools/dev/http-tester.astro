@@ -1,0 +1,135 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'http-tester')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="请求配置" icon="bi-send">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="httpMethod">方法</label>
+        <select class="select" id="httpMethod">
+          <option value="GET" selected>GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+          <option value="HEAD">HEAD</option>
+          <option value="OPTIONS">OPTIONS</option>
+        </select>
+      </div>
+      <div class="field" style="flex: 3">
+        <label class="field-label" for="httpUrl">URL</label>
+        <input class="input mono" id="httpUrl" type="text" placeholder="https://api.example.com/data" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="httpTimeout">超时</label>
+        <select class="select" id="httpTimeout">
+          <option value="5000">5s</option>
+          <option value="10000" selected>10s</option>
+          <option value="30000">30s</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="httpHeaders">请求头（每行一个，格式 Key: Value）</label>
+      <textarea class="textarea" id="httpHeaders" spellcheck="false" placeholder='Content-Type: application/json&#10;Authorization: Bearer xxx'></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="httpBody">请求体（POST/PUT/PATCH）</label>
+      <textarea class="textarea" id="httpBody" spellcheck="false" placeholder='{"key": "value"}'></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="httpSend" type="button"><i class="bi bi-send"></i> 发送请求</button>
+    </div>
+    <div class="status-msg" id="httpStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">提示：浏览器同源策略要求目标接口允许跨域（CORS），否则请求会被浏览器拦截。</p>
+  </ToolPanel>
+
+  <ToolPanel title="响应结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <div class="http-meta" id="httpMeta">尚未发送请求</div>
+    <textarea class="textarea" id="httpOutput" readonly spellcheck="false" placeholder="响应内容将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .http-meta {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../scripts/toolkit';
+
+  async function send() {
+    hideStatus('httpStatus');
+    const url = byId<HTMLInputElement>('httpUrl').value.trim();
+    const method = byId<HTMLSelectElement>('httpMethod').value;
+    const timeout = Number(byId<HTMLSelectElement>('httpTimeout').value);
+    if (!url) {
+      showStatus('httpStatus', 'error', '请输入请求 URL');
+      return;
+    }
+    const headers: Record<string, string> = {};
+    for (const line of byId<HTMLTextAreaElement>('httpHeaders').value.split('\n')) {
+      const idx = line.indexOf(':');
+      if (idx > 0) headers[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    }
+    const body = byId<HTMLTextAreaElement>('httpBody').value;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    const meta = byId<HTMLElement>('httpMeta');
+    const output = byId<HTMLTextAreaElement>('httpOutput');
+    const start = performance.now();
+    meta.textContent = `${method} ${url} 发送中...`;
+    output.value = '';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: ['GET', 'HEAD'].includes(method) ? undefined : body,
+        signal: controller.signal,
+      });
+      const duration = Math.round(performance.now() - start);
+      const text = await res.text();
+      const resHeaders = Array.from(res.headers.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
+      meta.textContent = `状态 ${res.status} ${res.statusText} · 耗时 ${duration}ms · 大小 ${text.length} 字符`;
+      output.value = `═══ 响应头 ═══\n${resHeaders}\n\n═══ 响应体 ═══\n${text}`;
+      showStatus('httpStatus', res.ok ? 'success' : 'error', `请求完成，状态码 ${res.status}`);
+    } catch (e) {
+      meta.textContent = '请求失败';
+      output.value = '';
+      if ((e as Error).name === 'AbortError') {
+        showStatus('httpStatus', 'error', `请求超时（超过 ${timeout / 1000}s）`);
+      } else {
+        showStatus('httpStatus', 'error', '请求失败：目标接口可能不允许跨域（CORS），或地址不可达');
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  byId<HTMLButtonElement>('httpSend').addEventListener('click', send);
+  byId<HTMLButtonElement>('httpSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('httpUrl').value = 'https://httpbin.org/json';
+    byId<HTMLSelectElement>('httpMethod').value = 'GET';
+  });
+  bindCopyBtn('httpCopy', () => byId<HTMLTextAreaElement>('httpOutput').value);
+</script>

@@ -1,0 +1,19 @@
+---
+interface Props {
+  title: string;
+  icon?: string;
+  className?: string;
+}
+
+const { title, icon = 'bi-tools', className = '' } = Astro.props;
+---
+
+<section class={`tool-card-panel ${className}`}>
+  <div class="panel-head">
+    <h2 class="panel-title"><i class={`bi ${icon}`} aria-hidden="true"></i> {title}</h2>
+    <div class="panel-actions">
+      <slot name="actions" />
+    </div>
+  </div>
+  <slot />
+</section>

@@ -1,0 +1,123 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'markdown')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="Markdown 源文本" icon="bi-markdown">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="mdSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="mdClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="mdInput" spellcheck="false" placeholder="输入 Markdown，右侧实时预览"></textarea>
+    <div class="input-stats"><span id="mdStats">0 字符</span></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="mdCopyHtml" type="button"><i class="bi bi-clipboard"></i> 复制 HTML</button>
+      <button class="btn btn-ghost" id="mdDownload" type="button"><i class="bi bi-download"></i> 下载 HTML</button>
+    </div>
+    <div class="status-msg" id="mdStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="实时预览" icon="bi-eye">
+    <div class="md-preview" id="mdPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .md-preview {
+    min-height: 220px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    line-height: 1.7;
+    overflow-wrap: break-word;
+  }
+
+  .md-preview h1,
+  .md-preview h2,
+  .md-preview h3 {
+    margin-top: 1em;
+  }
+
+  .md-preview pre {
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    overflow-x: auto;
+  }
+
+  .md-preview code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background: var(--bg-tertiary);
+    padding: 2px 5px;
+    border-radius: 4px;
+  }
+
+  .md-preview blockquote {
+    margin: 0;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--primary);
+    color: var(--text-secondary);
+  }
+
+  .md-preview table {
+    border-collapse: collapse;
+  }
+
+  .md-preview th,
+  .md-preview td {
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindSample, bindClear } from '../../../scripts/toolkit';
+  import { marked } from 'marked';
+  import DOMPurify from 'dompurify';
+
+  const input = byId<HTMLTextAreaElement>('mdInput');
+  const preview = byId<HTMLElement>('mdPreview');
+
+  function render() {
+    const html = marked.parse(input.value || '') as string;
+    const safe = DOMPurify.sanitize(html);
+    preview.innerHTML = safe;
+    setStats('mdStats', `${input.value.length} 字符`);
+  }
+
+  function currentHtml(): string {
+    return preview.innerHTML;
+  }
+
+  input.addEventListener('input', render);
+  byId<HTMLButtonElement>('mdCopyHtml').addEventListener('click', (e) => {
+    window.CT.copy(currentHtml(), e.currentTarget as HTMLElement);
+  });
+  byId<HTMLButtonElement>('mdDownload').addEventListener('click', () => {
+    if (!input.value.trim()) {
+      showStatus('mdStatus', 'error', '请先输入 Markdown');
+      return;
+    }
+    const blob = new Blob([currentHtml()], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'markdown.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showStatus('mdStatus', 'success', '已导出 HTML');
+  });
+  bindSample('mdSample', 'mdInput', '# CloverTools\n\n**Markdown** 实时预览工具：\n\n- 列表项 A\n- 列表项 B\n\n```js\nconst x = 1;\n```\n\n> 引用内容');
+  bindClear('mdClear', ['mdInput'], []);
+  setStats('mdStats', '0 字符');
+</script>

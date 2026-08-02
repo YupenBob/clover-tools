@@ -1,0 +1,149 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'symmetric-encrypt')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="加解密配置" icon="bi-lock">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="encAlgo">算法</label>
+        <select class="select" id="encAlgo">
+          <option value="AES" selected>AES</option>
+          <option value="DES">DES</option>
+          <option value="RC4">RC4</option>
+          <option value="Rabbit">Rabbit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encMode">模式</label>
+        <select class="select" id="encMode">
+          <option value="CBC" selected>CBC</option>
+          <option value="ECB">ECB</option>
+          <option value="CFB">CFB</option>
+          <option value="OFB">OFB</option>
+          <option value="CTR">CTR</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encOut">输出格式</label>
+        <select class="select" id="encOut">
+          <option value="base64" selected>Base64</option>
+          <option value="hex">Hex</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="encKey">密钥</label>
+      <input class="input mono" id="encKey" type="text" placeholder="请输入密钥" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encIv">偏移量 IV（CBC/CFB/OFB/CTR 模式，十六进制）</label>
+      <input class="input mono" id="encIv" type="text" placeholder="留空则自动生成" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encInput">明文 / 密文</label>
+      <textarea class="textarea" id="encInput" spellcheck="false" placeholder="输入明文进行加密，或输入密文进行解密"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> 加密</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> 解密</button>
+    </div>
+    <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="输出结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  function options() {
+    const algo = byId<HTMLSelectElement>('encAlgo').value;
+    const modeName = byId<HTMLSelectElement>('encMode').value;
+    const ivHex = byId<HTMLInputElement>('encIv').value.trim();
+    const opts: CryptoJS.lib.CipherCfg = {};
+    if (algo !== 'RC4' && algo !== 'Rabbit') {
+      const modes: Record<string, typeof CryptoJS.mode.CBC> = {
+        CBC: CryptoJS.mode.CBC,
+        ECB: CryptoJS.mode.ECB,
+        CFB: CryptoJS.mode.CFB,
+        OFB: CryptoJS.mode.OFB,
+        CTR: CryptoJS.mode.CTR,
+      };
+      opts.mode = modes[modeName];
+      if (modeName !== 'ECB') {
+        if (!ivHex) throw new Error('该模式需要填写十六进制 IV（偏移量）');
+        opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+      }
+    } else if (ivHex) {
+      opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+    }
+    return { algo, opts };
+  }
+
+  function encrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const msg = byId<HTMLTextAreaElement>('encInput').value;
+    if (!key || !msg) {
+      showStatus('encStatus', 'error', '请填写密钥和内容');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const fn = (CryptoJS as unknown as Record<string, (m: string, k: string, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.CipherParams>)[algo];
+      const cipher = fn(msg, key, opts);
+      const out = byId<HTMLSelectElement>('encOut').value === 'hex'
+        ? cipher.ciphertext.toString(CryptoJS.enc.Hex)
+        : cipher.toString();
+      byId<HTMLTextAreaElement>('encOutput').value = out;
+      showStatus('encStatus', 'success', '加密完成');
+    } catch (e) {
+      showStatus('encStatus', 'error', `加密失败：${(e as Error).message}`);
+    }
+  }
+
+  function decrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const ct = byId<HTMLTextAreaElement>('encInput').value.trim();
+    if (!key || !ct) {
+      showStatus('encStatus', 'error', '请填写密钥和内容');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const fn = (CryptoJS as unknown as Record<string, (c: CryptoJS.lib.CipherParams, k: string, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.WordArray>)[algo];
+      const parsed = /^[0-9a-fA-F]+$/.test(ct)
+        ? CryptoJS.enc.Hex.parse(ct)
+        : CryptoJS.enc.Base64.parse(ct);
+      const decrypted = fn(CryptoJS.lib.CipherParams.create({ ciphertext: parsed }), key, opts);
+      const text = decrypted.toString(CryptoJS.enc.Utf8);
+      if (!text) throw new Error('解密结果为空，请检查密钥、IV 或模式');
+      byId<HTMLTextAreaElement>('encOutput').value = text;
+      showStatus('encStatus', 'success', '解密完成');
+    } catch (e) {
+      showStatus('encStatus', 'error', `解密失败：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('encBtn').addEventListener('click', encrypt);
+  byId<HTMLButtonElement>('decBtn').addEventListener('click', decrypt);
+  bindSample('encSample', 'encKey', 'clover-secret');
+  bindCopyBtn('encCopy', () => byId<HTMLTextAreaElement>('encOutput').value);
+</script>

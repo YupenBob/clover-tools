@@ -233,16 +233,6 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       legacyPath: '/tools/text/pinyin.html',
     },
     {
-      slug: 'timestamp',
-      name: '时间戳转换',
-      oneLiner: '秒/毫秒时间戳与日期实时互转。',
-      description: 'Unix 时间戳与日期时间互转，自动识别秒与毫秒，支持实时时钟与批量转换。',
-      icon: 'bi-clock-history',
-      keywords: ['时间戳转换', 'unix时间戳', '时间戳在线'],
-      tier: 'P0',
-      legacyPath: '/tools/time/timestamp.html',
-    },
-    {
       slug: 'cron',
       name: 'Cron 表达式工具',
       oneLiner: '解析表达式，预览未来执行时间。',

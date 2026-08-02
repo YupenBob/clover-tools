@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'ip-lookup')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="本机 IP" icon="bi-globe2">
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ipSelf" type="button"><i class="bi bi-crosshair"></i> 查询本机 IP</button>
+    </div>
+    <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="查询任意 IP" icon="bi-search">
+    <div class="row">
+      <div class="field" style="flex: 3">
+        <label class="field-label" for="ipInput">IP 地址</label>
+        <input class="input mono" id="ipInput" type="text" placeholder="例如 8.8.8.8" spellcheck="false" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ipQuery" type="button"><i class="bi bi-search"></i> 查询</button>
+    </div>
+    <div class="status-msg" id="ipQueryStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">任意 IP 查询依赖 Cloudflare Worker 代理；本地开发环境仅支持本机 IP 查询。</p>
+  </ToolPanel>
+
+  <ToolPanel title="查询结果" icon="bi-table">
+    <table class="ip-table" id="ipTable"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .ip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .ip-table th,
+  .ip-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .ip-table th {
+    width: 130px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .ip-table td {
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  const FIELDS: [string, string][] = [
+    ['ip', 'IP 地址'],
+    ['country', '国家/地区'],
+    ['region', '省份/州'],
+    ['city', '城市'],
+    ['timezone', '时区'],
+    ['asn', 'ASN'],
+    ['org', '运营商'],
+    ['latitude', '纬度'],
+    ['longitude', '经度'],
+  ];
+
+  function render(data: Record<string, unknown>) {
+    const rows = FIELDS
+      .filter(([key]) => data[key] !== null && data[key] !== undefined && data[key] !== '')
+      .map(([key, label]) => `<tr><th>${label}</th><td>${String(data[key])}</td></tr>`)
+      .join('');
+    byId<HTMLElement>('ipTable').innerHTML = rows || '<tr><td colspan="2">无可用信息</td></tr>';
+  }
+
+  async function fetchJson(path: string): Promise<Record<string, unknown>> {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function lookupSelf() {
+    hideStatus('ipSelfStatus');
+    byId<HTMLElement>('ipTable').innerHTML = '';
+    try {
+      const data = await fetchJson('/api/ip');
+      if (data.ip === 'unknown') throw new Error('unknown');
+      render(data);
+      showStatus('ipSelfStatus', 'success', `本机 IP：${data.ip}`);
+    } catch {
+      try {
+        const data = await fetchJson('https://ipapi.co/json/');
+        render(data);
+        showStatus('ipSelfStatus', 'success', `本机 IP：${data.ip}（第三方接口）`);
+      } catch {
+        showStatus('ipSelfStatus', 'error', '查询失败，请检查网络连接');
+      }
+    }
+  }
+
+  async function lookupQuery() {
+    hideStatus('ipQueryStatus');
+    const ip = byId<HTMLInputElement>('ipInput').value.trim();
+    if (!/^[0-9a-fA-F.:]+$/.test(ip)) {
+      showStatus('ipQueryStatus', 'error', '请输入合法的 IP 地址');
+      return;
+    }
+    byId<HTMLElement>('ipTable').innerHTML = '';
+    try {
+      const data = await fetchJson(`/api/ip?ip=${encodeURIComponent(ip)}`);
+      render(data);
+      showStatus('ipQueryStatus', 'success', `查询完成：${data.ip}`);
+    } catch {
+      try {
+        const data = await fetchJson(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+        render(data);
+        showStatus('ipQueryStatus', 'success', `查询完成：${data.ip}（第三方接口）`);
+      } catch {
+        showStatus('ipQueryStatus', 'error', '查询失败：本地开发环境请直接使用本机 IP 查询');
+      }
+    }
+  }
+
+  byId<HTMLButtonElement>('ipSelf').addEventListener('click', lookupSelf);
+  byId<HTMLButtonElement>('ipQuery').addEventListener('click', lookupQuery);
+</script>

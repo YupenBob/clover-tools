@@ -1,0 +1,70 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'jianfan')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入文本" icon="bi-input-cursor">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jfSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="jfClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="jfInput" spellcheck="false" placeholder="输入简体或繁体中文"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="jfMode">转换方向</label>
+        <select class="select" id="jfMode">
+          <option value="cn2tw">简体 → 繁体（台湾）</option>
+          <option value="cn2hk">简体 → 繁体（香港）</option>
+          <option value="tw2cn">繁体 → 简体</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jfBtn" type="button"><i class="bi bi-arrow-repeat"></i> 转换</button>
+    </div>
+    <div class="status-msg" id="jfStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="转换结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jfCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="jfOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+  import OpenCC from 'opencc-js';
+
+  const input = byId<HTMLTextAreaElement>('jfInput');
+  const output = byId<HTMLTextAreaElement>('jfOutput');
+  const converters = {
+    cn2tw: OpenCC.Converter({ from: 'cn', to: 'tw' }),
+    cn2hk: OpenCC.Converter({ from: 'cn', to: 'hk' }),
+    tw2cn: OpenCC.Converter({ from: 'tw', to: 'cn' }),
+  };
+
+  function convert() {
+    hideStatus('jfStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('jfStatus', 'error', '请输入文本');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('jfMode').value as keyof typeof converters;
+    output.value = converters[mode](src);
+    showStatus('jfStatus', 'success', '转换完成');
+  }
+
+  byId<HTMLButtonElement>('jfBtn').addEventListener('click', convert);
+  bindSample('jfSample', 'jfInput', '软件开发工具，时间戳转换，简体繁体互转');
+  bindClear('jfClear', ['jfInput'], ['jfOutput'], 'jfStatus');
+  bindCopyBtn('jfCopy', () => output.value);
+</script>

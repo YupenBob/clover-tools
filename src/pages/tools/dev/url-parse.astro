@@ -1,0 +1,107 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'url-parse')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入 URL" icon="bi-diagram-3">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <input class="input mono" id="upInput" type="text" placeholder="https://user:pass@example.com:8080/path?q=1&lang=zh#section" spellcheck="false" />
+    <div class="btn-row">
+      <button class="btn btn-primary" id="upBtn" type="button"><i class="bi bi-diagram-3"></i> 解析</button>
+    </div>
+    <div class="status-msg" id="upStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="URL 结构" icon="bi-list-ol">
+    <table class="up-table" id="upTable"></table>
+  </ToolPanel>
+
+  <ToolPanel title="查询参数" icon="bi-key" className="mt-4">
+    <table class="up-table" id="upParams"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .up-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .up-table th,
+  .up-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .up-table th {
+    width: 140px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .up-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindSample, bindClear } from '../../../scripts/toolkit';
+
+  function esc(s: string): string {
+    return s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function parse() {
+    hideStatus('upStatus');
+    const raw = byId<HTMLInputElement>('upInput').value.trim();
+    if (!raw) {
+      showStatus('upStatus', 'error', '请输入 URL');
+      return;
+    }
+    let u: URL;
+    try {
+      u = new URL(raw);
+    } catch {
+      showStatus('upStatus', 'error', 'URL 不合法，请检查格式（需包含协议，如 https://）');
+      byId<HTMLElement>('upTable').innerHTML = '';
+      byId<HTMLElement>('upParams').innerHTML = '';
+      return;
+    }
+    const rows: [string, string][] = [
+      ['协议', u.protocol],
+      ['主机名', u.hostname],
+      ['端口', u.port || '（默认）'],
+      ['路径', u.pathname],
+      ['查询', u.search || '（无）'],
+      ['锚点', u.hash || '（无）'],
+      ['用户名', u.username || '（无）'],
+      ['密码', u.password || '（无）'],
+      ['完整地址', u.href],
+    ];
+    byId<HTMLElement>('upTable').innerHTML = rows
+      .map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`)
+      .join('');
+    const params = Array.from(u.searchParams.entries());
+    byId<HTMLElement>('upParams').innerHTML = params.length
+      ? params.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')
+      : '<tr><td colspan="2">无查询参数</td></tr>';
+    showStatus('upStatus', 'success', `解析完成，共 ${params.length} 个查询参数`);
+  }
+
+  byId<HTMLButtonElement>('upBtn').addEventListener('click', parse);
+  bindSample('upSample', 'upInput', 'https://user:pass@example.com:8080/path/to/page?q=clover&lang=zh-CN&page=2#section-a');
+  bindClear('upClear', ['upInput'], [], 'upStatus');
+</script>

@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'url-encode')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入 URL 或文本" icon="bi-link-45deg">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="例如 https://example.com/搜索?q=中文 内容"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="urlMode">转换模式</label>
+        <select class="select" id="urlMode">
+          <option value="encodeComponent">编码（encodeURIComponent）</option>
+          <option value="encodeUri">编码（encodeURI，保留 :/?#）</option>
+          <option value="decodeComponent">解码（decodeURIComponent）</option>
+          <option value="decodeUri">解码（decodeURI）</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> 转换</button>
+    </div>
+    <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="转换结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('urlInput');
+  const output = byId<HTMLTextAreaElement>('urlOutput');
+
+  function convert() {
+    hideStatus('urlStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('urlStatus', 'error', '请输入要转换的内容');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('urlMode').value;
+    try {
+      switch (mode) {
+        case 'encodeComponent': output.value = encodeURIComponent(src); break;
+        case 'encodeUri': output.value = encodeURI(src); break;
+        case 'decodeComponent': output.value = decodeURIComponent(src); break;
+        case 'decodeUri': output.value = decodeURI(src); break;
+      }
+      showStatus('urlStatus', 'success', '转换完成');
+    } catch (e) {
+      output.value = '';
+      showStatus('urlStatus', 'error', `转换失败：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('urlBtn').addEventListener('click', convert);
+  bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
+  bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
+  bindCopyBtn('urlCopy', () => output.value);
+</script>

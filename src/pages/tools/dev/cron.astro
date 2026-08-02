@@ -1,0 +1,83 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'cron')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="Cron 表达式" icon="bi-calendar2-week">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+    </div>
+    <div class="row">
+      <div class="field" style="flex: 2">
+        <label class="field-label" for="cronExpr">表达式</label>
+        <input class="input mono" id="cronExpr" type="text" value="*/5 * * * *" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="cronCount">预演次数</label>
+        <select class="select" id="cronCount">
+          <option value="5">5 次</option>
+          <option value="10" selected>10 次</option>
+          <option value="20">20 次</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="cronBtn" type="button"><i class="bi bi-calendar-event"></i> 预览执行时间</button>
+    </div>
+    <div class="status-msg" id="cronStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">支持 5 段（分 时 日 月 周）、6 段（秒 分 时 日 月 周）与 7 段（秒 分 时 日 月 周 年）格式。</p>
+  </ToolPanel>
+
+  <ToolPanel title="未来执行时间" icon="bi-list-ol">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="cronOutput" readonly spellcheck="false" placeholder="点击预览后显示执行时间"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../scripts/toolkit';
+  import { Cron } from 'croner';
+
+  function run() {
+    hideStatus('cronStatus');
+    const expr = byId<HTMLInputElement>('cronExpr').value.trim();
+    const count = Number(byId<HTMLSelectElement>('cronCount').value);
+    if (!expr) {
+      showStatus('cronStatus', 'error', '请输入 Cron 表达式');
+      return;
+    }
+    try {
+      const job = new Cron(expr, { protect: true });
+      const times: string[] = [];
+      for (let i = 0; i < count; i++) {
+        const next = job.nextRun();
+        if (!next) break;
+        times.push(next.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) +
+          `（${next.toISOString()}）`);
+      }
+      if (times.length === 0) {
+        showStatus('cronStatus', 'info', '该表达式在当前配置下没有可预演的执行时间');
+      }
+      byId<HTMLTextAreaElement>('cronOutput').value = times.join('\n');
+      showStatus('cronStatus', 'success', `表达式合法，已生成 ${times.length} 次执行时间`);
+    } catch (e) {
+      byId<HTMLTextAreaElement>('cronOutput').value = '';
+      showStatus('cronStatus', 'error', `表达式无效：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('cronBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('cronSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('cronExpr').value = '0 9 * * 1-5';
+    run();
+  });
+  bindCopyBtn('cronCopy', () => byId<HTMLTextAreaElement>('cronOutput').value);
+</script>

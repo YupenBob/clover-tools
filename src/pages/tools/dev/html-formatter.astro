@@ -1,0 +1,144 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'html-formatter')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入 HTML" icon="bi-filetype-html">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="粘贴 HTML 代码"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="htmlFmt" type="button"><i class="bi bi-braces"></i> 格式化</button>
+      <button class="btn btn-secondary" id="htmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 压缩</button>
+      <button class="btn btn-ghost" id="htmlEnc" type="button"><i class="bi bi-code-slash"></i> 实体编码</button>
+      <button class="btn btn-ghost" id="htmlDec" type="button"><i class="bi bi-code-slash"></i> 实体解码</button>
+    </div>
+    <div class="status-msg" id="htmlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="输出结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+    <div class="input-stats"><span id="htmlStats">0 字符</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('htmlInput');
+  const output = byId<HTMLTextAreaElement>('htmlOutput');
+
+  const VOID_TAGS = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+
+  function pretty(node: Node, depth: number, out: string[]): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent || '').replace(/\s+/g, ' ').trim();
+      if (text) out.push('  '.repeat(depth) + text + '\n');
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as Element;
+    const tag = el.tagName.toLowerCase();
+    const attrs = Array.from(el.attributes)
+      .map((a) => ` ${a.name}="${a.value.replace(/"/g, '&quot;')}"`)
+      .join('');
+    const indent = '  '.repeat(depth);
+    const children = Array.from(el.childNodes);
+    const onlyText = children.length > 0 && children.every((c) => c.nodeType === Node.TEXT_NODE);
+    if (VOID_TAGS.has(tag)) {
+      out.push(`${indent}<${tag}${attrs}>\n`);
+      return;
+    }
+    if (children.length === 0) {
+      out.push(`${indent}<${tag}${attrs}></${tag}>\n`);
+      return;
+    }
+    out.push(`${indent}<${tag}${attrs}>\n`);
+    if (onlyText) {
+      out.push('  '.repeat(depth + 1) + (el.textContent || '').trim() + '\n');
+    } else {
+      for (const child of children) pretty(child, depth + 1, out);
+    }
+    out.push(`${indent}</${tag}>\n`);
+  }
+
+  function format(): void {
+    hideStatus('htmlStatus');
+    if (!input.value.trim()) {
+      showStatus('htmlStatus', 'error', '请输入 HTML');
+      return;
+    }
+    const doc = new DOMParser().parseFromString(input.value, 'text/html');
+    const err = doc.querySelector('parsererror');
+    if (err) {
+      showStatus('htmlStatus', 'error', 'HTML 解析失败，请检查标签是否闭合');
+      return;
+    }
+    const lines: string[] = [];
+    const body = doc.body;
+    for (const child of Array.from(body.childNodes)) pretty(child, 0, lines);
+    output.value = lines.join('').trim();
+    setStats('htmlStats', `${output.value.length} 字符`);
+    showStatus('htmlStatus', 'success', '格式化完成');
+  }
+
+  function minify(): void {
+    hideStatus('htmlStatus');
+    const doc = new DOMParser().parseFromString(input.value, 'text/html');
+    const body = doc.body;
+    const result: string[] = [];
+    function walk(node: Node): void {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = (node.textContent || '').replace(/\s+/g, ' ');
+        result.push(text);
+        return;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        const tag = el.tagName.toLowerCase();
+        const attrs = Array.from(el.attributes).map((a) => `${a.name}="${a.value}"`).join(' ');
+        result.push(`<${tag}${attrs ? ' ' + attrs : ''}>`);
+        for (const child of Array.from(el.childNodes)) walk(child);
+        if (!VOID_TAGS.has(tag)) result.push(`</${tag}>`);
+      }
+    }
+    for (const child of Array.from(body.childNodes)) walk(child);
+    output.value = result.join('').trim();
+    setStats('htmlStats', `${output.value.length} 字符`);
+    showStatus('htmlStatus', 'success', '压缩完成');
+  }
+
+  function encode(): void {
+    output.value = input.value
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    showStatus('htmlStatus', 'success', '实体编码完成');
+    setStats('htmlStats', `${output.value.length} 字符`);
+  }
+
+  function decode(): void {
+    const doc = new DOMParser().parseFromString(input.value, 'text/html');
+    output.value = doc.body.textContent || '';
+    showStatus('htmlStatus', 'success', '实体解码完成');
+    setStats('htmlStats', `${output.value.length} 字符`);
+  }
+
+  byId<HTMLButtonElement>('htmlFmt').addEventListener('click', format);
+  byId<HTMLButtonElement>('htmlMin').addEventListener('click', minify);
+  byId<HTMLButtonElement>('htmlEnc').addEventListener('click', encode);
+  byId<HTMLButtonElement>('htmlDec').addEventListener('click', decode);
+  bindSample('htmlSample', 'htmlInput', '<div class="card"><h2>标题</h2><p>内容 &amp; 更多</p><img src="a.png"></div>');
+  bindClear('htmlClear', ['htmlInput'], ['htmlOutput'], 'htmlStatus');
+  bindCopyBtn('htmlCopy', () => output.value);
+  setStats('htmlStats', '0 字符');
+</script>
