@@ -1,0 +1,65 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { ToolCategory, ToolMeta } from '../lib/tools';
+import { getToolHref } from '../lib/tools';
+import { SITE } from '../lib/site';
+
+interface Props {
+  category: ToolCategory;
+  tool: ToolMeta;
+  related: ToolMeta[];
+  categoryName: string;
+}
+
+const { category, tool, related, categoryName } = Astro.props;
+const url = SITE.url + getToolHref(category, tool.slug);
+
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: tool.name,
+  description: tool.description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Web',
+  url,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' },
+};
+---
+
+<BaseLayout
+  title={`${tool.name} - ${SITE.name}`}
+  description={tool.description}
+  keywords={tool.keywords}
+  canonical={url}
+  jsonLd={jsonLd}
+>
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{categoryName}</span>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{tool.name}</span>
+  </nav>
+
+  <header class="tool-hero">
+    <h1>{tool.name}</h1>
+    <p class="tool-hero-desc">{tool.description}</p>
+  </header>
+
+  <div class="tool-layout with-sidebar">
+    <div>
+      <slot />
+    </div>
+    <aside class="related-panel">
+      <h2 class="panel-title"><i class="bi bi-collection" aria-hidden="true"></i> 相关工具</h2>
+      <div class="related-list">
+        {related.map((item) => (
+          <a class="related-item" href={getToolHref(category, item.slug)}>
+            <i class={`bi ${item.icon}`} aria-hidden="true"></i>
+            <span>{item.name}</span>
+          </a>
+        ))}
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

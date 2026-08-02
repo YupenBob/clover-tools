@@ -1,0 +1,23 @@
+{
+  "name": "clovertools",
+  "version": "3.0.0",
+  "description": "CloverTools V3 - 精品在线工具箱（开发实用 / 日常实用 / 趣味工具）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "node scripts/check-links.mjs && node scripts/check-emoji.mjs",
+    "check:all": "npm run build && npm run check",
+    "deploy:media": "wrangler r2 object put"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.2.1",
+    "astro": "^5.0.0",
+    "bootstrap-icons": "^1.11.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

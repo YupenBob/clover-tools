@@ -1,0 +1,202 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'timestamp')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <section class="tool-card-panel">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> 当前时间</h2>
+      <div class="panel-actions">
+        <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> 复制时间戳
+        </button>
+      </div>
+    </div>
+    <div class="now-grid">
+      <div class="now-item">
+        <span class="now-label">本地时间</span>
+        <span class="now-value mono" id="nowClock">--:--:--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">秒级时间戳</span>
+        <span class="now-value mono" id="nowSeconds">--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">毫秒时间戳</span>
+        <span class="now-value mono" id="nowMillis">--</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> 时间戳转日期</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="tsInput">时间戳（秒或毫秒，自动识别）</label>
+        <input class="input mono" id="tsInput" type="text" placeholder="例如 1785000000 或 1785000000123" spellcheck="false" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="tsToDateBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 转换
+      </button>
+      <button class="btn btn-ghost" id="tsUseNow" type="button">
+        <i class="bi bi-clock-history" aria-hidden="true"></i> 用当前时间戳
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="tsDateOutput" class="textarea" readonly spellcheck="false" placeholder="日期结果将显示在这里"></textarea>
+    </div>
+    <div class="status-msg" id="tsStatus" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> 日期转时间戳</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="dateInput">本地日期时间</label>
+        <input class="input" id="dateInput" type="datetime-local" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="nowBtn">&nbsp;</label>
+        <button class="btn btn-ghost" id="dateNowBtn" type="button">
+          <i class="bi bi-clock" aria-hidden="true"></i> 取当前时间
+        </button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="dateToTsBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 转换
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="dateTsOutput" class="textarea" readonly spellcheck="false" placeholder="秒级与毫秒级时间戳将显示在这里"></textarea>
+    </div>
+    <div class="status-msg" id="dateStatus" role="status" aria-live="polite"></div>
+  </section>
+</ToolLayout>
+
+<style>
+  .now-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .now-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .now-label {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  .now-value {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+</style>
+
+<script>
+  const nowClock = document.getElementById('nowClock') as HTMLElement;
+  const nowSeconds = document.getElementById('nowSeconds') as HTMLElement;
+  const nowMillis = document.getElementById('nowMillis') as HTMLElement;
+  const tsInput = document.getElementById('tsInput') as HTMLInputElement;
+  const tsDateOutput = document.getElementById('tsDateOutput') as HTMLTextAreaElement;
+  const tsStatus = document.getElementById('tsStatus') as HTMLElement;
+  const dateInput = document.getElementById('dateInput') as HTMLInputElement;
+  const dateTsOutput = document.getElementById('dateTsOutput') as HTMLTextAreaElement;
+  const dateStatus = document.getElementById('dateStatus') as HTMLElement;
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function formatDate(d: Date): string {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ` +
+      `(周${'日一二三四五六'[d.getDay()]})`;
+  }
+
+  function tick() {
+    const now = new Date();
+    nowClock.textContent = formatDate(now);
+    nowSeconds.textContent = String(Math.floor(now.getTime() / 1000));
+    nowMillis.textContent = String(now.getTime());
+  }
+
+  tick();
+  setInterval(tick, 1000);
+
+  (document.getElementById('copyNow') as HTMLButtonElement).addEventListener('click', (e) => {
+    window.CT.copy(nowSeconds.textContent || '', e.currentTarget as HTMLElement);
+  });
+
+  function showStatus(el: HTMLElement, type: 'success' | 'error', msg: string) {
+    el.className = `status-msg show ${type}`;
+    el.textContent = msg;
+  }
+
+  function parseTimestamp(text: string): { date: Date; unit: string } | null {
+    if (!/^\d{10,13}$/.test(text.trim())) return null;
+    const num = Number(text.trim());
+    if (text.trim().length === 10) return { date: new Date(num * 1000), unit: '秒' };
+    return { date: new Date(num), unit: '毫秒' };
+  }
+
+  (document.getElementById('tsToDateBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const parsed = parseTimestamp(tsInput.value);
+    if (!parsed || isNaN(parsed.date.getTime())) {
+      showStatus(tsStatus, 'error', '请输入 10 位（秒）或 13 位（毫秒）的数字时间戳');
+      return;
+    }
+    tsDateOutput.value = [
+      `本地时间：${formatDate(parsed.date)}`,
+      `ISO 时间：${parsed.date.toISOString()}`,
+      `单位：${parsed.unit}级时间戳`,
+    ].join('\n');
+    showStatus(tsStatus, 'success', '转换成功');
+  });
+
+  (document.getElementById('tsUseNow') as HTMLButtonElement).addEventListener('click', () => {
+    tsInput.value = String(Math.floor(Date.now() / 1000));
+    (document.getElementById('tsToDateBtn') as HTMLButtonElement).click();
+  });
+
+  (document.getElementById('dateToTsBtn') as HTMLButtonElement).addEventListener('click', () => {
+    if (!dateInput.value) {
+      showStatus(dateStatus, 'error', '请先选择日期时间');
+      return;
+    }
+    const ms = new Date(dateInput.value).getTime();
+    if (isNaN(ms)) {
+      showStatus(dateStatus, 'error', '日期时间无效');
+      return;
+    }
+    dateTsOutput.value = `秒级：${Math.floor(ms / 1000)}\n毫秒级：${ms}`;
+    showStatus(dateStatus, 'success', '转换成功');
+  });
+
+  (document.getElementById('dateNowBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const now = new Date();
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T` +
+      `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
+</script>

@@ -1,0 +1,18 @@
+# CloverTools V3 - Cloudflare 配置
+name = "clovertools"
+compatibility_date = "2026-08-02"
+
+# 本地构建产物目录（`wrangler pages deploy` 时使用）
+pages_build_output_dir = "dist"
+
+# R2 存储桶：用于图片、下载文件等大文件/媒体资源
+# 创建：wrangler r2 bucket create clovertools-media
+# 上传：wrangler r2 object put clovertools-media/<key> --file <path>
+# 在 Pages 项目设置中绑定同名 R2 桶即可在 Functions 中通过 env.CLOVER_MEDIA 访问
+[[r2_buckets]]
+binding = "CLOVER_MEDIA"
+bucket_name = "clovertools-media"
+
+# 部署（生产环境请在 Pages 控制台绑定自定义域名 clovertools.cn）：
+#   npm run build
+#   wrangler pages deploy dist --project-name clovertools

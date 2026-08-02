@@ -1,0 +1,27 @@
+---
+import type { ToolCategory, ToolMeta } from '../lib/tools';
+import { getToolHref } from '../lib/tools';
+
+interface Props {
+  tool: ToolMeta;
+  category: ToolCategory;
+  searchText?: string;
+}
+
+const { tool, category, searchText } = Astro.props;
+const href = getToolHref(category, tool.slug);
+---
+
+<a class="tool-card" href={href} data-search={searchText}>
+  <div class="tool-card-head">
+    <span class="tool-card-icon"><i class={`bi ${tool.icon}`} aria-hidden="true"></i></span>
+    <h3 class="tool-card-title">{tool.name}</h3>
+  </div>
+  <p class="tool-card-desc">{tool.oneLiner}</p>
+  <div class="tool-card-meta">
+    <span class="tool-card-tag"><i class="bi bi-cpu" aria-hidden="true"></i> 纯浏览器处理</span>
+    <span class="tool-card-link">
+      打开工具 <i class="bi bi-arrow-right" aria-hidden="true"></i>
+    </span>
+  </div>
+</a>

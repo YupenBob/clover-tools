@@ -1,0 +1,13 @@
+---
+import { SITE } from '../lib/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span>© {year} {SITE.name} · 精选在线工具箱，数据在浏览器本地处理</span>
+    <a href={SITE.github} target="_blank" rel="noopener noreferrer">
+      <i class="bi bi-github" aria-hidden="true"></i> GitHub
+    </a>
+  </div>
+</footer>

@@ -1,0 +1,84 @@
+---
+import '../styles/global.css';
+import '../styles/vendor/bootstrap-icons.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { SITE } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  canonical?: string;
+  ogImage?: string;
+  jsonLd?: Record<string, unknown>;
+}
+
+const {
+  title = `${SITE.name} - ${SITE.tagline}`,
+  description = SITE.description,
+  keywords,
+  canonical = SITE.url + '/',
+  ogImage = SITE.url + '/clover-avatar.svg',
+  jsonLd,
+} = Astro.props;
+
+const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
+const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {keywords && <meta name="keywords" content={keywords.join(',')} />}
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="icon" href="/clover-logo.svg" type="image/svg+xml" />
+
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('clover-theme');
+        var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      })();
+    </script>
+
+    {cfToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token":"${cfToken}"}`}
+      ></script>
+    )}
+
+    {safeJsonLd && <script is:inline type="application/ld+json" set:html={safeJsonLd} />}
+    <script>
+      import '../scripts/shared';
+    </script>
+  </head>
+  <body>
+    <SiteHeader />
+    <main class="page-body">
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    <SiteFooter />
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

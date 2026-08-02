@@ -1,0 +1,37 @@
+---
+import { SITE } from '../lib/site';
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/" aria-label="CloverTools 首页">
+      <img class="brand-logo" src="/clover-logo.svg" alt="CloverTools logo" width="30" height="30" />
+      <span class="brand-name">CloverTools</span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色/浅色主题" title="切换主题">
+        <i class="bi bi-moon-stars" id="themeIcon" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('themeToggle') as HTMLButtonElement;
+  const icon = document.getElementById('themeIcon') as HTMLElement;
+
+  function applyTheme(theme: 'light' | 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('clover-theme', theme);
+    icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  }
+
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'dark' : 'light');
+
+  btn.addEventListener('click', () => {
+    const next =
+      document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+</script>

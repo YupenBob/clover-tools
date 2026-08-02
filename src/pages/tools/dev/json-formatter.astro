@@ -1,0 +1,190 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'json-formatter')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <section class="tool-card-panel">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> 输入 JSON</h2>
+      <div class="panel-actions">
+        <button class="btn btn-ghost btn-sm" id="fillSample" type="button">
+          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+        </button>
+        <button class="btn btn-ghost btn-sm" id="clearInput" type="button">
+          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+        </button>
+      </div>
+    </div>
+    <textarea id="jsonInput" class="textarea" spellcheck="false" placeholder='粘贴 JSON，例如 {"name":"Clover","tools":99}'></textarea>
+    <div class="input-stats"><span id="inputStats">0 字符</span></div>
+
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="indentSelect">缩进</label>
+        <select class="select" id="indentSelect">
+          <option value="2">2 空格</option>
+          <option value="4" selected>4 空格</option>
+          <option value="tab">Tab</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="sortKeys">
+          <input type="checkbox" id="sortKeys" /> 按键排序
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="formatBtn" type="button">
+        <i class="bi bi-braces-asterisk" aria-hidden="true"></i> 格式化
+      </button>
+      <button class="btn btn-secondary" id="minifyBtn" type="button">
+        <i class="bi bi-arrows-collapse" aria-hidden="true"></i> 压缩
+      </button>
+      <button class="btn btn-ghost" id="validateBtn" type="button">
+        <i class="bi bi-check2-circle" aria-hidden="true"></i> 仅校验
+      </button>
+    </div>
+
+    <div class="status-msg" id="statusMsg" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> 输出结果</h2>
+      <div class="panel-actions">
+        <button class="btn btn-ghost btn-sm" id="copyOutput" type="button">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> 复制
+        </button>
+      </div>
+    </div>
+    <div class="output-area">
+      <textarea id="jsonOutput" class="textarea" readonly spellcheck="false" placeholder="格式化结果将显示在这里"></textarea>
+    </div>
+    <div class="input-stats"><span id="outputStats">0 字符</span></div>
+  </section>
+</ToolLayout>
+
+<script>
+  const input = document.getElementById('jsonInput') as HTMLTextAreaElement;
+  const output = document.getElementById('jsonOutput') as HTMLTextAreaElement;
+  const inputStats = document.getElementById('inputStats') as HTMLElement;
+  const outputStats = document.getElementById('outputStats') as HTMLElement;
+  const statusMsg = document.getElementById('statusMsg') as HTMLElement;
+
+  const SAMPLE = {
+    name: 'CloverTools',
+    version: '3.0',
+    features: ['格式化', '压缩', '校验'],
+    free: true,
+    stats: { tools: 67, categories: 3 },
+  };
+
+  function sortKeys(value: unknown): unknown {
+    if (Array.isArray(value)) return value.map(sortKeys);
+    if (value && typeof value === 'object') {
+      const sorted: Record<string, unknown> = {};
+      for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+        sorted[key] = sortKeys((value as Record<string, unknown>)[key]);
+      }
+      return sorted;
+    }
+    return value;
+  }
+
+  function parseJson(): { value: unknown } | { error: string } {
+    const text = input.value.trim();
+    if (!text) return { error: '请输入要处理的 JSON 内容' };
+    try {
+      return { value: JSON.parse(text) };
+    } catch (err) {
+      const e = err as Error;
+      const m = e.message.match(/position (\d+)/);
+      let detail = e.message;
+      if (m) {
+        const pos = Number(m[1]);
+        const before = text.slice(0, pos);
+        const line = before.split('\n').length;
+        const col = pos - before.lastIndexOf('\n');
+        detail = `第 ${line} 行，第 ${col} 列：${e.message}`;
+      }
+      return { error: detail };
+    }
+  }
+
+  function showStatus(type: 'success' | 'error' | 'info', msg: string) {
+    statusMsg.className = `status-msg show ${type}`;
+    statusMsg.textContent = msg;
+  }
+
+  function updateStats() {
+    inputStats.textContent = `${input.value.length} 字符`;
+    outputStats.textContent = `${output.value.length} 字符`;
+  }
+
+  function format(indent: string | number, minify: boolean) {
+    const parsed = parseJson();
+    if ('error' in parsed) {
+      showStatus('error', parsed.error);
+      output.value = '';
+      updateStats();
+      return;
+    }
+    const sort = (document.getElementById('sortKeys') as HTMLInputElement).checked;
+    let value = parsed.value;
+    if (sort) value = sortKeys(value);
+    output.value = minify ? JSON.stringify(value) : JSON.stringify(value, null, indent);
+    showStatus('success', minify ? '压缩完成' : '格式化完成');
+    updateStats();
+  }
+
+  (document.getElementById('formatBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const indentEl = document.getElementById('indentSelect') as HTMLSelectElement;
+    const indent = indentEl.value === 'tab' ? '\t' : Number(indentEl.value);
+    format(indent, false);
+  });
+
+  (document.getElementById('minifyBtn') as HTMLButtonElement).addEventListener('click', () => {
+    format(2, true);
+  });
+
+  (document.getElementById('validateBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const parsed = parseJson();
+    if ('error' in parsed) {
+      showStatus('error', parsed.error);
+      return;
+    }
+    showStatus('success', 'JSON 合法，数据完整');
+  });
+
+  (document.getElementById('fillSample') as HTMLButtonElement).addEventListener('click', () => {
+    input.value = JSON.stringify(SAMPLE, null, 2);
+    showStatus('info', '已填入示例数据');
+    updateStats();
+  });
+
+  (document.getElementById('clearInput') as HTMLButtonElement).addEventListener('click', () => {
+    input.value = '';
+    output.value = '';
+    statusMsg.className = 'status-msg';
+    updateStats();
+  });
+
+  (document.getElementById('copyOutput') as HTMLButtonElement).addEventListener('click', (e) => {
+    window.CT.copy(output.value, e.currentTarget as HTMLElement);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();
+      (document.getElementById('formatBtn') as HTMLButtonElement).click();
+    }
+  });
+
+  updateStats();
+</script>

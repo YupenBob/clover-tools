@@ -1,0 +1,90 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ToolCard from '../components/ToolCard.astro';
+import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
+import { SITE } from '../lib/site';
+
+const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
+  (sum, cat) => sum + TOOLS[cat].length,
+  0,
+);
+---
+
+<BaseLayout>
+  <section class="hero">
+    <span class="hero-badge">
+      <i class="bi bi-shield-check" aria-hidden="true"></i>
+      纯浏览器处理 · 即开即用 · 无需注册
+    </span>
+    <h1 class="hero-title">
+      精选<span class="accent">在线工具箱</span>
+    </h1>
+    <p class="hero-sub">{SITE.tagline}，{total} 个精挑细选的工具，覆盖开发、日常与趣味场景。</p>
+    <div class="search-box">
+      <i class="bi bi-search search-icon" aria-hidden="true"></i>
+      <input
+        class="search-input"
+        id="toolSearch"
+        type="search"
+        placeholder="搜索工具，如 JSON、时间戳、密码……"
+        autocomplete="off"
+      />
+    </div>
+  </section>
+
+  {CATEGORIES.map((cat) => (
+    <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
+      <div class="category-head">
+        <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
+        <div>
+          <h2 class="category-title">{cat.name}</h2>
+          <p class="category-blurb">{cat.blurb}</p>
+        </div>
+        <span class="category-count">{TOOLS[cat.id].length} 个工具</span>
+      </div>
+      <div class="tool-grid">
+        {TOOLS[cat.id].map((tool) => (
+          <ToolCard
+            tool={tool}
+            category={cat.id}
+            searchText={`${tool.name} ${tool.oneLiner} ${tool.keywords.join(' ')}`}
+          />
+        ))}
+      </div>
+    </section>
+  ))}
+
+  <div class="empty-state" id="searchEmpty">
+    <i class="bi bi-search" aria-hidden="true"></i>
+    <p>没有找到匹配的工具，换个关键词试试</p>
+  </div>
+</BaseLayout>
+
+<script>
+  const input = document.getElementById('toolSearch') as HTMLInputElement;
+  const empty = document.getElementById('searchEmpty') as HTMLElement;
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-category]'));
+
+  function applyFilter() {
+    const query = input.value.trim().toLowerCase();
+    let visibleSections = 0;
+
+    for (const section of sections) {
+      let visibleCards = 0;
+      const cards = Array.from(section.querySelectorAll<HTMLElement>('.tool-card'));
+      for (const card of cards) {
+        const haystack = (card.dataset.search || '').toLowerCase();
+        const show = !query || haystack.includes(query);
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCards++;
+      }
+      const showSection = visibleCards > 0;
+      section.style.display = showSection ? '' : 'none';
+      if (showSection) visibleSections++;
+    }
+
+    empty.classList.toggle('show', visibleSections === 0);
+  }
+
+  input.addEventListener('input', applyFilter);
+</script>
