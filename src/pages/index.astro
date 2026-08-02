@@ -12,27 +12,48 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
 
 <BaseLayout>
   <section class="hero">
-    <span class="hero-badge">
-      <i class="bi bi-shield-check" aria-hidden="true"></i>
-      纯浏览器处理 · 即开即用 · 无需注册
-    </span>
-    <h1 class="hero-title">
-      精选<span class="accent">在线工具箱</span>
-    </h1>
-    <p class="hero-sub">{SITE.tagline}，{total} 个精挑细选的工具，覆盖开发、日常与趣味场景。</p>
-    <div class="search-box">
-      <i class="bi bi-search search-icon" aria-hidden="true"></i>
-      <input
-        class="search-input"
-        id="toolSearch"
-        type="search"
-        placeholder="搜索工具，如 JSON、时间戳、密码……"
-        autocomplete="off"
-      />
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <span class="hero-badge">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        纯浏览器处理 · 即开即用 · 无需注册
+      </span>
+      <h1 class="hero-title">
+        精选<span class="accent">在线工具箱</span>
+      </h1>
+      <p class="hero-sub">{SITE.tagline}，{total} 个精挑细选的工具，覆盖开发、日常与趣味场景。</p>
+      <div class="search-box">
+        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <input
+          class="search-input"
+          id="toolSearch"
+          type="search"
+          placeholder="搜索工具，如 JSON、时间戳、密码……"
+          autocomplete="off"
+          aria-label="搜索工具"
+        />
+        <button class="search-clear" id="searchClear" type="button" aria-label="清除搜索" hidden>
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="hero-stats">
+        <span class="hero-stat"><b>{total}</b> 个精选工具</span>
+        <span class="hero-stat"><b>3</b> 大分类</span>
+        <span class="hero-stat"><i class="bi bi-shield-lock" aria-hidden="true"></i> 数据不出浏览器</span>
+      </div>
     </div>
   </section>
 
-  {CATEGORIES.map((cat) => (
+  <nav class="home-tabs" aria-label="工具分类">
+    <button class="home-tab active" data-tab="all" type="button">全部</button>
+    {CATEGORIES.map((cat) => (
+      <button class="home-tab" data-tab={cat.id} type="button">{cat.name}</button>
+    ))}
+  </nav>
+
+  <div class="search-count" id="searchCount">共 {total} 个工具</div>
+
+  {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
       <div class="category-head">
         <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
@@ -43,11 +64,12 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
         <span class="category-count">{TOOLS[cat.id].length} 个工具</span>
       </div>
       <div class="tool-grid">
-        {TOOLS[cat.id].map((tool) => (
+        {TOOLS[cat.id].map((tool, ti) => (
           <ToolCard
             tool={tool}
             category={cat.id}
             searchText={`${tool.name} ${tool.oneLiner} ${tool.keywords.join(' ')}`}
+            delay={Math.min(ci * 10 + ti, 30) * 22}
           />
         ))}
       </div>
@@ -55,21 +77,37 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
   ))}
 
   <div class="empty-state" id="searchEmpty">
-    <i class="bi bi-search" aria-hidden="true"></i>
-    <p>没有找到匹配的工具，换个关键词试试</p>
+    <i class="bi bi-emoji-neutral" aria-hidden="true"></i>
+    <p>没有找到匹配的工具</p>
+    <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">清除搜索与筛选</button>
   </div>
 </BaseLayout>
 
 <script>
   const input = document.getElementById('toolSearch') as HTMLInputElement;
   const empty = document.getElementById('searchEmpty') as HTMLElement;
+  const clearBtn = document.getElementById('searchClear') as HTMLButtonElement;
+  const emptyReset = document.getElementById('emptyReset') as HTMLButtonElement;
+  const countEl = document.getElementById('searchCount') as HTMLElement;
   const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-category]'));
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.home-tab'));
+  const totalTools = sections.reduce(
+    (sum, section) => sum + section.querySelectorAll('.tool-card').length,
+    0,
+  );
+  let activeTab = 'all';
 
   function applyFilter() {
     const query = input.value.trim().toLowerCase();
+    clearBtn.hidden = query === '';
     let visibleSections = 0;
+    let matchedCards = 0;
 
     for (const section of sections) {
+      if (activeTab !== 'all' && section.dataset.category !== activeTab) {
+        section.style.display = 'none';
+        continue;
+      }
       let visibleCards = 0;
       const cards = Array.from(section.querySelectorAll<HTMLElement>('.tool-card'));
       for (const card of cards) {
@@ -78,13 +116,53 @@ const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
         card.style.display = show ? '' : 'none';
         if (show) visibleCards++;
       }
-      const showSection = visibleCards > 0;
-      section.style.display = showSection ? '' : 'none';
-      if (showSection) visibleSections++;
+      section.style.display = visibleCards > 0 ? '' : 'none';
+      if (visibleCards > 0) {
+        visibleSections++;
+        matchedCards += visibleCards;
+      }
     }
 
     empty.classList.toggle('show', visibleSections === 0);
+    if (query) {
+      countEl.textContent = `匹配 ${matchedCards} 个工具`;
+    } else if (activeTab !== 'all') {
+      const name = tabs.find((t) => t.dataset.tab === activeTab)?.textContent || '';
+      countEl.textContent = `${name}分类 · ${matchedCards} 个工具`;
+    } else {
+      countEl.textContent = `共 ${totalTools} 个工具`;
+    }
   }
 
   input.addEventListener('input', applyFilter);
+
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      activeTab = tab.dataset.tab || 'all';
+      for (const t of tabs) t.classList.toggle('active', t === tab);
+      applyFilter();
+      if (activeTab !== 'all') {
+        const section = document.getElementById(`cat-${activeTab}`);
+        if (section && section.style.display !== 'none') {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  }
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    applyFilter();
+    input.focus();
+  });
+
+  emptyReset.addEventListener('click', () => {
+    input.value = '';
+    activeTab = 'all';
+    for (const t of tabs) t.classList.toggle('active', t.dataset.tab === 'all');
+    applyFilter();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  applyFilter();
 </script>
