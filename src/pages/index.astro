@@ -119,6 +119,13 @@ const searchIndexJson = JSON.stringify(searchIndex).replace(/</g, '\\u003c');
 <BaseLayout>
   <section class="hero">
     <div class="hero-glow" aria-hidden="true"></div>
+    <div class="dust" aria-hidden="true">
+      <span class="dust-p" style="left: 16%; --d: 9s; --dl: 0s; --dx: 24px;"></span>
+      <span class="dust-p" style="left: 34%; --d: 11s; --dl: 2.6s; --dx: -18px;"></span>
+      <span class="dust-p" style="left: 55%; --d: 10s; --dl: 1.2s; --dx: 30px;"></span>
+      <span class="dust-p" style="left: 72%; --d: 12s; --dl: 4s; --dx: -26px;"></span>
+      <span class="dust-p" style="left: 88%; --d: 9.5s; --dl: 3.2s; --dx: 14px;"></span>
+    </div>
     <div class="hero-inner">
       <img class="hero-logo" src="/clover-logo.svg" alt="CloverTools 图标" width="96" height="96" />
       <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
@@ -129,22 +136,23 @@ const searchIndexJson = JSON.stringify(searchIndex).replace(/</g, '\\u003c');
           class="search-input"
           id="toolSearch"
           type="search"
-          placeholder="搜索工具（支持拼音，如 json / piny / md5）……"
+          placeholder="搜索工具，如 JSON…"
           autocomplete="off"
           aria-label="搜索工具"
         />
         <button class="search-clear" id="searchClear" type="button" aria-label="清除搜索" hidden>
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
+        <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
       </div>
       <p class="hero-caption">
-        {builtCount} 个工具已上线 · 数据不出浏览器 ·
+        <span id="builtCount" data-target={builtCount}>0</span> 个工具已上线 · 数据不出浏览器 ·
         <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> 随便逛逛</button>
       </p>
     </div>
   </section>
 
-  <nav class="home-tabs" aria-label="工具分类">
+  <nav class="home-tabs" id="homeTabs" aria-label="工具分类">
     <button class="home-tab active" data-tab="all" type="button">全部</button>
     {CATEGORIES.map((cat) => (
       <button class="home-tab" data-tab={cat.id} type="button">{cat.name}</button>
@@ -311,5 +319,89 @@ const searchIndexJson = JSON.stringify(searchIndex).replace(/</g, '\\u003c');
     input.select();
   });
 
+  // ── 装饰动效 ──
+  document.documentElement.classList.add('js');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // 滚动错峰入场
+  const cardEls = Array.from(document.querySelectorAll<HTMLElement>('.tool-card'));
+  if (!reduced && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' },
+    );
+    cardEls.forEach((c) => observer.observe(c));
+  } else {
+    cardEls.forEach((c) => c.classList.add('revealed'));
+  }
+
+  // 数字滚动
+  const builtCountEl = document.getElementById('builtCount') as HTMLElement;
+  const countTarget = Number(builtCountEl.dataset.target || '0');
+  function countUp(el: HTMLElement, target: number, dur = 900) {
+    const start = performance.now();
+    function step(t: number) {
+      const p = Math.min(1, (t - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(target * eased));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  if (reduced) {
+    builtCountEl.textContent = String(countTarget);
+  } else {
+    countUp(builtCountEl, countTarget);
+  }
+
+  // 搜索框提示词轮换 + 快捷键徽标
+  const kbd = document.getElementById('searchKbd') as HTMLElement;
+  const PLACEHOLDERS = [
+    '搜索工具，如 JSON…',
+    '试试输入 md5 / sha',
+    '输入 pinyin 也能搜',
+    '九宫格、抽奖、手速……',
+  ];
+  let ph = 0;
+  setInterval(() => {
+    if (document.activeElement === input || input.value) return;
+    ph = (ph + 1) % PLACEHOLDERS.length;
+    input.placeholder = PLACEHOLDERS[ph];
+  }, 3200);
+  function syncKbd() {
+    kbd.hidden = Boolean(input.value) || document.activeElement === input;
+  }
+  input.addEventListener('focus', syncKbd);
+  input.addEventListener('blur', syncKbd);
+  input.addEventListener('input', syncKbd);
+
+  // Tab 滑块
+  const tabsNav = document.getElementById('homeTabs') as HTMLElement;
+  const indicator = document.createElement('span');
+  indicator.className = 'tab-indicator';
+  tabsNav.appendChild(indicator);
+  function moveIndicator() {
+    const active = tabsNav.querySelector<HTMLButtonElement>('.home-tab.active');
+    if (!active) return;
+    indicator.style.left = `${active.offsetLeft}px`;
+    indicator.style.width = `${active.offsetWidth}px`;
+  }
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      requestAnimationFrame(moveIndicator);
+    });
+  }
+  window.addEventListener('resize', moveIndicator);
+  window.addEventListener('load', moveIndicator);
+
   applyFilter();
+  requestAnimationFrame(moveIndicator);
+  syncKbd();
 </script>
