@@ -23,9 +23,12 @@ src/
 functions/api/               # Pages Functions（工具 API）
 public/
   _headers  _redirects  robots.txt   # Pages 配置
-  clover-logo.svg  clover-avatar.svg # 品牌资产
+  clover-logo.svg  clover-avatar.svg # 品牌主资产（由脚本生成）
+  brand/                             # 品牌资产包（favicon / badge / og 图等）
 legacy/                      # 旧版 CloverTools 代码归档（仅参考）
 scripts/                     # 质检脚本（链接完整性、emoji 扫描）
+  generate-brand-assets.py   # 品牌资产生成脚本（改色/改尺寸后重跑即可）
+  brand-src/                 # 品牌原始矢量稿备份
 ```
 
 ## 本地开发

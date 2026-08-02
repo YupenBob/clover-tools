@@ -1,0 +1,119 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'grid-splitter')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="上传图片" icon="bi-image">
+    <div class="field">
+      <input class="input" id="gsFile" type="file" accept="image/*" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="gsBtn" type="button"><i class="bi bi-grid-3x3-gap"></i> 切分为九宫格</button>
+      <button class="btn btn-ghost" id="gsDownload" type="button"><i class="bi bi-download"></i> 下载全部</button>
+    </div>
+    <div class="status-msg" id="gsStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">上传正方形图片效果最佳；图片仅在本机处理，不会上传。</p>
+  </ToolPanel>
+
+  <ToolPanel title="切分预览" icon="bi-grid-3x3-gap">
+    <div class="gs-grid" id="gsGrid"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .gs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .gs-cell {
+    position: relative;
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-secondary);
+  }
+
+  .gs-cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .gs-cell .no {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 11px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  let slices: HTMLCanvasElement[] = [];
+
+  function split() {
+    hideStatus('gsStatus');
+    const file = byId<HTMLInputElement>('gsFile').files?.[0];
+    if (!file) {
+      showStatus('gsStatus', 'error', '请先选择图片');
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.width, img.height);
+      const size = side / 3;
+      const startX = (img.width - side) / 2;
+      const startY = (img.height - side) / 2;
+      slices = [];
+      const grid = byId<HTMLElement>('gsGrid');
+      grid.innerHTML = '';
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d')!;
+          ctx.drawImage(img, startX + c * size, startY + r * size, size, size, 0, 0, size, size);
+          const cell = document.createElement('div');
+          cell.className = 'gs-cell';
+          cell.innerHTML = `<span class="no">${r * 3 + c + 1}</span>`;
+          cell.appendChild(canvas);
+          grid.appendChild(cell);
+          slices.push(canvas);
+        }
+      }
+      showStatus('gsStatus', 'success', `切分完成（原图 ${img.width}×${img.height}，取中心 ${side}×${side}）`);
+    };
+    img.onerror = () => showStatus('gsStatus', 'error', '图片加载失败');
+    img.src = URL.createObjectURL(file);
+  }
+
+  byId<HTMLButtonElement>('gsBtn').addEventListener('click', split);
+  byId<HTMLButtonElement>('gsDownload').addEventListener('click', () => {
+    if (slices.length === 0) {
+      showStatus('gsStatus', 'error', '请先切分图片');
+      return;
+    }
+    slices.forEach((canvas, i) => {
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png');
+      a.download = `九宫格_${i + 1}.png`;
+      a.click();
+    });
+    showStatus('gsStatus', 'success', '已开始下载 9 张图片');
+  });
+</script>

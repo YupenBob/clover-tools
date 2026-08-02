@@ -1,0 +1,415 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'fun' as const;
+const tool = TOOLS.fun.find((t) => t.slug === 'click-speed')!;
+const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
+  <ToolPanel title="10 秒手速挑战" icon="bi-cursor">
+    <div class="cs-head">
+      <div class="cs-count" id="csCount">0</div>
+      <div class="cs-meta">
+        <span>当前 <b id="csCps">0.0</b> 次/秒</span>
+        <span>剩余 <b id="csLeft">10.0</b> 秒</span>
+      </div>
+      <div class="cs-bar"><div class="cs-bar-fill" id="csBar"></div></div>
+    </div>
+
+    <button class="cs-btn" id="csBtn" type="button">
+      <span class="cs-btn-label" id="csBtnLabel"><i class="bi bi-cursor"></i> 点击开始</span>
+      <span class="cs-countdown" id="csCountdown"></span>
+    </button>
+    <p class="field-hint" id="csHint">点击开始后进入 3-2-1 倒计时，然后以最快速度点击按钮</p>
+
+    <div class="status-msg" id="csStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-4 cs-result-show" id="csResult" hidden></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .cs-head {
+    margin-bottom: var(--space-4);
+  }
+
+  .cs-count {
+    text-align: center;
+    font-size: 54px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.15;
+    transition: transform 0.06s ease, color 0.2s ease;
+  }
+
+  .cs-count.pulse {
+    transform: scale(1.08);
+  }
+
+  .cs-count.flash {
+    color: var(--error);
+    animation: flash 0.5s ease;
+  }
+
+  @keyframes flash {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+  }
+
+  .cs-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--space-2);
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+
+  .cs-meta b {
+    color: var(--text);
+    font-family: var(--font-mono);
+  }
+
+  .cs-bar {
+    height: 8px;
+    margin-top: var(--space-3);
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    overflow: hidden;
+  }
+
+  .cs-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    transition: width 0.1s linear;
+  }
+
+  .cs-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 180px;
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.06s ease, box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .cs-btn:hover {
+    border-color: var(--primary);
+  }
+
+  .cs-btn.running {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+  }
+
+  .cs-btn:active {
+    transform: scale(0.97);
+  }
+
+  .cs-btn:disabled {
+    cursor: wait;
+    opacity: 0.9;
+  }
+
+  .cs-btn.shake {
+    animation: shake 0.3s ease;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-3px); }
+  }
+
+  .cs-countdown {
+    display: none;
+    position: absolute;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--primary-dark);
+    background: color-mix(in srgb, var(--bg-elevated) 94%, transparent);
+    animation: cd-pop 0.65s ease;
+    z-index: 2;
+  }
+
+  .cs-countdown.show {
+    display: flex;
+  }
+
+  @keyframes cd-pop {
+    0% { transform: scale(1.8); opacity: 0; }
+    25% { transform: scale(1); opacity: 1; }
+    80% { transform: scale(0.94); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.4; }
+  }
+
+  .float-plus {
+    position: absolute;
+    z-index: 3;
+    color: var(--primary-dark);
+    font-size: 16px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    pointer-events: none;
+    opacity: 0;
+    animation: float-up var(--dur, 0.55s) ease-out forwards;
+    text-shadow: 0 1px 0 var(--bg-elevated);
+  }
+
+  @keyframes float-up {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--jx, 0px)), calc(-50% - var(--jy, 64px))) scale(0.75); }
+  }
+
+  .cs-best {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--space-3);
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12.5px;
+  }
+
+  .cs-result-show[hidden] {
+    display: none;
+  }
+
+  .cs-result-show:not([hidden]) {
+    animation: result-in 0.4s ease;
+  }
+
+  @keyframes result-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cs-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .cs-result-item {
+    text-align: center;
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .cs-result-item .v {
+    display: block;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    font-family: var(--font-mono);
+  }
+
+  .cs-result-item .k {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  const DURATION = 10000;
+  const LOCK_MS = 1400;
+  const BEST_KEY = 'ct-click-best';
+  const btn = byId<HTMLButtonElement>('csBtn');
+  const btnLabel = byId<HTMLElement>('csBtnLabel');
+  const countdownEl = byId<HTMLElement>('csCountdown');
+  const countEl = byId<HTMLElement>('csCount');
+  const cpsEl = byId<HTMLElement>('csCps');
+  const leftEl = byId<HTMLElement>('csLeft');
+  const bar = byId<HTMLElement>('csBar');
+  const result = byId<HTMLElement>('csResult');
+  const hint = byId<HTMLElement>('csHint');
+
+  let state: 'idle' | 'countdown' | 'running' | 'done' = 'idle';
+  let count = 0;
+  let startAt = 0;
+  let raf = 0;
+  let lockUntil = 0;
+  const countdownTimers: ReturnType<typeof setTimeout>[] = [];
+  const floatStack: HTMLElement[] = [];
+
+  const best = Number(localStorage.getItem(BEST_KEY) || 0);
+  if (best > 0) {
+    hint.insertAdjacentHTML('afterend',
+      `<div class="cs-best"><i class="bi bi-trophy"></i> 历史最佳 ${best.toFixed(1)} 次/秒</div>`);
+  }
+
+  function fmtCps(): string {
+    const elapsed = (Date.now() - startAt) / 1000;
+    return (count / Math.max(elapsed, 0.01)).toFixed(1);
+  }
+
+  function tick() {
+    const elapsed = Date.now() - startAt;
+    const pct = Math.min(100, elapsed / DURATION * 100);
+    bar.style.width = `${pct}%`;
+    cpsEl.textContent = fmtCps();
+    leftEl.textContent = Math.max(0, (DURATION - elapsed) / 1000).toFixed(1);
+    if (elapsed < DURATION) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      finish();
+    }
+  }
+
+  function startCountdown() {
+    state = 'countdown';
+    btn.disabled = true;
+    btn.classList.remove('running');
+    btnLabel.innerHTML = '';
+    countdownEl.classList.add('show');
+    [3, 2, 1].forEach((n, i) => {
+      countdownTimers.push(setTimeout(() => {
+        countdownEl.textContent = String(n);
+      }, i * 700));
+    });
+    countdownTimers.push(setTimeout(() => {
+      countdownEl.classList.remove('show');
+      countdownEl.textContent = '';
+      btn.disabled = false;
+      btnLabel.innerHTML = '<i class="bi bi-cursor"></i> 疯狂点击！';
+      state = 'running';
+      count = 0;
+      countEl.textContent = '0';
+      countEl.classList.remove('flash');
+      countEl.classList.add('pulse');
+      cpsEl.textContent = '0.0';
+      leftEl.textContent = '10.0';
+      bar.style.width = '0';
+      result.hidden = true;
+      hideStatus('csStatus');
+      startAt = Date.now();
+      raf = requestAnimationFrame(tick);
+    }, 3 * 700));
+  }
+
+  function finish() {
+    state = 'done';
+    lockUntil = Date.now() + LOCK_MS;
+    cancelAnimationFrame(raf);
+    bar.style.width = '100%';
+    countEl.classList.remove('pulse');
+    countEl.classList.add('flash');
+    btnLabel.innerHTML = '时间到';
+    btn.classList.remove('running');
+    const cps = count / (DURATION / 1000);
+    const grade = cps >= 9 ? '职业选手' : cps >= 7 ? '手速达人' : cps >= 5 ? '反应敏捷' : cps >= 3 ? '正常水平' : '养生大师';
+    const isBest = cps > best;
+    if (isBest) localStorage.setItem(BEST_KEY, String(cps));
+    result.innerHTML =
+      `<div class="cs-result-grid">` +
+      `<div class="cs-result-item"><span class="v">${count}</span><span class="k">总点击数</span></div>` +
+      `<div class="cs-result-item"><span class="v">${cps.toFixed(1)}</span><span class="k">次/秒</span></div>` +
+      `<div class="cs-result-item"><span class="v">${grade}</span><span class="k">评价</span></div>` +
+      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)"><i class="bi bi-trophy"></i></span><span class="k">新纪录！</span></div>` : '') +
+      `</div>` +
+      (best > 0 && !isBest ? `<p class="muted">历史最佳 ${best.toFixed(1)} 次/秒</p>` : '');
+    result.hidden = false;
+    showStatus('csStatus', 'success', '时间到！成绩已生成');
+    setTimeout(() => {
+      if (state === 'done') {
+        btnLabel.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> 再来一次';
+      }
+    }, LOCK_MS);
+  }
+
+  function spawnPlus(x: number, y: number) {
+    if (floatStack.length >= 10) floatStack.shift()?.remove();
+    const el = document.createElement('span');
+    el.className = 'float-plus';
+    el.textContent = '+1';
+    const jx = Math.round((Math.random() - 0.5) * 56);
+    const jy = 54 + Math.round(Math.random() * 26);
+    const dur = (0.45 + Math.random() * 0.25).toFixed(2);
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.setProperty('--jx', `${jx}px`);
+    el.style.setProperty('--jy', `${jy}px`);
+    el.style.setProperty('--dur', `${dur}s`);
+    btn.appendChild(el);
+    floatStack.push(el);
+    setTimeout(() => {
+      const idx = floatStack.indexOf(el);
+      if (idx !== -1) floatStack.splice(idx, 1);
+      el.remove();
+    }, Number(dur) * 1000 + 80);
+  }
+
+  btn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    const now = Date.now();
+    if (state === 'idle') {
+      startCountdown();
+      return;
+    }
+    if (state === 'running') {
+      count++;
+      countEl.textContent = String(count);
+      countEl.classList.remove('pulse');
+      void countEl.offsetWidth;
+      countEl.classList.add('pulse');
+      const rect = btn.getBoundingClientRect();
+      spawnPlus(e.clientX - rect.left, e.clientY - rect.top);
+      cpsEl.textContent = fmtCps();
+      return;
+    }
+    if (state === 'done') {
+      if (now < lockUntil) {
+        btn.classList.remove('shake');
+        void btn.offsetWidth;
+        btn.classList.add('shake');
+        return;
+      }
+      countEl.classList.remove('flash');
+      result.hidden = true;
+      hideStatus('csStatus');
+      startCountdown();
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space') return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+    e.preventDefault();
+    const rect = btn.getBoundingClientRect();
+    btn.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2,
+    }));
+  });
+</script>

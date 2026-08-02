@@ -1,0 +1,116 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'keyboard-test')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="按键测试" icon="bi-keyboard">
+    <div class="kt-box" id="ktBox">
+      <div class="kt-key" id="ktKey">请按下任意键</div>
+      <div class="kt-code" id="ktCode"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="ktClear" type="button"><i class="bi bi-trash"></i> 清空记录</button>
+    </div>
+    <div class="status-msg" id="ktStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="最近按键记录" icon="bi-list-ol">
+    <div class="kt-history" id="ktHistory"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .kt-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-7) var(--space-5);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    text-align: center;
+  }
+
+  .kt-key {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--text);
+    min-height: 46px;
+  }
+
+  .kt-code {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+
+  .kt-history {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .kt-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../scripts/toolkit';
+
+  const keyEl = byId<HTMLElement>('ktKey');
+  const codeEl = byId<HTMLElement>('ktCode');
+  const history = byId<HTMLElement>('ktHistory');
+
+  function displayName(e: KeyboardEvent): string {
+    if (e.key === ' ') return '空格';
+    if (e.key.length === 1) return e.key.toUpperCase();
+    const map: Record<string, string> = {
+      ArrowUp: '↑ 上', ArrowDown: '↓ 下', ArrowLeft: '← 左', ArrowRight: '→ 右',
+      Enter: '回车', Backspace: '退格', Tab: 'Tab', Shift: 'Shift', Control: 'Ctrl',
+      Alt: 'Alt', Meta: 'Win/Cmd', CapsLock: 'CapsLock', Escape: 'Esc', Delete: 'Delete',
+      Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown', Insert: 'Insert',
+      F1: 'F1', F2: 'F2', F3: 'F3', F4: 'F4', F5: 'F5', F6: 'F6', F7: 'F7', F8: 'F8', F9: 'F9', F10: 'F10', F11: 'F11', F12: 'F12',
+    };
+    return map[e.key] || e.key;
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    e.preventDefault();
+    const name = displayName(e);
+    keyEl.textContent = name;
+    const mods = [
+      e.ctrlKey ? 'Ctrl' : '',
+      e.shiftKey ? 'Shift' : '',
+      e.altKey ? 'Alt' : '',
+      e.metaKey ? 'Meta' : '',
+    ].filter(Boolean).join('+');
+    codeEl.textContent = `code: ${e.code}${mods ? ' · ' + mods : ''}`;
+    const row = document.createElement('div');
+    row.className = 'kt-row';
+    row.innerHTML = `<span>${name}</span><span>${e.code}${mods ? ' · ' + mods : ''}</span>`;
+    history.prepend(row);
+    while (history.children.length > 20) history.lastElementChild?.remove();
+  });
+
+  byId<HTMLButtonElement>('ktClear').addEventListener('click', () => {
+    history.innerHTML = '';
+    keyEl.textContent = '请按下任意键';
+    codeEl.textContent = '';
+  });
+</script>

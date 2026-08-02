@@ -1,0 +1,180 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'unit-converter')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="单位换算" icon="bi-rulers">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="ucCat">类别</label>
+        <select class="select" id="ucCat">
+          <option value="length" selected>长度</option>
+          <option value="weight">重量</option>
+          <option value="temperature">温度</option>
+          <option value="storage">数据存储</option>
+          <option value="time">时间</option>
+          <option value="area">面积</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucFrom">从</label>
+        <select class="select" id="ucFrom"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucTo">到</label>
+        <select class="select" id="ucTo"></select>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ucValue">数值</label>
+        <input class="input" id="ucValue" type="number" value="1" step="any" />
+      </div>
+      <div class="field">
+        <label class="field-label">&nbsp;</label>
+        <button class="btn btn-ghost" id="ucSwap" type="button"><i class="bi bi-arrow-left-right"></i> 交换单位</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ucBtn" type="button"><i class="bi bi-arrow-repeat"></i> 换算</button>
+    </div>
+    <div class="status-msg" id="ucStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-3" id="ucResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 60px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 17px;
+    line-height: 1.7;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  type Unit = { id: string; name: string; factor?: number; offset?: number };
+
+  const CATEGORIES: Record<string, Unit[]> = {
+    length: [
+      { id: 'mm', name: '毫米', factor: 0.001 },
+      { id: 'cm', name: '厘米', factor: 0.01 },
+      { id: 'm', name: '米', factor: 1 },
+      { id: 'km', name: '千米', factor: 1000 },
+      { id: 'in', name: '英寸', factor: 0.0254 },
+      { id: 'ft', name: '英尺', factor: 0.3048 },
+      { id: 'yd', name: '码', factor: 0.9144 },
+      { id: 'mi', name: '英里', factor: 1609.344 },
+    ],
+    weight: [
+      { id: 'mg', name: '毫克', factor: 0.000001 },
+      { id: 'g', name: '克', factor: 0.001 },
+      { id: 'kg', name: '千克', factor: 1 },
+      { id: 't', name: '吨', factor: 1000 },
+      { id: 'oz', name: '盎司', factor: 0.028349523125 },
+      { id: 'lb', name: '磅', factor: 0.45359237 },
+      { id: 'jin', name: '斤', factor: 0.5 },
+    ],
+    temperature: [
+      { id: 'c', name: '摄氏度 (°C)' },
+      { id: 'f', name: '华氏度 (°F)' },
+      { id: 'k', name: '开尔文 (K)' },
+    ],
+    storage: [
+      { id: 'b', name: 'B', factor: 1 },
+      { id: 'kb', name: 'KB', factor: 1024 },
+      { id: 'mb', name: 'MB', factor: 1024 ** 2 },
+      { id: 'gb', name: 'GB', factor: 1024 ** 3 },
+      { id: 'tb', name: 'TB', factor: 1024 ** 4 },
+      { id: 'pb', name: 'PB', factor: 1024 ** 5 },
+    ],
+    time: [
+      { id: 'ms', name: '毫秒', factor: 0.001 },
+      { id: 's', name: '秒', factor: 1 },
+      { id: 'min', name: '分钟', factor: 60 },
+      { id: 'h', name: '小时', factor: 3600 },
+      { id: 'd', name: '天', factor: 86400 },
+      { id: 'w', name: '周', factor: 604800 },
+      { id: 'mo', name: '月（30天）', factor: 2592000 },
+      { id: 'y', name: '年（365天）', factor: 31536000 },
+    ],
+    area: [
+      { id: 'm2', name: '平方米', factor: 1 },
+      { id: 'km2', name: '平方千米', factor: 1e6 },
+      { id: 'mu', name: '亩', factor: 666.6667 },
+      { id: 'ha', name: '公顷', factor: 10000 },
+      { id: 'ft2', name: '平方英尺', factor: 0.09290304 },
+    ],
+  };
+
+  const catSel = byId<HTMLSelectElement>('ucCat');
+  const fromSel = byId<HTMLSelectElement>('ucFrom');
+  const toSel = byId<HTMLSelectElement>('ucTo');
+  const result = byId<HTMLElement>('ucResult');
+
+  function populate() {
+    const units = CATEGORIES[catSel.value];
+    fromSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    toSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    if (catSel.value === 'temperature') {
+      toSel.value = 'f';
+    } else {
+      toSel.value = units[1].id;
+    }
+    convert();
+  }
+
+  function toBase(value: number, unit: Unit): number {
+    if (unit.id === 'c') return value;
+    if (unit.id === 'f') return (value - 32) / 1.8;
+    if (unit.id === 'k') return value - 273.15;
+    return value * (unit.factor ?? 1);
+  }
+
+  function fromBase(celsius: number, unit: Unit): number {
+    if (unit.id === 'c') return celsius;
+    if (unit.id === 'f') return celsius * 1.8 + 32;
+    if (unit.id === 'k') return celsius + 273.15;
+    return celsius / (unit.factor ?? 1);
+  }
+
+  function convert() {
+    hideStatus('ucStatus');
+    const value = Number(byId<HTMLInputElement>('ucValue').value);
+    const units = CATEGORIES[catSel.value];
+    const from = units.find((u) => u.id === fromSel.value)!;
+    const to = units.find((u) => u.id === toSel.value)!;
+    if (isNaN(value)) {
+      showStatus('ucStatus', 'error', '请输入有效数值');
+      return;
+    }
+    const base = toBase(value, from);
+    const out = fromBase(base, to);
+    const digits = Math.abs(out) >= 1e6 || (Math.abs(out) < 1e-4 && out !== 0) ? 8 : 4;
+    result.innerHTML = `<div>${value} ${from.name} = <b>${Number(out.toFixed(digits))}</b> ${to.name}</div>`;
+  }
+
+  catSel.addEventListener('change', populate);
+  byId<HTMLButtonElement>('ucSwap').addEventListener('click', () => {
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    convert();
+  });
+  byId<HTMLButtonElement>('ucBtn').addEventListener('click', convert);
+  byId<HTMLInputElement>('ucValue').addEventListener('input', convert);
+  fromSel.addEventListener('change', convert);
+  toSel.addEventListener('change', convert);
+  populate();
+</script>

@@ -19,7 +19,7 @@ const {
   description = SITE.description,
   keywords,
   canonical = SITE.url + '/',
-  ogImage = SITE.url + '/clover-avatar.svg',
+  ogImage = SITE.url + '/brand/clover-og.png',
   jsonLd,
 } = Astro.props;
 
@@ -46,8 +46,11 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
-    <link rel="icon" href="/clover-logo.svg" type="image/svg+xml" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/brand/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
 
     <script is:inline>
       (function () {

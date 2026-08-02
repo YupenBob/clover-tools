@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'fun' as const;
+const tool = TOOLS.fun.find((t) => t.slug === 'lottery')!;
+const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
+  <ToolPanel title="抽奖配置" icon="bi-gift">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><i class="bi bi-magic"></i> 示例名单</button>
+    </div>
+    <div class="field">
+      <label class="field-label" for="lotNames">名单（每行一个）</label>
+      <textarea class="textarea" id="lotNames" spellcheck="false" placeholder="张三&#10;李四&#10;王五"></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="lotCount">中奖人数</label>
+        <input class="input" id="lotCount" type="number" value="1" min="1" max="50" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-gift"></i> 开始抽奖</button>
+      <button class="btn btn-ghost" id="lotReset" type="button"><i class="bi bi-arrow-counterclockwise"></i> 重置</button>
+    </div>
+    <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="中奖展示" icon="bi-trophy">
+    <div class="lot-rolling" id="lotRolling">点击开始抽奖</div>
+    <div class="lot-winners" id="lotWinners"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lot-rolling {
+    min-height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    text-align: center;
+  }
+
+  .lot-winners {
+    margin-top: var(--space-4);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .lot-winner {
+    padding: 10px 18px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 600;
+    font-size: 15px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  const rolling = byId<HTMLElement>('lotRolling');
+  const winnersEl = byId<HTMLElement>('lotWinners');
+  let running = false;
+
+  function names(): string[] {
+    return byId<HTMLTextAreaElement>('lotNames').value
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function start() {
+    hideStatus('lotStatus');
+    const list = names();
+    const count = Number(byId<HTMLInputElement>('lotCount').value);
+    if (list.length === 0) {
+      showStatus('lotStatus', 'error', '请先填写名单');
+      return;
+    }
+    if (count < 1 || count > list.length) {
+      showStatus('lotStatus', 'error', `中奖人数需在 1-${list.length} 之间`);
+      return;
+    }
+    if (running) return;
+    running = true;
+    winnersEl.innerHTML = '';
+    byId<HTMLButtonElement>('lotBtn').disabled = true;
+    const pool = [...list];
+    const picked: string[] = [];
+    let ticks = 0;
+    const totalTicks = 30 + count * 8;
+    const timer = setInterval(() => {
+      const idx = Math.floor(Math.random() * pool.length);
+      rolling.textContent = pool[idx];
+      ticks++;
+      if (ticks >= totalTicks) {
+        clearInterval(timer);
+        for (let i = 0; i < count; i++) {
+          const pick = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          picked.push(pick);
+        }
+        rolling.textContent = picked.join('、');
+        winnersEl.innerHTML = picked
+          .map((n, i) => `<span class="lot-winner">${i + 1}. ${n}</span>`)
+          .join('');
+        running = false;
+        byId<HTMLButtonElement>('lotBtn').disabled = false;
+        showStatus('lotStatus', 'success', `恭喜 ${picked.length} 位中奖者`);
+      }
+    }, 90);
+  }
+
+  byId<HTMLButtonElement>('lotBtn').addEventListener('click', start);
+  byId<HTMLButtonElement>('lotReset').addEventListener('click', () => {
+    winnersEl.innerHTML = '';
+    rolling.textContent = '点击开始抽奖';
+    hideStatus('lotStatus');
+  });
+  byId<HTMLButtonElement>('lotSample').addEventListener('click', () => {
+    byId<HTMLTextAreaElement>('lotNames').value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada'].join('\n');
+  });
+</script>
