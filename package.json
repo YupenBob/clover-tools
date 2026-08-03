@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "node scripts/clean-dist.mjs && astro build",
     "preview": "astro preview",
     "check": "node scripts/check-links.mjs && node scripts/check-emoji.mjs",
     "check:all": "npm run build && npm run check",
+    "icons:slim": "node scripts/slim-icons.mjs",
+    "redirects": "node scripts/gen-redirects.mjs",
     "deploy:media": "wrangler r2 object put"
   },
   "dependencies": {
