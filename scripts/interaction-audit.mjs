@@ -59,32 +59,44 @@ for (const url of urls) {
   const page = await browser.newPage();
   const errors = [];
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(`console: ${m.text().slice(0, 160)}`);
+    if (m.type() === 'error' && !m.text().includes('/api/')) errors.push(`console: ${m.text().slice(0, 160)}`);
   });
   page.on('pageerror', (e) => errors.push(`pageerror: ${String(e.message).slice(0, 160)}`));
   page.on('response', (r) => {
-    if (r.status() >= 400) errors.push(`http ${r.status()}: ${r.url().replace(base, '')}`);
+    const path = r.url().replace(base, '');
+    // 本地 dev 不提供 Pages Functions，/api/* 404 属预期
+    if (r.status() >= 400 && !path.startsWith('/api/')) {
+      errors.push(`http ${r.status()}: ${path}`);
+    }
   });
 
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForTimeout(600);
 
-    // 填充第一个 textarea（如有）
-    const ta = page.locator('textarea').first();
+    // 填充第一个可编辑 textarea（跳过只读输出框），避免污染 URL 等输入框
+    const ta = page.locator('textarea:not([readonly])').first();
     if (await ta.count()) {
-      await ta.fill('测试数据 test 1234');
-    }
-    const inp = page.locator('input[type="text"]').first();
-    if (await inp.count() && !(await inp.getAttribute('value'))) {
-      await inp.fill('测试');
+      await ta.fill('测试数据 test 1234', { timeout: 5000 });
     }
 
     // 点击第一个主按钮
     const btn = page.locator('.btn-primary').first();
     if (await btn.count()) {
-      await btn.click();
+      await btn.click({ force: true, timeout: 10000 });
       await page.waitForTimeout(ACTION_PAGES.has(url.replace(base, '')) ? 2500 : 800);
+      // 对重点页面断言：点击后应有非空输出
+      if (ACTION_PAGES.has(url.replace(base, ''))) {
+        const hasOutput = await page
+          .locator('textarea[readonly]')
+          .evaluateAll((els) => els.some((el) => el.value.trim() !== ''));
+        const statusOk = await page
+          .locator('.status-msg.show.success')
+          .count();
+        if (!hasOutput && statusOk === 0) {
+          errors.push('点击主按钮后无输出结果');
+        }
+      }
     }
   } catch (e) {
     errors.push(`step: ${String(e.message).slice(0, 160)}`);
