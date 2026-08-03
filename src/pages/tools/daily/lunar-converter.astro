@@ -91,10 +91,11 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   function setTodayLunar() {
     const lunar = Solar.fromDate(now).getLunar();
+    const isLeap = lunar.getMonth() < 0;
     yearSel.value = String(lunar.getYear());
-    monthSel.value = String(lunar.getMonth());
+    monthSel.value = String(Math.abs(lunar.getMonth()));
     daySel.value = String(lunar.getDay());
-    byId<HTMLInputElement>('lcLeap').checked = lunar.isLeap();
+    byId<HTMLInputElement>('lcLeap').checked = isLeap;
     convertToSolar();
   }
 
@@ -110,7 +111,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     byId<HTMLElement>('lcLunarResult').innerHTML =
       `<div>农历：${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}</div>` +
       `<div>干支：${lunar.getYearInGanZhi()}年 · ${lunar.getMonthInGanZhi()}月 · ${lunar.getDayInGanZhi()}日</div>` +
-      `<div>生肖：${lunar.getYearShengXiao()}${lunar.isLeap() ? ' · 闰月' : ''}</div>` +
+      `<div>生肖：${lunar.getYearShengXiao()}${lunar.getMonth() < 0 ? ' · 闰月' : ''}</div>` +
       (lunar.getJieQi() ? `<div>节气：${lunar.getJieQi()}</div>` : '');
     showStatus('lcLunarStatus', 'success', '转换完成');
   }
@@ -122,7 +123,8 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const d = Number(daySel.value);
     const leap = byId<HTMLInputElement>('lcLeap').checked;
     try {
-      const solar = Lunar.fromYmd(y, m, d, leap).getSolar();
+      // 闰月在本库中用负月份表示，例如 -6 表示闰六月
+      const solar = Lunar.fromYmd(y, leap ? -m : m, d).getSolar();
       byId<HTMLElement>('lcSolarResult').textContent =
         `公历：${solar.toYmd()}（周${'日一二三四五六'[solar.getWeek()]}）`;
       showStatus('lcSolarStatus', 'success', '转换完成');
