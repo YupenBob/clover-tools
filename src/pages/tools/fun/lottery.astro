@@ -171,7 +171,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 46px rgba(201, 169, 110, 0.22), 0 14px 40px rgba(0, 0, 0, 0.55);
   }
   .reels-paybox {
-    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    position: absolute; left: -32px; right: -32px; top: 50%; transform: translateY(-50%);
     height: 76px; z-index: 4; pointer-events: none;
     border: 2px solid rgba(230, 214, 174, 0.92);
     border-radius: 14px;
@@ -255,6 +255,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .slot-row.win { color: #b3261e; text-shadow: 0 0 8px rgba(179, 38, 30, 0.25); animation: win-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .slot-reels { position: relative; }
   .slot-reels .reels-paybox {
+    left: -14px; right: -14px;
     height: 44px;
     border-color: rgba(179, 38, 30, 0.85);
     box-shadow: 0 0 12px rgba(179, 38, 30, 0.4), inset 0 0 10px rgba(179, 38, 30, 0.1);
