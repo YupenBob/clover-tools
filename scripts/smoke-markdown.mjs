@@ -99,6 +99,40 @@ check('帮助弹窗关闭', !(await page.locator('#mdModal').isVisible()));
 // 13. 全屏按钮存在
 check('全屏按钮', (await page.locator('.md-tbtn[data-cmd="fullscreen"]').count()) === 1);
 
+// 14. 回车续行（列表自动延续）
+await page.locator('#mdSource').fill('- 第一项');
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  el.setSelectionRange(el.value.length, el.value.length);
+});
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+const listVal = await page.locator('#mdSource').inputValue();
+check('回车续行', listVal === '- 第一项\n- ', `got: ${JSON.stringify(listVal)}`);
+
+// 15. 目录大纲
+await page.locator('#mdSource').fill('# 标题一\n\n## 标题二\n\n### 标题三');
+await page.waitForTimeout(400);
+await page.locator('.md-tbtn[data-cmd="toc"]').click();
+await page.waitForTimeout(200);
+const tocVisible = await page.locator('#mdToc').isVisible();
+const tocLinks = await page.locator('#mdToc a').count();
+check('目录大纲', tocVisible && tocLinks === 3, `links: ${tocLinks}`);
+
+// 16. Ctrl+1 标题
+await page.locator('#mdSource').fill('一段文字');
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  el.setSelectionRange(el.value.length, el.value.length);
+});
+await page.keyboard.press('Control+1');
+await page.waitForTimeout(200);
+const ctrl1Val = await page.locator('#mdSource').inputValue();
+check('Ctrl+1 标题', ctrl1Val.startsWith('# '), ctrl1Val.slice(0, 20));
+
+// 17. 富文本复制按钮
+check('富文本按钮', (await page.locator('#mdCopyRich').count()) === 1);
+
 console.log(errors.length ? `\nJS 报错:\n${errors.join('\n')}` : '\n无 JS 报错');
 await browser.close();
 process.exit(results.some((r) => !r.ok) || errors.length ? 1 : 0);

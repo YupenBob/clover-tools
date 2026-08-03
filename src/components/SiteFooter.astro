@@ -1,5 +1,6 @@
 ---
 import { SITE } from '../lib/site';
+import { CATEGORIES } from '../lib/tools';
 const year = new Date().getFullYear();
 const lastUpdated = new Date().toISOString().slice(0, 10);
 ---
@@ -9,6 +10,9 @@ const lastUpdated = new Date().toISOString().slice(0, 10);
     <span>© {year} {SITE.name} · 精选在线工具箱，数据在浏览器本地处理</span>
     <div class="footer-links">
       <span class="footer-updated"><i class="bi bi-calendar-check" aria-hidden="true"></i> 最近更新 {lastUpdated}</span>
+      {CATEGORIES.map((cat) => (
+        <a href={`/tools/${cat.id}/`}>{cat.name}</a>
+      ))}
       <a href="/sitemap-index.xml">站点地图</a>
       <a href={SITE.github} target="_blank" rel="noopener noreferrer">
         <i class="bi bi-github" aria-hidden="true"></i> GitHub

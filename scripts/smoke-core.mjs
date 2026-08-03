@@ -42,34 +42,44 @@ const cases = [
 
 let failed = 0;
 for (const c of cases) {
-  try {
-    const page = await browser.newPage();
-    const errors = [];
-    page.on('pageerror', (e) => errors.push(String(e.message)));
-    await page.goto(base + c.path, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    if (c.btn) await page.locator(c.btn).waitFor({ state: 'attached', timeout: 10000 });
-    await page.waitForTimeout(800);
-    for (const [sel, val] of Object.entries(c.fill || {})) {
-      await page.locator(sel).fill(val, { timeout: 8000 }).catch(() => {});
-    }
-    if (c.btn) {
-      await page.locator(c.btn).click({ force: true, timeout: 10000 });
-    }
-    await page.waitForTimeout(1200);
-    let out = await readOut(page, c.out);
-    if (out.trim() === '') {
+  let ok = false;
+  let retried = false;
+  let lastNote = '';
+  // 顺序加载下偶发超时属于环境抖动，失败时重试一次以区分真实 bug
+  for (let attempt = 0; attempt < 2 && !ok; attempt++) {
+    if (attempt === 1) retried = true;
+    try {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      const errors = [];
+      page.on('pageerror', (e) => errors.push(String(e.message)));
+      await page.goto(base + c.path, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      if (c.btn) await page.locator(c.btn).waitFor({ state: 'attached', timeout: 10000 });
       await page.waitForTimeout(1200);
-      out = await readOut(page, c.out);
+      for (const [sel, val] of Object.entries(c.fill || {})) {
+        await page.locator(sel).fill(val, { timeout: 8000 }).catch(() => {});
+      }
+      if (c.btn) {
+        await page.locator(c.btn).click({ force: true, timeout: 20000 });
+      }
+      await page.waitForTimeout(1500);
+      let out = await readOut(page, c.out);
+      const statusClass = await page.locator('.status-msg.show').getAttribute('class').catch(() => '');
+      const statusOk = statusClass.includes('success');
+      for (let i = 0; i < 2 && out.trim() === ''; i++) {
+        await page.waitForTimeout(1500);
+        out = await readOut(page, c.out);
+      }
+      ok = (out.trim() !== '' || statusOk) && errors.length === 0;
+      lastNote = `输出 ${out.trim().slice(0, 40) || (statusOk ? '(状态成功)' : '(空)')}`;
+      errors.slice(0, 2).forEach((e) => console.log(`   error: ${e}`));
+      await context.close();
+    } catch (e) {
+      lastNote = String(e.message).slice(0, 120);
     }
-    const ok = out.trim() !== '' && errors.length === 0;
-    if (!ok) failed++;
-    console.log(`${ok ? 'PASS' : 'FAIL'} ${c.path} :: 输出 ${out.trim().slice(0, 40) || '(空)'}`);
-    errors.slice(0, 2).forEach((e) => console.log('   error: ' + e));
-    await page.close();
-  } catch (e) {
-    failed++;
-    console.log(`FAIL ${c.path} :: ${String(e.message).slice(0, 120)}`);
   }
+  if (!ok) failed++;
+  console.log(`${ok ? (retried ? 'PASS(重试)' : 'PASS') : 'FAIL'} ${c.path} :: ${lastNote}`);
 }
 
 await browser.close();

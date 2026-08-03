@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import ToolCard from '../../../components/ToolCard.astro';
+import { CATEGORIES, TOOLS, type ToolCategory } from '../../../lib/tools';
+import { SITE } from '../../../lib/site';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((cat) => ({ params: { category: cat.id }, props: { cat } }));
+}
+
+const { cat } = Astro.props;
+const url = `${SITE.url}/tools/${cat.id}/`;
+const tools = TOOLS[cat.id];
+const others = CATEGORIES.filter((c) => c.id !== cat.id);
+
+const CATEGORY_DESC: Record<ToolCategory, string> = {
+  dev: 'CloverTools 开发实用工具合集，覆盖 JSON 与代码格式化、加解密、哈希、正则、接口调试等开发者高频场景，纯浏览器处理，即开即用无需注册。',
+  daily: 'CloverTools 日常实用工具合集，涵盖万年历、时间戳、单位换算、理财计算、BMI、作息计时等生活与办公常用工具，数据不出浏览器。',
+  fun: 'CloverTools 趣味工具合集，包含抽奖、手速测试、ASCII 艺术字、图片字符画、随机数等创意小玩意，给忙碌的日常加点乐趣。',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${cat.name}工具`,
+  description: cat.blurb,
+  url,
+  numberOfItems: tools.length,
+  itemListElement: tools.map((tool, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${url}${tool.slug}/`,
+    name: tool.name,
+  })),
+};
+---
+
+<BaseLayout
+  title={`${cat.name}工具 - ${SITE.name}`}
+  description={CATEGORY_DESC[cat.id]}
+  keywords={[cat.name, `${cat.name}工具`, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
+  canonical={url}
+  jsonLd={jsonLd}
+>
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{cat.name}工具</span>
+  </nav>
+
+  <header class="tool-hero">
+    <h1>{cat.name}工具</h1>
+    <p class="tool-hero-desc">{cat.blurb}共 {TOOLS[cat.id].length} 个，全部纯浏览器处理。</p>
+  </header>
+
+  <div class="tool-grid">
+    {tools.map((tool, ti) => (
+      <ToolCard tool={tool} category={cat.id} delay={Math.min(ti, 24) * 22} />
+    ))}
+  </div>
+
+  <nav class="other-cats" aria-label="其他分类">
+    <span class="other-cats-label">更多分类</span>
+    {others.map((c) => (
+      <a class="other-cat-link" href={`/tools/${c.id}/`}>
+        <i class={`bi ${c.icon}`} aria-hidden="true"></i>
+        {c.name}
+      </a>
+    ))}
+  </nav>
+</BaseLayout>
+
+<style>
+  .other-cats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+
+  .other-cats-label {
+    margin-right: var(--space-1);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .other-cat-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .other-cat-link:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+</style>

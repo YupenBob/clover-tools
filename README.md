@@ -34,7 +34,7 @@ scripts/                     # 质检脚本（链接完整性、emoji 扫描）
 npm install
 npm run dev        # http://localhost:4321
 npm run build      # 构建到 dist/
-npm run check      # 构建后检查：链接完整性 + emoji 扫描
+npm run check      # 构建后检查：链接完整性 + SEO 结构 + emoji 扫描
 ```
 
 ## 添加工具（精品制作规范）
@@ -66,6 +66,13 @@ wrangler r2 object put clovertools-media/<key> --file <path>
 ### 分析（Cloudflare Web Analytics，可选）
 
 在 Pages 项目里创建 Web Analytics 后，将站点级发布 token 写入环境变量 `PUBLIC_CF_BEACON_TOKEN`，构建后自动注入 beacon 脚本。
+
+### 搜索引擎验证与监控
+
+1. **Google Search Console**：在 GSC 添加 `clovertools.cn`，推荐用 Cloudflare DNS 的 TXT 记录验证；验证后提交 `https://clovertools.cn/sitemap-index.xml`。
+2. **Bing Webmaster**：添加站点后用 DNS TXT 验证；提交同一 sitemap。部署完成后可运行 `npm run indexnow` 主动推送全站 URL（key 文件为 `public/<32位hex>.txt`，已随仓库生成，勿删除）。
+3. **百度站长平台**：添加站点后选择「文件验证」，把平台给出的 `baidu_verify_<验证码>.html` 放入 `public/` 并重新部署（参考 `public/baidu-verify.example.html`），再提交 sitemap。Cloudflare 海外节点下百度收录较慢属预期，主力流量渠道为 Google/Bing 与 CSDN 文章。
+4. **数据闭环**：以 GSC「曝光→点击」排序工具页，Top 20 无收录页逐批排查；每周查看覆盖率与抓取统计。
 
 ## 约定
 

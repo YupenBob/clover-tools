@@ -8,5 +8,13 @@ export default defineConfig({
     format: 'directory',
   },
   compressHTML: true,
-  integrations: [sitemap()],
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'hover',
+  },
+  integrations: [
+    sitemap({
+      lastmod: new Date(),
+    }),
+  ],
 });

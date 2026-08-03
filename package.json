@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/clean-dist.mjs && astro build",
+    "build": "node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build",
     "preview": "astro preview",
-    "check": "node scripts/check-links.mjs && node scripts/check-emoji.mjs",
+    "check": "node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
     "check:all": "npm run build && npm run check",
     "icons:slim": "node scripts/slim-icons.mjs",
     "redirects": "node scripts/gen-redirects.mjs",
+    "indexnow": "node scripts/ping-indexnow.mjs",
     "deploy:media": "wrangler r2 object put"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "croner": "^10.0.1",
     "crypto-js": "^4.2.0",
     "dompurify": "^3.4.12",
+    "figlet": "^1.11.4",
     "jsbarcode": "^3.12.3",
     "lunar-javascript": "^1.7.7",
     "marked": "^18.0.7",
@@ -34,6 +36,7 @@
     "yaml": "^2.9.0"
   },
   "devDependencies": {
+    "playwright-core": "^1.62.1",
     "wrangler": "^4.0.0"
   }
 }

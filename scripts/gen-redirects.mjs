@@ -30,10 +30,26 @@ for (const [catKey] of Object.entries(categories)) {
 
 const header = [
   '# CloverTools V3 - 旧路径 301 重定向（由 scripts/gen-redirects.mjs 生成，勿手改）',
+  '# 统一 https + www → 主域',
+  'https://www.clovertools.cn/* https://clovertools.cn/:splat 301',
+  '',
+  '# 旧站根页面与已下线栏目 → 首页',
+  '/about.html / 301',
+  '/home-new.html / 301',
+  '/demo.html / 301',
+  '/demo2.html / 301',
+  '/index.html / 301',
+  '/tools/index.html / 301',
+  '',
+  '# 已剥离内容（博客 / fix hub / 分类 / 插件）兜底跳首页，精确规则优先',
+  '/blog/* / 301',
+  '/fix/* / 301',
+  '/category/* / 301',
+  '/plugins/* / 301',
 ];
 writeFileSync(
   join(root, 'public', '_redirects'),
-  [...header, ...entries.sort()].join('\n') + '\n',
+  [...header, '', ...entries.sort()].join('\n') + '\n',
   'utf8',
 );
 console.log(`已生成 ${entries.length} 条重定向`);

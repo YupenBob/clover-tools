@@ -609,6 +609,8 @@ button {
 .category-section {
   margin-top: var(--space-7);
   scroll-margin-top: calc(var(--header-h) + 16px);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 960px;
 }
 
 .category-head {
@@ -651,6 +653,23 @@ button {
 .category-count {
   color: var(--text-tertiary);
   font-size: 13.5px;
+}
+
+.category-more {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-dark);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: gap 0.15s ease, color 0.15s ease;
+}
+
+.category-more:hover {
+  gap: 7px;
+  color: var(--primary);
 }
 
 .category-blurb {

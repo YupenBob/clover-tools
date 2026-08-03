@@ -64,4 +64,41 @@ if (problems.length) {
   process.exit(1);
 }
 
-console.log(`链接检查通过：${htmlFiles.length} 个页面，无失效链接`);
+// ── sitemap 完整性：所有 URL 与 dist 产物一一对应 ──
+const sitemapIndexFile = join(dist, 'sitemap-index.xml');
+let sitemapCount = 0;
+let sitemapProblems = [];
+if (!statSync(sitemapIndexFile, { throwIfNoEntry: false })) {
+  sitemapProblems.push('缺少 dist/sitemap-index.xml');
+} else {
+  const sitemapIndex = readFileSync(sitemapIndexFile, 'utf8');
+  const sitemapFiles = [...sitemapIndex.matchAll(/<loc>([^<]+)<\/loc>/g)]
+    .map((m) => m[1])
+    .map((loc) => join(dist, new URL(loc).pathname.replace(/^\//, '')));
+  for (const file of sitemapFiles) {
+    if (!statSync(file, { throwIfNoEntry: false })) {
+      sitemapProblems.push(`sitemap 指向不存在的产物：${file.replace(dist, '')}`);
+    } else {
+      const xml = readFileSync(file, 'utf8');
+      const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+      sitemapCount += urls.length;
+      for (const url of urls) {
+        const { pathname } = new URL(url);
+        const target = pathname.endsWith('/')
+          ? join(dist, pathname, 'index.html')
+          : join(dist, pathname);
+        if (!statSync(target, { throwIfNoEntry: false })) {
+          sitemapProblems.push(`sitemap URL 无对应产物：${url}`);
+        }
+      }
+    }
+  }
+}
+
+if (sitemapProblems.length) {
+  console.error(`sitemap 检查失败（${sitemapProblems.length} 处）：`);
+  sitemapProblems.forEach((p) => console.error('  ' + p));
+  process.exit(1);
+}
+
+console.log(`链接检查通过：${htmlFiles.length} 个页面，无失效链接；sitemap ${sitemapCount} 条 URL 与产物一一对应`);
