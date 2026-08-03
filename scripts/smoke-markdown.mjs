@@ -4,7 +4,7 @@
  */
 import { chromium } from 'playwright-core';
 
-const base = 'http://localhost:4321/tools/dev/markdown/';
+const base = (process.argv[2] || 'http://localhost:4321') + '/tools/dev/markdown/';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage();
 const errors = [];
@@ -64,6 +64,40 @@ for (const id of ['mdCopyMd', 'mdCopyHtml', 'mdDownloadMd', 'mdDownloadHtml']) {
 // 8. 状态栏
 const stats = await page.locator('#mdStats').innerText();
 check('状态栏统计', /字符/.test(stats), stats);
+
+// 9. 代码高亮
+await page.locator('#mdSource').fill('```js\nconst x = 42; // 注释\n```');
+await page.waitForTimeout(400);
+const hlHtml = await page.locator('#mdPreview').innerHTML();
+check('代码高亮', hlHtml.includes('hl-kw') && hlHtml.includes('hl-num') && hlHtml.includes('hl-cmt'));
+
+// 10. 撤销 / 重做
+await page.locator('#mdSource').fill('hello world');
+await page.waitForTimeout(800);
+await page.keyboard.press('Control+z');
+await page.waitForTimeout(200);
+const afterUndo = await page.locator('#mdSource').inputValue();
+check('撤销', afterUndo === 'hello world', `got: ${afterUndo.slice(0, 30)}`);
+await page.keyboard.press('Control+y');
+await page.waitForTimeout(200);
+const afterRedo = await page.locator('#mdSource').inputValue();
+check('重做', afterRedo.includes('hello world'), `got: ${afterRedo.slice(0, 30)}`);
+
+// 11. 表格按钮
+await page.locator('.md-tbtn[data-cmd="table"]').click();
+const tableVal = await page.locator('#mdSource').inputValue();
+check('表格按钮', tableVal.includes('| 列1 |'));
+
+// 12. 帮助弹窗
+await page.locator('.md-tbtn[data-cmd="help"]').click();
+await page.waitForTimeout(200);
+check('帮助弹窗打开', await page.locator('#mdModal').isVisible());
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+check('帮助弹窗关闭', !(await page.locator('#mdModal').isVisible()));
+
+// 13. 全屏按钮存在
+check('全屏按钮', (await page.locator('.md-tbtn[data-cmd="fullscreen"]').count()) === 1);
 
 console.log(errors.length ? `\nJS 报错:\n${errors.join('\n')}` : '\n无 JS 报错');
 await browser.close();

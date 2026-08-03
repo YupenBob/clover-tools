@@ -9,7 +9,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="Markdown 编辑器" icon="bi-markdown">
+  <ToolPanel title="Markdown 在线编辑器" icon="bi-markdown">
     <div slot="actions">
       <div class="md-views" role="group" aria-label="视图切换">
         <button class="md-view active" data-view="split" type="button" title="分屏"><i class="bi bi-columns-gap"></i> 分屏</button>
@@ -40,6 +40,11 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <button class="md-tbtn" data-cmd="table" type="button" title="表格"><i class="bi bi-table"></i></button>
       <button class="md-tbtn" data-cmd="hr" type="button" title="分隔线"><i class="bi bi-hr"></i></button>
       <span class="md-sep"></span>
+      <button class="md-tbtn" data-cmd="undo" type="button" title="撤销 (Ctrl+Z)"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button class="md-tbtn" data-cmd="redo" type="button" title="重做 (Ctrl+Y)"><i class="bi bi-arrow-clockwise"></i></button>
+      <span class="md-sep"></span>
+      <button class="md-tbtn" data-cmd="fullscreen" type="button" title="全屏"><i class="bi bi-arrows-fullscreen"></i></button>
+      <button class="md-tbtn" data-cmd="help" type="button" title="帮助"><i class="bi bi-question-circle"></i></button>
       <button class="md-tbtn" data-cmd="draft" type="button" title="清空草稿 (Ctrl+Shift+Del)"><i class="bi bi-eraser"></i></button>
     </div>
 
@@ -65,6 +70,43 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
     <div class="status-msg" id="mdStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
+
+  <div class="md-modal" id="mdModal" hidden>
+    <div class="md-modal-card">
+      <div class="md-modal-head">
+        <h3><i class="bi bi-question-circle" aria-hidden="true"></i> Markdown 速查</h3>
+        <button class="icon-btn" id="mdModalClose" type="button" aria-label="关闭"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+      </div>
+      <div class="md-modal-body">
+        <h4>常用语法</h4>
+        <table>
+          <thead><tr><th>效果</th><th>写法</th></tr></thead>
+          <tbody>
+            <tr><td>标题</td><td><code># 一级</code> · <code>## 二级</code> · <code>### 三级</code></td></tr>
+            <tr><td>加粗 / 斜体 / 删除线</td><td><code>**文字**</code> · <code>*文字*</code> · <code>~~文字~~</code></td></tr>
+            <tr><td>行内代码 / 代码块</td><td><code>`code`</code> · <code>```js</code> 代码 <code>```</code></td></tr>
+            <tr><td>引用 / 列表 / 任务</td><td><code>&gt; 引用</code> · <code>- 列表</code> · <code>- [ ] 任务</code></td></tr>
+            <tr><td>链接 / 图片</td><td><code>[文字](url)</code> · <code>![描述](图片)</code></td></tr>
+            <tr><td>表格</td><td><code>| 列1 | 列2 |</code> 加分隔行即可</td></tr>
+          </tbody>
+        </table>
+        <h4>快捷键</h4>
+        <table>
+          <thead><tr><th>按键</th><th>功能</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>Ctrl+B</kbd> / <kbd>Ctrl+I</kbd> / <kbd>Ctrl+U</kbd></td><td>加粗 / 斜体 / 删除线</td></tr>
+            <tr><td><kbd>Ctrl+K</kbd> / <kbd>Ctrl+Shift+C</kbd> / <kbd>Ctrl+Shift+K</kbd></td><td>链接 / 行内代码 / 代码块</td></tr>
+            <tr><td><kbd>Ctrl+Shift+Q</kbd></td><td>引用</td></tr>
+            <tr><td><kbd>Tab</kbd> / <kbd>Shift+Tab</kbd></td><td>缩进 / 反缩进（多行批量）</td></tr>
+            <tr><td><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd></td><td>撤销 / 重做</td></tr>
+            <tr><td><kbd>Ctrl+Enter</kbd></td><td>切换到预览</td></tr>
+            <tr><td><kbd>Ctrl+Shift+Del</kbd></td><td>清空草稿</td></tr>
+          </tbody>
+        </table>
+        <p class="field-hint">支持粘贴 / 拖拽图片到编辑区，自动转 Base64 插入。内容自动保存草稿，仅存在本机。</p>
+      </div>
+    </div>
+  </div>
 </ToolLayout>
 
 <style>
@@ -247,11 +289,31 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     background: var(--bg-tertiary);
     border: 1px solid var(--border);
     overflow-x: auto;
+    color: var(--text);
   }
 
   .md-preview pre code {
     padding: 0;
     background: none;
+    font-size: 0.86em;
+  }
+
+  .md-preview .hl-kw {
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+
+  .md-preview .hl-str {
+    color: var(--success);
+  }
+
+  .md-preview .hl-cmt {
+    color: var(--text-tertiary);
+    font-style: italic;
+  }
+
+  .md-preview .hl-num {
+    color: var(--info);
   }
 
   .md-preview blockquote {
@@ -337,6 +399,118 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     margin-top: var(--space-3);
   }
 
+  /* ── 全屏 ── */
+  .tool-card-panel:fullscreen {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
+    background: var(--bg);
+    overflow: auto;
+  }
+
+  .tool-card-panel:fullscreen .md-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .tool-card-panel:fullscreen .md-source,
+  .tool-card-panel:fullscreen .md-preview {
+    min-height: 100%;
+    max-height: none;
+  }
+
+  /* ── 帮助弹窗 ── */
+  .md-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(3px);
+  }
+
+  .md-modal[hidden] {
+    display: none;
+  }
+
+  .md-modal-card {
+    width: 100%;
+    max-width: 640px;
+    max-height: 84vh;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .md-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .md-modal-head h3 {
+    margin: 0;
+    font-size: 17px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .md-modal-head h3 i {
+    color: var(--primary-dark);
+  }
+
+  .md-modal-body {
+    padding: var(--space-5);
+  }
+
+  .md-modal-body h4 {
+    margin: var(--space-4) 0 var(--space-2);
+    font-size: 14px;
+  }
+
+  .md-modal-body h4:first-child {
+    margin-top: 0;
+  }
+
+  .md-modal-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .md-modal-body th,
+  .md-modal-body td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .md-modal-body th {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .md-modal-body code,
+  .md-modal-body kbd {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
   @media (max-width: 820px) {
     .md-body.split {
       grid-template-columns: 1fr;
@@ -357,6 +531,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const readingEl = byId<HTMLElement>('mdReading');
   const timeEl = byId<HTMLElement>('mdTime');
   const statusEl = byId<HTMLElement>('mdStatus');
+  const modal = byId<HTMLElement>('mdModal');
+  const panel = document.querySelector<HTMLElement>('.tool-card-panel')!;
 
   marked.setOptions({ gfm: true, breaks: true });
 
@@ -397,19 +573,118 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     timeEl.textContent = `写作 ${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   }
 
+  // ── 代码高亮 ──
+  function escHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  const KEYWORDS: Record<string, string[]> = {
+    js: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'new', 'class', 'import', 'export', 'from', 'async', 'await', 'try', 'catch', 'throw', 'typeof', 'instanceof', 'this', 'null', 'undefined', 'true', 'false', 'switch', 'case', 'break', 'continue', 'delete', 'in', 'of', 'yield', 'static', 'extends', 'super', 'interface', 'type', 'enum', 'implements', 'public', 'private', 'readonly', 'abstract'],
+    python: ['def', 'return', 'if', 'elif', 'else', 'for', 'while', 'import', 'from', 'class', 'try', 'except', 'finally', 'with', 'as', 'lambda', 'pass', 'break', 'continue', 'None', 'True', 'False', 'and', 'or', 'not', 'in', 'is', 'yield', 'global', 'nonlocal', 'raise', 'assert'],
+    bash: ['if', 'then', 'else', 'elif', 'fi', 'for', 'while', 'do', 'done', 'case', 'esac', 'function', 'echo', 'export', 'local', 'return', 'exit', 'read', 'cd', 'mkdir', 'rm', 'cp', 'mv', 'grep', 'sed', 'awk', 'sudo', 'cat', 'touch', 'chmod', 'chown', 'curl', 'wget', 'tar', 'git'],
+    sql: ['SELECT', 'FROM', 'WHERE', 'INSERT', 'UPDATE', 'DELETE', 'INTO', 'VALUES', 'JOIN', 'LEFT', 'RIGHT', 'INNER', 'OUTER', 'ON', 'GROUP', 'BY', 'ORDER', 'HAVING', 'LIMIT', 'OFFSET', 'UNION', 'ALL', 'AS', 'DISTINCT', 'AND', 'OR', 'NOT', 'IN', 'EXISTS', 'BETWEEN', 'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'CREATE', 'TABLE', 'INDEX', 'ALTER', 'DROP', 'PRIMARY', 'KEY', 'FOREIGN', 'REFERENCES', 'NULL', 'IS', 'LIKE', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX'],
+    css: ['@media', '@keyframes', '@import', '@font-face', '@supports', 'important'],
+  };
+
+  function highlightCode(code: string, lang: string): string {
+    const text = escHtml(code);
+    const l = (lang || '').toLowerCase();
+    const isJs = /js|ts|javascript|typescript/.test(l);
+    const isPy = /python|py/.test(l);
+    const isBash = /bash|sh|shell/.test(l);
+    const isSql = /sql/.test(l);
+    const isHtml = /html|xml/.test(l);
+
+    const strRe = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g;
+    const commentRe = isPy || isBash ? /#[^\n]*/g : isSql ? /--[^\n]*/g : /\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+    const htmlCommentRe = /<!--[\s\S]*?-->/g;
+    const kw = isJs ? KEYWORDS.js : isPy ? KEYWORDS.python : isBash ? KEYWORDS.bash : isSql ? KEYWORDS.sql : isHtml ? KEYWORDS.css : KEYWORDS.js;
+    const kwRe = new RegExp(`\\b(?:${kw.join('|')})\\b`, isSql ? 'gi' : 'g');
+    const numRe = /\b\d+(?:\.\d+)?\b/g;
+
+    // 单次合并匹配：注释/字符串优先，避免关键字与数字误命中字符串内容
+    const rules: Array<{ re: RegExp; fn: (m: string) => string }> = [];
+    if (isHtml) rules.push({ re: htmlCommentRe, fn: (m) => `<span class="hl-cmt">${m}</span>` });
+    rules.push({ re: strRe, fn: (m) => `<span class="hl-str">${m}</span>` });
+    rules.push({ re: commentRe, fn: (m) => `<span class="hl-cmt">${m}</span>` });
+    rules.push({ re: kwRe, fn: (m) => `<span class="hl-kw">${m}</span>` });
+    rules.push({ re: numRe, fn: (m) => `<span class="hl-num">${m}</span>` });
+
+    const combined = new RegExp(rules.map((r) => r.re.source).join('|'), 'gi');
+    return text.replace(combined, (m) => {
+      for (const r of rules) {
+        const test = new RegExp(r.re.source, r.re.flags.replace('g', ''));
+        if (test.test(m)) return r.fn(m);
+      }
+      return m;
+    });
+  }
+
+  function decorateCode(html: string): string {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('pre code').forEach((el) => {
+      const m = (el.className || '').match(/language-([a-z0-9+#-]+)/i);
+      el.innerHTML = highlightCode(el.textContent || '', m ? m[1] : '');
+    });
+    return doc.body.innerHTML;
+  }
+
   // ── 渲染 ──
   let renderTimer: ReturnType<typeof setTimeout>;
   function render() {
     clearTimeout(renderTimer);
     renderTimer = setTimeout(() => {
       const html = marked.parse(source.value || '') as string;
-      preview.innerHTML = DOMPurify.sanitize(html);
+      preview.innerHTML = DOMPurify.sanitize(decorateCode(html), { ADD_DATA_URI_TAGS: ['img'] });
       updateStats();
     }, 120);
   }
 
-  source.addEventListener('input', () => {
+  // ── 撤销 / 重做 ──
+  const MAX_UNDO = 100;
+  type Snap = { value: string; start: number; end: number };
+  let undoStack: Snap[] = [];
+  let redoStack: Snap[] = [];
+  let restoring = false;
+  let snapTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function pushSnapshot() {
+    const cur: Snap = { value: source.value, start: source.selectionStart, end: source.selectionEnd };
+    const last = undoStack[undoStack.length - 1];
+    if (!last || last.value !== cur.value) {
+      undoStack.push(cur);
+      if (undoStack.length > MAX_UNDO) undoStack.shift();
+    }
+    redoStack = [];
+  }
+
+  function restore(s: Snap) {
+    restoring = true;
+    source.value = s.value;
+    source.selectionStart = Math.min(s.start, s.value.length);
+    source.selectionEnd = Math.min(s.end, s.value.length);
+    restoring = false;
     localStorage.setItem(DRAFT_KEY, source.value);
+    render();
+  }
+
+  function undo() {
+    if (!undoStack.length) return;
+    redoStack.push({ value: source.value, start: source.selectionStart, end: source.selectionEnd });
+    restore(undoStack.pop()!);
+  }
+
+  function redo() {
+    if (!redoStack.length) return;
+    undoStack.push({ value: source.value, start: source.selectionStart, end: source.selectionEnd });
+    restore(redoStack.pop()!);
+  }
+
+  source.addEventListener('input', () => {
+    if (restoring) return;
+    localStorage.setItem(DRAFT_KEY, source.value);
+    if (snapTimer) clearTimeout(snapTimer);
+    snapTimer = setTimeout(pushSnapshot, 600);
     render();
   });
 
@@ -424,13 +699,14 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       if (view === 'edit') source.focus();
       if (view === 'preview' && source.value) {
         const html = marked.parse(source.value) as string;
-        preview.innerHTML = DOMPurify.sanitize(html);
+        preview.innerHTML = DOMPurify.sanitize(decorateCode(html), { ADD_DATA_URI_TAGS: ['img'] });
       }
     });
   }
 
   // ── 文本操作 ──
   function wrap(prefix: string, suffix: string, placeholder: string) {
+    pushSnapshot();
     const start = source.selectionStart;
     const end = source.selectionEnd;
     const sel = source.value.slice(start, end) || placeholder;
@@ -441,7 +717,17 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     source.dispatchEvent(new Event('input'));
   }
 
+  function insertText(text: string) {
+    pushSnapshot();
+    const start = source.selectionStart;
+    const end = source.selectionEnd;
+    source.setRangeText(text, start, end, 'end');
+    source.focus();
+    source.dispatchEvent(new Event('input'));
+  }
+
   function blockLine(prefix: string) {
+    pushSnapshot();
     const start = source.selectionStart;
     const end = source.selectionEnd;
     const value = source.value;
@@ -464,6 +750,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   function indent(shift: boolean) {
+    pushSnapshot();
     const start = source.selectionStart;
     const end = source.selectionEnd;
     const value = source.value;
@@ -480,6 +767,76 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     source.dispatchEvent(new Event('input'));
   }
 
+  // ── 图片粘贴 / 拖拽 ──
+  function insertImageDataUrl(dataUrl: string) {
+    const md = `\n![图片](${dataUrl})\n`;
+    insertText(md);
+    showStatus('mdStatus', 'success', '已插入图片（Base64 内嵌）');
+  }
+
+  source.addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items || [];
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => insertImageDataUrl(reader.result as string);
+        reader.readAsDataURL(file);
+        return;
+      }
+    }
+  });
+
+  source.addEventListener('drop', (e) => {
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      e.preventDefault();
+      const reader = new FileReader();
+      reader.onload = () => insertImageDataUrl(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // ── 滚动同步（仅分屏） ──
+  let syncingScroll = false;
+  function syncScroll(from: HTMLElement, to: HTMLElement) {
+    if (syncingScroll || !body.classList.contains('split')) return;
+    syncingScroll = true;
+    const maxFrom = from.scrollHeight - from.clientHeight;
+    const maxTo = to.scrollHeight - to.clientHeight;
+    if (maxFrom > 0 && maxTo > 0) {
+      to.scrollTop = (from.scrollTop / maxFrom) * maxTo;
+    }
+    requestAnimationFrame(() => {
+      syncingScroll = false;
+    });
+  }
+  source.addEventListener('scroll', () => syncScroll(source, preview));
+  preview.addEventListener('scroll', () => syncScroll(preview, source));
+
+  // ── 全屏 ──
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      panel.requestFullscreen().catch(() => showStatus('mdStatus', 'info', '当前环境不支持全屏'));
+    }
+  }
+
+  // ── 帮助弹窗 ──
+  function openHelp() {
+    modal.hidden = false;
+  }
+  function closeHelp() {
+    modal.hidden = true;
+  }
+  byId<HTMLButtonElement>('mdModalClose').addEventListener('click', closeHelp);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeHelp();
+  });
+
   const COMMANDS: Record<string, () => void> = {
     h1: () => blockLine('# '),
     h2: () => blockLine('## '),
@@ -495,13 +852,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     task: () => blockLine('- [ ] '),
     link: () => wrap('[', '](https://example.com)', '链接文字'),
     image: () => wrap('![', '](https://example.com/image.png)', '图片描述'),
-    table: () => {
-      const t = '\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n';
-      wrap('', t, '');
-    },
-    hr: () => wrap('\n\n---\n\n', '', ''),
+    table: () => insertText('\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n'),
+    hr: () => insertText('\n\n---\n\n'),
+    undo,
+    redo,
+    fullscreen: toggleFullscreen,
+    help: openHelp,
     draft: () => {
       if (window.confirm('清空全部内容与已保存的草稿？')) {
+        pushSnapshot();
         source.value = '';
         localStorage.removeItem(DRAFT_KEY);
         source.dispatchEvent(new Event('input'));
@@ -535,11 +894,18 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     else if (e.shiftKey && k === 'k') { e.preventDefault(); COMMANDS.codeblock(); }
     else if (e.shiftKey && k === 'q') { e.preventDefault(); COMMANDS.quote(); }
     else if (e.shiftKey && k === 'delete') { e.preventDefault(); COMMANDS.draft(); }
+    else if (k === 'z' && e.shiftKey) { e.preventDefault(); redo(); }
+    else if (k === 'z') { e.preventDefault(); undo(); }
+    else if (k === 'y') { e.preventDefault(); redo(); }
     else if (k === 'b') { e.preventDefault(); COMMANDS.bold(); }
     else if (k === 'i') { e.preventDefault(); COMMANDS.italic(); }
     else if (k === 'u') { e.preventDefault(); COMMANDS.strike(); }
     else if (k === 'k') { e.preventDefault(); COMMANDS.link(); }
     else if (k === 'enter') { e.preventDefault(); document.querySelector<HTMLButtonElement>('.md-view[data-view="preview"]')?.click(); }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeHelp();
   });
 
   // ── 导出 ──
@@ -555,19 +921,22 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     URL.revokeObjectURL(url);
   }
 
+  function renderedHtml(): string {
+    const html = marked.parse(source.value) as string;
+    return DOMPurify.sanitize(decorateCode(html), { ADD_DATA_URI_TAGS: ['img'] });
+  }
+
   byId<HTMLButtonElement>('mdCopyMd').addEventListener('click', (e) => {
     window.CT.copy(source.value, e.currentTarget as HTMLElement);
   });
   byId<HTMLButtonElement>('mdCopyHtml').addEventListener('click', (e) => {
-    const html = marked.parse(source.value) as string;
-    window.CT.copy(DOMPurify.sanitize(html), e.currentTarget as HTMLElement);
+    window.CT.copy(renderedHtml(), e.currentTarget as HTMLElement);
   });
   byId<HTMLButtonElement>('mdDownloadMd').addEventListener('click', () => {
     download('clover-notes.md', source.value, 'text/markdown;charset=utf-8');
   });
   byId<HTMLButtonElement>('mdDownloadHtml').addEventListener('click', () => {
-    const html = marked.parse(source.value) as string;
-    const doc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Markdown 导出</title></head><body>${DOMPurify.sanitize(html)}</body></html>`;
+    const doc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Markdown 导出</title></head><body>${renderedHtml()}</body></html>`;
     download('clover-notes.html', doc, 'text/html;charset=utf-8');
   });
 
