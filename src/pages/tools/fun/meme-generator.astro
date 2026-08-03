@@ -53,8 +53,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     border: 1px solid var(--border);
   }
 
-  .mg-preview img {
+  :global(.mg-preview img) {
     width: 100%;
+    height: auto;
+    max-width: 100%;
     display: block;
   }
 </style>

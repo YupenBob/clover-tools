@@ -3,6 +3,7 @@
  * 用法：node scripts/smoke-markdown.mjs
  */
 import { chromium } from 'playwright-core';
+import { readFileSync } from 'node:fs';
 
 const base = (process.argv[2] || 'http://localhost:4321') + '/tools/dev/markdown/';
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
@@ -202,6 +203,73 @@ await page.locator('#mdTarget').dispatchEvent('change');
 await page.waitForTimeout(100);
 const targetStats = await page.locator('#mdStats').innerText();
 check('字数目标', /\/10 字/.test(targetStats), targetStats);
+
+// 24. 带样式 HTML 下载（富文本/导出共用 styledHtml）
+await page.locator('#mdSource').fill('# 标题\n\n**加粗**');
+await page.waitForTimeout(300);
+const [download] = await Promise.all([
+  page.waitForEvent('download', { timeout: 8000 }),
+  page.locator('#mdDownloadHtml').click(),
+]);
+const dlPath = await download.path();
+const dlHtml = readFileSync(dlPath, 'utf8');
+check('HTML 下载含样式', dlHtml.includes('<style>') && dlHtml.includes('<h1>') && dlHtml.includes('border-bottom'), `len=${dlHtml.length}`);
+
+// 25. 打开本地 .md 文件
+page.on('dialog', (d) => d.accept());
+await page.locator('#mdOpenFile').setInputFiles({
+  name: 'import.md',
+  mimeType: 'text/markdown',
+  buffer: Buffer.from('# 导入内容\n\n导入成功'),
+});
+await page.waitForTimeout(300);
+const imported = await page.locator('#mdSource').inputValue();
+check('打开 .md 文件', imported.includes('# 导入内容'), imported.slice(0, 20));
+
+// 26. 导出文件名取标题
+await page.locator('#mdSource').fill('# 我的标题\n\n正文');
+await page.waitForTimeout(300);
+const [dl2] = await Promise.all([
+  page.waitForEvent('download', { timeout: 8000 }),
+  page.locator('#mdDownloadHtml').click(),
+]);
+check('导出文件名取标题', dl2.suggestedFilename() === '我的标题.html', dl2.suggestedFilename());
+
+// 27. 源码行号
+await page.locator('#mdSource').fill('第一行\n第二行\n第三行');
+await page.waitForTimeout(200);
+const lineNums = await page.locator('#mdLines').innerText();
+check('行号渲染', lineNums.trim() === '1\n2\n3', JSON.stringify(lineNums.slice(0, 20)));
+
+// 27b. 当前行高亮
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  const idx = el.value.indexOf('第二行');
+  el.setSelectionRange(idx, idx);
+  el.dispatchEvent(new Event('click', { bubbles: true }));
+});
+await page.waitForTimeout(150);
+const activeLineInfo = await page.locator('#mdLines').evaluate((el) => {
+  const spans = el.querySelectorAll('span');
+  let active = -1;
+  spans.forEach((s, i) => { if (s.classList.contains('md-line-active')) active = i + 1; });
+  return { count: spans.length, active };
+});
+check('当前行高亮', activeLineInfo.active === 2 && activeLineInfo.count === 3, JSON.stringify(activeLineInfo));
+
+// 27c. 段落数统计
+await page.locator('#mdSource').fill('第一段\n\n第二段\n\n第三段');
+await page.waitForTimeout(300);
+const paraStats = await page.locator('#mdStats').innerText();
+check('段落数统计', /3 段/.test(paraStats), paraStats);
+
+// 行号随源码滚动同步
+await page.locator('#mdSource').fill('第一行\n第二行\n第三行\n第四行\n第五行\n第六行\n第七行\n第八行\n第九行\n第十行\n第十一行\n第十二行\n第十三行\n第十四行\n第十五行\n第十六行\n第十七行\n第十八行\n第十九行\n第二十行');
+await page.waitForTimeout(200);
+await page.locator('#mdSource').evaluate((el) => { el.scrollTop = 100; });
+await page.waitForTimeout(300);
+const linesScroll = await page.locator('#mdLines').evaluate((el) => el.scrollTop);
+check('行号滚动同步', linesScroll > 0, `linesScroll=${Math.round(linesScroll)}`);
 
 console.log(errors.length ? `\nJS 报错:\n${errors.join('\n')}` : '\n无 JS 报错');
 await browser.close();

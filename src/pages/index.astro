@@ -358,8 +358,8 @@ const homeJsonLd = [
     });
   }
 
-  // 关键渲染路径之后空闲预载搜索索引（延迟 4s，不与首屏渲染抢主线程）
-  setTimeout(() => loadIndex(), 4000);
+  // 首次聚焦搜索框时加载索引（移出加载期主线程，输入前即可就绪）
+  input.addEventListener('focusin', () => loadIndex());
 
   applyFilter();
   requestAnimationFrame(moveIndicator);

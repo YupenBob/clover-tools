@@ -17,6 +17,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <label class="field-label" for="lotNames">名单（每行一个）</label>
       <textarea class="textarea" id="lotNames" spellcheck="false" placeholder="张三&#10;李四&#10;王五"></textarea>
     </div>
+    <div class="lot-meta" id="lotMeta">共 0 人</div>
     <div class="row">
       <div class="field">
         <label class="field-label" for="lotCount">中奖人数</label>
@@ -40,7 +41,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 <p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> 音效来源：Mixkit（免费授权）</p>
 
 <!-- ═══ 沉浸式老虎机 ═══ -->
-<div class="lottery-overlay" id="lotteryOverlay" aria-hidden="true">
+<div class="lottery-overlay" id="lotteryOverlay" role="dialog" aria-modal="true" aria-label="沉浸式抽奖老虎机" aria-hidden="true">
   <div class="lot-particles" aria-hidden="true"></div>
   <div class="lot-spotlight" aria-hidden="true"></div>
   <header class="lot-top">
@@ -59,21 +60,23 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div></div>
     <div class="reel-window"><div class="reel-strip" id="reelR"></div></div>
     <span class="reels-paybox"></span>
+    <div class="lot-burst" aria-hidden="true"></div>
   </div>
-  <div class="lot-status" id="lotStatusMsg">转动中…</div>
+  <div class="lot-status" id="lotStatusMsg" role="status" aria-live="polite">转动中…</div>
   <div class="lot-winners" id="lotWinners"></div>
   <div class="lot-actions">
+    <button class="btn btn-primary" id="lotCopy" type="button" hidden><i class="bi bi-clipboard"></i> 复制结果</button>
     <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再抽一次</button>
     <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 完成</button>
   </div>
 </div>
 
 <!-- ═══ 拟物拉杆老虎机 ═══ -->
-<div class="classic-overlay" id="classicOverlay" aria-hidden="true">
+<div class="classic-overlay" id="classicOverlay" role="dialog" aria-modal="true" aria-label="拟物拉杆抽奖老虎机" aria-hidden="true">
   <div class="classic-vignette" aria-hidden="true"></div>
   <div class="slot-machine">
     <div class="slot-marquee">
-      <div class="slot-bulbs">
+      <div class="slot-bulbs" id="slotBulbs">
         <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
       <div class="slot-title">CLOVER · 幸运老虎机</div>
@@ -84,18 +87,21 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         <div class="slot-reel"><div class="slot-strip" id="cReelM"></div></div>
         <div class="slot-reel"><div class="slot-strip" id="cReelR"></div></div>
         <span class="reels-paybox"><b>PAYLINE</b></span>
+        <div class="lot-burst" aria-hidden="true"></div>
       </div>
-      <div class="slot-lever" id="slotLever">
+      <div class="slot-lever" id="slotLever" tabindex="0" role="button" aria-label="拉动拉杆，空格或回车触发">
         <div class="lever-track"></div>
         <div class="lever-knob" id="leverKnob"><span class="lever-ball"></span></div>
       </div>
     </div>
     <div class="slot-screen">
-      <div class="slot-status" id="cStatus">拉下拉杆开始</div>
+      <div class="slot-status" id="cStatus" role="status" aria-live="polite">拉下拉杆开始</div>
       <div class="slot-winners" id="cWinners"></div>
     </div>
     <div class="slot-actions">
       <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> 音效</button>
+      <button class="slot-btn" id="classicAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再来一轮</button>
+      <button class="slot-btn" id="classicCopy" type="button"><i class="bi bi-clipboard"></i> 复制结果</button>
       <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 退出</button>
     </div>
   </div>
@@ -106,6 +112,14 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 <audio id="sfxLever" src="/sfx/lottery-lever.mp3" preload="auto"></audio>
 
 <style is:global>
+  .lot-meta {
+    margin-top: var(--space-2);
+    min-height: 16px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .lot-meta.warn { color: #c9962e; font-weight: 600; }
+
   /* ───────── 沉浸式 ───────── */
   .lottery-overlay {
     position: fixed;
@@ -117,6 +131,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     justify-content: center;
     gap: var(--space-5);
     padding: var(--space-6);
+    padding-top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(var(--space-6) + env(safe-area-inset-left, 0px));
+    padding-right: calc(var(--space-6) + env(safe-area-inset-right, 0px));
     background:
       radial-gradient(ellipse at 50% 30%, rgba(var(--primary-rgb), 0.22), transparent 55%),
       linear-gradient(160deg, #1b1812 0%, #0e0c08 60%, #171309 100%);
@@ -154,7 +172,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .lot-sub { margin-top: 4px; color: rgba(244, 236, 216, 0.55); font-size: 13px; letter-spacing: 2px; }
   .lot-top-actions { display: flex; gap: var(--space-2); }
   .lot-icon-btn {
-    display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
     border: 1px solid rgba(244, 236, 216, 0.2); border-radius: var(--radius-full);
     background: rgba(244, 236, 216, 0.06); color: rgba(244, 236, 216, 0.8); font-size: 16px;
     cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
@@ -206,14 +224,34 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
   @keyframes winner-in { from { transform: scale(0.3) translateY(12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
   .lot-actions { position: relative; z-index: 2; display: flex; gap: var(--space-3); }
+  .lottery-overlay.dimmed .lot-status, .lottery-overlay.dimmed .lot-winners { opacity: 0.35; transition: opacity 0.3s ease; }
+
+  /* 中奖爆点 */
+  .lot-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 5; pointer-events: none; transform: translate(-50%, -50%); }
+  .lot-burst span {
+    position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8, #c9a96e 60%, transparent);
+    opacity: 0; transform: translate(-50%, -50%) scale(0.4);
+  }
+  .lot-burst.go span { animation: burst-fly 0.85s cubic-bezier(0.12, 0.8, 0.32, 1) forwards; }
+  @keyframes burst-fly {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    12% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--bx, 0px)), calc(-50% + var(--by, 0px))) scale(0.2); }
+  }
 
   /* ───────── 拟物拉杆 ───────── */
   .classic-overlay {
     position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
     padding: var(--space-5); background: radial-gradient(ellipse at center, #241d12 0%, #0b0906 75%);
+    padding-top: calc(var(--space-5) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(var(--space-5) + env(safe-area-inset-left, 0px));
+    padding-right: calc(var(--space-5) + env(safe-area-inset-right, 0px));
     opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease; overflow: hidden;
   }
   .classic-overlay.open { opacity: 1; visibility: visible; }
+  .classic-overlay.dimmed .slot-screen { opacity: 0.35; transition: opacity 0.3s ease; }
   .classic-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 220px rgba(0,0,0,0.9); }
 
   .slot-machine {
@@ -232,11 +270,22 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .slot-bulbs span {
     width: 9px; height: 9px; border-radius: 50%;
     background: radial-gradient(circle, #fff6d8, #c9a96e);
-    box-shadow: 0 0 8px rgba(230, 214, 174, 0.9);
-    animation: bulb-blink 1.2s ease-in-out infinite;
+    opacity: 0.22;
+    animation: bulb-chase 1.2s ease-in-out infinite;
   }
-  .slot-bulbs span:nth-child(even) { animation-delay: 0.6s; }
-  @keyframes bulb-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .slot-bulbs span:nth-child(1) { animation-delay: 0s; }
+  .slot-bulbs span:nth-child(2) { animation-delay: 0.15s; }
+  .slot-bulbs span:nth-child(3) { animation-delay: 0.3s; }
+  .slot-bulbs span:nth-child(4) { animation-delay: 0.45s; }
+  .slot-bulbs span:nth-child(5) { animation-delay: 0.6s; }
+  .slot-bulbs span:nth-child(6) { animation-delay: 0.75s; }
+  .slot-bulbs span:nth-child(7) { animation-delay: 0.9s; }
+  .slot-bulbs span:nth-child(8) { animation-delay: 1.05s; }
+  .slot-bulbs.hot span { animation-duration: 0.32s; }
+  @keyframes bulb-chase {
+    0%, 100% { opacity: 0.22; box-shadow: 0 0 4px rgba(230, 214, 174, 0.35); }
+    18% { opacity: 1; box-shadow: 0 0 12px rgba(230, 214, 174, 1); }
+  }
   .slot-title { font-size: 22px; font-weight: 800; letter-spacing: 3px; color: #ffe9b8; text-shadow: 0 0 16px rgba(201,169,110,0.6); }
 
   .slot-body { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-5) var(--space-4); }
@@ -274,6 +323,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .slot-reel.pay { border-color: #b3261e; box-shadow: inset 0 0 26px rgba(74,58,28,0.3), 0 0 26px rgba(179, 38, 30, 0.45), 0 8px 22px rgba(0,0,0,0.5); }
 
   .slot-lever { position: relative; width: 54px; height: 210px; cursor: grab; touch-action: none; user-select: none; }
+  .slot-lever:focus-visible { outline: 2px solid rgba(201, 169, 110, 0.85); outline-offset: 4px; border-radius: 12px; }
   .lever-track {
     position: absolute; left: 50%; transform: translateX(-50%); top: 4px; bottom: 4px; width: 10px;
     border-radius: 6px; background: linear-gradient(90deg, #0f0b06, #3a2c18, #0f0b06);
@@ -299,11 +349,22 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .slot-winners .winner-chip { font-size: 14px; padding: 5px 14px; }
   .slot-actions { display: flex; justify-content: center; padding: var(--space-4) var(--space-5) 0; }
   .slot-btn {
-    display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: var(--radius-full);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 20px; border-radius: var(--radius-full);
     border: 1px solid rgba(201,169,110,0.5); background: rgba(201,169,110,0.12); color: #ffe9b8;
     font-size: 14px; cursor: pointer; transition: background-color 0.2s ease;
   }
   .slot-btn:hover { background: rgba(201,169,110,0.24); }
+  .slot-btn.primary { background: linear-gradient(135deg, #e6d6ae, #c9a96e); color: #2b2110; border-color: rgba(255, 240, 210, 0.8); font-weight: 700; }
+  .slot-btn.primary:hover { filter: brightness(1.06); }
+  .slot-actions { flex-wrap: wrap; gap: 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lottery-overlay, .classic-overlay { transition: none; }
+    .lot-particles span, .lot-spotlight, .slot-bulbs span { animation: none !important; }
+    .lot-spotlight { opacity: 0.5; }
+    .slot-bulbs span { opacity: 0.55; }
+    .reel-row.win, .slot-row.win, .winner-chip { animation: none !important; }
+  }
 
   @media (max-width: 640px) {
     .reels { gap: 10px; }
@@ -334,6 +395,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const cWinners = byId<HTMLElement>('cWinners');
   const particles = overlay.querySelector('.lot-particles') as HTMLElement;
   const rafIds: number[] = [];
+  const MAX_NAMES = 200;
   const ROW_H = 60, MAIN_ROW_H = 80, WIN_H = 240;
   const C_ROW_H = 52, C_WIN_H = 210;
   let running = false;
@@ -342,14 +404,60 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   let count = 0;
   let classicBusy = false;
   let classicIdx = 0;
+  let builtKey = '';
+  let builtLists: string[][] = [];
+  const lotNames = byId<HTMLTextAreaElement>('lotNames');
+  const lotCount = byId<HTMLInputElement>('lotCount');
+  const lotMode = byId<HTMLSelectElement>('lotMode');
+  const lotMeta = byId<HTMLElement>('lotMeta');
+  const lotCopy = byId<HTMLButtonElement>('lotCopy');
+  const classicAgain = byId<HTMLButtonElement>('classicAgain');
+  const classicCopy = byId<HTMLButtonElement>('classicCopy');
+  const bulbs = byId<HTMLElement>('slotBulbs');
+  const reelsBox = byId<HTMLElement>('reels');
   const sfxSpin = byId<HTMLAudioElement>('sfxSpin');
   const sfxWin = byId<HTMLAudioElement>('sfxWin');
   const sfxLever = byId<HTMLAudioElement>('sfxLever');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let sfxOn = localStorage.getItem('ct-sfx') !== 'off' && !reducedMotion;
+  sfxSpin.volume = 0.5;
+  sfxWin.volume = 1;
+  sfxLever.volume = 0.6;
 
   function parseNames(): string[] {
-    return byId<HTMLTextAreaElement>('lotNames').value.split('\n').map((s) => s.trim()).filter(Boolean);
+    const raw = lotNames.value.split('\n').map((s) => s.trim()).filter(Boolean);
+    if (raw.length > MAX_NAMES) {
+      showStatus('lotStatus', 'info', `名单超过 ${MAX_NAMES} 人，已截取前 ${MAX_NAMES} 人`);
+    }
+    return raw.slice(0, MAX_NAMES);
+  }
+
+  function updateLotMeta() {
+    const raw = lotNames.value.split('\n').map((s) => s.trim()).filter(Boolean);
+    const counts = new Map<string, number>();
+    raw.forEach((n) => counts.set(n, (counts.get(n) || 0) + 1));
+    const dupes = [...counts.entries()].filter(([, c]) => c > 1);
+    const over = raw.length > MAX_NAMES;
+    const parts = [`共 ${Math.min(raw.length, MAX_NAMES)} 人`];
+    if (over) parts.push(`超过 ${MAX_NAMES} 人，仅取前 ${MAX_NAMES} 人`);
+    if (dupes.length) parts.push(`重复：${dupes.slice(0, 3).map(([n, c]) => `${n}×${c}`).join('、')}${dupes.length > 3 ? ' 等' : ''}`);
+    lotMeta.textContent = parts.join(' · ');
+    lotMeta.classList.toggle('warn', over || dupes.length > 0);
+  }
+
+  function saveConfig() {
+    localStorage.setItem('ct-lot-names', lotNames.value);
+    localStorage.setItem('ct-lot-count', lotCount.value);
+    localStorage.setItem('ct-lot-mode', lotMode.value);
+  }
+
+  function loadConfig() {
+    const n = localStorage.getItem('ct-lot-names');
+    if (n != null) lotNames.value = n;
+    const c = localStorage.getItem('ct-lot-count');
+    if (c != null && Number(c) > 0) lotCount.value = c;
+    const m = localStorage.getItem('ct-lot-mode');
+    if (m === 'immersive' || m === 'classic') lotMode.value = m;
   }
 
   function pickWinners(names: string[], n: number): string[] {
@@ -374,12 +482,22 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
   }
 
+  function rowFontSize(name: string, rowH: number): number {
+    const len = [...name].length;
+    const base = rowH >= 70 ? 27 : rowH >= 55 ? 19 : 17;
+    const step = rowH >= 70 ? 1.8 : rowH >= 55 ? 1.2 : 1.1;
+    const min = rowH >= 70 ? 13 : 11;
+    return Math.max(min, base - Math.max(0, len - 6) * step);
+  }
+
   function buildStrip(el: HTMLElement, names: string[], rowH: number): string[] {
-    const list = names.length < 4 ? [...names, ...names, ...names, ...names].slice(0, 8) : names;
+    const padded = names.length < 4 ? [...names, ...names, ...names, ...names].slice(0, 8) : names;
+    const reps = padded.length >= 50 ? 2 : 4;
     const rows: string[] = [];
-    for (let r = 0; r < 4; r++) for (const n of list) rows.push(n);
-    el.innerHTML = rows.map((n) => `<div class="${el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row'}" style="height:${rowH}px">${n}</div>`).join('');
-    return list;
+    for (let r = 0; r < reps; r++) for (const n of padded) rows.push(n);
+    const cls = el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row';
+    el.innerHTML = rows.map((n) => `<div class="${cls}" style="height:${rowH}px;font-size:${rowFontSize(n, rowH)}px">${n}</div>`).join('');
+    return padded;
   }
 
   function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, delayMs: number, done: () => void) {
@@ -395,6 +513,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     };
     const blurOf = (speed: number) =>
       Math.min(3.5, Math.max(0, Math.abs(speed) / plan.vMax) * 3.5).toFixed(2);
+    const settle = () => {
+      render(plan.targetAbs);
+      el.style.filter = 'blur(0px)';
+      el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
+        r.classList.toggle('win', list[i % n] === targetName);
+      });
+      done();
+    };
+    if (reducedMotion) {
+      settle();
+      return;
+    }
     let rafId = 0;
     function frame() {
       const t = performance.now() - t0;
@@ -405,12 +535,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       }
       const s = reelSample(plan, t);
       if (s.phase === 'done') {
-        render(plan.targetAbs);
-        el.style.filter = 'blur(0px)';
-        el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
-          r.classList.toggle('win', list[i % n] === targetName);
-        });
-        done();
+        settle();
         return;
       }
       render(s.p);
@@ -436,21 +561,64 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       const centers = useClassic
         ? [(C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2]
         : [(WIN_H - ROW_H) / 2, (WIN_H - MAIN_ROW_H) / 2, (WIN_H - ROW_H) / 2];
-      const strips = els.map((el, i) => buildStrip(el, list, rowHs[i]));
+      const key = list.join('\u0001') + '|' + rowHs.join(',');
+      if (key !== builtKey || !els[0].firstElementChild) {
+        builtKey = key;
+        builtLists = els.map((el, i) => buildStrip(el, list, rowHs[i]));
+      }
+      const strips = builtLists;
       let leftDone = false, midDone = false, rightDone = false;
       spinReel(els[0], strips[0], winner, rowHs[0], centers[0], 0, () => { leftDone = true; maybe(); });
       spinReel(els[1], strips[1], winner, rowHs[1], centers[1], 300, () => { midDone = true; maybe(); });
       spinReel(els[2], strips[2], winner, rowHs[2], centers[2], 150, () => { rightDone = true; maybe(); });
       function maybe() {
         if (leftDone && midDone && rightDone) {
-          sfxSpin.pause();
-          sfxSpin.currentTime = 0;
-          playSfx('win');
+          fadeOutSpin();
+          setTimeout(() => playSfx('win'), 120);
           windows.forEach((w) => w.classList.add('pay'));
-          setTimeout(() => { windows.forEach((w) => w.classList.remove('pay')); resolve(); }, 900);
+          (useClassic ? classic : overlay).classList.add('dimmed');
+          burstAt(useClassic ? classic.querySelector('.slot-reels') as HTMLElement : reelsBox);
+          setTimeout(() => {
+            windows.forEach((w) => w.classList.remove('pay'));
+            (useClassic ? classic : overlay).classList.remove('dimmed');
+            resolve();
+          }, 900);
         }
       }
     });
+  }
+
+  function fadeOutSpin() {
+    const step = () => {
+      sfxSpin.volume = Math.max(0, sfxSpin.volume - 0.08);
+      if (sfxSpin.volume <= 0.01) {
+        sfxSpin.pause();
+        sfxSpin.currentTime = 0;
+        sfxSpin.volume = 0.5;
+      } else {
+        setTimeout(step, 40);
+      }
+    };
+    step();
+  }
+
+  function burstAt(container: HTMLElement) {
+    if (reducedMotion) return;
+    const burst = container.querySelector('.lot-burst') as HTMLElement | null;
+    if (!burst) return;
+    burst.innerHTML = '';
+    const n = 14;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('span');
+      const ang = (i / n) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = 85 + Math.random() * 70;
+      s.style.setProperty('--bx', `${Math.cos(ang) * dist}px`);
+      s.style.setProperty('--by', `${Math.sin(ang) * dist}px`);
+      burst.appendChild(s);
+    }
+    burst.classList.remove('go');
+    void burst.offsetWidth;
+    burst.classList.add('go');
   }
 
   function reelL() { return byId<HTMLElement>('reelL'); }
@@ -465,6 +633,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   function spawnParticles() {
+    if (reducedMotion) return;
     const colors = ['212,184,126', '230,214,174', '240,230,204'];
     particles.innerHTML = Array.from({ length: 12 }, () => {
       const left = Math.random() * 100;
@@ -478,12 +647,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     if (mode === 'immersive') {
       classic.classList.remove('open');
       overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      classic.setAttribute('aria-hidden', 'true');
       spawnParticles();
     } else {
       overlay.classList.remove('open');
       classic.classList.add('open');
+      classic.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'true');
     }
     document.body.style.overflow = 'hidden';
+    const focusEl = mode === 'classic' ? byId<HTMLElement>('slotLever') : byId<HTMLButtonElement>('lotClose');
+    setTimeout(() => focusEl.focus(), 120);
   }
 
   function closeOverlays() {
@@ -491,10 +666,16 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     rafIds.length = 0;
     sfxSpin.pause();
     sfxSpin.currentTime = 0;
+    sfxSpin.volume = 0.5;
     overlay.classList.remove('open');
     classic.classList.remove('open');
+    overlay.classList.remove('dimmed');
+    classic.classList.remove('dimmed');
+    overlay.setAttribute('aria-hidden', 'true');
+    classic.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     byId<HTMLButtonElement>('lotBtn').disabled = false;
+    byId<HTMLButtonElement>('lotBtn').focus();
     running = false;
     classicBusy = false;
   }
@@ -505,6 +686,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     winnersEl.innerHTML = '';
     againBtn.hidden = true;
     doneBtn.hidden = true;
+    lotCopy.hidden = true;
     ['reelL', 'reelM', 'reelR'].forEach((id) => {
       const el = byId<HTMLElement>(id);
       el.innerHTML = '';
@@ -517,6 +699,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     cStatus.textContent = '拉下拉杆开始';
     cWinners.innerHTML = '';
     classicIdx = 0;
+    classicAgain.hidden = true;
     ['cReelL', 'cReelM', 'cReelR'].forEach((id) => {
       const el = byId<HTMLElement>(id);
       el.innerHTML = '';
@@ -543,6 +726,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     sub.textContent = `${winners.length} 位幸运儿已揭晓`;
     againBtn.hidden = false;
     doneBtn.hidden = false;
+    lotCopy.hidden = false;
     running = false;
   }
 
@@ -558,6 +742,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       cStatus.textContent = `恭喜 ${winners[i]}！再拉一次拉杆，揭晓下一位`;
     } else {
       cStatus.textContent = `全部揭晓！${count} 位幸运儿`;
+      classicAgain.hidden = false;
     }
     classicBusy = false;
   }
@@ -569,11 +754,16 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     container.appendChild(chip);
   }
 
+  function winnersText(): string {
+    if (!winners.length) return '暂无中奖结果';
+    return `幸运儿（${winners.length} 人）：\n${winners.map((w, i) => `${i + 1}. ${w}`).join('\n')}`;
+  }
+
   function start() {
     hideStatus('lotStatus');
     const names = parseNames();
-    count = Number(byId<HTMLInputElement>('lotCount').value);
-    const mode = byId<HTMLSelectElement>('lotMode').value as 'immersive' | 'classic';
+    count = Number(lotCount.value);
+    const mode = lotMode.value as 'immersive' | 'classic';
     if (names.length === 0) { showStatus('lotStatus', 'error', '请先填写名单'); return; }
     if (count < 1 || count > names.length) { showStatus('lotStatus', 'error', `中奖人数需在 1-${names.length} 之间`); return; }
     winners = pickWinners(names, count);
@@ -592,7 +782,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   byId<HTMLButtonElement>('lotBtn').addEventListener('click', start);
   byId<HTMLButtonElement>('lotSample').addEventListener('click', () => {
-    byId<HTMLTextAreaElement>('lotNames').value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada', 'Ivy', 'Leo'].join('\n');
+    lotNames.value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada', 'Ivy', 'Leo'].join('\n');
+    lotNames.dispatchEvent(new Event('input'));
   });
 
   againBtn.addEventListener('click', () => {
@@ -601,6 +792,14 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     resetImmersive();
     sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
     runImmersive(pool);
+  });
+  lotCopy.addEventListener('click', () => { window.CT.copy(winnersText(), lotCopy); });
+  classicCopy.addEventListener('click', () => { window.CT.copy(winnersText(), classicCopy); });
+  classicAgain.addEventListener('click', () => {
+    if (classicBusy || !classic.classList.contains('open') || pool.length < count) return;
+    winners = pickWinners(pool, count);
+    resetClassic();
+    runClassic(pool);
   });
   doneBtn.addEventListener('click', closeOverlays);
   byId<HTMLButtonElement>('lotClose').addEventListener('click', closeOverlays);
@@ -621,23 +820,54 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   syncSfxIcons();
   byId<HTMLButtonElement>('classicExit').addEventListener('click', closeOverlays);
 
+  loadConfig();
+  updateLotMeta();
+  lotNames.addEventListener('input', () => { updateLotMeta(); saveConfig(); });
+  lotNames.addEventListener('paste', (e) => {
+    const text = (e.clipboardData?.getData('text') || '').trim();
+    if (!text) return;
+    const items = text.split(/[\n,，、;；]+/).map((s) => s.trim()).filter(Boolean);
+    if (items.length <= 1) return;
+    e.preventDefault();
+    lotNames.value = lotNames.value.replace(/\n+$/, '') + (lotNames.value.trim() ? '\n' : '') + items.join('\n');
+    lotNames.dispatchEvent(new Event('input'));
+  });
+  lotCount.addEventListener('change', saveConfig);
+  lotMode.addEventListener('change', saveConfig);
+
   // 拉杆交互
   const lever = byId<HTMLElement>('slotLever');
   const knob = byId<HTMLElement>('leverKnob');
   let leverDragging = false;
   let leverStartY = 0;
   let leverPull = 0;
+  let leverHorizontal = false;
+  let leverHotTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function leverTransform(pull: number): string {
+    return leverHorizontal ? `translate(0, calc(-50% + ${pull}px))` : `translate(-50%, ${pull}px)`;
+  }
+
+  function leverHot(on: boolean) {
+    if (leverHotTimer) { clearTimeout(leverHotTimer); leverHotTimer = null; }
+    bulbs.classList.toggle('hot', on);
+  }
+
   lever.addEventListener('pointerdown', (e) => {
-    if (classicBusy || classicIdx >= count) return;
+    if (classicBusy || classicIdx >= count || !classic.classList.contains('open')) return;
     leverDragging = true;
     leverStartY = e.clientY;
+    leverHorizontal = lever.clientWidth >= lever.clientHeight;
+    leverPull = 0;
     knob.classList.add('dragging');
     knob.setPointerCapture(e.pointerId);
+    leverHot(true);
   });
   lever.addEventListener('pointermove', (e) => {
     if (!leverDragging) return;
-    leverPull = Math.max(0, Math.min(64, e.clientY - leverStartY));
-    knob.style.transform = `translate(-50%, ${leverPull}px)`;
+    const maxPull = leverHorizontal ? 40 : 64;
+    leverPull = Math.max(0, Math.min(maxPull, e.clientY - leverStartY));
+    knob.style.transform = leverTransform(leverPull);
   });
   lever.addEventListener('pointerup', () => {
     if (!leverDragging) return;
@@ -646,13 +876,55 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const pulled = leverPull > 36;
     leverPull = 0;
     knob.style.transform = '';
+    leverHotTimer = setTimeout(() => leverHot(false), 300);
     if (pulled && !classicBusy && classicIdx < count && classic.classList.contains('open')) {
       playSfx('lever');
       runClassic(pool);
     }
   });
 
+  function animateLever() {
+    leverHorizontal = lever.clientWidth >= lever.clientHeight;
+    const maxPull = leverHorizontal ? 40 : 64;
+    knob.style.transition = 'transform 0.12s linear';
+    knob.style.transform = leverTransform(maxPull);
+    leverHot(true);
+    setTimeout(() => {
+      knob.style.transition = '';
+      knob.style.transform = '';
+      leverHot(false);
+    }, 160);
+  }
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && (overlay.classList.contains('open') || classic.classList.contains('open'))) closeOverlays();
+    const isOverlayOpen = overlay.classList.contains('open') || classic.classList.contains('open');
+    if (e.key === 'Escape') {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => undefined);
+        return;
+      }
+      if (isOverlayOpen) closeOverlays();
+      return;
+    }
+    if (!isOverlayOpen) return;
+    if (e.key === 'Tab') {
+      const root = classic.classList.contains('open') ? classic : overlay;
+      const focusable = [...root.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !(el as HTMLButtonElement).disabled && !(el as HTMLElement).hidden && el.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return;
+    }
+    if ((e.key === ' ' || e.key === 'Enter') && classic.classList.contains('open') && !classicBusy && classicIdx < count) {
+      const ae = document.activeElement as HTMLElement | null;
+      if (ae && ae.tagName === 'BUTTON' && classic.contains(ae)) return;
+      e.preventDefault();
+      playSfx('lever');
+      animateLever();
+      runClassic(pool);
+    }
   });
 </script>

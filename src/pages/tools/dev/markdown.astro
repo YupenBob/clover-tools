@@ -66,6 +66,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
     <div class="md-body split" id="mdBody">
       <div class="md-editor">
+        <div class="md-lines" id="mdLines" aria-hidden="true"></div>
         <textarea class="md-source" id="mdSource" spellcheck="false" placeholder="开始书写 Markdown……"></textarea>
       </div>
       <div class="md-preview" id="mdPreview"></div>
@@ -82,11 +83,13 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     </div>
 
     <div class="md-export">
+      <button class="btn btn-ghost btn-sm" id="mdOpen" type="button"><i class="bi bi-folder2-open"></i> 打开 .md</button>
       <button class="btn btn-ghost btn-sm" id="mdCopyMd" type="button"><i class="bi bi-clipboard"></i> 复制源码</button>
       <button class="btn btn-ghost btn-sm" id="mdCopyHtml" type="button"><i class="bi bi-clipboard-check"></i> 复制 HTML</button>
       <button class="btn btn-ghost btn-sm" id="mdCopyRich" type="button"><i class="bi bi-fonts"></i> 复制富文本</button>
       <button class="btn btn-ghost btn-sm" id="mdDownloadMd" type="button"><i class="bi bi-filetype-md"></i> 下载 .md</button>
       <button class="btn btn-ghost btn-sm" id="mdDownloadHtml" type="button"><i class="bi bi-filetype-html"></i> 下载 .html</button>
+      <input type="file" id="mdOpenFile" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
     </div>
 
     <div class="status-msg" id="mdStatus" role="status" aria-live="polite"></div>
@@ -250,6 +253,12 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     color: var(--primary-dark);
   }
 
+  .md-toc a.active {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 600;
+  }
+
   .md-body {
     display: grid;
     grid-template-columns: 1fr;
@@ -268,14 +277,55 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     display: none;
   }
 
+  .md-editor {
+    position: relative;
+    min-width: 0;
+  }
+
+  .md-lines {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 44px;
+    height: 480px;
+    padding: var(--space-4) 10px var(--space-4) 12px;
+    border: 1px solid var(--border-strong);
+    border-right: none;
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: right;
+    overflow: hidden;
+    white-space: pre;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .md-lines span {
+    display: block;
+    color: inherit;
+    transition: background-color 0.12s ease, color 0.12s ease;
+  }
+
+  .md-lines span.md-line-active {
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    font-weight: 700;
+    border-radius: 4px 0 0 4px;
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
   .md-source {
     width: 100%;
     min-height: 480px;
     max-height: 72vh;
     overflow-y: auto;
-    padding: var(--space-4);
+    padding: var(--space-4) var(--space-4) var(--space-4) calc(44px + var(--space-4));
     border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-mono);
@@ -726,13 +776,14 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const chars = text.length;
     const words = countWords(text);
     const lines = text ? text.split('\n').length : 0;
+    const paras = text.trim() ? text.trim().split(/\n\s*\n/).length : 0;
     const target = Number(targetInput.value) || 0;
     if (target > 0) {
       const pct = Math.min(100, Math.round((words / target) * 100));
-      statsEl.textContent = `${chars} 字符 · ${words}/${target} 字 (${pct}%) · ${lines} 行`;
+      statsEl.textContent = `${chars} 字符 · ${words}/${target} 字 (${pct}%) · ${lines} 行 · ${paras} 段`;
       statsEl.style.color = words >= target ? 'var(--success)' : '';
     } else {
-      statsEl.textContent = `${chars} 字符 · ${words} 字 · ${lines} 行`;
+      statsEl.textContent = `${chars} 字符 · ${words} 字 · ${lines} 行 · ${paras} 段`;
       statsEl.style.color = '';
     }
     readingEl.textContent = words > 0 ? `阅读约 ${Math.max(1, Math.round(words / 400))} 分钟` : '阅读约 0 分钟';
@@ -1094,6 +1145,44 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     render();
   });
 
+  // ── 源码行号 ──
+  const linesEl = byId<HTMLElement>('mdLines');
+  let activeLine = 1;
+  function renderLines() {
+    const count = source.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= count; i++) {
+      html += `<span class="${i === activeLine ? 'md-line-active' : ''}">${i}</span>\n`;
+    }
+    linesEl.innerHTML = html;
+  }
+  function updateActiveLine() {
+    const caret = source.selectionStart ?? 0;
+    const line = source.value.slice(0, caret).split('\n').length;
+    if (line === activeLine) return;
+    activeLine = line;
+    renderLines();
+  }
+  source.addEventListener('input', renderLines);
+  source.addEventListener('click', updateActiveLine);
+  source.addEventListener('keyup', updateActiveLine);
+  source.addEventListener('keydown', (e) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+      requestAnimationFrame(updateActiveLine);
+    }
+  });
+  source.addEventListener('scroll', () => {
+    linesEl.scrollTop = source.scrollTop;
+  });
+  // 行号栏高度跟随 textarea（含用户拉伸 resize）
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => {
+      linesEl.style.height = `${source.clientHeight}px`;
+    }).observe(source);
+  }
+  linesEl.style.height = `${source.clientHeight}px`;
+  renderLines();
+
   // ── 视图切换 ──
   for (const btn of document.querySelectorAll<HTMLButtonElement>('.md-view')) {
     btn.addEventListener('click', () => {
@@ -1315,6 +1404,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       });
       tocPanel.appendChild(a);
     }
+    updateTocActive();
   }
 
   function toggleToc() {
@@ -1322,6 +1412,22 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     tocPanel.hidden = !tocOpen;
     if (tocOpen) buildToc();
   }
+
+  // 目录高亮当前阅读章节
+  function updateTocActive() {
+    if (!tocOpen) return;
+    const headings = Array.from(preview.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    const previewTop = preview.getBoundingClientRect().top;
+    let current = '';
+    for (const h of headings) {
+      if (h.getBoundingClientRect().top - previewTop <= 90) current = h.id;
+      else break;
+    }
+    tocPanel.querySelectorAll('a').forEach((a) => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+  preview.addEventListener('scroll', updateTocActive);
 
   const COMMANDS: Record<string, () => void> = {
     h1: () => blockLine('# '),
@@ -1519,14 +1625,46 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     return tmp.innerHTML;
   }
 
+  // 从首个一级标题提取导出文件名
+  function exportTitle(): string {
+    const m = source.value.match(/^#\s+(.+)$/m);
+    const t = m ? m[1].trim() : '';
+    return t.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '-').slice(0, 40) || 'clover-notes';
+  }
+
+  const EXPORT_CSS = `body{font-family:-apple-system,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;max-width:800px;margin:0 auto;padding:32px 20px;color:#1f2937;line-height:1.75;font-size:16px}h1,h2,h3,h4{line-height:1.3;margin:1.1em 0 .5em}h1{font-size:1.7em;border-bottom:1px solid #e5e7eb;padding-bottom:.3em}h2{font-size:1.4em;border-bottom:1px solid #e5e7eb;padding-bottom:.25em}code{font-family:ui-monospace,Consolas,monospace;font-size:.88em;background:#f3f4f6;padding:2px 6px;border-radius:4px}pre{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;overflow-x:auto}pre code{background:none;padding:0}.hl-kw{color:#a16207;font-weight:600}.hl-str{color:#15803d}.hl-cmt{color:#9ca3af;font-style:italic}.hl-num{color:#2563eb}.hl-fn,.hl-prop,.hl-attr{color:#2563eb}.hl-tag{color:#a16207;font-weight:600}blockquote{border-left:3px solid #c9a96e;margin:1em 0;padding:2px 0 2px 14px;color:#4b5563}table{border-collapse:collapse;width:100%;margin:1em 0}th,td{border:1px solid #e5e7eb;padding:7px 12px;text-align:left}th{background:#f9fafb}img{max-width:100%;border-radius:8px}hr{border:none;border-top:1px solid #e5e7eb;margin:1.4em 0}input[type=checkbox]{accent-color:#c9a96e;margin-right:8px}ul,ol{padding-left:1.4em}li:has(> input[type=checkbox]){list-style:none;margin-left:-1.4em}`;
+
+  function styledHtml(): string {
+    return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Markdown 导出</title><style>${EXPORT_CSS}</style></head><body>${renderedHtml()}</body></html>`;
+  }
+
   byId<HTMLButtonElement>('mdCopyMd').addEventListener('click', (e) => {
     window.CT.copy(source.value, e.currentTarget as HTMLElement);
+  });
+  // 打开本地 .md 文件
+  byId<HTMLButtonElement>('mdOpen').addEventListener('click', () => {
+    byId<HTMLInputElement>('mdOpenFile').click();
+  });
+  byId<HTMLInputElement>('mdOpenFile').addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result || '');
+      if (!text) return;
+      if (window.confirm('打开文件将替换当前内容（可在撤销中恢复），继续？')) {
+        replaceRange(0, source.value.length, text);
+        showStatus('mdStatus', 'success', `已打开 ${file.name}`);
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+    (e.target as HTMLInputElement).value = '';
   });
   byId<HTMLButtonElement>('mdCopyHtml').addEventListener('click', (e) => {
     window.CT.copy(renderedHtml(), e.currentTarget as HTMLElement);
   });
   byId<HTMLButtonElement>('mdCopyRich').addEventListener('click', async (e) => {
-    const html = renderedHtml();
+    const html = styledHtml();
     try {
       if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
         await navigator.clipboard.write([
@@ -1544,11 +1682,10 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     window.CT.copy(html, e.currentTarget as HTMLElement);
   });
   byId<HTMLButtonElement>('mdDownloadMd').addEventListener('click', () => {
-    download('clover-notes.md', source.value, 'text/markdown;charset=utf-8');
+    download(`${exportTitle()}.md`, source.value, 'text/markdown;charset=utf-8');
   });
   byId<HTMLButtonElement>('mdDownloadHtml').addEventListener('click', () => {
-    const doc = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Markdown 导出</title></head><body>${renderedHtml()}</body></html>`;
-    download('clover-notes.html', doc, 'text/html;charset=utf-8');
+    download(`${exportTitle()}.html`, styledHtml(), 'text/html;charset=utf-8');
   });
 
   // ── 初始化 ──
