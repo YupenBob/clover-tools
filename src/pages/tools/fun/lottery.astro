@@ -313,6 +313,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+  import { planReel, reelSample, modSet } from '../../../lib/reel-motion.mjs';
 
   const overlay = byId<HTMLElement>('lotteryOverlay');
   const classic = byId<HTMLElement>('classicOverlay');
@@ -354,36 +355,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, delayMs: number, done: () => void) {
-    const setH = list.length * rowH;
+    const n = list.length;
+    const setH = n * rowH;
     const targetIdx = list.indexOf(targetName);
-    // 目标行居中所需的 translateY 偏移（mod setH，内容按组重复，任意组等价）
-    const targetMod = (((targetIdx * rowH - centerOffset) % setH) + setH) % setH;
-    const overshootPx = (0.4 + Math.random() * 0.6) * rowH;
-    const speedF = 0.92 + Math.random() * 0.16;
-    const T1 = 1000; // 快转
-    const T2 = 1100; // 减速（终点 = 目标 + 过冲）
-    const T3 = 320;  // 回位（过冲 → 目标）
-    const D1 = 14 * rowH * speedF * (T1 / 1000); // 快转阶段行进距离
-    const start = Math.random() * setH;
-    const pA = start + D1;
-    const pAMod = ((pA % setH) + setH) % setH;
-    const overshootMod = (((targetMod + overshootPx) % setH) + setH) % setH;
-    let delta = overshootMod - pAMod;
-    if (delta < 0) delta += setH;
-    delta += setH; // 保证减速段至少完整走一组，视觉上自然减速
-    const overshootAbs = pA + delta;
-    const targetAbs = overshootAbs - overshootPx;
+    const plan = planReel({ n, rowH, centerOffset, targetIdx });
     el.style.transition = 'none';
     el.querySelectorAll('.reel-row,.slot-row').forEach((r) => r.classList.remove('win'));
     const t0 = performance.now() + delayMs;
-    const maxSpeed = D1 / T1; // px/ms
-    const easeOutCubic = (s: number) => 1 - Math.pow(1 - s, 3);
-    const easeInOutQuad = (s: number) => (s < 0.5 ? 2 * s * s : 1 - Math.pow(-2 * s + 2, 2) / 2);
     const render = (p: number) => {
-      el.style.transform = `translateY(-${((p % setH) + setH) % setH}px)`;
+      el.style.transform = `translateY(-${modSet(p, setH)}px)`;
     };
     const blurOf = (speed: number) =>
-      Math.min(3.5, Math.max(0, Math.abs(speed) / maxSpeed) * 3.5).toFixed(2);
+      Math.min(3.5, Math.max(0, Math.abs(speed) / plan.vMax) * 3.5).toFixed(2);
     let rafId = 0;
     function frame() {
       const t = performance.now() - t0;
@@ -392,29 +375,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         rafIds.push(rafId);
         return;
       }
-      if (t <= T1) {
-        render(start + D1 * (t / T1));
-        el.style.filter = `blur(${blurOf(maxSpeed)}px)`;
-      } else if (t <= T1 + T2) {
-        const s = (t - T1) / T2;
-        render(pA + (overshootAbs - pA) * easeOutCubic(s));
-        const speed = ((overshootAbs - pA) / T2) * 3 * (1 - s) * (1 - s);
-        el.style.filter = `blur(${blurOf(speed)}px)`;
-      } else if (t <= T1 + T2 + T3) {
-        const s = (t - T1 - T2) / T3;
-        render(overshootAbs + (targetAbs - overshootAbs) * easeInOutQuad(s));
-        const slope = s < 0.5 ? 4 * s : 4 * (1 - s);
-        const speed = ((targetAbs - overshootAbs) / T3) * slope;
-        el.style.filter = `blur(${blurOf(speed)}px)`;
-      } else {
-        render(targetAbs);
+      const s = reelSample(plan, t);
+      if (s.phase === 'done') {
+        render(plan.targetAbs);
         el.style.filter = 'blur(0px)';
         el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
-          r.classList.toggle('win', list[i % list.length] === targetName);
+          r.classList.toggle('win', list[i % n] === targetName);
         });
         done();
         return;
       }
+      render(s.p);
+      el.style.filter = `blur(${blurOf(s.v)}px)`;
       rafId = requestAnimationFrame(frame);
       rafIds.push(rafId);
     }
