@@ -91,14 +91,24 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const input = byId<HTMLTextAreaElement>('nnInput');
   const grid = byId<HTMLElement>('nnGrid');
 
-  function mkMap(up: number, lo: number, dig?: number) {
+  function mkMap(up: number, lo: number, dig: number | undefined, over: Record<string, string> = {}) {
     return (ch: string) => {
       const c = ch.codePointAt(0)!;
-      if (c >= 65 && c <= 90) return String.fromCodePoint(up + (c - 65));
-      if (c >= 97 && c <= 122) return String.fromCodePoint(lo + (c - 97));
+      if (c >= 65 && c <= 90) {
+        const letter = String.fromCharCode(c);
+        return over[letter] || String.fromCodePoint(up + (c - 65));
+      }
+      if (c >= 97 && c <= 122) {
+        const letter = String.fromCharCode(c);
+        return over[letter] || String.fromCodePoint(lo + (c - 97));
+      }
       if (dig !== undefined && c >= 48 && c <= 57) return String.fromCodePoint(dig + (c - 48));
       return ch;
     };
+  }
+
+  function perChar(fn: (ch: string) => string) {
+    return (s: string) => Array.from(s).map(fn).join('');
   }
 
   function mkUpperOnly(base: number) {
@@ -124,27 +134,43 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   type Style = { id: string; name: string; fn: (s: string) => string };
 
   const STYLES: Style[] = [
-    { id: 'bold', name: '粗体', fn: mkMap(0x1d400, 0x1d41a, 0x1d7ce) },
-    { id: 'italic', name: '斜体', fn: mkMap(0x1d434, 0x1d44e) },
-    { id: 'boldItalic', name: '粗斜体', fn: mkMap(0x1d468, 0x1d482) },
-    { id: 'script', name: '花体', fn: mkMap(0x1d49c, 0x1d4b6) },
-    { id: 'boldScript', name: '粗花体', fn: mkMap(0x1d4d0, 0x1d4ea) },
-    { id: 'fraktur', name: '德文花体', fn: mkMap(0x1d504, 0x1d51e) },
-    { id: 'boldFraktur', name: '粗德文花体', fn: mkMap(0x1d56c, 0x1d586) },
-    { id: 'doubleStruck', name: '空心体', fn: mkMap(0x1d538, 0x1d552, 0x1d7d8) },
-    { id: 'sans', name: '无衬线', fn: mkMap(0x1d5a0, 0x1d5ba, 0x1d7e2) },
-    { id: 'sansBold', name: '无衬线粗体', fn: mkMap(0x1d5d4, 0x1d5ee, 0x1d7ec) },
-    { id: 'sansItalic', name: '无衬线斜体', fn: mkMap(0x1d608, 0x1d622) },
-    { id: 'sansBoldItalic', name: '无衬线粗斜体', fn: mkMap(0x1d63c, 0x1d656) },
-    { id: 'mono', name: '等宽', fn: mkMap(0x1d670, 0x1d68a, 0x1d7f6) },
+    { id: 'bold', name: '粗体', fn: perChar(mkMap(0x1d400, 0x1d41a, 0x1d7ce)) },
+    { id: 'italic', name: '斜体', fn: perChar(mkMap(0x1d434, 0x1d44e, undefined, { h: '\u210e' })) },
+    { id: 'boldItalic', name: '粗斜体', fn: perChar(mkMap(0x1d468, 0x1d482, undefined)) },
+    {
+      id: 'script', name: '花体',
+      fn: perChar(mkMap(0x1d49c, 0x1d4b6, undefined, {
+        B: '\u212c', E: '\u2130', F: '\u2131', H: '\u210b', I: '\u2110', L: '\u2112', M: '\u2133', R: '\u211b',
+        e: '\u212f', g: '\u210a', o: '\u2134',
+      })),
+    },
+    { id: 'boldScript', name: '粗花体', fn: perChar(mkMap(0x1d4d0, 0x1d4ea, undefined)) },
+    {
+      id: 'fraktur', name: '德文花体',
+      fn: perChar(mkMap(0x1d504, 0x1d51e, undefined, {
+        C: '\u212d', H: '\u210c', I: '\u2111', R: '\u211c', Z: '\u2128',
+      })),
+    },
+    { id: 'boldFraktur', name: '粗德文花体', fn: perChar(mkMap(0x1d56c, 0x1d586, undefined)) },
+    {
+      id: 'doubleStruck', name: '空心体',
+      fn: perChar(mkMap(0x1d538, 0x1d552, 0x1d7d8, {
+        C: '\u2102', H: '\u210d', N: '\u2115', P: '\u2119', Q: '\u211a', R: '\u211d', Z: '\u2124',
+      })),
+    },
+    { id: 'sans', name: '无衬线', fn: perChar(mkMap(0x1d5a0, 0x1d5ba, 0x1d7e2)) },
+    { id: 'sansBold', name: '无衬线粗体', fn: perChar(mkMap(0x1d5d4, 0x1d5ee, 0x1d7ec)) },
+    { id: 'sansItalic', name: '无衬线斜体', fn: perChar(mkMap(0x1d608, 0x1d622, undefined)) },
+    { id: 'sansBoldItalic', name: '无衬线粗斜体', fn: perChar(mkMap(0x1d63c, 0x1d656, undefined)) },
+    { id: 'mono', name: '等宽', fn: perChar(mkMap(0x1d670, 0x1d68a, 0x1d7f6)) },
     { id: 'fullwidth', name: '全角', fn: (s) => Array.from(s).map((ch) => {
       const c = ch.codePointAt(0)!;
       return c >= 33 && c <= 126 ? String.fromCharCode(c + 0xfee0) : ch;
     }).join('') },
-    { id: 'circled', name: '圈字', fn: mkMap(0x24b6, 0x24d0) },
-    { id: 'paren', name: '括号圈', fn: mkUpperOnly(0x1f110) },
-    { id: 'squared', name: '方块圈', fn: mkUpperOnly(0x1f130) },
-    { id: 'negCircled', name: '反白圈', fn: mkUpperOnly(0x1f150) },
+    { id: 'circled', name: '圈字', fn: perChar(mkMap(0x24b6, 0x24d0, undefined)) },
+    { id: 'paren', name: '括号圈', fn: perChar(mkUpperOnly(0x1f110)) },
+    { id: 'squared', name: '方块圈', fn: perChar(mkUpperOnly(0x1f130)) },
+    { id: 'negCircled', name: '反白圈', fn: perChar(mkUpperOnly(0x1f150)) },
     { id: 'sup', name: '上标', fn: (s) => Array.from(s.toLowerCase()).map((ch) => SUP[ch] || ch).join('') },
     { id: 'sub', name: '下标', fn: (s) => Array.from(s.toLowerCase()).map((ch) => SUB[ch] || ch).join('') },
     { id: 'mars', name: '火星文', fn: (s) => Array.from(s).map((ch) => {
