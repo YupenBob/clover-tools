@@ -12,7 +12,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <section class="cal-panel">
       <div class="cal-header">
         <div>
-          <div class="cal-month" id="calMonth">--</div>
+          <div class="cal-month" id="calMonth"></div>
           <div class="cal-lunar-year" id="calLunarYear"></div>
         </div>
         <div class="cal-nav">
@@ -36,10 +36,10 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
     <aside class="almanac" id="almanac">
       <div class="almanac-date">
-        <div class="almanac-day" id="alDay">--</div>
-        <div class="almanac-sub" id="alSub">--</div>
+        <div class="almanac-day" id="alDay"></div>
+        <div class="almanac-sub" id="alSub"></div>
       </div>
-      <div class="almanac-lunar" id="alLunar">--</div>
+      <div class="almanac-lunar" id="alLunar"></div>
       <div class="almanac-tags" id="alTags"></div>
 
       <div class="almanac-divider"></div>
@@ -171,12 +171,15 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    font-size: 17px;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    font-size: 15px;
     font-weight: 700;
     line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   }
 
   .cal-cell.today .cell-day {
@@ -188,6 +191,10 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .cal-cell.selected {
     border-color: var(--primary);
     background: var(--primary-soft);
+  }
+
+  .cal-cell.selected .cell-day {
+    box-shadow: 0 0 0 2px var(--primary);
   }
 
   .cell-lunar {
