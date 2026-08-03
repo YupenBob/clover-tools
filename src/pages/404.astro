@@ -7,20 +7,30 @@ import { SITE } from '../lib/site';
   title={`页面不存在 - ${SITE.name}`}
   description="你访问的页面不存在或已迁移，返回首页继续寻找工具。"
 >
-  <section class="notfound">
-    <img class="notfound-logo" src="/clover-logo.svg" alt="CloverTools 图标" width="72" height="72" />
-    <p class="notfound-code">404</p>
-    <h1 class="notfound-title">页面不存在</h1>
-    <p class="notfound-desc">这个链接可能已失效，或页面还在建设中。</p>
-    <div class="notfound-actions">
+  <section class="nf">
+    <img class="nf-logo" src="/clover-logo.svg" alt="CloverTools 图标" width="64" height="64" />
+    <p class="nf-code">404</p>
+    <h1 class="nf-title">页面不存在</h1>
+    <p class="nf-desc" id="nfDesc">这个链接可能已失效，或者页面还在建设中。</p>
+    <div class="nf-actions">
       <a class="btn btn-primary" href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 返回首页</a>
-      <a class="btn btn-secondary" href="/tools/dev/json-formatter/"><i class="bi bi-tools" aria-hidden="true"></i> 随便看看</a>
+      <a class="btn btn-secondary" href="/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> 打开在线万年历</a>
     </div>
+    <div class="nf-quick">
+      <span class="nf-quick-label">常用工具</span>
+      <div class="nf-quick-links">
+        <a href="/tools/dev/json-formatter/">JSON 格式化</a>
+        <a href="/tools/daily/timestamp/">时间戳</a>
+        <a href="/tools/dev/base64/">Base64</a>
+        <a href="/tools/dev/qrcode/">二维码</a>
+      </div>
+    </div>
+    <p class="nf-path" id="nfPath"></p>
   </section>
 </BaseLayout>
 
 <style>
-  .notfound {
+  .nf {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,36 +38,109 @@ import { SITE } from '../lib/site';
     text-align: center;
   }
 
-  .notfound-logo {
+  .nf-logo {
     filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.35));
   }
 
-  .notfound-code {
+  .nf-code {
     margin: var(--space-4) 0 0;
-    font-size: 64px;
+    font-size: 72px;
     font-weight: 800;
     letter-spacing: 4px;
+    line-height: 1;
     background: linear-gradient(120deg, var(--primary-dark), var(--primary));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    line-height: 1;
   }
 
-  .notfound-title {
+  .nf-title {
     margin: var(--space-3) 0 var(--space-2);
     font-size: 24px;
   }
 
-  .notfound-desc {
+  .nf-desc {
     color: var(--text-secondary);
     margin-bottom: var(--space-5);
+    max-width: 440px;
   }
 
-  .notfound-actions {
+  .nf-actions {
     display: flex;
     gap: var(--space-3);
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .nf-quick {
+    margin-top: var(--space-7);
+  }
+
+  .nf-quick-label {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    letter-spacing: 2px;
+    margin-bottom: var(--space-3);
+  }
+
+  .nf-quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .nf-quick-links a {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .nf-quick-links a:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .nf-path {
+    margin-top: var(--space-5);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    word-break: break-all;
+    max-width: 520px;
+  }
 </style>
+
+<script>
+  // 自愈：剥离地址尾部多余的全角符号（如 ）：），尝试跳回正确页面
+  const rawPath = window.location.pathname;
+  const decoded = decodeURIComponent(rawPath);
+  const cleaned = decoded.replace(/[\u3000-\u303f\uff00-\uffef\s]+$/g, '');
+  const cleanedPath = cleaned === decoded ? rawPath : encodeURI(cleaned);
+  const desc = document.getElementById('nfDesc') as HTMLElement;
+  const goBtn = document.getElementById('nfGo') as HTMLAnchorElement;
+  const pathEl = document.getElementById('nfPath') as HTMLElement;
+
+  pathEl.textContent = `当前地址：${rawPath}`;
+
+  if (cleanedPath !== rawPath && cleanedPath.startsWith('/')) {
+    (async () => {
+      try {
+        const res = await fetch(cleanedPath, { method: 'HEAD' });
+        if (res.ok) {
+          window.location.replace(cleanedPath);
+          return;
+        }
+      } catch {
+        // 保持原样
+      }
+      desc.textContent = '看起来地址后面多了点多余的内容，请从下面的入口进入。';
+    })();
+  }
+</script>
