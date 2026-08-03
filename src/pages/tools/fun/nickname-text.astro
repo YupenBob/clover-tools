@@ -15,11 +15,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
     </div>
     <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="输入昵称或任意文字，如：Clover 幸运草"></textarea>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="nnBtn" type="button"><i class="bi bi-stars"></i> 生成全部风格</button>
-    </div>
     <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
-    <p class="field-hint">支持中英文与数字：字母与数字转换为对应风格，中文保持原样。点击任一结果即可复制。</p>
+    <p class="field-hint">输入后即时生成全部风格；支持中英文与数字，中文保持原样。点击任一结果即可复制。</p>
   </ToolPanel>
 
   <ToolPanel title="全风格预览" icon="bi-grid">
@@ -183,7 +180,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     }
   });
 
-  byId<HTMLButtonElement>('nnBtn').addEventListener('click', render);
+  input.addEventListener('input', render);
   byId<HTMLButtonElement>('nnSample').addEventListener('click', () => {
     input.value = 'Clover 幸运草';
     render();
