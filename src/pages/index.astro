@@ -14,7 +14,7 @@ const allTools = (Object.keys(TOOLS) as ToolCategory[]).flatMap((category) =>
   TOOLS[category].map((tool) => ({ ...tool, category })),
 );
 
-const builtCount = allTools.filter((t) => t.tier === 'P0').length;
+const builtCount = allTools.length;
 
 const ALIASES: Record<string, string[]> = {
   'json-formatter': ['json格式化', 'json压缩', 'json校验', '格式化'],
@@ -109,7 +109,7 @@ const searchIndex = allTools.map((tool) => {
     py: pyOf(text),
     initials: initialsOf(text),
     aliases: ALIASES[tool.slug] || [],
-    built: tool.tier === 'P0',
+    built: true,
   };
 });
 
@@ -302,10 +302,7 @@ const searchIndexJson = JSON.stringify(searchIndex).replace(/</g, '\\u003c');
   });
 
   randomBtn.addEventListener('click', () => {
-    const pool = Array.from(document.querySelectorAll<HTMLElement>('.tool-card')).filter((card) => {
-      const entry = indexBySlug.get(card.dataset.slug || '');
-      return entry ? entry.built : false;
-    });
+    const pool = Array.from(document.querySelectorAll<HTMLElement>('.tool-card'));
     const pick = pool[Math.floor(Math.random() * pool.length)];
     if (pick) window.location.href = pick.getAttribute('href') || '/';
   });

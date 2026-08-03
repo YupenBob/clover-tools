@@ -1,0 +1,110 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'bcrypt')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="生成 Bcrypt 哈希" icon="bi-shield-check">
+    <div class="field">
+      <label class="field-label" for="bcPwd">密码</label>
+      <input class="input" id="bcPwd" type="password" placeholder="输入要哈希的密码" autocomplete="off" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="bcRounds">成本因子（cost）</label>
+        <select class="select" id="bcRounds">
+          <option value="8">8（快）</option>
+          <option value="10" selected>10（推荐）</option>
+          <option value="12">12（慢）</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcGen" type="button"><i class="bi bi-shield-check"></i> 生成哈希</button>
+    </div>
+    <div class="status-msg" id="bcGenStatus" role="status" aria-live="polite"></div>
+    <div class="output-area mt-3">
+      <textarea class="textarea" id="bcHash" readonly spellcheck="false" placeholder="生成的哈希将显示在这里"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> 复制哈希</button>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="校验密码" icon="bi-shield-lock">
+    <div class="field">
+      <label class="field-label" for="bcCheckPwd">待校验密码</label>
+      <input class="input" id="bcCheckPwd" type="password" placeholder="输入密码" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="bcCheckHash">已知哈希</label>
+      <textarea class="textarea" id="bcCheckHash" spellcheck="false" placeholder="粘贴 $2a$ / $2b$ / $2y$ 开头的 Bcrypt 哈希"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcVerify" type="button"><i class="bi bi-shield-lock"></i> 校验</button>
+    </div>
+    <div class="status-msg" id="bcVerifyStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="说明" icon="bi-info-circle" className="mt-4">
+    <p class="field-hint" style="line-height:1.9">
+      Bcrypt 是加盐哈希算法，哈希中自带随机盐与成本因子，相同密码每次生成的结果都不同（$2b$10$... 中的 10 即成本因子）。
+      校验时必须使用生成时的哈希，成本因子越高计算越慢、越抗暴力破解，推荐 10-12。全程在浏览器本地计算，密码不会离开设备。
+    </p>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+  import bcrypt from 'bcryptjs';
+
+  async function generate() {
+    hideStatus('bcGenStatus');
+    const pwd = byId<HTMLInputElement>('bcPwd').value;
+    if (!pwd) {
+      showStatus('bcGenStatus', 'error', '请输入密码');
+      return;
+    }
+    const rounds = Number(byId<HTMLSelectElement>('bcRounds').value);
+    const btn = byId<HTMLButtonElement>('bcGen');
+    btn.disabled = true;
+    showStatus('bcGenStatus', 'info', '正在计算（成本越高耗时越长）……');
+    try {
+      const hash = await bcrypt.hash(pwd, rounds);
+      byId<HTMLTextAreaElement>('bcHash').value = hash;
+      showStatus('bcGenStatus', 'success', `生成完成（cost ${rounds}）`);
+    } catch (e) {
+      showStatus('bcGenStatus', 'error', `生成失败：${(e as Error).message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function verify() {
+    hideStatus('bcVerifyStatus');
+    const pwd = byId<HTMLInputElement>('bcCheckPwd').value;
+    const hash = byId<HTMLTextAreaElement>('bcCheckHash').value.trim();
+    if (!pwd || !hash) {
+      showStatus('bcVerifyStatus', 'error', '请填写密码与哈希');
+      return;
+    }
+    try {
+      const ok = await bcrypt.compare(pwd, hash);
+      const rounds = bcrypt.getRounds(hash);
+      showStatus('bcVerifyStatus', ok ? 'success' : 'error', ok ? `密码匹配（cost ${rounds}）` : `密码不匹配（哈希 cost ${rounds}）`);
+    } catch {
+      showStatus('bcVerifyStatus', 'error', '哈希格式无效，请检查是否以 $2a$ / $2b$ / $2y$ 开头');
+    }
+  }
+
+  byId<HTMLButtonElement>('bcGen').addEventListener('click', generate);
+  byId<HTMLButtonElement>('bcVerify').addEventListener('click', verify);
+  byId<HTMLButtonElement>('bcCopy').addEventListener('click', (e) => {
+    window.CT.copy(byId<HTMLTextAreaElement>('bcHash').value, e.currentTarget as HTMLElement);
+  });
+</script>
