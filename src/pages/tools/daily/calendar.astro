@@ -9,46 +9,78 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
-  <ToolPanel title="在线万年历" icon="bi-calendar3">
-    <div class="cal-header">
-      <div class="cal-header-main">
-        <div class="cal-month" id="calMonth">--</div>
-        <div class="cal-lunar-year" id="calLunarYear"></div>
+  <div class="cal-wrap">
+    <section class="cal-panel">
+      <div class="cal-header">
+        <div>
+          <div class="cal-month" id="calMonth">--</div>
+          <div class="cal-lunar-year" id="calLunarYear"></div>
+        </div>
+        <div class="cal-nav">
+          <button class="icon-btn" id="calPrev" type="button" aria-label="上一月"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn btn-ghost btn-sm" id="calToday" type="button"><i class="bi bi-calendar-check"></i> 今天</button>
+          <button class="icon-btn" id="calNext" type="button" aria-label="下一月"><i class="bi bi-chevron-right"></i></button>
+        </div>
       </div>
-      <div class="cal-nav">
-        <button class="icon-btn" id="calPrev" type="button" aria-label="上一月"><i class="bi bi-chevron-left"></i></button>
-        <button class="btn btn-ghost btn-sm" id="calToday" type="button"><i class="bi bi-calendar-check"></i> 今天</button>
-        <button class="icon-btn" id="calNext" type="button" aria-label="下一月"><i class="bi bi-chevron-right"></i></button>
-      </div>
-    </div>
 
-    <div class="cal-week">
-      <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span>
-      <span class="wk-end">六</span><span class="wk-end">日</span>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-  </ToolPanel>
-
-  <ToolPanel title="当日详解" icon="bi-info-circle" className="mt-4">
-    <div class="day-hero">
-      <div>
-        <div class="day-date" id="dayDate">--</div>
-        <div class="day-lunar" id="dayLunar"></div>
+      <div class="cal-week">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span>
+        <span class="wk-end">六</span><span class="wk-end">日</span>
       </div>
-      <div class="day-tags" id="dayTags"></div>
-    </div>
-    <div class="day-section">
-      <div class="day-section-head yi"><i class="bi bi-check2-circle" aria-hidden="true"></i> 宜</div>
-      <div class="tag-cloud" id="dayYi"></div>
-    </div>
-    <div class="day-section">
-      <div class="day-section-head ji"><i class="bi bi-x-circle" aria-hidden="true"></i> 忌</div>
-      <div class="tag-cloud" id="dayJi"></div>
-    </div>
-  </ToolPanel>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="cal-terms">
+        <span class="cal-terms-label"><i class="bi bi-cloud-sun" aria-hidden="true"></i> 本月节气</span>
+        <span class="cal-terms-list" id="calTerms"></span>
+      </div>
+    </section>
+
+    <aside class="almanac" id="almanac">
+      <div class="almanac-date">
+        <div class="almanac-day" id="alDay">--</div>
+        <div class="almanac-sub" id="alSub">--</div>
+      </div>
+      <div class="almanac-lunar" id="alLunar">--</div>
+      <div class="almanac-tags" id="alTags"></div>
+
+      <div class="almanac-divider"></div>
+
+      <div class="almanac-yiji">
+        <div class="yiji-block yi">
+          <div class="yiji-title"><i class="bi bi-check2-circle" aria-hidden="true"></i> 宜</div>
+          <div class="yiji-cloud" id="alYi"></div>
+        </div>
+        <div class="yiji-block ji">
+          <div class="yiji-title"><i class="bi bi-x-circle" aria-hidden="true"></i> 忌</div>
+          <div class="yiji-cloud" id="alJi"></div>
+        </div>
+      </div>
+
+      <div class="almanac-divider"></div>
+
+      <div class="almanac-meta" id="alMeta"></div>
+      <p class="almanac-hint">点击日历中的日期查看当日黄历</p>
+    </aside>
+  </div>
 </ToolLayout>
 
 <style>
+  .cal-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  /* ── Left: calendar panel ── */
+  .cal-panel {
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
   .cal-header {
     display: flex;
     align-items: center;
@@ -59,8 +91,8 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   .cal-month {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
     letter-spacing: 1px;
   }
 
@@ -107,7 +139,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    min-height: 72px;
+    min-height: 76px;
     padding: 8px 4px;
     border-radius: var(--radius-md);
     background: var(--bg-secondary);
@@ -122,7 +154,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   .cal-cell.other-month {
-    opacity: 0.32;
+    opacity: 0.3;
     background: transparent;
   }
 
@@ -177,84 +209,145 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     color: var(--error);
   }
 
-  .day-hero {
+  .cal-terms {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--primary-soft), transparent 70%);
-    border: 1px solid var(--border);
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
     flex-wrap: wrap;
   }
 
-  .day-date {
-    font-size: 19px;
-    font-weight: 700;
+  .cal-terms-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    font-weight: 600;
   }
 
-  .day-lunar {
-    margin-top: 3px;
-    color: var(--text-secondary);
-    font-size: 13.5px;
+  .cal-terms-label i {
+    color: var(--primary-dark);
   }
 
-  .day-tags {
+  .cal-terms-list {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
 
-  .day-tags .tag {
-    padding: 4px 10px;
+  .term-chip {
+    padding: 2px 9px;
     border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12px;
+  }
+
+  /* ── Right: almanac card ── */
+  .almanac {
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
     background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .almanac-date {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .almanac-day {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .almanac-sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .almanac-lunar {
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+  }
+
+  .almanac-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-3);
+  }
+
+  .almanac-tags .tag {
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    background: var(--bg-secondary);
     border: 1px solid var(--border);
     color: var(--text-secondary);
     font-size: 12px;
   }
 
-  .day-tags .tag.jieqi {
+  .almanac-tags .tag.jieqi {
     color: var(--primary-dark);
     border-color: var(--primary);
     background: var(--primary-soft);
   }
 
-  .day-tags .tag.holiday {
+  .almanac-tags .tag.holiday {
     color: var(--error);
     border-color: var(--error);
     background: var(--error-soft);
   }
 
-  .day-section {
-    margin-top: var(--space-4);
+  .almanac-divider {
+    height: 1px;
+    margin: var(--space-4) 0;
+    background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
   }
 
-  .day-section-head {
+  .yiji-block {
+    margin-bottom: var(--space-3);
+  }
+
+  .yiji-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .yiji-title {
     display: flex;
     align-items: center;
     gap: 6px;
     margin-bottom: var(--space-2);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
+    letter-spacing: 1px;
   }
 
-  .day-section-head.yi {
+  .yiji-block.yi .yiji-title {
     color: var(--success);
   }
 
-  .day-section-head.ji {
+  .yiji-block.ji .yiji-title {
     color: var(--error);
   }
 
-  .tag-cloud {
+  .yiji-cloud {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
   }
 
-  .tag-cloud .chip {
+  .yiji-cloud .chip {
     padding: 4px 11px;
     border-radius: var(--radius-full);
     background: var(--bg-secondary);
@@ -263,9 +356,52 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     font-size: 12.5px;
   }
 
+  .almanac-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .almanac-meta .meta-item {
+    text-align: center;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .almanac-meta .meta-item .k {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .almanac-meta .meta-item .v {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .almanac-hint {
+    margin: var(--space-4) 0 0;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .cal-wrap {
+      grid-template-columns: 1fr;
+    }
+
+    .almanac {
+      position: static;
+    }
+  }
+
   @media (max-width: 560px) {
     .cal-cell {
-      min-height: 58px;
+      min-height: 56px;
       padding: 6px 2px;
     }
 
@@ -315,6 +451,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const first = new Date(viewYear, viewMonth - 1, 1);
     const startOffset = (first.getDay() + 6) % 7;
     const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
+    const todayYmd = ymd(new Date());
     let html = '';
     for (let i = 0; i < 42; i++) {
       const dayOffset = i - startOffset;
@@ -323,15 +460,16 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
       const y = date.getFullYear();
       const m = date.getMonth() + 1;
       const d = date.getDate();
+      const key = ymd(date);
       const lunar = Solar.fromYmd(y, m, d).getLunar();
-      const holiday = HolidayUtil.getHoliday(ymd(date));
+      const holiday = HolidayUtil.getHoliday(key);
       const jieQi = lunar.getJieQi();
-      const badge = holiday ? { text: holiday.getName(), cls: 'holiday' } : jieQi ? { text: jieQi, cls: 'jieqi' } : null;
+      const badge = holiday ? { text: holiday.getName(), cls: 'holiday' } : jieQi ? { text: jieQi, cls: '' } : null;
       const cls = [
         isCurrent ? '' : 'other-month',
         isWeekend(date) ? 'wk-end' : '',
-        ymd(date) === ymd(new Date()) ? 'today' : '',
-        ymd(date) === ymd(selected) ? 'selected' : '',
+        key === todayYmd ? 'today' : '',
+        key === ymd(selected) ? 'selected' : '',
       ].join(' ');
       html += `<div class="cal-cell ${cls}" data-y="${y}" data-m="${m}" data-d="${d}">` +
         `<span class="cell-day">${d}</span>` +
@@ -342,7 +480,19 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     grid.innerHTML = html;
   }
 
-  function renderDetail() {
+  function renderTerms() {
+    const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
+    const terms: string[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const jieQi = Solar.fromYmd(viewYear, viewMonth, d).getLunar().getJieQi();
+      if (jieQi) terms.push(`${d} 日 ${jieQi}`);
+    }
+    byId<HTMLElement>('calTerms').innerHTML = terms.length
+      ? terms.map((t) => `<span class="term-chip">${t}</span>`).join('')
+      : '<span class="muted">本月无节气</span>';
+  }
+
+  function renderAlmanac() {
     const y = selected.getFullYear();
     const m = selected.getMonth() + 1;
     const d = selected.getDate();
@@ -350,31 +500,41 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const lunar = solar.getLunar();
     const holiday = HolidayUtil.getHoliday(ymd(selected));
     const jieQi = lunar.getJieQi();
+    const ganZhi = lunar.getYearInGanZhi();
+    const wuxing: Record<string, string> = {
+      甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
+    };
+    byId<HTMLElement>('alDay').textContent = `${m} 月 ${d} 日`;
+    byId<HTMLElement>('alSub').textContent = `星期${'日一二三四五六'[selected.getDay()]}`;
+    byId<HTMLElement>('alLunar').textContent =
+      `农历${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} · ${lunar.getDayInGanZhi()}日`;
     const tags: string[] = [];
     if (holiday) tags.push(holiday.isWork() ? `${holiday.getName()}（调休上班）` : `${holiday.getName()}（放假）`);
     if (jieQi) tags.push(jieQi);
-    byId<HTMLElement>('dayDate').textContent =
-      `${y} 年 ${m} 月 ${d} 日 · 星期${'日一二三四五六'[selected.getDay()]}`;
-    byId<HTMLElement>('dayLunar').textContent =
-      `农历${lunar.getYearInChinese()}年 ${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} · ` +
-      `${lunar.getYearInGanZhi()}年 ${lunar.getMonthInGanZhi()}月 ${lunar.getDayInGanZhi()}日`;
-    byId<HTMLElement>('dayTags').innerHTML = tags
-      .map((t) => `<span class="tag ${jieQi === t || (holiday && t.includes(holiday.getName())) ? (jieQi === t ? 'jieqi' : 'holiday') : ''}">${t}</span>`)
+    byId<HTMLElement>('alTags').innerHTML = tags
+      .map((t) => `<span class="tag ${t === jieQi ? 'jieqi' : t.includes(holiday?.getName() || '') ? 'holiday' : ''}">${t}</span>`)
       .join('');
     const yi = lunar.getDayYi();
     const ji = lunar.getDayJi();
-    byId<HTMLElement>('dayYi').innerHTML = yi.length
+    byId<HTMLElement>('alYi').innerHTML = yi.length
       ? yi.map((t: string) => `<span class="chip">${t}</span>`).join('')
-      : '<span class="muted">今日无特别适宜事项</span>';
-    byId<HTMLElement>('dayJi').innerHTML = ji.length
+      : '<span class="muted">无特别适宜</span>';
+    byId<HTMLElement>('alJi').innerHTML = ji.length
       ? ji.map((t: string) => `<span class="chip">${t}</span>`).join('')
-      : '<span class="muted">今日无特别忌讳事项</span>';
+      : '<span class="muted">无特别忌讳</span>';
+    byId<HTMLElement>('alMeta').innerHTML = [
+      ['生肖', lunar.getYearShengXiao()],
+      ['星座', solar.getXingZuo()],
+      ['年干支', `${ganZhi}年`],
+      ['五行', wuxing[ganZhi.charAt(0)] || '—'],
+    ].map(([k, v]) => `<div class="meta-item"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
   }
 
   function render() {
     renderHeader();
     renderGrid();
-    renderDetail();
+    renderTerms();
+    renderAlmanac();
   }
 
   byId<HTMLElement>('calGrid').addEventListener('click', (e) => {
@@ -408,6 +568,11 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     viewMonth = now.getMonth() + 1;
     selected = now;
     render();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') byId<HTMLButtonElement>('calPrev').click();
+    if (e.key === 'ArrowRight') byId<HTMLButtonElement>('calNext').click();
   });
 
   render();
