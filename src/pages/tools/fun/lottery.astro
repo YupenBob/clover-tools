@@ -37,6 +37,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   </ToolPanel>
 </ToolLayout>
 
+<p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> 音效来源：Mixkit（免费授权）</p>
+
 <!-- ═══ 沉浸式老虎机 ═══ -->
 <div class="lottery-overlay" id="lotteryOverlay" aria-hidden="true">
   <div class="lot-particles" aria-hidden="true"></div>
@@ -47,6 +49,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="lot-sub" id="lotSub">准备好你的心跳了吗</div>
     </div>
     <div class="lot-top-actions">
+      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="音效开关"><i class="bi bi-volume-up-fill"></i></button>
       <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏"><i class="bi bi-arrows-fullscreen"></i></button>
       <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出"><i class="bi bi-x-lg"></i></button>
     </div>
@@ -92,10 +95,15 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="slot-winners" id="cWinners"></div>
     </div>
     <div class="slot-actions">
+      <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> 音效</button>
       <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 退出</button>
     </div>
   </div>
 </div>
+
+<audio id="sfxSpin" src="/sfx/lottery-spin.mp3" preload="auto"></audio>
+<audio id="sfxWin" src="/sfx/lottery-win.mp3" preload="auto"></audio>
+<audio id="sfxLever" src="/sfx/lottery-lever.mp3" preload="auto"></audio>
 
 <style is:global>
   /* ───────── 沉浸式 ───────── */
@@ -334,6 +342,11 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   let count = 0;
   let classicBusy = false;
   let classicIdx = 0;
+  const sfxSpin = byId<HTMLAudioElement>('sfxSpin');
+  const sfxWin = byId<HTMLAudioElement>('sfxWin');
+  const sfxLever = byId<HTMLAudioElement>('sfxLever');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sfxOn = localStorage.getItem('ct-sfx') !== 'off' && !reducedMotion;
 
   function parseNames(): string[] {
     return byId<HTMLTextAreaElement>('lotNames').value.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -344,6 +357,21 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const out: string[] = [];
     for (let i = 0; i < n; i++) out.push(p.splice(Math.floor(Math.random() * p.length), 1)[0]);
     return out;
+  }
+
+  function playSfx(kind: 'spin' | 'win' | 'lever') {
+    if (!sfxOn) return;
+    const el = kind === 'spin' ? sfxSpin : kind === 'win' ? sfxWin : sfxLever;
+    el.currentTime = 0;
+    el.play().catch(() => undefined);
+  }
+
+  function syncSfxIcons() {
+    const icon = sfxOn ? 'bi-volume-up-fill' : 'bi-volume-mute-fill';
+    byId<HTMLButtonElement>('lotSfx').innerHTML = `<i class="bi ${icon}"></i>`;
+    byId<HTMLButtonElement>('classicSfx').innerHTML = `<i class="bi ${icon}"></i> 音效`;
+    byId<HTMLButtonElement>('lotSfx').setAttribute('aria-pressed', String(sfxOn));
+    byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
   }
 
   function buildStrip(el: HTMLElement, names: string[], rowH: number): string[] {
@@ -396,6 +424,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   function spinAllTo(winner: string, list: string[]): Promise<void> {
     return new Promise((resolve) => {
+      playSfx('spin');
       const useClassic = classic.classList.contains('open');
       const els: HTMLElement[] = useClassic
         ? [classicReelL(), classicReelM(), classicReelR()]
@@ -414,6 +443,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       spinReel(els[2], strips[2], winner, rowHs[2], centers[2], 150, () => { rightDone = true; maybe(); });
       function maybe() {
         if (leftDone && midDone && rightDone) {
+          sfxSpin.pause();
+          sfxSpin.currentTime = 0;
+          playSfx('win');
           windows.forEach((w) => w.classList.add('pay'));
           setTimeout(() => { windows.forEach((w) => w.classList.remove('pay')); resolve(); }, 900);
         }
@@ -457,6 +489,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   function closeOverlays() {
     for (const id of rafIds) cancelAnimationFrame(id);
     rafIds.length = 0;
+    sfxSpin.pause();
+    sfxSpin.currentTime = 0;
     overlay.classList.remove('open');
     classic.classList.remove('open');
     document.body.style.overflow = '';
@@ -573,6 +607,17 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
     else document.documentElement.requestFullscreen().catch(() => undefined);
   });
+  byId<HTMLButtonElement>('lotSfx').addEventListener('click', () => {
+    sfxOn = !sfxOn;
+    localStorage.setItem('ct-sfx', sfxOn ? 'on' : 'off');
+    syncSfxIcons();
+  });
+  byId<HTMLButtonElement>('classicSfx').addEventListener('click', () => {
+    sfxOn = !sfxOn;
+    localStorage.setItem('ct-sfx', sfxOn ? 'on' : 'off');
+    syncSfxIcons();
+  });
+  syncSfxIcons();
   byId<HTMLButtonElement>('classicExit').addEventListener('click', closeOverlays);
 
   // 拉杆交互
@@ -601,6 +646,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     leverPull = 0;
     knob.style.transform = '';
     if (pulled && !classicBusy && classicIdx < count && classic.classList.contains('open')) {
+      playSfx('lever');
       runClassic(pool);
     }
   });
