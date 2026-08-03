@@ -20,6 +20,10 @@ for (const [catKey] of Object.entries(categories)) {
     const legacy = block.match(/legacyPath: '([^']+)'/)?.[1];
     if (slug && legacy) {
       entries.push(`${legacy} /tools/${catKey}/${slug}/ 301`);
+      const aliases = [...(block.match(/legacyAliases: \[([^\]]*)\]/)?.[1] || '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
+      for (const alias of aliases) {
+        entries.push(`${alias} /tools/${catKey}/${slug}/ 301`);
+      }
     }
   }
 }

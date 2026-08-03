@@ -21,8 +21,9 @@ function walk(dir) {
 }
 
 // 常见 emoji 区段（符号与象形文字、杂项符号、杂项符号与箭头、表情符号等）
+// 排除 U+1F100–U+1F169（Enclosed Alphanumeric Supplement 的字母/数字变体，非 emoji）
 const EMOJI_RE =
-  /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/u;
+  /[\u{1F000}-\u{1F0FF}\u{1F16A}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/u;
 
 if (!statSync(dist, { throwIfNoEntry: false })) {
   console.error('dist 目录不存在，请先运行 npm run build');
