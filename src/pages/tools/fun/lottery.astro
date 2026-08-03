@@ -185,7 +185,6 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     font-size: 19px; font-weight: 700; color: #f4ecd8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .reel-main .reel-row { height: 80px; font-size: 27px; font-weight: 800; color: #ffe9b8; }
-  .reel-row.blur { filter: blur(2.5px); }
   .reel-row.win { color: #fff; text-shadow: 0 0 18px rgba(201, 169, 110, 0.95); animation: win-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
   @keyframes win-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -251,7 +250,6 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     font-size: 17px; font-weight: 800; color: #2b2110; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     border-bottom: 1px dashed rgba(74, 58, 28, 0.18);
   }
-  .slot-row.blur { filter: blur(2px); }
   .slot-row.win { color: #b3261e; text-shadow: 0 0 8px rgba(179, 38, 30, 0.25); animation: win-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
   .slot-reels { position: relative; }
   .slot-reels .reels-paybox {
@@ -351,39 +349,56 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const list = names.length < 4 ? [...names, ...names, ...names, ...names].slice(0, 8) : names;
     const rows: string[] = [];
     for (let r = 0; r < 4; r++) for (const n of list) rows.push(n);
-    el.innerHTML = rows.map((n) => `<div class="${el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row'} blur" style="height:${rowH}px">${n}</div>`).join('');
+    el.innerHTML = rows.map((n) => `<div class="${el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row'}" style="height:${rowH}px">${n}</div>`).join('');
     return list;
   }
 
-  function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, done: () => void) {
+  function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, delayMs: number, done: () => void) {
     const setH = list.length * rowH;
     const targetIdx = list.indexOf(targetName);
+    const targetPx = setH + targetIdx * rowH - centerOffset;
+    const overshootRows = 0.4 + Math.random() * 0.6;
+    const maxVel = 38;
     let pos = Math.random() * setH;
-    let vel = 34 + Math.random() * 6;
+    let vel = maxVel * (0.92 + Math.random() * 0.16);
     el.style.transition = 'none';
     el.querySelectorAll('.reel-row,.slot-row').forEach((r) => r.classList.remove('win'));
+    const t0 = performance.now() + delayMs;
+    let rafId = 0;
     function frame() {
+      if (performance.now() < t0) {
+        rafId = requestAnimationFrame(frame);
+        rafIds.push(rafId);
+        return;
+      }
       pos += vel;
       vel *= 0.962;
       if (pos >= setH * 2) pos -= setH * 2;
       el.style.transform = `translateY(-${pos}px)`;
-      if (vel > 0.3) {
-        rafIds.push(requestAnimationFrame(frame));
-      } else {
-        const target = setH + targetIdx * rowH - centerOffset;
-        el.style.transition = 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)';
-        el.style.transform = `translateY(-${Math.max(0, target)}px)`;
+      el.style.filter = `blur(${Math.min(3.5, (vel / maxVel) * 3.5).toFixed(2)}px)`;
+      if (vel > 0.5) {
+        rafId = requestAnimationFrame(frame);
+        rafIds.push(rafId);
+        return;
+      }
+      // 减速结束：先过冲目标少许，再反向滚回精准停在目标行
+      const overshootPx = targetPx + overshootRows * rowH;
+      el.style.transition = 'transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), filter 0.42s ease';
+      el.style.transform = `translateY(-${overshootPx}px)`;
+      el.style.filter = 'blur(0px)';
+      setTimeout(() => {
+        el.style.transition = 'transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        el.style.transform = `translateY(-${targetPx}px)`;
         setTimeout(() => {
           el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
-            const setIdx = i % list.length;
-            r.classList.toggle('win', list[setIdx] === targetName);
-            r.classList.remove('blur');
+            r.classList.toggle('win', list[i % list.length] === targetName);
           });
           done();
-        }, 580);
-      }
+        }, 300);
+      }, 440);
     }
-    rafIds.push(requestAnimationFrame(frame));
+    rafId = requestAnimationFrame(frame);
+    rafIds.push(rafId);
   }
 
   function spinAllTo(winner: string, list: string[]): Promise<void> {
@@ -401,9 +416,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         : [(WIN_H - ROW_H) / 2, (WIN_H - MAIN_ROW_H) / 2, (WIN_H - ROW_H) / 2];
       const strips = els.map((el, i) => buildStrip(el, list, rowHs[i]));
       let leftDone = false, midDone = false, rightDone = false;
-      spinReel(els[0], strips[0], winner, rowHs[0], centers[0], () => { leftDone = true; maybe(); });
-      spinReel(els[1], strips[1], winner, rowHs[1], centers[1], () => { midDone = true; maybe(); });
-      spinReel(els[2], strips[2], winner, rowHs[2], centers[2], () => { rightDone = true; maybe(); });
+      spinReel(els[0], strips[0], winner, rowHs[0], centers[0], 0, () => { leftDone = true; maybe(); });
+      spinReel(els[1], strips[1], winner, rowHs[1], centers[1], 300, () => { midDone = true; maybe(); });
+      spinReel(els[2], strips[2], winner, rowHs[2], centers[2], 150, () => { rightDone = true; maybe(); });
       function maybe() {
         if (leftDone && midDone && rightDone) {
           windows.forEach((w) => w.classList.add('pay'));
