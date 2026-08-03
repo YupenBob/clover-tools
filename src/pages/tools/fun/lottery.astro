@@ -24,113 +24,571 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-gift"></i> 开始抽奖</button>
-      <button class="btn btn-ghost" id="lotReset" type="button"><i class="bi bi-arrow-counterclockwise"></i> 重置</button>
+      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> 开始抽奖</button>
     </div>
     <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
-  </ToolPanel>
-
-  <ToolPanel title="中奖展示" icon="bi-trophy">
-    <div class="lot-rolling" id="lotRolling">点击开始抽奖</div>
-    <div class="lot-winners" id="lotWinners"></div>
+    <p class="field-hint">点击开始后进入全屏沉浸模式，老虎机滚动揭晓中奖者。按 Esc 可退出。</p>
   </ToolPanel>
 </ToolLayout>
 
+<div class="lottery-overlay" id="lotteryOverlay" aria-hidden="true">
+  <div class="lot-particles" aria-hidden="true"></div>
+  <div class="lot-spotlight" aria-hidden="true"></div>
+
+  <header class="lot-top">
+    <div>
+      <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> 幸运时刻</div>
+      <div class="lot-sub" id="lotSub">准备好你的心跳了吗</div>
+    </div>
+    <div class="lot-top-actions">
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏" title="浏览器全屏">
+        <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i>
+      </button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出" title="退出（Esc）">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="reels" id="reels">
+    <div class="reel-window"><div class="reel-strip" id="reelL"></div></div>
+    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div></div>
+    <div class="reel-window"><div class="reel-strip" id="reelR"></div></div>
+  </div>
+
+  <div class="lot-status" id="lotStatusMsg">转动中…</div>
+
+  <div class="lot-winners" id="lotWinners"></div>
+
+  <div class="lot-actions">
+    <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再抽一次</button>
+    <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 完成</button>
+  </div>
+</div>
+
 <style is:global>
-  .lot-rolling {
-    min-height: 96px;
+  .lottery-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(var(--primary-rgb), 0.22), transparent 55%),
+      linear-gradient(160deg, #1b1812 0%, #0e0c08 60%, #171309 100%);
+    color: #f4ecd8;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+    overflow: hidden;
+  }
+
+  .lottery-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lot-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .lot-particles span {
+    position: absolute;
+    bottom: -8px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 184, 126, 0.9), transparent 70%);
+    opacity: 0;
+    animation: lot-float var(--d, 8s) linear infinite;
+    animation-delay: var(--dl, 0s);
+  }
+
+  @keyframes lot-float {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-110vh) translateX(var(--dx, 30px)); opacity: 0; }
+  }
+
+  .lot-spotlight {
+    position: absolute;
+    top: 18%;
+    width: 640px;
+    height: 380px;
+    background: radial-gradient(ellipse at center, rgba(212, 184, 126, 0.18), transparent 65%);
+    filter: blur(10px);
+    pointer-events: none;
+    animation: lot-breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes lot-breathe {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+
+  .lot-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .lot-title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    background: linear-gradient(120deg, #e6d6ae, #c9a96e, #f0e6cc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .lot-title i {
+    -webkit-text-fill-color: var(--primary);
+  }
+
+  .lot-sub {
+    margin-top: 4px;
+    color: rgba(244, 236, 216, 0.55);
+    font-size: 13px;
+    letter-spacing: 2px;
+  }
+
+  .lot-top-actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .lot-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(244, 236, 216, 0.2);
+    border-radius: var(--radius-full);
+    background: rgba(244, 236, 216, 0.06);
+    color: rgba(244, 236, 216, 0.8);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  }
+
+  .lot-icon-btn:hover {
+    background: rgba(201, 169, 110, 0.18);
+    color: #f4ecd8;
+  }
+
+  .lot-icon-btn:active {
+    transform: scale(0.94);
+  }
+
+  .reels {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .reel-window {
+    position: relative;
+    width: 150px;
+    height: 240px;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid rgba(201, 169, 110, 0.55);
+    background: linear-gradient(180deg, #241f15, #14110b);
+    box-shadow:
+      inset 0 0 40px rgba(0, 0, 0, 0.75),
+      0 10px 34px rgba(0, 0, 0, 0.5);
+  }
+
+  .reel-window::before,
+  .reel-window::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 34px;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .reel-window::before {
+    top: 0;
+    background: linear-gradient(180deg, #1b1710, transparent);
+  }
+
+  .reel-window::after {
+    bottom: 0;
+    background: linear-gradient(0deg, #1b1710, transparent);
+  }
+
+  .reel-window.reel-main {
+    width: 220px;
+    border-color: rgba(230, 214, 174, 0.85);
+    box-shadow:
+      inset 0 0 50px rgba(0, 0, 0, 0.8),
+      0 0 46px rgba(201, 169, 110, 0.22),
+      0 14px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .reel-strip {
+    will-change: transform;
+  }
+
+  .reel-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-5);
-    border: 2px dashed var(--border-strong);
-    border-radius: var(--radius-lg);
-    background: var(--bg-secondary);
-    font-size: 34px;
+    height: 60px;
+    padding: 0 10px;
+    font-size: 19px;
     font-weight: 700;
-    color: var(--primary-dark);
-    text-align: center;
+    color: #f4ecd8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .reel-main .reel-row {
+    height: 80px;
+    font-size: 27px;
+    font-weight: 800;
+    color: #ffe9b8;
+  }
+
+  .reel-row.blur {
+    filter: blur(2.5px);
+  }
+
+  .reel-row.win {
+    color: #fff;
+    text-shadow: 0 0 18px rgba(201, 169, 110, 0.9);
+    animation: win-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes win-pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .lot-status {
+    position: relative;
+    z-index: 2;
+    min-height: 26px;
+    color: rgba(244, 236, 216, 0.75);
+    font-size: 15px;
+    letter-spacing: 3px;
   }
 
   .lot-winners {
-    margin-top: var(--space-4);
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    max-width: 720px;
+    min-height: 44px;
+  }
+
+  .winner-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, rgba(201, 169, 110, 0.28), rgba(201, 169, 110, 0.12));
+    border: 1px solid rgba(201, 169, 110, 0.6);
+    color: #ffe9b8;
+    font-size: 16px;
+    font-weight: 700;
+    animation: winner-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .winner-chip i {
+    color: var(--primary);
+  }
+
+  @keyframes winner-in {
+    from { transform: scale(0.3) translateY(12px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .lot-actions {
+    position: relative;
+    z-index: 2;
+    display: flex;
     gap: var(--space-3);
   }
 
-  .lot-winner {
-    padding: 10px 18px;
-    border-radius: var(--radius-full);
-    background: var(--primary-soft);
-    color: var(--primary-dark);
-    font-weight: 600;
-    font-size: 15px;
+  @media (max-width: 640px) {
+    .reels {
+      gap: 10px;
+    }
+
+    .reel-window {
+      width: 104px;
+      height: 176px;
+      border-radius: 14px;
+    }
+
+    .reel-window.reel-main {
+      width: 150px;
+    }
+
+    .reel-row {
+      height: 44px;
+      font-size: 15px;
+    }
+
+    .reel-main .reel-row {
+      height: 58px;
+      font-size: 20px;
+    }
+
+    .lot-title {
+      font-size: 22px;
+    }
   }
 </style>
 
 <script>
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
 
-  const rolling = byId<HTMLElement>('lotRolling');
+  const overlay = byId<HTMLElement>('lotteryOverlay');
+  const sub = byId<HTMLElement>('lotSub');
+  const statusMsg = byId<HTMLElement>('lotStatusMsg');
   const winnersEl = byId<HTMLElement>('lotWinners');
+  const againBtn = byId<HTMLButtonElement>('lotAgain');
+  const doneBtn = byId<HTMLButtonElement>('lotDone');
+  const reels = { L: byId<HTMLElement>('reelL'), M: byId<HTMLElement>('reelM'), R: byId<HTMLElement>('reelR') };
+  const particles = byId<HTMLElement>('lotteryOverlay').querySelector('.lot-particles') as HTMLElement;
+  const ROW_H = 60;
+  const MAIN_ROW_H = 80;
   let running = false;
+  let rafId = 0;
+  const rafIds: number[] = [];
+  let pool: string[] = [];
+  let winners: string[] = [];
+  let count = 0;
 
-  function names(): string[] {
+  function parseNames(): string[] {
     return byId<HTMLTextAreaElement>('lotNames').value
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean);
+      .split('\n').map((s) => s.trim()).filter(Boolean);
   }
 
-  function start() {
+  function spawnParticles() {
+    const colors = ['212,184,126', '230,214,174', '240,230,204'];
+    particles.innerHTML = Array.from({ length: 12 }, () => {
+      const left = Math.random() * 100;
+      const size = 3 + Math.random() * 5;
+      const dur = 6 + Math.random() * 6;
+      const delay = Math.random() * 6;
+      const dx = (Math.random() - 0.5) * 80;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return `<span style="left:${left}%;width:${size}px;height:${size}px;--d:${dur}s;--dl:${delay}s;--dx:${dx}px;background:radial-gradient(circle, rgba(${color},0.9), transparent 70%)"></span>`;
+    }).join('');
+  }
+
+  function openOverlay() {
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    spawnParticles();
+  }
+
+  function closeOverlay() {
+    for (const id of rafIds) cancelAnimationFrame(id);
+    rafIds.length = 0;
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    running = false;
+    resetDisplay();
+  }
+
+  function resetDisplay() {
+    sub.textContent = '准备好你的心跳了吗';
+    statusMsg.textContent = '转动中…';
+    winnersEl.innerHTML = '';
+    winners = [];
+    againBtn.hidden = true;
+    doneBtn.hidden = true;
+    ['L', 'M', 'R'].forEach((k) => {
+      reels[k as keyof typeof reels].innerHTML = '';
+      reels[k as keyof typeof reels].style.transition = '';
+      reels[k as keyof typeof reels].style.transform = '';
+    });
+  }
+
+  function buildStrip(el: HTMLElement, names: string[], main: boolean): number {
+    const rowH = main ? MAIN_ROW_H : ROW_H;
+    const repeat = 4;
+    const rows: string[] = [];
+    for (let r = 0; r < repeat; r++) {
+      for (const n of names) rows.push(n);
+    }
+    el.innerHTML = rows.map((n) => `<div class="reel-row${main ? ' blur' : ' blur'}" style="height:${rowH}px">${n}</div>`).join('');
+    return rowH;
+  }
+
+  function spinReel(el: HTMLElement, names: string[], targetIndex: number, rowH: number, done: () => void) {
+    const setH = names.length * rowH;
+    let pos = 0;
+    let vel = 30 + Math.random() * 8;
+    // 让初始位置错开
+    el.style.transition = 'none';
+    el.style.transform = `translateY(0)`;
+    el.querySelectorAll('.reel-row').forEach((r) => r.classList.add('blur'));
+
+    function frame() {
+      pos += vel;
+      vel *= 0.965;
+      if (pos >= setH * 2) pos -= setH * 2;
+      el.style.transform = `translateY(-${pos}px)`;
+      if (vel > 0.3) {
+        rafId = requestAnimationFrame(frame);
+        rafIds.push(rafId);
+      } else {
+        const target = setH + targetIndex * rowH;
+        el.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+        el.style.transform = `translateY(-${target}px)`;
+        setTimeout(() => {
+          el.querySelectorAll('.reel-row').forEach((r, i) => {
+            const setIdx = i % names.length;
+            r.classList.toggle('win', setIdx === targetIndex);
+            r.classList.remove('blur');
+          });
+          done();
+        }, 640);
+      }
+    }
+    rafId = requestAnimationFrame(frame);
+    rafIds.push(rafId);
+  }
+
+  function spinAll(winner: string, names: string[]): Promise<void> {
+    return new Promise((resolve) => {
+      const middleIdx = names.indexOf(winner);
+      const randIdx = () => Math.floor(Math.random() * names.length);
+      const leftIdx = randIdx();
+      const rightIdx = randIdx();
+      buildStrip(reels.L, names, false);
+      buildStrip(reels.M, names, true);
+      buildStrip(reels.R, names, false);
+      let left = 0;
+      spinReel(reels.L, names, leftIdx, ROW_H, () => { left++; maybeDone(); });
+      let right = 0;
+      spinReel(reels.R, names, rightIdx, ROW_H, () => { right++; maybeDone(); });
+      let mid = 0;
+      spinReel(reels.M, names, middleIdx, MAIN_ROW_H, () => { mid++; maybeDone(); });
+      function maybeDone() {
+        if (left === 1 && right === 1 && mid === 1) resolve();
+      }
+    });
+  }
+
+  async function start() {
     hideStatus('lotStatus');
-    const list = names();
-    const count = Number(byId<HTMLInputElement>('lotCount').value);
-    if (list.length === 0) {
+    const names = parseNames();
+    count = Number(byId<HTMLInputElement>('lotCount').value);
+    if (names.length === 0) {
       showStatus('lotStatus', 'error', '请先填写名单');
       return;
     }
-    if (count < 1 || count > list.length) {
-      showStatus('lotStatus', 'error', `中奖人数需在 1-${list.length} 之间`);
+    if (count < 1 || count > names.length) {
+      showStatus('lotStatus', 'error', `中奖人数需在 1-${names.length} 之间`);
       return;
     }
-    if (running) return;
-    running = true;
-    winnersEl.innerHTML = '';
+    pool = [...names];
+    winners = [];
+    resetDisplay();
+    openOverlay();
+    sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
     byId<HTMLButtonElement>('lotBtn').disabled = true;
-    const pool = [...list];
-    const picked: string[] = [];
-    let ticks = 0;
-    const totalTicks = 30 + count * 8;
-    const timer = setInterval(() => {
+    running = true;
+    for (let i = 0; i < count; i++) {
+      if (!running || !overlay.classList.contains('open')) return;
+      statusMsg.textContent = `第 ${i + 1} 位幸运儿揭晓中…`;
       const idx = Math.floor(Math.random() * pool.length);
-      rolling.textContent = pool[idx];
-      ticks++;
-      if (ticks >= totalTicks) {
-        clearInterval(timer);
-        for (let i = 0; i < count; i++) {
-          const pick = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
-          picked.push(pick);
-        }
-        rolling.textContent = picked.join('、');
-        winnersEl.innerHTML = picked
-          .map((n, i) => `<span class="lot-winner">${i + 1}. ${n}</span>`)
-          .join('');
-        running = false;
-        byId<HTMLButtonElement>('lotBtn').disabled = false;
-        showStatus('lotStatus', 'success', `恭喜 ${picked.length} 位中奖者`);
-      }
-    }, 90);
+      const winner = pool.splice(idx, 1)[0];
+      winners.push(winner);
+      await spinAll(winner, [...pool, winner]);
+      if (!running || !overlay.classList.contains('open')) return;
+      const chip = document.createElement('span');
+      chip.className = 'winner-chip';
+      chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${winner}`;
+      winnersEl.appendChild(chip);
+    }
+    statusMsg.textContent = '恭喜！';
+    sub.textContent = `${winners.length} 位幸运儿已揭晓`;
+    againBtn.hidden = false;
+    doneBtn.hidden = false;
+    byId<HTMLButtonElement>('lotBtn').disabled = false;
+    running = false;
   }
 
   byId<HTMLButtonElement>('lotBtn').addEventListener('click', start);
-  byId<HTMLButtonElement>('lotReset').addEventListener('click', () => {
-    winnersEl.innerHTML = '';
-    rolling.textContent = '点击开始抽奖';
-    hideStatus('lotStatus');
-  });
   byId<HTMLButtonElement>('lotSample').addEventListener('click', () => {
-    byId<HTMLTextAreaElement>('lotNames').value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada'].join('\n');
+    byId<HTMLTextAreaElement>('lotNames').value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada', 'Ivy', 'Leo'].join('\n');
+  });
+  againBtn.addEventListener('click', () => {
+    winnersEl.innerHTML = '';
+    winners = [];
+    pool = parseNames();
+    if (pool.length < count) {
+      showStatus('lotStatus', 'error', '名单不足');
+      return;
+    }
+    openOverlay();
+    sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
+    statusMsg.textContent = '转动中…';
+    againBtn.hidden = true;
+    doneBtn.hidden = true;
+    (async () => {
+      running = true;
+      for (let i = 0; i < count; i++) {
+        if (!running || !overlay.classList.contains('open')) return;
+        statusMsg.textContent = `第 ${i + 1} 位幸运儿揭晓中…`;
+        const idx = Math.floor(Math.random() * pool.length);
+        const winner = pool.splice(idx, 1)[0];
+        winners.push(winner);
+        await spinAll(winner, [...pool, winner]);
+        if (!running || !overlay.classList.contains('open')) return;
+        const chip = document.createElement('span');
+        chip.className = 'winner-chip';
+        chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${winner}`;
+        winnersEl.appendChild(chip);
+      }
+      statusMsg.textContent = '恭喜！';
+      againBtn.hidden = false;
+      doneBtn.hidden = false;
+      running = false;
+    })();
+  });
+  doneBtn.addEventListener('click', closeOverlay);
+  byId<HTMLButtonElement>('lotClose').addEventListener('click', closeOverlay);
+  byId<HTMLButtonElement>('lotFullscreen').addEventListener('click', () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => undefined);
+    } else {
+      document.documentElement.requestFullscreen().catch(() => undefined);
+    }
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay();
   });
 </script>
