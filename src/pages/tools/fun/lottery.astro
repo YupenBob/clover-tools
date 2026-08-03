@@ -52,9 +52,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     </div>
   </header>
   <div class="reels" id="reels">
-    <div class="reel-window"><div class="reel-strip" id="reelL"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
-    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
-    <div class="reel-window"><div class="reel-strip" id="reelR"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
+    <div class="reel-window"><div class="reel-strip" id="reelL"></div><span class="reel-paybox"></span></div>
+    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div><span class="reel-paybox"></span></div>
+    <div class="reel-window"><div class="reel-strip" id="reelR"></div><span class="reel-paybox"></span></div>
   </div>
   <div class="lot-status" id="lotStatusMsg">转动中…</div>
   <div class="lot-winners" id="lotWinners"></div>
@@ -78,15 +78,15 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="slot-reels">
         <div class="slot-reel">
           <div class="slot-strip" id="cReelL"></div>
-          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+          <span class="slot-paybox"><b>PAYLINE</b></span>
         </div>
         <div class="slot-reel">
           <div class="slot-strip" id="cReelM"></div>
-          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+          <span class="slot-paybox"><b>PAYLINE</b></span>
         </div>
         <div class="slot-reel">
           <div class="slot-strip" id="cReelR"></div>
-          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+          <span class="slot-paybox"><b>PAYLINE</b></span>
         </div>
       </div>
       <div class="slot-lever" id="slotLever">
@@ -177,17 +177,14 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     width: 220px; border-color: rgba(230, 214, 174, 0.85);
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 46px rgba(201, 169, 110, 0.22), 0 14px 40px rgba(0, 0, 0, 0.55);
   }
-  .reel-payline {
-    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-    height: 2px; z-index: 4; pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgba(230, 214, 174, 0.95), transparent);
-    box-shadow: 0 0 12px rgba(201, 169, 110, 0.9);
+  .reel-paybox {
+    position: absolute; left: 6px; right: 6px; top: 50%; transform: translateY(-50%);
+    height: 52px; z-index: 4; pointer-events: none;
+    border: 2px solid rgba(230, 214, 174, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(201, 169, 110, 0.55), inset 0 0 12px rgba(201, 169, 110, 0.12);
   }
-  .reel-payline i {
-    position: absolute; font-size: 14px; color: #ffe9b8; text-shadow: 0 0 8px rgba(201, 169, 110, 0.9);
-  }
-  .reel-payline i:first-child { left: 4px; top: -9px; }
-  .reel-payline i:last-child { right: 4px; top: -9px; }
+  .reel-main .reel-paybox { height: 72px; }
   .reel-window.pay { border-color: #ffe9b8; box-shadow: inset 0 0 40px rgba(0,0,0,0.7), 0 0 34px rgba(230, 214, 174, 0.55); }
   .reel-main.pay { box-shadow: inset 0 0 50px rgba(0,0,0,0.75), 0 0 60px rgba(230, 214, 174, 0.6); }
   .reel-strip { will-change: transform; }
@@ -264,19 +261,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
   .slot-row.blur { filter: blur(2px); }
   .slot-row.win { color: #b3261e; text-shadow: 0 0 8px rgba(179, 38, 30, 0.25); animation: win-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .slot-payline {
-    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-    height: 2px; z-index: 4; pointer-events: none; background: rgba(179, 38, 30, 0.75);
-    box-shadow: 0 0 8px rgba(179, 38, 30, 0.5);
+  .slot-paybox {
+    position: absolute; left: 5px; right: 5px; top: 50%; transform: translateY(-50%);
+    height: 44px; z-index: 4; pointer-events: none;
+    border: 2px solid rgba(179, 38, 30, 0.85);
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(179, 38, 30, 0.4), inset 0 0 10px rgba(179, 38, 30, 0.1);
   }
-  .slot-payline b {
-    position: absolute; left: 50%; transform: translateX(-50%); top: -15px;
-    font-size: 8px; letter-spacing: 1px; color: #b3261e; background: rgba(248, 237, 212, 0.92);
+  .slot-paybox b {
+    position: absolute; left: 50%; transform: translateX(-50%); top: -11px;
+    font-size: 8px; letter-spacing: 1px; color: #b3261e; background: rgba(248, 237, 212, 0.94);
     padding: 0 5px; border-radius: 3px; border: 1px solid rgba(179, 38, 30, 0.4);
   }
-  .slot-payline i { position: absolute; font-size: 13px; color: #b3261e; }
-  .slot-payline i:first-child { left: 2px; top: -8px; }
-  .slot-payline i:last-child { right: 2px; top: -8px; }
   .slot-reel.pay { border-color: #b3261e; box-shadow: inset 0 0 26px rgba(74,58,28,0.3), 0 0 26px rgba(179, 38, 30, 0.45), 0 8px 22px rgba(0,0,0,0.5); }
 
   .slot-lever { position: relative; width: 54px; height: 210px; cursor: grab; touch-action: none; user-select: none; }
