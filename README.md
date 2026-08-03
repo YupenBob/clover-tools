@@ -78,4 +78,4 @@ wrangler r2 object put clovertools-media/<key> --file <path>
 
 - 全中文站点，无营销文案、无注册引导
 - 旧版 Vercel 相关代码已整体归档在 `legacy/`，仅作参考
-- SEO 文章已从站内剥离，后续在 CSDN 独立发布（见 `data/keywords.json` 素材源）
+- SEO 文章已从站内剥离，后续在 CSDN 独立发布；发布包由 `npm run csdn:build` 生成到 `csdn/`（含 137 篇文章 + 品牌文 + 排期表，见 `csdn/README.md`）
