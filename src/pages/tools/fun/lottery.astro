@@ -494,6 +494,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     overlay.classList.remove('open');
     classic.classList.remove('open');
     document.body.style.overflow = '';
+    byId<HTMLButtonElement>('lotBtn').disabled = false;
     running = false;
     classicBusy = false;
   }
