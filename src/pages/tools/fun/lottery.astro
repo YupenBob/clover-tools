@@ -20,53 +20,92 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <div class="row">
       <div class="field">
         <label class="field-label" for="lotCount">中奖人数</label>
-        <input class="input" id="lotCount" type="number" value="1" min="1" max="50" />
+        <input class="input" id="lotCount" type="number" value="2" min="1" max="50" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="lotMode">抽奖模式</label>
+        <select class="select" id="lotMode">
+          <option value="immersive" selected>沉浸式老虎机</option>
+          <option value="classic">拟物拉杆老虎机</option>
+        </select>
       </div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> 开始抽奖</button>
     </div>
     <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
-    <p class="field-hint">点击开始后进入全屏沉浸模式，老虎机滚动揭晓中奖者。按 Esc 可退出。</p>
   </ToolPanel>
 </ToolLayout>
 
+<!-- ═══ 沉浸式老虎机 ═══ -->
 <div class="lottery-overlay" id="lotteryOverlay" aria-hidden="true">
   <div class="lot-particles" aria-hidden="true"></div>
   <div class="lot-spotlight" aria-hidden="true"></div>
-
   <header class="lot-top">
     <div>
       <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> 幸运时刻</div>
       <div class="lot-sub" id="lotSub">准备好你的心跳了吗</div>
     </div>
     <div class="lot-top-actions">
-      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏" title="浏览器全屏">
-        <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i>
-      </button>
-      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出" title="退出（Esc）">
-        <i class="bi bi-x-lg" aria-hidden="true"></i>
-      </button>
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏"><i class="bi bi-arrows-fullscreen"></i></button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出"><i class="bi bi-x-lg"></i></button>
     </div>
   </header>
-
   <div class="reels" id="reels">
-    <div class="reel-window"><div class="reel-strip" id="reelL"></div></div>
-    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div></div>
-    <div class="reel-window"><div class="reel-strip" id="reelR"></div></div>
+    <div class="reel-window"><div class="reel-strip" id="reelL"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
+    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
+    <div class="reel-window"><div class="reel-strip" id="reelR"></div><span class="reel-payline"><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span></div>
   </div>
-
   <div class="lot-status" id="lotStatusMsg">转动中…</div>
-
   <div class="lot-winners" id="lotWinners"></div>
-
   <div class="lot-actions">
     <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再抽一次</button>
     <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 完成</button>
   </div>
 </div>
 
+<!-- ═══ 拟物拉杆老虎机 ═══ -->
+<div class="classic-overlay" id="classicOverlay" aria-hidden="true">
+  <div class="classic-vignette" aria-hidden="true"></div>
+  <div class="slot-machine">
+    <div class="slot-marquee">
+      <div class="slot-bulbs">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="slot-title">CLOVER · 幸运老虎机</div>
+    </div>
+    <div class="slot-body">
+      <div class="slot-reels">
+        <div class="slot-reel">
+          <div class="slot-strip" id="cReelL"></div>
+          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+        </div>
+        <div class="slot-reel">
+          <div class="slot-strip" id="cReelM"></div>
+          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+        </div>
+        <div class="slot-reel">
+          <div class="slot-strip" id="cReelR"></div>
+          <span class="slot-payline"><b>PAYLINE</b><i class="bi bi-chevron-down"></i><i class="bi bi-chevron-up"></i></span>
+        </div>
+      </div>
+      <div class="slot-lever" id="slotLever">
+        <div class="lever-track"></div>
+        <div class="lever-knob" id="leverKnob"><span class="lever-ball"></span></div>
+      </div>
+    </div>
+    <div class="slot-screen">
+      <div class="slot-status" id="cStatus">拉下拉杆开始</div>
+      <div class="slot-winners" id="cWinners"></div>
+    </div>
+    <div class="slot-actions">
+      <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 退出</button>
+    </div>
+  </div>
+</div>
+
 <style is:global>
+  /* ───────── 沉浸式 ───────── */
   .lottery-overlay {
     position: fixed;
     inset: 0;
@@ -86,282 +125,203 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     transition: opacity 0.35s ease, visibility 0.35s ease;
     overflow: hidden;
   }
+  .lottery-overlay.open { opacity: 1; visibility: visible; }
 
-  .lottery-overlay.open {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .lot-particles {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
+  .lot-particles { position: absolute; inset: 0; pointer-events: none; }
   .lot-particles span {
-    position: absolute;
-    bottom: -8px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
+    position: absolute; bottom: -8px; width: 5px; height: 5px; border-radius: 50%;
     background: radial-gradient(circle, rgba(212, 184, 126, 0.9), transparent 70%);
-    opacity: 0;
-    animation: lot-float var(--d, 8s) linear infinite;
-    animation-delay: var(--dl, 0s);
+    opacity: 0; animation: lot-float var(--d, 8s) linear infinite; animation-delay: var(--dl, 0s);
   }
-
   @keyframes lot-float {
     0% { transform: translateY(0) translateX(0); opacity: 0; }
     10% { opacity: 0.7; }
     90% { opacity: 0.3; }
     100% { transform: translateY(-110vh) translateX(var(--dx, 30px)); opacity: 0; }
   }
-
   .lot-spotlight {
-    position: absolute;
-    top: 18%;
-    width: 640px;
-    height: 380px;
-    background: radial-gradient(ellipse at center, rgba(212, 184, 126, 0.18), transparent 65%);
-    filter: blur(10px);
-    pointer-events: none;
-    animation: lot-breathe 4s ease-in-out infinite;
+    position: absolute; top: 16%; width: 680px; height: 400px;
+    background: radial-gradient(ellipse at center, rgba(212, 184, 126, 0.16), transparent 65%);
+    filter: blur(12px); pointer-events: none; animation: lot-breathe 4s ease-in-out infinite;
   }
-
   @keyframes lot-breathe {
     0%, 100% { opacity: 0.7; transform: scale(1); }
     50% { opacity: 1; transform: scale(1.08); }
   }
-
-  .lot-top {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 760px;
-  }
-
-  .lot-title {
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: 4px;
-    background: linear-gradient(120deg, #e6d6ae, #c9a96e, #f0e6cc);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .lot-title i {
-    -webkit-text-fill-color: var(--primary);
-  }
-
-  .lot-sub {
-    margin-top: 4px;
-    color: rgba(244, 236, 216, 0.55);
-    font-size: 13px;
-    letter-spacing: 2px;
-  }
-
-  .lot-top-actions {
-    display: flex;
-    gap: var(--space-2);
-  }
-
+  .lot-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 780px; }
+  .lot-title { font-size: 30px; font-weight: 800; letter-spacing: 4px; background: linear-gradient(120deg, #e6d6ae, #c9a96e, #f0e6cc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lot-sub { margin-top: 4px; color: rgba(244, 236, 216, 0.55); font-size: 13px; letter-spacing: 2px; }
+  .lot-top-actions { display: flex; gap: var(--space-2); }
   .lot-icon-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgba(244, 236, 216, 0.2);
-    border-radius: var(--radius-full);
-    background: rgba(244, 236, 216, 0.06);
-    color: rgba(244, 236, 216, 0.8);
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+    border: 1px solid rgba(244, 236, 216, 0.2); border-radius: var(--radius-full);
+    background: rgba(244, 236, 216, 0.06); color: rgba(244, 236, 216, 0.8); font-size: 16px;
+    cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
   }
+  .lot-icon-btn:hover { background: rgba(201, 169, 110, 0.18); color: #f4ecd8; }
+  .lot-icon-btn:active { transform: scale(0.94); }
 
-  .lot-icon-btn:hover {
-    background: rgba(201, 169, 110, 0.18);
-    color: #f4ecd8;
-  }
-
-  .lot-icon-btn:active {
-    transform: scale(0.94);
-  }
-
-  .reels {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: 18px;
-    align-items: stretch;
-  }
-
+  .reels { position: relative; z-index: 2; display: flex; gap: 18px; align-items: stretch; }
   .reel-window {
-    position: relative;
-    width: 150px;
-    height: 240px;
-    overflow: hidden;
-    border-radius: 18px;
+    position: relative; width: 150px; height: 240px; overflow: hidden; border-radius: 18px;
     border: 1px solid rgba(201, 169, 110, 0.55);
     background: linear-gradient(180deg, #241f15, #14110b);
-    box-shadow:
-      inset 0 0 40px rgba(0, 0, 0, 0.75),
-      0 10px 34px rgba(0, 0, 0, 0.5);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.75), 0 10px 34px rgba(0, 0, 0, 0.5);
   }
-
-  .reel-window::before,
-  .reel-window::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 34px;
-    z-index: 3;
-    pointer-events: none;
+  .reel-window::before, .reel-window::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 34px; z-index: 3; pointer-events: none;
   }
-
-  .reel-window::before {
-    top: 0;
-    background: linear-gradient(180deg, #1b1710, transparent);
-  }
-
-  .reel-window::after {
-    bottom: 0;
-    background: linear-gradient(0deg, #1b1710, transparent);
-  }
-
+  .reel-window::before { top: 0; background: linear-gradient(180deg, #1b1710, transparent); }
+  .reel-window::after { bottom: 0; background: linear-gradient(0deg, #1b1710, transparent); }
   .reel-window.reel-main {
-    width: 220px;
-    border-color: rgba(230, 214, 174, 0.85);
-    box-shadow:
-      inset 0 0 50px rgba(0, 0, 0, 0.8),
-      0 0 46px rgba(201, 169, 110, 0.22),
-      0 14px 40px rgba(0, 0, 0, 0.55);
+    width: 220px; border-color: rgba(230, 214, 174, 0.85);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 46px rgba(201, 169, 110, 0.22), 0 14px 40px rgba(0, 0, 0, 0.55);
   }
-
-  .reel-strip {
-    will-change: transform;
+  .reel-payline {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    height: 2px; z-index: 4; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(230, 214, 174, 0.95), transparent);
+    box-shadow: 0 0 12px rgba(201, 169, 110, 0.9);
   }
-
+  .reel-payline i {
+    position: absolute; font-size: 14px; color: #ffe9b8; text-shadow: 0 0 8px rgba(201, 169, 110, 0.9);
+  }
+  .reel-payline i:first-child { left: 4px; top: -9px; }
+  .reel-payline i:last-child { right: 4px; top: -9px; }
+  .reel-window.pay { border-color: #ffe9b8; box-shadow: inset 0 0 40px rgba(0,0,0,0.7), 0 0 34px rgba(230, 214, 174, 0.55); }
+  .reel-main.pay { box-shadow: inset 0 0 50px rgba(0,0,0,0.75), 0 0 60px rgba(230, 214, 174, 0.6); }
+  .reel-strip { will-change: transform; }
   .reel-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 60px;
-    padding: 0 10px;
-    font-size: 19px;
-    font-weight: 700;
-    color: #f4ecd8;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex; align-items: center; justify-content: center; height: 60px; padding: 0 10px;
+    font-size: 19px; font-weight: 700; color: #f4ecd8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .reel-main .reel-row { height: 80px; font-size: 27px; font-weight: 800; color: #ffe9b8; }
+  .reel-row.blur { filter: blur(2.5px); }
+  .reel-row.win { color: #fff; text-shadow: 0 0 18px rgba(201, 169, 110, 0.95); animation: win-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes win-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-  .reel-main .reel-row {
-    height: 80px;
-    font-size: 27px;
-    font-weight: 800;
-    color: #ffe9b8;
-  }
-
-  .reel-row.blur {
-    filter: blur(2.5px);
-  }
-
-  .reel-row.win {
-    color: #fff;
-    text-shadow: 0 0 18px rgba(201, 169, 110, 0.9);
-    animation: win-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  @keyframes win-pop {
-    0% { transform: scale(0.4); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-
-  .lot-status {
-    position: relative;
-    z-index: 2;
-    min-height: 26px;
-    color: rgba(244, 236, 216, 0.75);
-    font-size: 15px;
-    letter-spacing: 3px;
-  }
-
-  .lot-winners {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-3);
-    max-width: 720px;
-    min-height: 44px;
-  }
-
+  .lot-status { position: relative; z-index: 2; min-height: 26px; color: rgba(244, 236, 216, 0.75); font-size: 15px; letter-spacing: 3px; }
+  .lot-winners { position: relative; z-index: 2; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); max-width: 720px; min-height: 44px; }
   .winner-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 18px;
-    border-radius: var(--radius-full);
+    display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border-radius: var(--radius-full);
     background: linear-gradient(135deg, rgba(201, 169, 110, 0.28), rgba(201, 169, 110, 0.12));
-    border: 1px solid rgba(201, 169, 110, 0.6);
-    color: #ffe9b8;
-    font-size: 16px;
-    font-weight: 700;
+    border: 1px solid rgba(201, 169, 110, 0.6); color: #ffe9b8; font-size: 16px; font-weight: 700;
     animation: winner-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  @keyframes winner-in { from { transform: scale(0.3) translateY(12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .lot-actions { position: relative; z-index: 2; display: flex; gap: var(--space-3); }
 
-  .winner-chip i {
-    color: var(--primary);
+  /* ───────── 拟物拉杆 ───────── */
+  .classic-overlay {
+    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+    padding: var(--space-5); background: radial-gradient(ellipse at center, #241d12 0%, #0b0906 75%);
+    opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease; overflow: hidden;
+  }
+  .classic-overlay.open { opacity: 1; visibility: visible; }
+  .classic-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 220px rgba(0,0,0,0.9); }
+
+  .slot-machine {
+    position: relative; z-index: 2; width: min(680px, 96vw); border-radius: 26px; overflow: hidden;
+    background: linear-gradient(160deg, #3a2c18 0%, #241a0e 45%, #171006 100%);
+    border: 2px solid rgba(201, 169, 110, 0.65);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 6px rgba(0,0,0,0.45);
+    padding-bottom: var(--space-4);
+  }
+  .slot-marquee {
+    position: relative; padding: 14px 16px 12px; text-align: center;
+    background: linear-gradient(180deg, #171006, #2a1f10);
+    border-bottom: 2px solid rgba(201, 169, 110, 0.5);
+  }
+  .slot-bulbs { display: flex; justify-content: center; gap: 12px; margin-bottom: 8px; }
+  .slot-bulbs span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8, #c9a96e);
+    box-shadow: 0 0 8px rgba(230, 214, 174, 0.9);
+    animation: bulb-blink 1.2s ease-in-out infinite;
+  }
+  .slot-bulbs span:nth-child(even) { animation-delay: 0.6s; }
+  @keyframes bulb-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .slot-title { font-size: 22px; font-weight: 800; letter-spacing: 3px; color: #ffe9b8; text-shadow: 0 0 16px rgba(201,169,110,0.6); }
+
+  .slot-body { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-5) var(--space-4); }
+  .slot-reels { flex: 1; display: flex; gap: 12px; }
+  .slot-reel {
+    position: relative; flex: 1; height: 210px; overflow: hidden; border-radius: 10px;
+    background: linear-gradient(180deg, #f8edd4, #ead9b4);
+    border: 3px solid #4a3a1c; outline: 1px solid rgba(201, 169, 110, 0.5);
+    box-shadow: inset 0 0 26px rgba(74, 58, 28, 0.35), 0 8px 22px rgba(0,0,0,0.5);
+  }
+  .slot-reel::before, .slot-reel::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 26px; z-index: 3; pointer-events: none;
+  }
+  .slot-reel::before { top: 0; background: linear-gradient(180deg, rgba(74,58,28,0.28), transparent); }
+  .slot-reel::after { bottom: 0; background: linear-gradient(0deg, rgba(74,58,28,0.28), transparent); }
+  .slot-strip { will-change: transform; }
+  .slot-row {
+    display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 8px;
+    font-size: 17px; font-weight: 800; color: #2b2110; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border-bottom: 1px dashed rgba(74, 58, 28, 0.18);
+  }
+  .slot-row.blur { filter: blur(2px); }
+  .slot-row.win { color: #b3261e; text-shadow: 0 0 8px rgba(179, 38, 30, 0.25); animation: win-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .slot-payline {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    height: 2px; z-index: 4; pointer-events: none; background: rgba(179, 38, 30, 0.75);
+    box-shadow: 0 0 8px rgba(179, 38, 30, 0.5);
+  }
+  .slot-payline b {
+    position: absolute; left: 50%; transform: translateX(-50%); top: -15px;
+    font-size: 8px; letter-spacing: 1px; color: #b3261e; background: rgba(248, 237, 212, 0.92);
+    padding: 0 5px; border-radius: 3px; border: 1px solid rgba(179, 38, 30, 0.4);
+  }
+  .slot-payline i { position: absolute; font-size: 13px; color: #b3261e; }
+  .slot-payline i:first-child { left: 2px; top: -8px; }
+  .slot-payline i:last-child { right: 2px; top: -8px; }
+  .slot-reel.pay { border-color: #b3261e; box-shadow: inset 0 0 26px rgba(74,58,28,0.3), 0 0 26px rgba(179, 38, 30, 0.45), 0 8px 22px rgba(0,0,0,0.5); }
+
+  .slot-lever { position: relative; width: 54px; height: 210px; cursor: grab; touch-action: none; user-select: none; }
+  .lever-track {
+    position: absolute; left: 50%; transform: translateX(-50%); top: 4px; bottom: 4px; width: 10px;
+    border-radius: 6px; background: linear-gradient(90deg, #0f0b06, #3a2c18, #0f0b06);
+    border: 1px solid rgba(201, 169, 110, 0.4);
+  }
+  .lever-knob {
+    position: absolute; left: 50%; top: 4px; transform: translate(-50%, 0);
+    width: 40px; height: 74px; display: flex; align-items: flex-start; justify-content: center; padding-top: 5px;
+    border-radius: 12px; background: linear-gradient(180deg, #6b5330, #2e2110);
+    border: 1px solid rgba(201, 169, 110, 0.6); box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .lever-knob.dragging { transition: none; cursor: grabbing; }
+  .lever-ball {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6d8, #c9a96e 55%, #7c642f);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   }
 
-  @keyframes winner-in {
-    from { transform: scale(0.3) translateY(12px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
+  .slot-screen { margin: 0 var(--space-5); padding: var(--space-3) var(--space-4); border-radius: 10px; background: #0d0a05; border: 1px solid rgba(201,169,110,0.35); min-height: 62px; }
+  .slot-status { color: #ffe9b8; font-size: 15px; font-weight: 700; letter-spacing: 2px; min-height: 22px; }
+  .slot-winners { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .slot-winners .winner-chip { font-size: 14px; padding: 5px 14px; }
+  .slot-actions { display: flex; justify-content: center; padding: var(--space-4) var(--space-5) 0; }
+  .slot-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 20px; border-radius: var(--radius-full);
+    border: 1px solid rgba(201,169,110,0.5); background: rgba(201,169,110,0.12); color: #ffe9b8;
+    font-size: 14px; cursor: pointer; transition: background-color 0.2s ease;
   }
-
-  .lot-actions {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: var(--space-3);
-  }
+  .slot-btn:hover { background: rgba(201,169,110,0.24); }
 
   @media (max-width: 640px) {
-    .reels {
-      gap: 10px;
-    }
-
-    .reel-window {
-      width: 104px;
-      height: 176px;
-      border-radius: 14px;
-    }
-
-    .reel-window.reel-main {
-      width: 150px;
-    }
-
-    .reel-row {
-      height: 44px;
-      font-size: 15px;
-    }
-
-    .reel-main .reel-row {
-      height: 58px;
-      font-size: 20px;
-    }
-
-    .lot-title {
-      font-size: 22px;
-    }
+    .reels { gap: 10px; }
+    .reel-window { width: 104px; height: 176px; }
+    .reel-window.reel-main { width: 150px; }
+    .reel-row { height: 44px; font-size: 15px; }
+    .reel-main .reel-row { height: 58px; font-size: 20px; }
+    .slot-body { flex-direction: column; }
+    .slot-lever { height: 70px; width: 100%; }
+    .lever-track { left: auto; right: 12px; top: 50%; transform: translateY(-50%); width: 10px; height: 46px; }
+    .lever-knob { left: auto; right: 0; top: 50%; transform: translate(0, -50%); }
+    .slot-title { font-size: 17px; }
   }
 </style>
 
@@ -369,25 +329,111 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
 
   const overlay = byId<HTMLElement>('lotteryOverlay');
+  const classic = byId<HTMLElement>('classicOverlay');
   const sub = byId<HTMLElement>('lotSub');
   const statusMsg = byId<HTMLElement>('lotStatusMsg');
   const winnersEl = byId<HTMLElement>('lotWinners');
   const againBtn = byId<HTMLButtonElement>('lotAgain');
   const doneBtn = byId<HTMLButtonElement>('lotDone');
-  const reels = { L: byId<HTMLElement>('reelL'), M: byId<HTMLElement>('reelM'), R: byId<HTMLElement>('reelR') };
-  const particles = byId<HTMLElement>('lotteryOverlay').querySelector('.lot-particles') as HTMLElement;
-  const ROW_H = 60;
-  const MAIN_ROW_H = 80;
-  let running = false;
-  let rafId = 0;
+  const cStatus = byId<HTMLElement>('cStatus');
+  const cWinners = byId<HTMLElement>('cWinners');
+  const particles = overlay.querySelector('.lot-particles') as HTMLElement;
   const rafIds: number[] = [];
+  const ROW_H = 60, MAIN_ROW_H = 80, WIN_H = 240;
+  const C_ROW_H = 52, C_WIN_H = 210;
+  let running = false;
   let pool: string[] = [];
   let winners: string[] = [];
   let count = 0;
+  let classicBusy = false;
+  let classicIdx = 0;
 
   function parseNames(): string[] {
-    return byId<HTMLTextAreaElement>('lotNames').value
-      .split('\n').map((s) => s.trim()).filter(Boolean);
+    return byId<HTMLTextAreaElement>('lotNames').value.split('\n').map((s) => s.trim()).filter(Boolean);
+  }
+
+  function pickWinners(names: string[], n: number): string[] {
+    const p = [...names];
+    const out: string[] = [];
+    for (let i = 0; i < n; i++) out.push(p.splice(Math.floor(Math.random() * p.length), 1)[0]);
+    return out;
+  }
+
+  function buildStrip(el: HTMLElement, names: string[], rowH: number): string[] {
+    const list = names.length < 4 ? [...names, ...names, ...names, ...names].slice(0, 8) : names;
+    const rows: string[] = [];
+    for (let r = 0; r < 4; r++) for (const n of list) rows.push(n);
+    el.innerHTML = rows.map((n) => `<div class="${el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row'} blur" style="height:${rowH}px">${n}</div>`).join('');
+    return list;
+  }
+
+  function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, done: () => void) {
+    const setH = list.length * rowH;
+    const targetIdx = list.indexOf(targetName);
+    let pos = Math.random() * setH;
+    let vel = 34 + Math.random() * 6;
+    el.style.transition = 'none';
+    el.querySelectorAll('.reel-row,.slot-row').forEach((r) => r.classList.remove('win'));
+    function frame() {
+      pos += vel;
+      vel *= 0.962;
+      if (pos >= setH * 2) pos -= setH * 2;
+      el.style.transform = `translateY(-${pos}px)`;
+      if (vel > 0.3) {
+        rafIds.push(requestAnimationFrame(frame));
+      } else {
+        const target = setH + targetIdx * rowH - centerOffset;
+        el.style.transition = 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)';
+        el.style.transform = `translateY(-${Math.max(0, target)}px)`;
+        setTimeout(() => {
+          el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
+            const setIdx = i % list.length;
+            r.classList.toggle('win', list[setIdx] === targetName);
+            r.classList.remove('blur');
+          });
+          done();
+        }, 580);
+      }
+    }
+    rafIds.push(requestAnimationFrame(frame));
+  }
+
+  function spinAllTo(winner: string, list: string[]): Promise<void> {
+    return new Promise((resolve) => {
+      const useClassic = classic.classList.contains('open');
+      const els: HTMLElement[] = useClassic
+        ? [classicReelL(), classicReelM(), classicReelR()]
+        : [reelL(), reelM(), reelR()];
+      const windows = useClassic
+        ? [classic.querySelectorAll('.slot-reel')[0], classic.querySelectorAll('.slot-reel')[1], classic.querySelectorAll('.slot-reel')[2]]
+        : [overlay.querySelectorAll('.reel-window')[0], overlay.querySelectorAll('.reel-window')[1], overlay.querySelectorAll('.reel-window')[2]];
+      const rowHs = useClassic ? [C_ROW_H, C_ROW_H, C_ROW_H] : [ROW_H, MAIN_ROW_H, ROW_H];
+      const centers = useClassic
+        ? [(C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2]
+        : [(WIN_H - ROW_H) / 2, (WIN_H - MAIN_ROW_H) / 2, (WIN_H - ROW_H) / 2];
+      const strips = els.map((el, i) => buildStrip(el, list, rowHs[i]));
+      let leftDone = false, midDone = false, rightDone = false;
+      spinReel(els[0], strips[0], winner, rowHs[0], centers[0], () => { leftDone = true; maybe(); });
+      spinReel(els[1], strips[1], winner, rowHs[1], centers[1], () => { midDone = true; maybe(); });
+      spinReel(els[2], strips[2], winner, rowHs[2], centers[2], () => { rightDone = true; maybe(); });
+      function maybe() {
+        if (leftDone && midDone && rightDone) {
+          windows.forEach((w) => w.classList.add('pay'));
+          setTimeout(() => { windows.forEach((w) => w.classList.remove('pay')); resolve(); }, 900);
+        }
+      }
+    });
+  }
+
+  function reelL() { return byId<HTMLElement>('reelL'); }
+  function reelM() { return byId<HTMLElement>('reelM'); }
+  function reelR() { return byId<HTMLElement>('reelR'); }
+  function classicReelL() { return byId<HTMLElement>('cReelL'); }
+  function classicReelM() { return byId<HTMLElement>('cReelM'); }
+  function classicReelR() { return byId<HTMLElement>('cReelR'); }
+
+  function pause(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
   }
 
   function spawnParticles() {
@@ -395,200 +441,175 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     particles.innerHTML = Array.from({ length: 12 }, () => {
       const left = Math.random() * 100;
       const size = 3 + Math.random() * 5;
-      const dur = 6 + Math.random() * 6;
-      const delay = Math.random() * 6;
-      const dx = (Math.random() - 0.5) * 80;
       const color = colors[Math.floor(Math.random() * colors.length)];
-      return `<span style="left:${left}%;width:${size}px;height:${size}px;--d:${dur}s;--dl:${delay}s;--dx:${dx}px;background:radial-gradient(circle, rgba(${color},0.9), transparent 70%)"></span>`;
+      return `<span style="left:${left}%;width:${size}px;height:${size}px;--d:${6 + Math.random() * 6}s;--dl:${Math.random() * 6}s;--dx:${(Math.random() - 0.5) * 80}px;background:radial-gradient(circle, rgba(${color},0.9), transparent 70%)"></span>`;
     }).join('');
   }
 
-  function openOverlay() {
-    overlay.classList.add('open');
-    overlay.setAttribute('aria-hidden', 'false');
+  function openOverlay(mode: 'immersive' | 'classic') {
+    if (mode === 'immersive') {
+      classic.classList.remove('open');
+      overlay.classList.add('open');
+      spawnParticles();
+    } else {
+      overlay.classList.remove('open');
+      classic.classList.add('open');
+    }
     document.body.style.overflow = 'hidden';
-    spawnParticles();
   }
 
-  function closeOverlay() {
+  function closeOverlays() {
     for (const id of rafIds) cancelAnimationFrame(id);
     rafIds.length = 0;
     overlay.classList.remove('open');
-    overlay.setAttribute('aria-hidden', 'true');
+    classic.classList.remove('open');
     document.body.style.overflow = '';
     running = false;
-    resetDisplay();
+    classicBusy = false;
   }
 
-  function resetDisplay() {
+  function resetImmersive() {
     sub.textContent = '准备好你的心跳了吗';
     statusMsg.textContent = '转动中…';
     winnersEl.innerHTML = '';
-    winners = [];
     againBtn.hidden = true;
     doneBtn.hidden = true;
-    ['L', 'M', 'R'].forEach((k) => {
-      reels[k as keyof typeof reels].innerHTML = '';
-      reels[k as keyof typeof reels].style.transition = '';
-      reels[k as keyof typeof reels].style.transform = '';
+    ['reelL', 'reelM', 'reelR'].forEach((id) => {
+      const el = byId<HTMLElement>(id);
+      el.innerHTML = '';
+      el.style.transition = '';
+      el.style.transform = '';
     });
   }
 
-  function buildStrip(el: HTMLElement, names: string[], main: boolean): number {
-    const rowH = main ? MAIN_ROW_H : ROW_H;
-    const repeat = 4;
-    const rows: string[] = [];
-    for (let r = 0; r < repeat; r++) {
-      for (const n of names) rows.push(n);
-    }
-    el.innerHTML = rows.map((n) => `<div class="reel-row${main ? ' blur' : ' blur'}" style="height:${rowH}px">${n}</div>`).join('');
-    return rowH;
-  }
-
-  function spinReel(el: HTMLElement, names: string[], targetIndex: number, rowH: number, done: () => void) {
-    const setH = names.length * rowH;
-    let pos = 0;
-    let vel = 30 + Math.random() * 8;
-    // 让初始位置错开
-    el.style.transition = 'none';
-    el.style.transform = `translateY(0)`;
-    el.querySelectorAll('.reel-row').forEach((r) => r.classList.add('blur'));
-
-    function frame() {
-      pos += vel;
-      vel *= 0.965;
-      if (pos >= setH * 2) pos -= setH * 2;
-      el.style.transform = `translateY(-${pos}px)`;
-      if (vel > 0.3) {
-        rafId = requestAnimationFrame(frame);
-        rafIds.push(rafId);
-      } else {
-        const target = setH + targetIndex * rowH;
-        el.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-        el.style.transform = `translateY(-${target}px)`;
-        setTimeout(() => {
-          el.querySelectorAll('.reel-row').forEach((r, i) => {
-            const setIdx = i % names.length;
-            r.classList.toggle('win', setIdx === targetIndex);
-            r.classList.remove('blur');
-          });
-          done();
-        }, 640);
-      }
-    }
-    rafId = requestAnimationFrame(frame);
-    rafIds.push(rafId);
-  }
-
-  function spinAll(winner: string, names: string[]): Promise<void> {
-    return new Promise((resolve) => {
-      const middleIdx = names.indexOf(winner);
-      const randIdx = () => Math.floor(Math.random() * names.length);
-      const leftIdx = randIdx();
-      const rightIdx = randIdx();
-      buildStrip(reels.L, names, false);
-      buildStrip(reels.M, names, true);
-      buildStrip(reels.R, names, false);
-      let left = 0;
-      spinReel(reels.L, names, leftIdx, ROW_H, () => { left++; maybeDone(); });
-      let right = 0;
-      spinReel(reels.R, names, rightIdx, ROW_H, () => { right++; maybeDone(); });
-      let mid = 0;
-      spinReel(reels.M, names, middleIdx, MAIN_ROW_H, () => { mid++; maybeDone(); });
-      function maybeDone() {
-        if (left === 1 && right === 1 && mid === 1) resolve();
-      }
+  function resetClassic() {
+    cStatus.textContent = '拉下拉杆开始';
+    cWinners.innerHTML = '';
+    classicIdx = 0;
+    ['cReelL', 'cReelM', 'cReelR'].forEach((id) => {
+      const el = byId<HTMLElement>(id);
+      el.innerHTML = '';
+      el.style.transition = '';
+      el.style.transform = '';
     });
   }
 
-  async function start() {
-    hideStatus('lotStatus');
-    const names = parseNames();
-    count = Number(byId<HTMLInputElement>('lotCount').value);
-    if (names.length === 0) {
-      showStatus('lotStatus', 'error', '请先填写名单');
-      return;
-    }
-    if (count < 1 || count > names.length) {
-      showStatus('lotStatus', 'error', `中奖人数需在 1-${names.length} 之间`);
-      return;
-    }
-    pool = [...names];
-    winners = [];
-    resetDisplay();
-    openOverlay();
-    sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
-    byId<HTMLButtonElement>('lotBtn').disabled = true;
+  async function runImmersive(list: string[]) {
     running = true;
     for (let i = 0; i < count; i++) {
       if (!running || !overlay.classList.contains('open')) return;
       statusMsg.textContent = `第 ${i + 1} 位幸运儿揭晓中…`;
-      const idx = Math.floor(Math.random() * pool.length);
-      const winner = pool.splice(idx, 1)[0];
-      winners.push(winner);
-      await spinAll(winner, [...pool, winner]);
-      if (!running || !overlay.classList.contains('open')) return;
-      const chip = document.createElement('span');
-      chip.className = 'winner-chip';
-      chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${winner}`;
-      winnersEl.appendChild(chip);
+      const winner = winners[i];
+      await spinAllTo(winner, list);
+      if (!running) return;
+      addWinnerChip(winnersEl, i, winner);
+      statusMsg.textContent = `恭喜 ${winner}！`;
+      if (i < count - 1) {
+        await pause(1600);
+      }
     }
     statusMsg.textContent = '恭喜！';
     sub.textContent = `${winners.length} 位幸运儿已揭晓`;
     againBtn.hidden = false;
     doneBtn.hidden = false;
-    byId<HTMLButtonElement>('lotBtn').disabled = false;
     running = false;
+  }
+
+  async function runClassic(list: string[]) {
+    classicBusy = true;
+    const i = classicIdx;
+    cStatus.textContent = `转动中…（第 ${i + 1} 位）`;
+    await spinAllTo(winners[i], list);
+    if (!classicBusy) return;
+    addWinnerChip(cWinners, i, winners[i]);
+    classicIdx++;
+    if (classicIdx < count) {
+      cStatus.textContent = `恭喜 ${winners[i]}！再拉一次拉杆，揭晓下一位`;
+    } else {
+      cStatus.textContent = `全部揭晓！${count} 位幸运儿`;
+    }
+    classicBusy = false;
+  }
+
+  function addWinnerChip(container: HTMLElement, i: number, name: string) {
+    const chip = document.createElement('span');
+    chip.className = 'winner-chip';
+    chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${name}`;
+    container.appendChild(chip);
+  }
+
+  function start() {
+    hideStatus('lotStatus');
+    const names = parseNames();
+    count = Number(byId<HTMLInputElement>('lotCount').value);
+    const mode = byId<HTMLSelectElement>('lotMode').value as 'immersive' | 'classic';
+    if (names.length === 0) { showStatus('lotStatus', 'error', '请先填写名单'); return; }
+    if (count < 1 || count > names.length) { showStatus('lotStatus', 'error', `中奖人数需在 1-${names.length} 之间`); return; }
+    winners = pickWinners(names, count);
+    pool = names;
+    byId<HTMLButtonElement>('lotBtn').disabled = true;
+    openOverlay(mode);
+    if (mode === 'immersive') {
+      resetImmersive();
+      sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
+      runImmersive(pool);
+    } else {
+      resetClassic();
+      cStatus.textContent = '拉下拉杆开始';
+    }
   }
 
   byId<HTMLButtonElement>('lotBtn').addEventListener('click', start);
   byId<HTMLButtonElement>('lotSample').addEventListener('click', () => {
     byId<HTMLTextAreaElement>('lotNames').value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada', 'Ivy', 'Leo'].join('\n');
   });
+
   againBtn.addEventListener('click', () => {
-    winnersEl.innerHTML = '';
-    winners = [];
-    pool = parseNames();
-    if (pool.length < count) {
-      showStatus('lotStatus', 'error', '名单不足');
-      return;
-    }
-    openOverlay();
+    if (pool.length < count) return;
+    winners = pickWinners(pool, count);
+    resetImmersive();
     sub.textContent = `${pool.length} 人参与 · 抽取 ${count} 位幸运儿`;
-    statusMsg.textContent = '转动中…';
-    againBtn.hidden = true;
-    doneBtn.hidden = true;
-    (async () => {
-      running = true;
-      for (let i = 0; i < count; i++) {
-        if (!running || !overlay.classList.contains('open')) return;
-        statusMsg.textContent = `第 ${i + 1} 位幸运儿揭晓中…`;
-        const idx = Math.floor(Math.random() * pool.length);
-        const winner = pool.splice(idx, 1)[0];
-        winners.push(winner);
-        await spinAll(winner, [...pool, winner]);
-        if (!running || !overlay.classList.contains('open')) return;
-        const chip = document.createElement('span');
-        chip.className = 'winner-chip';
-        chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${winner}`;
-        winnersEl.appendChild(chip);
-      }
-      statusMsg.textContent = '恭喜！';
-      againBtn.hidden = false;
-      doneBtn.hidden = false;
-      running = false;
-    })();
+    runImmersive(pool);
   });
-  doneBtn.addEventListener('click', closeOverlay);
-  byId<HTMLButtonElement>('lotClose').addEventListener('click', closeOverlay);
+  doneBtn.addEventListener('click', closeOverlays);
+  byId<HTMLButtonElement>('lotClose').addEventListener('click', closeOverlays);
   byId<HTMLButtonElement>('lotFullscreen').addEventListener('click', () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => undefined);
-    } else {
-      document.documentElement.requestFullscreen().catch(() => undefined);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    else document.documentElement.requestFullscreen().catch(() => undefined);
+  });
+  byId<HTMLButtonElement>('classicExit').addEventListener('click', closeOverlays);
+
+  // 拉杆交互
+  const lever = byId<HTMLElement>('slotLever');
+  const knob = byId<HTMLElement>('leverKnob');
+  let leverDragging = false;
+  let leverStartY = 0;
+  let leverPull = 0;
+  lever.addEventListener('pointerdown', (e) => {
+    if (classicBusy || classicIdx >= count) return;
+    leverDragging = true;
+    leverStartY = e.clientY;
+    knob.classList.add('dragging');
+    knob.setPointerCapture(e.pointerId);
+  });
+  lever.addEventListener('pointermove', (e) => {
+    if (!leverDragging) return;
+    leverPull = Math.max(0, Math.min(64, e.clientY - leverStartY));
+    knob.style.transform = `translate(-50%, ${leverPull}px)`;
+  });
+  lever.addEventListener('pointerup', () => {
+    if (!leverDragging) return;
+    leverDragging = false;
+    knob.classList.remove('dragging');
+    const pulled = leverPull > 36;
+    leverPull = 0;
+    knob.style.transform = '';
+    if (pulled && !classicBusy && classicIdx < count && classic.classList.contains('open')) {
+      runClassic(pool);
     }
   });
+
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeOverlay();
+    if (e.key === 'Escape' && (overlay.classList.contains('open') || classic.classList.contains('open'))) closeOverlays();
   });
 </script>
