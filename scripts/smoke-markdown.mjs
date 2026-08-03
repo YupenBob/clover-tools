@@ -133,6 +133,40 @@ check('Ctrl+1 标题', ctrl1Val.startsWith('# '), ctrl1Val.slice(0, 20));
 // 17. 富文本复制按钮
 check('富文本按钮', (await page.locator('#mdCopyRich').count()) === 1);
 
+// 18. 任务列表回车续行
+await page.locator('#mdSource').fill('- [ ] 待办');
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  el.setSelectionRange(el.value.length, el.value.length);
+});
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+const taskVal = await page.locator('#mdSource').inputValue();
+check('任务列表续行', taskVal === '- [ ] 待办\n- [ ] ', JSON.stringify(taskVal));
+
+// 19. 代码块内回车不续行
+await page.locator('#mdSource').fill('```\n- 代码内容\n```');
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  const idx = el.value.indexOf('- 代码内容') + '- 代码内容'.length;
+  el.setSelectionRange(idx, idx);
+});
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+const fenceVal = await page.locator('#mdSource').inputValue();
+check('代码块内不续行', fenceVal.includes('```\n- 代码内容\n\n```'), JSON.stringify(fenceVal));
+
+// 20. 空列表项回车退出列表
+await page.locator('#mdSource').fill('- \n后文');
+await page.locator('#mdSource').evaluate((el) => {
+  el.focus();
+  el.setSelectionRange(2, 2);
+});
+await page.keyboard.press('Enter');
+await page.waitForTimeout(200);
+const exitVal = await page.locator('#mdSource').inputValue();
+check('空列表项退出', exitVal === '\n后文', JSON.stringify(exitVal));
+
 console.log(errors.length ? `\nJS 报错:\n${errors.join('\n')}` : '\n无 JS 报错');
 await browser.close();
 process.exit(results.some((r) => !r.ok) || errors.length ? 1 : 0);

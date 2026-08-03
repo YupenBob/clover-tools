@@ -1151,11 +1151,22 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   // ── 快捷键 ──
+  function isInsideCodeFence(value: string, pos: number): boolean {
+    let fences = 0;
+    for (const line of value.slice(0, pos).split('\n')) {
+      if (/^\s*```/.test(line)) fences++;
+    }
+    return fences % 2 === 1;
+  }
+
   function handleEnter() {
     const value = source.value;
     const pos = source.selectionStart;
+    if (isInsideCodeFence(value, pos)) return false;
     const lineStart = value.lastIndexOf('\n', Math.max(0, pos - 1)) + 1;
-    const line = value.slice(lineStart);
+    // 只取当前行（到下一个换行符为止），避免把后续内容误判为列表项
+    const lineEnd = value.indexOf('\n', pos);
+    const line = value.slice(lineStart, lineEnd === -1 ? value.length : lineEnd);
     const m = line.match(/^(\s*)([-*+]\s+\[\s*[xX ]?\s*\]\s+|[-*+]\s+|\d+[.)]\s+|>\s?)/);
     if (!m) return false;
     const marker = m[1] + m[2];
