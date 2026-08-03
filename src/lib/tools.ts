@@ -648,6 +648,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       legacyPath: '/tools/other/reaction-test.html',
     },
     {
+      slug: 'schulte-trainer',
+      name: '舒尔特训练',
+      oneLiner: '经典方格与动态圆盘多模式，训练专注力与视觉搜索。',
+      description: '舒尔特训练专区：经典方格、间隔随机变换、旋转多环圆盘与双圆盘、记忆方格、倒计时挑战与双任务干扰七种模式，难度可调，自动计时并生成完成时间、错点与趋势分析报告，通过主动视觉搜索对抗短视频造成的注意力碎片化。',
+      icon: 'bi-bullseye',
+      keywords: ['舒尔特', '舒尔特方格', '专注力训练', '注意力训练', '视觉搜索', '反应训练', '记忆训练'],
+      tier: 'P1',
+    },
+    {
       slug: 'lottery',
       name: '抽奖转盘',
       oneLiner: '自定义名单与奖项，滚动抽奖公平随机。',

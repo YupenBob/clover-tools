@@ -1,0 +1,1805 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'fun' as const;
+const tool = TOOLS.fun.find((t) => t.slug === 'schulte-trainer')!;
+const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
+  <ToolPanel title="舒尔特训练专区" icon="bi-bullseye">
+    <!-- 模式选择 -->
+    <div class="st-modes" id="stModes" role="tablist" aria-label="训练模式"></div>
+    <p class="muted st-modes-hint">
+      <i class="bi bi-plus-circle" aria-hidden="true"></i>
+      模式持续扩充中：已有 7 种，后续将加入跟随圆点、联机对战等进阶玩法。
+    </p>
+
+    <!-- 设置 -->
+    <div class="st-controls">
+      <div class="st-control">
+        <label for="stSize">难度 N：<b id="stSizeLabel">5</b></label>
+        <input id="stSize" type="range" min="3" max="9" step="1" value="5" />
+        <span class="muted" id="stSizeHint">25 个数字</span>
+      </div>
+      <div class="st-control" id="stIntervalWrap" hidden>
+        <label for="stInterval">变换间隔：<b id="stIntervalLabel">6</b> 秒</label>
+        <input id="stInterval" type="range" min="3" max="12" step="1" value="6" />
+      </div>
+      <div class="st-control" id="stSpeedWrap" hidden>
+        <label for="stSpeed">旋转速度：<b id="stSpeedLabel">中</b></label>
+        <input id="stSpeed" type="range" min="1" max="3" step="1" value="2" />
+      </div>
+      <div class="st-control" id="stTimeWrap" hidden>
+        <label for="stTime">挑战时长：<b id="stTimeLabel">60</b> 秒</label>
+        <input id="stTime" type="range" min="30" max="180" step="30" value="60" />
+      </div>
+      <div class="st-control" id="stPeekWrap" hidden>
+        <label for="stPeek">记忆时间：<b id="stPeekLabel">5</b> 秒</label>
+        <input id="stPeek" type="range" min="3" max="10" step="1" value="5" />
+      </div>
+      <div class="st-control">
+        <label class="st-check" for="stRounds">
+          <input id="stRounds" type="checkbox" />
+          连续挑战
+        </label>
+        <span class="muted">完成后自动进入下一轮</span>
+      </div>
+      <div class="st-control st-actions">
+        <button class="btn btn-primary" id="stStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i> 开始</button>
+        <button class="btn" id="stReset" type="button"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> 重置</button>
+        <button class="btn" id="stFull" type="button" title="专注模式（全屏）"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
+        <button class="btn" id="stMute" type="button" title="音效开关" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <!-- 目标与进度 -->
+    <div class="st-target" id="stTargetWrap">
+      <svg class="st-progress" viewBox="0 0 92 92" aria-hidden="true">
+        <circle class="st-progress-track" cx="46" cy="46" r="40" />
+        <circle class="st-progress-bar" id="stProgressBar" cx="46" cy="46" r="40" />
+      </svg>
+      <span class="st-target-label">下一个</span>
+      <span class="st-target-num" id="stTarget">1</span>
+      <span class="st-target-side" id="stTargetSide" hidden></span>
+      <span class="st-target-count" id="stCount"></span>
+    </div>
+    <div class="st-timer" id="stTimer" hidden></div>
+    <div class="status-msg" id="stStatus" role="status" aria-live="polite"></div>
+
+    <!-- 游戏舞台 -->
+    <div class="st-stage" id="stStage">
+      <div class="st-grid" id="stGrid" role="grid" aria-label="舒尔特方格"></div>
+      <div class="st-discs" id="stDiscs" hidden>
+        <div class="st-disc-wrap">
+          <div class="st-disc" id="stDiscA" aria-label="圆盘 A"></div>
+          <span class="st-disc-tag" id="stTagA">A</span>
+        </div>
+        <div class="st-disc-wrap">
+          <div class="st-disc" id="stDiscB" aria-label="圆盘 B"></div>
+          <span class="st-disc-tag" id="stTagB">B</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 遮罩层：记忆隐藏 / 双任务弹题 / 休息倒计时 / 完成反馈 -->
+    <div class="st-veil" id="stVeil" hidden>
+      <div class="st-veil-inner" id="stVeilInner"></div>
+    </div>
+    <div class="st-toast" id="stToast" hidden aria-live="polite"></div>
+
+    <!-- 报告 -->
+    <div class="st-report" id="stReport" hidden>
+      <div class="st-report-head">
+        <h3><i class="bi bi-graph-up" aria-hidden="true"></i> 训练报告</h3>
+        <button class="btn" id="stClearHistory" type="button" title="清空历史记录">
+          <i class="bi bi-trash" aria-hidden="true"></i> 清空历史
+        </button>
+      </div>
+      <div class="st-report-metrics" id="stMetrics"></div>
+      <div class="st-report-note" id="stNote"></div>
+      <div class="st-trend" id="stTrend" aria-label="历史用时趋势"></div>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="训练目的：修复前额叶，对抗注意力碎片化" icon="bi-bullseye">
+    <div class="st-purpose">
+      <p>
+        舒尔特训练通过<b>主动、持续的目标导向搜索</b>，反复激活<b>背外侧前额叶</b>——大脑负责注意分配、
+        抑制冲动与工作记忆的指挥中枢。刷短视频时，大脑处于被动接收状态，多巴胺被高频、低成本的刺激快速消耗，
+        前额叶的主动抑制与延迟满足能力随之弱化；舒尔特训练则要求你持续抑制干扰、锁定单一任务，
+        相当于给前额叶做「力量训练」，逐步重建注意力稳定性与抗干扰能力。
+      </p>
+      <div class="st-purpose-grid">
+        <div class="st-purpose-item">
+          <i class="bi bi-eye" aria-hidden="true"></i>
+          <b>训练视觉搜索</b>
+          <span>扩大视野利用范围，练习一眼扫过整片区域找到目标，而非逐格死盯。</span>
+        </div>
+        <div class="st-purpose-item">
+          <i class="bi bi-bullseye" aria-hidden="true"></i>
+          <b>强化前额叶抑制</b>
+          <span>错点与干扰项都在训练「忍住不点错」的冲动控制，这正是前额叶的核心功能。</span>
+        </div>
+        <div class="st-purpose-item">
+          <i class="bi bi-shuffle" aria-hidden="true"></i>
+          <b>对抗信息碎片化</b>
+          <span>长期训练可提升专注时长与抗干扰能力，缓解短视频带来的注意涣散。</span>
+        </div>
+        <div class="st-purpose-item">
+          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <b>动态追踪进阶</b>
+          <span>变换与旋转模式让目标持续移动，进一步锻炼动态视觉与手眼协调。</span>
+        </div>
+      </div>
+
+      <h4>模式与认知功能对照</h4>
+      <div class="st-table-scroll">
+        <table class="st-bench">
+          <thead>
+            <tr><th>模式</th><th>训练侧重</th><th>对应认知能力</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>经典方格</td><td>基础入门</td><td>视觉搜索、注意分配</td></tr>
+            <tr><td>间隔变换</td><td>目标持续移动</td><td>持续注意、抗干扰</td></tr>
+            <tr><td>旋转圆盘</td><td>动态追踪</td><td>动态视觉、空间注意</td></tr>
+            <tr><td>双圆盘</td><td>双区扫描</td><td>注意转移、双区监控</td></tr>
+            <tr><td>记忆方格</td><td>先记后找</td><td>工作记忆、前额叶记忆回路</td></tr>
+            <tr><td>倒计时挑战</td><td>限时冲刺</td><td>抗压、持续专注</td></tr>
+            <tr><td>双任务干扰</td><td>边点边答</td><td>认知控制、任务切换</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>成绩参考（经典方格）</h4>
+      <div class="st-table-scroll">
+        <table class="st-bench">
+          <thead>
+            <tr><th>难度</th><th>优秀</th><th>良好</th><th>一般</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>3×3（9 个）</td><td>&lt; 4 秒</td><td>&lt; 7 秒</td><td>&lt; 11 秒</td></tr>
+            <tr><td>4×4（16 个）</td><td>&lt; 10 秒</td><td>&lt; 15 秒</td><td>&lt; 22 秒</td></tr>
+            <tr><td>5×5（25 个）</td><td>&lt; 16 秒</td><td>&lt; 25 秒</td><td>&lt; 36 秒</td></tr>
+            <tr><td>6×6（36 个）</td><td>&lt; 28 秒</td><td>&lt; 42 秒</td><td>&lt; 60 秒</td></tr>
+            <tr><td>7×7（49 个）</td><td>&lt; 45 秒</td><td>&lt; 65 秒</td><td>&lt; 90 秒</td></tr>
+            <tr><td>8×8（64 个）</td><td>&lt; 65 秒</td><td>&lt; 95 秒</td><td>&lt; 130 秒</td></tr>
+            <tr><td>9×9（81 个）</td><td>&lt; 95 秒</td><td>&lt; 135 秒</td><td>&lt; 185 秒</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted st-tip">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        建议每天 3–5 组、每组间休息 30 秒；圆盘、记忆与双任务模式适合已能稳定完成经典方格的进阶者。
+        训练效果看长期趋势而非单次成绩，坚持两周以上更明显。开启专注模式可减少干扰，获得更沉浸的训练体验。
+      </p>
+    </div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .st-modes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .st-modes-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    margin-bottom: var(--space-5);
+  }
+
+  .st-mode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 6px;
+    min-height: 76px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease,
+      transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .st-mode i {
+    font-size: 22px;
+    color: var(--text-tertiary);
+    transition: color 0.15s ease;
+  }
+
+  .st-mode:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .st-mode.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    box-shadow: var(--ring);
+  }
+
+  .st-mode.active i {
+    color: var(--primary-dark);
+  }
+
+  .st-controls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 20px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+  .st-control {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .st-control label {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+  }
+
+  .st-control input[type='range'] {
+    accent-color: var(--primary);
+    width: 100%;
+  }
+
+  .st-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .st-check input {
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+  }
+
+  .st-actions {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 8px;
+    grid-column: 1 / -1;
+  }
+
+  .st-actions .btn {
+    min-height: 44px;
+  }
+
+  /* ── 目标 / 进度 ── */
+  .st-target {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: var(--space-4);
+  }
+
+  .st-progress {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 108px;
+    height: 108px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .st-progress-track,
+  .st-progress-bar {
+    fill: none;
+    stroke-width: 5;
+  }
+
+  .st-progress-track {
+    stroke: var(--border);
+  }
+
+  .st-progress-bar {
+    stroke: var(--primary);
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 0.2s ease;
+  }
+
+  .st-target-label {
+    position: absolute;
+    top: calc(50% - 46px);
+    font-size: 11.5px;
+    color: var(--text-tertiary);
+  }
+
+  .st-target-num {
+    min-width: 52px;
+    padding: 14px 18px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    background: var(--bg-elevated);
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    z-index: 1;
+  }
+
+  .st-target-num.bump {
+    transform: scale(1.12);
+    box-shadow: var(--ring);
+  }
+
+  .st-target-side {
+    padding: 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary-dark);
+    border-radius: var(--radius-full);
+    z-index: 1;
+  }
+
+  .st-target-count {
+    position: absolute;
+    bottom: calc(50% - 52px);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    z-index: 1;
+  }
+
+  .st-timer {
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: var(--space-3);
+  }
+
+  .st-timer.urgent {
+    color: var(--error);
+    animation: st-pulse 1s ease infinite;
+  }
+
+  @keyframes st-pulse {
+    50% { opacity: 0.5; }
+  }
+
+  /* ── 舞台 ── */
+  .st-stage {
+    display: flex;
+    justify-content: center;
+    margin: var(--space-5) 0;
+  }
+
+  .st-grid {
+    display: grid;
+    width: min(100%, 520px);
+    aspect-ratio: 1;
+    gap: 8px;
+    touch-action: manipulation;
+  }
+
+  .st-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: clamp(14px, 2.6vw, 24px);
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease,
+      transform 0.1s ease, opacity 0.2s ease;
+  }
+
+  .st-cell:hover:not(.done):not(.wrong):not(.hidden) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .st-cell:active:not(.done) {
+    transform: scale(0.96);
+  }
+
+  .st-cell.done {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-tertiary);
+    cursor: default;
+    transform: scale(0.7);
+    opacity: 0.55;
+  }
+
+  .st-cell.wrong {
+    border-color: var(--error);
+    color: var(--error);
+    animation: st-shake 0.25s ease;
+  }
+
+  .st-cell.hidden {
+    color: transparent;
+    background: var(--bg-tertiary);
+    cursor: default;
+  }
+
+  .st-cell.hint {
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+    animation: st-hint 0.7s ease;
+  }
+
+  .st-cell.flash {
+    border-color: var(--primary);
+    box-shadow: var(--ring);
+  }
+
+  @keyframes st-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  @keyframes st-hint {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: var(--ring); }
+  }
+
+  .st-discs {
+    display: flex;
+    justify-content: center;
+    gap: clamp(20px, 5vw, 60px);
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .st-disc-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .st-disc {
+    position: relative;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: radial-gradient(circle at 50% 42%, var(--bg-elevated), var(--bg-secondary));
+    box-shadow: inset 0 0 24px rgba(var(--primary-rgb), 0.08);
+  }
+
+  .st-ring {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+  }
+
+  .st-dnum {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease,
+      opacity 0.2s ease, transform 0.1s ease;
+  }
+
+  .st-dnum:hover:not(.done):not(.wrong) {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .st-dnum.done {
+    opacity: 0.15;
+    border-color: transparent;
+    cursor: default;
+    transform: scale(0.78);
+  }
+
+  .st-dnum.wrong {
+    border-color: var(--error);
+    color: var(--error);
+    animation: st-shake 0.25s ease;
+  }
+
+  .st-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--primary-light), var(--primary-dark));
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .st-disc-tag {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary-dark);
+    border-radius: var(--radius-full);
+    z-index: 2;
+  }
+
+  /* ── 遮罩 ── */
+  .st-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .st-veil[hidden],
+  .st-toast[hidden] {
+    display: none !important;
+  }
+
+  .st-veil-inner {
+    text-align: center;
+    padding: var(--space-5);
+  }
+
+  .st-veil-inner .big {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 800;
+    color: var(--primary-dark);
+    margin-bottom: var(--space-3);
+  }
+
+  .st-veil-inner .sub {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  .st-question {
+    font-size: clamp(30px, 7vw, 56px);
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: var(--space-4);
+  }
+
+  .st-answers {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .st-answer {
+    min-width: 92px;
+    min-height: 56px;
+    font-size: 18px;
+    font-weight: 700;
+    border: 2px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .st-answer:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--ring);
+  }
+
+  .st-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    padding: 12px 22px;
+    border-radius: var(--radius-full);
+    background: var(--primary-dark);
+    color: #fff;
+    font-size: 14.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    animation: st-toast-in 0.25s ease;
+  }
+
+  @keyframes st-toast-in {
+    from { opacity: 0; transform: translate(-50%, -12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* ── 报告 ── */
+  .st-report {
+    margin-top: var(--space-5);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .st-report-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: var(--space-4);
+  }
+
+  .st-report-head h3 {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  .st-report-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: var(--space-4);
+  }
+
+  .st-metric {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+  }
+
+  .st-metric b {
+    display: block;
+    font-size: 21px;
+    color: var(--primary-dark);
+    font-family: var(--font-mono);
+  }
+
+  .st-metric b small {
+    font-size: 12px;
+    margin-left: 2px;
+  }
+
+  .st-metric span {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .st-report-note {
+    margin-bottom: var(--space-4);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--primary-soft);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .st-trend {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 110px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+  }
+
+  .st-bar {
+    flex: 1;
+    min-width: 12px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+    opacity: 0.75;
+    transition: opacity 0.15s ease;
+    position: relative;
+  }
+
+  .st-bar:last-child {
+    opacity: 1;
+    box-shadow: var(--ring);
+  }
+
+  .st-bar:hover {
+    opacity: 1;
+  }
+
+  .st-bar::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .st-trend-empty {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+
+  /* ── 训练目的 ── */
+  .st-purpose p {
+    line-height: 1.9;
+    margin-bottom: var(--space-4);
+  }
+
+  .st-purpose-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: var(--space-5);
+  }
+
+  .st-purpose-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .st-purpose-item i {
+    font-size: 20px;
+    color: var(--primary-dark);
+    margin-bottom: 2px;
+  }
+
+  .st-purpose-item span {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .st-purpose h4 {
+    margin: 0 0 10px;
+    font-size: 15px;
+  }
+
+  .st-table-scroll {
+    overflow-x: auto;
+    margin-bottom: var(--space-5);
+  }
+
+  .st-bench {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 420px;
+  }
+
+  .st-bench th,
+  .st-bench td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .st-bench th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+  }
+
+  .st-tip {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .st-tip i {
+    margin-top: 2px;
+    color: var(--primary-dark);
+  }
+
+  /* ── 专注模式：全屏时隐藏页面周边，只留训练区 ── */
+  body.st-focus .tool-hero,
+  body.st-focus .breadcrumb,
+  body.st-focus .related-panel,
+  body.st-focus .st-modes,
+  body.st-focus .st-modes-hint,
+  body.st-focus .st-controls,
+  body.st-focus .st-report,
+  body.st-focus .tool-content,
+  body.st-focus .site-footer,
+  body.st-focus .st-purpose,
+  body.st-focus .st-disc-tag {
+    display: none !important;
+  }
+
+  body.st-focus {
+    background: var(--bg) !important;
+  }
+
+  body.st-focus .tool-card-panel {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    max-width: none;
+  }
+
+  body.st-focus .panel-head {
+    display: none;
+  }
+
+  body.st-focus .st-stage {
+    min-height: calc(100vh - 240px);
+    align-items: center;
+  }
+
+  body.st-focus .st-target {
+    margin-top: var(--space-6);
+  }
+
+  body.st-focus .st-disc-tag {
+    display: block;
+  }
+
+  @media (max-width: 640px) {
+    .st-modes {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .st-controls {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .st-actions {
+      grid-column: 1 / -1;
+      flex-wrap: wrap;
+    }
+
+    .st-grid {
+      gap: 5px;
+    }
+
+    .st-dnum {
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .st-cell.wrong,
+    .st-dnum.wrong,
+    .st-timer.urgent {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  type ModeId = 'classic' | 'interval' | 'disc' | 'dual' | 'memory' | 'countdown' | 'dual-task';
+
+  interface ModeMeta {
+    id: ModeId;
+    name: string;
+    icon: string;
+    desc: string;
+    grid: boolean;
+    disc: boolean;
+    countdown?: boolean;
+    peek?: boolean;
+    stroop?: boolean;
+  }
+
+  const MODES: Record<ModeId, ModeMeta> = {
+    classic: { id: 'classic', name: '经典方格', icon: 'bi-grid-3x3', desc: '从 1 按序点击', grid: true, disc: false },
+    interval: { id: 'interval', name: '间隔变换', icon: 'bi-arrow-repeat', desc: '数字定时随机换位', grid: true, disc: false },
+    disc: { id: 'disc', name: '旋转圆盘', icon: 'bi-disc', desc: '多环旋转动态追踪', grid: false, disc: true },
+    dual: { id: 'dual', name: '双圆盘', icon: 'bi-record-circle', desc: '双盘独立旋转扫描', grid: false, disc: true },
+    memory: { id: 'memory', name: '记忆方格', icon: 'bi-braces', desc: '先记后找，隐藏作答', grid: true, disc: false, peek: true },
+    countdown: { id: 'countdown', name: '倒计时挑战', icon: 'bi-stopwatch', desc: '限时冲刺，多点多分', grid: true, disc: false, countdown: true },
+    'dual-task': { id: 'dual-task', name: '双任务干扰', icon: 'bi-shuffle', desc: '间隔弹出 Stroop 色词题', grid: true, disc: false, stroop: true },
+  };
+
+  const MODE_ORDER: ModeId[] = ['classic', 'interval', 'disc', 'dual', 'memory', 'countdown', 'dual-task'];
+  const SPEED_MAP: Record<number, number> = { 1: 5, 2: 11, 3: 20 };
+  const SPEED_LABELS: Record<number, string> = { 1: '慢', 2: '中', 3: '快' };
+  const STROOP_COLORS = ['红', '蓝', '绿', '黄'];
+  const STROOP_STYLE: Record<string, string> = {
+    红: 'var(--error)',
+    蓝: 'var(--info)',
+    绿: 'var(--success)',
+    黄: 'var(--warning)',
+  };
+  const HISTORY_KEY = 'ct-schulte-history';
+  const PREF_KEY = 'ct-schulte-prefs';
+
+  interface Session {
+    mode: ModeId;
+    size: number;
+    time: number;
+    errors: number;
+    score?: number;
+    ts: number;
+  }
+
+  interface Prefs {
+    mode?: ModeId;
+    size?: number;
+    interval?: number;
+    speed?: number;
+    time?: number;
+    peek?: number;
+    rounds?: boolean;
+    muted?: boolean;
+  }
+
+  const $ = <T extends HTMLElement>(id: string): T => byId<T>(id);
+
+  const modesEl = $<HTMLElement>('stModes');
+  const grid = $<HTMLElement>('stGrid');
+  const discs = $<HTMLElement>('stDiscs');
+  const discA = $<HTMLElement>('stDiscA');
+  const discB = $<HTMLElement>('stDiscB');
+  const sizeInput = $<HTMLInputElement>('stSize');
+  const sizeLabel = $<HTMLElement>('stSizeLabel');
+  const sizeHint = $<HTMLElement>('stSizeHint');
+  const intervalWrap = $<HTMLElement>('stIntervalWrap');
+  const intervalInput = $<HTMLInputElement>('stInterval');
+  const intervalLabel = $<HTMLElement>('stIntervalLabel');
+  const speedWrap = $<HTMLElement>('stSpeedWrap');
+  const speedInput = $<HTMLInputElement>('stSpeed');
+  const speedLabel = $<HTMLElement>('stSpeedLabel');
+  const timeWrap = $<HTMLElement>('stTimeWrap');
+  const timeInput = $<HTMLInputElement>('stTime');
+  const timeLabel = $<HTMLElement>('stTimeLabel');
+  const peekWrap = $<HTMLElement>('stPeekWrap');
+  const peekInput = $<HTMLInputElement>('stPeek');
+  const peekLabel = $<HTMLElement>('stPeekLabel');
+  const roundsInput = $<HTMLInputElement>('stRounds');
+  const startBtn = $<HTMLButtonElement>('stStart');
+  const resetBtn = $<HTMLButtonElement>('stReset');
+  const fullBtn = $<HTMLButtonElement>('stFull');
+  const muteBtn = $<HTMLButtonElement>('stMute');
+  const targetNum = $<HTMLElement>('stTarget');
+  const targetSide = $<HTMLElement>('stTargetSide');
+  const targetCount = $<HTMLElement>('stCount');
+  const progressBar = $<SVGCircleElement>('stProgressBar');
+  const timerEl = $<HTMLElement>('stTimer');
+  const veil = $<HTMLElement>('stVeil');
+  const veilInner = $<HTMLElement>('stVeilInner');
+  const toast = $<HTMLElement>('stToast');
+  const report = $<HTMLElement>('stReport');
+  const metricsEl = $<HTMLElement>('stMetrics');
+  const noteEl = $<HTMLElement>('stNote');
+  const trendEl = $<HTMLElement>('stTrend');
+  const clearHistoryBtn = $<HTMLButtonElement>('stClearHistory');
+
+  let mode: ModeId = 'classic';
+  let size = 5;
+  let running = false;
+  let nextNum = 1;
+  let total = 1;
+  let errors = 0;
+  let score = 0;
+  let startAt = 0;
+  let finished = false;
+  let muted = false;
+  let shuffleTimer: ReturnType<typeof setInterval> | null = null;
+  let raf = 0;
+  let lastT = 0;
+  let ringAngles: number[] = [];
+  let ringDirs: number[] = [];
+  let countdownLeft = 0;
+  let countdownTimer: ReturnType<typeof setInterval> | null = null;
+  let stroopPending = false;
+  let stroopAt = 0;
+  let peekDone = false;
+  let audioCtx: AudioContext | null = null;
+  let autoNext = false;
+
+  const cells = new Map<number, HTMLButtonElement>();
+  const discNums = new Map<number, { el: HTMLButtonElement; ring: number; disc: 'A' | 'B' }>();
+
+  /* ── 音效（Web Audio 合成，无外部资源） ── */
+  function ensureAudio(): AudioContext | null {
+    try {
+      if (!audioCtx) {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (!AC) return null;
+        audioCtx = new AC();
+      }
+      if (audioCtx.state === 'suspended') void audioCtx.resume();
+      return audioCtx;
+    } catch {
+      return null;
+    }
+  }
+
+  function beep(freq: number, dur = 0.09, vol = 0.14, type: OscillatorType = 'sine') {
+    if (muted) return;
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur + 0.02);
+  }
+
+  function soundCorrect() {
+    beep(660, 0.07, 0.1);
+    beep(880, 0.08, 0.08);
+  }
+
+  function soundWrong() {
+    beep(180, 0.16, 0.16, 'sawtooth');
+  }
+
+  function soundComplete() {
+    beep(523, 0.12, 0.12);
+    setTimeout(() => beep(659, 0.12, 0.12), 110);
+    setTimeout(() => beep(784, 0.2, 0.12), 220);
+  }
+
+  function vibrate(pattern: number | number[]) {
+    try {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch {
+      /* 不支持则忽略 */
+    }
+  }
+
+  /* ── 历史与偏好 ── */
+  function readHistory(): Session[] {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? (JSON.parse(raw) as Session[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveHistory(sessions: Session[]) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(sessions.slice(0, 80)));
+    } catch {
+      /* 忽略 */
+    }
+  }
+
+  function readPrefs(): Prefs {
+    try {
+      const raw = localStorage.getItem(PREF_KEY);
+      return raw ? (JSON.parse(raw) as Prefs) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function savePrefs() {
+    try {
+      const p: Prefs = {
+        mode,
+        size,
+        interval: Number(intervalInput.value),
+        speed: Number(speedInput.value),
+        time: Number(timeInput.value),
+        peek: Number(peekInput.value),
+        rounds: roundsInput.checked,
+        muted,
+      };
+      localStorage.setItem(PREF_KEY, JSON.stringify(p));
+    } catch {
+      /* 忽略 */
+    }
+  }
+
+  /* ── 工具函数 ── */
+  function shuffle<T>(arr: T[]): T[] {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function toastMsg(msg: string) {
+    toast.textContent = msg;
+    toast.hidden = false;
+    clearTimeout((toast as HTMLElement & { _t?: number })._t);
+    (toast as HTMLElement & { _t?: number })._t = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 1800);
+  }
+
+  function isGridMode(m: ModeId): boolean {
+    return MODES[m].grid;
+  }
+
+  function discTotal(m: ModeId): number {
+    const [a, b] = discRings(m);
+    return sumRingCounts(a) + sumRingCounts(b);
+  }
+
+  function discRings(m: ModeId): [number, number] {
+    if (m !== 'dual') return [size, 0];
+    const ringsA = Math.ceil(size / 2);
+    return [ringsA, size - ringsA];
+  }
+
+  function sumRingCounts(ringCount: number): number {
+    let total = 0;
+    for (let r = 1; r <= ringCount; r++) total += 8 + (r - 1) * 4;
+    return total;
+  }
+
+  function gridTotal(m: ModeId): number {
+    return size * size;
+  }
+
+  function currentTotal(): number {
+    return isGridMode(mode) ? gridTotal(mode) : discTotal(mode);
+  }
+
+  function updateControls() {
+    sizeLabel.textContent = String(size);
+    const isGrid = isGridMode(mode);
+    const n = gridTotal(mode);
+    const dn = discTotal(mode);
+    sizeHint.textContent = isGrid ? `${n} 个数字` : `${dn} 个数字`;
+    intervalWrap.hidden = mode !== 'interval';
+    speedWrap.hidden = mode !== 'disc' && mode !== 'dual';
+    timeWrap.hidden = mode !== 'countdown';
+    peekWrap.hidden = mode !== 'memory';
+    intervalLabel.textContent = String(intervalInput.value);
+    speedLabel.textContent = SPEED_LABELS[Number(speedInput.value)];
+    timeLabel.textContent = String(timeInput.value);
+    peekLabel.textContent = String(peekInput.value);
+    grid.hidden = !isGrid;
+    discs.hidden = isGrid;
+    targetSide.hidden = mode !== 'dual';
+  }
+
+  function buildModeTabs() {
+    modesEl.innerHTML = '';
+    for (const id of MODE_ORDER) {
+      const m = MODES[id];
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'st-mode';
+      btn.dataset.mode = id;
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', String(id === mode));
+      btn.setAttribute('aria-label', m.name);
+      btn.title = m.desc;
+      btn.innerHTML = `<i class="bi ${m.icon}" aria-hidden="true"></i><span>${m.name}</span>`;
+      btn.addEventListener('click', () => setMode(id));
+      modesEl.appendChild(btn);
+    }
+    syncModeTabs();
+  }
+
+  function syncModeTabs() {
+    for (const btn of modesEl.querySelectorAll<HTMLButtonElement>('.st-mode')) {
+      const on = btn.dataset.mode === mode;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', String(on));
+    }
+  }
+
+  function setMode(m: ModeId) {
+    stopAll();
+    mode = m;
+    syncModeTabs();
+    updateControls();
+    resetGame();
+    savePrefs();
+  }
+
+  /* ── 渲染 ── */
+  function buildGrid() {
+    grid.innerHTML = '';
+    cells.clear();
+    grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    const nums = shuffle(Array.from({ length: gridTotal(mode) }, (_, i) => i + 1));
+    for (const n of nums) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'st-cell';
+      btn.textContent = String(n);
+      btn.setAttribute('role', 'gridcell');
+      btn.addEventListener('click', () => onCellClick(n, btn));
+      grid.appendChild(btn);
+      cells.set(n, btn);
+    }
+  }
+
+  function shuffleGridKeepState() {
+    if (finished) return;
+    const entries = Array.from(cells.entries());
+    const nums = shuffle(entries.map(([n]) => n));
+    entries.forEach(([, btn], i) => {
+      btn.textContent = String(nums[i]);
+    });
+    const map = new Map<number, HTMLButtonElement>();
+    entries.forEach(([, btn], i) => map.set(nums[i], btn));
+    cells.clear();
+    for (const [n, btn] of map) cells.set(n, btn);
+    const el = cells.get(nextNum);
+    if (el && !el.classList.contains('done')) {
+      el.classList.add('flash');
+      setTimeout(() => el.classList.remove('flash'), 320);
+    }
+  }
+
+  function ringRadius(i: number): number {
+    return 52 + i * 46;
+  }
+
+  function ringCounts(ringCount: number): number[] {
+    // 第 r 环数量 = 8 + (r-1)*4：8,12,16,20...
+    return Array.from({ length: ringCount }, (_, r) => 8 + r * 4);
+  }
+
+  function buildDisc(discEl: HTMLElement, nums: number[], ringCount: number, offset: number, label: 'A' | 'B') {
+    discEl.innerHTML = '';
+    const d = ringRadius(ringCount - 1) * 2 + 92;
+    discEl.style.width = `${d}px`;
+    discEl.style.height = `${d}px`;
+    const hub = document.createElement('div');
+    hub.className = 'st-hub';
+    discEl.appendChild(hub);
+
+    const counts = ringCounts(ringCount);
+    let cursor = 0;
+    counts.forEach((per, ring) => {
+      const ringNums = nums.slice(cursor, cursor + per);
+      cursor += per;
+      const ringEl = document.createElement('div');
+      ringEl.className = 'st-ring';
+      ringEl.style.width = `${d}px`;
+      ringEl.style.height = `${d}px`;
+      discEl.appendChild(ringEl);
+      ringAngles[ring + offset] = (ring * 37 + 12) % 360;
+      ringDirs[ring + offset] = ring % 2 === 0 ? 1 : -1;
+
+      const r = ringRadius(ring);
+      ringNums.forEach((n, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'st-dnum';
+        btn.textContent = String(n);
+        const a = (360 / ringNums.length) * idx;
+        btn.style.left = `${d / 2 + r * Math.cos((a * Math.PI) / 180) - 21}px`;
+        btn.style.top = `${d / 2 + r * Math.sin((a * Math.PI) / 180) - 21}px`;
+        btn.addEventListener('click', () => onCellClick(n, btn));
+        ringEl.appendChild(btn);
+        discNums.set(n, { el: btn, ring: ring + offset, disc: label });
+      });
+    });
+  }
+
+  function buildDiscs() {
+    discA.innerHTML = '';
+    discB.innerHTML = '';
+    discNums.clear();
+    ringAngles = [];
+    ringDirs = [];
+    const all = shuffle(Array.from({ length: discTotal(mode) }, (_, i) => i + 1));
+    if (mode === 'disc') {
+      buildDisc(discA, all, size, 0, 'A');
+      discB.style.display = 'none';
+      $<HTMLElement>('stTagB').style.display = 'none';
+      discA.style.display = '';
+      $<HTMLElement>('stTagA').style.display = '';
+    } else {
+      const [ringsA, ringsB] = discRings(mode);
+      const countA = sumRingCounts(ringsA);
+      buildDisc(discA, all.slice(0, countA), ringsA, 0, 'A');
+      buildDisc(discB, all.slice(countA), ringsB, ringsA, 'B');
+      discA.style.display = '';
+      discB.style.display = '';
+      $<HTMLElement>('stTagA').style.display = '';
+      $<HTMLElement>('stTagB').style.display = '';
+    }
+  }
+
+  /* ── 动画循环 ── */
+  function tick(ts: number) {
+    const dt = lastT ? Math.min((ts - lastT) / 1000, 0.1) : 0;
+    lastT = ts;
+    const speed = SPEED_MAP[Number(speedInput.value)];
+    const rings = document.querySelectorAll<HTMLElement>('.st-ring');
+    rings.forEach((el, i) => {
+      ringAngles[i] = (ringAngles[i] ?? 0) + speed * ringDirs[i] * dt * (0.65 + (i % 3) * 0.25);
+      el.style.transform = `rotate(${ringAngles[i]}deg)`;
+    });
+    raf = requestAnimationFrame(tick);
+  }
+
+  function startTicking() {
+    cancelAnimationFrame(raf);
+    lastT = 0;
+    raf = requestAnimationFrame(tick);
+  }
+
+  function stopAll() {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    if (shuffleTimer) {
+      clearInterval(shuffleTimer);
+      shuffleTimer = null;
+    }
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+    hideVeil();
+  }
+
+  /* ── 游戏控制 ── */
+  function startGame() {
+    stopAll();
+    running = true;
+    finished = false;
+    nextNum = 1;
+    errors = 0;
+    score = 0;
+    startAt = 0;
+    peekDone = false;
+    stroopPending = false;
+    stroopAt = 0;
+    targetNum.textContent = '1';
+    targetSide.textContent = '';
+    targetCount.textContent = '0 / ' + currentTotal();
+    setProgress(0);
+    timerEl.hidden = true;
+    hideStatus('stStatus');
+    report.hidden = true;
+
+    if (isGridMode(mode)) {
+      buildGrid();
+      grid.hidden = false;
+      discs.hidden = true;
+      if (mode === 'interval') {
+        shuffleTimer = setInterval(shuffleGridKeepState, Number(intervalInput.value) * 1000);
+      }
+      if (mode === 'memory') {
+        peekDone = false;
+        showPeek();
+      }
+      if (mode === 'countdown') {
+        countdownLeft = Number(timeInput.value);
+        timerEl.hidden = false;
+        renderCountdown();
+        countdownTimer = setInterval(() => {
+          countdownLeft--;
+          renderCountdown();
+          if (countdownLeft <= 0) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+            finishGame(true);
+          }
+        }, 1000);
+      }
+    } else {
+      buildDiscs();
+      grid.hidden = true;
+      discs.hidden = false;
+      startTicking();
+    }
+    total = currentTotal();
+    updateTargetSide();
+    showStatus('stStatus', 'info', mode === 'memory' ? '先记住数字位置' : '从 1 开始，按顺序依次点击目标数字');
+  }
+
+  function renderCountdown() {
+    timerEl.textContent = `${countdownLeft}s`;
+    timerEl.classList.toggle('urgent', countdownLeft <= 10);
+  }
+
+  function setProgress(completed: number) {
+    const pct = total > 0 ? (completed / total) * 100 : 0;
+    const circ = 2 * Math.PI * 40;
+    progressBar.style.strokeDasharray = String(circ);
+    progressBar.style.strokeDashoffset = String(circ * (1 - pct / 100));
+  }
+
+  function updateTargetSide() {
+    if (mode !== 'dual') {
+      targetSide.hidden = true;
+      return;
+    }
+    targetSide.hidden = false;
+    const info = discNums.get(nextNum);
+    targetSide.textContent = info ? `圆盘 ${info.disc}` : '';
+  }
+
+  function onCellClick(n: number, btn: HTMLButtonElement) {
+    if (finished || !running) return;
+    if (btn.classList.contains('done')) return;
+    if (mode === 'memory' && !peekDone) return;
+    if (stroopPending) {
+      toastMsg('先完成弹题');
+      return;
+    }
+    if (n !== nextNum) {
+      errors++;
+      btn.classList.add('wrong');
+      setTimeout(() => btn.classList.remove('wrong'), 260);
+      soundWrong();
+      vibrate(40);
+      showStatus('stStatus', 'error', `点错了：现在要找 ${nextNum}`);
+      return;
+    }
+    if (startAt === 0) startAt = performance.now();
+    if (mode === 'dual-task' && !stroopPending) {
+      if (stroopAt === 0) stroopAt = 3 + Math.floor(Math.random() * 2);
+      if (score + 1 >= stroopAt) {
+        stroopAt += 3 + Math.floor(Math.random() * 2);
+        stroopPending = true;
+        showStroop();
+      }
+    }
+    btn.classList.add('done');
+    btn.disabled = true;
+    nextNum++;
+    score++;
+    soundCorrect();
+    vibrate(8);
+    targetNum.textContent = String(Math.min(nextNum, total));
+    targetCount.textContent = `${score} / ${total}`;
+    setProgress(score);
+    targetNum.classList.remove('bump');
+    void targetNum.offsetWidth;
+    targetNum.classList.add('bump');
+    updateTargetSide();
+    if (mode === 'countdown') {
+      // 倒计时模式不限量，一直点直到时间结束
+      return;
+    }
+    if (nextNum > total) {
+      finishGame(false);
+    }
+  }
+
+  /* ── 记忆方格：展示期 → 隐藏期 ── */
+  function showPeek() {
+    veil.hidden = false;
+    veilInner.innerHTML =
+      `<div class="big">记忆数字位置</div>` +
+      `<div class="sub">展示 ${peekInput.value} 秒，之后数字隐藏，凭记忆按 1 → ${total} 顺序点击</div>`;
+    setTimeout(() => {
+      if (!finished && running) {
+        veil.hidden = true;
+        peekDone = true;
+        for (const [n, btn] of cells) {
+          if (n >= nextNum) {
+            btn.classList.add('hidden');
+            btn.textContent = '';
+          }
+        }
+        showStatus('stStatus', 'info', '数字已隐藏，凭记忆点击');
+      }
+    }, Number(peekInput.value) * 1000);
+  }
+
+  /* ── 双任务：Stroop 弹题 ── */
+  function showStroop() {
+    const word = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
+    const color = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
+    veil.hidden = false;
+    veilInner.dataset.correct = color;
+    veilInner.innerHTML =
+      `<div class="sub">干扰题：说出颜色（点击对应颜色的按钮）</div>` +
+      `<div class="st-question" style="color:${STROOP_STYLE[color]}">${word}</div>` +
+      `<div class="st-answers">${STROOP_COLORS.map(
+        (c) => `<button class="st-answer" type="button" data-color="${c}">${c}</button>`,
+      ).join('')}</div>`;
+    for (const btn of veilInner.querySelectorAll<HTMLButtonElement>('.st-answer')) {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.color === color) {
+          soundCorrect();
+          veil.hidden = true;
+          stroopPending = false;
+        } else {
+          errors++;
+          soundWrong();
+          vibrate(40);
+          toastMsg('选错了，再试');
+        }
+      });
+    }
+  }
+
+  /* ── 结束与报告 ── */
+  function finishGame(timeUp: boolean) {
+    stopAll();
+    running = false;
+    finished = true;
+    const elapsed = (performance.now() - startAt) / 1000;
+    soundComplete();
+    vibrate([30, 40, 80]);
+    const session: Session = {
+      mode,
+      size,
+      time: timeUp ? Number(timeInput.value) : Number(elapsed.toFixed(2)),
+      errors,
+      score: mode === 'countdown' ? score : undefined,
+      ts: Date.now(),
+    };
+    const history = readHistory();
+    history.push(session);
+    saveHistory(history);
+    const msg =
+      mode === 'countdown'
+        ? `时间到！完成 ${score} 个，错点 ${errors} 次`
+        : `完成！用时 ${session.time.toFixed(2)} 秒${errors ? `，错点 ${errors} 次` : ''}`;
+    showStatus('stStatus', 'success', msg);
+    renderReport(session, history);
+
+    if (roundsInput.checked && !timeUp) {
+      startBreak();
+    }
+    savePrefs();
+  }
+
+  function startBreak() {
+    let left = 5;
+    veil.hidden = false;
+    veilInner.innerHTML = `<div class="big" id="stBreakNum">${left}</div><div class="sub">休息后自动进入下一轮</div>`;
+    const iv = setInterval(() => {
+      left--;
+      const el = document.getElementById('stBreakNum');
+      if (el) el.textContent = String(left);
+      if (left <= 0) {
+        clearInterval(iv);
+        veil.hidden = true;
+        startGame();
+      }
+    }, 1000);
+  }
+
+  function hideVeil() {
+    veil.hidden = true;
+  }
+
+  function gradeFor(m: ModeId, sizeN: number, time: number, errs: number): { grade: string; color: string } {
+    let per = 0.64;
+    if (sizeN >= 8) per = 1.0;
+    else if (sizeN === 7) per = 0.9;
+    else if (sizeN === 6) per = 0.78;
+    const penalty = m === 'interval' ? 1.15 : m === 'disc' || m === 'dual' ? 1.4 : m === 'memory' ? 1.25 : m === 'dual-task' ? 1.35 : 1;
+    const target = currentTotal() * per * penalty;
+    let t = time;
+    if (m === 'countdown') {
+      const perSec = score / Math.max(time, 1);
+      if (perSec >= 1.6) return { grade: '优秀', color: 'var(--success)' };
+      if (perSec >= 1.15) return { grade: '良好', color: 'var(--primary-dark)' };
+      if (perSec >= 0.75) return { grade: '一般', color: 'var(--warning)' };
+      return { grade: '需要加强', color: 'var(--error)' };
+    }
+    t += errs * 0.8;
+    if (t <= target) return { grade: '优秀', color: 'var(--success)' };
+    if (t <= target * 1.55) return { grade: '良好', color: 'var(--primary-dark)' };
+    if (t <= target * 2.2) return { grade: '一般', color: 'var(--warning)' };
+    return { grade: '需要加强', color: 'var(--error)' };
+  }
+
+  function renderReport(session: Session, history: Session[]) {
+    report.hidden = false;
+    const g = gradeFor(session.mode, session.size, session.time, session.errors);
+    const modeName = MODES[session.mode]?.name ?? session.mode;
+    const avg = session.mode === 'countdown' ? session.score / Math.max(session.time, 1) : session.time / currentTotal();
+    const metric1 =
+      session.mode === 'countdown'
+        ? `<div class="st-metric"><b>${session.score}<small>个</small></b><span>完成数量</span></div>`
+        : `<div class="st-metric"><b>${session.time.toFixed(2)}<small>s</small></b><span>完成用时</span></div>`;
+    const metric2 =
+      session.mode === 'countdown'
+        ? `<div class="st-metric"><b>${avg.toFixed(2)}<small>个/s</small></b><span>点击速率</span></div>`
+        : `<div class="st-metric"><b>${avg.toFixed(2)}<small>s</small></b><span>平均每数</span></div>`;
+    metricsEl.innerHTML =
+      metric1 +
+      `<div class="st-metric"><b>${session.errors}</b><span>错点次数</span></div>` +
+      metric2 +
+      `<div class="st-metric"><b style="color:${g.color}">${g.grade}</b><span>本次评级</span></div>`;
+
+    const recs = history.filter((h) => h.mode === session.mode && h.size === session.size);
+    const avgAll = recs.reduce((a, b) => a + b.time, 0) / recs.length;
+    const best = Math.min(...recs.map((r) => r.time));
+    const prev = recs.length > 1 ? recs[recs.length - 2].time : null;
+    let trend = `同模式同难度共训练 ${recs.length} 次，平均 ${avgAll.toFixed(2)} 秒，历史最佳 ${best.toFixed(2)} 秒。`;
+    if (prev !== null) {
+      const delta = session.time - prev;
+      trend += ` 较上次${delta <= 0 ? '提升' : '慢了'} ${Math.abs(delta).toFixed(2)} 秒。`;
+    }
+    noteEl.innerHTML = `本次模式：${modeName}（N=${session.size}）。${trend}`;
+    renderTrend(recs);
+  }
+
+  function renderTrend(recs: Session[]) {
+    trendEl.innerHTML = '';
+    if (recs.length === 0) {
+      trendEl.innerHTML = '<div class="st-trend-empty">暂无同模式同难度的历史记录</div>';
+      return;
+    }
+    const last = recs.slice(-10);
+    const max = Math.max(...last.map((r) => r.time), 1);
+    for (const r of last) {
+      const bar = document.createElement('div');
+      bar.className = 'st-bar';
+      bar.style.height = `${Math.max(8, (r.time / max) * 100)}%`;
+      bar.setAttribute('data-label', r.time.toFixed(1));
+      bar.title = `${new Date(r.ts).toLocaleString('zh-CN')} · ${r.time.toFixed(2)} 秒`;
+      trendEl.appendChild(bar);
+    }
+  }
+
+  function resetGame() {
+    stopAll();
+    running = false;
+    finished = false;
+    nextNum = 1;
+    errors = 0;
+    score = 0;
+    startAt = 0;
+    stroopPending = false;
+    stroopAt = 0;
+    targetNum.textContent = '1';
+    targetSide.textContent = '';
+    targetCount.textContent = '';
+    setProgress(0);
+    timerEl.hidden = true;
+    hideStatus('stStatus');
+    buildGrid();
+    buildDiscs();
+    const isGrid = isGridMode(mode);
+    grid.hidden = !isGrid;
+    discs.hidden = isGrid;
+    updateTargetSide();
+  }
+
+  /* ── 专注模式 ── */
+  function toggleFull() {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+    } else {
+      void document.documentElement.requestFullscreen().catch(() => undefined);
+    }
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    document.body.classList.toggle('st-focus', Boolean(document.fullscreenElement));
+  });
+
+  /* ── 事件绑定 ── */
+  sizeInput.addEventListener('input', () => {
+    size = Number(sizeInput.value);
+    updateControls();
+    resetGame();
+    savePrefs();
+  });
+  intervalInput.addEventListener('input', () => {
+    intervalLabel.textContent = String(intervalInput.value);
+    savePrefs();
+  });
+  speedInput.addEventListener('input', () => {
+    speedLabel.textContent = SPEED_LABELS[Number(speedInput.value)];
+    savePrefs();
+  });
+  timeInput.addEventListener('input', () => {
+    timeLabel.textContent = String(timeInput.value);
+    savePrefs();
+  });
+  peekInput.addEventListener('input', () => {
+    peekLabel.textContent = String(peekInput.value);
+    savePrefs();
+  });
+  roundsInput.addEventListener('change', savePrefs);
+  startBtn.addEventListener('click', () => {
+    if (running) resetGame();
+    startGame();
+  });
+  resetBtn.addEventListener('click', () => {
+    resetGame();
+    showStatus('stStatus', 'info', '已重置，点击开始重新挑战');
+  });
+  fullBtn.addEventListener('click', toggleFull);
+  muteBtn.addEventListener('click', () => {
+    muted = !muted;
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    muteBtn.innerHTML = muted
+      ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>'
+      : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+    savePrefs();
+  });
+  clearHistoryBtn.addEventListener('click', () => {
+    saveHistory([]);
+    report.hidden = true;
+    showStatus('stStatus', 'info', '历史记录已清空');
+  });
+
+  /* ── 初始化 ── */
+  const prefs = readPrefs();
+  if (prefs.mode && MODES[prefs.mode]) mode = prefs.mode;
+  if (typeof prefs.size === 'number' && prefs.size >= 3 && prefs.size <= 9) size = prefs.size;
+  if (typeof prefs.interval === 'number') intervalInput.value = String(prefs.interval);
+  if (typeof prefs.speed === 'number') speedInput.value = String(prefs.speed);
+  if (typeof prefs.time === 'number') timeInput.value = String(prefs.time);
+  if (typeof prefs.peek === 'number') peekInput.value = String(prefs.peek);
+  if (typeof prefs.rounds === 'boolean') roundsInput.checked = prefs.rounds;
+  if (typeof prefs.muted === 'boolean') {
+    muted = prefs.muted;
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    muteBtn.innerHTML = muted ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>' : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+  }
+  sizeInput.value = String(size);
+  sizeLabel.textContent = String(size);
+  buildModeTabs();
+  updateControls();
+  resetGame();
+</script>

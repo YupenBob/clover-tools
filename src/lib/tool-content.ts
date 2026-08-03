@@ -610,6 +610,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { icon: 'bi-trophy', text: '成绩评级' },
     ],
   },
+  'schulte-trainer': {
+    usage:
+      '舒尔特训练专区：按 1 到 N 的顺序依次点击目标，数字越大难度越高。经典方格适合入门，间隔随机变换与双任务干扰锻炼抗干扰能力，旋转圆盘与双圆盘训练动态视觉追踪，记忆方格强化工作记忆，倒计时挑战提升抗压专注。完成后自动记录用时、错点与历史趋势，生成个人训练分析报告。',
+    features: [
+      { icon: 'bi-grid-3x3', text: '经典方格与间隔变换' },
+      { icon: 'bi-disc', text: '旋转多环 / 双圆盘模式' },
+      { icon: 'bi-braces', text: '记忆方格与双任务干扰' },
+      { icon: 'bi-graph-up', text: '用时、错点与趋势报告' },
+    ],
+  },
   lottery: {
     usage:
       '年会抽奖转盘工具：支持导入名单、设置奖项数量与滚动抽奖，转轮运动经过精确规划，停点公平随机，适合年会、活动与课堂随机点名。',
