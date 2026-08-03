@@ -41,26 +41,35 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
-  import OpenCC from 'opencc-js';
 
   const input = byId<HTMLTextAreaElement>('jfInput');
   const output = byId<HTMLTextAreaElement>('jfOutput');
-  const converters = {
-    cn2tw: OpenCC.Converter({ from: 'cn', to: 'tw' }),
-    cn2hk: OpenCC.Converter({ from: 'cn', to: 'hk' }),
-    tw2cn: OpenCC.Converter({ from: 'tw', to: 'cn' }),
-  };
 
-  function convert() {
+  async function convert() {
     hideStatus('jfStatus');
     const src = input.value;
     if (!src) {
       showStatus('jfStatus', 'error', '请输入文本');
       return;
     }
-    const mode = byId<HTMLSelectElement>('jfMode').value as keyof typeof converters;
-    output.value = converters[mode](src);
-    showStatus('jfStatus', 'success', '转换完成');
+    const mode = byId<HTMLSelectElement>('jfMode').value;
+    const btn = byId<HTMLButtonElement>('jfBtn');
+    btn.disabled = true;
+    showStatus('jfStatus', 'info', '加载转换引擎……');
+    try {
+      const { default: OpenCC } = await import('opencc-js');
+      const converters: Record<string, (s: string) => string> = {
+        cn2tw: OpenCC.Converter({ from: 'cn', to: 'tw' }),
+        cn2hk: OpenCC.Converter({ from: 'cn', to: 'hk' }),
+        tw2cn: OpenCC.Converter({ from: 'tw', to: 'cn' }),
+      };
+      output.value = converters[mode](src);
+      showStatus('jfStatus', 'success', '转换完成');
+    } catch (e) {
+      showStatus('jfStatus', 'error', `转换失败：${(e as Error).message}`);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   byId<HTMLButtonElement>('jfBtn').addEventListener('click', convert);

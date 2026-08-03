@@ -50,9 +50,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
-  import { pinyin } from 'pinyin-pro';
 
-  function convert() {
+  async function convert() {
     hideStatus('pyStatus');
     const src = byId<HTMLTextAreaElement>('pyInput').value;
     const mode = byId<HTMLSelectElement>('pyMode').value;
@@ -62,6 +61,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     try {
+      const { pinyin } = await import('pinyin-pro');
       const opts = mode === 'tone'
         ? { toneType: 'symbol' as const, type: 'array' as const }
         : mode === 'plain'

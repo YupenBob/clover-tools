@@ -33,10 +33,6 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
-  import * as prettier from 'prettier/standalone';
-  import * as babelPlugin from 'prettier/plugins/babel';
-  import * as estreePlugin from 'prettier/plugins/estree';
-  import { minify as terserMinify } from 'terser';
 
   const input = byId<HTMLTextAreaElement>('jsInput');
   const output = byId<HTMLTextAreaElement>('jsOutput');
@@ -48,9 +44,12 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     try {
+      const prettier = await import('prettier/standalone');
+      const babelPlugin = await import('prettier/plugins/babel');
+      const estreePlugin = await import('prettier/plugins/estree');
       output.value = await prettier.format(input.value, {
         parser: 'babel',
-        plugins: [babelPlugin, estreePlugin],
+        plugins: [babelPlugin, estreePlugin] as never,
         semi: true,
         singleQuote: true,
         tabWidth: 2,
@@ -71,6 +70,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     try {
+      const { minify: terserMinify } = await import('terser');
       const result = await terserMinify(input.value, { mangle: true, compress: true });
       output.value = result.code || '';
       setStats('jsStats', `${output.value.length} 字符`);

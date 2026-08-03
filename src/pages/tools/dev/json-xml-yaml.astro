@@ -42,7 +42,6 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
-  import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
   const SAMPLE = JSON.stringify({ name: 'Clover', version: '3.0', free: true, tags: ['dev', 'tools'] }, null, 2);
   const input = byId<HTMLTextAreaElement>('srcInput');
@@ -103,7 +102,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     return nodeToJson(root);
   }
 
-  function convert() {
+  async function convert() {
     hideStatus('fmtStatus');
     const src = input.value.trim();
     if (!src) {
@@ -112,6 +111,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     }
     const mode = byId<HTMLSelectElement>('modeSelect').value;
     try {
+      const { parse: parseYaml, stringify: stringifyYaml } = await import('yaml');
       switch (mode) {
         case 'json2xml': {
           const value = JSON.parse(src);
