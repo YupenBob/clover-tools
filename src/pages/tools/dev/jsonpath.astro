@@ -16,7 +16,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="粘贴 JSON 数据"></textarea>
     <div class="field mt-3">
       <label class="field-label" for="jpExpr">JSONPath 表达式</label>
-      <input class="input mono" id="jpExpr" type="text" value="$..name" spellcheck="false" />
+      <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> 查询</button>
@@ -55,7 +55,21 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       const ch = expr[i];
       if (ch === '$') { tokens.push('$'); i++; continue; }
       if (ch === '.') {
-        if (expr[i + 1] === '.') { tokens.push('..'); i += 2; continue; }
+        if (expr[i + 1] === '.') {
+          tokens.push('..');
+          i += 2;
+          // 递归下降后可直接跟属性名或通配符：..name / ..*
+          if (expr[i] === '*') {
+            tokens.push('*');
+            i++;
+          } else if (/[A-Za-z0-9_]/.test(expr[i] || '')) {
+            let j = i;
+            while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
+            tokens.push(expr.slice(i, j));
+            i = j;
+          }
+          continue;
+        }
         if (expr[i + 1] === '*') { tokens.push('*'); i += 2; continue; }
         let j = i + 1;
         while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
@@ -77,7 +91,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
         i = j + 1;
         continue;
       }
-      throw new Error(`无法识别的字符：${ch}`);
+      throw new Error(`无法识别的字符：${ch}（位置 ${i + 1}）`);
     }
     return tokens;
   }
@@ -119,10 +133,12 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       if (token === '$') { walk(node, idx + 1, false); return; }
       if (token === '..') { walk(node, idx + 1, true); return; }
       if (isRecursive) {
+        // 先尝试在当前节点用剩余路径匹配
+        walk(node, idx, false);
+        // 再深入每个子节点继续匹配（路径段保持不变）
         if (node !== null && typeof node === 'object') {
           const entries = Array.isArray(node) ? node : Object.values(node);
-          for (const child of entries) walk(child, idx, false);
-          for (const child of entries) walk(child, idx + 1, true);
+          for (const child of entries) walk(child, idx, true);
         }
         return;
       }
@@ -160,7 +176,11 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
         }
         throw new Error(`暂不支持的中括号语法：${inner}`);
       }
-      if (node !== null && typeof node === 'object') {
+      if (
+        node !== null &&
+        typeof node === 'object' &&
+        (node as Record<string, unknown>)[token] !== undefined
+      ) {
         walk((node as Record<string, unknown>)[token], idx + 1, false);
       }
     }
