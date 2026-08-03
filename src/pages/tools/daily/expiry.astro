@@ -1,0 +1,79 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'expiry')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="保质期信息" icon="bi-calendar-x">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="expDate">生产日期</label>
+        <input class="input" id="expDate" type="date" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="expDays">保质期（天）</label>
+        <input class="input" id="expDays" type="number" value="180" min="1" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="expBtn" type="button"><i class="bi bi-calendar-x"></i> 计算到期日</button>
+    </div>
+    <div class="status-msg" id="expStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="计算结果" icon="bi-clipboard-data">
+    <div class="lc-result" id="expResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function calc() {
+    hideStatus('expStatus');
+    const date = byId<HTMLInputElement>('expDate').value;
+    const days = Number(byId<HTMLInputElement>('expDays').value);
+    if (!date || days <= 0) {
+      showStatus('expStatus', 'error', '请选择日期并填写有效期');
+      return;
+    }
+    const start = new Date(date + 'T00:00:00');
+    const expire = new Date(start);
+    expire.setDate(expire.getDate() + days);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const remain = Math.round((expire.getTime() - today.getTime()) / 86400000);
+    const status = remain > 30 ? '充足' : remain > 0 ? '即将到期，请尽快食用/使用' : '已过期，请勿使用';
+    const cls = remain > 30 ? 'var(--success)' : remain > 0 ? 'var(--warning)' : 'var(--error)';
+    byId<HTMLElement>('expResult').innerHTML =
+      `<div>到期日期：<b>${expire.getFullYear()}-${pad(expire.getMonth() + 1)}-${pad(expire.getDate())}</b></div>` +
+      `<div>剩余：${remain >= 0 ? remain + ' 天' : Math.abs(remain) + ' 天（已过期）'}</div>` +
+      `<div style="color:${cls}">状态：${status}</div>`;
+    showStatus('expStatus', 'success', '计算完成');
+  }
+
+  byId<HTMLButtonElement>('expBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('expDate').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+</script>

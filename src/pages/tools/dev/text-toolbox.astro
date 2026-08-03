@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'text-toolbox')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入文本" icon="bi-list-check">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttbSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="ttbClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="ttbInput" spellcheck="false" placeholder="每行一条数据，支持去重、排序、反转等处理"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ttbOp">操作</label>
+        <select class="select" id="ttbOp">
+          <option value="dedupe" selected>去重</option>
+          <option value="sort">排序（升序）</option>
+          <option value="sortDesc">排序（降序）</option>
+          <option value="reverse">行反转</option>
+          <option value="removeBlank">去除空行</option>
+          <option value="trim">去除首尾空格</option>
+          <option value="shuffle">随机打乱</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ttbBtn" type="button"><i class="bi bi-wrench"></i> 处理</button>
+    </div>
+    <div class="status-msg" id="ttbStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="处理结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttbCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="ttbOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+    <div class="input-stats"><span id="ttbStats">0 行</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+
+  const SAMPLE = ['apple', 'banana', 'apple', '', 'cherry', 'apple', 'date', ''];
+
+  function run() {
+    hideStatus('ttbStatus');
+    const op = byId<HTMLSelectElement>('ttbOp').value;
+    let lines = byId<HTMLTextAreaElement>('ttbInput').value.split('\n');
+    const before = lines.length;
+    switch (op) {
+      case 'dedupe': lines = [...new Set(lines)]; break;
+      case 'sort': lines = lines.sort((a, b) => a.localeCompare(b, 'zh-CN')); break;
+      case 'sortDesc': lines = lines.sort((a, b) => b.localeCompare(a, 'zh-CN')); break;
+      case 'reverse': lines = lines.reverse(); break;
+      case 'removeBlank': lines = lines.filter((l) => l.trim() !== ''); break;
+      case 'trim': lines = lines.map((l) => l.trim()); break;
+      case 'shuffle': {
+        for (let i = lines.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [lines[i], lines[j]] = [lines[j], lines[i]];
+        }
+        break;
+      }
+    }
+    byId<HTMLTextAreaElement>('ttbOutput').value = lines.join('\n');
+    setStats('ttbStats', `${lines.length} 行（原 ${before} 行）`);
+    showStatus('ttbStatus', 'success', '处理完成');
+  }
+
+  byId<HTMLButtonElement>('ttbBtn').addEventListener('click', run);
+  bindSample('ttbSample', 'ttbInput', SAMPLE.join('\n'));
+  bindClear('ttbClear', ['ttbInput'], ['ttbOutput'], 'ttbStatus');
+  bindCopyBtn('ttbCopy', () => byId<HTMLTextAreaElement>('ttbOutput').value);
+  setStats('ttbStats', '0 行');
+</script>

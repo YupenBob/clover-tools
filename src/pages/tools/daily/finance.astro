@@ -1,0 +1,128 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'finance')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <div class="tool-layout">
+    <ToolPanel title="贷款月供（等额本息）" icon="bi-house">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finLoan">贷款总额（万元）</label>
+          <input class="input" id="finLoan" type="number" value="100" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finYears">年限</label>
+          <input class="input" id="finYears" type="number" value="30" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRate">年利率（%）</label>
+          <input class="input" id="finRate" type="number" value="3.6" step="0.05" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finLoanBtn" type="button"><i class="bi bi-calculator"></i> 计算月供</button>
+      </div>
+      <div class="lc-result" id="finLoanResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="复利收益" icon="bi-graph-up">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finP">本金（元）</label>
+          <input class="input" id="finP" type="number" value="10000" step="1000" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRp">年利率（%）</label>
+          <input class="input" id="finRp" type="number" value="5" step="0.1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finN">年数</label>
+          <input class="input" id="finN" type="number" value="10" step="1" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finCompoundBtn" type="button"><i class="bi bi-graph-up"></i> 计算复利</button>
+      </div>
+      <div class="lc-result" id="finCompoundResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="百分比" icon="bi-percent">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finA">基数 A</label>
+          <input class="input" id="finA" type="number" value="200" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finB">对比值 B</label>
+          <input class="input" id="finB" type="number" value="150" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finPctBtn" type="button"><i class="bi bi-percent"></i> 计算</button>
+      </div>
+      <div class="lc-result" id="finPctResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 64px;
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 14.5px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../scripts/toolkit';
+
+  function fmt(n: number): string {
+    return n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+  }
+
+  byId<HTMLButtonElement>('finLoanBtn').addEventListener('click', () => {
+    const loan = Number(byId<HTMLInputElement>('finLoan').value) * 10000;
+    const years = Number(byId<HTMLInputElement>('finYears').value);
+    const rate = Number(byId<HTMLInputElement>('finRate').value) / 100 / 12;
+    const n = years * 12;
+    if (loan <= 0 || n <= 0) return;
+    const m = rate === 0 ? loan / n : (loan * rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+    const total = m * n;
+    const interest = total - loan;
+    byId<HTMLElement>('finLoanResult').innerHTML =
+      `<div>月供：<b>${fmt(m)}</b> 元</div>` +
+      `<div>还款总额：${fmt(total)} 元</div>` +
+      `<div>支付利息：${fmt(interest)} 元</div>`;
+  });
+
+  byId<HTMLButtonElement>('finCompoundBtn').addEventListener('click', () => {
+    const p = Number(byId<HTMLInputElement>('finP').value);
+    const r = Number(byId<HTMLInputElement>('finRp').value) / 100;
+    const n = Number(byId<HTMLInputElement>('finN').value);
+    const total = p * Math.pow(1 + r, n);
+    byId<HTMLElement>('finCompoundResult').innerHTML =
+      `<div>${n} 年后总额：<b>${fmt(total)}</b> 元</div>` +
+      `<div>利息收益：${fmt(total - p)} 元（增幅 ${(((total - p) / p) * 100).toFixed(1)}%）</div>`;
+  });
+
+  byId<HTMLButtonElement>('finPctBtn').addEventListener('click', () => {
+    const a = Number(byId<HTMLInputElement>('finA').value);
+    const b = Number(byId<HTMLInputElement>('finB').value);
+    if (a === 0) return;
+    byId<HTMLElement>('finPctResult').innerHTML =
+      `<div>B 是 A 的 ${((b / a) * 100).toFixed(1)}%</div>` +
+      `<div>B 比 A ${b >= a ? '多' : '少'} ${(Math.abs(b - a) / a * 100).toFixed(1)}%</div>` +
+      `<div>B 占 A+B 总和的 ${((b / (a + b)) * 100).toFixed(1)}%</div>`;
+  });
+</script>

@@ -1,0 +1,107 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'ua-parser')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="User-Agent" icon="bi-pc-display">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uaSelf" type="button"><i class="bi bi-crosshair"></i> 使用本机 UA</button>
+    </div>
+    <textarea class="textarea" id="uaInput" spellcheck="false" placeholder="粘贴 User-Agent 字符串"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="uaBtn" type="button"><i class="bi bi-pc-display"></i> 解析</button>
+    </div>
+    <div class="status-msg" id="uaStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="解析结果" icon="bi-table">
+    <table class="ip-table" id="uaTable"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .ip-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .ip-table th,
+  .ip-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .ip-table th {
+    width: 130px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .ip-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  function parse(ua: string): [string, string][] {
+    const b: [string, string] = ['浏览器', '未知'];
+    const o: [string, string] = ['操作系统', '未知'];
+    let device = '桌面设备';
+    let version = '';
+    if (/Edg\//.test(ua)) { b[1] = 'Microsoft Edge'; version = ua.match(/Edg\/([\d.]+)/)?.[1] || ''; }
+    else if (/OPR\//.test(ua)) { b[1] = 'Opera'; version = ua.match(/OPR\/([\d.]+)/)?.[1] || ''; }
+    else if (/Firefox\//.test(ua)) { b[1] = 'Firefox'; version = ua.match(/Firefox\/([\d.]+)/)?.[1] || ''; }
+    else if (/Chrome\//.test(ua)) { b[1] = 'Chrome'; version = ua.match(/Chrome\/([\d.]+)/)?.[1] || ''; }
+    else if (/Safari\//.test(ua)) { b[1] = 'Safari'; version = ua.match(/Version\/([\d.]+)/)?.[1] || ''; }
+    else if (/MSIE|Trident/.test(ua)) { b[1] = 'Internet Explorer'; version = ua.match(/MSIE ([\d.]+)/)?.[1] || '11'; }
+    if (/Windows NT 10/.test(ua)) o[1] = 'Windows 10/11';
+    else if (/Windows NT 6\.3/.test(ua)) o[1] = 'Windows 8.1';
+    else if (/Windows NT 6\.1/.test(ua)) o[1] = 'Windows 7';
+    else if (/Mac OS X/.test(ua)) o[1] = `macOS ${ua.match(/Mac OS X ([\d_]+)/)?.[1].replace(/_/g, '.') || ''}`;
+    else if (/Android/.test(ua)) { o[1] = `Android ${ua.match(/Android ([\d.]+)/)?.[1] || ''}`; device = '移动设备'; }
+    else if (/iPhone/.test(ua)) { o[1] = `iOS ${ua.match(/iPhone OS ([\d_]+)/)?.[1].replace(/_/g, '.') || ''}`; device = '移动设备'; }
+    else if (/iPad/.test(ua)) { o[1] = `iPadOS ${ua.match(/iPad; CPU OS ([\d_]+)/)?.[1].replace(/_/g, '.') || ''}`; device = '平板设备'; }
+    else if (/Linux/.test(ua)) o[1] = 'Linux';
+    if (/Mobile|Android|iPhone/.test(ua) && !/iPad/.test(ua)) device = '移动设备';
+    return [
+      b,
+      o,
+      ['设备类型', device],
+      ['浏览器版本', version || '未知'],
+      ['渲染引擎', /Gecko\//.test(ua) ? 'Gecko' : /AppleWebKit\//.test(ua) ? 'WebKit' : /Trident/.test(ua) ? 'Trident' : 'Blink/未知'],
+      ['是否为爬虫', /bot|spider|crawl|slurp/i.test(ua) ? '是' : '否'],
+      ['完整 UA', ua],
+    ];
+  }
+
+  function run() {
+    hideStatus('uaStatus');
+    const ua = byId<HTMLTextAreaElement>('uaInput').value.trim();
+    if (!ua) {
+      showStatus('uaStatus', 'error', '请输入 User-Agent');
+      return;
+    }
+    byId<HTMLElement>('uaTable').innerHTML = parse(ua)
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v.replace(/</g, '&lt;')}</td></tr>`)
+      .join('');
+    showStatus('uaStatus', 'success', '解析完成');
+  }
+
+  byId<HTMLButtonElement>('uaBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('uaSelf').addEventListener('click', () => {
+    byId<HTMLTextAreaElement>('uaInput').value = navigator.userAgent;
+    run();
+  });
+</script>

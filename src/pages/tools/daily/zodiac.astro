@@ -1,0 +1,94 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'zodiac')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="出生日期" icon="bi-star">
+    <div class="field">
+      <label class="field-label" for="zdDate">日期</label>
+      <input class="input" id="zdDate" type="date" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="zdBtn" type="button"><i class="bi bi-star"></i> 查询</button>
+    </div>
+    <div class="status-msg" id="zdStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="查询结果" icon="bi-clipboard-data">
+    <div class="zd-grid" id="zdGrid"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .zd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .zd-item {
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    text-align: center;
+  }
+
+  .zd-item .label {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .zd-item .value {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+  import { Solar } from 'lunar-javascript';
+
+  const WUXING: Record<string, string> = {
+    甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
+  };
+
+  function run() {
+    hideStatus('zdStatus');
+    const val = byId<HTMLInputElement>('zdDate').value;
+    if (!val) {
+      showStatus('zdStatus', 'error', '请选择日期');
+      return;
+    }
+    const [y, m, d] = val.split('-').map(Number);
+    const solar = Solar.fromYmd(y, m, d);
+    const lunar = solar.getLunar();
+    const ganZhi = lunar.getYearInGanZhi();
+    const wuxing = WUXING[ganZhi.charAt(0)] || '未知';
+    const items: [string, string][] = [
+      ['公历', `${y}-${m}-${d}`],
+      ['生肖', lunar.getYearShengXiao()],
+      ['星座', solar.getXingZuo()],
+      ['农历', `${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`],
+      ['年干支', `${ganZhi}年`],
+      ['五行', wuxing],
+    ];
+    byId<HTMLElement>('zdGrid').innerHTML = items
+      .map(([k, v]) => `<div class="zd-item"><span class="label">${k}</span><span class="value">${v}</span></div>`)
+      .join('');
+    showStatus('zdStatus', 'success', '查询完成');
+  }
+
+  byId<HTMLButtonElement>('zdBtn').addEventListener('click', run);
+  const now = new Date();
+  byId<HTMLInputElement>('zdDate').value =
+    `${now.getFullYear() - 25}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+</script>

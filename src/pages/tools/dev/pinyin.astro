@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'dev' as const;
+const tool = TOOLS.dev.find((t) => t.slug === 'pinyin')!;
+const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
+  <ToolPanel title="输入中文" icon="bi-translate">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="pySample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="pyClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="pyInput" spellcheck="false" placeholder="输入中文，如：开发者工具箱"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="pyMode">输出模式</label>
+        <select class="select" id="pyMode">
+          <option value="tone" selected>全拼（带声调）</option>
+          <option value="plain">全拼（无声调）</option>
+          <option value="first">首字母</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="pySep">分隔符</label>
+        <select class="select" id="pySep">
+          <option value="" selected>无</option>
+          <option value=" ">空格</option>
+          <option value="-">连字符</option>
+          <option value="_">下划线</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="pyBtn" type="button"><i class="bi bi-translate"></i> 转换</button>
+    </div>
+    <div class="status-msg" id="pyStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="转换结果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="pyCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+    </div>
+    <textarea class="textarea" id="pyOutput" readonly spellcheck="false" placeholder="拼音结果将显示在这里"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+  import { pinyin } from 'pinyin-pro';
+
+  function convert() {
+    hideStatus('pyStatus');
+    const src = byId<HTMLTextAreaElement>('pyInput').value;
+    const mode = byId<HTMLSelectElement>('pyMode').value;
+    const sep = byId<HTMLSelectElement>('pySep').value;
+    if (!src) {
+      showStatus('pyStatus', 'error', '请输入中文');
+      return;
+    }
+    try {
+      const opts = mode === 'tone'
+        ? { toneType: 'symbol' as const, type: 'array' as const }
+        : mode === 'plain'
+          ? { toneType: 'none' as const, type: 'array' as const }
+          : { toneType: 'none' as const, pattern: 'first' as const, type: 'array' as const };
+      const arr = pinyin(src, opts) as string[];
+      byId<HTMLTextAreaElement>('pyOutput').value = arr.join(sep);
+      showStatus('pyStatus', 'success', '转换完成');
+    } catch (e) {
+      showStatus('pyStatus', 'error', `转换失败：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('pyBtn').addEventListener('click', convert);
+  bindSample('pySample', 'pyInput', '开发者工具箱，打开即用');
+  bindClear('pyClear', ['pyInput'], ['pyOutput'], 'pyStatus');
+  bindCopyBtn('pyCopy', () => byId<HTMLTextAreaElement>('pyOutput').value);
+</script>

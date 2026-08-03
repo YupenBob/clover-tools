@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'age-calculator')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="出生日期" icon="bi-person">
+    <div class="field">
+      <label class="field-label" for="ageBirth">出生日期</label>
+      <input class="input" id="ageBirth" type="date" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ageBtn" type="button"><i class="bi bi-person"></i> 计算年龄</button>
+    </div>
+    <div class="status-msg" id="ageStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="计算结果" icon="bi-clipboard-data">
+    <div class="lc-result" id="ageResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('ageStatus');
+    const val = byId<HTMLInputElement>('ageBirth').value;
+    if (!val) {
+      showStatus('ageStatus', 'error', '请选择出生日期');
+      return;
+    }
+    const birth = new Date(val + 'T00:00:00');
+    const now = new Date();
+    if (birth > now) {
+      showStatus('ageStatus', 'error', '出生日期不能晚于今天');
+      return;
+    }
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+    if (days < 0) {
+      months--;
+      days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    const lived = Math.floor((now.getTime() - birth.getTime()) / 86400000);
+    const next = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+    if (next < now) next.setFullYear(now.getFullYear() + 1);
+    const nextIn = Math.ceil((next.getTime() - now.getTime()) / 86400000);
+    byId<HTMLElement>('ageResult').innerHTML =
+      `<div>周岁：<b>${years}</b> 岁 ${months} 个月 ${days} 天</div>` +
+      `<div>虚岁：${now.getFullYear() - birth.getFullYear() + 1} 岁</div>` +
+      `<div>已经生活了 ${lived.toLocaleString()} 天</div>` +
+      `<div>距离下个生日还有 ${nextIn} 天</div>`;
+    showStatus('ageStatus', 'success', '计算完成');
+  }
+
+  byId<HTMLButtonElement>('ageBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('ageBirth').value = `${now.getFullYear() - 20}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+</script>

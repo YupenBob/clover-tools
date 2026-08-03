@@ -1,0 +1,116 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'fun' as const;
+const tool = TOOLS.fun.find((t) => t.slug === 'image-filter')!;
+const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
+  <ToolPanel title="图片与滤镜" icon="bi-brush">
+    <div class="field">
+      <input class="input" id="flFile" type="file" accept="image/*" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="flType">滤镜</label>
+      <select class="select" id="flType">
+        <option value="none" selected>原图</option>
+        <option value="grayscale">灰度</option>
+        <option value="sepia">复古棕褐</option>
+        <option value="invert">反色</option>
+        <option value="blur">模糊</option>
+        <option value="bright">提亮</option>
+        <option value="darken">压暗</option>
+        <option value="contrast">高对比</option>
+        <option value="hue">色相旋转</option>
+        <option value="saturate">高饱和</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> 应用滤镜</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> 下载 PNG</button>
+    </div>
+    <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="效果预览" icon="bi-eye">
+    <div class="fl-preview" id="flPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .fl-preview {
+    display: none;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .fl-preview img {
+    width: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  let resultUrl = '';
+
+  const FILTERS: Record<string, string> = {
+    grayscale: 'grayscale(1)',
+    sepia: 'sepia(0.85)',
+    invert: 'invert(1)',
+    blur: 'blur(6px)',
+    bright: 'brightness(1.35)',
+    darken: 'brightness(0.65)',
+    contrast: 'contrast(1.5)',
+    hue: 'hue-rotate(120deg)',
+    saturate: 'saturate(2.2)',
+  };
+
+  function apply() {
+    hideStatus('flStatus');
+    const file = byId<HTMLInputElement>('flFile').files?.[0];
+    if (!file) {
+      showStatus('flStatus', 'error', '请先选择图片');
+      return;
+    }
+    const type = byId<HTMLSelectElement>('flType').value;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      if (type !== 'none') {
+        ctx.filter = FILTERS[type];
+        ctx.drawImage(img, 0, 0);
+      }
+      resultUrl = canvas.toDataURL('image/png');
+      const preview = byId<HTMLElement>('flPreview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${resultUrl}" alt="滤镜效果">`;
+      showStatus('flStatus', 'success', '滤镜已应用');
+    };
+    img.onerror = () => showStatus('flStatus', 'error', '图片加载失败');
+    img.src = URL.createObjectURL(file);
+  }
+
+  byId<HTMLButtonElement>('flBtn').addEventListener('click', apply);
+  byId<HTMLButtonElement>('flDownload').addEventListener('click', () => {
+    if (!resultUrl) {
+      showStatus('flStatus', 'error', '请先应用滤镜');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = resultUrl;
+    a.download = 'clover-filter.png';
+    a.click();
+  });
+</script>

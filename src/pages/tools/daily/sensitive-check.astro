@@ -1,0 +1,96 @@
+---
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../components/ToolPanel.astro';
+import { TOOLS } from '../../../lib/tools';
+
+const category = 'daily' as const;
+const tool = TOOLS.daily.find((t) => t.slug === 'sensitive-check')!;
+const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
+  <ToolPanel title="待检测文本" icon="bi-shield">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="scSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+    </div>
+    <textarea class="textarea" id="scInput" spellcheck="false" placeholder="输入要检测的文本"></textarea>
+    <div class="field mt-3">
+      <label class="field-label" for="scCustom">自定义敏感词（每行一个，可选）</label>
+      <textarea class="textarea" id="scCustom" spellcheck="false" placeholder="补充自定义词库"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="scBtn" type="button"><i class="bi bi-shield-check"></i> 检测</button>
+    </div>
+    <div class="status-msg" id="scStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="检测结果" icon="bi-list-check">
+    <div class="regex-view" id="scView"></div>
+    <div class="lc-result mt-3" id="scResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .regex-view {
+    min-height: 120px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+
+  .regex-view mark {
+    background: var(--error-soft);
+    color: var(--error);
+    border-radius: 3px;
+    padding: 0 2px;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
+
+  const BUILTIN = ['赌博', '博彩', '诈骗', '刷单', '色情', '暴力', '毒品', '毒品交易', '代开发票', '传销', '洗钱', '枪械', '私彩'];
+
+  function esc(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function run() {
+    hideStatus('scStatus');
+    const text = byId<HTMLTextAreaElement>('scInput').value;
+    if (!text) {
+      showStatus('scStatus', 'error', '请输入待检测文本');
+      return;
+    }
+    const custom = byId<HTMLTextAreaElement>('scCustom').value
+      .split('\n').map((s) => s.trim()).filter(Boolean);
+    const words = [...new Set([...BUILTIN, ...custom])].sort((a, b) => b.length - a.length);
+    const hits: Record<string, number> = {};
+    let html = esc(text);
+    for (const word of words) {
+      const escaped = esc(word);
+      const re = new RegExp(escaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+      const matches = text.match(new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
+      if (matches) hits[word] = matches.length;
+      html = html.replace(re, (m) => `<mark>${m}</mark>`);
+    }
+    byId<HTMLElement>('scView').innerHTML = html || '（空）';
+    const total = Object.values(hits).reduce((a, b) => a + b, 0);
+    byId<HTMLElement>('scResult').innerHTML = total === 0
+      ? '<div>未检测到敏感词</div>'
+      : `<div>共命中 <b>${total}</b> 处，涉及 ${Object.keys(hits).length} 个词：</div>` +
+        Object.entries(hits).map(([w, n]) => `<div>${w} × ${n}</div>`).join('');
+    showStatus('scStatus', total ? 'error' : 'success', total ? `发现 ${total} 处敏感内容` : '文本干净');
+  }
+
+  byId<HTMLButtonElement>('scBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('scSample').addEventListener('click', () => {
+    byId<HTMLTextAreaElement>('scInput').value = '欢迎联系我了解刷单兼职，日入过千，稳赚不赔，绝不诈骗。';
+  });
+</script>
