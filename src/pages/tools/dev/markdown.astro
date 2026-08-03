@@ -52,6 +52,18 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
     <nav class="md-toc" id="mdToc" hidden aria-label="目录大纲"></nav>
 
+    <div class="md-findbar" id="mdFindBar" hidden>
+      <input class="input md-find-input" id="mdFind" type="text" placeholder="查找……" autocomplete="off" />
+      <button class="md-tbtn" id="mdFindPrev" type="button" title="上一个 (Shift+Enter)"><i class="bi bi-arrow-up"></i></button>
+      <button class="md-tbtn" id="mdFindNext" type="button" title="下一个 (Enter)"><i class="bi bi-arrow-down"></i></button>
+      <span class="md-find-count" id="mdFindCount">0 个匹配</span>
+      <input class="input md-find-input" id="mdReplace" type="text" placeholder="替换为……" autocomplete="off" />
+      <button class="md-tbtn" id="mdReplaceOne" type="button" title="替换 (Ctrl+Enter)"><i class="bi bi-arrow-repeat"></i></button>
+      <button class="md-tbtn" id="mdReplaceAll" type="button" title="全部替换"><i class="bi bi-list-check"></i></button>
+      <button class="md-tbtn" id="mdFindCase" type="button" title="区分大小写"><i class="bi bi-fonts"></i></button>
+      <button class="md-tbtn" id="mdFindClose" type="button" title="关闭 (Esc)"><i class="bi bi-x-lg"></i></button>
+    </div>
+
     <div class="md-body split" id="mdBody">
       <div class="md-editor">
         <textarea class="md-source" id="mdSource" spellcheck="false" placeholder="开始书写 Markdown……"></textarea>
@@ -63,6 +75,10 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <span id="mdStats">0 字符 · 0 字 · 0 行</span>
       <span id="mdReading">阅读约 0 分钟</span>
       <span id="mdTime">写作 00:00</span>
+      <span class="md-target">
+        <label for="mdTarget">目标</label>
+        <input class="input md-target-input" id="mdTarget" type="number" min="0" step="100" placeholder="无" />
+      </span>
     </div>
 
     <div class="md-export">
@@ -291,6 +307,86 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     flex-wrap: wrap;
     gap: var(--space-2);
     margin-top: var(--space-3);
+  }
+
+  /* ── 查找 / 替换 ── */
+  .md-findbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--space-3);
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .md-findbar[hidden] {
+    display: none;
+  }
+
+  .md-find-input {
+    flex: 1 1 140px;
+    min-width: 0;
+  }
+
+  .md-find-count {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  /* ── 字数目标 ── */
+  .md-target {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .md-target label {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  .md-target-input {
+    width: 84px;
+    height: 30px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  /* ── 预览代码块复制按钮 ── */
+  .md-preview pre {
+    position: relative;
+  }
+
+  .code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+
+  .md-preview pre:hover .code-copy-btn,
+  .code-copy-btn:focus-visible {
+    opacity: 1;
+  }
+
+  .code-copy-btn:hover {
+    color: var(--primary-dark);
   }
 
   /* ── 全屏 ── */
@@ -602,6 +698,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const timeEl = byId<HTMLElement>('mdTime');
   const modal = byId<HTMLElement>('mdModal');
   const panel = document.querySelector<HTMLElement>('.tool-card-panel')!;
+  const targetInput = byId<HTMLInputElement>('mdTarget');
 
   marked.setOptions({ gfm: true, breaks: true });
 
@@ -629,7 +726,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const chars = text.length;
     const words = countWords(text);
     const lines = text ? text.split('\n').length : 0;
-    statsEl.textContent = `${chars} 字符 · ${words} 字 · ${lines} 行`;
+    const target = Number(targetInput.value) || 0;
+    if (target > 0) {
+      const pct = Math.min(100, Math.round((words / target) * 100));
+      statsEl.textContent = `${chars} 字符 · ${words}/${target} 字 (${pct}%) · ${lines} 行`;
+      statsEl.style.color = words >= target ? 'var(--success)' : '';
+    } else {
+      statsEl.textContent = `${chars} 字符 · ${words} 字 · ${lines} 行`;
+      statsEl.style.color = '';
+    }
     readingEl.textContent = words > 0 ? `阅读约 ${Math.max(1, Math.round(words / 400))} 分钟` : '阅读约 0 分钟';
   }
 
@@ -735,12 +840,31 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     });
   }
 
+  // 预览代码块一键复制（仅预览，导出不含按钮）
+  function attachCodeCopy(root: HTMLElement) {
+    root.querySelectorAll('pre').forEach((pre) => {
+      if (pre.dataset.copySet) return;
+      pre.dataset.copySet = '1';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'code-copy-btn';
+      btn.title = '复制代码';
+      btn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i>';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.CT.copy(pre.querySelector('code')?.textContent || '', btn);
+      });
+      pre.appendChild(btn);
+    });
+  }
+
   // ── 渲染 ──
   let renderTimer: ReturnType<typeof setTimeout>;
   function renderNow() {
     const html = marked.parse(source.value || '') as string;
     preview.innerHTML = DOMPurify.sanitize(html, { ADD_DATA_URI_TAGS: ['img'] });
     decorateCode(preview);
+    attachCodeCopy(preview);
     if (tocOpen) buildToc();
     updateStats();
   }
@@ -748,6 +872,134 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     clearTimeout(renderTimer);
     renderTimer = setTimeout(renderNow, 120);
   }
+
+  // ── 查找 / 替换 ──
+  const findBar = byId<HTMLElement>('mdFindBar');
+  const findInput = byId<HTMLInputElement>('mdFind');
+  const replaceInput = byId<HTMLInputElement>('mdReplace');
+  const findCountEl = byId<HTMLElement>('mdFindCount');
+  let findCaseSensitive = false;
+
+  function findAllMatches(query: string): number[] {
+    const text = source.value;
+    const out: number[] = [];
+    if (!query) return out;
+    const hay = findCaseSensitive ? text : text.toLowerCase();
+    const q = findCaseSensitive ? query : query.toLowerCase();
+    let i = 0;
+    while (i < hay.length) {
+      const at = hay.indexOf(q, i);
+      if (at === -1) break;
+      out.push(at);
+      i = at + Math.max(1, q.length);
+    }
+    return out;
+  }
+
+  function refreshFindCount(): number[] {
+    const matches = findAllMatches(findInput.value);
+    findCountEl.textContent = matches.length ? `${matches.length} 个匹配` : '0 个匹配';
+    return matches;
+  }
+
+  function goFind(direction: 1 | -1) {
+    const q = findInput.value;
+    const matches = findAllMatches(q);
+    if (!matches.length) {
+      findCountEl.textContent = '0 个匹配';
+      return;
+    }
+    const pos = source.selectionStart;
+    let idx: number;
+    if (direction === 1) {
+      idx = matches.findIndex((at) => at > pos || (at === pos && source.selectionEnd !== pos + q.length));
+      if (idx === -1) idx = 0;
+    } else {
+      idx = matches.findLastIndex((at) => at < pos || (at === pos && source.selectionEnd !== pos + q.length));
+      if (idx === -1) idx = matches.length - 1;
+    }
+    source.focus();
+    source.setSelectionRange(matches[idx], matches[idx] + q.length);
+    findCountEl.textContent = `${idx + 1}/${matches.length}`;
+  }
+
+  function replaceCurrent() {
+    const q = findInput.value;
+    if (!q) return;
+    const sel = source.value.slice(source.selectionStart, source.selectionEnd);
+    if (sel !== q) {
+      goFind(1);
+      return;
+    }
+    replaceRange(source.selectionStart, source.selectionEnd, replaceInput.value);
+    goFind(1);
+  }
+
+  function replaceAllMatches() {
+    const q = findInput.value;
+    const matches = findAllMatches(q);
+    if (!matches.length) {
+      findCountEl.textContent = '0 个匹配';
+      return;
+    }
+    if (matches.length > 100 && !window.confirm(`将替换全部 ${matches.length} 处，继续？`)) return;
+    const repl = replaceInput.value;
+    const text = source.value;
+    let out = '';
+    let last = 0;
+    for (const at of matches) {
+      out += text.slice(last, at) + repl;
+      last = at + q.length;
+    }
+    out += text.slice(last);
+    replaceRange(0, text.length, out);
+    findCountEl.textContent = `已替换 ${matches.length} 处`;
+  }
+
+  function openFind() {
+    findBar.hidden = false;
+    findInput.focus();
+    findInput.select();
+    refreshFindCount();
+  }
+
+  function closeFind() {
+    findBar.hidden = true;
+  }
+
+  findInput.addEventListener('input', refreshFindCount);
+  findInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      goFind(e.shiftKey ? -1 : 1);
+    }
+  });
+  replaceInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      replaceCurrent();
+    }
+  });
+  byId<HTMLButtonElement>('mdFindPrev').addEventListener('click', () => goFind(-1));
+  byId<HTMLButtonElement>('mdFindNext').addEventListener('click', () => goFind(1));
+  byId<HTMLButtonElement>('mdReplaceOne').addEventListener('click', replaceCurrent);
+  byId<HTMLButtonElement>('mdReplaceAll').addEventListener('click', replaceAllMatches);
+  byId<HTMLButtonElement>('mdFindClose').addEventListener('click', closeFind);
+  byId<HTMLButtonElement>('mdFindCase').addEventListener('click', (e) => {
+    findCaseSensitive = !findCaseSensitive;
+    e.currentTarget.classList.toggle('active', findCaseSensitive);
+    findInput.focus();
+    refreshFindCount();
+  });
+
+  // ── 字数目标 ──
+  const TARGET_KEY = 'ct-markdown-target';
+  const savedTarget = localStorage.getItem(TARGET_KEY);
+  if (savedTarget) targetInput.value = savedTarget;
+  targetInput.addEventListener('change', () => {
+    localStorage.setItem(TARGET_KEY, targetInput.value);
+    updateStats();
+  });
 
   // ── 撤销 / 重做 ──
   // 思路：beforeinput 记录“编辑块”起始状态，停顿 500ms 或执行撤销时提交；
@@ -805,10 +1057,16 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     if (!pendingPre) pendingPre = { value: source.value, start, end };
     source.focus();
     source.setSelectionRange(start, end);
-    const applied = document.execCommand('insertText', false, text);
-    if (!applied) {
-      source.value = source.value.slice(0, start) + text + source.value.slice(end);
+    if (text === '') {
+      // 空插入直接改值：execCommand('insertText', '', '') 在 Chromium 会吞掉下一次输入
+      source.value = source.value.slice(0, start) + source.value.slice(end);
       source.dispatchEvent(new Event('input'));
+    } else {
+      const applied = document.execCommand('insertText', false, text);
+      if (!applied) {
+        source.value = source.value.slice(0, start) + text + source.value.slice(end);
+        source.dispatchEvent(new Event('input'));
+      }
     }
     if (chunkTimer) clearTimeout(chunkTimer);
     chunkTimer = setTimeout(commitChunk, 500);
@@ -1197,6 +1455,11 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     }
     if (!e.ctrlKey && !e.metaKey) return;
     const k = e.key.toLowerCase();
+    if (k === 'f') {
+      e.preventDefault();
+      openFind();
+      return;
+    }
     if (e.shiftKey && k === 'delete') {
       e.preventDefault();
       COMMANDS.draft();
@@ -1228,7 +1491,10 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeHelp();
+    if (e.key === 'Escape') {
+      closeHelp();
+      closeFind();
+    }
   });
 
   // ── 导出 ──

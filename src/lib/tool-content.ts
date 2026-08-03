@@ -62,7 +62,7 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     usage:
       '两段文本逐行差异对比工具，适合配置、代码与 JSON 内容比对。差异以行内高亮展示，并统计增删改数量，帮助在合并冲突或内容审查时快速定位变化。',
     features: [
-      { icon: 'bi-diff', text: '逐行差异对比' },
+      { icon: 'bi-file-diff', text: '逐行差异对比' },
       { icon: 'bi-highlighter', text: '行内级别高亮' },
       { icon: 'bi-bar-chart', text: '增删改数量统计' },
       { icon: 'bi-shield-lock', text: '本地对比，内容不上传' },
@@ -365,7 +365,7 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     features: [
       { icon: 'bi-eyedropper', text: 'HEX / RGB / HSL 互转' },
       { icon: 'bi-palette', text: '色值与预览实时同步' },
-      { icon: 'bi-contrast', text: '文本对比度参考' },
+      { icon: 'bi-circle-half', text: '文本对比度参考' },
       { icon: 'bi-clipboard-check', text: '一键复制任意格式' },
     ],
   },
@@ -544,7 +544,7 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       '键盘按键测试工具：实时显示按键名称与编码，支持组合键检测，可快速排查键盘故障与按键冲突问题。',
     features: [
       { icon: 'bi-keyboard', text: '按键实时高亮' },
-      { icon: 'bi-keys', text: '键名与编码显示' },
+      { icon: 'bi-keyboard', text: '键名与编码显示' },
       { icon: 'bi-mouse', text: '组合键检测' },
       { icon: 'bi-exclamation-circle', text: '故障排查辅助' },
     ],

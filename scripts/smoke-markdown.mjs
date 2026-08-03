@@ -167,6 +167,42 @@ await page.waitForTimeout(200);
 const exitVal = await page.locator('#mdSource').inputValue();
 check('空列表项退出', exitVal === '\n后文', JSON.stringify(exitVal));
 
+// 21. 查找 / 替换（Ctrl+F）
+await page.locator('#mdSource').fill('hello world hello');
+await page.keyboard.press('Control+f');
+await page.waitForTimeout(150);
+check('查找栏打开', await page.locator('#mdFindBar').isVisible());
+await page.locator('#mdFind').fill('hello');
+await page.waitForTimeout(150);
+const findCountText = await page.locator('#mdFindCount').innerText();
+check('查找计数', findCountText.includes('2 个匹配'), findCountText);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(100);
+const selAfterFind = await page.locator('#mdSource').evaluate((el) => {
+  const s = el.selectionStart;
+  const e2 = el.selectionEnd;
+  return el.value.slice(s, e2);
+});
+check('查找选中', selAfterFind === 'hello', selAfterFind);
+await page.locator('#mdReplace').fill('hi');
+await page.locator('#mdReplaceAll').click();
+await page.waitForTimeout(150);
+const afterReplace = await page.locator('#mdSource').inputValue();
+check('全部替换', afterReplace === 'hi world hi', afterReplace);
+
+// 22. 预览代码块复制按钮
+await page.locator('#mdSource').fill('```js\nconst a = 1;\n```');
+await page.waitForTimeout(400);
+const copyBtnCount = await page.locator('#mdPreview .code-copy-btn').count();
+check('代码复制按钮', copyBtnCount === 1, `count=${copyBtnCount}`);
+
+// 23. 字数目标
+await page.locator('#mdTarget').fill('10');
+await page.locator('#mdTarget').dispatchEvent('change');
+await page.waitForTimeout(100);
+const targetStats = await page.locator('#mdStats').innerText();
+check('字数目标', /\/10 字/.test(targetStats), targetStats);
+
 console.log(errors.length ? `\nJS 报错:\n${errors.join('\n')}` : '\n无 JS 报错');
 await browser.close();
 process.exit(results.some((r) => !r.ok) || errors.length ? 1 : 0);
