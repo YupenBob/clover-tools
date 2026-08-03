@@ -370,9 +370,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   // ── 统计与写作时长 ──
-  const startAt = Date.now();
   let writingMs = 0;
-  let lastInputAt = Date.now();
+  let lastTickAt = Date.now();
 
   function countWords(text: string): number {
     const zh = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
@@ -391,10 +390,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   function updateClock() {
     const now = Date.now();
-    if (document.activeElement === source || source.value) {
-      writingMs += Math.min(now - lastInputAt, 3000);
-    }
-    lastInputAt = now;
+    const delta = Math.min(now - lastTickAt, 3000);
+    if (document.activeElement === source) writingMs += delta;
+    lastTickAt = now;
     const s = Math.floor(writingMs / 1000);
     timeEl.textContent = `写作 ${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   }
@@ -495,8 +493,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     ul: () => blockLine('- '),
     ol: () => blockLine('1. '),
     task: () => blockLine('- [ ] '),
-    link: () => wrap('[', '](https://)', '链接文字'),
-    image: () => wrap('![', '](https://)', '图片描述'),
+    link: () => wrap('[', '](https://example.com)', '链接文字'),
+    image: () => wrap('![', '](https://example.com/image.png)', '图片描述'),
     table: () => {
       const t = '\n| 列1 | 列2 | 列3 |\n| --- | --- | --- |\n| 内容 | 内容 | 内容 |\n';
       wrap('', t, '');
