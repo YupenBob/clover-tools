@@ -1,6 +1,5 @@
 ---
 import ToolLayout from '../../../layouts/ToolLayout.astro';
-import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
 
 const category = 'daily' as const;
@@ -136,9 +135,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   .cal-cell {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
+    align-items: stretch;
     min-height: 76px;
     padding: 8px 4px;
     border-radius: var(--radius-md);
@@ -158,23 +155,31 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     background: transparent;
   }
 
+  .cell-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+
   .cal-cell.wk-end .cell-day {
     color: var(--primary-dark);
   }
 
   .cell-day {
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.4;
-  }
-
-  .cal-cell.today .cell-day {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 30px;
     height: 30px;
     border-radius: 50%;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .cal-cell.today .cell-day {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: #fff;
     box-shadow: var(--shadow-sm);
@@ -401,7 +406,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   @media (max-width: 560px) {
     .cal-cell {
-      min-height: 56px;
+      min-height: 58px;
       padding: 6px 2px;
     }
 
@@ -472,9 +477,11 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
         key === ymd(selected) ? 'selected' : '',
       ].join(' ');
       html += `<div class="cal-cell ${cls}" data-y="${y}" data-m="${m}" data-d="${d}">` +
-        `<span class="cell-day">${d}</span>` +
-        `<span class="cell-lunar">${isCurrent ? lunar.getDayInChinese() : ''}</span>` +
-        (badge ? `<span class="cell-badge ${badge.cls}">${badge.text}</span>` : '') +
+        `<div class="cell-inner">` +
+          `<span class="cell-day">${d}</span>` +
+          `<span class="cell-lunar">${isCurrent ? lunar.getDayInChinese() : ''}</span>` +
+          (badge ? `<span class="cell-badge ${badge.cls}">${badge.text}</span>` : '') +
+        `</div>` +
         '</div>';
     }
     grid.innerHTML = html;
