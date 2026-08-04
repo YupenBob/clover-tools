@@ -4,6 +4,11 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://clovertools.cn',
   output: 'static',
+  vite: {
+    optimizeDeps: {
+      include: ['chinese-s2t', 'marked', 'dompurify'],
+    },
+  },
   build: {
     format: 'directory',
   },

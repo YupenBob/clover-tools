@@ -19,9 +19,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="field">
         <label class="field-label" for="jfMode">转换方向</label>
         <select class="select" id="jfMode">
-          <option value="cn2tw">简体 → 繁体（台湾）</option>
-          <option value="cn2hk">简体 → 繁体（香港）</option>
-          <option value="tw2cn">繁体 → 简体</option>
+          <option value="s2t">简体 → 繁体</option>
+          <option value="t2s">繁体 → 简体</option>
         </select>
       </div>
     </div>
@@ -41,6 +40,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <script>
   import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+  import zh from 'chinese-s2t';
 
   const input = byId<HTMLTextAreaElement>('jfInput');
   const output = byId<HTMLTextAreaElement>('jfOutput');
@@ -53,23 +53,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     const mode = byId<HTMLSelectElement>('jfMode').value;
-    const btn = byId<HTMLButtonElement>('jfBtn');
-    btn.disabled = true;
-    showStatus('jfStatus', 'info', '正在加载转换引擎（首次约 1MB）……');
-    try {
-      const { default: OpenCC } = await import('opencc-js');
-      const converters: Record<string, (s: string) => string> = {
-        cn2tw: OpenCC.Converter({ from: 'cn', to: 'tw' }),
-        cn2hk: OpenCC.Converter({ from: 'cn', to: 'hk' }),
-        tw2cn: OpenCC.Converter({ from: 'tw', to: 'cn' }),
-      };
-      output.value = converters[mode](src);
-      showStatus('jfStatus', 'success', '转换完成');
-    } catch (e) {
-      showStatus('jfStatus', 'error', `转换失败：${(e as Error).message}`);
-    } finally {
-      btn.disabled = false;
-    }
+    output.value = mode === 's2t' ? zh.s2t(src) : zh.t2s(src);
+    showStatus('jfStatus', 'success', '转换完成（本地即时转换）');
   }
 
   byId<HTMLButtonElement>('jfBtn').addEventListener('click', convert);

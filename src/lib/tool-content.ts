@@ -181,10 +181,10 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   jianfan: {
     usage:
-      '简体中文与繁体中文互转工具：正确处理多音字与地区用词差异，适合内容本地化、文档转换与繁体阅读场景，转换在浏览器本地即时完成。',
+      '简体中文与繁体中文互转工具：轻量级转换引擎，支持简繁双向一键互转，转换在浏览器本地即时完成，无需联网等待，适合文档转换与繁体阅读场景。',
     features: [
       { icon: 'bi-arrow-left-right', text: '简繁双向互转' },
-      { icon: 'bi-globe2', text: '多音字与地区用词处理' },
+      { icon: 'bi-lightning-charge', text: '轻量引擎即时转换' },
       { icon: 'bi-text-left', text: '整段文本批量转换' },
       { icon: 'bi-clipboard-check', text: '一键复制结果' },
     ],

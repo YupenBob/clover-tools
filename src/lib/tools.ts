@@ -216,7 +216,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       slug: 'jianfan',
       name: '简繁转换',
       oneLiner: '简体繁体互转，保留用词习惯。',
-      description: '在线简体繁体转换工具，支持简繁一键互转，正确处理多音字与地区用词差异，可切换常用词与词汇表模式，文档本地化与繁体阅读更轻松。',
+      description: '在线简体繁体转换工具，简繁一键互转，轻量引擎本地即时转换，文档本地化与繁体阅读更轻松。',
       icon: 'bi-arrow-repeat',
       keywords: ['简繁转换', '繁体转简体', '简体转繁体'],
       tier: 'P0',
