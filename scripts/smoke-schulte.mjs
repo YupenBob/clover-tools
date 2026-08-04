@@ -83,9 +83,29 @@ await page.waitForTimeout(200);
 await page.locator('.st-mode[data-mode="interval"]').click();
 await page.waitForTimeout(200);
 check('间隔变换设置可见', await page.locator('#stIntervalWrap').isVisible());
+await page.locator('#stInterval').fill('3');
 await page.locator('#stStart').click();
 await page.waitForTimeout(300);
 check('间隔变换生成 25 格', (await page.locator('.st-cell').count()) === 25);
+// 等一次变换发生（间隔 3s），然后点击「当前显示 1」的按钮，必须判定正确
+await page.waitForTimeout(3600);
+const intervalClick = await page.evaluate(() => {
+  const btns = Array.from(document.querySelectorAll('.st-cell'));
+  const one = btns.find((b) => !b.classList.contains('done') && b.textContent.trim() === '1');
+  if (one) one.click();
+  return {
+    found: Boolean(one),
+    datasetNum: one ? one.dataset.num : null,
+    displayed: one ? one.textContent.trim() : null,
+    wrong: document.querySelectorAll('.st-cell.wrong').length,
+    targetAfter: document.getElementById('stTarget').textContent.trim(),
+  };
+});
+check(
+  '变换后按新位置判定正确',
+  intervalClick.found && intervalClick.datasetNum === '1' && intervalClick.targetAfter === '2' && intervalClick.wrong === 0,
+  JSON.stringify(intervalClick),
+);
 await page.locator('#stExit').click();
 await page.waitForTimeout(200);
 

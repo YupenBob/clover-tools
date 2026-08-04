@@ -2145,8 +2145,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       btn.type = 'button';
       btn.className = 'st-cell';
       btn.textContent = String(n);
+      btn.dataset.num = String(n);
       btn.setAttribute('role', 'gridcell');
-      btn.addEventListener('click', () => onCellClick(n, btn));
+      btn.addEventListener('click', () => onCellClick(btn));
       grid.appendChild(btn);
       cells.set(n, btn);
     }
@@ -2158,6 +2159,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const nums = shuffle(entries.map(([n]) => n));
     entries.forEach(([, btn], i) => {
       btn.textContent = String(nums[i]);
+      btn.dataset.num = String(nums[i]);
     });
     const map = new Map<number, HTMLButtonElement>();
     entries.forEach(([, btn], i) => map.set(nums[i], btn));
@@ -2248,6 +2250,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         const span = document.createElement('span');
         span.textContent = String(n);
         btn.appendChild(span);
+        btn.dataset.num = String(n);
         const gapDeg = 0.9;
         const spanA = (360 / ringNums.length) * idx + gapDeg / 2;
         const spanB = (360 / ringNums.length) * (idx + 1) - gapDeg / 2;
@@ -2257,7 +2260,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         btn.style.width = `${box.w}px`;
         btn.style.height = `${box.h}px`;
         btn.style.clipPath = clip;
-        btn.addEventListener('click', () => onCellClick(n, btn));
+        btn.addEventListener('click', () => onCellClick(btn));
         ringEl.appendChild(btn);
         ringBtns[ring + offset].push(btn);
         discNums.set(n, { el: btn, ring: ring + offset, disc: label });
@@ -2437,7 +2440,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   /* ── 点击处理 ── */
-  function onCellClick(n: number, btn: HTMLButtonElement) {
+  function onCellClick(btn: HTMLButtonElement) {
+    const n = Number(btn.dataset.num);
     if (finished || !running) return;
     if (btn.classList.contains('done')) return;
     if (mode === 'memory' && !peekDone) return;
