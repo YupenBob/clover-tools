@@ -620,6 +620,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { icon: 'bi-graph-up', text: '用时、错点与趋势报告' },
     ],
   },
+  'ball-tracker': {
+    usage:
+      '目标球追踪训练专区：先记住金色标记的目标球，标记消失后在移动球群中持续锁定；干扰追踪模式会在途中混入诱惑球与陷阱球，锻炼抗干扰与冲动抑制；时机等待模式要求球进入得分区才点击，克制提前出手的急躁。完成后自动记录追踪准确率、冲动误点与历史趋势，生成训练分析报告。',
+    features: [
+      { icon: 'bi-crosshair', text: '动态目标追踪' },
+      { icon: 'bi-shield-x', text: '诱惑球与陷阱球' },
+      { icon: 'bi-hourglass-split', text: '时机等待克制急躁' },
+      { icon: 'bi-graph-up', text: '准确率与冲动报告' },
+    ],
+  },
   lottery: {
     usage:
       '年会抽奖转盘工具：支持导入名单、设置奖项数量与滚动抽奖，转轮运动经过精确规划，停点公平随机，适合年会、活动与课堂随机点名。',

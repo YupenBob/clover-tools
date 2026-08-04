@@ -657,6 +657,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       tier: 'P1',
     },
     {
+      slug: 'ball-tracker',
+      name: '目标球追踪',
+      oneLiner: '追踪目标球，克制诱惑与冲动，训练前额叶抑制控制。',
+      description: '目标球追踪训练专区：目标追踪、干扰追踪与时机等待三种模式，在移动球群中持续锁定目标，抵御诱惑球与陷阱球干扰，克制提前点击的急躁冲动，生成追踪准确率、冲动误点与趋势分析报告，锻炼前额叶抑制控制与动态视觉追踪能力。',
+      icon: 'bi-crosshair',
+      keywords: ['目标追踪', '视觉追踪', '前额叶训练', '冲动控制', '抗干扰', '注意力训练'],
+      tier: 'P1',
+    },
+    {
       slug: 'lottery',
       name: '抽奖转盘',
       oneLiner: '自定义名单与奖项，滚动抽奖公平随机。',
