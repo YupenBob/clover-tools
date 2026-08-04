@@ -116,11 +116,13 @@ check('圆盘标签显示', await page.locator('#stTargetSide').isVisible());
 // 内环按钮可点击（点数字 3 触发错点反馈）
 await page.evaluate(() => {
   const btns = Array.from(document.querySelectorAll('#stDiscA .st-dnum'));
-  const inner = btns.find((b) => b.textContent.trim() === '3');
+  const target = document.getElementById('stTarget').textContent.trim();
+  const inner = btns.find((b) => b.textContent.trim() !== target && !b.classList.contains('done'));
   if (inner) inner.click();
 });
 await page.waitForTimeout(120);
-check('内环按钮可点击', (await page.locator('.st-dnum.wrong').count()) >= 1);
+const wrongAfter = await page.locator('.st-dnum.wrong').count();
+check('内环按钮可点击', wrongAfter >= 1, `wrong=${wrongAfter}`);
 await page.waitForTimeout(400);
 await page.locator('#stExit').click();
 await page.waitForTimeout(200);

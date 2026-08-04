@@ -737,6 +737,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     justify-content: center;
   }
 
+  .st-disc-wrap.st-dual-wrap {
+    width: var(--dw, 396px);
+    height: var(--dw, 396px);
+  }
+
+  .st-disc-wrap.st-dual-wrap .st-disc {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--s, 1));
+  }
+
   .st-disc {
     position: relative;
     border-radius: 50%;
@@ -1851,6 +1863,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const actStart = $<HTMLElement>('actStart');
   const actTrain = $<HTMLElement>('actTrain');
   const actResult = $<HTMLElement>('actResult');
+  const stageEl = document.getElementById('stStage') as HTMLElement;
   const modesEl = $<HTMLElement>('stModes');
   const grid = $<HTMLElement>('stGrid');
   const discs = $<HTMLElement>('stDiscs');
@@ -2214,10 +2227,18 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       ringBtns[ring + offset] = [];
 
       const r = ringRadius(ring);
-      const rIn = Math.max(12, r - 23);
-      const rOut = r + 23;
+      const rIn = Math.max(12, r - 23 + 1.5);
+      const rOut = r + 23 - 1.5;
       const cx = d / 2;
       const cy = d / 2;
+      // 环带外缘分隔圆线
+      const line = document.createElement('div');
+      line.className = 'st-bandline';
+      line.style.width = `${(rOut + 1.5) * 2}px`;
+      line.style.height = `${(rOut + 1.5) * 2}px`;
+      line.style.left = `${cx - (rOut + 1.5)}px`;
+      line.style.top = `${cy - (rOut + 1.5)}px`;
+      discEl.appendChild(line);
       ringNums.forEach((n, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -2225,8 +2246,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         const span = document.createElement('span');
         span.textContent = String(n);
         btn.appendChild(span);
-        const spanA = (360 / ringNums.length) * idx;
-        const spanB = spanA + 360 / ringNums.length;
+        const gapDeg = 0.9;
+        const spanA = (360 / ringNums.length) * idx + gapDeg / 2;
+        const spanB = (360 / ringNums.length) * (idx + 1) - gapDeg / 2;
         const { clip, box } = sectorClip(cx, cy, rIn, rOut, spanA, spanB);
         btn.style.left = `${box.l}px`;
         btn.style.top = `${box.t}px`;
@@ -2251,8 +2273,12 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     ringEls = [];
     const all = shuffle(Array.from({ length: discTotal(mode) }, (_, i) => i + 1));
     if (mode === 'disc') {
+      for (const w of [discA.parentElement, discB.parentElement]) {
+        if (w) w.classList.remove('st-dual-wrap');
+      }
       buildDisc(discA, all, size, 0, 'A');
       discB.style.display = 'none';
+      if (discB.parentElement) discB.parentElement.style.display = 'none';
       $<HTMLElement>('stTagB').style.display = 'none';
       discA.style.display = '';
       $<HTMLElement>('stTagA').style.display = '';
@@ -2261,8 +2287,20 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       const countA = sumRingCounts(ringsA);
       buildDisc(discA, all.slice(0, countA), ringsA, 0, 'A');
       buildDisc(discB, all.slice(countA), ringsB, ringsA, 'B');
+      const avail = stageEl.clientWidth || 720;
+      const gap = parseFloat(getComputedStyle(discs).columnGap) || 36;
+      const targetD = Math.max(240, Math.min(396, (avail - gap) / 2));
+      const s = targetD / 396;
+      for (const w of [discA.parentElement, discB.parentElement]) {
+        if (!w) continue;
+        w.classList.add('st-dual-wrap');
+        w.style.setProperty('--dw', `${targetD}px`);
+        w.style.setProperty('--s', String(s));
+      }
       discA.style.display = '';
       discB.style.display = '';
+      if (discA.parentElement) discA.parentElement.style.display = '';
+      if (discB.parentElement) discB.parentElement.style.display = '';
       $<HTMLElement>('stTagA').style.display = '';
       $<HTMLElement>('stTagB').style.display = '';
     }
