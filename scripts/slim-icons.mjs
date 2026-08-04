@@ -42,7 +42,10 @@ for (const file of walk(srcDir)) {
 const raw = readFileSync(cssSrc, 'utf8').replace(/\.\/fonts\//g, '/fonts/');
 
 // 3) 保留所有 @font-face 块（含开头的版权注释前导）
-const fontFaces = [...raw.matchAll(/@font-face\s*\{[\s\S]*?\}/g)].map((m) => m[0]);
+const fontFaces = [...raw.matchAll(/@font-face\s*\{[\s\S]*?\}/g)]
+  .map((m) => m[0])
+  // 现代浏览器全支持 woff2，移除冗余 woff fallback，减少 170KB+ 部署体积
+  .map((face) => face.replace(/,\s*url\("\/fonts\/bootstrap-icons\.woff[^)]*"\)\s*format\("woff"\)/g, ''));
 if (fontFaces.length === 0) {
   console.error('原始 CSS 中未找到 @font-face');
   process.exit(1);

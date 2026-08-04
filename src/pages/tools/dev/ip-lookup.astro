@@ -703,10 +703,6 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       urls.push(`/api/ip?ip=${encodeURIComponent(ip)}`);
       sources.push('cloudflare');
     }
-    urls.push(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
-    sources.push('ipapi');
-    urls.push(`https://ipwho.is/${encodeURIComponent(ip)}`);
-    sources.push('ipwhois');
 
     for (let i = 0; i < urls.length; i++) {
       try {
@@ -722,8 +718,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   async function lookupSelf(): Promise<GeoInfo | null> {
-    const urls = ['/api/ip', 'https://ipapi.co/json/', 'https://ipwho.is/'];
-    const sources = ['cloudflare', 'ipapi', 'ipwhois'];
+    const urls = ['/api/ip'];
+    const sources = ['cloudflare'];
     for (let i = 0; i < urls.length; i++) {
       try {
         const raw = await fetchJson(urls[i]);
