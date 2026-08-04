@@ -622,11 +622,11 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'ball-tracker': {
     usage:
-      '目标球追踪训练专区：先记住金色标记的目标球，标记消失后在移动球群中持续锁定；干扰追踪模式会在途中混入诱惑球与陷阱球，锻炼抗干扰与冲动抑制；时机等待模式要求球进入得分区才点击，克制提前出手的急躁。完成后自动记录追踪准确率、冲动误点与历史趋势，生成训练分析报告。',
+      '目标球追踪训练专区：先记住金色标记的目标球，标记消失后所有球变为同一样式，需要在移动球群中持续锁定目标；数量增减模式会在追踪中不断混入新球，考验注意维持；整体旋转模式让整个场景旋转，考验空间定向。完成后自动记录追踪准确率、错点与历史趋势，生成训练分析报告。',
     features: [
       { icon: 'bi-crosshair', text: '动态目标追踪' },
-      { icon: 'bi-shield-x', text: '诱惑球与陷阱球' },
-      { icon: 'bi-hourglass-split', text: '时机等待克制急躁' },
+      { icon: 'bi-plus-circle', text: '数量增减抗干扰' },
+      { icon: 'bi-arrow-clockwise', text: '整体旋转空间定向' },
       { icon: 'bi-graph-up', text: '准确率与冲动报告' },
     ],
   },

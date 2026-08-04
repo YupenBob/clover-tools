@@ -37,22 +37,22 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
           <div class="bt-setting-row">
             <label for="btSize">球数量</label>
             <div class="bt-setting-control">
-              <input id="btSize" type="range" min="6" max="12" step="1" value="8" />
-              <span class="bt-setting-value" id="btSizeLabel">8</span>
+              <input id="btSize" type="range" min="8" max="20" step="1" value="12" />
+              <span class="bt-setting-value" id="btSizeLabel">12</span>
             </div>
           </div>
           <div class="bt-setting-row" id="btTargetsWrap">
             <label for="btTargets">目标数</label>
             <div class="bt-setting-control">
-              <input id="btTargets" type="range" min="1" max="4" step="1" value="2" />
+              <input id="btTargets" type="range" min="1" max="3" step="1" value="2" />
               <span class="bt-setting-value" id="btTargetsLabel">2</span>
             </div>
           </div>
           <div class="bt-setting-row" id="btSpeedWrap">
             <label for="btSpeed">移动速度</label>
             <div class="bt-setting-control">
-              <input id="btSpeed" type="range" min="40" max="180" step="1" value="110" />
-              <span class="bt-setting-value" id="btSpeedLabel">110</span>
+              <input id="btSpeed" type="range" min="40" max="300" step="1" value="150" />
+              <span class="bt-setting-value" id="btSpeedLabel">150</span>
             </div>
           </div>
           <div class="bt-setting-row">
@@ -62,17 +62,24 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
               <span class="bt-setting-value" id="btDurLabel">15s</span>
             </div>
           </div>
-          <div class="bt-setting-row" id="btFreqWrap" hidden>
-            <label for="btFreq">干扰频率</label>
+          <div class="bt-setting-row" id="btFluxWrap" hidden>
+            <label for="btFlux">混入频率</label>
             <div class="bt-setting-control">
-              <input id="btFreq" type="range" min="3" max="10" step="1" value="6" />
-              <span class="bt-setting-value" id="btFreqLabel">6s</span>
+              <input id="btFlux" type="range" min="3" max="8" step="1" value="5" />
+              <span class="bt-setting-value" id="btFluxLabel">5s</span>
+            </div>
+          </div>
+          <div class="bt-setting-row" id="btRotateWrap" hidden>
+            <label for="btRotate">旋转速度</label>
+            <div class="bt-setting-control">
+              <input id="btRotate" type="range" min="5" max="20" step="1" value="10" />
+              <span class="bt-setting-value" id="btRotateLabel">10°/s</span>
             </div>
           </div>
         </div>
 
         <div class="bt-options">
-          <span class="bt-hint muted">追踪阶段点击干扰球会计入冲动误触</span>
+          <span class="bt-hint muted">数量增减会不断混入新球，整体旋转考验空间定向</span>
           <div class="bt-option-btns">
             <button class="bt-icon-btn" id="btFull" type="button" title="专注模式（全屏）"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
             <button class="bt-icon-btn" id="btMute" type="button" title="音效开关" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
@@ -145,9 +152,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <div class="bt-purpose">
       <p>
         目标球追踪训练的核心是<b>抑制控制</b>——前额叶负责的一项高级认知功能：
-        在动态场景中持续锁定目标（注意分配）、对诱惑与干扰说「不」（抗分心）、
-        克制提前出手的冲动（反应抑制）。短视频与快节奏应用不断训练「看到就想点」的冲动回路，
-        而这项训练反向要求你<b>看得准、等得住、点得对</b>，正是对前额叶的针对性锻炼。
+        在动态场景中持续锁定目标（注意分配）、抵御干扰刺激（抗分心）、
+        在旋转坐标系中保持空间定向（空间注意）。短视频与快节奏应用不断训练「看到就想点」的冲动回路，
+        而这项训练反向要求你<b>看得准、锁得住、记得牢</b>，正是对前额叶的针对性锻炼。
       </p>
       <div class="bt-purpose-grid">
         <div class="bt-purpose-item">
@@ -161,9 +168,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
           <span>诱惑球与陷阱球模拟现实中的干扰刺激，锻炼「忍住不点」的抑制能力。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-hourglass-split" aria-hidden="true"></i>
-          <b>克制急躁冲动</b>
-          <span>时机等待要求延迟反应，对抗即时满足习惯，强化前额叶刹车功能。</span>
+          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <b>空间定向与旋转追踪</b>
+          <span>整体旋转要求适应运动坐标系，强化空间工作记忆与动态注意。</span>
         </div>
         <div class="bt-purpose-item">
           <i class="bi bi-graph-up" aria-hidden="true"></i>
@@ -180,14 +187,14 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
           </thead>
           <tbody>
             <tr><td>目标追踪</td><td>基础动态追踪</td><td>视觉工作记忆、注意分配</td></tr>
-            <tr><td>干扰追踪</td><td>追踪中抗干扰</td><td>抑制控制、抗诱惑</td></tr>
-            <tr><td>时机等待</td><td>延迟反应</td><td>反应抑制、冲动控制</td></tr>
+            <tr><td>数量增减</td><td>追踪中混入新球</td><td>注意维持、抗干扰</td></tr>
+            <tr><td>整体旋转</td><td>旋转场景追踪</td><td>空间注意、工作记忆</td></tr>
           </tbody>
         </table>
       </div>
       <p class="muted bt-tip">
         <i class="bi bi-info-circle" aria-hidden="true"></i>
-        建议每天 3–5 组；冲动误触多属正常，重点是观察趋势而非单次成绩，坚持两周以上更明显。
+        建议每天 3–5 组；目标是标记消失后仍能锁定目标，重点是观察趋势而非单次成绩，坚持两周以上更明显。
       </p>
     </div>
   </ToolPanel>

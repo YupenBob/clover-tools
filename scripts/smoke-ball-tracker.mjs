@@ -1,5 +1,5 @@
 /**
- * 目标球追踪冒烟测试。
+ * 目标球追踪冒烟测试（三种模式：目标追踪 / 数量增减 / 整体旋转）。
  * 用法：node scripts/smoke-ball-tracker.mjs [baseUrl]
  */
 import { chromium } from 'playwright-core';
@@ -17,46 +17,57 @@ function check(name, ok, extra = '') {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${extra ? ' :: ' + extra : ''}`);
 }
 
+/** 在画布上按网格点击，直到结果幕出现（找出全部目标球） */
+async function clickUntilDone(maxGrid = 14) {
+  for (let gx = 1; gx <= maxGrid; gx++) {
+    for (let gy = 1; gy <= maxGrid; gy++) {
+      const done = await page.evaluate(({ cx, cy }) => {
+        const canvas = document.getElementById('btCanvas');
+        const rect = canvas.getBoundingClientRect();
+        canvas.dispatchEvent(new MouseEvent('click', {
+          clientX: rect.left + cx * rect.width,
+          clientY: rect.top + cy * rect.height,
+          bubbles: true,
+        }));
+        return !document.getElementById('btResult').hidden;
+      }, { cx: gx / (maxGrid + 1), cy: gy / (maxGrid + 1) });
+      await page.waitForTimeout(35);
+      if (done) return true;
+    }
+  }
+  return false;
+}
+
 await page.goto(base, { waitUntil: 'networkidle' });
 await page.waitForTimeout(800);
 
 // 1. 三模式与设置
 const modeNames = await page.locator('.bt-mode > span:nth-child(2)').allTextContents();
-check('三模式齐全', modeNames.length === 3 && modeNames[0] === '目标追踪' && modeNames[2] === '时机等待', modeNames.join(','));
-check('目标数设置可见', await page.locator('#btTargetsWrap').isVisible());
-check('干扰频率默认隐藏', !(await page.locator('#btFreqWrap').isVisible()));
+check('三模式齐全', modeNames.length === 3 && modeNames[0] === '目标追踪' && modeNames[1] === '数量增减' && modeNames[2] === '整体旋转', modeNames.join(','));
+check('球数量上限 20', (await page.locator('#btSize').getAttribute('max')) === '20');
+check('目标数上限 3', (await page.locator('#btTargets').getAttribute('max')) === '3');
+check('速度上限 300', (await page.locator('#btSpeed').getAttribute('max')) === '300');
+check('混入频率默认隐藏', !(await page.locator('#btFluxWrap').isVisible()));
+check('旋转速度默认隐藏', !(await page.locator('#btRotateWrap').isVisible()));
 
-// 2. 目标追踪模式流程
+// 2. 目标追踪模式完整流程
 await page.locator('#btDur').fill('10');
 await page.locator('#btStartBtn').click();
 await page.waitForTimeout(400);
 check('训练幕打开', await page.locator('#btTrain').isVisible());
 const markText = await page.locator('#btPhaseText').innerText();
 check('标记阶段提示', markText.includes('记住金色目标球'), markText);
-await page.waitForTimeout(2500);
+await page.waitForTimeout(2700);
 const moveText = await page.locator('#btPhaseText').innerText();
 check('追踪阶段提示', moveText.includes('追踪'), moveText);
 await page.waitForTimeout(10500);
 const selectText = await page.locator('#btPhaseText').innerText();
 check('选择阶段提示', selectText.includes('点击你追踪到的目标球'), selectText);
-// 选择阶段球已冻结，网格点击找出所有目标球（目标数默认 2）
-let trackCompleted = false;
-for (let gx = 1; gx <= 10 && !trackCompleted; gx++) {
-  for (let gy = 1; gy <= 10 && !trackCompleted; gy++) {
-    await page.evaluate(({ cx, cy }) => {
-      const canvas = document.getElementById('btCanvas');
-      const rect = canvas.getBoundingClientRect();
-      canvas.dispatchEvent(new MouseEvent('click', { clientX: rect.left + cx * rect.width, clientY: rect.top + cy * rect.height, bubbles: true }));
-    }, { cx: gx / 11, cy: gy / 11 });
-    await page.waitForTimeout(40);
-    trackCompleted = await page.locator('#btResult').isVisible();
-    if (trackCompleted) break;
-  }
-}
-check('目标追踪完成进入结果', trackCompleted);
-if (trackCompleted) {
+const trackDone = await clickUntilDone();
+check('目标追踪完成进入结果', trackDone);
+if (trackDone) {
   const tMetrics = await page.locator('#btMetrics').innerText();
-  check('追踪报告准确率', /%/.test(tMetrics), tMetrics.slice(0, 40));
+  check('追踪报告含准确率', tMetrics.includes('命中准确率'), tMetrics.slice(0, 40));
   await page.locator('#btBack').click();
   await page.waitForTimeout(300);
 } else {
@@ -64,61 +75,40 @@ if (trackCompleted) {
   await page.waitForTimeout(300);
 }
 
-// 3. 干扰追踪模式
-await page.locator('.bt-mode[data-mode="distract"]').click();
+// 3. 数量增减模式
+await page.locator('.bt-mode[data-mode="flux"]').click();
 await page.waitForTimeout(200);
-check('干扰频率设置可见', await page.locator('#btFreqWrap').isVisible());
-check('干扰模式下目标数可见', await page.locator('#btTargetsWrap').isVisible());
-await page.locator('#btFreq').fill('3');
+check('混入频率设置可见', await page.locator('#btFluxWrap').isVisible());
+check('旋转速度仍隐藏', !(await page.locator('#btRotateWrap').isVisible()));
+await page.locator('#btFlux').fill('3');
 await page.locator('#btStartBtn').click();
-await page.waitForTimeout(400);
-await page.waitForTimeout(3500);
-const statusText = await page.locator('#btTrainStatus').innerText();
-check('干扰模式运行正常', statusText.length >= 0);
+await page.waitForTimeout(2700);
+const fluxMove = await page.locator('#btPhaseText').innerText();
+check('数量增减进入追踪', fluxMove.includes('追踪'), fluxMove);
+await page.waitForTimeout(10500);
 await page.locator('#btExit').click();
 await page.waitForTimeout(300);
 
-// 4. 时机等待模式：点击得分区命中
-await page.locator('.bt-mode[data-mode="timing"]').click();
+// 4. 整体旋转模式
+await page.locator('.bt-mode[data-mode="rotate"]').click();
 await page.waitForTimeout(200);
-check('时机模式目标数隐藏', !(await page.locator('#btTargetsWrap').isVisible()));
+check('旋转速度设置可见', await page.locator('#btRotateWrap').isVisible());
+check('混入频率隐藏', !(await page.locator('#btFluxWrap').isVisible()));
 await page.locator('#btDur').fill('10');
 await page.locator('#btStartBtn').click();
-await page.waitForTimeout(60);
-// 球从中心出发，立即点击 canvas 中心应命中（用 dispatch 避免点击延迟导致球已移出得分区）
-const stage = await page.locator('#btStage').boundingBox();
-if (stage) {
-  await page.evaluate(({ cx, cy }) => {
-    const canvas = document.getElementById('btCanvas');
-    const rect = canvas.getBoundingClientRect();
-    canvas.dispatchEvent(new MouseEvent('click', { clientX: rect.left + (cx * rect.width), clientY: rect.top + (cy * rect.height), bubbles: true }));
-  }, { cx: 0.5, cy: 0.5 });
-  await page.waitForTimeout(200);
+await page.waitForTimeout(400);
+await page.waitForTimeout(2700);
+const rotMove = await page.locator('#btPhaseText').innerText();
+check('整体旋转进入追踪', rotMove.includes('追踪'), rotMove);
+await page.waitForTimeout(10500);
+const rotSelect = await page.locator('#btPhaseText').innerText();
+check('旋转模式选择阶段', rotSelect.includes('点击你追踪到的目标球'), rotSelect);
+const rotDone = await clickUntilDone();
+check('旋转模式完成（逆旋转命中）', rotDone);
+if (rotDone) {
+  await page.locator('#btBack').click();
+  await page.waitForTimeout(300);
 }
-const timingPhase = await page.locator('#btPhaseText').innerText();
-check('时机命中反馈', timingPhase.includes('命中'), timingPhase);
-// 等球移出得分区后再次点击中心（此刻球不在中心，应触发冲动提示）
-await page.waitForTimeout(1500);
-if (stage) {
-  await page.evaluate(({ cx, cy }) => {
-    const canvas = document.getElementById('btCanvas');
-    const rect = canvas.getBoundingClientRect();
-    canvas.dispatchEvent(new MouseEvent('click', { clientX: rect.left + (cx * rect.width), clientY: rect.top + (cy * rect.height), bubbles: true }));
-  }, { cx: 0.5, cy: 0.5 });
-  await page.waitForTimeout(200);
-}
-const timingPhase2 = await page.locator('#btPhaseText').innerText();
-check('时机冲动反馈', timingPhase2.includes('太早'), timingPhase2);
-// 等待计时结束进入结果幕（10s * 2 = 20s）
-await page.waitForTimeout(21000);
-check('结果幕打开', await page.locator('#btResult').isVisible());
-const metrics = await page.locator('#btMetrics').innerText();
-check('结果指标齐全', metrics.includes('命中准确率') && metrics.includes('冲动'), metrics.slice(0, 60));
-const grade = await page.locator('#btGrade').innerText();
-check('评级显示', grade.length > 0, grade);
-await page.locator('#btBack').click();
-await page.waitForTimeout(300);
-check('返回开始幕', await page.locator('#btStart').isVisible());
 
 // 5. 无 emoji
 const pageText = await page.locator('body').innerText();

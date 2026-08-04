@@ -41,6 +41,9 @@ export class BallEngine {
   private balls: Ball[] = [];
   private baseRadius: number;
   private restitution: number;
+  private rotation = 0;
+  private showGrid = false;
+  private circular = false;
   private colors: { normal: string; target: string; trap: string; lure: string; glow: string };
 
   constructor(canvas: HTMLCanvasElement, opts: EngineOptions) {
@@ -83,14 +86,79 @@ export class BallEngine {
     return this.balls;
   }
 
+  /** 场景整体旋转角（弧度），渲染与命中检测都会应用 */
+  setRotation(rad: number): void {
+    this.rotation = rad;
+  }
+
+  get rotationAngle(): number {
+    return this.rotation;
+  }
+
+  /** 是否绘制方格背景（整体旋转模式的参考系） */
+  setShowGrid(v: boolean): void {
+    this.showGrid = v;
+  }
+
+  /** 圆形边界（整体旋转模式）：球始终位于画布内接圆内，旋转后不会出界 */
+  setCircularBounds(v: boolean): void {
+    this.circular = v;
+  }
+
+  get circularBounds(): boolean {
+    return this.circular;
+  }
+
+  /** 追踪中混入新球（数量增减模式） */
+  addBall(ball: Ball): void {
+    this.balls.push(ball);
+  }
+
   ballRadius(): number {
     return Math.max(14, Math.min(30, (this.baseRadius * Math.min(this.width, this.height)) / 420));
+  }
+
+  /** 生成一个不越界的随机球位置（圆形边界时位于内接圆内） */
+  randomPoint(r: number): { x: number; y: number } {
+    const margin = r + 10;
+    if (this.circular) {
+      const cx = this.width / 2;
+      const cy = this.height / 2;
+      const maxR = Math.min(this.width, this.height) / 2 - margin;
+      const ang = Math.random() * Math.PI * 2;
+      const rad = Math.sqrt(Math.random()) * maxR;
+      return { x: cx + Math.cos(ang) * rad, y: cy + Math.sin(ang) * rad };
+    }
+    return {
+      x: margin + Math.random() * (this.width - 2 * margin),
+      y: margin + Math.random() * (this.height - 2 * margin),
+    };
   }
 
   private moveBall(b: Ball, dt: number): void {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     const r = b.r;
+    if (this.circular) {
+      const cx = this.width / 2;
+      const cy = this.height / 2;
+      const maxR = Math.min(this.width, this.height) / 2 - r - 6;
+      const dx = b.x - cx;
+      const dy = b.y - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist > maxR) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        b.x = cx + nx * maxR;
+        b.y = cy + ny * maxR;
+        const vn = b.vx * nx + b.vy * ny;
+        if (vn > 0) {
+          b.vx -= 2 * vn * nx;
+          b.vy -= 2 * vn * ny;
+        }
+      }
+      return;
+    }
     if (b.x - r < 0) {
       b.x = r;
       b.vx = Math.abs(b.vx);
@@ -146,9 +214,36 @@ export class BallEngine {
   render(): void {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
+    ctx.save();
+    if (this.rotation !== 0) {
+      ctx.translate(this.width / 2, this.height / 2);
+      ctx.rotate(this.rotation);
+      ctx.translate(-this.width / 2, -this.height / 2);
+    }
+    if (this.showGrid) this.renderGrid();
     for (const b of this.balls) {
       this.renderBall(b);
     }
+    ctx.restore();
+  }
+
+  private renderGrid(): void {
+    const ctx = this.ctx;
+    const step = 44;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(160, 150, 120, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= this.width; x += step) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, this.height);
+    }
+    for (let y = 0; y <= this.height; y += step) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(this.width, y);
+    }
+    ctx.stroke();
+    ctx.restore();
   }
 
   private renderBall(b: Ball): void {
@@ -214,10 +309,23 @@ export class BallEngine {
   }
 
   hitTest(x: number, y: number): Ball | null {
+    // 将画布坐标逆旋转为场景坐标后再命中检测
+    let px = x;
+    let py = y;
+    if (this.rotation !== 0) {
+      const cx = this.width / 2;
+      const cy = this.height / 2;
+      const dx = x - cx;
+      const dy = y - cy;
+      const cos = Math.cos(-this.rotation);
+      const sin = Math.sin(-this.rotation);
+      px = cx + dx * cos - dy * sin;
+      py = cy + dx * sin + dy * cos;
+    }
     for (const b of this.balls) {
       if (b.confirmed) continue;
-      const dx = x - b.x;
-      const dy = y - b.y;
+      const dx = px - b.x;
+      const dy = py - b.y;
       if (dx * dx + dy * dy <= (b.r + 6) * (b.r + 6)) return b;
     }
     return null;

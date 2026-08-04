@@ -7,8 +7,8 @@
 import { byId } from './toolkit';
 import { BallEngine, makeBall, type Ball, type BallKind } from './ball-engine';
 
-type ModeId = 'track' | 'distract' | 'timing';
-type Phase = 'mark' | 'move' | 'select' | 'timing-run' | 'done';
+type ModeId = 'track' | 'flux' | 'rotate';
+type Phase = 'mark' | 'move' | 'select' | 'done';
 
 interface ModeMeta {
   id: ModeId;
@@ -19,15 +19,17 @@ interface ModeMeta {
 
 const MODES: Record<ModeId, ModeMeta> = {
   track: { id: 'track', name: '目标追踪', icon: 'bi-crosshair', desc: '记住目标球，移动后找出' },
-  distract: { id: 'distract', name: '干扰追踪', icon: 'bi-shield-x', desc: '追踪中混入诱惑与陷阱球' },
-  timing: { id: 'timing', name: '时机等待', icon: 'bi-hourglass-split', desc: '进入得分区才点击，克制急躁' },
+  flux: { id: 'flux', name: '数量增减', icon: 'bi-plus-circle', desc: '追踪中不断混入新球' },
+  rotate: { id: 'rotate', name: '整体旋转', icon: 'bi-arrow-clockwise', desc: '场景旋转中锁定目标' },
 };
 
-const MODE_ORDER: ModeId[] = ['track', 'distract', 'timing'];
+const MODE_ORDER: ModeId[] = ['track', 'flux', 'rotate'];
 const SPEED_MIN = 40;
-const SPEED_MAX = 180;
+const SPEED_MAX = 300;
 /** 旧版三档速度（用于偏好迁移） */
 const SPEED_LEGACY: number[] = [70, 110, 160];
+const ROTATE_MIN = 5;
+const ROTATE_MAX = 20;
 const HISTORY_KEY = 'ct-balltracker-history';
 const PREF_KEY = 'ct-balltracker-prefs';
 
@@ -49,7 +51,8 @@ interface Prefs {
   targets?: number;
   speed?: number;
   duration?: number;
-  distractFreq?: number;
+  fluxFreq?: number;
+  rotateSpeed?: number;
   muted?: boolean;
 }
 
@@ -60,7 +63,6 @@ const actStart = $<HTMLElement>('btStart');
 const actTrain = $<HTMLElement>('btTrain');
 const actResult = $<HTMLElement>('btResult');
 const modesEl = $<HTMLElement>('btModes');
-const canvasWrap = $<HTMLElement>('btStage');
 const canvas = $<HTMLCanvasElement>('btCanvas');
 const sizeInput = $<HTMLInputElement>('btSize');
 const sizeLabel = $<HTMLElement>('btSizeLabel');
@@ -72,9 +74,12 @@ const speedInput = $<HTMLInputElement>('btSpeed');
 const speedLabel = $<HTMLElement>('btSpeedLabel');
 const durInput = $<HTMLInputElement>('btDur');
 const durLabel = $<HTMLElement>('btDurLabel');
-const freqWrap = $<HTMLElement>('btFreqWrap');
-const freqInput = $<HTMLInputElement>('btFreq');
-const freqLabel = $<HTMLElement>('btFreqLabel');
+const fluxWrap = $<HTMLElement>('btFluxWrap');
+const fluxInput = $<HTMLInputElement>('btFlux');
+const fluxLabel = $<HTMLElement>('btFluxLabel');
+const rotateWrap = $<HTMLElement>('btRotateWrap');
+const rotateInput = $<HTMLInputElement>('btRotate');
+const rotateLabel = $<HTMLElement>('btRotateLabel');
 const startBtn = $<HTMLButtonElement>('btStartBtn');
 const fullBtn = $<HTMLButtonElement>('btFull');
 const muteBtn = $<HTMLButtonElement>('btMute');
@@ -96,33 +101,25 @@ const toast = $<HTMLElement>('btToast');
 
 // ── 状态 ──
 let mode: ModeId = 'track';
-let size = 8;
+let size = 12;
 let targets = 2;
-let speedValue = 110;
+let speedValue = 150;
 let duration = 15;
-let distractFreq = 6;
+let rotateSpeed = 10;
 let muted = false;
 let phase: Phase = 'mark';
 let running = false;
 let raf = 0;
 let lastT = 0;
 let phaseTimer: ReturnType<typeof setTimeout> | null = null;
-let lureTimer: ReturnType<typeof setInterval> | null = null;
-let timingTimer: ReturnType<typeof setInterval> | null = null;
+let fluxTimer: ReturnType<typeof setInterval> | null = null;
+let selectTimer: ReturnType<typeof setInterval> | null = null;
 let engine: BallEngine;
 let nextBallId = 1;
 let targetIds = new Set<number>();
 let hitCount = 0;
 let missCount = 0;
-let impulseCount = 0;
 let roundStartAt = 0;
-let timingScore = 0;
-let timingTotal = 0;
-let timingImpulse = 0;
-let ballX = 0;
-let ballDir = 1;
-let thisZoneIn = false;
-let timingCtx: CanvasRenderingContext2D | null = null;
 let audioCtx: AudioContext | null = null;
 
 // ── 音效 ──
@@ -213,7 +210,8 @@ function savePrefs() {
       targets,
       speed: speedValue,
       duration,
-      distractFreq: freqInput.value ? Number(freqInput.value) : undefined,
+      fluxFreq: fluxInput.value ? Number(fluxInput.value) : undefined,
+      rotateSpeed,
       muted,
     };
     localStorage.setItem(PREF_KEY, JSON.stringify(p));
@@ -278,12 +276,11 @@ function updateControls() {
   targetsLabel.textContent = String(targets);
   speedLabel.textContent = String(speedValue);
   durLabel.textContent = `${duration}s`;
-  freqLabel.textContent = `${freqInput.value}s`;
-  const isTiming = mode === 'timing';
-  targetsWrap.hidden = isTiming;
-  speedWrap.hidden = isTiming;
-  freqWrap.hidden = mode !== 'distract';
-  targetsInput.max = String(Math.max(1, Math.floor(size / 2)));
+  fluxLabel.textContent = `${fluxInput.value}s`;
+  rotateLabel.textContent = `${rotateInput.value}°/s`;
+  fluxWrap.hidden = mode !== 'flux';
+  rotateWrap.hidden = mode !== 'rotate';
+  targetsInput.max = String(Math.max(1, Math.min(3, Math.floor(size / 2))));
   if (targets > Math.floor(size / 2)) targets = Math.max(1, Math.floor(size / 2));
   targetsInput.value = String(targets);
   targetsLabel.textContent = String(targets);
@@ -291,14 +288,12 @@ function updateControls() {
 
 // ── 球体初始化 ──
 function spawnBalls(count: number, targetCount: number): Ball[] {
-  const engineSize = engine.size;
   const r = engine.ballRadius();
   const balls: Ball[] = [];
   let attempts = 0;
   while (balls.length < count && attempts < 300) {
     attempts++;
-    const x = r + 8 + Math.random() * (engineSize.width - 2 * (r + 8));
-    const y = r + 8 + Math.random() * (engineSize.height - 2 * (r + 8));
+    const { x, y } = engine.randomPoint(r);
     const overlap = balls.some((b) => Math.hypot(b.x - x, b.y - y) < (b.r + r) * 1.4);
     if (overlap) continue;
     const kind: BallKind = balls.length < targetCount ? 'target' : 'normal';
@@ -307,7 +302,8 @@ function spawnBalls(count: number, targetCount: number): Ball[] {
   // 兜底：不足时随机补充
   while (balls.length < count) {
     const kind: BallKind = balls.length < targetCount ? 'target' : 'normal';
-    balls.push(makeBall(nextBallId++, r + 8, r + 8, r, kind, speedValue));
+    const { x, y } = engine.randomPoint(r);
+    balls.push(makeBall(nextBallId++, x, y, r, kind, speedValue));
   }
   return shuffle(balls);
 }
@@ -318,10 +314,6 @@ function startGame() {
   running = true;
   hitCount = 0;
   missCount = 0;
-  impulseCount = 0;
-  timingScore = 0;
-  timingTotal = 0;
-  timingImpulse = 0;
   targetIds = new Set();
   actStart.hidden = true;
   actResult.hidden = true;
@@ -331,17 +323,15 @@ function startGame() {
   trainCount.textContent = '';
   timerEl.hidden = true;
   trainStatus.classList.remove('error');
-
-  if (mode === 'timing') {
-    startTiming();
-    return;
-  }
   startTrack();
   void document.documentElement.requestFullscreen?.().catch(() => undefined);
 }
 
 function startTrack() {
   phase = 'mark';
+  engine.setRotation(0);
+  engine.setShowGrid(mode === 'rotate');
+  engine.setCircularBounds(mode === 'rotate');
   const balls = spawnBalls(size, targets);
   engine.setBalls(balls);
   targetIds = new Set(balls.filter((b) => b.kind === 'target').map((b) => b.id));
@@ -355,9 +345,13 @@ function startTrack() {
   phaseTimer = setTimeout(() => {
     if (!running) return;
     phase = 'move';
-    for (const b of engine.getBalls()) b.marked = false;
+    // 同化：目标球变为普通样式，标记消失（判定仍按 targetIds）
+    for (const b of engine.getBalls()) {
+      b.marked = false;
+      if (b.kind === 'target') b.kind = 'normal';
+    }
     phaseText.textContent = '追踪中……';
-    if (mode === 'distract') startLures();
+    if (mode === 'flux') startFlux();
     phaseTimer = setTimeout(() => {
       if (!running) return;
       phase = 'select';
@@ -366,119 +360,22 @@ function startTrack() {
       timerEl.hidden = false;
       timerEl.textContent = '0s';
       let elapsed = 0;
-      timingTimer = setInterval(() => {
+      selectTimer = setInterval(() => {
         elapsed += 1;
         timerEl.textContent = `${elapsed}s`;
       }, 1000);
     }, duration * 1000);
-  }, 2200);
+  }, 2500);
 }
 
-function startLures() {
-  lureTimer = setInterval(() => {
+function startFlux() {
+  fluxTimer = setInterval(() => {
     if (!running || phase !== 'move') return;
-    const balls = engine.getBalls();
-    const normals = balls.filter((b) => b.kind === 'normal' && !b.confirmed);
-    if (normals.length === 0) return;
-    const lure = normals[Math.floor(Math.random() * normals.length)];
-    lure.kind = 'lure';
-    setTimeout(() => {
-      if (lure.kind === 'lure') lure.kind = 'normal';
-    }, 900);
-    // 35% 概率额外注入一颗陷阱球（3 秒后消失）
-    if (Math.random() < 0.35) {
-      const r = engine.ballRadius();
-      const s = engine.size;
-      const trap = makeBall(
-        nextBallId++,
-        r + 10 + Math.random() * (s.width - 2 * (r + 10)),
-        r + 10 + Math.random() * (s.height - 2 * (r + 10)),
-        r,
-        'trap',
-        speedValue,
-      );
-      balls.push(trap);
-      engine.setBalls(balls);
-      setTimeout(() => {
-        const list = engine.getBalls();
-        const i = list.indexOf(trap);
-        if (i >= 0) list.splice(i, 1);
-      }, 3000);
-    }
-  }, Number(freqInput.value) * 1000);
-}
-
-function startTiming() {
-  phase = 'timing-run';
-  const s = engine.size;
-  ballX = s.width / 2;
-  ballDir = 1;
-  phaseText.textContent = '球进入金色区域时点击';
-  trainStatus.textContent = '克制急躁：太早点击会重置';
-  timerEl.hidden = false;
-  const totalTime = duration * 2;
-  let left = totalTime;
-  timerEl.textContent = `${left}s`;
-  timingTimer = setInterval(() => {
-    left--;
-    timerEl.textContent = `${left}s`;
-    if (left <= 0) {
-      clearInterval(timingTimer);
-      timingTimer = null;
-      finishTiming();
-    }
-  }, 1000);
-  roundStartAt = performance.now();
-  startRaf();
-}
-
-function timingUpdate(dt: number) {
-  const s = engine.size;
-  const r = engine.ballRadius();
-  const speed = s.width * 0.4; // 每秒横穿约 40%，兼顾可玩性与挑战
-  ballX += ballDir * speed * dt;
-  if (ballX - r < 0) {
-    ballX = r;
-    ballDir = 1;
-  } else if (ballX + r > s.width) {
-    ballX = s.width - r;
-    ballDir = -1;
-  }
-  // 渲染：轨道 + 得分区 + 球
-  if (!timingCtx) timingCtx = canvas.getContext('2d');
-  const ctx = timingCtx;
-  if (!ctx) return;
-  ctx.clearRect(0, 0, s.width, s.height);
-  const midY = s.height / 2;
-  const zoneW = s.width * 0.2;
-  const zoneL = s.width / 2 - zoneW / 2;
-  ctx.save();
-  ctx.fillStyle = 'rgba(201, 169, 110, 0.14)';
-  ctx.fillRect(zoneL, midY - r - 14, zoneW, (r + 14) * 2);
-  ctx.strokeStyle = 'rgba(201, 169, 110, 0.55)';
-  ctx.setLineDash([6, 4]);
-  ctx.strokeRect(zoneL, midY - r - 14, zoneW, (r + 14) * 2);
-  ctx.setLineDash([]);
-  ctx.strokeStyle = 'rgba(201, 169, 110, 0.3)';
-  ctx.beginPath();
-  ctx.moveTo(0, midY);
-  ctx.lineTo(s.width, midY);
-  ctx.stroke();
-  ctx.restore();
-  const inZone = ballX >= zoneL + r && ballX <= zoneL + zoneW - r;
-  const color = inZone ? '#c9a96e' : '#8b8577';
-  ctx.save();
-  ctx.shadowColor = inZone ? 'rgba(201,169,110,0.7)' : 'rgba(0,0,0,0.2)';
-  ctx.shadowBlur = inZone ? 18 : 6;
-  const grad = ctx.createRadialGradient(ballX - r * 0.35, midY - r * 0.35, r * 0.15, ballX, midY, r);
-  grad.addColorStop(0, inZone ? '#e6d6ae' : '#b8b2a4');
-  grad.addColorStop(1, color);
-  ctx.beginPath();
-  ctx.arc(ballX, midY, r, 0, Math.PI * 2);
-  ctx.fillStyle = grad;
-  ctx.fill();
-  ctx.restore();
-  thisZoneIn = inZone;
+    const r = engine.ballRadius();
+    const { x, y } = engine.randomPoint(r);
+    const newBall = makeBall(nextBallId++, x, y, r, 'normal', speedValue);
+    engine.addBall(newBall);
+  }, Number(fluxInput.value) * 1000);
 }
 
 function onCanvasClick(e: MouseEvent) {
@@ -486,52 +383,9 @@ function onCanvasClick(e: MouseEvent) {
   const rect = canvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  if (mode === 'timing') {
-    // 实时判定球是否位于得分区（不依赖渲染帧状态，逻辑独立）
-    const s = engine.size;
-    const r = engine.ballRadius();
-    const zoneW = s.width * 0.2;
-    const zoneL = s.width / 2 - zoneW / 2;
-    const inZone = ballX >= zoneL + r && ballX <= zoneL + zoneW - r;
-    if (inZone) {
-      timingScore++;
-      timingTotal++;
-      soundCorrect();
-      vibrate(8);
-      phaseText.textContent = `命中 ${timingScore} 次`;
-    } else {
-      timingImpulse++;
-      timingTotal++;
-      soundWrong();
-      vibrate(40);
-      phaseText.textContent = '太早了，等球进入金色区域';
-      trainStatus.classList.add('error');
-      setTimeout(() => trainStatus.classList.remove('error'), 500);
-    }
-    return;
-  }
+  if (phase !== 'select') return;
   const ball = engine.hitTest(x, y);
   if (!ball) return;
-  // 移动阶段：点击干扰球 = 冲动误触
-  if (phase === 'move') {
-    if (ball.kind === 'lure' || ball.kind === 'trap') {
-      impulseCount++;
-      soundWrong();
-      vibrate(40);
-      if (ball.kind === 'lure') {
-        ball.kind = 'normal';
-      } else {
-        const list = engine.getBalls();
-        const i = list.indexOf(ball);
-        if (i >= 0) list.splice(i, 1);
-      }
-      trainStatus.textContent = `冲动点击：干扰球不能点（累计 ${impulseCount} 次）`;
-      trainStatus.classList.add('error');
-      setTimeout(() => trainStatus.classList.remove('error'), 600);
-    }
-    return;
-  }
-  if (phase !== 'select') return;
   if (targetIds.has(ball.id)) {
     if (ball.confirmed) return;
     ball.confirmed = true;
@@ -562,27 +416,8 @@ function finishTrack() {
     speed: speedValue,
     hit: hitCount,
     miss: missCount,
-    impulse: impulseCount,
+    impulse: 0,
     time: Number(elapsed.toFixed(2)),
-    ts: Date.now(),
-  };
-  saveSession(session);
-}
-
-function finishTiming() {
-  stopTimers();
-  running = false;
-  phase = 'done';
-  soundComplete();
-  const session: Session = {
-    mode,
-    size,
-    targets: 1,
-    speed: speedValue,
-    hit: timingScore,
-    miss: 0,
-    impulse: timingImpulse,
-    time: duration * 2,
     ts: Date.now(),
   };
   saveSession(session);
@@ -608,13 +443,15 @@ function startRaf() {
 function tick(ts: number) {
   const dt = lastT ? Math.min((ts - lastT) / 1000, 0.05) : 0.016;
   lastT = ts;
-  if (mode === 'timing') {
-    timingUpdate(dt);
-  } else {
-    // 选择阶段冻结球体，方便玩家从容点击
-    if (phase !== 'select') engine.update(dt);
-    engine.render();
+  // 选择阶段冻结球体与旋转，方便玩家从容点击
+  if (phase !== 'select') {
+    engine.update(dt);
+    if (mode === 'rotate') {
+      const radPerSec = (rotateSpeed * Math.PI) / 180;
+      engine.setRotation(engine.rotationAngle + radPerSec * dt);
+    }
   }
+  engine.render();
   if (running) raf = requestAnimationFrame(tick);
 }
 
@@ -625,13 +462,13 @@ function stopTimers() {
     clearTimeout(phaseTimer);
     phaseTimer = null;
   }
-  if (lureTimer) {
-    clearInterval(lureTimer);
-    lureTimer = null;
+  if (fluxTimer) {
+    clearInterval(fluxTimer);
+    fluxTimer = null;
   }
-  if (timingTimer) {
-    clearInterval(timingTimer);
-    timingTimer = null;
+  if (selectTimer) {
+    clearInterval(selectTimer);
+    selectTimer = null;
   }
 }
 
@@ -643,13 +480,7 @@ function stopAll() {
 
 // ── 评级与报告 ──
 function gradeFor(s: Session): { grade: string; color: string } {
-  let acc: number;
-  if (s.mode === 'timing') {
-    acc = s.hit / Math.max(s.hit + s.impulse, 1);
-  } else {
-    acc = s.hit / Math.max(s.targets, 1);
-    acc = Math.max(0, acc - s.impulse * 0.08 - s.miss * 0.04);
-  }
+  const acc = Math.max(0, s.hit / Math.max(s.targets, 1) - s.miss * 0.04);
   if (acc >= 0.9) return { grade: '优秀', color: 'var(--success)' };
   if (acc >= 0.75) return { grade: '良好', color: 'var(--primary-dark)' };
   if (acc >= 0.6) return { grade: '一般', color: 'var(--warning)' };
@@ -660,23 +491,18 @@ function renderResult(s: Session, history: Session[]) {
   const g = gradeFor(s);
   gradeEl.textContent = g.grade;
   gradeEl.style.color = g.color;
-  const acc =
-    s.mode === 'timing'
-      ? s.hit / Math.max(s.hit + s.impulse, 1)
-      : s.hit / Math.max(s.targets, 1);
+  const acc = s.hit / Math.max(s.targets, 1);
   metricsEl.innerHTML =
     `<div class="bt-metric"><b>${Math.round(acc * 100)}<small>%</small></b><span>命中准确率</span></div>` +
-    `<div class="bt-metric"><b>${s.impulse}</b><span>冲动/干扰误触</span></div>` +
     `<div class="bt-metric"><b>${s.miss}</b><span>错点次数</span></div>` +
+    `<div class="bt-metric"><b>${s.impulse}</b><span>误触次数</span></div>` +
     `<div class="bt-metric"><b style="color:${g.color}">${g.grade}</b><span>本次评级</span></div>`;
   const recs = history.filter((h) => h.mode === s.mode && h.size === s.size && h.targets === s.targets);
   const avgAcc =
-    recs.length > 0
-      ? recs.reduce((sum, r) => sum + (r.mode === 'timing' ? r.hit / Math.max(r.hit + r.impulse, 1) : r.hit / Math.max(r.targets, 1)), 0) / recs.length
-      : 0;
+    recs.length > 0 ? recs.reduce((sum, r) => sum + r.hit / Math.max(r.targets, 1), 0) / recs.length : 0;
   noteEl.textContent =
     `${MODES[s.mode].name}（${s.size} 球 / 目标 ${s.targets}）· 同配置共训练 ${recs.length} 次，` +
-    `平均准确率 ${Math.round(avgAcc * 100)}%。冲动与干扰误触共 ${s.impulse} 次，坚持训练可逐步降低。`;
+    `平均准确率 ${Math.round(avgAcc * 100)}%。坚持训练可逐步提高锁定目标的准确率。`;
   renderTrend(recs);
 }
 
@@ -687,7 +513,7 @@ function renderTrend(recs: Session[]) {
     return;
   }
   const last = recs.slice(-10);
-  const vals = last.map((r) => (r.mode === 'timing' ? r.hit / Math.max(r.hit + r.impulse, 1) : r.hit / Math.max(r.targets, 1)));
+  const vals = last.map((r) => r.hit / Math.max(r.targets, 1));
   const max = Math.max(...vals, 0.1);
   for (let i = 0; i < last.length; i++) {
     const bar = document.createElement('div');
@@ -735,8 +561,13 @@ durInput.addEventListener('input', () => {
   durLabel.textContent = `${duration}s`;
   savePrefs();
 });
-freqInput.addEventListener('input', () => {
-  freqLabel.textContent = `${freqInput.value}s`;
+fluxInput.addEventListener('input', () => {
+  fluxLabel.textContent = `${fluxInput.value}s`;
+  savePrefs();
+});
+rotateInput.addEventListener('input', () => {
+  rotateSpeed = Number(rotateInput.value);
+  rotateLabel.textContent = `${rotateSpeed}°/s`;
   savePrefs();
 });
 startBtn.addEventListener('click', startGame);
@@ -778,7 +609,10 @@ if (typeof prefs.speed === 'number') {
   }
 }
 if (typeof prefs.duration === 'number') duration = prefs.duration;
-if (typeof prefs.distractFreq === 'number') freqInput.value = String(prefs.distractFreq);
+if (typeof prefs.fluxFreq === 'number') fluxInput.value = String(prefs.fluxFreq);
+if (typeof prefs.rotateSpeed === 'number' && prefs.rotateSpeed >= ROTATE_MIN && prefs.rotateSpeed <= ROTATE_MAX) {
+  rotateSpeed = prefs.rotateSpeed;
+}
 if (typeof prefs.muted === 'boolean') {
   muted = prefs.muted;
   muteBtn.setAttribute('aria-pressed', String(muted));
@@ -788,6 +622,7 @@ sizeInput.value = String(size);
 targetsInput.value = String(targets);
 speedInput.value = String(speedValue);
 durInput.value = String(duration);
+rotateInput.value = String(rotateSpeed);
 engine = new BallEngine(canvas, { baseRadius: 24 });
 buildModeTabs();
 updateControls();
