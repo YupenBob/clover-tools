@@ -24,8 +24,10 @@ const MODES: Record<ModeId, ModeMeta> = {
 };
 
 const MODE_ORDER: ModeId[] = ['track', 'distract', 'timing'];
-const SPEED_MAP: Record<number, number> = { 1: 70, 2: 110, 3: 160 };
-const SPEED_LABELS: Record<number, string> = { 1: '慢', 2: '中', 3: '快' };
+const SPEED_MIN = 40;
+const SPEED_MAX = 180;
+/** 旧版三档速度（用于偏好迁移） */
+const SPEED_LEGACY: number[] = [70, 110, 160];
 const HISTORY_KEY = 'ct-balltracker-history';
 const PREF_KEY = 'ct-balltracker-prefs';
 
@@ -96,7 +98,7 @@ const toast = $<HTMLElement>('btToast');
 let mode: ModeId = 'track';
 let size = 8;
 let targets = 2;
-let speedLevel = 2;
+let speedValue = 110;
 let duration = 15;
 let distractFreq = 6;
 let muted = false;
@@ -209,7 +211,7 @@ function savePrefs() {
       mode,
       size,
       targets,
-      speed: speedLevel,
+      speed: speedValue,
       duration,
       distractFreq: freqInput.value ? Number(freqInput.value) : undefined,
       muted,
@@ -274,7 +276,7 @@ function setMode(m: ModeId) {
 function updateControls() {
   sizeLabel.textContent = String(size);
   targetsLabel.textContent = String(targets);
-  speedLabel.textContent = SPEED_LABELS[speedLevel];
+  speedLabel.textContent = String(speedValue);
   durLabel.textContent = `${duration}s`;
   freqLabel.textContent = `${freqInput.value}s`;
   const isTiming = mode === 'timing';
@@ -300,12 +302,12 @@ function spawnBalls(count: number, targetCount: number): Ball[] {
     const overlap = balls.some((b) => Math.hypot(b.x - x, b.y - y) < (b.r + r) * 1.4);
     if (overlap) continue;
     const kind: BallKind = balls.length < targetCount ? 'target' : 'normal';
-    balls.push(makeBall(nextBallId++, x, y, r, kind, SPEED_MAP[speedLevel]));
+    balls.push(makeBall(nextBallId++, x, y, r, kind, speedValue));
   }
   // 兜底：不足时随机补充
   while (balls.length < count) {
     const kind: BallKind = balls.length < targetCount ? 'target' : 'normal';
-    balls.push(makeBall(nextBallId++, r + 8, r + 8, r, kind, SPEED_MAP[speedLevel]));
+    balls.push(makeBall(nextBallId++, r + 8, r + 8, r, kind, speedValue));
   }
   return shuffle(balls);
 }
@@ -393,7 +395,7 @@ function startLures() {
         r + 10 + Math.random() * (s.height - 2 * (r + 10)),
         r,
         'trap',
-        SPEED_MAP[speedLevel],
+        speedValue,
       );
       balls.push(trap);
       engine.setBalls(balls);
@@ -557,7 +559,7 @@ function finishTrack() {
     mode,
     size,
     targets,
-    speed: speedLevel,
+    speed: speedValue,
     hit: hitCount,
     miss: missCount,
     impulse: impulseCount,
@@ -576,7 +578,7 @@ function finishTiming() {
     mode,
     size,
     targets: 1,
-    speed: speedLevel,
+    speed: speedValue,
     hit: timingScore,
     miss: 0,
     impulse: timingImpulse,
@@ -724,8 +726,8 @@ targetsInput.addEventListener('input', () => {
   savePrefs();
 });
 speedInput.addEventListener('input', () => {
-  speedLevel = Number(speedInput.value);
-  speedLabel.textContent = SPEED_LABELS[speedLevel];
+  speedValue = Number(speedInput.value);
+  speedLabel.textContent = String(speedValue);
   savePrefs();
 });
 durInput.addEventListener('input', () => {
@@ -767,7 +769,14 @@ const prefs = readPrefs();
 if (prefs.mode && MODES[prefs.mode]) mode = prefs.mode;
 if (typeof prefs.size === 'number' && prefs.size >= 6 && prefs.size <= 12) size = prefs.size;
 if (typeof prefs.targets === 'number') targets = prefs.targets;
-if (typeof prefs.speed === 'number' && prefs.speed >= 1 && prefs.speed <= 3) speedLevel = prefs.speed;
+if (typeof prefs.speed === 'number') {
+  // 旧版 1-3 档迁移到线性值
+  if (prefs.speed >= 1 && prefs.speed <= 3) {
+    speedValue = SPEED_LEGACY[Math.round(prefs.speed) - 1] ?? 110;
+  } else if (prefs.speed >= SPEED_MIN && prefs.speed <= SPEED_MAX) {
+    speedValue = prefs.speed;
+  }
+}
 if (typeof prefs.duration === 'number') duration = prefs.duration;
 if (typeof prefs.distractFreq === 'number') freqInput.value = String(prefs.distractFreq);
 if (typeof prefs.muted === 'boolean') {
@@ -777,7 +786,7 @@ if (typeof prefs.muted === 'boolean') {
 }
 sizeInput.value = String(size);
 targetsInput.value = String(targets);
-speedInput.value = String(speedLevel);
+speedInput.value = String(speedValue);
 durInput.value = String(duration);
 engine = new BallEngine(canvas, { baseRadius: 24 });
 buildModeTabs();
