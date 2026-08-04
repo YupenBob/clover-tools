@@ -106,13 +106,22 @@ await page.waitForTimeout(200);
 await page.locator('.st-mode[data-mode="dual"]').click();
 await page.waitForTimeout(200);
 const dualHint = await page.locator('#stSizeHint').innerText();
-check('双盘总数 56（N=5）', /56/.test(dualHint), dualHint);
+check('双盘总数 72（N=5）', /72/.test(dualHint), dualHint);
 await page.locator('#stStart').click();
 await page.waitForTimeout(500);
 const discAcount = await page.locator('#stDiscA .st-dnum').count();
 const discBcount = await page.locator('#stDiscB .st-dnum').count();
-check('双盘分配 36/20', discAcount === 36 && discBcount === 20, `A=${discAcount}, B=${discBcount}`);
+check('双盘大小一致 36/36', discAcount === 36 && discBcount === 36, `A=${discAcount}, B=${discBcount}`);
 check('圆盘标签显示', await page.locator('#stTargetSide').isVisible());
+// 内环按钮可点击（点数字 3 触发错点反馈）
+await page.evaluate(() => {
+  const btns = Array.from(document.querySelectorAll('#stDiscA .st-dnum'));
+  const inner = btns.find((b) => b.textContent.trim() === '3');
+  if (inner) inner.click();
+});
+await page.waitForTimeout(120);
+check('内环按钮可点击', (await page.locator('.st-dnum.wrong').count()) >= 1);
+await page.waitForTimeout(400);
 await page.locator('#stExit').click();
 await page.waitForTimeout(200);
 

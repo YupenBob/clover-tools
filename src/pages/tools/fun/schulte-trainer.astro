@@ -1570,6 +1570,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   .st-ring {
     border-radius: 50%;
+    pointer-events: none;
   }
 
   .st-ring::before {
@@ -1579,6 +1580,54 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     border-radius: 50%;
     border: 1px dashed color-mix(in srgb, var(--primary) 26%, transparent);
     pointer-events: none;
+  }
+
+  .st-dnum {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none !important;
+    border-radius: 0 !important;
+    background: color-mix(in srgb, var(--bg-elevated) 58%, var(--primary-soft)) !important;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    pointer-events: auto;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 22%, transparent) !important;
+    transition: background-color 0.12s ease, color 0.12s ease, opacity 0.22s ease;
+  }
+
+  .st-dnum span {
+    display: block;
+    will-change: transform;
+    transition: transform 0.1s linear;
+  }
+
+  .st-dnum:hover:not(.done):not(.wrong) {
+    background: color-mix(in srgb, var(--primary-soft) 75%, var(--bg-elevated)) !important;
+    color: var(--primary-dark);
+  }
+
+  .st-dnum.wrong {
+    background: color-mix(in srgb, var(--error-soft) 80%, var(--bg-elevated)) !important;
+    color: var(--error) !important;
+  }
+
+  .st-dnum.done {
+    background: transparent !important;
+    color: var(--text-tertiary) !important;
+    opacity: 0.22;
+    box-shadow: none !important;
+    cursor: default;
+  }
+
+  .st-dnum.done span {
+    transform: none !important;
   }
 
   .st-dnum {
@@ -1672,6 +1721,15 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   /* ── 遮罩与弹题玻璃化 ── */
+  .st-discs[hidden],
+  .st-grid[hidden] {
+    display: none !important;
+  }
+
+  .st-dnum.done::after {
+    display: none;
+  }
+
   .st-veil-inner {
     padding: clamp(20px, 5vw, 40px);
     border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
@@ -1854,6 +1912,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   let countdownLeft = 0;
   let shuffleTimer: ReturnType<typeof setInterval> | null = null;
   let countdownTimer: ReturnType<typeof setInterval> | null = null;
+  let breakTimer: ReturnType<typeof setInterval> | null = null;
   let raf = 0;
   let lastT = 0;
   let ringAngles: number[] = [];
@@ -1989,8 +2048,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   function discRings(m: ModeId): [number, number] {
     if (m !== 'dual') return [size, 0];
-    const a = Math.ceil(size / 2);
-    return [a, size - a];
+    const k = Math.max(1, Math.ceil(size / 2));
+    return [k, k];
   }
 
   function discTotal(m: ModeId): number {
@@ -2101,6 +2160,35 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     return 54 + i * 48;
   }
 
+  function sectorClip(
+    cx: number,
+    cy: number,
+    rIn: number,
+    rOut: number,
+    a0: number,
+    a1: number,
+  ): { clip: string; box: { l: number; t: number; w: number; h: number } } {
+    const rad = (a: number) => (a * Math.PI) / 180;
+    const mid = (a0 + a1) / 2;
+    const pts = [a0, mid, a1, a1, mid, a0].map((a, i) => {
+      const rr = i < 3 ? rIn : rOut;
+      return [cx + rr * Math.cos(rad(a)), cy + rr * Math.sin(rad(a))] as const;
+    });
+    const xs = pts.map((p) => p[0]);
+    const ys = pts.map((p) => p[1]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    const w = maxX - minX || 1;
+    const h = maxY - minY || 1;
+    const clip =
+      'polygon(' +
+      pts.map((p) => `${(((p[0] - minX) / w) * 100).toFixed(2)}% ${(((p[1] - minY) / h) * 100).toFixed(2)}%`).join(', ') +
+      ')';
+    return { clip, box: { l: minX, t: minY, w: maxX - minX, h: maxY - minY } };
+  }
+
   function buildDisc(discEl: HTMLElement, nums: number[], ringCount: number, offset: number, label: 'A' | 'B') {
     discEl.innerHTML = '';
     const d = ringRadius(ringCount - 1) * 2 + 96;
@@ -2126,14 +2214,25 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       ringBtns[ring + offset] = [];
 
       const r = ringRadius(ring);
+      const rIn = Math.max(12, r - 23);
+      const rOut = r + 23;
+      const cx = d / 2;
+      const cy = d / 2;
       ringNums.forEach((n, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'st-dnum';
-        btn.textContent = String(n);
-        const a = (360 / ringNums.length) * idx;
-        btn.style.left = `${d / 2 + r * Math.cos((a * Math.PI) / 180) - 24}px`;
-        btn.style.top = `${d / 2 + r * Math.sin((a * Math.PI) / 180) - 24}px`;
+        const span = document.createElement('span');
+        span.textContent = String(n);
+        btn.appendChild(span);
+        const spanA = (360 / ringNums.length) * idx;
+        const spanB = spanA + 360 / ringNums.length;
+        const { clip, box } = sectorClip(cx, cy, rIn, rOut, spanA, spanB);
+        btn.style.left = `${box.l}px`;
+        btn.style.top = `${box.t}px`;
+        btn.style.width = `${box.w}px`;
+        btn.style.height = `${box.h}px`;
+        btn.style.clipPath = clip;
         btn.addEventListener('click', () => onCellClick(n, btn));
         ringEl.appendChild(btn);
         ringBtns[ring + offset].push(btn);
@@ -2179,7 +2278,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       if (ringEls[i]) ringEls[i].style.transform = `rotate(${angle}deg)`;
       const btns = ringBtns[i];
       if (btns) {
-        for (const b of btns) b.style.transform = `rotate(${-angle}deg)`;
+        for (const b of btns) {
+          const s = b.querySelector('span');
+          if (s) s.style.transform = `rotate(${-angle}deg)`;
+        }
       }
     }
     raf = requestAnimationFrame(tick);
@@ -2201,6 +2303,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     if (countdownTimer) {
       clearInterval(countdownTimer);
       countdownTimer = null;
+    }
+    if (breakTimer) {
+      clearInterval(breakTimer);
+      breakTimer = null;
     }
     veil.hidden = true;
   }
@@ -2386,12 +2492,15 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     veil.hidden = false;
     veilInner.dataset.phase = 'break';
     veilInner.innerHTML = `<div class="big" id="stBreakNum">${left}</div><div class="sub">休息后自动进入下一轮</div>`;
-    const iv = setInterval(() => {
+    breakTimer = setInterval(() => {
       left--;
       const el = document.getElementById('stBreakNum');
       if (el) el.textContent = String(left);
       if (left <= 0) {
-        clearInterval(iv);
+        if (breakTimer) {
+          clearInterval(breakTimer);
+          breakTimer = null;
+        }
         veil.hidden = true;
         startGame();
       }
@@ -2420,7 +2529,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     renderResult(session, history);
     actTrain.hidden = true;
     actResult.hidden = false;
-    if (roundsInput.checked && !timeUp) {
+    if (roundsInput.checked) {
       startBreak();
     }
     savePrefs();
