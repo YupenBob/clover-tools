@@ -55,7 +55,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const mode = byId<HTMLSelectElement>('jfMode').value;
     const btn = byId<HTMLButtonElement>('jfBtn');
     btn.disabled = true;
-    showStatus('jfStatus', 'info', '加载转换引擎……');
+    showStatus('jfStatus', 'info', '正在加载转换引擎（首次约 1MB）……');
     try {
       const { default: OpenCC } = await import('opencc-js');
       const converters: Record<string, (s: string) => string> = {

@@ -44,9 +44,11 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     try {
+      showStatus('jsStatus', 'info', '正在加载格式化引擎（首次约 1MB）……');
       const prettier = await import('prettier/standalone');
       const babelPlugin = await import('prettier/plugins/babel');
       const estreePlugin = await import('prettier/plugins/estree');
+      showStatus('jsStatus', 'info', '正在格式化……');
       output.value = await prettier.format(input.value, {
         parser: 'babel',
         plugins: [babelPlugin, estreePlugin] as never,
@@ -70,7 +72,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       return;
     }
     try {
+      showStatus('jsStatus', 'info', '正在加载压缩引擎……');
       const { minify: terserMinify } = await import('terser');
+      showStatus('jsStatus', 'info', '正在压缩……');
       const result = await terserMinify(input.value, { mangle: true, compress: true });
       output.value = result.code || '';
       setStats('jsStats', `${output.value.length} 字符`);
