@@ -52,7 +52,8 @@ export class BallEngine {
     if (!ctx) throw new Error('Canvas 2D 上下文不可用');
     this.ctx = ctx;
     this.baseRadius = opts.baseRadius;
-    this.restitution = opts.restitution ?? 0.9;
+    // 0.98：近似完全弹性，单轮训练内速度基本保持，仅极轻微衰减
+    this.restitution = opts.restitution ?? 0.98;
     this.colors = {
       normal: cssVar('--text-secondary', '#66604f'),
       target: cssVar('--primary', '#c9a96e'),
