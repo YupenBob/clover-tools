@@ -28,8 +28,8 @@ const SPEED_MIN = 400;
 const SPEED_MAX = 1000;
 /** 旧版三档速度（用于偏好迁移） */
 const SPEED_LEGACY: number[] = [400, 700, 1000];
-const ROTATE_MIN = 5;
-const ROTATE_MAX = 20;
+const ROTATE_MIN = 50;
+const ROTATE_MAX = 200;
 const HISTORY_KEY = 'ct-balltracker-history';
 const PREF_KEY = 'ct-balltracker-prefs';
 
@@ -105,7 +105,7 @@ let size = 12;
 let targets = 2;
 let speedValue = 700;
 let duration = 15;
-let rotateSpeed = 10;
+let rotateSpeed = 120;
 let muted = false;
 let phase: Phase = 'mark';
 let running = false;
