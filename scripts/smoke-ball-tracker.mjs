@@ -46,7 +46,7 @@ const modeNames = await page.locator('.bt-mode > span:nth-child(2)').allTextCont
 check('三模式齐全', modeNames.length === 3 && modeNames[0] === '目标追踪' && modeNames[1] === '数量增减' && modeNames[2] === '整体旋转', modeNames.join(','));
 check('球数量上限 20', (await page.locator('#btSize').getAttribute('max')) === '20');
 check('目标数上限 3', (await page.locator('#btTargets').getAttribute('max')) === '3');
-check('速度上限 300', (await page.locator('#btSpeed').getAttribute('max')) === '300');
+check('速度上限 1000', (await page.locator('#btSpeed').getAttribute('max')) === '1000');
 check('混入频率默认隐藏', !(await page.locator('#btFluxWrap').isVisible()));
 check('旋转速度默认隐藏', !(await page.locator('#btRotateWrap').isVisible()));
 
