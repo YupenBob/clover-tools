@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import AdUnit from '../components/AdUnit.astro';
 import type { ToolCategory, ToolMeta } from '../lib/tools';
 import { getToolHref } from '../lib/tools';
 import { SITE } from '../lib/site';
@@ -87,8 +88,10 @@ const jsonLd: Record<string, unknown>[] = [
           </a>
         ))}
       </div>
-    </aside>
+  </aside>
   </div>
+
+  <AdUnit adSlot="tool_bottom" />
 
   {content && (
     <section class="tool-about" aria-labelledby="usage-heading">

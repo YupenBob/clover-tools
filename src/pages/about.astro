@@ -1,0 +1,521 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
+
+const totalTools = (Object.keys(TOOLS) as ToolCategory[]).reduce(
+  (sum, cat) => sum + TOOLS[cat].length,
+  0,
+);
+
+const title = `关于 - ${SITE.name}`;
+const description =
+  `了解 ${SITE.name}：覆盖开发实用、日常实用与趣味工具三大类场景的精选在线工具箱，` +
+  `共 ${totalTools} 个工具，纯浏览器处理、数据不出本地、即开即用无需注册。`;
+const canonical = `${SITE.url}/about/`;
+
+const aboutJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: `关于 ${SITE.name}`,
+  url: canonical,
+  description: SITE.description,
+  inLanguage: 'zh-CN',
+  mainEntity: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+    logo: `${SITE.url}/clover-logo.svg`,
+    sameAs: [SITE.github],
+  },
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={['关于', 'CloverTools', '在线工具箱']}
+  canonical={canonical}
+  ads={false}
+  jsonLd={aboutJsonLd}
+>
+  <section class="about-hero">
+    <div class="about-glow" aria-hidden="true"></div>
+    <div class="dust" aria-hidden="true">
+      <span class="dust-p" style="left: 18%; --d: 9s; --dl: 0s; --dx: 24px;"></span>
+      <span class="dust-p" style="left: 36%; --d: 11s; --dl: 2.6s; --dx: -18px;"></span>
+      <span class="dust-p" style="left: 58%; --d: 10s; --dl: 1.2s; --dx: 30px;"></span>
+      <span class="dust-p" style="left: 76%; --d: 12s; --dl: 4s; --dx: -26px;"></span>
+      <span class="dust-p" style="left: 90%; --d: 9.5s; --dl: 3.2s; --dx: 14px;"></span>
+    </div>
+    <div class="about-hero-inner">
+      <img
+        class="about-logo"
+        src="/clover-logo.svg"
+        alt="CloverTools 图标"
+        width="96"
+        height="96"
+        fetchpriority="high"
+      />
+      <h1 class="about-title">
+        <span class="about-title-label">关于</span>
+        <span class="about-brand">CloverTools</span>
+      </h1>
+      <p class="about-lead">
+        {SITE.tagline}。{totalTools} 个手写工具覆盖开发实用、日常实用与趣味工具三大场景，
+        所有功能都在浏览器本地完成，打开即用、用完即走。
+      </p>
+      <div class="about-stats">
+        <div class="about-stat about-reveal" style="--delay: 40ms">
+          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <span class="about-stat-num">{totalTools}</span>
+          <span class="about-stat-label">在线工具</span>
+        </div>
+        <div class="about-stat about-reveal" style="--delay: 120ms">
+          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <span class="about-stat-num">{CATEGORIES.length}</span>
+          <span class="about-stat-label">工具分类</span>
+        </div>
+        <div class="about-stat about-reveal" style="--delay: 200ms">
+          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <span class="about-stat-num">100%</span>
+          <span class="about-stat-label">本地处理</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section" aria-labelledby="features-heading">
+    <header class="category-head about-reveal">
+      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <div>
+        <h2 class="category-title" id="features-heading">特色亮点</h2>
+        <p class="category-blurb">为什么选择 CloverTools</p>
+      </div>
+    </header>
+    <div class="feature-grid">
+      <div class="feature-col about-reveal" style="--delay: 40ms">
+        <div class="feature-card">
+          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <h3>即开即用</h3>
+          <p>无需注册、无需安装，打开页面即可使用</p>
+        </div>
+      </div>
+      <div class="feature-col about-reveal" style="--delay: 90ms">
+        <div class="feature-card">
+          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <h3>隐私优先</h3>
+          <p>纯浏览器端处理，数据不出本地</p>
+        </div>
+      </div>
+      <div class="feature-col about-reveal" style="--delay: 140ms">
+        <div class="feature-card">
+          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <h3>精品手写</h3>
+          <p>每个工具逐一编写，内置输入校验与示例</p>
+        </div>
+      </div>
+      <div class="feature-col about-reveal" style="--delay: 40ms">
+        <div class="feature-card">
+          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <h3>分类清晰</h3>
+          <p>开发实用、日常实用、趣味工具三大场景</p>
+        </div>
+      </div>
+      <div class="feature-col about-reveal" style="--delay: 90ms">
+        <div class="feature-card">
+          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <h3>多端适配</h3>
+          <p>移动端自适应，支持深色模式</p>
+        </div>
+      </div>
+      <div class="feature-col about-reveal" style="--delay: 140ms">
+        <div class="feature-card">
+          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <h3>开源免费</h3>
+          <p>源码托管于 GitHub，欢迎贡献与反馈</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="about-section" aria-labelledby="links-heading">
+    <header class="category-head about-reveal">
+      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <div>
+        <h2 class="category-title" id="links-heading">了解更多</h2>
+        <p class="category-blurb">访问资源与参与贡献</p>
+      </div>
+    </header>
+    <div class="about-links-panel about-reveal">
+      <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
+        <i class="bi bi-github" aria-hidden="true"></i>
+        GitHub 仓库
+        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+      </a>
+      <a class="btn btn-secondary" href="/sitemap-index.xml">
+        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        站点地图
+      </a>
+      <a class="btn btn-ghost" href="/">
+        <i class="bi bi-house-door" aria-hidden="true"></i>
+        返回首页
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about-hero {
+    position: relative;
+    padding: var(--space-8) 0 var(--space-7);
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .about-glow {
+    position: absolute;
+    top: -170px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 780px;
+    height: 460px;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(var(--primary-rgb), 0.16) 0%,
+      rgba(var(--primary-rgb), 0.05) 55%,
+      transparent 75%
+    );
+    pointer-events: none;
+    animation: about-glow-breathe 8s ease-in-out infinite;
+  }
+
+  @keyframes about-glow-breathe {
+    0%,
+    100% {
+      opacity: 0.75;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.08);
+    }
+  }
+
+  .about-hero-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .about-logo {
+    width: 96px;
+    height: 96px;
+    margin-bottom: -2px;
+    filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.35));
+    animation: about-logo-float 4.5s ease-in-out infinite;
+  }
+
+  @keyframes about-logo-float {
+    0%,
+    100% {
+      transform: translateY(0);
+      filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.35));
+    }
+    50% {
+      transform: translateY(-4px);
+      filter: drop-shadow(0 10px 22px rgba(var(--primary-rgb), 0.45));
+    }
+  }
+
+  .about-title {
+    margin: var(--space-5) 0 var(--space-3);
+    font-size: clamp(34px, 6vw, 52px);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .about-title-label {
+    color: var(--text);
+  }
+
+  .about-brand {
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .about-lead {
+    max-width: 620px;
+    margin: 0 auto;
+    color: var(--text-secondary);
+    font-size: 15.5px;
+    line-height: 1.8;
+  }
+
+  .about-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    width: 100%;
+    max-width: 560px;
+    margin: var(--space-6) auto 0;
+  }
+
+  .about-stat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-5) var(--space-3) var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .about-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .about-stat:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  .about-stat:hover::before {
+    opacity: 1;
+  }
+
+  .about-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-bottom: var(--space-2);
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 17px;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .about-stat:hover .about-stat-icon {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    transform: translateY(-2px) scale(1.06);
+  }
+
+  .about-stat-num {
+    display: block;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.2;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .about-stat-label {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+
+  .about-section {
+    position: relative;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: var(--space-7) 0;
+  }
+
+  .about-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(340px, 65%);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+
+  .feature-col {
+    display: flex;
+  }
+
+  .feature-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--space-5) var(--space-4);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .feature-card::after {
+    content: '';
+    position: absolute;
+    top: -44px;
+    right: -44px;
+    width: 96px;
+    height: 96px;
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.16) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+  }
+
+  .feature-card:hover::after {
+    opacity: 1;
+  }
+
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    margin-bottom: var(--space-3);
+    border-radius: var(--radius-sm);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 20px;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  }
+
+  .feature-card:hover .feature-icon {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    transform: translateY(-2px) rotate(-4deg);
+  }
+
+  .feature-card h3 {
+    margin-bottom: var(--space-2);
+    font-size: 15.5px;
+  }
+
+  .feature-card p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+  }
+
+  .about-links-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--bg-elevated), var(--bg-secondary));
+    box-shadow: var(--shadow-sm);
+  }
+
+  .link-out {
+    font-size: 12px;
+    opacity: 0.75;
+  }
+
+  /* 鈹€鈹€ 滚动渐入 鈹€鈹€ */
+  html.js .about-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease var(--delay, 0ms), transform 0.5s ease var(--delay, 0ms);
+  }
+
+  html.js .about-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 700px) {
+    .about-hero {
+      padding-top: var(--space-6);
+    }
+
+    .feature-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .about-logo {
+      width: 80px;
+      height: 80px;
+    }
+
+    .about-stats {
+      grid-template-columns: 1fr;
+      max-width: 260px;
+    }
+
+    .feature-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-links-panel {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .about-links-panel .btn {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  document.documentElement.classList.add('js');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const items = Array.from(document.querySelectorAll<HTMLElement>('.about-reveal'));
+
+  if (reduced || !('IntersectionObserver' in window)) {
+    items.forEach((el) => el.classList.add('revealed'));
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -32px 0px' },
+    );
+    items.forEach((el) => observer.observe(el));
+  }
+</script>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ToolCard from '../components/ToolCard.astro';
+import AdUnit from '../components/AdUnit.astro';
 import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
 import { SITE } from '../lib/site';
 import { pinyin } from 'pinyin-pro';
@@ -88,6 +89,8 @@ const homeJsonLd = [
   </nav>
 
   <div class="search-count" id="searchCount">共 {total} 个工具</div>
+
+  <AdUnit adSlot="home_top" />
 
   {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>

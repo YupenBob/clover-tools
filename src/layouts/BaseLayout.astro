@@ -12,6 +12,7 @@ interface Props {
   canonical?: string;
   ogImage?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  ads?: boolean;
 }
 
 const {
@@ -21,6 +22,7 @@ const {
   canonical = SITE.url + '/',
   ogImage = SITE.url + '/og-image.jpg',
   jsonLd,
+  ads = true,
 } = Astro.props;
 
 const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
@@ -36,6 +38,19 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <meta name="description" content={description} />
     {keywords && <meta name="keywords" content={keywords.join(',')} />}
     <link rel="canonical" href={canonical} />
+
+    {ads && (
+      <>
+        <!-- Google AdSense -->
+        <script
+          is:inline
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2739960879713370"
+          crossorigin="anonymous"
+        ></script>
+      </>
+    )}
+
     <link rel="preload" as="image" href="/clover-logo.svg" />
     <link
       rel="preload"

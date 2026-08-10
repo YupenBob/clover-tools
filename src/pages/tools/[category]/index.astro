@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ToolCard from '../../../components/ToolCard.astro';
+import AdUnit from '../../../components/AdUnit.astro';
 import { CATEGORIES, TOOLS, type ToolCategory } from '../../../lib/tools';
 import { SITE } from '../../../lib/site';
 
@@ -52,6 +53,8 @@ const jsonLd = {
     <h1>{cat.name}工具</h1>
     <p class="tool-hero-desc">{cat.blurb}共 {TOOLS[cat.id].length} 个，全部纯浏览器处理。</p>
   </header>
+
+  <AdUnit adSlot="category_top" />
 
   <div class="tool-grid">
     {tools.map((tool, ti) => (

@@ -1,0 +1,41 @@
+---
+import { ADSENSE_CLIENT, getAdSlot, type AdSlotKey } from '../lib/ads';
+
+interface Props {
+  adSlot: AdSlotKey;
+  className?: string;
+}
+
+const { adSlot, className = '' } = Astro.props;
+const slotId = getAdSlot(adSlot);
+const classNames = ['ad-slot', className].filter(Boolean).join(' ');
+---
+
+{slotId && (
+  <div class={classNames}>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={ADSENSE_CLIENT}
+      data-ad-slot={slotId}
+      data-ad-format="horizontal"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+)}
+
+<style>
+  .ad-slot {
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: var(--space-5) 0;
+    overflow: hidden;
+  }
+
+  .ad-slot ins {
+    display: block;
+  }
+</style>
