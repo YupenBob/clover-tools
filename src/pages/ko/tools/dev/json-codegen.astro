@@ -1,0 +1,161 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'json-codegen', 'ko')!;
+const related = getRelated(category, 'json-codegen', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JSON 입력" icon="bi-braces">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jcgSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="jcgClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="jcgInput" spellcheck="false" placeholder='JSON 붙여넣기, 예: {"id":1,"name":"Clover","tags":["dev"]}'></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="jcgLang">대상 언어</label>
+        <select class="select" id="jcgLang">
+          <option value="ts" selected>TypeScript</option>
+          <option value="go">Golang</option>
+          <option value="java">Java</option>
+          <option value="csharp">C#</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="jcgName">타입 이름</label>
+        <input class="input" id="jcgName" type="text" value="Root" spellcheck="false" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jcgBtn" type="button"><i class="bi bi-file-code"></i> 코드 생성</button>
+    </div>
+    <div class="status-msg" id="jcgStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="생성된 코드" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jcgCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="jcgOutput" readonly spellcheck="false" placeholder="생성 후 코드가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const SAMPLE = { id: 1, name: 'CloverTools', free: true, tags: ['dev', 'tools'], stats: { tools: 68, downloads: 1024 } };
+
+  function cap(s: string): string {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function tsType(v: unknown): string {
+    if (v === null) return 'null';
+    if (Array.isArray(v)) return v.length > 0 ? `${tsType(v[0])}[]` : 'unknown[]';
+    if (typeof v === 'object') return 'Record<string, unknown>';
+    if (typeof v === 'number') return 'number';
+    if (typeof v === 'boolean') return 'boolean';
+    return 'string';
+  }
+
+  function genTs(obj: Record<string, unknown>, name: string): string {
+    const out: string[] = [`export interface ${name} {`];
+    for (const [key, value] of Object.entries(obj)) {
+      out.push(`  ${/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? key : JSON.stringify(key)}: ${tsType(value)};`);
+    }
+    out.push('}');
+    return out.join('\n');
+  }
+
+  function genGo(obj: Record<string, unknown>, name: string): string {
+    const goType = (v: unknown): string => {
+      if (v === null) return 'interface{}';
+      if (Array.isArray(v)) return v.length > 0 ? `[]${goType(v[0])}` : '[]interface{}';
+      if (typeof v === 'object') return 'interface{}';
+      if (typeof v === 'number') return 'float64';
+      if (typeof v === 'boolean') return 'bool';
+      return 'string';
+    };
+    const out: string[] = [`type ${name} struct {`];
+    for (const [key, value] of Object.entries(obj)) {
+      const field = cap(key.replace(/[^A-Za-z0-9_]/g, '_'));
+      out.push(`\t${field} ${goType(value)} \`json:"${key}"\``);
+    }
+    out.push('}');
+    return out.join('\n');
+  }
+
+  function genJava(obj: Record<string, unknown>, name: string): string {
+    const javaType = (v: unknown): string => {
+      if (v === null) return 'Object';
+      if (Array.isArray(v)) return v.length > 0 ? `List<${javaType(v[0])}>` : 'List<Object>';
+      if (typeof v === 'object') return 'Map<String, Object>';
+      if (typeof v === 'number') return Number.isInteger(v) ? 'Integer' : 'Double';
+      if (typeof v === 'boolean') return 'Boolean';
+      return 'String';
+    };
+    const out: string[] = [];
+    for (const [key, value] of Object.entries(obj)) {
+      out.push(`private ${javaType(value)} ${key};\n`);
+    }
+    return `public class ${name} {\n` + out.join('') + `\n}`;
+  }
+
+  function genCsharp(obj: Record<string, unknown>, name: string): string {
+    const csType = (v: unknown): string => {
+      if (v === null) return 'object';
+      if (Array.isArray(v)) return v.length > 0 ? `List<${csType(v[0])}>` : 'List<object>';
+      if (typeof v === 'object') return 'Dictionary<string, object>';
+      if (typeof v === 'number') return 'double';
+      if (typeof v === 'boolean') return 'bool';
+      return 'string';
+    };
+    const out: string[] = [`public class ${name}\n{`];
+    for (const [key, value] of Object.entries(obj)) {
+      const prop = cap(key.replace(/[^A-Za-z0-9_]/g, '_'));
+      out.push(`    public ${csType(value)} ${prop} { get; set; }`);
+    }
+    out.push('}');
+    return out.join('\n');
+  }
+
+  function generate() {
+    hideStatus('jcgStatus');
+    const src = byId<HTMLTextAreaElement>('jcgInput').value.trim();
+    const lang = byId<HTMLSelectElement>('jcgLang').value;
+    let name = byId<HTMLInputElement>('jcgName').value.trim() || 'Root';
+    if (!src) {
+      showStatus('jcgStatus', 'error', 'JSON을 입력하세요');
+      return;
+    }
+    let data: unknown;
+    try {
+      data = JSON.parse(src);
+    } catch (e) {
+      showStatus('jcgStatus', 'error', `JSON 파싱 실패: ${(e as Error).message}`);
+      return;
+    }
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      showStatus('jcgStatus', 'error', '객체 형식의 JSON(최상위가 {})을 입력하세요');
+      return;
+    }
+    name = cap(name.replace(/[^A-Za-z0-9_]/g, '_'));
+    const obj = data as Record<string, unknown>;
+    switch (lang) {
+      case 'ts': byId<HTMLTextAreaElement>('jcgOutput').value = genTs(obj, name); break;
+      case 'go': byId<HTMLTextAreaElement>('jcgOutput').value = genGo(obj, name); break;
+      case 'java': byId<HTMLTextAreaElement>('jcgOutput').value = genJava(obj, name); break;
+      case 'csharp': byId<HTMLTextAreaElement>('jcgOutput').value = genCsharp(obj, name); break;
+    }
+    showStatus('jcgStatus', 'success', '생성 완료');
+  }
+
+  byId<HTMLButtonElement>('jcgBtn').addEventListener('click', generate);
+  bindSample('jcgSample', 'jcgInput', JSON.stringify(SAMPLE, null, 2));
+  bindClear('jcgClear', ['jcgInput'], ['jcgOutput'], 'jcgStatus');
+  bindCopyBtn('jcgCopy', () => byId<HTMLTextAreaElement>('jcgOutput').value);
+</script>

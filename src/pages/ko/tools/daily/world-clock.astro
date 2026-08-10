@@ -1,0 +1,204 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'world-clock', 'ko')!;
+const related = getRelated(category, 'world-clock', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="세계 시계" icon="bi-globe-americas">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="wcTz">시간대 추가</label>
+        <select class="select" id="wcTz"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="wcAdd">&nbsp;</label>
+        <button class="btn btn-primary" id="wcAdd" type="button"><i class="bi bi-plus-lg"></i> 추가</button>
+      </div>
+    </div>
+    <div class="wc-grid" id="wcGrid"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .wc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .wc-card {
+    position: relative;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .wc-card .city {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .wc-card .time {
+    margin-top: 6px;
+    font-size: 24px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .wc-card .date {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .wc-card .diff {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12px;
+  }
+
+  .wc-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .wc-remove:hover {
+    color: var(--error);
+    background: var(--error-soft);
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  const ZONES: [string, string][] = [
+    ['Asia/Shanghai', '베이징'],
+    ['Asia/Hong_Kong', '홍콩'],
+    ['Asia/Tokyo', '도쿄'],
+    ['Asia/Singapore', '싱가포르'],
+    ['Asia/Dubai', '두바이'],
+    ['Europe/London', '런던'],
+    ['Europe/Paris', '파리'],
+    ['Europe/Moscow', '모스크바'],
+    ['America/New_York', '뉴욕'],
+    ['America/Los_Angeles', '로스앤젤레스'],
+    ['America/Chicago', '시카고'],
+    ['America/Sao_Paulo', '상파울루'],
+    ['Australia/Sydney', '시드니'],
+    ['Pacific/Auckland', '오클랜드'],
+  ];
+  const DEFAULT = ['Asia/Shanghai', 'Asia/Tokyo', 'Europe/London', 'America/New_York'];
+  const grid = byId<HTMLElement>('wcGrid');
+  const tzSel = byId<HTMLSelectElement>('wcTz');
+  let zones: string[] = [...DEFAULT];
+
+  const formatter = new Intl.DateTimeFormat('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  });
+
+  function cityName(tz: string): string {
+    return ZONES.find(([z]) => z === tz)?.[1] || tz.replace(/_/g, ' ').split('/').pop() || tz;
+  }
+
+  function offsetOf(tz: string): number {
+    const parts: Record<string, string> = {};
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).formatToParts(new Date()).forEach((p) => {
+      if (p.type !== 'literal') parts[p.type] = p.value;
+    });
+    const asUtc = Date.UTC(
+      Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+      Number(parts.hour), Number(parts.minute), Number(parts.second),
+    );
+    return Math.round((asUtc - Date.now()) / 3600000);
+  }
+
+  function render() {
+    const now = new Date();
+    const localOffset = -now.getTimezoneOffset() / 60;
+    grid.innerHTML = zones
+      .map((tz) => {
+        const time = formatter.formatToParts(now);
+        const parts: Record<string, string> = {};
+        for (const p of time) parts[p.type] = p.value;
+        const offset = offsetOf(tz);
+        const diff = offset - localOffset;
+        const dateStr = new Intl.DateTimeFormat('ko-KR', {
+          year: 'numeric', month: '2-digit', day: '2-digit', timeZone: tz,
+        }).format(now);
+        return `<div class="wc-card" data-tz="${tz}">` +
+          `<button class="wc-remove" type="button" title="제거"><i class="bi bi-x-lg"></i></button>` +
+          `<div class="city">${cityName(tz)}</div>` +
+          `<div class="time">${parts.hour}:${parts.minute}:${parts.second}</div>` +
+          `<div class="date">${dateStr}</div>` +
+          `<span class="diff">${diff === 0 ? '현지 시간과 동일' : `현지 시간 대비 ${diff > 0 ? '+' : ''}${diff}시간`}</span>` +
+          '</div>';
+      })
+      .join('');
+  }
+
+  tzSel.innerHTML = ZONES
+    .filter(([z]) => !zones.includes(z))
+    .map(([z, name]) => `<option value="${z}">${name} (${z})</option>`)
+    .join('');
+
+  byId<HTMLButtonElement>('wcAdd').addEventListener('click', () => {
+    const tz = tzSel.value;
+    if (!tz || zones.includes(tz)) {
+      window.CT.showToast('이미 추가된 시간대입니다.', 'info');
+      return;
+    }
+    zones.push(tz);
+    render();
+    tzSel.innerHTML = ZONES
+      .filter(([z]) => !zones.includes(z))
+      .map(([z, name]) => `<option value="${z}">${name} (${z})</option>`)
+      .join('');
+  });
+
+  grid.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.wc-remove');
+    if (!btn) return;
+    const tz = (btn.closest('.wc-card') as HTMLElement).dataset.tz;
+    zones = zones.filter((z) => z !== tz);
+    render();
+    tzSel.innerHTML = ZONES
+      .filter(([z]) => !zones.includes(z))
+      .map(([z, name]) => `<option value="${z}">${name} (${z})</option>`)
+      .join('');
+  });
+
+  render();
+  setInterval(render, 1000);
+</script>

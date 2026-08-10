@@ -1,0 +1,99 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'workday', 'ja')!;
+const related = getRelated(category, 'workday', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="日付範囲" icon="bi-briefcase">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="wdStart">開始日</label>
+        <input class="input" id="wdStart" type="date" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="wdEnd">終了日</label>
+        <input class="input" id="wdEnd" type="date" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="wdBtn" type="button"><i class="bi bi-briefcase"></i> 就業日を計算</button>
+    </div>
+    <div class="status-msg" id="wdStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">週末を自動的に除外し、国務院の祝日調整に基づいて振替出勤日を判定します（祝日の出勤日は就業日としてカウント）。</p>
+  </ToolPanel>
+
+  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+    <div class="lc-result" id="wdResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import { HolidayUtil } from 'lunar-javascript';
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function calc() {
+    hideStatus('wdStatus');
+    const s = byId<HTMLInputElement>('wdStart').value;
+    const e = byId<HTMLInputElement>('wdEnd').value;
+    if (!s || !e) {
+      showStatus('wdStatus', 'error', '日付範囲を選択してください');
+      return;
+    }
+    const start = new Date(s + 'T00:00:00');
+    const end = new Date(e + 'T00:00:00');
+    if (end < start) {
+      showStatus('wdStatus', 'error', '終了日は開始日より前にできません');
+      return;
+    }
+    let workdays = 0;
+    let holidays = 0;
+    let makeups = 0;
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const ymd = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(cursor.getDate())}`;
+      const h = HolidayUtil.getHoliday(ymd);
+      const weekend = cursor.getDay() === 0 || cursor.getDay() === 6;
+      if (h) {
+        if (h.isWork()) { workdays++; makeups++; }
+        else { holidays++; }
+      } else if (!weekend) {
+        workdays++;
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    byId<HTMLElement>('wdResult').innerHTML =
+      `<div>就業日：<b>${workdays}</b> 日（振替出勤 ${makeups} 日を含む）</div>` +
+      `<div>法定休日（週末含む）：${holidays} 日</div>` +
+      `<div>期間の合計日数：${totalDays} 日</div>`;
+    showStatus('wdStatus', 'success', '計算が完了しました');
+  }
+
+  byId<HTMLButtonElement>('wdBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('wdStart').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const end = new Date(now);
+  end.setMonth(end.getMonth() + 1);
+  byId<HTMLInputElement>('wdEnd').value = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+</script>

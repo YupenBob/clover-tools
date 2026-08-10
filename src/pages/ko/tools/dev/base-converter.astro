@@ -1,0 +1,101 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'base-converter', 'ko')!;
+const related = getRelated(category, 'base-converter', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="진법 변환" icon="bi-123">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="bcSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="bcClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="bcValue">값</label>
+        <input class="input mono" id="bcValue" type="text" placeholder="변환할 숫자를 입력하세요" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="bcFrom">원본 진법</label>
+        <select class="select" id="bcFrom">
+          <option value="2">2진법</option>
+          <option value="8">8진법</option>
+          <option value="10" selected>10진법</option>
+          <option value="16">16진법</option>
+          <option value="32">32진법</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="bcTo">대상 진법</label>
+        <select class="select" id="bcTo">
+          <option value="2">2진법</option>
+          <option value="8">8진법</option>
+          <option value="10">10진법</option>
+          <option value="16" selected>16진법</option>
+          <option value="32">32진법</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcBtn" type="button"><i class="bi bi-arrow-repeat"></i> 변환</button>
+    </div>
+    <div class="status-msg" id="bcStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="bcOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+  function convert() {
+    hideStatus('bcStatus');
+    const raw = byId<HTMLInputElement>('bcValue').value.trim();
+    const from = Number(byId<HTMLSelectElement>('bcFrom').value);
+    const to = Number(byId<HTMLSelectElement>('bcTo').value);
+    if (!raw) {
+      showStatus('bcStatus', 'error', '값을 입력하세요');
+      return;
+    }
+    const neg = raw.startsWith('-');
+    const digits = (neg ? raw.slice(1) : raw).toLowerCase();
+    try {
+      let value = BigInt(0);
+      for (const ch of digits) {
+        const d = DIGITS.indexOf(ch);
+        if (d === -1 || d >= from) throw new Error(`문자 ${ch}는 ${from}진법 숫자가 아닙니다`);
+        value = value * BigInt(from) + BigInt(d);
+      }
+      if (value === BigInt(0)) {
+        byId<HTMLTextAreaElement>('bcOutput').value = '0';
+      } else {
+        let out = '';
+        let v = value;
+        while (v > BigInt(0)) {
+          out = DIGITS[Number(v % BigInt(to))] + out;
+          v /= BigInt(to);
+        }
+        byId<HTMLTextAreaElement>('bcOutput').value = (neg ? '-' : '') + out;
+      }
+      showStatus('bcStatus', 'success', '변환 완료(임의의 큰 정수 지원)');
+    } catch (e) {
+      showStatus('bcStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('bcBtn').addEventListener('click', convert);
+  bindSample('bcSample', 'bcValue', '255');
+  bindClear('bcClear', ['bcValue'], ['bcOutput'], 'bcStatus');
+  bindCopyBtn('bcCopy', () => byId<HTMLTextAreaElement>('bcOutput').value);
+</script>

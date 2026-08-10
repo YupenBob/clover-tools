@@ -16,12 +16,26 @@ if (!token) {
 }
 const MODEL = 'deepseek-v4-flash';
 const BASE = 'https://api.deepseek.com';
+const TARGET = process.env.DS_LANG || 'en';
+const PREFIX = TARGET === 'en' ? '/en' : '/' + TARGET;
+const SOURCE = process.env.DS_SOURCE || 'zh';
+const LANG_NAME =
+  TARGET === 'ko' ? 'Korean (한국어)' : TARGET === 'ja' ? 'Japanese (日本語)' : 'English';
+const ONLY = process.env.DS_ONLY
+  ? process.env.DS_ONLY.split(',').map((s) => s.trim()).filter(Boolean)
+  : null;
 
 async function call(messages) {
   const r = await fetch(BASE + '/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ model: MODEL, messages, max_tokens: 20000, temperature: 0.2 }),
+    body: JSON.stringify({
+      model: MODEL,
+      messages,
+      max_tokens: 20000,
+      temperature: 0.2,
+      thinking: { type: 'disabled' },
+    }),
   });
   if (!r.ok) throw new Error('HTTP ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const d = await r.json();
@@ -34,7 +48,8 @@ function clean(raw) {
 }
 
 function templatePrompt(file) {
-  return `You translate Chinese Astro UI pages to English for CloverTools. Output ONLY the translated fragment, no fences, no extra text.
+  const srcLang = SOURCE === 'en' ? 'English' : 'Chinese';
+  return `You translate ${srcLang} Astro UI pages to ${LANG_NAME} for CloverTools. Output ONLY the translated fragment, no fences, no extra text.
 Replace the frontmatter with EXACTLY:
 ---
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
@@ -42,18 +57,25 @@ import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
 const category = '${file.cat}' as const;
-const tool = getToolMeta(category, '${file.slug}', 'en')!;
-const related = getRelated(category, '${file.slug}', 'en', 6);
+const tool = getToolMeta(category, '${file.slug}', '${TARGET}')!;
+const related = getRelated(category, '${file.slug}', '${TARGET}', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
 Include the ToolPanel import only if the source imports it. Remove old imports/lookups and any categoryName prop. Deepen any other relative import by one level.
-Translate every user-visible Chinese string to natural English (headings, labels, placeholders, buttons, option text, aria-labels, titles). Keep ALL ids, class names, element structure, format tokens and bi-* icon classes unchanged. Prefix internal site links with /en. Chinese DATA (sample text users would type) may stay. Never truncate.`;
+Translate every user-visible ${srcLang} string to natural ${LANG_NAME} (headings, labels, placeholders, buttons, option text, aria-labels, titles). Keep ALL ids, class names, element structure, format tokens and bi-* icon classes unchanged. Prefix internal site links with ${PREFIX}. ${
+    SOURCE === 'en'
+      ? 'Chinese characters that are DATA (sample text users would type) may stay.'
+      : 'Chinese characters that are DATA (sample text users would type) may stay.'
+  } Never truncate.`;
 }
 
 function scriptPrompt() {
-  return `You are translating a <script> block of an Astro tool page from Chinese to English.
+  const srcLang = SOURCE === 'en' ? 'English' : 'Chinese';
+  return `You are translating a <script> block of an Astro tool page from ${srcLang} to ${LANG_NAME}.
 This is a FRAGMENT of a larger script — it is intentionally partial and may start or end mid-expression.
-Translate ONLY Chinese user-visible strings (labels, status/error messages, weekday names, toasts) to natural English.
+Translate ONLY ${srcLang} user-visible strings (labels, status/error messages, weekday names, toasts) to natural ${LANG_NAME}. ${
+    SOURCE === 'en' ? 'Chinese characters that are DATA may stay.' : ''
+  }
 Preserve ALL code exactly: syntax, formatting, identifiers, class names, string escapes, template literal structure. Do NOT add, remove, reorder, rename or complete anything. Deepen relative imports by one level (from '../../../ to '../../../../').
 Output ONLY the translated fragment, no fences, no explanations. Never truncate.`;
 }
@@ -97,7 +119,7 @@ function validate(file, finalText) {
   const issues = [];
   if (!finalText.startsWith('---')) issues.push('frontmatter-start-missing');
   if ((finalText.match(/^---$/gm) || []).length < 2) issues.push('frontmatter-not-closed');
-  if (!finalText.includes(`getToolMeta(category, '${file.slug}', 'en')`)) issues.push('frontmatter-wrong');
+  if (!finalText.includes(`getToolMeta(category, '${file.slug}', '${TARGET}')`)) issues.push('frontmatter-wrong');
   if (/from '\.\.\/\.\.\/\.\.\/(?!\.\.\/)/.test(finalText)) issues.push('import-depth-wrong');
   for (const tag of ['style', 'script']) {
     const o = (finalText.match(new RegExp(`<${tag}`, 'g')) || []).length;
@@ -108,15 +130,18 @@ function validate(file, finalText) {
 }
 
 const JOBS = [
-  { cat: 'fun', slug: 'schulte-trainer', styleLine: 256, scriptLine: 1806 },
-  { cat: 'dev', slug: 'ip-lookup', styleLine: 86, scriptLine: 361 },
+  { cat: 'fun', slug: 'schulte-trainer', zh: { styleLine: 256, scriptLine: 1806 }, en: { styleLine: 256, scriptLine: 1806 } },
+  { cat: 'dev', slug: 'ip-lookup', zh: { styleLine: 86, scriptLine: 361 }, en: { styleLine: 85, scriptLine: 360 } },
 ];
 
 for (const job of JOBS) {
-  const zhPath = join(root, 'src', 'pages', 'tools', job.cat, job.slug + '.astro');
-  const enPath = join(root, 'src', 'pages', 'en', 'tools', job.cat, job.slug + '.astro');
+  if (ONLY && !ONLY.includes(job.slug)) continue;
+  const srcDir = SOURCE === 'en' ? 'en/tools' : 'tools';
+  const zhPath = join(root, 'src', 'pages', srcDir, job.cat, job.slug + '.astro');
+  const enPath = join(root, 'src', 'pages', TARGET, 'tools', job.cat, job.slug + '.astro');
   const lines = readFileSync(zhPath, 'utf8').split('\n');
-  const { head, style, script } = splitLines(lines, job.styleLine, job.scriptLine);
+  const { styleLine, scriptLine } = job[SOURCE] || job.zh;
+  const { head, style, script } = splitLines(lines, styleLine, scriptLine);
 
   console.log(`[${job.slug}] head=${head.split('\n').length} style=${style.split('\n').length} script=${script.split('\n').length}`);
   const tHead = await translateTemplate(job, head);

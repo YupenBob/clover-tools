@@ -1,0 +1,96 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'base64', 'ja')!;
+const related = getRelated(category, 'base64', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="入力内容" icon="bi-input-cursor">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="b64Sample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="b64Clear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="b64Input" spellcheck="false" placeholder="エンコード/デコードするテキストを入力"></textarea>
+    <div class="input-stats"><span id="b64InStats">0 文字</span></div>
+    <label class="field-label" for="urlSafe"><input type="checkbox" id="urlSafe" /> URL セーフモード（+/ を -_ に置換）</label>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="encodeBtn" type="button"><i class="bi bi-lock"></i> エンコード</button>
+      <button class="btn btn-secondary" id="decodeBtn" type="button"><i class="bi bi-unlock"></i> デコード</button>
+    </div>
+    <div class="status-msg" id="b64Status" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="b64Copy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="b64Output" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
+    <div class="input-stats"><span id="b64OutStats">0 文字</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('b64Input');
+  const output = byId<HTMLTextAreaElement>('b64Output');
+
+  function bytesToBinary(bytes: Uint8Array): string {
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return bin;
+  }
+
+  function encode(): void {
+    hideStatus('b64Status');
+    if (!input.value) {
+      showStatus('b64Status', 'error', 'エンコードする内容を入力してください');
+      return;
+    }
+    const bytes = new TextEncoder().encode(input.value);
+    let b64 = btoa(bytesToBinary(bytes));
+    if (byId<HTMLInputElement>('urlSafe').checked) {
+      b64 = b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    output.value = b64;
+    setStats('b64OutStats', `${output.value.length} 文字 · ${bytes.length} バイト`);
+    showStatus('b64Status', 'success', 'エンコード完了');
+  }
+
+  function decode(): void {
+    hideStatus('b64Status');
+    const text = input.value.trim();
+    if (!text) {
+      showStatus('b64Status', 'error', 'デコードする Base64 内容を入力してください');
+      return;
+    }
+    try {
+      let b64 = text;
+      if (byId<HTMLInputElement>('urlSafe').checked) {
+        b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4 !== 0) b64 += '=';
+      }
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      output.value = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      setStats('b64OutStats', `${output.value.length} 文字 · ${bytes.length} バイト`);
+      showStatus('b64Status', 'success', 'デコード完了');
+    } catch (e) {
+      output.value = '';
+      showStatus('b64Status', 'error', `デコード失敗：有効な Base64 / UTF-8 ではありません（${(e as Error).message}）`);
+    }
+  }
+
+  byId<HTMLButtonElement>('encodeBtn').addEventListener('click', encode);
+  byId<HTMLButtonElement>('decodeBtn').addEventListener('click', decode);
+  bindSample('b64Sample', 'b64Input', 'CloverTools 開発者ツールボックス');
+  bindClear('b64Clear', ['b64Input'], ['b64Output'], 'b64Status');
+  bindCopyBtn('b64Copy', () => output.value);
+  input.addEventListener('input', () => setStats('b64InStats', `${input.value.length} 文字 · ${new TextEncoder().encode(input.value).length} バイト`));
+  setStats('b64InStats', '0 文字');
+</script>

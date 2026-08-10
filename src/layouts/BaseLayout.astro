@@ -41,6 +41,8 @@ const resolvedDescription = description ?? site.description;
 const canonicalPath = stripLang(new URL(canonical).pathname);
 const zhUrl = SITE.url + pathForLang(canonicalPath, 'zh');
 const twUrl = SITE.url + pathForLang(canonicalPath, 'tw');
+const koUrl = SITE.url + pathForLang(canonicalPath, 'ko');
+const jaUrl = SITE.url + pathForLang(canonicalPath, 'ja');
 const enUrl = SITE.url + pathForLang(canonicalPath, 'en');
 const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
@@ -57,6 +59,8 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang="zh-CN" href={zhUrl} />
     <link rel="alternate" hreflang="zh-Hant" href={twUrl} />
+    <link rel="alternate" hreflang="ko" href={koUrl} />
+    <link rel="alternate" hreflang="ja" href={jaUrl} />
     <link rel="alternate" hreflang="en" href={enUrl} />
     <link rel="alternate" hreflang="x-default" href={zhUrl} />
 
@@ -113,17 +117,39 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
               nav.indexOf('mo') >= 0
                 ? 'tw'
                 : 'zh';
+          } else if (nav.indexOf('ko') === 0) {
+            target = 'ko';
+          } else if (nav.indexOf('ja') === 0) {
+            target = 'ja';
           } else {
             target = 'en';
           }
           var path = window.location.pathname;
-          var current = path.indexOf('/en') === 0 ? 'en' : path.indexOf('/zh-hant') === 0 ? 'tw' : 'zh';
+          var current =
+            path.indexOf('/en') === 0
+              ? 'en'
+              : path.indexOf('/zh-hant') === 0
+                ? 'tw'
+                : path.indexOf('/ko') === 0
+                  ? 'ko'
+                  : path.indexOf('/ja') === 0
+                    ? 'ja'
+                    : 'zh';
           if (target === current) {
             localStorage.setItem('clover-lang', target);
             return;
           }
-          var base = path.replace(/^\/(en|zh-hant)(?=\/|$)/, '') || '/';
-          var dest = target === 'en' ? '/en' + base : target === 'tw' ? '/zh-hant' + base : base;
+          var base = path.replace(/^\/(en|zh-hant|ko|ja)(?=\/|$)/, '') || '/';
+          var dest =
+            target === 'en'
+              ? '/en' + base
+              : target === 'tw'
+                ? '/zh-hant' + base
+                : target === 'ko'
+                  ? '/ko' + base
+                  : target === 'ja'
+                    ? '/ja' + base
+                    : base;
           localStorage.setItem('clover-lang', target);
           window.location.replace(dest);
         } catch (e) {

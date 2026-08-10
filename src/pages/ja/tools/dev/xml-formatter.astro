@@ -1,0 +1,127 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'xml-formatter', 'ja')!;
+const related = getRelated(category, 'xml-formatter', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="XML 入力" icon="bi-filetype-xml">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="XML データを貼り付け"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="xmlFmt" type="button"><i class="bi bi-braces"></i> 整形</button>
+      <button class="btn btn-secondary" id="xmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 圧縮</button>
+      <button class="btn btn-ghost" id="xmlCheck" type="button"><i class="bi bi-check2-circle"></i> 検証</button>
+    </div>
+    <div class="status-msg" id="xmlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
+    <div class="input-stats"><span id="xmlStats">0 文字</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('xmlInput');
+  const output = byId<HTMLTextAreaElement>('xmlOutput');
+
+  function parse(): Document | null {
+    const doc = new DOMParser().parseFromString(input.value, 'application/xml');
+    const err = doc.querySelector('parsererror');
+    if (err) {
+      showStatus('xmlStatus', 'error', 'XML が無効です：' + (err.textContent || '').slice(0, 100));
+      return null;
+    }
+    return doc;
+  }
+
+  function pretty(node: Node, depth: number, out: string[]): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent || '').trim();
+      if (text) out.push('  '.repeat(depth) + text + '\n');
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as Element;
+    const tag = el.tagName;
+    const attrs = Array.from(el.attributes).map((a) => ` ${a.name}="${a.value}"`).join('');
+    const indent = '  '.repeat(depth);
+    const children = Array.from(el.childNodes);
+    const onlyText = children.length > 0 && children.every((c) => c.nodeType === Node.TEXT_NODE);
+    if (children.length === 0) {
+      out.push(`${indent}<${tag}${attrs}/>\n`);
+      return;
+    }
+    out.push(`${indent}<${tag}${attrs}>\n`);
+    if (onlyText) {
+      out.push('  '.repeat(depth + 1) + (el.textContent || '').trim() + '\n');
+    } else {
+      for (const child of children) pretty(child, depth + 1, out);
+    }
+    out.push(`${indent}</${tag}>\n`);
+  }
+
+  function format() {
+    hideStatus('xmlStatus');
+    const doc = parse();
+    if (!doc) return;
+    const lines: string[] = ['<?xml version="1.0" encoding="UTF-8"?>'];
+    pretty(doc.documentElement, 0, lines);
+    output.value = lines.join('').trim();
+    setStats('xmlStats', `${output.value.length} 文字`);
+    showStatus('xmlStatus', 'success', '整形が完了しました');
+  }
+
+  function minify() {
+    hideStatus('xmlStatus');
+    const doc = parse();
+    if (!doc) return;
+    const result: string[] = [];
+    function walk(node: Node): void {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const t = (node.textContent || '').trim();
+        if (t) result.push(t);
+        return;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        const attrs = Array.from(el.attributes).map((a) => ` ${a.name}="${a.value}"`).join('');
+        result.push(`<${el.tagName}${attrs}>`);
+        for (const child of Array.from(el.childNodes)) walk(child);
+        result.push(`</${el.tagName}>`);
+      }
+    }
+    walk(doc.documentElement);
+    output.value = result.join('').trim();
+    setStats('xmlStats', `${output.value.length} 文字`);
+    showStatus('xmlStatus', 'success', '圧縮が完了しました');
+  }
+
+  byId<HTMLButtonElement>('xmlFmt').addEventListener('click', format);
+  byId<HTMLButtonElement>('xmlMin').addEventListener('click', minify);
+  byId<HTMLButtonElement>('xmlCheck').addEventListener('click', () => {
+    hideStatus('xmlStatus');
+    if (!input.value.trim()) {
+      showStatus('xmlStatus', 'error', 'XML を入力してください');
+      return;
+    }
+    if (parse()) showStatus('xmlStatus', 'success', 'XML は有効です');
+  });
+  bindSample('xmlSample', 'xmlInput', '<note date="2026-08-02"><to>Clover</to><from>Tools</from><body>XML フォーマット例</body></note>');
+  bindClear('xmlClear', ['xmlInput'], ['xmlOutput'], 'xmlStatus');
+  bindCopyBtn('xmlCopy', () => output.value);
+  setStats('xmlStats', '0 文字');
+</script>

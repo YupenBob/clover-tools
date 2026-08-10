@@ -1,0 +1,83 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'cron', 'ko')!;
+const related = getRelated(category, 'cron', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Cron 표현식" icon="bi-calendar2-week">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+    </div>
+    <div class="row">
+      <div class="field" style="flex: 2">
+        <label class="field-label" for="cronExpr">표현식</label>
+        <input class="input mono" id="cronExpr" type="text" value="*/5 * * * *" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="cronCount">미리보기 횟수</label>
+        <select class="select" id="cronCount">
+          <option value="5">5회</option>
+          <option value="10" selected>10회</option>
+          <option value="20">20회</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="cronBtn" type="button"><i class="bi bi-calendar-event"></i> 실행 시간 미리보기</button>
+    </div>
+    <div class="status-msg" id="cronStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">5개 필드(분 시 일 월 주), 6개 필드(초 분 시 일 월 주), 7개 필드(초 분 시 일 월 주 년) 형식을 지원합니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="향후 실행 시간" icon="bi-list-ol">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="cronOutput" readonly spellcheck="false" placeholder="미리보기를 클릭하면 실행 시간이 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+  import { Cron } from 'croner';
+
+  function run() {
+    hideStatus('cronStatus');
+    const expr = byId<HTMLInputElement>('cronExpr').value.trim();
+    const count = Number(byId<HTMLSelectElement>('cronCount').value);
+    if (!expr) {
+      showStatus('cronStatus', 'error', 'Cron 표현식을 입력하세요');
+      return;
+    }
+    try {
+      const job = new Cron(expr, { protect: true });
+      const times: string[] = [];
+      for (let i = 0; i < count; i++) {
+        const next = job.nextRun();
+        if (!next) break;
+        times.push(next.toLocaleString('ko-KR', { timeZone: 'Asia/Shanghai', hour12: false }) +
+          ` (${next.toISOString()})`);
+      }
+      if (times.length === 0) {
+        showStatus('cronStatus', 'info', '현재 구성으로는 이 표현식에 미리보기할 실행 시간이 없습니다');
+      }
+      byId<HTMLTextAreaElement>('cronOutput').value = times.join('\n');
+      showStatus('cronStatus', 'success', `표현식이 유효합니다. 실행 시간 ${times.length}개를 생성했습니다`);
+    } catch (e) {
+      byId<HTMLTextAreaElement>('cronOutput').value = '';
+      showStatus('cronStatus', 'error', `표현식이 유효하지 않습니다: ${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('cronBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('cronSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('cronExpr').value = '0 9 * * 1-5';
+    run();
+  });
+  bindCopyBtn('cronCopy', () => byId<HTMLTextAreaElement>('cronOutput').value);
+</script>

@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ToolCard from '../../../../components/ToolCard.astro';
+import AdUnit from '../../../../components/AdUnit.astro';
+import GridAdFiller from '../../../../components/GridAdFiller.astro';
+import { SITE } from '../../../../lib/site';
+import {
+  getCategoryMetas,
+  getTools,
+  pathForLang,
+  type ToolCategory,
+} from '../../../../lib/i18n';
+
+export function getStaticPaths() {
+  return getCategoryMetas('ko').map((cat) => ({
+    params: { category: cat.id },
+    props: { cat },
+  }));
+}
+
+const { cat } = Astro.props;
+const lang = 'ko' as const;
+const url = `${SITE.url}/ko/tools/${cat.id}/`;
+const tools = getTools(cat.id, lang);
+const others = getCategoryMetas(lang).filter((c) => c.id !== cat.id);
+
+const CATEGORY_DESC: Record<ToolCategory, string> = {
+  dev: '무료 온라인 개발자 도구: JSON·코드 포맷터, 암호화, 해싱, 정규식, API 테스트를 제공합니다. 브라우저에서 바로 실행되며 설치나 가입이 필요 없습니다.',
+  daily: '무료 온라인 일상 도구: 달력, 타임스탬프, 단위·금융 계산기. 브라우저에서 실행되며 데이터는 기기를 떠나지 않습니다.',
+  fun: '무료 온라인 재미 도구: 룰렛, 클릭 속도 테스트, ASCII 아트, 이미지 필터, 난수 생성 등 하루를 밝혀 줄 다양한 창의적인 도구를 만나보세요.',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${cat.name} 도구`,
+  description: cat.blurb,
+  url,
+  numberOfItems: tools.length,
+  itemListElement: tools.map((tool, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${url}${tool.slug}/`,
+    name: tool.name,
+  })),
+};
+---
+
+<BaseLayout
+  title={`${cat.name} 도구 - ${SITE.name}`}
+  description={CATEGORY_DESC[cat.id]}
+  keywords={[cat.name, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
+  canonical={url}
+  jsonLd={jsonLd}
+>
+  <nav class="breadcrumb" aria-label="탐색 경로">
+    <a href="/ko/"><i class="bi bi-house-door" aria-hidden="true"></i> 홈</a>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{cat.name} 도구</span>
+  </nav>
+
+  <header class="tool-hero">
+    <h1>{cat.name} 도구</h1>
+    <p class="tool-hero-desc">{cat.blurb} 총 {getTools(cat.id, lang).length}개 도구가 있으며, 모두 브라우저에서 완전히 실행됩니다.</p>
+  </header>
+
+  <AdUnit adSlot="category_top" />
+
+  <div class="tool-grid">
+    {tools.map((tool, ti) => (
+      <ToolCard tool={tool} category={cat.id} delay={Math.min(ti, 24) * 22} />
+    ))}
+    <GridAdFiller adSlot="grid_filler" />
+  </div>
+
+  <nav class="other-cats" aria-label="더 많은 카테고리">
+    <span class="other-cats-label">더 많은 카테고리</span>
+    {others.map((c) => (
+      <a class="other-cat-link" href={pathForLang(`/tools/${c.id}/`, lang)}>
+        <i class={`bi ${c.icon}`} aria-hidden="true"></i>
+        {c.name}
+      </a>
+    ))}
+  </nav>
+</BaseLayout>
+
+<style>
+  .other-cats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+
+  .other-cats-label {
+    margin-right: var(--space-1);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .other-cat-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .other-cat-link:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+</style>

@@ -1,4 +1,6 @@
 import en from './i18n/en.json';
+import ko from './i18n/ko.json';
+import ja from './i18n/ja.json';
 // @ts-ignore chinese-s2t 为 CJS 模块，默认导出 { s2t, t2s }
 import chineseS2t from 'chinese-s2t';
 import { SITE } from './site';
@@ -11,8 +13,8 @@ import {
 } from './tools';
 import { TOOL_CONTENT, type ToolContent } from './tool-content';
 
-export type Lang = 'zh' | 'tw' | 'en';
-export const LANGS: readonly Lang[] = ['zh', 'tw', 'en'];
+export type Lang = 'zh' | 'tw' | 'en' | 'ko' | 'ja';
+export const LANGS: readonly Lang[] = ['zh', 'tw', 'ko', 'ja', 'en'];
 
 const { s2t } = chineseS2t as { s2t: (text: string) => string };
 
@@ -46,16 +48,22 @@ interface EnData {
 }
 
 const EN = en as unknown as EnData;
+const KO = ko as unknown as EnData;
+const JA = ja as unknown as EnData;
 
 export const HTML_LANG: Record<Lang, string> = {
   zh: 'zh-CN',
   tw: 'zh-Hant',
+  ko: 'ko',
+  ja: 'ja',
   en: 'en',
 };
 
 export const OG_LOCALE: Record<Lang, string> = {
   zh: 'zh_CN',
   tw: 'zh_TW',
+  ko: 'ko_KR',
+  ja: 'ja_JP',
   en: 'en_US',
 };
 
@@ -63,6 +71,8 @@ export const OG_LOCALE: Record<Lang, string> = {
 export function langFromUrl(pathname: string): Lang {
   if (pathname === '/en' || pathname.startsWith('/en/')) return 'en';
   if (pathname === '/zh-hant' || pathname.startsWith('/zh-hant/')) return 'tw';
+  if (pathname === '/ko' || pathname.startsWith('/ko/')) return 'ko';
+  if (pathname === '/ja' || pathname.startsWith('/ja/')) return 'ja';
   return 'zh';
 }
 
@@ -72,6 +82,10 @@ export function stripLang(path: string): string {
   if (path.startsWith('/en/')) return path.slice(3) || '/';
   if (path === '/zh-hant') return '/';
   if (path.startsWith('/zh-hant/')) return path.slice(8) || '/';
+  if (path === '/ko') return '/';
+  if (path.startsWith('/ko/')) return path.slice(3) || '/';
+  if (path === '/ja') return '/';
+  if (path.startsWith('/ja/')) return path.slice(3) || '/';
   return path;
 }
 
@@ -80,6 +94,8 @@ export function pathForLang(path: string, lang: Lang): string {
   const base = stripLang(path);
   if (lang === 'zh') return base;
   if (lang === 'tw') return base === '/' ? '/zh-hant/' : `/zh-hant${base}`;
+  if (lang === 'ko') return base === '/' ? '/ko/' : `/ko${base}`;
+  if (lang === 'ja') return base === '/' ? '/ja/' : `/ja${base}`;
   return base === '/' ? '/en/' : `/en${base}`;
 }
 
@@ -87,6 +103,12 @@ export function pathForLang(path: string, lang: Lang): string {
 export function siteForLang(lang: Lang): { name: string; tagline: string; description: string } {
   if (lang === 'en') {
     return { name: SITE.name, tagline: EN.site.tagline, description: EN.site.description };
+  }
+  if (lang === 'ko') {
+    return { name: SITE.name, tagline: KO.site.tagline, description: KO.site.description };
+  }
+  if (lang === 'ja') {
+    return { name: SITE.name, tagline: JA.site.tagline, description: JA.site.description };
   }
   if (lang === 'tw') {
     return {
@@ -103,6 +125,14 @@ export function getCategoryMeta(category: ToolCategory, lang: Lang): CategoryMet
   if (lang === 'en') {
     const enCat = EN.categories[category];
     return { ...base, name: enCat.name, blurb: enCat.blurb };
+  }
+  if (lang === 'ko') {
+    const koCat = KO.categories[category];
+    return { ...base, name: koCat.name, blurb: koCat.blurb };
+  }
+  if (lang === 'ja') {
+    const jaCat = JA.categories[category];
+    return { ...base, name: jaCat.name, blurb: jaCat.blurb };
   }
   if (lang === 'tw') {
     return { ...base, name: s2t(base.name), blurb: s2t(base.blurb) };
@@ -125,6 +155,30 @@ export function getToolMeta(category: ToolCategory, slug: string, lang: Lang): T
         oneLiner: enTool.oneLiner,
         description: enTool.description,
         keywords: enTool.keywords,
+      };
+    }
+  }
+  if (lang === 'ko') {
+    const koTool = KO.tools[slug];
+    if (koTool) {
+      return {
+        ...base,
+        name: koTool.name,
+        oneLiner: koTool.oneLiner,
+        description: koTool.description,
+        keywords: koTool.keywords,
+      };
+    }
+  }
+  if (lang === 'ja') {
+    const jaTool = JA.tools[slug];
+    if (jaTool) {
+      return {
+        ...base,
+        name: jaTool.name,
+        oneLiner: jaTool.oneLiner,
+        description: jaTool.description,
+        keywords: jaTool.keywords,
       };
     }
   }
@@ -152,6 +206,8 @@ export function getRelated(category: ToolCategory, slug: string, lang: Lang, n =
 
 export function getToolContent(slug: string, lang: Lang): ToolContent | undefined {
   if (lang === 'en') return EN.content[slug];
+  if (lang === 'ko') return KO.content[slug];
+  if (lang === 'ja') return JA.content[slug];
   if (lang === 'tw') {
     const c = TOOL_CONTENT[slug];
     return c
@@ -197,6 +253,38 @@ export const DICT: Record<Lang, Record<string, string>> = {
     switchLang: '切換語言',
     copied: '已複製到剪貼簿',
     copyFailed: '複製失敗',
+  },
+  ko: {
+    useNow: '지금 사용',
+    home: '홈',
+    related: '관련 도구',
+    usageTitle: '사용 방법',
+    breadcrumb: '현재 위치',
+    about: '소개',
+    sitemap: '사이트맵',
+    footerTagline: '선별된 온라인 도구 모음 — 모든 처리는 브라우저에서 실행됩니다',
+    updated: '최근 업데이트',
+    switchTheme: '다크/라이트 테마 전환',
+    themeTitle: '테마 전환',
+    switchLang: '언어 전환',
+    copied: '클립보드에 복사됨',
+    copyFailed: '복사 실패',
+  },
+  ja: {
+    useNow: '今すぐ使う',
+    home: 'ホーム',
+    related: '関連ツール',
+    usageTitle: '使い方',
+    breadcrumb: 'パンくずリスト',
+    about: '概要',
+    sitemap: 'サイトマップ',
+    footerTagline: '厳選オンラインツールボックス — すべての処理はブラウザ内で実行',
+    updated: '最終更新',
+    switchTheme: 'ダーク/ライトテーマ切替',
+    themeTitle: 'テーマ切替',
+    switchLang: '言語切替',
+    copied: 'クリップボードにコピーしました',
+    copyFailed: 'コピーに失敗しました',
   },
   en: {
     useNow: 'Use now',

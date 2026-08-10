@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../lib/site';
+---
+
+<BaseLayout
+  title={`ページが見つかりません - ${SITE.name}`}
+  description="お探しのページは存在しないか、移動した可能性があります。ホームページに戻ってツールを引き続きご利用ください。"
+  canonical={`${SITE.url}/ja/`}
+>
+  <section class="nf">
+    <img class="nf-logo" src="/clover-logo.svg" alt="CloverTools ロゴ" width="64" height="64" />
+    <p class="nf-code">404</p>
+    <h1 class="nf-title">ページが見つかりません</h1>
+    <p class="nf-desc" id="nfDesc">このリンクは古いか、ページがまだ作成中の可能性があります。</p>
+    <div class="nf-actions">
+      <a class="btn btn-primary" href="/ja/"><i class="bi bi-house-door" aria-hidden="true"></i> ホームに戻る</a>
+      <a class="btn btn-secondary" href="/ja/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> カレンダーツールを開く</a>
+    </div>
+    <div class="nf-quick">
+      <span class="nf-quick-label">人気のツール</span>
+      <div class="nf-quick-links">
+        <a href="/ja/tools/dev/json-formatter/">JSON フォーマッタ</a>
+        <a href="/ja/tools/daily/timestamp/">タイムスタンプ</a>
+        <a href="/ja/tools/dev/base64/">Base64</a>
+        <a href="/ja/tools/dev/qrcode/">QRコード</a>
+      </div>
+    </div>
+    <p class="nf-path" id="nfPath"></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-8) 0;
+    text-align: center;
+  }
+
+  .nf-logo {
+    filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.35));
+  }
+
+  .nf-code {
+    margin: var(--space-4) 0 0;
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .nf-title {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: 24px;
+  }
+
+  .nf-desc {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+    max-width: 440px;
+  }
+
+  .nf-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nf-quick {
+    margin-top: var(--space-7);
+  }
+
+  .nf-quick-label {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    letter-spacing: 2px;
+    margin-bottom: var(--space-3);
+  }
+
+  .nf-quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .nf-quick-links a {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .nf-quick-links a:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .nf-path {
+    margin-top: var(--space-5);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    word-break: break-all;
+    max-width: 520px;
+  }
+</style>
+
+<script>
+  const rawPath = window.location.pathname;
+  const decoded = decodeURIComponent(rawPath);
+  const cleaned = decoded.replace(/[\u3000-\u303f\uff00-\uffef\s]+$/g, '');
+  const cleanedPath = cleaned === decoded ? rawPath : encodeURI(cleaned);
+  const pathEl = document.getElementById('nfPath') as HTMLElement;
+
+  pathEl.textContent = `現在のURL: ${rawPath}`;
+
+  if (cleanedPath !== rawPath && cleanedPath.startsWith('/')) {
+    window.location.replace(cleanedPath);
+  }
+</script>

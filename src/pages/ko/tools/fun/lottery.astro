@@ -1,0 +1,929 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'lottery', 'ko')!;
+const related = getRelated(category, 'lottery', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="추첨 설정" icon="bi-gift">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><i class="bi bi-magic"></i> 예시 명단</button>
+    </div>
+    <div class="field">
+      <label class="field-label" for="lotNames">명단 (한 줄에 하나)</label>
+      <textarea class="textarea" id="lotNames" spellcheck="false" placeholder="홍길동&#10;김철수&#10;이영희"></textarea>
+    </div>
+    <div class="lot-meta" id="lotMeta">총 0명</div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="lotCount">당첨 인원</label>
+        <input class="input" id="lotCount" type="number" value="2" min="1" max="50" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="lotMode">추첨 모드</label>
+        <select class="select" id="lotMode">
+          <option value="immersive" selected>몰입형 슬롯머신</option>
+          <option value="classic">클래식 레버 슬롯머신</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> 추첨 시작</button>
+    </div>
+    <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> 음향 효과 출처: Mixkit (무료 라이선스)</p>
+
+<!-- ═══ 몰입형 슬롯머신 ═══ -->
+<div class="lottery-overlay" id="lotteryOverlay" role="dialog" aria-modal="true" aria-label="몰입형 추첨 슬롯머신" aria-hidden="true">
+  <div class="lot-particles" aria-hidden="true"></div>
+  <div class="lot-spotlight" aria-hidden="true"></div>
+  <header class="lot-top">
+    <div>
+      <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> 행운의 순간</div>
+      <div class="lot-sub" id="lotSub">심장이 뛸 준비 되셨나요?</div>
+    </div>
+    <div class="lot-top-actions">
+      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="음향 효과 토글"><i class="bi bi-volume-up-fill"></i></button>
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="전체 화면"><i class="bi bi-arrows-fullscreen"></i></button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="닫기"><i class="bi bi-x-lg"></i></button>
+    </div>
+  </header>
+  <div class="reels" id="reels">
+    <div class="reel-window"><div class="reel-strip" id="reelL"></div></div>
+    <div class="reel-window reel-main"><div class="reel-strip" id="reelM"></div></div>
+    <div class="reel-window"><div class="reel-strip" id="reelR"></div></div>
+    <span class="reels-paybox"></span>
+    <div class="lot-burst" aria-hidden="true"></div>
+  </div>
+  <div class="lot-status" id="lotStatusMsg" role="status" aria-live="polite">회전 중…</div>
+  <div class="lot-winners" id="lotWinners"></div>
+  <div class="lot-actions">
+    <button class="btn btn-primary" id="lotCopy" type="button" hidden><i class="bi bi-clipboard"></i> 결과 복사</button>
+    <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 다시 추첨</button>
+    <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 완료</button>
+  </div>
+</div>
+
+<!-- ═══ 클래식 레버 슬롯머신 ═══ -->
+<div class="classic-overlay" id="classicOverlay" role="dialog" aria-modal="true" aria-label="클래식 레버 추첨 슬롯머신" aria-hidden="true">
+  <div class="classic-vignette" aria-hidden="true"></div>
+  <div class="slot-machine">
+    <div class="slot-marquee">
+      <div class="slot-bulbs" id="slotBulbs">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="slot-title">CLOVER · 행운의 슬롯머신</div>
+    </div>
+    <div class="slot-body">
+      <div class="slot-reels">
+        <div class="slot-reel"><div class="slot-strip" id="cReelL"></div></div>
+        <div class="slot-reel"><div class="slot-strip" id="cReelM"></div></div>
+        <div class="slot-reel"><div class="slot-strip" id="cReelR"></div></div>
+        <span class="reels-paybox"><b>PAYLINE</b></span>
+        <div class="lot-burst" aria-hidden="true"></div>
+      </div>
+      <div class="slot-lever" id="slotLever" tabindex="0" role="button" aria-label="레버를 당기세요. 스페이스 또는 Enter로도 작동합니다">
+        <div class="lever-track"></div>
+        <div class="lever-knob" id="leverKnob"><span class="lever-ball"></span></div>
+      </div>
+    </div>
+    <div class="slot-screen">
+      <div class="slot-status" id="cStatus" role="status" aria-live="polite">레버를 당겨 시작하기</div>
+      <div class="slot-winners" id="cWinners"></div>
+    </div>
+    <div class="slot-actions">
+      <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> 음향</button>
+      <button class="slot-btn" id="classicAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 한 번 더</button>
+      <button class="slot-btn" id="classicCopy" type="button"><i class="bi bi-clipboard"></i> 결과 복사</button>
+      <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 종료</button>
+    </div>
+  </div>
+</div>
+
+<audio id="sfxSpin" src="/sfx/lottery-spin.mp3" preload="auto"></audio>
+<audio id="sfxWin" src="/sfx/lottery-win.mp3" preload="auto"></audio>
+<audio id="sfxLever" src="/sfx/lottery-lever.mp3" preload="auto"></audio>
+
+<style is:global>
+  .lot-meta {
+    margin-top: var(--space-2);
+    min-height: 16px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .lot-meta.warn { color: #c9962e; font-weight: 600; }
+
+  /* ───────── 沉浸式 ───────── */
+  .lottery-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    padding-top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(var(--space-6) + env(safe-area-inset-left, 0px));
+    padding-right: calc(var(--space-6) + env(safe-area-inset-right, 0px));
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(var(--primary-rgb), 0.22), transparent 55%),
+      linear-gradient(160deg, #1b1812 0%, #0e0c08 60%, #171309 100%);
+    color: #f4ecd8;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+    overflow: hidden;
+  }
+  .lottery-overlay.open { opacity: 1; visibility: visible; }
+
+  .lot-particles { position: absolute; inset: 0; pointer-events: none; }
+  .lot-particles span {
+    position: absolute; bottom: -8px; width: 5px; height: 5px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 184, 126, 0.9), transparent 70%);
+    opacity: 0; animation: lot-float var(--d, 8s) linear infinite; animation-delay: var(--dl, 0s);
+  }
+  @keyframes lot-float {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-110vh) translateX(var(--dx, 30px)); opacity: 0; }
+  }
+  .lot-spotlight {
+    position: absolute; top: 16%; width: 680px; height: 400px;
+    background: radial-gradient(ellipse at center, rgba(212, 184, 126, 0.16), transparent 65%);
+    filter: blur(12px); pointer-events: none; animation: lot-breathe 4s ease-in-out infinite;
+  }
+  @keyframes lot-breathe {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+  .lot-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 780px; }
+  .lot-title { font-size: 30px; font-weight: 800; letter-spacing: 4px; background: linear-gradient(120deg, #e6d6ae, #c9a96e, #f0e6cc); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lot-sub { margin-top: 4px; color: rgba(244, 236, 216, 0.55); font-size: 13px; letter-spacing: 2px; }
+  .lot-top-actions { display: flex; gap: var(--space-2); }
+  .lot-icon-btn {
+    display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
+    border: 1px solid rgba(244, 236, 216, 0.2); border-radius: var(--radius-full);
+    background: rgba(244, 236, 216, 0.06); color: rgba(244, 236, 216, 0.8); font-size: 16px;
+    cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  }
+  .lot-icon-btn:hover { background: rgba(201, 169, 110, 0.18); color: #f4ecd8; }
+  .lot-icon-btn:active { transform: scale(0.94); }
+
+  .reels { position: relative; z-index: 2; display: flex; gap: 18px; align-items: stretch; }
+  .reel-window {
+    position: relative; width: 150px; height: 240px; overflow: hidden; border-radius: 18px;
+    border: 1px solid rgba(201, 169, 110, 0.55);
+    background: linear-gradient(180deg, #241f15, #14110b);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.75), 0 10px 34px rgba(0, 0, 0, 0.5);
+  }
+  .reel-window::before, .reel-window::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 34px; z-index: 3; pointer-events: none;
+  }
+  .reel-window::before { top: 0; background: linear-gradient(180deg, #1b1710, transparent); }
+  .reel-window::after { bottom: 0; background: linear-gradient(0deg, #1b1710, transparent); }
+  .reel-window.reel-main {
+    width: 220px; border-color: rgba(230, 214, 174, 0.85);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 0 46px rgba(201, 169, 110, 0.22), 0 14px 40px rgba(0, 0, 0, 0.55);
+  }
+  .reels-paybox {
+    position: absolute; left: -32px; right: -32px; top: 50%; transform: translateY(-50%);
+    height: 76px; z-index: 4; pointer-events: none;
+    border: 2px solid rgba(230, 214, 174, 0.92);
+    border-radius: 14px;
+    box-shadow: 0 0 16px rgba(201, 169, 110, 0.55), inset 0 0 14px rgba(201, 169, 110, 0.12);
+  }
+  .reel-window.pay { border-color: #ffe9b8; box-shadow: inset 0 0 40px rgba(0,0,0,0.7), 0 0 34px rgba(230, 214, 174, 0.55); }
+  .reel-main.pay { box-shadow: inset 0 0 50px rgba(0,0,0,0.75), 0 0 60px rgba(230, 214, 174, 0.6); }
+  .reel-strip { will-change: transform; }
+  .reel-row {
+    display: flex; align-items: center; justify-content: center; height: 60px; padding: 0 10px;
+    font-size: 19px; font-weight: 700; color: #f4ecd8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .reel-main .reel-row { height: 80px; font-size: 27px; font-weight: 800; color: #ffe9b8; }
+  .reel-row.win { color: #fff; text-shadow: 0 0 18px rgba(201, 169, 110, 0.95); animation: win-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  @keyframes win-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .lot-status { position: relative; z-index: 2; min-height: 26px; color: rgba(244, 236, 216, 0.75); font-size: 15px; letter-spacing: 3px; }
+  .lot-winners { position: relative; z-index: 2; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); max-width: 720px; min-height: 44px; }
+  .winner-chip {
+    display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border-radius: var(--radius-full);
+    background: linear-gradient(135deg, rgba(201, 169, 110, 0.28), rgba(201, 169, 110, 0.12));
+    border: 1px solid rgba(201, 169, 110, 0.6); color: #ffe9b8; font-size: 16px; font-weight: 700;
+    animation: winner-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes winner-in { from { transform: scale(0.3) translateY(12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+  .lot-actions { position: relative; z-index: 2; display: flex; gap: var(--space-3); }
+  .lottery-overlay.dimmed .lot-status, .lottery-overlay.dimmed .lot-winners { opacity: 0.35; transition: opacity 0.3s ease; }
+
+  /* 中奖爆点 */
+  .lot-burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 5; pointer-events: none; transform: translate(-50%, -50%); }
+  .lot-burst span {
+    position: absolute; left: 0; top: 0; width: 6px; height: 6px; border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8, #c9a96e 60%, transparent);
+    opacity: 0; transform: translate(-50%, -50%) scale(0.4);
+  }
+  .lot-burst.go span { animation: burst-fly 0.85s cubic-bezier(0.12, 0.8, 0.32, 1) forwards; }
+  @keyframes burst-fly {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+    12% { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--bx, 0px)), calc(-50% + var(--by, 0px))) scale(0.2); }
+  }
+
+  /* ───────── 拟物拉杆 ───────── */
+  .classic-overlay {
+    position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+    padding: var(--space-5); background: radial-gradient(ellipse at center, #241d12 0%, #0b0906 75%);
+    padding-top: calc(var(--space-5) + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+    padding-left: calc(var(--space-5) + env(safe-area-inset-left, 0px));
+    padding-right: calc(var(--space-5) + env(safe-area-inset-right, 0px));
+    opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0.35s ease; overflow: hidden;
+  }
+  .classic-overlay.open { opacity: 1; visibility: visible; }
+  .classic-overlay.dimmed .slot-screen { opacity: 0.35; transition: opacity 0.3s ease; }
+  .classic-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 220px rgba(0,0,0,0.9); }
+
+  .slot-machine {
+    position: relative; z-index: 2; width: min(680px, 96vw); border-radius: 26px; overflow: hidden;
+    background: linear-gradient(160deg, #3a2c18 0%, #241a0e 45%, #171006 100%);
+    border: 2px solid rgba(201, 169, 110, 0.65);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 6px rgba(0,0,0,0.45);
+    padding-bottom: var(--space-4);
+  }
+  .slot-marquee {
+    position: relative; padding: 14px 16px 12px; text-align: center;
+    background: linear-gradient(180deg, #171006, #2a1f10);
+    border-bottom: 2px solid rgba(201, 169, 110, 0.5);
+  }
+  .slot-bulbs { display: flex; justify-content: center; gap: 12px; margin-bottom: 8px; }
+  .slot-bulbs span {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle, #fff6d8, #c9a96e);
+    opacity: 0.22;
+    animation: bulb-chase 1.2s ease-in-out infinite;
+  }
+  .slot-bulbs span:nth-child(1) { animation-delay: 0s; }
+  .slot-bulbs span:nth-child(2) { animation-delay: 0.15s; }
+  .slot-bulbs span:nth-child(3) { animation-delay: 0.3s; }
+  .slot-bulbs span:nth-child(4) { animation-delay: 0.45s; }
+  .slot-bulbs span:nth-child(5) { animation-delay: 0.6s; }
+  .slot-bulbs span:nth-child(6) { animation-delay: 0.75s; }
+  .slot-bulbs span:nth-child(7) { animation-delay: 0.9s; }
+  .slot-bulbs span:nth-child(8) { animation-delay: 1.05s; }
+  .slot-bulbs.hot span { animation-duration: 0.32s; }
+  @keyframes bulb-chase {
+    0%, 100% { opacity: 0.22; box-shadow: 0 0 4px rgba(230, 214, 174, 0.35); }
+    18% { opacity: 1; box-shadow: 0 0 12px rgba(230, 214, 174, 1); }
+  }
+  .slot-title { font-size: 22px; font-weight: 800; letter-spacing: 3px; color: #ffe9b8; text-shadow: 0 0 16px rgba(201,169,110,0.6); }
+
+  .slot-body { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5) var(--space-5) var(--space-4); }
+  .slot-reels { flex: 1; display: flex; gap: 12px; }
+  .slot-reel {
+    position: relative; flex: 1; height: 210px; overflow: hidden; border-radius: 10px;
+    background: linear-gradient(180deg, #f8edd4, #ead9b4);
+    border: 3px solid #4a3a1c; outline: 1px solid rgba(201, 169, 110, 0.5);
+    box-shadow: inset 0 0 26px rgba(74, 58, 28, 0.35), 0 8px 22px rgba(0,0,0,0.5);
+  }
+  .slot-reel::before, .slot-reel::after {
+    content: ''; position: absolute; left: 0; right: 0; height: 26px; z-index: 3; pointer-events: none;
+  }
+  .slot-reel::before { top: 0; background: linear-gradient(180deg, rgba(74,58,28,0.28), transparent); }
+  .slot-reel::after { bottom: 0; background: linear-gradient(0deg, rgba(74,58,28,0.28), transparent); }
+  .slot-strip { will-change: transform; }
+  .slot-row {
+    display: flex; align-items: center; justify-content: center; height: 52px; padding: 0 8px;
+    font-size: 17px; font-weight: 800; color: #2b2110; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    border-bottom: 1px dashed rgba(74, 58, 28, 0.18);
+  }
+  .slot-row.win { color: #b3261e; text-shadow: 0 0 8px rgba(179, 38, 30, 0.25); animation: win-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .slot-reels { position: relative; }
+  .slot-reels .reels-paybox {
+    left: -14px; right: -14px;
+    height: 44px;
+    border-color: rgba(179, 38, 30, 0.85);
+    box-shadow: 0 0 12px rgba(179, 38, 30, 0.4), inset 0 0 10px rgba(179, 38, 30, 0.1);
+  }
+  .reels-paybox b {
+    position: absolute; left: 50%; transform: translateX(-50%); top: -11px;
+    font-size: 8px; letter-spacing: 1px; color: #b3261e; background: rgba(248, 237, 212, 0.94);
+    padding: 0 5px; border-radius: 3px; border: 1px solid rgba(179, 38, 30, 0.4);
+  }
+  .slot-reel.pay { border-color: #b3261e; box-shadow: inset 0 0 26px rgba(74,58,28,0.3), 0 0 26px rgba(179, 38, 30, 0.45), 0 8px 22px rgba(0,0,0,0.5); }
+
+  .slot-lever { position: relative; width: 54px; height: 210px; cursor: grab; touch-action: none; user-select: none; }
+  .slot-lever:focus-visible { outline: 2px solid rgba(201, 169, 110, 0.85); outline-offset: 4px; border-radius: 12px; }
+  .lever-track {
+    position: absolute; left: 50%; transform: translateX(-50%); top: 4px; bottom: 4px; width: 10px;
+    border-radius: 6px; background: linear-gradient(90deg, #0f0b06, #3a2c18, #0f0b06);
+    border: 1px solid rgba(201, 169, 110, 0.4);
+  }
+  .lever-knob {
+    position: absolute; left: 50%; top: 4px; transform: translate(-50%, 0);
+    width: 40px; height: 74px; display: flex; align-items: flex-start; justify-content: center; padding-top: 5px;
+    border-radius: 12px; background: linear-gradient(180deg, #6b5330, #2e2110);
+    border: 1px solid rgba(201, 169, 110, 0.6); box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .lever-knob.dragging { transition: none; cursor: grabbing; }
+  .lever-ball {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff6d8, #c9a96e 55%, #7c642f);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+
+  .slot-screen { margin: 0 var(--space-5); padding: var(--space-3) var(--space-4); border-radius: 10px; background: #0d0a05; border: 1px solid rgba(201,169,110,0.35); min-height: 62px; }
+  .slot-status { color: #ffe9b8; font-size: 15px; font-weight: 700; letter-spacing: 2px; min-height: 22px; }
+  .slot-winners { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .slot-winners .winner-chip { font-size: 14px; padding: 5px 14px; }
+  .slot-actions { display: flex; justify-content: center; padding: var(--space-4) var(--space-5) 0; }
+  .slot-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 20px; border-radius: var(--radius-full);
+    border: 1px solid rgba(201,169,110,0.5); background: rgba(201,169,110,0.12); color: #ffe9b8;
+    font-size: 14px; cursor: pointer; transition: background-color 0.2s ease;
+  }
+  .slot-btn:hover { background: rgba(201,169,110,0.24); }
+  .slot-btn.primary { background: linear-gradient(135deg, #e6d6ae, #c9a96e); color: #2b2110; border-color: rgba(255, 240, 210, 0.8); font-weight: 700; }
+  .slot-btn.primary:hover { filter: brightness(1.06); }
+  .slot-actions { flex-wrap: wrap; gap: 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lottery-overlay, .classic-overlay { transition: none; }
+    .lot-particles span, .lot-spotlight, .slot-bulbs span { animation: none !important; }
+    .lot-spotlight { opacity: 0.5; }
+    .slot-bulbs span { opacity: 0.55; }
+    .reel-row.win, .slot-row.win, .winner-chip { animation: none !important; }
+  }
+
+  @media (max-width: 640px) {
+    .reels { gap: 10px; }
+    .reel-window { width: 104px; height: 176px; }
+    .reel-window.reel-main { width: 150px; }
+    .reel-row { height: 44px; font-size: 15px; }
+    .reel-main .reel-row { height: 58px; font-size: 20px; }
+    .slot-body { flex-direction: column; }
+    .slot-lever { height: 70px; width: 100%; }
+    .lever-track { left: auto; right: 12px; top: 50%; transform: translateY(-50%); width: 10px; height: 46px; }
+    .lever-knob { left: auto; right: 0; top: 50%; transform: translate(0, -50%); }
+    .slot-title { font-size: 17px; }
+  }
+</style>
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import { planReel, reelSample, modSet } from '../../../../lib/reel-motion.mjs';
+
+  const overlay = byId<HTMLElement>('lotteryOverlay');
+  const classic = byId<HTMLElement>('classicOverlay');
+  const sub = byId<HTMLElement>('lotSub');
+  const statusMsg = byId<HTMLElement>('lotStatusMsg');
+  const winnersEl = byId<HTMLElement>('lotWinners');
+  const againBtn = byId<HTMLButtonElement>('lotAgain');
+  const doneBtn = byId<HTMLButtonElement>('lotDone');
+  const cStatus = byId<HTMLElement>('cStatus');
+  const cWinners = byId<HTMLElement>('cWinners');
+  const particles = overlay.querySelector('.lot-particles') as HTMLElement;
+  const rafIds: number[] = [];
+  const MAX_NAMES = 200;
+  const ROW_H = 60, MAIN_ROW_H = 80, WIN_H = 240;
+  const C_ROW_H = 52, C_WIN_H = 210;
+  let running = false;
+  let pool: string[] = [];
+  let winners: string[] = [];
+  let count = 0;
+  let classicBusy = false;
+  let classicIdx = 0;
+  let builtKey = '';
+  let builtLists: string[][] = [];
+  const lotNames = byId<HTMLTextAreaElement>('lotNames');
+  const lotCount = byId<HTMLInputElement>('lotCount');
+  const lotMode = byId<HTMLSelectElement>('lotMode');
+  const lotMeta = byId<HTMLElement>('lotMeta');
+  const lotCopy = byId<HTMLButtonElement>('lotCopy');
+  const classicAgain = byId<HTMLButtonElement>('classicAgain');
+  const classicCopy = byId<HTMLButtonElement>('classicCopy');
+  const bulbs = byId<HTMLElement>('slotBulbs');
+  const reelsBox = byId<HTMLElement>('reels');
+  const sfxSpin = byId<HTMLAudioElement>('sfxSpin');
+  const sfxWin = byId<HTMLAudioElement>('sfxWin');
+  const sfxLever = byId<HTMLAudioElement>('sfxLever');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sfxOn = localStorage.getItem('ct-sfx') !== 'off' && !reducedMotion;
+  sfxSpin.volume = 0.5;
+  sfxWin.volume = 1;
+  sfxLever.volume = 0.6;
+
+  function parseNames(): string[] {
+    const raw = lotNames.value.split('\n').map((s) => s.trim()).filter(Boolean);
+    if (raw.length > MAX_NAMES) {
+      showStatus('lotStatus', 'info', `명단이 ${MAX_NAMES}명을 초과하여 앞 ${MAX_NAMES}명만 사용합니다`);
+    }
+    return raw.slice(0, MAX_NAMES);
+  }
+
+  function updateLotMeta() {
+    const raw = lotNames.value.split('\n').map((s) => s.trim()).filter(Boolean);
+    const counts = new Map<string, number>();
+    raw.forEach((n) => counts.set(n, (counts.get(n) || 0) + 1));
+    const dupes = [...counts.entries()].filter(([, c]) => c > 1);
+    const over = raw.length > MAX_NAMES;
+    const parts = [`총 ${Math.min(raw.length, MAX_NAMES)}명`];
+    if (over) parts.push(`${MAX_NAMES}명 초과, 앞 ${MAX_NAMES}명만 사용`);
+    if (dupes.length) parts.push(`중복: ${dupes.slice(0, 3).map(([n, c]) => `${n}×${c}`).join(', ')}${dupes.length > 3 ? ' 등' : ''}`);
+    lotMeta.textContent = parts.join(' · ');
+    lotMeta.classList.toggle('warn', over || dupes.length > 0);
+  }
+
+  function saveConfig() {
+    localStorage.setItem('ct-lot-names', lotNames.value);
+    localStorage.setItem('ct-lot-count', lotCount.value);
+    localStorage.setItem('ct-lot-mode', lotMode.value);
+  }
+
+  function loadConfig() {
+    const n = localStorage.getItem('ct-lot-names');
+    if (n != null) lotNames.value = n;
+    const c = localStorage.getItem('ct-lot-count');
+    if (c != null && Number(c) > 0) lotCount.value = c;
+    const m = localStorage.getItem('ct-lot-mode');
+    if (m === 'immersive' || m === 'classic') lotMode.value = m;
+  }
+
+  function pickWinners(names: string[], n: number): string[] {
+    const p = [...names];
+    const out: string[] = [];
+    for (let i = 0; i < n; i++) out.push(p.splice(Math.floor(Math.random() * p.length), 1)[0]);
+    return out;
+  }
+
+  function playSfx(kind: 'spin' | 'win' | 'lever') {
+    if (!sfxOn) return;
+    const el = kind === 'spin' ? sfxSpin : kind === 'win' ? sfxWin : sfxLever;
+    el.currentTime = 0;
+    el.play().catch(() => undefined);
+  }
+
+  function syncSfxIcons() {
+    const icon = sfxOn ? 'bi-volume-up-fill' : 'bi-volume-mute-fill';
+    byId<HTMLButtonElement>('lotSfx').innerHTML = `<i class="bi ${icon}"></i>`;
+    byId<HTMLButtonElement>('classicSfx').innerHTML = `<i class="bi ${icon}"></i> 효과음`;
+    byId<HTMLButtonElement>('lotSfx').setAttribute('aria-pressed', String(sfxOn));
+    byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
+  }
+
+  function rowFontSize(name: string, rowH: number): number {
+    const len = [...name].length;
+    const base = rowH >= 70 ? 27 : rowH >= 55 ? 19 : 17;
+    const step = rowH >= 70 ? 1.8 : rowH >= 55 ? 1.2 : 1.1;
+    const min = rowH >= 70 ? 13 : 11;
+    return Math.max(min, base - Math.max(0, len - 6) * step);
+  }
+
+  function buildStrip(el: HTMLElement, names: string[], rowH: number): string[] {
+    const padded = names.length < 4 ? [...names, ...names, ...names, ...names].slice(0, 8) : names;
+    const reps = padded.length >= 50 ? 2 : 4;
+    const rows: string[] = [];
+    for (let r = 0; r < reps; r++) for (const n of padded) rows.push(n);
+    const cls = el.classList.contains('slot-strip') ? 'slot-row' : 'reel-row';
+    el.innerHTML = rows.map((n) => `<div class="${cls}" style="height:${rowH}px;font-size:${rowFontSize(n, rowH)}px">${n}</div>`).join('');
+    return padded;
+  }
+
+  function spinReel(el: HTMLElement, list: string[], targetName: string, rowH: number, centerOffset: number, delayMs: number, done: () => void) {
+    const n = list.length;
+    const setH = n * rowH;
+    const targetIdx = list.indexOf(targetName);
+    const plan = planReel({ n, rowH, centerOffset, targetIdx });
+    el.style.transition = 'none';
+    el.querySelectorAll('.reel-row,.slot-row').forEach((r) => r.classList.remove('win'));
+    const t0 = performance.now() + delayMs;
+    const render = (p: number) => {
+      el.style.transform = `translateY(-${modSet(p, setH)}px)`;
+    };
+    const blurOf = (speed: number) =>
+      Math.min(3.5, Math.max(0, Math.abs(speed) / plan.vMax) * 3.5).toFixed(2);
+    const settle = () => {
+      render(plan.targetAbs);
+      el.style.filter = 'blur(0px)';
+      el.querySelectorAll<HTMLElement>('.reel-row,.slot-row').forEach((r, i) => {
+        r.classList.toggle('win', list[i % n] === targetName);
+      });
+      done();
+    };
+    if (reducedMotion) {
+      settle();
+      return;
+    }
+    let rafId = 0;
+    function frame() {
+      const t = performance.now() - t0;
+      if (t < 0) {
+        rafId = requestAnimationFrame(frame);
+        rafIds.push(rafId);
+        return;
+      }
+      const s = reelSample(plan, t);
+      if (s.phase === 'done') {
+        settle();
+        return;
+      }
+      render(s.p);
+      el.style.filter = `blur(${blurOf(s.v)}px)`;
+      rafId = requestAnimationFrame(frame);
+      rafIds.push(rafId);
+    }
+    rafId = requestAnimationFrame(frame);
+    rafIds.push(rafId);
+  }
+
+  function spinAllTo(winner: string, list: string[]): Promise<void> {
+    return new Promise((resolve) => {
+      playSfx('spin');
+      const useClassic = classic.classList.contains('open');
+      const els: HTMLElement[] = useClassic
+        ? [classicReelL(), classicReelM(), classicReelR()]
+        : [reelL(), reelM(), reelR()];
+      const windows = useClassic
+        ? [classic.querySelectorAll('.slot-reel')[0], classic.querySelectorAll('.slot-reel')[1], classic.querySelectorAll('.slot-reel')[2]]
+        : [overlay.querySelectorAll('.reel-window')[0], overlay.querySelectorAll('.reel-window')[1], overlay.querySelectorAll('.reel-window')[2]];
+      const rowHs = useClassic ? [C_ROW_H, C_ROW_H, C_ROW_H] : [ROW_H, MAIN_ROW_H, ROW_H];
+      const centers = useClassic
+        ? [(C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2, (C_WIN_H - C_ROW_H) / 2]
+        : [(WIN_H - ROW_H) / 2, (WIN_H - MAIN_ROW_H) / 2, (WIN_H - ROW_H) / 2];
+      const key = list.join('\u0001') + '|' + rowHs.join(',');
+      if (key !== builtKey || !els[0].firstElementChild) {
+        builtKey = key;
+        builtLists = els.map((el, i) => buildStrip(el, list, rowHs[i]));
+      }
+      const strips = builtLists;
+      let leftDone = false, midDone = false, rightDone = false;
+      spinReel(els[0], strips[0], winner, rowHs[0], centers[0], 0, () => { leftDone = true; maybe(); });
+      spinReel(els[1], strips[1], winner, rowHs[1], centers[1], 300, () => { midDone = true; maybe(); });
+      spinReel(els[2], strips[2], winner, rowHs[2], centers[2], 150, () => { rightDone = true; maybe(); });
+      function maybe() {
+        if (leftDone && midDone && rightDone) {
+          fadeOutSpin();
+          setTimeout(() => playSfx('win'), 120);
+          windows.forEach((w) => w.classList.add('pay'));
+          (useClassic ? classic : overlay).classList.add('dimmed');
+          burstAt(useClassic ? classic.querySelector('.slot-reels') as HTMLElement : reelsBox);
+          setTimeout(() => {
+            windows.forEach((w) => w.classList.remove('pay'));
+            (useClassic ? classic : overlay).classList.remove('dimmed');
+            resolve();
+          }, 900);
+        }
+      }
+    });
+  }
+
+  function fadeOutSpin() {
+    const step = () => {
+      sfxSpin.volume = Math.max(0, sfxSpin.volume - 0.08);
+      if (sfxSpin.volume <= 0.01) {
+        sfxSpin.pause();
+        sfxSpin.currentTime = 0;
+        sfxSpin.volume = 0.5;
+      } else {
+        setTimeout(step, 40);
+      }
+    };
+    step();
+  }
+
+  function burstAt(container: HTMLElement) {
+    if (reducedMotion) return;
+    const burst = container.querySelector('.lot-burst') as HTMLElement | null;
+    if (!burst) return;
+    burst.innerHTML = '';
+    const n = 14;
+    for (let i = 0; i < n; i++) {
+      const s = document.createElement('span');
+      const ang = (i / n) * Math.PI * 2 + Math.random() * 0.6;
+      const dist = 85 + Math.random() * 70;
+      s.style.setProperty('--bx', `${Math.cos(ang) * dist}px`);
+      s.style.setProperty('--by', `${Math.sin(ang) * dist}px`);
+      burst.appendChild(s);
+    }
+    burst.classList.remove('go');
+    void burst.offsetWidth;
+    burst.classList.add('go');
+  }
+
+  function reelL() { return byId<HTMLElement>('reelL'); }
+  function reelM() { return byId<HTMLElement>('reelM'); }
+  function reelR() { return byId<HTMLElement>('reelR'); }
+  function classicReelL() { return byId<HTMLElement>('cReelL'); }
+  function classicReelM() { return byId<HTMLElement>('cReelM'); }
+  function classicReelR() { return byId<HTMLElement>('cReelR'); }
+
+  function pause(ms: number) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  function spawnParticles() {
+    if (reducedMotion) return;
+    const colors = ['212,184,126', '230,214,174', '240,230,204'];
+    particles.innerHTML = Array.from({ length: 12 }, () => {
+      const left = Math.random() * 100;
+      const size = 3 + Math.random() * 5;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return `<span style="left:${left}%;width:${size}px;height:${size}px;--d:${6 + Math.random() * 6}s;--dl:${Math.random() * 6}s;--dx:${(Math.random() - 0.5) * 80}px;background:radial-gradient(circle, rgba(${color},0.9), transparent 70%)"></span>`;
+    }).join('');
+  }
+
+  function openOverlay(mode: 'immersive' | 'classic') {
+    if (mode === 'immersive') {
+      classic.classList.remove('open');
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+      classic.setAttribute('aria-hidden', 'true');
+      spawnParticles();
+    } else {
+      overlay.classList.remove('open');
+      classic.classList.add('open');
+      classic.setAttribute('aria-hidden', 'false');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = 'hidden';
+    const focusEl = mode === 'classic' ? byId<HTMLElement>('slotLever') : byId<HTMLButtonElement>('lotClose');
+    setTimeout(() => focusEl.focus(), 120);
+  }
+
+  function closeOverlays() {
+    for (const id of rafIds) cancelAnimationFrame(id);
+    rafIds.length = 0;
+    sfxSpin.pause();
+    sfxSpin.currentTime = 0;
+    sfxSpin.volume = 0.5;
+    overlay.classList.remove('open');
+    classic.classList.remove('open');
+    overlay.classList.remove('dimmed');
+    classic.classList.remove('dimmed');
+    overlay.setAttribute('aria-hidden', 'true');
+    classic.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    byId<HTMLButtonElement>('lotBtn').disabled = false;
+    byId<HTMLButtonElement>('lotBtn').focus();
+    running = false;
+    classicBusy = false;
+  }
+
+  function resetImmersive() {
+    sub.textContent = '두근두근 준비되셨나요?';
+    statusMsg.textContent = '돌리는 중…';
+    winnersEl.innerHTML = '';
+    againBtn.hidden = true;
+    doneBtn.hidden = true;
+    lotCopy.hidden = true;
+    ['reelL', 'reelM', 'reelR'].forEach((id) => {
+      const el = byId<HTMLElement>(id);
+      el.innerHTML = '';
+      el.style.transition = '';
+      el.style.transform = '';
+    });
+  }
+
+  function resetClassic() {
+    cStatus.textContent = '레버를 당겨 시작하세요';
+    cWinners.innerHTML = '';
+    classicIdx = 0;
+    classicAgain.hidden = true;
+    ['cReelL', 'cReelM', 'cReelR'].forEach((id) => {
+      const el = byId<HTMLElement>(id);
+      el.innerHTML = '';
+      el.style.transition = '';
+      el.style.transform = '';
+    });
+  }
+
+  async function runImmersive(list: string[]) {
+    running = true;
+    for (let i = 0; i < count; i++) {
+      if (!running || !overlay.classList.contains('open')) return;
+      statusMsg.textContent = `${i + 1}번째 당첨자 공개 중…`;
+      const winner = winners[i];
+      await spinAllTo(winner, list);
+      if (!running) return;
+      addWinnerChip(winnersEl, i, winner);
+      statusMsg.textContent = `${winner}님 축하합니다!`;
+      if (i < count - 1) {
+        await pause(1600);
+      }
+    }
+    statusMsg.textContent = '축하합니다!';
+    sub.textContent = `${winners.length}명의 당첨자가 공개되었습니다`;
+    againBtn.hidden = false;
+    doneBtn.hidden = false;
+    lotCopy.hidden = false;
+    running = false;
+  }
+
+  async function runClassic(list: string[]) {
+    classicBusy = true;
+    const i = classicIdx;
+    cStatus.textContent = `돌리는 중…(${i + 1}번째)`;
+    await spinAllTo(winners[i], list);
+    if (!classicBusy) return;
+    addWinnerChip(cWinners, i, winners[i]);
+    classicIdx++;
+    if (classicIdx < count) {
+      cStatus.textContent = `${winners[i]}님 축하합니다! 레버를 다시 당겨 다음 당첨자를 공개하세요`;
+    } else {
+      cStatus.textContent = `전체 공개 완료! ${count}명의 당첨자`;
+      classicAgain.hidden = false;
+    }
+    classicBusy = false;
+  }
+
+  function addWinnerChip(container: HTMLElement, i: number, name: string) {
+    const chip = document.createElement('span');
+    chip.className = 'winner-chip';
+    chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${name}`;
+    container.appendChild(chip);
+  }
+
+  function winnersText(): string {
+    if (!winners.length) return '아직 당첨 결과가 없습니다';
+    return `당첨자(${winners.length}명):\n${winners.map((w, i) => `${i + 1}. ${w}`).join('\n')}`;
+  }
+
+  function start() {
+    hideStatus('lotStatus');
+    const names = parseNames();
+    count = Number(lotCount.value);
+    const mode = lotMode.value as 'immersive' | 'classic';
+    if (names.length === 0) { showStatus('lotStatus', 'error', '명단을 먼저 입력하세요'); return; }
+    if (count < 1 || count > names.length) { showStatus('lotStatus', 'error', `당첨 인원은 1-${names.length} 사이여야 합니다`); return; }
+    winners = pickWinners(names, count);
+    pool = names;
+    byId<HTMLButtonElement>('lotBtn').disabled = true;
+    openOverlay(mode);
+    if (mode === 'immersive') {
+      resetImmersive();
+      sub.textContent = `${pool.length}명 참여 · ${count}명 추첨`;
+      runImmersive(pool);
+    } else {
+      resetClassic();
+      cStatus.textContent = '레버를 당겨 시작하세요';
+    }
+  }
+
+  byId<HTMLButtonElement>('lotBtn').addEventListener('click', start);
+  byId<HTMLButtonElement>('lotSample').addEventListener('click', () => {
+    lotNames.value = ['Clover', 'York', 'Admin', 'Luna', 'Max', 'Tom', 'Jerry', 'Ada', 'Ivy', 'Leo'].join('\n');
+    lotNames.dispatchEvent(new Event('input'));
+  });
+
+  againBtn.addEventListener('click', () => {
+    if (pool.length < count) return;
+    winners = pickWinners(pool, count);
+    resetImmersive();
+    sub.textContent = `${pool.length}명 참여 · ${count}명 추첨`;
+    runImmersive(pool);
+  });
+  lotCopy.addEventListener('click', () => { window.CT.copy(winnersText(), lotCopy); });
+  classicCopy.addEventListener('click', () => { window.CT.copy(winnersText(), classicCopy); });
+  classicAgain.addEventListener('click', () => {
+    if (classicBusy || !classic.classList.contains('open') || pool.length < count) return;
+    winners = pickWinners(pool, count);
+    resetClassic();
+    runClassic(pool);
+  });
+  doneBtn.addEventListener('click', closeOverlays);
+  byId<HTMLButtonElement>('lotClose').addEventListener('click', closeOverlays);
+  byId<HTMLButtonElement>('lotFullscreen').addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    else document.documentElement.requestFullscreen().catch(() => undefined);
+  });
+  byId<HTMLButtonElement>('lotSfx').addEventListener('click', () => {
+    sfxOn = !sfxOn;
+    localStorage.setItem('ct-sfx', sfxOn ? 'on' : 'off');
+    syncSfxIcons();
+  });
+  byId<HTMLButtonElement>('classicSfx').addEventListener('click', () => {
+    sfxOn = !sfxOn;
+    localStorage.setItem('ct-sfx', sfxOn ? 'on' : 'off');
+    syncSfxIcons();
+  });
+  syncSfxIcons();
+  byId<HTMLButtonElement>('classicExit').addEventListener('click', closeOverlays);
+
+  loadConfig();
+  updateLotMeta();
+  lotNames.addEventListener('input', () => { updateLotMeta(); saveConfig(); });
+  lotNames.addEventListener('paste', (e) => {
+    const text = (e.clipboardData?.getData('text') || '').trim();
+    if (!text) return;
+    const items = text.split(/[\n,，、;；]+/).map((s) => s.trim()).filter(Boolean);
+    if (items.length <= 1) return;
+    e.preventDefault();
+    lotNames.value = lotNames.value.replace(/\n+$/, '') + (lotNames.value.trim() ? '\n' : '') + items.join('\n');
+    lotNames.dispatchEvent(new Event('input'));
+  });
+  lotCount.addEventListener('change', saveConfig);
+  lotMode.addEventListener('change', saveConfig);
+
+  // 拉杆交互
+  const lever = byId<HTMLElement>('slotLever');
+  const knob = byId<HTMLElement>('leverKnob');
+  let leverDragging = false;
+  let leverStartY = 0;
+  let leverPull = 0;
+  let leverHorizontal = false;
+  let leverHotTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function leverTransform(pull: number): string {
+    return leverHorizontal ? `translate(0, calc(-50% + ${pull}px))` : `translate(-50%, ${pull}px)`;
+  }
+
+  function leverHot(on: boolean) {
+    if (leverHotTimer) { clearTimeout(leverHotTimer); leverHotTimer = null; }
+    bulbs.classList.toggle('hot', on);
+  }
+
+  lever.addEventListener('pointerdown', (e) => {
+    if (classicBusy || classicIdx >= count || !classic.classList.contains('open')) return;
+    leverDragging = true;
+    leverStartY = e.clientY;
+    leverHorizontal = lever.clientWidth >= lever.clientHeight;
+    leverPull = 0;
+    knob.classList.add('dragging');
+    knob.setPointerCapture(e.pointerId);
+    leverHot(true);
+  });
+  lever.addEventListener('pointermove', (e) => {
+    if (!leverDragging) return;
+    const maxPull = leverHorizontal ? 40 : 64;
+    leverPull = Math.max(0, Math.min(maxPull, e.clientY - leverStartY));
+    knob.style.transform = leverTransform(leverPull);
+  });
+  lever.addEventListener('pointerup', () => {
+    if (!leverDragging) return;
+    leverDragging = false;
+    knob.classList.remove('dragging');
+    const pulled = leverPull > 36;
+    leverPull = 0;
+    knob.style.transform = '';
+    leverHotTimer = setTimeout(() => leverHot(false), 300);
+    if (pulled && !classicBusy && classicIdx < count && classic.classList.contains('open')) {
+      playSfx('lever');
+      runClassic(pool);
+    }
+  });
+
+  function animateLever() {
+    leverHorizontal = lever.clientWidth >= lever.clientHeight;
+    const maxPull = leverHorizontal ? 40 : 64;
+    knob.style.transition = 'transform 0.12s linear';
+    knob.style.transform = leverTransform(maxPull);
+    leverHot(true);
+    setTimeout(() => {
+      knob.style.transition = '';
+      knob.style.transform = '';
+      leverHot(false);
+    }, 160);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const isOverlayOpen = overlay.classList.contains('open') || classic.classList.contains('open');
+    if (e.key === 'Escape') {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => undefined);
+        return;
+      }
+      if (isOverlayOpen) closeOverlays();
+      return;
+    }
+    if (!isOverlayOpen) return;
+    if (e.key === 'Tab') {
+      const root = classic.classList.contains('open') ? classic : overlay;
+      const focusable = [...root.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !(el as HTMLButtonElement).disabled && !(el as HTMLElement).hidden && el.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return;
+    }
+    if ((e.key === ' ' || e.key === 'Enter') && classic.classList.contains('open') && !classicBusy && classicIdx < count) {
+      const ae = document.activeElement as HTMLElement | null;
+      if (ae && ae.tagName === 'BUTTON' && classic.contains(ae)) return;
+      e.preventDefault();
+      playSfx('lever');
+      animateLever();
+      runClassic(pool);
+    }
+  });
+</script>

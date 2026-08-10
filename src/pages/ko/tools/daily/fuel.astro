@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'fuel', 'ko')!;
+const related = getRelated(category, 'fuel', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="주유 기록" icon="bi-fuel-pump">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="fuelKm">주행 거리 (km)</label>
+        <input class="input" id="fuelKm" type="number" value="500" step="10" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelAmount">주유량 (L)</label>
+        <input class="input" id="fuelAmount" type="number" value="40" step="1" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelPrice">유가 (원/L)</label>
+        <input class="input" id="fuelPrice" type="number" value="7.5" step="0.1" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="fuelBtn" type="button"><i class="bi bi-fuel-pump"></i> 연비 계산</button>
+    </div>
+    <div class="status-msg" id="fuelStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="계산 결과" icon="bi-clipboard-data">
+    <div class="lc-result" id="fuelResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('fuelStatus');
+    const km = Number(byId<HTMLInputElement>('fuelKm').value);
+    const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
+    const price = Number(byId<HTMLInputElement>('fuelPrice').value);
+    if (km <= 0 || amount <= 0) {
+      showStatus('fuelStatus', 'error', '유효한 주행 거리와 주유량을 입력하세요');
+      return;
+    }
+    const per100 = amount / km * 100;
+    const cost = amount * price;
+    const perKm = cost / km;
+    const range = amount / per100 * 100;
+    byId<HTMLElement>('fuelResult').innerHTML =
+      `<div>100km당 연비: <b>${per100.toFixed(2)}</b> L/100km</div>` +
+      `<div>이번 주유비: ${cost.toFixed(2)} 원</div>` +
+      `<div>km당 비용: ${perKm.toFixed(3)} 원/km</div>` +
+      `<div>이번 주유량으로 약 ${range.toFixed(0)} km 주행 가능</div>`;
+    showStatus('fuelStatus', 'success', '계산 완료');
+  }
+
+  byId<HTMLButtonElement>('fuelBtn').addEventListener('click', calc);
+</script>

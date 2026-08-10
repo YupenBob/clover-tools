@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'cron', 'ja')!;
+const related = getRelated(category, 'cron', 'ja', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Cron 式" icon="bi-calendar2-week">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+    </div>
+    <div class="row">
+      <div class="field" style="flex: 2">
+        <label class="field-label" for="cronExpr">式</label>
+        <input class="input mono" id="cronExpr" type="text" value="*/5 * * * *" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="cronCount">表示回数</label>
+        <select class="select" id="cronCount">
+          <option value="5">5 回</option>
+          <option value="10" selected>10 回</option>
+          <option value="20">20 回</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="cronBtn" type="button"><i class="bi bi-calendar-event"></i> 実行時刻を表示</button>
+    </div>
+    <div class="status-msg" id="cronStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">5 フィールド（分・時・日・月・曜日）、6 フィールド（秒・分・時・日・月・曜日）、7 フィールド（秒・分・時・日・月・曜日・年）に対応しています。</p>
+  </ToolPanel>
+
+  <ToolPanel title="今後の実行時刻" icon="bi-list-ol">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="cronOutput" readonly spellcheck="false" placeholder="実行時刻を表示すると結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+  import { Cron } from 'croner';
+
+  function run() {
+    hideStatus('cronStatus');
+    const expr = byId<HTMLInputElement>('cronExpr').value.trim();
+    const count = Number(byId<HTMLSelectElement>('cronCount').value);
+    if (!expr) {
+      showStatus('cronStatus', 'error', 'Cron 式を入力してください');
+      return;
+    }
+    try {
+      const job = new Cron(expr, { protect: true });
+      const times: string[] = [];
+      for (let i = 0; i < count; i++) {
+        const next = job.nextRun();
+        if (!next) break;
+        times.push(next.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false }) +
+          `（${next.toISOString()}）`);
+      }
+      if (times.length === 0) {
+        showStatus('cronStatus', 'info', '現在の設定では、この Cron 式の実行時刻はありません');
+      }
+      byId<HTMLTextAreaElement>('cronOutput').value = times.join('\n');
+      showStatus('cronStatus', 'success', `Cron 式は有効です。実行時刻を ${times.length} 回生成しました`);
+    } catch (e) {
+      byId<HTMLTextAreaElement>('cronOutput').value = '';
+      showStatus('cronStatus', 'error', `Cron 式が無効です：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('cronBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('cronSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('cronExpr').value = '0 9 * * 1-5';
+    run();
+  });
+  bindCopyBtn('cronCopy', () => byId<HTMLTextAreaElement>('cronOutput').value);
+</script>

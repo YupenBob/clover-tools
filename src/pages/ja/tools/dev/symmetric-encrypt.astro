@@ -1,0 +1,162 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'symmetric-encrypt', 'ja')!;
+const related = getRelated(category, 'symmetric-encrypt', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="暗号化・復号設定" icon="bi-lock">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="encAlgo">アルゴリズム</label>
+        <select class="select" id="encAlgo">
+          <option value="AES" selected>AES</option>
+          <option value="DES">DES</option>
+          <option value="RC4">RC4</option>
+          <option value="Rabbit">Rabbit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encMode">モード</label>
+        <select class="select" id="encMode">
+          <option value="CBC" selected>CBC</option>
+          <option value="ECB">ECB</option>
+          <option value="CFB">CFB</option>
+          <option value="OFB">OFB</option>
+          <option value="CTR">CTR</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encOut">出力形式</label>
+        <select class="select" id="encOut">
+          <option value="base64" selected>Base64</option>
+          <option value="hex">Hex</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="encKey">鍵</label>
+      <input class="input mono" id="encKey" type="text" placeholder="鍵を入力してください" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encIv">初期化ベクトル IV（CBC/CFB/OFB/CTR モード、16進数）</label>
+      <input class="input mono" id="encIv" type="text" placeholder="空欄の場合は自動生成" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encInput">平文 / 暗号文</label>
+      <textarea class="textarea" id="encInput" spellcheck="false" placeholder="平文を入力して暗号化、または暗号文を入力して復号"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> 暗号化</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> 復号</button>
+    </div>
+    <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  // 固定ソルト + EvpKDF による鍵導出：base64/hex の両出力で復号ラウンドトリップを保証する
+  const KEY_SALT = CryptoJS.enc.Hex.parse('636c6f766572746f6f6c73');
+
+  function deriveKey(key: string): CryptoJS.lib.WordArray {
+    return CryptoJS.EvpKDF(key, KEY_SALT, {
+      keySize: 256 / 32,
+      iterations: 1,
+      hasher: CryptoJS.algo.MD5,
+    });
+  }
+
+  function options() {
+    const algo = byId<HTMLSelectElement>('encAlgo').value;
+    const modeName = byId<HTMLSelectElement>('encMode').value;
+    const ivHex = byId<HTMLInputElement>('encIv').value.trim();
+    const opts: CryptoJS.lib.CipherCfg = {};
+    if (algo !== 'RC4' && algo !== 'Rabbit') {
+      const modes: Record<string, typeof CryptoJS.mode.CBC> = {
+        CBC: CryptoJS.mode.CBC,
+        ECB: CryptoJS.mode.ECB,
+        CFB: CryptoJS.mode.CFB,
+        OFB: CryptoJS.mode.OFB,
+        CTR: CryptoJS.mode.CTR,
+      };
+      opts.mode = modes[modeName];
+      if (modeName !== 'ECB') {
+        if (!ivHex) throw new Error('このモードでは16進数のIV（初期化ベクトル）が必要です');
+        opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+      }
+    } else if (ivHex) {
+      opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+    }
+    return { algo, opts };
+  }
+
+  function encrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const msg = byId<HTMLTextAreaElement>('encInput').value;
+    if (!key || !msg) {
+      showStatus('encStatus', 'error', '鍵と内容を入力してください');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const cipher = (CryptoJS as unknown as Record<string, { encrypt: (m: string, k: CryptoJS.lib.WordArray, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.CipherParams }>)[algo].encrypt(msg, deriveKey(key), opts);
+      const out = byId<HTMLSelectElement>('encOut').value === 'hex'
+        ? cipher.ciphertext.toString(CryptoJS.enc.Hex)
+        : cipher.ciphertext.toString(CryptoJS.enc.Base64);
+      byId<HTMLTextAreaElement>('encOutput').value = out;
+      showStatus('encStatus', 'success', '暗号化が完了しました');
+    } catch (e) {
+      showStatus('encStatus', 'error', `暗号化に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  function decrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const ct = byId<HTMLTextAreaElement>('encInput').value.trim();
+    if (!key || !ct) {
+      showStatus('encStatus', 'error', '鍵と内容を入力してください');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const parsed = /^[0-9a-fA-F]+$/.test(ct)
+        ? CryptoJS.enc.Hex.parse(ct)
+        : CryptoJS.enc.Base64.parse(ct);
+      const decrypted = (CryptoJS as unknown as Record<string, { decrypt: (c: CryptoJS.lib.CipherParams, k: CryptoJS.lib.WordArray, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.WordArray }>)[algo].decrypt(
+        CryptoJS.lib.CipherParams.create({ ciphertext: parsed }),
+        deriveKey(key),
+        opts,
+      );
+      const text = decrypted.toString(CryptoJS.enc.Utf8);
+      if (!text) throw new Error('復号結果が空です。鍵、IV、モードを確認してください');
+      byId<HTMLTextAreaElement>('encOutput').value = text;
+      showStatus('encStatus', 'success', '復号が完了しました');
+    } catch (e) {
+      showStatus('encStatus', 'error', `復号に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('encBtn').addEventListener('click', encrypt);
+  byId<HTMLButtonElement>('decBtn').addEventListener('click', decrypt);
+  bindSample('encSample', 'encKey', 'clover-secret');
+  bindCopyBtn('encCopy', () => byId<HTMLTextAreaElement>('encOutput').value);
+</script>

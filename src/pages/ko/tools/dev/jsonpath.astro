@@ -1,0 +1,221 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'jsonpath', 'ko')!;
+const related = getRelated(category, 'jsonpath', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JSON 데이터" icon="bi-braces">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+    </div>
+    <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="JSON 데이터 붙여넣기"></textarea>
+    <div class="field mt-3">
+      <label class="field-label" for="jpExpr">JSONPath 표현식</label>
+      <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> 조회</button>
+    </div>
+    <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">$.key, ['key'], [0], [*], .. 재귀, [?(@.key == value)] 필터를 지원합니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="조회 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="일치 결과가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../../scripts/toolkit';
+
+  const SAMPLE = {
+    store: {
+      book: [
+        { category: 'reference', author: 'Nigel Rees', title: 'Sayings', price: 8.95 },
+        { category: 'fiction', author: 'Evelyn Waugh', title: 'Sword', price: 12.99 },
+        { category: 'fiction', author: 'Herman Melville', title: 'Moby Dick', price: 8.99 },
+      ],
+      bicycle: { color: 'red', price: 399 },
+    },
+    expensive: 10,
+  };
+
+  function tokenize(expr: string): string[] {
+    const tokens: string[] = [];
+    let i = 0;
+    while (i < expr.length) {
+      const ch = expr[i];
+      if (ch === '$') { tokens.push('$'); i++; continue; }
+      if (ch === '.') {
+        if (expr[i + 1] === '.') {
+          tokens.push('..');
+          i += 2;
+          // 재귀 하강 후 속성 이름 또는 와일드카드가 바로 올 수 있음: ..name / ..*
+          if (expr[i] === '*') {
+            tokens.push('*');
+            i++;
+          } else if (/[A-Za-z0-9_]/.test(expr[i] || '')) {
+            let j = i;
+            while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
+            tokens.push(expr.slice(i, j));
+            i = j;
+          }
+          continue;
+        }
+        if (expr[i + 1] === '*') { tokens.push('*'); i += 2; continue; }
+        let j = i + 1;
+        while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
+        if (j === i + 1) throw new Error(`표현식 ${i + 1}번째 위치에 속성 이름이 없습니다`);
+        tokens.push(expr.slice(i + 1, j));
+        i = j;
+        continue;
+      }
+      if (ch === '[') {
+        let depth = 0;
+        let j = i;
+        while (j < expr.length) {
+          if (expr[j] === '[') depth++;
+          if (expr[j] === ']') { depth--; if (depth === 0) break; }
+          j++;
+        }
+        if (depth !== 0) throw new Error('대괄호가 닫히지 않았습니다');
+        tokens.push(expr.slice(i, j + 1));
+        i = j + 1;
+        continue;
+      }
+      throw new Error(`인식할 수 없는 문자: ${ch} (위치 ${i + 1})`);
+    }
+    return tokens;
+  }
+
+  function evalFilter(cond: string, node: unknown): boolean {
+    const m = cond.match(/^@(?:\.([A-Za-z0-9_]+)|\[['"]([A-Za-z0-9_]+)['"]\])?\s*(==|!=|<=|>=|<|>)?\s*(.+)?$/);
+    if (!m) return true;
+    const [, key1, key2, op, raw] = m;
+    if (!op && !raw) return node !== null && node !== undefined;
+    const val = (node as Record<string, unknown>)?.[key1 || key2];
+    if (val === undefined) return false;
+    if (!op) return Boolean(val);
+    let target: unknown = raw.trim();
+    if (/^-?\d+(\.\d+)?$/.test(target as string)) target = Number(target);
+    else if ((target as string) === 'true') target = true;
+    else if ((target as string) === 'false') target = false;
+    else if ((target as string) === 'null') target = null;
+    else target = String(target).replace(/^['"]|['"]$/g, '');
+    switch (op) {
+      case '==': return val === target;
+      case '!=': return val !== target;
+      case '<': return (val as number) < (target as number);
+      case '>': return (val as number) > (target as number);
+      case '<=': return (val as number) <= (target as number);
+      case '>=': return (val as number) >= (target as number);
+    }
+    return false;
+  }
+
+  function query(json: unknown, expr: string): unknown[] {
+    const tokens = tokenize(expr);
+    const results: unknown[] = [];
+    function walk(node: unknown, idx: number, isRecursive: boolean): void {
+      if (idx >= tokens.length) {
+        results.push(node);
+        return;
+      }
+      const token = tokens[idx];
+      if (token === '$') { walk(node, idx + 1, false); return; }
+      if (token === '..') { walk(node, idx + 1, true); return; }
+      if (isRecursive) {
+        // 먼저 현재 노드에서 남은 경로로 매칭 시도
+        walk(node, idx, false);
+        // 그다음 각 하위 노드로 더 내려가 계속 매칭 (경로 세그먼트 유지)
+        if (node !== null && typeof node === 'object') {
+          const entries = Array.isArray(node) ? node : Object.values(node);
+          for (const child of entries) walk(child, idx, true);
+        }
+        return;
+      }
+      if (token === '*') {
+        if (node !== null && typeof node === 'object') {
+          const entries = Array.isArray(node) ? node : Object.values(node);
+          for (const child of entries) walk(child, idx + 1, false);
+        }
+        return;
+      }
+      if (token.startsWith('[')) {
+        const inner = token.slice(1, -1).trim();
+        if (inner === '*') {
+          if (node !== null && typeof node === 'object') {
+            const entries = Array.isArray(node) ? node : Object.values(node);
+            for (const child of entries) walk(child, idx + 1, false);
+          }
+          return;
+        }
+        if (inner.startsWith('?(')) {
+          const cond = inner.slice(2, -1);
+          if (Array.isArray(node)) {
+            for (const child of node) if (evalFilter(cond, child)) walk(child, idx + 1, false);
+          }
+          return;
+        }
+        if (/^\d+$/.test(inner)) {
+          if (Array.isArray(node) && node[Number(inner)] !== undefined) walk(node[Number(inner)], idx + 1, false);
+          return;
+        }
+        if (/^['"].*['"]$/.test(inner)) {
+          const key = inner.slice(1, -1);
+          if (node !== null && typeof node === 'object') walk((node as Record<string, unknown>)[key], idx + 1, false);
+          return;
+        }
+        throw new Error(`지원하지 않는 대괄호 구문: ${inner}`);
+      }
+      if (
+        node !== null &&
+        typeof node === 'object' &&
+        (node as Record<string, unknown>)[token] !== undefined
+      ) {
+        walk((node as Record<string, unknown>)[token], idx + 1, false);
+      }
+    }
+    walk(json, 0, false);
+    return results;
+  }
+
+  function run() {
+    hideStatus('jpStatus');
+    const json = byId<HTMLTextAreaElement>('jpJson').value.trim();
+    const expr = byId<HTMLInputElement>('jpExpr').value.trim();
+    if (!json || !expr) {
+      showStatus('jpStatus', 'error', 'JSON 데이터와 표현식을 입력하세요');
+      return;
+    }
+    let data: unknown;
+    try {
+      data = JSON.parse(json);
+    } catch (e) {
+      showStatus('jpStatus', 'error', `JSON 파싱 실패: ${(e as Error).message}`);
+      return;
+    }
+    try {
+      const matches = query(data, expr);
+      byId<HTMLTextAreaElement>('jpOutput').value = matches.length
+        ? matches.map((m) => JSON.stringify(m, null, 2)).join('\n---\n')
+        : '일치하는 결과가 없습니다';
+      showStatus('jpStatus', 'success', `일치 결과 ${matches.length}개`);
+    } catch (e) {
+      byId<HTMLTextAreaElement>('jpOutput').value = '';
+      showStatus('jpStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('jpBtn').addEventListener('click', run);
+  bindSample('jpSample', 'jpJson', JSON.stringify(SAMPLE, null, 2));
+  bindCopyBtn('jpCopy', () => byId<HTMLTextAreaElement>('jpOutput').value);
+</script>

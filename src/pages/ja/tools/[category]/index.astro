@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ToolCard from '../../../../components/ToolCard.astro';
+import AdUnit from '../../../../components/AdUnit.astro';
+import GridAdFiller from '../../../../components/GridAdFiller.astro';
+import { SITE } from '../../../../lib/site';
+import {
+  getCategoryMetas,
+  getTools,
+  pathForLang,
+  type ToolCategory,
+} from '../../../../lib/i18n';
+
+export function getStaticPaths() {
+  return getCategoryMetas('ja').map((cat) => ({
+    params: { category: cat.id },
+    props: { cat },
+  }));
+}
+
+const { cat } = Astro.props;
+const lang = 'ja' as const;
+const url = `${SITE.url}/ja/tools/${cat.id}/`;
+const tools = getTools(cat.id, lang);
+const others = getCategoryMetas(lang).filter((c) => c.id !== cat.id);
+
+const CATEGORY_DESC: Record<ToolCategory, string> = {
+  dev: '無料のオンライン開発者ツール：JSON・コードフォーマッター、暗号化、ハッシュ化、正規表現、APIテスト。ブラウザ上で動作し、インストールも登録も不要です。',
+  daily: '無料のオンライン日常ツール：カレンダー、タイムスタンプ、単位換算、金融計算。ブラウザ上で動作し、データがデバイスから外に出ることはありません。',
+  fun: '無料のオンライン娯楽ツール：抽選ホイール、クリック速度テスト、ASCIIアート、画像フィルター、乱数、その他、毎日を明るくするクリエイティブなガジェット。',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${cat.name}ツール`,
+  description: cat.blurb,
+  url,
+  numberOfItems: tools.length,
+  itemListElement: tools.map((tool, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${url}${tool.slug}/`,
+    name: tool.name,
+  })),
+};
+---
+
+<BaseLayout
+  title={`${cat.name}ツール - ${SITE.name}`}
+  description={CATEGORY_DESC[cat.id]}
+  keywords={[cat.name, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
+  canonical={url}
+  jsonLd={jsonLd}
+>
+  <nav class="breadcrumb" aria-label="パンくずリスト">
+    <a href="/ja/"><i class="bi bi-house-door" aria-hidden="true"></i> ホーム</a>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{cat.name}ツール</span>
+  </nav>
+
+  <header class="tool-hero">
+    <h1>{cat.name}ツール</h1>
+    <p class="tool-hero-desc">{cat.blurb} 全{getTools(cat.id, lang).length}個、すべてブラウザ上で動作します。</p>
+  </header>
+
+  <AdUnit adSlot="category_top" />
+
+  <div class="tool-grid">
+    {tools.map((tool, ti) => (
+      <ToolCard tool={tool} category={cat.id} delay={Math.min(ti, 24) * 22} />
+    ))}
+    <GridAdFiller adSlot="grid_filler" />
+  </div>
+
+  <nav class="other-cats" aria-label="その他のカテゴリ">
+    <span class="other-cats-label">その他のカテゴリ</span>
+    {others.map((c) => (
+      <a class="other-cat-link" href={pathForLang(`/tools/${c.id}/`, lang)}>
+        <i class={`bi ${c.icon}`} aria-hidden="true"></i>
+        {c.name}
+      </a>
+    ))}
+  </nav>
+</BaseLayout>
+
+<style>
+  .other-cats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+
+  .other-cats-label {
+    margin-right: var(--space-1);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .other-cat-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .other-cat-link:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+</style>

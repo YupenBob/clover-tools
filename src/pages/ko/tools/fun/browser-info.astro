@@ -1,0 +1,87 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'browser-info', 'ko')!;
+const related = getRelated(category, 'browser-info', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="브라우저 및 기기 정보" icon="bi-browser-chrome">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="biRefresh" type="button"><i class="bi bi-arrow-clockwise"></i> 새로고침</button>
+    </div>
+    <table class="bi-table" id="biTable"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .bi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .bi-table th,
+  .bi-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .bi-table th {
+    width: 180px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .bi-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function collect(): [string, string][] {
+    const nav = navigator;
+    const conn = (nav as unknown as { connection?: { effectiveType?: string; type?: string; downlink?: number; rtt?: number } }).connection;
+    const screen = window.screen;
+    const rows: [string, string][] = [
+      ['브라우저', `${nav.userAgentData?.brands?.map((b: { brand: string; version: string }) => `${b.brand} ${b.version}`).join(' / ') || '—'}`],
+      ['User-Agent', nav.userAgent],
+      ['플랫폼', `${nav.platform}${nav.userAgentData?.mobile ? '（모바일）' : ''}`],
+      ['언어', `${nav.language}（${nav.languages?.join(', ') || '—'}）`],
+      ['온라인 상태', nav.onLine ? '온라인' : '오프라인'],
+      ['쿠키 사용 가능', nav.cookieEnabled ? '예' : '아니요'],
+      ['화면 해상도', `${screen.width} × ${screen.height}`],
+      ['사용 가능 화면', `${screen.availWidth} × ${screen.availHeight}`],
+      ['창 뷰포트', `${window.innerWidth} × ${window.innerHeight}`],
+      ['픽셀 비율', String(window.devicePixelRatio || 1)],
+      ['CPU 코어 수', String(nav.hardwareConcurrency || '알 수 없음')],
+      ['기기 메모리', nav.deviceMemory ? `${nav.deviceMemory} GB` : '알 수 없음'],
+      ['네트워크 유형', conn ? `${conn.effectiveType || '알 수 없음'}（${conn.type || '알 수 없음'}）` : '알 수 없음'],
+      ['네트워크 대역폭', conn?.downlink ? `${conn.downlink} Mbps` : '알 수 없음'],
+      ['네트워크 지연', conn?.rtt ? `${conn.rtt} ms` : '알 수 없음'],
+      ['시간대', Intl.DateTimeFormat().resolvedOptions().timeZone],
+      ['다크 모드', window.matchMedia('(prefers-color-scheme: dark)').matches ? '사용 중' : '사용 안 함'],
+      ['동작 줄이기', window.matchMedia('(prefers-reduced-motion: reduce)').matches ? '사용 중' : '사용 안 함'],
+      ['터치 지원', 'ontouchstart' in window ? '지원' : '미지원'],
+    ];
+    return rows;
+  }
+
+  function render() {
+    byId<HTMLElement>('biTable').innerHTML = collect()
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v.replace(/</g, '&lt;')}</td></tr>`)
+      .join('');
+  }
+
+  byId<HTMLButtonElement>('biRefresh').addEventListener('click', render);
+  window.addEventListener('resize', render);
+  render();
+</script>

@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'age-calculator', 'ja')!;
+const related = getRelated(category, 'age-calculator', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="生年月日" icon="bi-person">
+    <div class="field">
+      <label class="field-label" for="ageBirth">生年月日</label>
+      <input class="input" id="ageBirth" type="date" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ageBtn" type="button"><i class="bi bi-person"></i> 年齢を計算</button>
+    </div>
+    <div class="status-msg" id="ageStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+    <div class="lc-result" id="ageResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('ageStatus');
+    const val = byId<HTMLInputElement>('ageBirth').value;
+    if (!val) {
+      showStatus('ageStatus', 'error', '生年月日を選択してください');
+      return;
+    }
+    const birth = new Date(val + 'T00:00:00');
+    const now = new Date();
+    if (birth > now) {
+      showStatus('ageStatus', 'error', '生年月日は今日より後に設定できません');
+      return;
+    }
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+    if (days < 0) {
+      months--;
+      days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    const lived = Math.floor((now.getTime() - birth.getTime()) / 86400000);
+    const next = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+    if (next < now) next.setFullYear(now.getFullYear() + 1);
+    const nextIn = Math.ceil((next.getTime() - now.getTime()) / 86400000);
+    byId<HTMLElement>('ageResult').innerHTML =
+      `<div>満年齢：<b>${years}</b> 歳 ${months} か月 ${days} 日</div>` +
+      `<div>数え年：${now.getFullYear() - birth.getFullYear() + 1} 歳</div>` +
+      `<div>生まれてから ${lived.toLocaleString()} 日</div>` +
+      `<div>次の誕生日まであと ${nextIn} 日</div>`;
+    showStatus('ageStatus', 'success', '計算が完了しました');
+  }
+
+  byId<HTMLButtonElement>('ageBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('ageBirth').value = `${now.getFullYear() - 20}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+</script>

@@ -1,0 +1,153 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'qrcode', 'ja')!;
+const related = getRelated(category, 'qrcode', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="生成設定" icon="bi-qr-code">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="qrSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="qrType">種類</label>
+        <select class="select" id="qrType">
+          <option value="qrcode" selected>QRコード</option>
+          <option value="barcode">バーコード（Code128）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="qrSize">サイズ</label>
+        <select class="select" id="qrSize">
+          <option value="256">256px</option>
+          <option value="384" selected>384px</option>
+          <option value="512">512px</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="qrLevel">誤り訂正レベル</label>
+        <select class="select" id="qrLevel">
+          <option value="L">L（7%）</option>
+          <option value="M" selected>M（15%）</option>
+          <option value="Q">Q（25%）</option>
+          <option value="H">H（30%）</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="qrText">内容</label>
+      <textarea class="textarea" id="qrText" spellcheck="false" placeholder="テキスト、リンク、または任意の内容を入力"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="qrBtn" type="button"><i class="bi bi-qr-code"></i> 生成</button>
+      <button class="btn btn-ghost" id="qrDownload" type="button"><i class="bi bi-download"></i> PNGをダウンロード</button>
+    </div>
+    <div class="status-msg" id="qrStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="生成プレビュー" icon="bi-eye">
+    <div class="qr-preview">
+      <canvas id="qrCanvas"></canvas>
+      <svg id="barcodeSvg"></svg>
+    </div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .qr-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .qr-preview canvas,
+  .qr-preview svg {
+    max-width: 100%;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindSample } from '../../../../scripts/toolkit';
+  import QRCode from 'qrcode';
+  import JsBarcode from 'jsbarcode';
+
+  const canvas = byId<HTMLCanvasElement>('qrCanvas');
+  const svg = byId<SVGElement>('barcodeSvg');
+
+  async function generate() {
+    hideStatus('qrStatus');
+    const text = byId<HTMLTextAreaElement>('qrText').value.trim();
+    const type = byId<HTMLSelectElement>('qrType').value;
+    const size = Number(byId<HTMLSelectElement>('qrSize').value);
+    if (!text) {
+      showStatus('qrStatus', 'error', '内容を入力してください');
+      return;
+    }
+    canvas.style.display = type === 'qrcode' ? '' : 'none';
+    svg.style.display = type === 'barcode' ? '' : 'none';
+    try {
+      if (type === 'qrcode') {
+        const level = byId<HTMLSelectElement>('qrLevel').value as 'L' | 'M' | 'Q' | 'H';
+        await QRCode.toCanvas(canvas, text, {
+          width: size,
+          margin: 2,
+          errorCorrectionLevel: level,
+          color: { dark: '#232019', light: '#ffffff' },
+        });
+      } else {
+        JsBarcode(svg, text, {
+          format: 'CODE128',
+          width: 2,
+          height: 80,
+          displayValue: true,
+          lineColor: '#232019',
+          background: '#ffffff',
+        });
+      }
+      showStatus('qrStatus', 'success', `${type === 'qrcode' ? 'QRコード' : 'バーコード'}を生成しました`);
+    } catch (e) {
+      showStatus('qrStatus', 'error', `生成に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  function triggerDownload(dataUrl: string) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'clover-code.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  byId<HTMLButtonElement>('qrBtn').addEventListener('click', generate);
+  byId<HTMLButtonElement>('qrDownload').addEventListener('click', () => {
+    const type = byId<HTMLSelectElement>('qrType').value;
+    if (type === 'qrcode') {
+      triggerDownload(canvas.toDataURL('image/png'));
+      return;
+    }
+    const xml = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([xml], { type: 'image/svg+xml' });
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      c.getContext('2d')!.drawImage(img, 0, 0);
+      triggerDownload(c.toDataURL('image/png'));
+    };
+    img.src = URL.createObjectURL(svgBlob);
+  });
+
+  bindSample('qrSample', 'qrText', 'https://clovertools.cn');
+</script>

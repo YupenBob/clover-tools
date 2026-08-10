@@ -10,12 +10,20 @@ declare global {
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
-function uiLang(): 'zh' | 'en' {
-  return document.documentElement.lang === 'en' ? 'en' : 'zh';
+function uiLang(): 'zh' | 'tw' | 'en' | 'ko' | 'ja' {
+  const l = document.documentElement.lang;
+  if (l === 'en') return 'en';
+  if (l === 'ko') return 'ko';
+  if (l === 'ja') return 'ja';
+  if (l === 'zh-Hant') return 'tw';
+  return 'zh';
 }
 
 const TOAST_TEXT = {
   zh: { copied: '已复制到剪贴板', copyFailed: '复制失败' },
+  tw: { copied: '已複製到剪貼簿', copyFailed: '複製失敗' },
+  ko: { copied: '클립보드에 복사됨', copyFailed: '복사 실패' },
+  ja: { copied: 'クリップボードにコピーしました', copyFailed: 'コピーに失敗しました' },
   en: { copied: 'Copied to clipboard', copyFailed: 'Copy failed' },
 };
 

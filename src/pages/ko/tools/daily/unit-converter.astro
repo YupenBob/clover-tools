@@ -1,0 +1,180 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'unit-converter', 'ko')!;
+const related = getRelated(category, 'unit-converter', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="단위 변환" icon="bi-rulers">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="ucCat">분류</label>
+        <select class="select" id="ucCat">
+          <option value="length" selected>길이</option>
+          <option value="weight">무게</option>
+          <option value="temperature">온도</option>
+          <option value="storage">데이터 용량</option>
+          <option value="time">시간</option>
+          <option value="area">면적</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucFrom">변환 전</label>
+        <select class="select" id="ucFrom"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucTo">변환 후</label>
+        <select class="select" id="ucTo"></select>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ucValue">값</label>
+        <input class="input" id="ucValue" type="number" value="1" step="any" />
+      </div>
+      <div class="field">
+        <label class="field-label">&nbsp;</label>
+        <button class="btn btn-ghost" id="ucSwap" type="button"><i class="bi bi-arrow-left-right"></i> 단위 교환</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ucBtn" type="button"><i class="bi bi-arrow-repeat"></i> 변환</button>
+    </div>
+    <div class="status-msg" id="ucStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-3" id="ucResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 60px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 17px;
+    line-height: 1.7;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  type Unit = { id: string; name: string; factor?: number; offset?: number };
+
+  const CATEGORIES: Record<string, Unit[]> = {
+    length: [
+      { id: 'mm', name: '밀리미터', factor: 0.001 },
+      { id: 'cm', name: '센티미터', factor: 0.01 },
+      { id: 'm', name: '미터', factor: 1 },
+      { id: 'km', name: '킬로미터', factor: 1000 },
+      { id: 'in', name: '인치', factor: 0.0254 },
+      { id: 'ft', name: '피트', factor: 0.3048 },
+      { id: 'yd', name: '야드', factor: 0.9144 },
+      { id: 'mi', name: '마일', factor: 1609.344 },
+    ],
+    weight: [
+      { id: 'mg', name: '밀리그램', factor: 0.000001 },
+      { id: 'g', name: '그램', factor: 0.001 },
+      { id: 'kg', name: '킬로그램', factor: 1 },
+      { id: 't', name: '톤', factor: 1000 },
+      { id: 'oz', name: '온스', factor: 0.028349523125 },
+      { id: 'lb', name: '파운드', factor: 0.45359237 },
+      { id: 'jin', name: '근(중국)', factor: 0.5 },
+    ],
+    temperature: [
+      { id: 'c', name: '섭씨 (°C)' },
+      { id: 'f', name: '화씨 (°F)' },
+      { id: 'k', name: '켈빈 (K)' },
+    ],
+    storage: [
+      { id: 'b', name: 'B', factor: 1 },
+      { id: 'kb', name: 'KB', factor: 1024 },
+      { id: 'mb', name: 'MB', factor: 1024 ** 2 },
+      { id: 'gb', name: 'GB', factor: 1024 ** 3 },
+      { id: 'tb', name: 'TB', factor: 1024 ** 4 },
+      { id: 'pb', name: 'PB', factor: 1024 ** 5 },
+    ],
+    time: [
+      { id: 'ms', name: '밀리초', factor: 0.001 },
+      { id: 's', name: '초', factor: 1 },
+      { id: 'min', name: '분', factor: 60 },
+      { id: 'h', name: '시간', factor: 3600 },
+      { id: 'd', name: '일', factor: 86400 },
+      { id: 'w', name: '주', factor: 604800 },
+      { id: 'mo', name: '월 (30일)', factor: 2592000 },
+      { id: 'y', name: '년 (365일)', factor: 31536000 },
+    ],
+    area: [
+      { id: 'm2', name: '제곱미터', factor: 1 },
+      { id: 'km2', name: '제곱킬로미터', factor: 1e6 },
+      { id: 'mu', name: '무(중국)', factor: 666.6667 },
+      { id: 'ha', name: '헥타르', factor: 10000 },
+      { id: 'ft2', name: '제곱피트', factor: 0.09290304 },
+    ],
+  };
+
+  const catSel = byId<HTMLSelectElement>('ucCat');
+  const fromSel = byId<HTMLSelectElement>('ucFrom');
+  const toSel = byId<HTMLSelectElement>('ucTo');
+  const result = byId<HTMLElement>('ucResult');
+
+  function populate() {
+    const units = CATEGORIES[catSel.value];
+    fromSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    toSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    if (catSel.value === 'temperature') {
+      toSel.value = 'f';
+    } else {
+      toSel.value = units[1].id;
+    }
+    convert();
+  }
+
+  function toBase(value: number, unit: Unit): number {
+    if (unit.id === 'c') return value;
+    if (unit.id === 'f') return (value - 32) / 1.8;
+    if (unit.id === 'k') return value - 273.15;
+    return value * (unit.factor ?? 1);
+  }
+
+  function fromBase(celsius: number, unit: Unit): number {
+    if (unit.id === 'c') return celsius;
+    if (unit.id === 'f') return celsius * 1.8 + 32;
+    if (unit.id === 'k') return celsius + 273.15;
+    return celsius / (unit.factor ?? 1);
+  }
+
+  function convert() {
+    hideStatus('ucStatus');
+    const value = Number(byId<HTMLInputElement>('ucValue').value);
+    const units = CATEGORIES[catSel.value];
+    const from = units.find((u) => u.id === fromSel.value)!;
+    const to = units.find((u) => u.id === toSel.value)!;
+    if (isNaN(value)) {
+      showStatus('ucStatus', 'error', '유효한 숫자를 입력하세요.');
+      return;
+    }
+    const base = toBase(value, from);
+    const out = fromBase(base, to);
+    const digits = Math.abs(out) >= 1e6 || (Math.abs(out) < 1e-4 && out !== 0) ? 8 : 4;
+    result.innerHTML = `<div>${value} ${from.name} = <b>${Number(out.toFixed(digits))}</b> ${to.name}</div>`;
+  }
+
+  catSel.addEventListener('change', populate);
+  byId<HTMLButtonElement>('ucSwap').addEventListener('click', () => {
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    convert();
+  });
+  byId<HTMLButtonElement>('ucBtn').addEventListener('click', convert);
+  byId<HTMLInputElement>('ucValue').addEventListener('input', convert);
+  fromSel.addEventListener('change', convert);
+  toSel.addEventListener('change', convert);
+  populate();
+</script>

@@ -1,9 +1,9 @@
 /**
- * 用 DeepSeek API 把中文工具页翻译为英文页面（src/pages/en/tools/...）。
- * 用法：node scripts/i18n-translate.mjs
+ * 用 DeepSeek API 把中文工具页翻译为目标语言页面（src/pages/{en|ko|ja}/tools/...）。
+ * 用法：DS_LANG=ko node scripts/i18n-translate.mjs
  * 需要 .env 中配置 DEEPSEEK_API_TOKEN。
  */
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,11 +17,15 @@ if (!token) {
 
 const MODEL = process.env.DS_MODEL || 'deepseek-v4-flash';
 const BASE = process.env.DS_BASE_URL || 'https://api.deepseek.com';
+const TARGET = process.env.DS_LANG || 'en';
+const PREFIX = TARGET === 'en' ? '/en' : '/' + TARGET;
+const LANG_NAME =
+  TARGET === 'ko' ? 'Korean (한국어)' : TARGET === 'ja' ? 'Japanese (日本語)' : 'English';
 const CONCURRENCY = Number(process.env.DS_CONCURRENCY || 3);
 const ONLY = process.env.DS_ONLY
   ? process.env.DS_ONLY.split(',').map((s) => s.trim()).filter(Boolean)
   : null;
-const DONE_FILE = join(dirname(fileURLToPath(import.meta.url)), '.i18n-done.txt');
+const DONE_FILE = join(dirname(fileURLToPath(import.meta.url)), `.i18n-done-${TARGET}.txt`);
 const SPLIT_THRESHOLD = 700;
 
 function readDone() {
@@ -42,8 +46,8 @@ function markDone(slug) {
   }
 }
 
-// 已人工翻译完成的页面跳过
-const SKIP = new Set(['bmi', 'date-diff']);
+// 已人工翻译完成的页面跳过（仅英文版存在人工翻译页）
+const SKIP = TARGET === 'en' ? new Set(['bmi', 'date-diff']) : new Set();
 
 function listFiles(cat) {
   return readdirSync(join(root, 'src', 'pages', 'tools', cat))
@@ -58,7 +62,7 @@ const files = ['dev', 'daily', 'fun']
   .filter((f) => !ONLY || ONLY.includes(f.slug));
 
 function systemPrompt(file) {
-  return `You translate Chinese Astro UI pages to English for the CloverTools website. This is a programming task: produce a complete, valid .astro file.
+  return `You translate Chinese Astro UI pages to ${LANG_NAME} for the CloverTools website. This is a programming task: produce a complete, valid .astro file.
 
 Rules:
 1. Output ONLY the complete .astro file content. No explanations, no markdown code fences, no extra text before or after.
@@ -69,21 +73,21 @@ import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
 const category = '${file.cat}' as const;
-const tool = getToolMeta(category, '${file.slug}', 'en')!;
-const related = getRelated(category, '${file.slug}', 'en', 6);
+const tool = getToolMeta(category, '${file.slug}', '${TARGET}')!;
+const related = getRelated(category, '${file.slug}', '${TARGET}', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
    - Include the ToolPanel import line ONLY if the source file imports ToolPanel.
    - Remove the old imports, the old tool/related lookups and any categoryName prop on <ToolLayout>.
    - Any other relative import (e.g. '../../../scripts/xxx' or '../../../lib/yyy') must be deepened by exactly one level, e.g. '../../../scripts/toolkit' becomes '../../../../scripts/toolkit'.
-3. Translate EVERY user-visible Chinese string to natural English:
+3. Translate EVERY user-visible Chinese string to natural ${LANG_NAME}:
    - headings, panel titles, labels, placeholders, button text, option labels, aria-label, title attributes
    - all status / error / success / toast strings inside <script> blocks
    - Chinese weekday strings in date formatting (e.g. '周' + '日一二三四五六' -> use Sun,Mon,Tue,Wed,Thu,Fri,Sat)
    - placeholder rotation lists and empty-state text
 4. Keep UNCHANGED: all ids, class names, the entire <style> block (CSS), all JS logic and identifiers, format tokens (YYYY-MM-DD, %s, \\n), units (ms, s, px, kg), technical names, and bi-* icon classes.
-5. Internal site links must be language-prefixed: href="/" -> href="/en/", href="/tools/..." -> href="/en/tools/...".
-6. Chinese characters that are DATA may stay (for example Chinese sample text a user would type in the pinyin / jianfan / lunar / Chinese-specific tools, Chinese calendar data, example strings inside code). All UI chrome must be English.
+5. Internal site links must be language-prefixed: href="/" -> href="${PREFIX}/", href="/tools/..." -> href="${PREFIX}/tools/...".
+6. Chinese characters that are DATA may stay (for example Chinese sample text a user would type in the pinyin / jianfan / lunar / Chinese-specific tools, Chinese calendar data, example strings inside code). All UI chrome must be ${LANG_NAME}.
 7. The output must be the complete file — never truncate, never omit the <style> or <script> blocks.`;
 }
 
@@ -98,6 +102,7 @@ async function callApi(messages, retries = 3) {
           messages,
           max_tokens: 20000,
           temperature: 0.2,
+          thinking: { type: 'disabled' },
         }),
       });
       if (r.status === 429 || r.status >= 500) {
@@ -156,7 +161,7 @@ async function translateSplit(file, zh) {
     { role: 'user', content: 'Part 1 of source (Chinese):\n\n' + parts.head },
   ]);
   const sys2 =
-    'Translate the following <script> block of an Astro tool page to English. Keep ALL JS logic, identifiers and class names identical; translate only Chinese user-visible strings (labels, status/error messages, weekday names). Deepen relative imports by one level (from \'../../../ to \'../../../../). Output ONLY the complete <script>...</script> block, nothing else.';
+    `Translate the following <script> block of an Astro tool page to ${LANG_NAME}. Keep ALL JS logic, identifiers and class names identical; translate only Chinese user-visible strings (labels, status/error messages, weekday names). Deepen relative imports by one level (from '../../../ to '../../../../). Output ONLY the complete <script>...</script> block, nothing else.`;
   const tail = await callApi([
     { role: 'system', content: sys2 },
     { role: 'user', content: 'Script block (Chinese):\n\n' + parts.tail },
@@ -186,7 +191,7 @@ function validate(out, file) {
   const issues = [];
   if (!out.startsWith('---')) issues.push('frontmatter-start-missing');
   if ((out.match(/^---$/gm) || []).length < 2) issues.push('frontmatter-not-closed');
-  if (!out.includes(`getToolMeta(category, '${file.slug}', 'en')`)) issues.push('frontmatter-wrong');
+  if (!out.includes(`getToolMeta(category, '${file.slug}', '${TARGET}')`)) issues.push('frontmatter-wrong');
   if (/from '\.\.\/\.\.\/\.\.\/(?!\.\.\/)/.test(out)) issues.push('import-depth-wrong');
   const so = (out.match(/<style/g) || []).length;
   const sc = (out.match(/<\/style>/g) || []).length;
@@ -214,7 +219,9 @@ async function main() {
           console.log(`FAIL ${file.cat}/${file.slug}: ${issues.join('; ')}`);
           continue;
         }
-        writeFileSync(join(root, 'src', 'pages', 'en', 'tools', file.cat, file.slug + '.astro'), out, 'utf8');
+        const outPath = join(root, 'src', 'pages', TARGET, 'tools', file.cat, file.slug + '.astro');
+        mkdirSync(dirname(outPath), { recursive: true });
+        writeFileSync(outPath, out, 'utf8');
         markDone(file.slug);
         results.push({ slug: file.slug, status: 'ok' });
         console.log(`OK   ${file.cat}/${file.slug}`);

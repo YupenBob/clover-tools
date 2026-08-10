@@ -1,0 +1,116 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'image-filter', 'ko')!;
+const related = getRelated(category, 'image-filter', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="이미지 및 필터" icon="bi-brush">
+    <div class="field">
+      <input class="input" id="flFile" type="file" accept="image/*" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="flType">필터</label>
+      <select class="select" id="flType">
+        <option value="none" selected>원본</option>
+        <option value="grayscale">그레이스케일</option>
+        <option value="sepia">세피아</option>
+        <option value="invert">색상 반전</option>
+        <option value="blur">블러</option>
+        <option value="bright">밝게</option>
+        <option value="darken">어둡게</option>
+        <option value="contrast">고대비</option>
+        <option value="hue">색조 회전</option>
+        <option value="saturate">고채도</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> 필터 적용</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> PNG 다운로드</button>
+    </div>
+    <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="미리보기" icon="bi-eye">
+    <div class="fl-preview" id="flPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .fl-preview {
+    display: none;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .fl-preview img {
+    width: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  let resultUrl = '';
+
+  const FILTERS: Record<string, string> = {
+    grayscale: 'grayscale(1)',
+    sepia: 'sepia(0.85)',
+    invert: 'invert(1)',
+    blur: 'blur(6px)',
+    bright: 'brightness(1.35)',
+    darken: 'brightness(0.65)',
+    contrast: 'contrast(1.5)',
+    hue: 'hue-rotate(120deg)',
+    saturate: 'saturate(2.2)',
+  };
+
+  function apply() {
+    hideStatus('flStatus');
+    const file = byId<HTMLInputElement>('flFile').files?.[0];
+    if (!file) {
+      showStatus('flStatus', 'error', '이미지를 먼저 선택하세요');
+      return;
+    }
+    const type = byId<HTMLSelectElement>('flType').value;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      if (type !== 'none') {
+        ctx.filter = FILTERS[type];
+        ctx.drawImage(img, 0, 0);
+      }
+      resultUrl = canvas.toDataURL('image/png');
+      const preview = byId<HTMLElement>('flPreview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${resultUrl}" alt="필터 효과">`;
+      showStatus('flStatus', 'success', '필터가 적용되었습니다');
+    };
+    img.onerror = () => showStatus('flStatus', 'error', '이미지 로드 실패');
+    img.src = URL.createObjectURL(file);
+  }
+
+  byId<HTMLButtonElement>('flBtn').addEventListener('click', apply);
+  byId<HTMLButtonElement>('flDownload').addEventListener('click', () => {
+    if (!resultUrl) {
+      showStatus('flStatus', 'error', '필터를 먼저 적용하세요');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = resultUrl;
+    a.download = 'clover-filter.png';
+    a.click();
+  });
+</script>

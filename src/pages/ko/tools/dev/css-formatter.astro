@@ -1,0 +1,165 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'css-formatter', 'ko')!;
+const related = getRelated(category, 'css-formatter', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="CSS 입력" icon="bi-filetype-css">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cssSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="cssClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="cssInput" spellcheck="false" placeholder="CSS 코드 붙여넣기"></textarea>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="cssIndent">들여쓰기</label>
+        <select class="select" id="cssIndent">
+          <option value="2" selected>2칸</option>
+          <option value="4">4칸</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="cssSort"><input type="checkbox" id="cssSort" /> 속성 정렬</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="cssFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
+      <button class="btn btn-secondary" id="cssMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
+    </div>
+    <div class="status-msg" id="cssStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="cssCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="cssOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+    <div class="input-stats"><span id="cssStats">0자</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('cssInput');
+  const output = byId<HTMLTextAreaElement>('cssOutput');
+
+  function tokenize(css: string): string[] {
+    const tokens: string[] = [];
+    let cur = '';
+    let inString = false;
+    let quote = '';
+    let depth = 0;
+    for (let i = 0; i < css.length; i++) {
+      const ch = css[i];
+      if (inString) {
+        cur += ch;
+        if (ch === '\\') { cur += css[++i] || ''; continue; }
+        if (ch === quote) inString = false;
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        inString = true;
+        quote = ch;
+        cur += ch;
+        continue;
+      }
+      if (ch === '/' && css[i + 1] === '*') {
+        const end = css.indexOf('*/', i + 2);
+        i = end === -1 ? css.length : end + 1;
+        continue;
+      }
+      if (ch === '{' || ch === '}' || ch === ';') {
+        if (cur.trim()) tokens.push(cur.trim());
+        tokens.push(ch);
+        cur = '';
+        continue;
+      }
+      cur += ch;
+    }
+    if (cur.trim()) tokens.push(cur.trim());
+    return tokens;
+  }
+
+  function formatCss(css: string, indent: string, sort: boolean): string {
+    const tokens = tokenize(css);
+    const lines: string[] = [];
+    let depth = 0;
+    let pendingRule = '';
+    for (const token of tokens) {
+      if (token === '{') {
+        lines.push('  '.repeat(depth) + pendingRule + ' {');
+        pendingRule = '';
+        depth++;
+      } else if (token === '}') {
+        depth = Math.max(0, depth - 1);
+        lines.push('  '.repeat(depth) + '}');
+      } else if (token === ';') {
+        if (pendingRule) {
+          lines.push('  '.repeat(depth) + pendingRule + ';');
+          pendingRule = '';
+        }
+      } else if (depth > 0 && token.includes(':')) {
+        const [prop, ...rest] = token.split(':');
+        const value = rest.join(':').trim();
+        pendingRule = `${prop.trim()}: ${value};`;
+      } else {
+        pendingRule = (pendingRule ? pendingRule + ' ' : '') + token;
+      }
+    }
+    if (pendingRule) lines.push(pendingRule);
+    if (sort) {
+      const blockRe = /^(\s*)(.+?)\{\n([\s\S]*?)\n(\s*)\}/gm;
+      let result = lines.join('\n');
+      result = result.replace(blockRe, (_m, ind, sel, body, closeInd) => {
+        const props = body.split('\n').map((l) => l.trim()).filter(Boolean);
+        props.sort((a, b) => a.localeCompare(b));
+        return `${ind}${sel}{\n${props.map((p) => ind + '  ' + p).join('\n')}\n${closeInd}}`;
+      });
+      return result;
+    }
+    return lines.join('\n');
+  }
+
+  function minifyCss(css: string): string {
+    return tokenize(css)
+      .map((t) => (t === '{' ? '{' : t === '}' ? '}' : t === ';' ? ';' : t))
+      .join('')
+      .replace(/;}/g, '}')
+      .replace(/\s+/g, ' ')
+      .replace(/ ?([{}:;,]) ?/g, '$1')
+      .trim();
+  }
+
+  function runFormat() {
+    hideStatus('cssStatus');
+    if (!input.value.trim()) {
+      showStatus('cssStatus', 'error', 'CSS를 입력하세요');
+      return;
+    }
+    const indent = byId<HTMLSelectElement>('cssIndent').value === '2' ? '  ' : '    ';
+    const sort = byId<HTMLInputElement>('cssSort').checked;
+    output.value = formatCss(input.value, indent, sort);
+    setStats('cssStats', `${output.value.length}자`);
+    showStatus('cssStatus', 'success', '포맷 완료');
+  }
+
+  function runMinify() {
+    hideStatus('cssStatus');
+    output.value = minifyCss(input.value);
+    setStats('cssStats', `${output.value.length}자`);
+    showStatus('cssStatus', 'success', '압축 완료');
+  }
+
+  byId<HTMLButtonElement>('cssFmt').addEventListener('click', runFormat);
+  byId<HTMLButtonElement>('cssMin').addEventListener('click', runMinify);
+  bindSample('cssSample', 'cssInput', '.card{margin:0 auto;padding:16px;border-radius:8px}.card h2{font-size:18px;color:#c9a96e}@media(max-width:640px){.card{padding:8px}}');
+  bindClear('cssClear', ['cssInput'], ['cssOutput'], 'cssStatus');
+  bindCopyBtn('cssCopy', () => output.value);
+  setStats('cssStats', '0자');
+</script>

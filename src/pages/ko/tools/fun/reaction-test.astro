@@ -1,0 +1,110 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'reaction-test', 'ko')!;
+const related = getRelated(category, 'reaction-test', 'ko', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="반응 속도 테스트" icon="bi-lightning-charge">
+    <button class="rt-area" id="rtArea" type="button">
+      <span id="rtText">클릭하여 시작, 화면이 초록색이 되면 최대한 빨리 클릭하세요</span>
+    </button>
+    <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-4" id="rtResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .rt-area {
+    width: 100%;
+    min-height: 260px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+
+  .rt-area.waiting {
+    background: var(--error);
+    color: #fff;
+  }
+
+  .rt-area.go {
+    background: var(--success);
+    color: #fff;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const area = byId<HTMLButtonElement>('rtArea');
+  const text = byId<HTMLElement>('rtText');
+  const result = byId<HTMLElement>('rtResult');
+  let state: 'idle' | 'waiting' | 'go' = 'idle';
+  let goAt = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const history: number[] = [];
+
+  function renderHistory() {
+    if (history.length === 0) {
+      result.innerHTML = '<div class="muted">챌린지를 완료하면 기록이 표시됩니다</div>';
+      return;
+    }
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const best = Math.min(...history);
+    result.innerHTML =
+      `<div>이번 반응: <b>${history[history.length - 1]}</b> ms</div>` +
+      `<div>평균: ${avg.toFixed(0)} ms · 최고: ${best} ms · 총 ${history.length}회</div>`;
+  }
+
+  function startWait() {
+    state = 'waiting';
+    area.classList.add('waiting');
+    text.textContent = '초록색으로 변하는 중...';
+    const delay = 1500 + Math.random() * 2500;
+    timer = setTimeout(() => {
+      state = 'go';
+      area.classList.remove('waiting');
+      area.classList.add('go');
+      text.textContent = '클릭!';
+      goAt = performance.now();
+    }, delay);
+  }
+
+  area.addEventListener('click', () => {
+    if (state === 'idle') {
+      hideStatus('rtStatus');
+      startWait();
+      return;
+    }
+    if (state === 'waiting') {
+      if (timer) clearTimeout(timer);
+      state = 'idle';
+      area.classList.remove('waiting');
+      text.textContent = '너무 빨랐어요! 초록색이 된 후 클릭하세요. 클릭하여 재시도';
+      showStatus('rtStatus', 'error', '너무 일찍 클릭했습니다. 이번 시도는 무효입니다.');
+      return;
+    }
+    if (state === 'go') {
+      const ms = Math.round(performance.now() - goAt);
+      state = 'idle';
+      area.classList.remove('go');
+      text.textContent = `반응 시간 ${ms} ms, 클릭하여 다시 시도`;
+      history.push(ms);
+      if (history.length > 5) history.shift();
+      renderHistory();
+      const grade = ms < 200 ? '초고속 반응' : ms < 280 ? '민첩한 반응' : ms < 350 ? '정상 수준' : ms < 450 ? '조금 느림' : '잠이 필요합니다';
+      showStatus('rtStatus', 'success', `${ms} ms · ${grade}`);
+    }
+  });
+
+  renderHistory();
+</script>

@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'jwt-decoder', 'ko')!;
+const related = getRelated(category, 'jwt-decoder', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JWT Token" icon="bi-file-lock">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><i class="bi bi-magic"></i> 샘플</button>
+      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="jwtInput" spellcheck="false" placeholder="JWT를 붙여넣으세요（header.payload.signature）"></textarea>
+    <div class="field mt-3">
+      <label class="field-label" for="jwtSecret">서명 키 (선택, HS256 서명 검증용)</label>
+      <input class="input mono" id="jwtSecret" type="text" placeholder="로컬에서만 검증하며 브라우저를 벗어나지 않습니다" spellcheck="false" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jwtBtn" type="button"><i class="bi bi-file-lock"></i> 디코딩</button>
+      <button class="btn btn-secondary" id="jwtVerify" type="button"><i class="bi bi-shield-check"></i> HS256 서명 검증</button>
+    </div>
+    <div class="status-msg" id="jwtStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="디코딩 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="jwtOutput" readonly spellcheck="false" placeholder="Header와 Payload가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  function b64urlToJson(s: string): unknown {
+    let b64 = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) b64 += '=';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  function parseToken(token: string): { header: unknown; payload: unknown; raw: string[] } | null {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return { header: b64urlToJson(parts[0]), payload: b64urlToJson(parts[1]), raw: parts };
+  }
+
+  function describe(payload: Record<string, unknown>): string[] {
+    const lines: string[] = [];
+    if (payload.exp) {
+      const exp = new Date(Number(payload.exp) * 1000);
+      const diff = exp.getTime() - Date.now();
+      lines.push(`만료 시간: ${exp.toLocaleString('ko-KR', { hour12: false })}（${diff > 0 ? `남은 시간 ${Math.floor(diff / 60000)}분` : '만료됨'}）`);
+    }
+    if (payload.iat) {
+      lines.push(`발급 시간: ${new Date(Number(payload.iat) * 1000).toLocaleString('ko-KR', { hour12: false })}`);
+    }
+    if (payload.sub !== undefined) lines.push(`subject (sub): ${payload.sub}`);
+    if (payload.iss !== undefined) lines.push(`issuer (iss): ${payload.iss}`);
+    return lines;
+  }
+
+  function decode() {
+    hideStatus('jwtStatus');
+    const token = byId<HTMLTextAreaElement>('jwtInput').value.trim();
+    if (!token) {
+      showStatus('jwtStatus', 'error', 'JWT를 입력하세요');
+      return;
+    }
+    try {
+      const parsed = parseToken(token);
+      if (!parsed) {
+        showStatus('jwtStatus', 'error', 'JWT 형식이 올바르지 않습니다. header.payload.signature 세 부분이어야 합니다');
+        return;
+      }
+      const payload = parsed.payload as Record<string, unknown>;
+      const sections = [
+        '═══ Header ═══',
+        JSON.stringify(parsed.header, null, 2),
+        '',
+        '═══ Payload ═══',
+        JSON.stringify(parsed.payload, null, 2),
+      ];
+      const extra = describe(payload);
+      if (extra.length) sections.push('', '═══ 정보 요약 ═══', ...extra);
+      byId<HTMLTextAreaElement>('jwtOutput').value = sections.join('\n');
+      showStatus('jwtStatus', 'success', '디코딩 성공');
+    } catch (e) {
+      byId<HTMLTextAreaElement>('jwtOutput').value = '';
+      showStatus('jwtStatus', 'error', `디코딩 실패: ${(e as Error).message}`);
+    }
+  }
+
+  function verify() {
+    hideStatus('jwtStatus');
+    const token = byId<HTMLTextAreaElement>('jwtInput').value.trim();
+    const secret = byId<HTMLInputElement>('jwtSecret').value;
+    if (!token || !secret) {
+      showStatus('jwtStatus', 'error', 'JWT와 서명 키를 입력하세요');
+      return;
+    }
+    try {
+      const parsed = parseToken(token);
+      if (!parsed) throw new Error('JWT 형식이 올바르지 않습니다');
+      const header = parsed.header as Record<string, string>;
+      if ((header.alg || '').toUpperCase() !== 'HS256') {
+        showStatus('jwtStatus', 'info', `현재 도구는 HS256 서명 검증만 지원합니다 (이 Token은 ${header.alg} 사용)`);
+        return;
+      }
+      const signing = `${parsed.raw[0]}.${parsed.raw[1]}`;
+      const expected = CryptoJS.HmacSHA256(signing, secret)
+        .toString(CryptoJS.enc.Base64)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      const ok = expected === parsed.raw[2];
+      showStatus('jwtStatus', ok ? 'success' : 'error', ok ? '서명 유효' : '서명이 유효하지 않습니다: 키가 일치하지 않거나 Token이 변경되었습니다');
+    } catch (e) {
+      showStatus('jwtStatus', 'error', `검증 실패: ${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('jwtBtn').addEventListener('click', decode);
+  byId<HTMLButtonElement>('jwtVerify').addEventListener('click', verify);
+  bindSample('jwtSample', 'jwtInput', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbG92ZXIiLCJpYXQiOjE3ODUwMDAwMDAsImV4cCI6MTgxNjUzNjAwMH0.QW5FeGFtcGxlU2lnbmF0dXJl');
+  bindClear('jwtClear', ['jwtInput'], ['jwtOutput'], 'jwtStatus');
+  bindCopyBtn('jwtCopy', () => byId<HTMLTextAreaElement>('jwtOutput').value);
+</script>

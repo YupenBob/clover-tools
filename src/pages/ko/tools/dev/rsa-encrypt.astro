@@ -1,0 +1,125 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'rsa-encrypt', 'ko')!;
+const related = getRelated(category, 'rsa-encrypt', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="키와 작업" icon="bi-key">
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> 키 쌍 생성 (2048)</button>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="rsaPub">공개키 (PEM)</label>
+      <textarea class="textarea" id="rsaPub" spellcheck="false" placeholder="암호화하는 측에서 사용"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="rsaPriv">개인키 (PEM)</label>
+      <textarea class="textarea" id="rsaPriv" spellcheck="false" placeholder="복호화하는 측에서 사용, 이 기기에만 저장"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="rsaInput">평문 / 암호문 (Base64)</label>
+      <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="암호화할 평문 또는 복호화할 Base64 암호문 입력"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> 암호화</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> 복호화</button>
+    </div>
+    <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">Web Crypto API(RSA-OAEP / SHA-256) 기반, 키는 브라우저를 벗어나지 않습니다. 한 번에 암호화할 수 있는 콘텐츠 길이는 키 길이에 따라 제한됩니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  function ab2b64(buf: ArrayBuffer): string {
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  function pem2buf(pem: string): ArrayBuffer {
+    const b64 = pem.replace(/-----BEGIN [^-]+-----|-----END [^-]+-----/g, '').replace(/\s+/g, '');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  function buf2pem(buf: ArrayBuffer, label: string): string {
+    const b64 = ab2b64(buf).match(/.{1,64}/g)!.join('\n');
+    return `-----BEGIN ${label}-----\n${b64}\n-----END ${label}-----`;
+  }
+
+  async function generate() {
+    hideStatus('rsaStatus');
+    try {
+      const pair = await crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        true,
+        ['encrypt', 'decrypt'],
+      );
+      const pub = await crypto.subtle.exportKey('spki', pair.publicKey);
+      const priv = await crypto.subtle.exportKey('pkcs8', pair.privateKey);
+      byId<HTMLTextAreaElement>('rsaPub').value = buf2pem(pub, 'PUBLIC KEY');
+      byId<HTMLTextAreaElement>('rsaPriv').value = buf2pem(priv, 'PRIVATE KEY');
+      showStatus('rsaStatus', 'success', '키 쌍이 생성되었습니다');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', `생성 실패: ${(e as Error).message}`);
+    }
+  }
+
+  async function encrypt() {
+    hideStatus('rsaStatus');
+    const pubPem = byId<HTMLTextAreaElement>('rsaPub').value.trim();
+    const msg = byId<HTMLTextAreaElement>('rsaInput').value;
+    if (!pubPem || !msg) {
+      showStatus('rsaStatus', 'error', '공개키와 평문을 입력하세요');
+      return;
+    }
+    try {
+      const key = await crypto.subtle.importKey('spki', pem2buf(pubPem), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+      const enc = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, new TextEncoder().encode(msg));
+      byId<HTMLTextAreaElement>('rsaOutput').value = ab2b64(enc);
+      showStatus('rsaStatus', 'success', '암호화 완료');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', `암호화 실패: ${(e as Error).message}`);
+    }
+  }
+
+  async function decrypt() {
+    hideStatus('rsaStatus');
+    const privPem = byId<HTMLTextAreaElement>('rsaPriv').value.trim();
+    const ct = byId<HTMLTextAreaElement>('rsaInput').value.trim();
+    if (!privPem || !ct) {
+      showStatus('rsaStatus', 'error', '개인키와 암호문을 입력하세요');
+      return;
+    }
+    try {
+      const key = await crypto.subtle.importKey('pkcs8', pem2buf(privPem), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+      const dec = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, key, pem2buf(`-----BEGIN CT-----\n${ct}\n-----END CT-----`));
+      byId<HTMLTextAreaElement>('rsaOutput').value = new TextDecoder().decode(dec);
+      showStatus('rsaStatus', 'success', '복호화 완료');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', '복호화 실패: 키가 일치하지 않거나 암호문이 손상되었습니다');
+    }
+  }
+
+  byId<HTMLButtonElement>('rsaGen').addEventListener('click', generate);
+  byId<HTMLButtonElement>('rsaEnc').addEventListener('click', encrypt);
+  byId<HTMLButtonElement>('rsaDec').addEventListener('click', decrypt);
+  bindCopyBtn('rsaCopy', () => byId<HTMLTextAreaElement>('rsaOutput').value);
+</script>

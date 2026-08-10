@@ -1,0 +1,162 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'symmetric-encrypt', 'ko')!;
+const related = getRelated(category, 'symmetric-encrypt', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="암호화/복호화 설정" icon="bi-lock">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="encAlgo">알고리즘</label>
+        <select class="select" id="encAlgo">
+          <option value="AES" selected>AES</option>
+          <option value="DES">DES</option>
+          <option value="RC4">RC4</option>
+          <option value="Rabbit">Rabbit</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encMode">모드</label>
+        <select class="select" id="encMode">
+          <option value="CBC" selected>CBC</option>
+          <option value="ECB">ECB</option>
+          <option value="CFB">CFB</option>
+          <option value="OFB">OFB</option>
+          <option value="CTR">CTR</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="encOut">출력 형식</label>
+        <select class="select" id="encOut">
+          <option value="base64" selected>Base64</option>
+          <option value="hex">Hex</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="encKey">키</label>
+      <input class="input mono" id="encKey" type="text" placeholder="키를 입력하세요" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encIv">IV (CBC/CFB/OFB/CTR 모드, 16진수)</label>
+      <input class="input mono" id="encIv" type="text" placeholder="비워두면 자동 생성됩니다" spellcheck="false" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="encInput">평문 / 암호문</label>
+      <textarea class="textarea" id="encInput" spellcheck="false" placeholder="암호화할 평문 또는 복호화할 암호문을 입력하세요"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> 암호화</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> 복호화</button>
+    </div>
+    <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  // 고정 솔트 + EvpKDF 키 파생: base64/hex 두 출력 모두 복호화 가능
+  const KEY_SALT = CryptoJS.enc.Hex.parse('636c6f766572746f6f6c73');
+
+  function deriveKey(key: string): CryptoJS.lib.WordArray {
+    return CryptoJS.EvpKDF(key, KEY_SALT, {
+      keySize: 256 / 32,
+      iterations: 1,
+      hasher: CryptoJS.algo.MD5,
+    });
+  }
+
+  function options() {
+    const algo = byId<HTMLSelectElement>('encAlgo').value;
+    const modeName = byId<HTMLSelectElement>('encMode').value;
+    const ivHex = byId<HTMLInputElement>('encIv').value.trim();
+    const opts: CryptoJS.lib.CipherCfg = {};
+    if (algo !== 'RC4' && algo !== 'Rabbit') {
+      const modes: Record<string, typeof CryptoJS.mode.CBC> = {
+        CBC: CryptoJS.mode.CBC,
+        ECB: CryptoJS.mode.ECB,
+        CFB: CryptoJS.mode.CFB,
+        OFB: CryptoJS.mode.OFB,
+        CTR: CryptoJS.mode.CTR,
+      };
+      opts.mode = modes[modeName];
+      if (modeName !== 'ECB') {
+        if (!ivHex) throw new Error('이 모드에는 16진수 IV를 입력해야 합니다');
+        opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+      }
+    } else if (ivHex) {
+      opts.iv = CryptoJS.enc.Hex.parse(ivHex);
+    }
+    return { algo, opts };
+  }
+
+  function encrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const msg = byId<HTMLTextAreaElement>('encInput').value;
+    if (!key || !msg) {
+      showStatus('encStatus', 'error', '키와 내용을 입력하세요');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const cipher = (CryptoJS as unknown as Record<string, { encrypt: (m: string, k: CryptoJS.lib.WordArray, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.CipherParams }>)[algo].encrypt(msg, deriveKey(key), opts);
+      const out = byId<HTMLSelectElement>('encOut').value === 'hex'
+        ? cipher.ciphertext.toString(CryptoJS.enc.Hex)
+        : cipher.ciphertext.toString(CryptoJS.enc.Base64);
+      byId<HTMLTextAreaElement>('encOutput').value = out;
+      showStatus('encStatus', 'success', '암호화 완료');
+    } catch (e) {
+      showStatus('encStatus', 'error', `암호화 실패: ${(e as Error).message}`);
+    }
+  }
+
+  function decrypt() {
+    hideStatus('encStatus');
+    const key = byId<HTMLInputElement>('encKey').value;
+    const ct = byId<HTMLTextAreaElement>('encInput').value.trim();
+    if (!key || !ct) {
+      showStatus('encStatus', 'error', '키와 내용을 입력하세요');
+      return;
+    }
+    try {
+      const { algo, opts } = options();
+      const parsed = /^[0-9a-fA-F]+$/.test(ct)
+        ? CryptoJS.enc.Hex.parse(ct)
+        : CryptoJS.enc.Base64.parse(ct);
+      const decrypted = (CryptoJS as unknown as Record<string, { decrypt: (c: CryptoJS.lib.CipherParams, k: CryptoJS.lib.WordArray, o: CryptoJS.lib.CipherCfg) => CryptoJS.lib.WordArray }>)[algo].decrypt(
+        CryptoJS.lib.CipherParams.create({ ciphertext: parsed }),
+        deriveKey(key),
+        opts,
+      );
+      const text = decrypted.toString(CryptoJS.enc.Utf8);
+      if (!text) throw new Error('복호화 결과가 비어 있습니다. 키, IV 또는 모드를 확인하세요');
+      byId<HTMLTextAreaElement>('encOutput').value = text;
+      showStatus('encStatus', 'success', '복호화 완료');
+    } catch (e) {
+      showStatus('encStatus', 'error', `복호화 실패: ${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('encBtn').addEventListener('click', encrypt);
+  byId<HTMLButtonElement>('decBtn').addEventListener('click', decrypt);
+  bindSample('encSample', 'encKey', 'clover-secret');
+  bindCopyBtn('encCopy', () => byId<HTMLTextAreaElement>('encOutput').value);
+</script>

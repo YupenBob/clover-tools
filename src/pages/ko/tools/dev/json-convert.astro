@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'json-convert', 'ko')!;
+const related = getRelated(category, 'json-convert', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JSON 배열 입력" icon="bi-braces">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jsonSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="jsonClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="jsonInput" spellcheck="false" placeholder='JSON 배열을 붙여넣으세요, 예: [{"name":"Clover","version":"3.0"}]'></textarea>
+    <div class="input-stats"><span id="jsonStats">0자</span></div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="delimiter">구분자</label>
+        <select class="select" id="delimiter">
+          <option value="csv" selected>쉼표 (CSV)</option>
+          <option value="tsv">탭 (TSV)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="withHeader">
+          <input type="checkbox" id="withHeader" checked /> 첫 줄에 헤더 출력
+        </label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="convertBtn" type="button"><i class="bi bi-table"></i> 표 생성</button>
+      <button class="btn btn-secondary" id="downloadBtn" type="button"><i class="bi bi-download"></i> 파일 다운로드</button>
+    </div>
+    <div class="status-msg" id="statusMsg" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="테이블 결과" icon="bi-box-arrow-in-down" className="mt-4">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="copyBtn" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="csvOutput" readonly spellcheck="false" placeholder="테이블 결과가 여기에 표시됩니다"></textarea>
+    <div class="input-stats"><span id="csvStats">0자</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import {
+    byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear,
+  } from '../../../../scripts/toolkit';
+
+  const SAMPLE = [
+    { name: 'CloverTools', category: '工具站', tools: 69, free: true },
+    { name: 'Astro', category: '框架', tools: 5, free: true },
+    { name: 'Notion', category: '办公', tools: 12, free: false },
+  ];
+
+  const input = byId<HTMLTextAreaElement>('jsonInput');
+  const output = byId<HTMLTextAreaElement>('csvOutput');
+
+  function csvEscape(value: string, delim: string): string {
+    if (/[",\r\n]/.test(value) || (delim === '\t' && value.includes('\t'))) {
+      return '"' + value.replace(/"/g, '""') + '"';
+    }
+    return value;
+  }
+
+  function convert(): boolean {
+    hideStatus('statusMsg');
+    const text = input.value.trim();
+    if (!text) {
+      showStatus('statusMsg', 'error', 'JSON 배열을 입력하세요');
+      return false;
+    }
+    let data: unknown;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      showStatus('statusMsg', 'error', `JSON 파싱 실패: ${(e as Error).message}`);
+      return false;
+    }
+    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || data[0] === null) {
+      showStatus('statusMsg', 'error', '비어 있지 않은 객체 배열을 입력하세요, 예: [{ "a": 1 }]');
+      return false;
+    }
+
+    const delim = byId<HTMLSelectElement>('delimiter').value === 'csv' ? ',' : '\t';
+    const withHeader = byId<HTMLInputElement>('withHeader').checked;
+    const headerSet = new Set<string>();
+    for (const row of data as Record<string, unknown>[]) {
+      for (const key of Object.keys(row)) headerSet.add(key);
+    }
+    const headers = [...headerSet];
+    const lines: string[] = [];
+    if (withHeader) lines.push(headers.map((h) => csvEscape(h, delim)).join(delim));
+    for (const row of data as Record<string, unknown>[]) {
+      lines.push(
+        headers.map((h) => {
+          const v = row[h];
+          if (v === null || v === undefined) return '';
+          if (typeof v === 'object') return csvEscape(JSON.stringify(v), delim);
+          return csvEscape(String(v), delim);
+        }).join(delim),
+      );
+    }
+    output.value = lines.join('\r\n');
+    setStats('csvStats', `${output.value.length}자 · ${data.length}행 데이터 · ${headers.length}열`);
+    showStatus('statusMsg', 'success', `변환 완료: ${data.length}행 × ${headers.length}열`);
+    return true;
+  }
+
+  byId<HTMLButtonElement>('convertBtn').addEventListener('click', convert);
+
+  byId<HTMLButtonElement>('downloadBtn').addEventListener('click', () => {
+    if (!convert()) return;
+    const ext = byId<HTMLSelectElement>('delimiter').value === 'csv' ? 'csv' : 'tsv';
+    const mime = ext === 'csv' ? 'text/csv;charset=utf-8' : 'text/tab-separated-values;charset=utf-8';
+    const blob = new Blob(['\uFEFF' + output.value], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `json-to-${ext}.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  bindSample('jsonSample', 'jsonInput', JSON.stringify(SAMPLE, null, 2));
+  bindClear('jsonClear', ['jsonInput'], ['csvOutput'], 'statusMsg');
+  bindCopyBtn('copyBtn', () => output.value);
+  input.addEventListener('input', () => setStats('jsonStats', `${input.value.length}자`));
+  setStats('jsonStats', `${input.value.length}자`);
+</script>

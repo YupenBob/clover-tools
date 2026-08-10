@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'jwt-decoder', 'ja')!;
+const related = getRelated(category, 'jwt-decoder', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JWT Token" icon="bi-file-lock">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="jwtInput" spellcheck="false" placeholder="JWT を貼り付け（header.payload.signature）"></textarea>
+    <div class="field mt-3">
+      <label class="field-label" for="jwtSecret">署名キー（任意、HS256 署名検証用）</label>
+      <input class="input mono" id="jwtSecret" type="text" placeholder="ローカルのみで検証され、ブラウザ外に送信されません" spellcheck="false" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jwtBtn" type="button"><i class="bi bi-file-lock"></i> デコード</button>
+      <button class="btn btn-secondary" id="jwtVerify" type="button"><i class="bi bi-shield-check"></i> HS256 署名を検証</button>
+    </div>
+    <div class="status-msg" id="jwtStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="デコード結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="jwtOutput" readonly spellcheck="false" placeholder="Header と Payload がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  function b64urlToJson(s: string): unknown {
+    let b64 = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4 !== 0) b64 += '=';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+
+  function parseToken(token: string): { header: unknown; payload: unknown; raw: string[] } | null {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    return { header: b64urlToJson(parts[0]), payload: b64urlToJson(parts[1]), raw: parts };
+  }
+
+  function describe(payload: Record<string, unknown>): string[] {
+    const lines: string[] = [];
+    if (payload.exp) {
+      const exp = new Date(Number(payload.exp) * 1000);
+      const diff = exp.getTime() - Date.now();
+      lines.push(`有効期限：${exp.toLocaleString('ja-JP', { hour12: false })}（${diff > 0 ? `残り${Math.floor(diff / 60000)}分` : '期限切れ'}）`);
+    }
+    if (payload.iat) {
+      lines.push(`発行日時：${new Date(Number(payload.iat) * 1000).toLocaleString('ja-JP', { hour12: false })}`);
+    }
+    if (payload.sub !== undefined) lines.push(`subject (sub)：${payload.sub}`);
+    if (payload.iss !== undefined) lines.push(`issuer (iss)：${payload.iss}`);
+    return lines;
+  }
+
+  function decode() {
+    hideStatus('jwtStatus');
+    const token = byId<HTMLTextAreaElement>('jwtInput').value.trim();
+    if (!token) {
+      showStatus('jwtStatus', 'error', 'JWT を入力してください');
+      return;
+    }
+    try {
+      const parsed = parseToken(token);
+      if (!parsed) {
+        showStatus('jwtStatus', 'error', 'JWT の形式が正しくありません。header.payload.signature の 3 つの部分で構成されている必要があります');
+        return;
+      }
+      const payload = parsed.payload as Record<string, unknown>;
+      const sections = [
+        '═══ Header ═══',
+        JSON.stringify(parsed.header, null, 2),
+        '',
+        '═══ Payload ═══',
+        JSON.stringify(parsed.payload, null, 2),
+      ];
+      const extra = describe(payload);
+      if (extra.length) sections.push('', '═══ 情報サマリー ═══', ...extra);
+      byId<HTMLTextAreaElement>('jwtOutput').value = sections.join('\n');
+      showStatus('jwtStatus', 'success', 'デコードに成功しました');
+    } catch (e) {
+      byId<HTMLTextAreaElement>('jwtOutput').value = '';
+      showStatus('jwtStatus', 'error', `デコードに失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  function verify() {
+    hideStatus('jwtStatus');
+    const token = byId<HTMLTextAreaElement>('jwtInput').value.trim();
+    const secret = byId<HTMLInputElement>('jwtSecret').value;
+    if (!token || !secret) {
+      showStatus('jwtStatus', 'error', 'JWT と署名キーを入力してください');
+      return;
+    }
+    try {
+      const parsed = parseToken(token);
+      if (!parsed) throw new Error('JWT の形式が正しくありません');
+      const header = parsed.header as Record<string, string>;
+      if ((header.alg || '').toUpperCase() !== 'HS256') {
+        showStatus('jwtStatus', 'info', `このツールは HS256 署名検証のみサポートしています（このトークンは ${header.alg} を使用しています）`);
+        return;
+      }
+      const signing = `${parsed.raw[0]}.${parsed.raw[1]}`;
+      const expected = CryptoJS.HmacSHA256(signing, secret)
+        .toString(CryptoJS.enc.Base64)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      const ok = expected === parsed.raw[2];
+      showStatus('jwtStatus', ok ? 'success' : 'error', ok ? '署名は有効です' : '署名は無効です：キーが一致しないかトークンが改ざんされています');
+    } catch (e) {
+      showStatus('jwtStatus', 'error', `検証に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('jwtBtn').addEventListener('click', decode);
+  byId<HTMLButtonElement>('jwtVerify').addEventListener('click', verify);
+  bindSample('jwtSample', 'jwtInput', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbG92ZXIiLCJpYXQiOjE3ODUwMDAwMDAsImV4cCI6MTgxNjUzNjAwMH0.QW5FeGFtcGxlU2lnbmF0dXJl');
+  bindClear('jwtClear', ['jwtInput'], ['jwtOutput'], 'jwtStatus');
+  bindCopyBtn('jwtCopy', () => byId<HTMLTextAreaElement>('jwtOutput').value);
+</script>

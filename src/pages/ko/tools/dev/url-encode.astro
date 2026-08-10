@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'url-encode', 'ko')!;
+const related = getRelated(category, 'url-encode', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="URL 또는 텍스트 입력" icon="bi-link-45deg">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="예: https://example.com/搜索?q=中文 내용"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="urlMode">변환 모드</label>
+        <select class="select" id="urlMode">
+          <option value="encodeComponent">인코딩 (encodeURIComponent)</option>
+          <option value="encodeUri">인코딩 (encodeURI, :/?# 유지)</option>
+          <option value="decodeComponent">디코딩 (decodeURIComponent)</option>
+          <option value="decodeUri">디코딩 (decodeURI)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> 변환</button>
+    </div>
+    <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('urlInput');
+  const output = byId<HTMLTextAreaElement>('urlOutput');
+
+  function convert() {
+    hideStatus('urlStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('urlStatus', 'error', '변환할 내용을 입력하세요');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('urlMode').value;
+    try {
+      switch (mode) {
+        case 'encodeComponent': output.value = encodeURIComponent(src); break;
+        case 'encodeUri': output.value = encodeURI(src); break;
+        case 'decodeComponent': output.value = decodeURIComponent(src); break;
+        case 'decodeUri': output.value = decodeURI(src); break;
+      }
+      showStatus('urlStatus', 'success', '변환 완료');
+    } catch (e) {
+      output.value = '';
+      showStatus('urlStatus', 'error', `변환 실패: ${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('urlBtn').addEventListener('click', convert);
+  bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
+  bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
+  bindCopyBtn('urlCopy', () => output.value);
+</script>

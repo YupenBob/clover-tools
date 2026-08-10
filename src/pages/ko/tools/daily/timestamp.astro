@@ -1,0 +1,204 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'timestamp', 'ko')!;
+const related = getRelated(category, 'timestamp', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <section class="tool-card-panel">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> 현재 시간</h2>
+      <div class="panel-actions">
+        <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> 타임스탬프 복사
+        </button>
+      </div>
+    </div>
+    <div class="now-grid">
+      <div class="now-item">
+        <span class="now-label">로컬 시간</span>
+        <span class="now-value mono" id="nowClock">--:--:--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">초 단위 타임스탬프</span>
+        <span class="now-value mono" id="nowSeconds">--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">밀리초 타임스탬프</span>
+        <span class="now-value mono" id="nowMillis">--</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> 타임스탬프 → 날짜</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="tsInput">타임스탬프 (초 또는 밀리초, 자동 감지)</label>
+        <input class="input mono" id="tsInput" type="text" placeholder="예: 1785000000 또는 1785000000123" spellcheck="false" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="tsToDateBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 변환
+      </button>
+      <button class="btn btn-ghost" id="tsUseNow" type="button">
+        <i class="bi bi-clock-history" aria-hidden="true"></i> 현재 타임스탬프 사용
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="tsDateOutput" class="textarea" readonly spellcheck="false" placeholder="날짜 결과가 여기에 표시됩니다"></textarea>
+    </div>
+    <div class="status-msg" id="tsStatus" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> 날짜 → 타임스탬프</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="dateInput">로컬 날짜/시간</label>
+        <input class="input" id="dateInput" type="datetime-local" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="nowBtn">&nbsp;</label>
+        <button class="btn btn-ghost" id="dateNowBtn" type="button">
+          <i class="bi bi-clock" aria-hidden="true"></i> 현재 시간 가져오기
+        </button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="dateToTsBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 변환
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="dateTsOutput" class="textarea" readonly spellcheck="false" placeholder="초 단위 및 밀리초 단위 타임스탬프가 여기에 표시됩니다"></textarea>
+    </div>
+    <div class="status-msg" id="dateStatus" role="status" aria-live="polite"></div>
+  </section>
+</ToolLayout>
+
+<style>
+  .now-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .now-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .now-label {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  .now-value {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+</style>
+
+<script>
+  const nowClock = document.getElementById('nowClock') as HTMLElement;
+  const nowSeconds = document.getElementById('nowSeconds') as HTMLElement;
+  const nowMillis = document.getElementById('nowMillis') as HTMLElement;
+  const tsInput = document.getElementById('tsInput') as HTMLInputElement;
+  const tsDateOutput = document.getElementById('tsDateOutput') as HTMLTextAreaElement;
+  const tsStatus = document.getElementById('tsStatus') as HTMLElement;
+  const dateInput = document.getElementById('dateInput') as HTMLInputElement;
+  const dateTsOutput = document.getElementById('dateTsOutput') as HTMLTextAreaElement;
+  const dateStatus = document.getElementById('dateStatus') as HTMLElement;
+
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function formatDate(d: Date): string {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ` +
+      `(${weekdays[d.getDay()]})`;
+  }
+
+  function tick() {
+    const now = new Date();
+    nowClock.textContent = formatDate(now);
+    nowSeconds.textContent = String(Math.floor(now.getTime() / 1000));
+    nowMillis.textContent = String(now.getTime());
+  }
+
+  tick();
+  setInterval(tick, 1000);
+
+  (document.getElementById('copyNow') as HTMLButtonElement).addEventListener('click', (e) => {
+    window.CT.copy(nowSeconds.textContent || '', e.currentTarget as HTMLElement);
+  });
+
+  function showStatus(el: HTMLElement, type: 'success' | 'error', msg: string) {
+    el.className = `status-msg show ${type}`;
+    el.textContent = msg;
+  }
+
+  function parseTimestamp(text: string): { date: Date; unit: string } | null {
+    if (!/^\d{10,13}$/.test(text.trim())) return null;
+    const num = Number(text.trim());
+    if (text.trim().length === 10) return { date: new Date(num * 1000), unit: '초' };
+    return { date: new Date(num), unit: '밀리초' };
+  }
+
+  (document.getElementById('tsToDateBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const parsed = parseTimestamp(tsInput.value);
+    if (!parsed || isNaN(parsed.date.getTime())) {
+      showStatus(tsStatus, 'error', '10자리(초) 또는 13자리(밀리초) 숫자 타임스탬프를 입력하세요');
+      return;
+    }
+    tsDateOutput.value = [
+      `로컬 시간: ${formatDate(parsed.date)}`,
+      `ISO 시간: ${parsed.date.toISOString()}`,
+      `단위: ${parsed.unit}`,
+    ].join('\n');
+    showStatus(tsStatus, 'success', '변환 완료');
+  });
+
+  (document.getElementById('tsUseNow') as HTMLButtonElement).addEventListener('click', () => {
+    tsInput.value = String(Math.floor(Date.now() / 1000));
+    (document.getElementById('tsToDateBtn') as HTMLButtonElement).click();
+  });
+
+  (document.getElementById('dateToTsBtn') as HTMLButtonElement).addEventListener('click', () => {
+    if (!dateInput.value) {
+      showStatus(dateStatus, 'error', '날짜와 시간을 먼저 선택하세요');
+      return;
+    }
+    const ms = new Date(dateInput.value).getTime();
+    if (isNaN(ms)) {
+      showStatus(dateStatus, 'error', '잘못된 날짜/시간입니다');
+      return;
+    }
+    dateTsOutput.value = `초 단위: ${Math.floor(ms / 1000)}\n밀리초 단위: ${ms}`;
+    showStatus(dateStatus, 'success', '변환 완료');
+  });
+
+  (document.getElementById('dateNowBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const now = new Date();
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T` +
+      `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
+</script>

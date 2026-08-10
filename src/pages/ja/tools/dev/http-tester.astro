@@ -1,0 +1,135 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'http-tester', 'ja')!;
+const related = getRelated(category, 'http-tester', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="リクエスト設定" icon="bi-send">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="httpMethod">メソッド</label>
+        <select class="select" id="httpMethod">
+          <option value="GET" selected>GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+          <option value="HEAD">HEAD</option>
+          <option value="OPTIONS">OPTIONS</option>
+        </select>
+      </div>
+      <div class="field" style="flex: 3">
+        <label class="field-label" for="httpUrl">URL</label>
+        <input class="input mono" id="httpUrl" type="text" placeholder="https://api.example.com/data" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="httpTimeout">タイムアウト</label>
+        <select class="select" id="httpTimeout">
+          <option value="5000">5s</option>
+          <option value="10000" selected>10s</option>
+          <option value="30000">30s</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="httpHeaders">リクエストヘッダー（各行1つ、Key: Value の形式）</label>
+      <textarea class="textarea" id="httpHeaders" spellcheck="false" placeholder='Content-Type: application/json&#10;Authorization: Bearer xxx'></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="httpBody">リクエストボディ（POST/PUT/PATCH）</label>
+      <textarea class="textarea" id="httpBody" spellcheck="false" placeholder='{"key": "value"}'></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="httpSend" type="button"><i class="bi bi-send"></i> リクエストを送信</button>
+    </div>
+    <div class="status-msg" id="httpStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">ヒント：ブラウザの同一生成元ポリシーにより、対象APIがCORSを許可している必要があります。許可されていない場合、リクエストはブラウザにブロックされます。</p>
+  </ToolPanel>
+
+  <ToolPanel title="レスポンス結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <div class="http-meta" id="httpMeta">まだリクエストを送信していません</div>
+    <textarea class="textarea" id="httpOutput" readonly spellcheck="false" placeholder="レスポンス内容がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .http-meta {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  async function send() {
+    hideStatus('httpStatus');
+    const url = byId<HTMLInputElement>('httpUrl').value.trim();
+    const method = byId<HTMLSelectElement>('httpMethod').value;
+    const timeout = Number(byId<HTMLSelectElement>('httpTimeout').value);
+    if (!url) {
+      showStatus('httpStatus', 'error', 'リクエストURLを入力してください');
+      return;
+    }
+    const headers: Record<string, string> = {};
+    for (const line of byId<HTMLTextAreaElement>('httpHeaders').value.split('\n')) {
+      const idx = line.indexOf(':');
+      if (idx > 0) headers[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    }
+    const body = byId<HTMLTextAreaElement>('httpBody').value;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    const meta = byId<HTMLElement>('httpMeta');
+    const output = byId<HTMLTextAreaElement>('httpOutput');
+    const start = performance.now();
+    meta.textContent = `${method} ${url} 送信中...`;
+    output.value = '';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: ['GET', 'HEAD'].includes(method) ? undefined : body,
+        signal: controller.signal,
+      });
+      const duration = Math.round(performance.now() - start);
+      const text = await res.text();
+      const resHeaders = Array.from(res.headers.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
+      meta.textContent = `ステータス ${res.status} ${res.statusText} · 所要時間 ${duration}ms · サイズ ${text.length} 文字`;
+      output.value = `═══ レスポンスヘッダー ═══\n${resHeaders}\n\n═══ レスポンスボディ ═══\n${text}`;
+      showStatus('httpStatus', res.ok ? 'success' : 'error', `リクエストが完了しました。ステータスコード ${res.status}`);
+    } catch (e) {
+      meta.textContent = 'リクエスト失敗';
+      output.value = '';
+      if ((e as Error).name === 'AbortError') {
+        showStatus('httpStatus', 'error', `リクエストがタイムアウトしました（${timeout / 1000}s 超過）`);
+      } else {
+        showStatus('httpStatus', 'error', 'リクエスト失敗：対象APIがCORS（クロスオリジン）を許可していないか、アドレスに到達できません');
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  byId<HTMLButtonElement>('httpSend').addEventListener('click', send);
+  byId<HTMLButtonElement>('httpSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('httpUrl').value = 'https://httpbin.org/json';
+    byId<HTMLSelectElement>('httpMethod').value = 'GET';
+  });
+  bindCopyBtn('httpCopy', () => byId<HTMLTextAreaElement>('httpOutput').value);
+</script>

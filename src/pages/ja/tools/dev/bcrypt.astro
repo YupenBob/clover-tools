@@ -1,0 +1,110 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'bcrypt', 'ja')!;
+const related = getRelated(category, 'bcrypt', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Bcrypt ハッシュを生成" icon="bi-shield-check">
+    <div class="field">
+      <label class="field-label" for="bcPwd">パスワード</label>
+      <input class="input" id="bcPwd" type="password" placeholder="ハッシュ化するパスワードを入力" autocomplete="off" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="bcRounds">コスト係数（cost）</label>
+        <select class="select" id="bcRounds">
+          <option value="8">8（高速）</option>
+          <option value="10" selected>10（推奨）</option>
+          <option value="12">12（低速）</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcGen" type="button"><i class="bi bi-shield-check"></i> ハッシュを生成</button>
+    </div>
+    <div class="status-msg" id="bcGenStatus" role="status" aria-live="polite"></div>
+    <div class="output-area mt-3">
+      <textarea class="textarea" id="bcHash" readonly spellcheck="false" placeholder="生成されたハッシュがここに表示されます"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> ハッシュをコピー</button>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="パスワードの検証" icon="bi-shield-lock">
+    <div class="field">
+      <label class="field-label" for="bcCheckPwd">検証するパスワード</label>
+      <input class="input" id="bcCheckPwd" type="password" placeholder="パスワードを入力" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="bcCheckHash">既知のハッシュ</label>
+      <textarea class="textarea" id="bcCheckHash" spellcheck="false" placeholder="$2a$ / $2b$ / $2y$ で始まる Bcrypt ハッシュを貼り付け"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcVerify" type="button"><i class="bi bi-shield-lock"></i> 検証</button>
+    </div>
+    <div class="status-msg" id="bcVerifyStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="説明" icon="bi-info-circle" className="mt-4">
+    <p class="field-hint" style="line-height:1.9">
+      Bcrypt はソルト付きハッシュアルゴリズムで、ハッシュ内にランダムソルトとコスト係数が含まれています。同じパスワードでも生成のたびに結果が異なります（$2b$10$... の 10 がコスト係数です）。
+      検証時には生成時に使ったハッシュを使用する必要があります。コスト係数が高いほど計算が遅くなり、総当たり攻撃への耐性が高まるため、10〜12 を推奨します。処理はすべてブラウザ内でローカルに行われるため、パスワードがデバイスから送信されることはありません。
+    </p>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import bcrypt from 'bcryptjs';
+
+  async function generate() {
+    hideStatus('bcGenStatus');
+    const pwd = byId<HTMLInputElement>('bcPwd').value;
+    if (!pwd) {
+      showStatus('bcGenStatus', 'error', 'パスワードを入力してください');
+      return;
+    }
+    const rounds = Number(byId<HTMLSelectElement>('bcRounds').value);
+    const btn = byId<HTMLButtonElement>('bcGen');
+    btn.disabled = true;
+    showStatus('bcGenStatus', 'info', '計算中（コストが高いほど時間がかかります）……');
+    try {
+      const hash = await bcrypt.hash(pwd, rounds);
+      byId<HTMLTextAreaElement>('bcHash').value = hash;
+      showStatus('bcGenStatus', 'success', `生成完了（cost ${rounds}）`);
+    } catch (e) {
+      showStatus('bcGenStatus', 'error', `生成失敗：${(e as Error).message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function verify() {
+    hideStatus('bcVerifyStatus');
+    const pwd = byId<HTMLInputElement>('bcCheckPwd').value;
+    const hash = byId<HTMLTextAreaElement>('bcCheckHash').value.trim();
+    if (!pwd || !hash) {
+      showStatus('bcVerifyStatus', 'error', 'パスワードとハッシュを入力してください');
+      return;
+    }
+    try {
+      const ok = await bcrypt.compare(pwd, hash);
+      const rounds = bcrypt.getRounds(hash);
+      showStatus('bcVerifyStatus', ok ? 'success' : 'error', ok ? `パスワードが一致（cost ${rounds}）` : `パスワードが一致しません（ハッシュの cost ${rounds}）`);
+    } catch {
+      showStatus('bcVerifyStatus', 'error', 'ハッシュ形式が無効です。$2a$ / $2b$ / $2y$ で始まるか確認してください');
+    }
+  }
+
+  byId<HTMLButtonElement>('bcGen').addEventListener('click', generate);
+  byId<HTMLButtonElement>('bcVerify').addEventListener('click', verify);
+  byId<HTMLButtonElement>('bcCopy').addEventListener('click', (e) => {
+    window.CT.copy(byId<HTMLTextAreaElement>('bcHash').value, e.currentTarget as HTMLElement);
+  });
+</script>

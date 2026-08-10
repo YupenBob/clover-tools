@@ -1,0 +1,94 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'text-transform', 'ja')!;
+const related = getRelated(category, 'text-transform', 'ja', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="入力テキスト" icon="bi-textarea-t">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="ttInput" spellcheck="false" placeholder="変換するテキストを入力"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ttMode">変換方法</label>
+        <select class="select" id="ttMode">
+          <option value="upper">すべて大文字</option>
+          <option value="lower">すべて小文字</option>
+          <option value="title">各単語の先頭を大文字</option>
+          <option value="sentence">文の先頭を大文字</option>
+          <option value="camel">camelCase</option>
+          <option value="pascal">PascalCase</option>
+          <option value="snake">snake_case</option>
+          <option value="kebab">kebab-case</option>
+          <option value="constant">CONSTANT_CASE</option>
+          <option value="fullwidth">全角に変換</option>
+          <option value="halfwidth">半角に変換</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ttBtn" type="button"><i class="bi bi-arrow-repeat"></i> 変換</button>
+    </div>
+    <div class="status-msg" id="ttStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="変換結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="ttOutput" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('ttInput');
+  const output = byId<HTMLTextAreaElement>('ttOutput');
+
+  function splitWords(s: string): string[] {
+    return s
+      .trim()
+      .split(/[\s_\-]+|(?=[A-Z])/)
+      .map((w) => w.toLowerCase())
+      .filter(Boolean);
+  }
+
+  function convert(): void {
+    hideStatus('ttStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('ttStatus', 'error', 'テキストを入力してください');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('ttMode').value;
+    const words = splitWords(src);
+    switch (mode) {
+      case 'upper': output.value = src.toUpperCase(); break;
+      case 'lower': output.value = src.toLowerCase(); break;
+      case 'title': output.value = src.replace(/\b\w/g, (c) => c.toUpperCase()); break;
+      case 'sentence':
+        output.value = src.replace(/(^\s*\w|[.!?。！？]\s*\w)/g, (c) => c.toUpperCase());
+        break;
+      case 'camel': output.value = words.map((w, i) => (i === 0 ? w : w[0].toUpperCase() + w.slice(1))).join(''); break;
+      case 'pascal': output.value = words.map((w) => w[0].toUpperCase() + w.slice(1)).join(''); break;
+      case 'snake': output.value = words.join('_'); break;
+      case 'kebab': output.value = words.join('-'); break;
+      case 'constant': output.value = words.join('_').toUpperCase(); break;
+      case 'fullwidth': output.value = src.replace(/[!-~]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0xfee0)); break;
+      case 'halfwidth': output.value = src.replace(/[\uFF01-\uFF5E]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0)); break;
+    }
+    showStatus('ttStatus', 'success', '変換が完了しました');
+  }
+
+  byId<HTMLButtonElement>('ttBtn').addEventListener('click', convert);
+  bindSample('ttSample', 'ttInput', 'clover tools developer toolbox');
+  bindClear('ttClear', ['ttInput'], ['ttOutput'], 'ttStatus');
+  bindCopyBtn('ttCopy', () => output.value);
+</script>

@@ -1,0 +1,142 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'salary', 'ko')!;
+const related = getRelated(category, 'salary', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="세전 급여" icon="bi-cash-stack">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="salGross">세전 월급 (위안)</label>
+        <input class="input" id="salGross" type="number" value="15000" min="0" step="500" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="salCity">도시</label>
+        <select class="select" id="salCity">
+          <option value="beijing" selected>베이징</option>
+          <option value="shanghai">상하이</option>
+          <option value="guangzhou">광저우</option>
+          <option value="shenzhen">선전</option>
+          <option value="hangzhou">항저우</option>
+          <option value="chengdu">청두</option>
+          <option value="wuhan">우한</option>
+          <option value="nanjing">난징</option>
+          <option value="other">기타 (기본 비율)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="salFund">주택공적금 비율</label>
+        <select class="select" id="salFund">
+          <option value="0.05">5%</option>
+          <option value="0.07" selected>7%</option>
+          <option value="0.12">12%</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="salBtn" type="button"><i class="bi bi-calculator"></i> 세후 급여 계산</button>
+    </div>
+    <div class="status-msg" id="salStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">매월 급여 소득 원천징수 세율 기준으로 계산하며, 사회보험·주택공적금 비율은 일반적인 단순화 파라미터를 적용했습니다(연금 8%, 의료 2%, 실업 0.5%). 참고용입니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="상세 내역" icon="bi-clipboard-data">
+    <table class="sal-table" id="salTable"></table>
+    <div class="sal-net" id="salNet"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .sal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: var(--space-4);
+  }
+
+  .sal-table th,
+  .sal-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+  }
+
+  .sal-table th:first-child,
+  .sal-table td:first-child {
+    text-align: left;
+  }
+
+  .sal-table th {
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .sal-net {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--primary-soft);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const FUND_RATE: Record<string, number> = { beijing: 0.12, shanghai: 0.07, guangzhou: 0.05, shenzhen: 0.05, hangzhou: 0.12, chengdu: 0.05, wuhan: 0.08, nanjing: 0.08, other: 0.07 };
+
+  function calc() {
+    hideStatus('salStatus');
+    const gross = Number(byId<HTMLInputElement>('salGross').value);
+    if (isNaN(gross) || gross < 0) {
+      showStatus('salStatus', 'error', '유효한 세전 급여를 입력하세요.');
+      return;
+    }
+    const city = byId<HTMLSelectElement>('salCity').value;
+    const fundRate = Number(byId<HTMLSelectElement>('salFund').value);
+    const pension = gross * 0.08;
+    const medical = gross * 0.02;
+    const unemployment = gross * 0.005;
+    const housing = gross * fundRate;
+    const insuranceTotal = pension + medical + unemployment + housing;
+    const taxableBase = Math.max(0, gross - 5000 - insuranceTotal);
+    const tax = taxableBase <= 0 ? 0 : (() => {
+      const brackets: [number, number, number][] = [
+        [3000, 0.03, 0], [12000, 0.1, 210], [25000, 0.2, 1410],
+        [35000, 0.25, 2660], [55000, 0.3, 4410], [80000, 0.35, 7160], [Infinity, 0.45, 15160],
+      ];
+      const b = brackets.find(([limit]) => taxableBase <= limit)!;
+      return taxableBase * b[1] - b[2];
+    })();
+    const net = gross - insuranceTotal - tax;
+    const rows: [string, string][] = [
+      ['세전 월급', gross.toFixed(2)],
+      ['연금 보험 (8%)', pension.toFixed(2)],
+      ['의료 보험 (2%)', medical.toFixed(2)],
+      ['실업 보험 (0.5%)', unemployment.toFixed(2)],
+      [`주택공적금 (${(fundRate * 100).toFixed(0)}%)`, housing.toFixed(2)],
+      ['사회보험·공적금 합계', insuranceTotal.toFixed(2)],
+      ['과세 소득', taxableBase.toFixed(2)],
+      ['개인소득세', tax.toFixed(2)],
+      ['세후 실수령액', net.toFixed(2)],
+    ];
+    byId<HTMLElement>('salTable').innerHTML = rows
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`)
+      .join('');
+    byId<HTMLElement>('salNet').textContent = `세후 실수령 약 ${net.toFixed(2)} 위안 / 월`;
+    showStatus('salStatus', 'success', `사회보험·공적금 비율 ${(insuranceTotal / gross * 100).toFixed(1)}%`);
+  }
+
+  byId<HTMLButtonElement>('salBtn').addEventListener('click', calc);
+  byId<HTMLSelectElement>('salFund').addEventListener('change', () => {
+    byId<HTMLSelectElement>('salFund').value = byId<HTMLSelectElement>('salFund').value;
+    calc();
+  });
+  calc();
+</script>

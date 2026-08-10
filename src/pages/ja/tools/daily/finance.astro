@@ -1,0 +1,128 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'finance', 'ja')!;
+const related = getRelated(category, 'finance', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="ローン月額返済（元利均等）" icon="bi-house">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finLoan">借入総額（万元）</label>
+          <input class="input" id="finLoan" type="number" value="100" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finYears">返済期間（年）</label>
+          <input class="input" id="finYears" type="number" value="30" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRate">年利率（%）</label>
+          <input class="input" id="finRate" type="number" value="3.6" step="0.05" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finLoanBtn" type="button"><i class="bi bi-calculator"></i> 月額返済を計算</button>
+      </div>
+      <div class="lc-result" id="finLoanResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="複利収益" icon="bi-graph-up">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finP">元金（元）</label>
+          <input class="input" id="finP" type="number" value="10000" step="1000" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRp">年利率（%）</label>
+          <input class="input" id="finRp" type="number" value="5" step="0.1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finN">年数</label>
+          <input class="input" id="finN" type="number" value="10" step="1" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finCompoundBtn" type="button"><i class="bi bi-graph-up"></i> 複利を計算</button>
+      </div>
+      <div class="lc-result" id="finCompoundResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="パーセント" icon="bi-percent">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finA">基準値 A</label>
+          <input class="input" id="finA" type="number" value="200" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finB">比較値 B</label>
+          <input class="input" id="finB" type="number" value="150" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finPctBtn" type="button"><i class="bi bi-percent"></i> 計算</button>
+      </div>
+      <div class="lc-result" id="finPctResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 64px;
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 14.5px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function fmt(n: number): string {
+    return n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+  }
+
+  byId<HTMLButtonElement>('finLoanBtn').addEventListener('click', () => {
+    const loan = Number(byId<HTMLInputElement>('finLoan').value) * 10000;
+    const years = Number(byId<HTMLInputElement>('finYears').value);
+    const rate = Number(byId<HTMLInputElement>('finRate').value) / 100 / 12;
+    const n = years * 12;
+    if (loan <= 0 || n <= 0) return;
+    const m = rate === 0 ? loan / n : (loan * rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+    const total = m * n;
+    const interest = total - loan;
+    byId<HTMLElement>('finLoanResult').innerHTML =
+      `<div>月額返済：<b>${fmt(m)}</b> 元</div>` +
+      `<div>返済総額：${fmt(total)} 元</div>` +
+      `<div>支払利息：${fmt(interest)} 元</div>`;
+  });
+
+  byId<HTMLButtonElement>('finCompoundBtn').addEventListener('click', () => {
+    const p = Number(byId<HTMLInputElement>('finP').value);
+    const r = Number(byId<HTMLInputElement>('finRp').value) / 100;
+    const n = Number(byId<HTMLInputElement>('finN').value);
+    const total = p * Math.pow(1 + r, n);
+    byId<HTMLElement>('finCompoundResult').innerHTML =
+      `<div>${n} 年後の総額：<b>${fmt(total)}</b> 元</div>` +
+      `<div>利息収益：${fmt(total - p)} 元（増加率 ${(((total - p) / p) * 100).toFixed(1)}%）</div>`;
+  });
+
+  byId<HTMLButtonElement>('finPctBtn').addEventListener('click', () => {
+    const a = Number(byId<HTMLInputElement>('finA').value);
+    const b = Number(byId<HTMLInputElement>('finB').value);
+    if (a === 0) return;
+    byId<HTMLElement>('finPctResult').innerHTML =
+      `<div>B は A の ${((b / a) * 100).toFixed(1)}%</div>` +
+      `<div>B は A より ${(Math.abs(b - a) / a * 100).toFixed(1)}% ${b >= a ? '多い' : '少ない'}</div>` +
+      `<div>B は A+B 合計の ${((b / (a + b)) * 100).toFixed(1)}%</div>`;
+  });
+</script>

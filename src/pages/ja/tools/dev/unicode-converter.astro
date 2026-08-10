@@ -1,0 +1,83 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'unicode-converter', 'ja')!;
+const related = getRelated(category, 'unicode-converter', 'ja', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="入力内容" icon="bi-fonts">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder="テキストまたは \\uXXXX エスケープを入力"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> Unicode に変換</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> テキストに戻す</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> 文字ごとに解析</button>
+    </div>
+    <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  function toUnicode(text: string): string {
+    let out = '';
+    for (const ch of text) {
+      const code = ch.codePointAt(0)!;
+      out += code > 0xffff ? `\\u{${code.toString(16).toUpperCase()}}` : `\\u${code.toString(16).toUpperCase().padStart(4, '0')}`;
+    }
+    return out;
+  }
+
+  function fromUnicode(text: string): string {
+    return text.replace(/\\u\{([0-9a-fA-F]+)\}|\\u([0-9a-fA-F]{4})/g, (_m, p1, p2) => String.fromCodePoint(parseInt(p1 || p2, 16)));
+  }
+
+  function analyze(text: string): string {
+    const lines: string[] = [];
+    for (const ch of text) {
+      const code = ch.codePointAt(0)!;
+      lines.push(`${ch}\tU+${code.toString(16).toUpperCase().padStart(4, '0')}\t${code}\t${toUnicode(ch)}`);
+    }
+    return lines.join('\n');
+  }
+
+  function run(action: 'encode' | 'decode' | 'analyze') {
+    hideStatus('uc2Status');
+    const src = byId<HTMLTextAreaElement>('uc2Input').value;
+    if (!src) {
+      showStatus('uc2Status', 'error', '内容を入力してください');
+      return;
+    }
+    if (action === 'encode') {
+      byId<HTMLTextAreaElement>('uc2Output').value = toUnicode(src);
+      showStatus('uc2Status', 'success', 'エンコード完了');
+    } else if (action === 'decode') {
+      byId<HTMLTextAreaElement>('uc2Output').value = fromUnicode(src);
+      showStatus('uc2Status', 'success', 'デコード完了');
+    } else {
+      byId<HTMLTextAreaElement>('uc2Output').value = '文字\tコードポイント\t10進数\tエスケープ\n' + analyze(src);
+      showStatus('uc2Status', 'success', '解析完了');
+    }
+  }
+
+  byId<HTMLButtonElement>('uc2Enc').addEventListener('click', () => run('encode'));
+  byId<HTMLButtonElement>('uc2Dec').addEventListener('click', () => run('decode'));
+  byId<HTMLButtonElement>('uc2Char').addEventListener('click', () => run('analyze'));
+  bindSample('uc2Sample', 'uc2Input', '開発者ツールボックス Clover Tools');
+  bindClear('uc2Clear', ['uc2Input'], ['uc2Output'], 'uc2Status');
+  bindCopyBtn('uc2Copy', () => byId<HTMLTextAreaElement>('uc2Output').value);
+</script>

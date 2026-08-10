@@ -1,0 +1,180 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'regex-tester', 'ko')!;
+const related = getRelated(category, 'regex-tester', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="정규 표현식" icon="bi-asterisk">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="reSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+    </div>
+    <div class="field">
+      <input class="input mono" id="rePattern" type="text" placeholder="예: \b\w+@\w+\.\w+\b" spellcheck="false" />
+    </div>
+    <div class="re-flags">
+      <label class="flag-chip"><input type="checkbox" id="flagG" checked /> g 전역</label>
+      <label class="flag-chip"><input type="checkbox" id="flagI" /> i 대소문자 무시</label>
+      <label class="flag-chip"><input type="checkbox" id="flagM" /> m 여러 줄</label>
+      <label class="flag-chip"><input type="checkbox" id="flagS" /> s 점이 줄바꿈 일치</label>
+      <label class="flag-chip"><input type="checkbox" id="flagU" /> u 유니코드</label>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="reText">테스트 텍스트</label>
+      <textarea class="textarea" id="reText" spellcheck="false" placeholder="일치시킬 텍스트 입력"></textarea>
+    </div>
+    <div class="status-msg" id="reStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="일치 항목 강조" icon="bi-eye">
+    <div class="regex-view" id="reView"></div>
+  </ToolPanel>
+
+  <ToolPanel title="일치 결과" icon="bi-list-ol" className="mt-4">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="reCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="reOutput" readonly spellcheck="false" placeholder="일치 항목과 캡처 그룹이 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .re-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .flag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    cursor: pointer;
+  }
+
+  .regex-view {
+    min-height: 140px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+
+  .regex-view mark {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  const patternEl = byId<HTMLInputElement>('rePattern');
+  const textEl = byId<HTMLTextAreaElement>('reText');
+  const view = byId<HTMLElement>('reView');
+  const output = byId<HTMLTextAreaElement>('reOutput');
+
+  function escapeHtml(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function flags(): string {
+    let f = '';
+    for (const id of ['flagG', 'flagI', 'flagM', 'flagS', 'flagU']) {
+      if (byId<HTMLInputElement>(id).checked) f += id.slice(4).toLowerCase();
+    }
+    return f;
+  }
+
+  function run() {
+    hideStatus('reStatus');
+    const pattern = patternEl.value;
+    const text = textEl.value;
+    if (!pattern) {
+      showStatus('reStatus', 'error', '정규 표현식을 입력하세요');
+      return;
+    }
+    let regex: RegExp;
+    try {
+      regex = new RegExp(pattern, flags());
+    } catch (e) {
+      showStatus('reStatus', 'error', `정규식 구문 오류: ${(e as Error).message}`);
+      view.textContent = '';
+      output.value = '';
+      return;
+    }
+
+    const matches: string[] = [];
+    const lines: string[] = [];
+    const useGlobal = flags().includes('g');
+    let count = 0;
+
+    if (useGlobal) {
+      regex.lastIndex = 0;
+      let m: RegExpExecArray | null;
+      let html = '';
+      let last = 0;
+      while ((m = regex.exec(text)) !== null) {
+        count++;
+        html += escapeHtml(text.slice(last, m.index)) + '<mark>' + escapeHtml(m[0]) + '</mark>';
+        lines.push(`[${count}] 위치 ${m.index}: ${JSON.stringify(m[0])}`);
+        if (m.length > 1) {
+          for (let g = 1; g < m.length; g++) {
+            lines.push(`   그룹 ${g}: ${JSON.stringify(m[g])}`);
+          }
+        }
+        last = m.index + m[0].length;
+        if (m[0].length === 0) regex.lastIndex++;
+        if (count > 5000) {
+          lines.push('(일치 항목이 너무 많아 잘렸습니다)');
+          break;
+        }
+      }
+      html += escapeHtml(text.slice(last));
+      view.innerHTML = html || escapeHtml(text);
+    } else {
+      const m = regex.exec(text);
+      if (m) {
+        count = 1;
+        view.innerHTML =
+          escapeHtml(text.slice(0, m.index)) + '<mark>' + escapeHtml(m[0]) + '</mark>' +
+          escapeHtml(text.slice(m.index + m[0].length));
+        lines.push(`일치 위치 ${m.index}: ${JSON.stringify(m[0])}`);
+        for (let g = 1; g < m.length; g++) lines.push(`그룹 ${g}: ${JSON.stringify(m[g])}`);
+      } else {
+        view.textContent = text;
+      }
+    }
+
+    output.value = lines.join('\n');
+    showStatus('reStatus', count ? 'success' : 'info', count ? `일치 항목 ${count}개 찾음` : '일치 항목을 찾지 못했습니다');
+  }
+
+  patternEl.addEventListener('input', run);
+  textEl.addEventListener('input', run);
+  document.querySelectorAll<HTMLInputElement>('.flag-chip input').forEach((el) => el.addEventListener('change', run));
+  byId<HTMLButtonElement>('reSample').addEventListener('click', () => {
+    patternEl.value = '\\b\\w+@\\w+\\.\\w+\\b';
+    textEl.value = 'york@example.com 또는 admin@tools.cn으로 연락하세요. 백업 이메일: dev@clover.io';
+    run();
+  });
+  bindCopyBtn('reCopy', () => output.value);
+</script>

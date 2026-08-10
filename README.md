@@ -61,13 +61,14 @@ flowchart LR
 
 ## 多语言与国际化（i18n）
 
-- 简体中文（默认，根路径）、繁體中文（`/zh-hant/` 前缀）与 English（`/en/` 前缀）三语全站支持
+- 简体中文（默认，根路径）、繁體中文（`/zh-hant/`）、English（`/en/`）、한국어（`/ko/`）与日本語（`/ja/`）五语全站支持
 - 首次访问按浏览器语言自动切换到对应语言版本（localStorage 记住选择，页头可随时手动切换）
 - 页头语言切换器按当前路径保持页面位置（404 页切换时回到对应语言首页）
-- 全站输出 `hreflang`（`zh-CN` / `zh-Hant` / `en` / `x-default`）、语言专属 canonical 与 `og:locale`
+- 全站输出 `hreflang`（`zh-CN` / `zh-Hant` / `ko` / `ja` / `en` / `x-default`）、语言专属 canonical 与 `og:locale`
 - 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、70 个工具的名称/描述/关键词与「使用说明」
+- 韩语/日语文案集中在 `src/lib/i18n/ko.json`、`ja.json`（由 `scripts/gen-ko-ja-data.mjs` 基于英文数据翻译生成）
 - 繁体页面由 `scripts/gen-zhhant.mjs` 基于简体页用 `chinese-s2t` 自动生成，无需维护第二份文案
-- 三语言搜索索引：`public/search-index.json`（简体 + 拼音）、`public/zh-hant/search-index.json`（繁体 + 拼音）与 `public/en/search-index.json`（英文）
+- 五语言搜索索引：`public/search-index.json`（简体）、`public/zh-hant/search-index.json`（繁体）、`public/en/search-index.json`（英文）、`public/ko/search-index.json`（韩语）与 `public/ja/search-index.json`（日语）
 - 英文工具页由 `scripts/i18n-translate.mjs`（DeepSeek API 批量翻译）与 `scripts/fix-big-pages.mjs`（超长页分段翻译）生成；新增工具后补充 `en.json` 英文元信息并重新构建即可
 
 ## 项目结构

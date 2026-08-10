@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'age-calculator', 'ko')!;
+const related = getRelated(category, 'age-calculator', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="생년월일" icon="bi-person">
+    <div class="field">
+      <label class="field-label" for="ageBirth">생년월일</label>
+      <input class="input" id="ageBirth" type="date" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ageBtn" type="button"><i class="bi bi-person"></i> 나이 계산</button>
+    </div>
+    <div class="status-msg" id="ageStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="계산 결과" icon="bi-clipboard-data">
+    <div class="lc-result" id="ageResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('ageStatus');
+    const val = byId<HTMLInputElement>('ageBirth').value;
+    if (!val) {
+      showStatus('ageStatus', 'error', '생년월일을 선택하세요');
+      return;
+    }
+    const birth = new Date(val + 'T00:00:00');
+    const now = new Date();
+    if (birth > now) {
+      showStatus('ageStatus', 'error', '생년월일은 오늘보다 늦을 수 없습니다');
+      return;
+    }
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+    if (days < 0) {
+      months--;
+      days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    const lived = Math.floor((now.getTime() - birth.getTime()) / 86400000);
+    const next = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+    if (next < now) next.setFullYear(now.getFullYear() + 1);
+    const nextIn = Math.ceil((next.getTime() - now.getTime()) / 86400000);
+    byId<HTMLElement>('ageResult').innerHTML =
+      `<div>만 나이: <b>${years}</b>세 ${months}개월 ${days}일</div>` +
+      `<div>세는 나이: ${now.getFullYear() - birth.getFullYear() + 1}세</div>` +
+      `<div>살아온 날: ${lived.toLocaleString()}일</div>` +
+      `<div>다음 생일까지 ${nextIn}일 남음</div>`;
+    showStatus('ageStatus', 'success', '계산 완료');
+  }
+
+  byId<HTMLButtonElement>('ageBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('ageBirth').value = `${now.getFullYear() - 20}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+</script>

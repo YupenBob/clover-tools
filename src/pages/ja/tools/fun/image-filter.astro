@@ -1,0 +1,116 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'image-filter', 'ja')!;
+const related = getRelated(category, 'image-filter', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="画像とフィルター" icon="bi-brush">
+    <div class="field">
+      <input class="input" id="flFile" type="file" accept="image/*" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="flType">フィルター</label>
+      <select class="select" id="flType">
+        <option value="none" selected>元の画像</option>
+        <option value="grayscale">グレースケール</option>
+        <option value="sepia">セピア</option>
+        <option value="invert">反転</option>
+        <option value="blur">ぼかし</option>
+        <option value="bright">明るく</option>
+        <option value="darken">暗く</option>
+        <option value="contrast">ハイコントラスト</option>
+        <option value="hue">色相回転</option>
+        <option value="saturate">高彩度</option>
+      </select>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> フィルターを適用</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> PNGをダウンロード</button>
+    </div>
+    <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="プレビュー" icon="bi-eye">
+    <div class="fl-preview" id="flPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .fl-preview {
+    display: none;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .fl-preview img {
+    width: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  let resultUrl = '';
+
+  const FILTERS: Record<string, string> = {
+    grayscale: 'grayscale(1)',
+    sepia: 'sepia(0.85)',
+    invert: 'invert(1)',
+    blur: 'blur(6px)',
+    bright: 'brightness(1.35)',
+    darken: 'brightness(0.65)',
+    contrast: 'contrast(1.5)',
+    hue: 'hue-rotate(120deg)',
+    saturate: 'saturate(2.2)',
+  };
+
+  function apply() {
+    hideStatus('flStatus');
+    const file = byId<HTMLInputElement>('flFile').files?.[0];
+    if (!file) {
+      showStatus('flStatus', 'error', '先に画像を選択してください');
+      return;
+    }
+    const type = byId<HTMLSelectElement>('flType').value;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      if (type !== 'none') {
+        ctx.filter = FILTERS[type];
+        ctx.drawImage(img, 0, 0);
+      }
+      resultUrl = canvas.toDataURL('image/png');
+      const preview = byId<HTMLElement>('flPreview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${resultUrl}" alt="フィルター効果">`;
+      showStatus('flStatus', 'success', 'フィルターを適用しました');
+    };
+    img.onerror = () => showStatus('flStatus', 'error', '画像の読み込みに失敗しました');
+    img.src = URL.createObjectURL(file);
+  }
+
+  byId<HTMLButtonElement>('flBtn').addEventListener('click', apply);
+  byId<HTMLButtonElement>('flDownload').addEventListener('click', () => {
+    if (!resultUrl) {
+      showStatus('flStatus', 'error', '先にフィルターを適用してください');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = resultUrl;
+    a.download = 'clover-filter.png';
+    a.click();
+  });
+</script>

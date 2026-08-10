@@ -1,0 +1,126 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'xml-formatter', 'ko')!;
+const related = getRelated(category, 'xml-formatter', 'ko', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="XML 입력" icon="bi-filetype-xml">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="XML 데이터 붙여넣기"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="xmlFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
+      <button class="btn btn-secondary" id="xmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
+      <button class="btn btn-ghost" id="xmlCheck" type="button"><i class="bi bi-check2-circle"></i> 검증</button>
+    </div>
+    <div class="status-msg" id="xmlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+    <div class="input-stats"><span id="xmlStats">0자</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('xmlInput');
+  const output = byId<HTMLTextAreaElement>('xmlOutput');
+
+  function parse(): Document | null {
+    const doc = new DOMParser().parseFromString(input.value, 'application/xml');
+    const err = doc.querySelector('parsererror');
+    if (err) {
+      showStatus('xmlStatus', 'error', 'XML이 유효하지 않습니다: ' + (err.textContent || '').slice(0, 100));
+      return null;
+    }
+    return doc;
+  }
+
+  function pretty(node: Node, depth: number, out: string[]): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = (node.textContent || '').trim();
+      if (text) out.push('  '.repeat(depth) + text + '\n');
+      return;
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    const el = node as Element;
+    const tag = el.tagName;
+    const attrs = Array.from(el.attributes).map((a) => ` ${a.name}="${a.value}"`).join('');
+    const indent = '  '.repeat(depth);
+    const children = Array.from(el.childNodes);
+    const onlyText = children.length > 0 && children.every((c) => c.nodeType === Node.TEXT_NODE);
+    if (children.length === 0) {
+      out.push(`${indent}<${tag}${attrs}/>\n`);
+      return;
+    }
+    out.push(`${indent}<${tag}${attrs}>\n`);
+    if (onlyText) {
+      out.push('  '.repeat(depth + 1) + (el.textContent || '').trim() + '\n');
+    } else {
+      for (const child of children) pretty(child, depth + 1, out);
+    }
+    out.push(`${indent}</${tag}>\n`);
+  }
+
+  function format() {
+    hideStatus('xmlStatus');
+    const doc = parse();
+    if (!doc) return;
+    const lines: string[] = ['<?xml version="1.0" encoding="UTF-8"?>'];
+    pretty(doc.documentElement, 0, lines);
+    output.value = lines.join('').trim();
+    setStats('xmlStats', `${output.value.length}자`);
+    showStatus('xmlStatus', 'success', '포맷 완료');
+  }
+
+  function minify() {
+    hideStatus('xmlStatus');
+    const doc = parse();
+    if (!doc) return;
+    const result: string[] = [];
+    function walk(node: Node): void {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const t = (node.textContent || '').trim();
+        if (t) result.push(t);
+        return;
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as Element;
+        const attrs = Array.from(el.attributes).map((a) => ` ${a.name}="${a.value}"`).join('');
+        result.push(`<${el.tagName}${attrs}>`);
+        for (const child of Array.from(el.childNodes)) walk(child);
+        result.push(`</${el.tagName}>`);
+      }
+    }
+    walk(doc.documentElement);
+    output.value = result.join('').trim();
+    setStats('xmlStats', `${output.value.length}자`);
+    showStatus('xmlStatus', 'success', '압축 완료');
+  }
+
+  byId<HTMLButtonElement>('xmlFmt').addEventListener('click', format);
+  byId<HTMLButtonElement>('xmlMin').addEventListener('click', minify);
+  byId<HTMLButtonElement>('xmlCheck').addEventListener('click', () => {
+    hideStatus('xmlStatus');
+    if (!input.value.trim()) {
+      showStatus('xmlStatus', 'error', 'XML을 입력하세요');
+      return;
+    }
+    if (parse()) showStatus('xmlStatus', 'success', 'XML이 유효합니다');
+  });
+  bindSample('xmlSample', 'xmlInput', '<note date="2026-08-02"><to>Clover</to><from>Tools</from><body>XML 포맷 예제</body></note>');
+  bindClear('xmlClear', ['xmlInput'], ['xmlOutput'], 'xmlStatus');
+  bindCopyBtn('xmlCopy', () => output.value);
+  setStats('xmlStats', '0자');
+</script>

@@ -1,0 +1,359 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'ip-lookup', 'ko')!;
+const related = getRelated(category, 'ip-lookup', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="내 IP" icon="bi-globe2">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ipSelfCopy" type="button">
+        <i class="bi bi-clipboard" aria-hidden="true"></i> 복사
+      </button>
+      <button class="btn btn-ghost btn-sm" id="ipSelfRefresh" type="button">
+        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> 새로고침
+      </button>
+    </div>
+    <div class="ip-hero">
+      <span class="ip-hero-label">현재 네트워크 출구 IP</span>
+      <span class="ip-hero-value mono" id="ipSelfValue">--</span>
+      <span class="ip-hero-sub mono" id="ipSelfMeta"></span>
+    </div>
+    <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="IP 주소 분석" icon="bi-hash">
+    <div class="row">
+      <div class="field field-grow">
+        <label class="field-label" for="ipInput">IP 주소 또는 도메인</label>
+        <input class="input mono" id="ipInput" type="text" placeholder="8.8.8.8 · 2001:4860:4860::8888 · example.com" spellcheck="false" autocomplete="off" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ipQuery" type="button">
+        <i class="bi bi-search" aria-hidden="true"></i> 분석 및 조회
+      </button>
+      <button class="btn btn-ghost" id="ipPaste" type="button">
+        <i class="bi bi-clipboard" aria-hidden="true"></i> 붙여넣기
+      </button>
+      <button class="btn btn-ghost" id="ipSample" type="button">
+        <i class="bi bi-magic" aria-hidden="true"></i> 예시
+      </button>
+      <button class="btn btn-ghost" id="ipClear" type="button">
+        <i class="bi bi-x-circle" aria-hidden="true"></i> 지우기
+      </button>
+    </div>
+    <p class="field-hint">주소 분석은 전적으로 브라우저 로컬에서 이루어집니다. 유효한 주소를 입력하면 잠시 후 자동으로 위치 정보를 조회하며, 언제든지 버튼을 클릭할 수 있습니다.</p>
+    <div class="status-msg" id="ipParseStatus" role="status" aria-live="polite"></div>
+    <div class="ip-empty" id="ipParseEmpty">IP 또는 도메인을 입력하면 자동으로 분석합니다 (로컬 계산, 인터넷 연결 불필요)</div>
+    <div id="ipParseWrap" hidden>
+      <div class="ip-summary" id="ipSummary"></div>
+      <div class="ip-section">
+        <h3 class="ip-section-title">주소 정보</h3>
+        <div class="ip-kv" id="ipParseTable"></div>
+      </div>
+      <div class="ip-section" id="ipSubnetWrap" hidden>
+        <h3 class="ip-section-title">
+          서브넷 정보
+          <span class="ip-prefix-wrap">
+            <select class="select select-inline" id="ipPrefix" aria-label="서브넷 접두사"></select>
+          </span>
+        </h3>
+        <div class="ip-kv" id="ipSubnetTable"></div>
+      </div>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="위치 정보" icon="bi-globe-americas">
+    <div class="status-msg" id="ipGeoStatus" role="status" aria-live="polite"></div>
+    <div class="ip-empty" id="ipGeoEmpty">조회 후 국가, 통신사, 위경도 등 위치 정보를 표시합니다 (온라인 조회)</div>
+    <div id="ipGeoWrap" hidden>
+      <div class="ip-kv" id="ipGeoTable"></div>
+      <div class="ip-geo-foot">
+        <a class="link-btn" id="ipMapLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <i class="bi bi-link-45deg" aria-hidden="true"></i> 지도에서 보기
+        </a>
+        <span class="field-hint" id="ipGeoSource"></span>
+      </div>
+    </div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  /* 面板之间的空隙 */
+  .tool-card-panel + .tool-card-panel {
+    margin-top: var(--space-4);
+  }
+
+  /* ── 本机 IP Hero ── */
+  .ip-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background:
+      radial-gradient(ellipse 80% 130% at 90% -20%, rgba(var(--primary-rgb), 0.12), transparent 55%),
+      var(--bg-secondary);
+  }
+
+  .ip-hero-label {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .ip-hero-value {
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    color: var(--text);
+    word-break: break-all;
+    letter-spacing: 0.5px;
+  }
+
+  .ip-hero-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* ── 通用 ── */
+  .field-grow {
+    flex: 3 1 320px !important;
+  }
+
+  .ip-empty {
+    padding: var(--space-5) 0;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13.5px;
+  }
+
+  .ip-section {
+    margin-top: var(--space-4);
+  }
+
+  .ip-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 var(--space-2);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .select-inline {
+    width: auto;
+    height: 32px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .ip-prefix-wrap {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  /* ── 摘要徽章 ── */
+  .ip-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .ip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: var(--radius-full);
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .ip-badge-public {
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  .ip-badge-private,
+  .ip-badge-cgnat {
+    background: var(--warning-soft);
+    color: var(--warning);
+  }
+
+  .ip-badge-loopback,
+  .ip-badge-linklocal,
+  .ip-badge-ula,
+  .ip-badge-6to4,
+  .ip-badge-nat64 {
+    background: var(--info-soft);
+    color: var(--info);
+  }
+
+  .ip-badge-reserved,
+  .ip-badge-documentation,
+  .ip-badge-benchmark,
+  .ip-badge-unspecified {
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+  }
+
+  .ip-badge-multicast {
+    background: rgba(147, 90, 220, 0.14);
+    color: #8b5fd6;
+  }
+
+  .ip-badge-broadcast {
+    background: var(--error-soft);
+    color: var(--error);
+  }
+
+  .ip-summary-value {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+    min-width: 0;
+  }
+
+  .ip-summary-note {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  /* ── 键值行 ── */
+  .ip-kv {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .ip-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elevated);
+  }
+
+  .ip-row:last-child {
+    border-bottom: none;
+  }
+
+  .ip-k {
+    flex: 0 0 118px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+
+  .ip-v {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .ip-v .flag {
+    font-family: var(--font-sans);
+    margin-right: 6px;
+  }
+
+  .ip-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    margin-left: 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .ip-copy:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    background: var(--primary-soft);
+  }
+
+  .ip-copy.success {
+    border-color: var(--success);
+    color: var(--success);
+    background: var(--success-soft);
+  }
+
+  /* ── 域名解析结果 chips ── */
+  .ip-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ip-chip {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .ip-chip:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    background: var(--primary-soft);
+  }
+
+  /* ── 归属地脚注 ── */
+  .ip-geo-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-top: var(--space-3);
+  }
+
+  @media (max-width: 640px) {
+    .ip-row {
+      flex-wrap: wrap;
+      gap: 4px 8px;
+    }
+
+    .ip-k {
+      flex-basis: 100%;
+    }
+
+    .ip-v {
+      flex-basis: calc(100% - 34px);
+    }
+
+    .ip-hero-value {
+      font-size: 21px;
+    }
+  }
+</style>

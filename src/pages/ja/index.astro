@@ -1,0 +1,375 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ToolCard from '../../components/ToolCard.astro';
+import AdUnit from '../../components/AdUnit.astro';
+import GridAdFiller from '../../components/GridAdFiller.astro';
+import { SITE } from '../../lib/site';
+import { getCategoryMetas, getTools, siteForLang, type ToolCategory } from '../../lib/i18n';
+
+const lang = 'ja' as const;
+const site = siteForLang(lang);
+const CATEGORIES = getCategoryMetas(lang);
+const TOOLS = {
+  dev: getTools('dev', lang),
+  daily: getTools('daily', lang),
+  fun: getTools('fun', lang),
+};
+
+const total = (Object.keys(TOOLS) as ToolCategory[]).reduce(
+  (sum, cat) => sum + TOOLS[cat].length,
+  0,
+);
+
+const allTools = (Object.keys(TOOLS) as ToolCategory[]).flatMap((category) =>
+  TOOLS[category].map((tool) => ({ ...tool, category })),
+);
+
+const builtCount = allTools.length;
+const homeUrl = SITE.url + '/ja/';
+
+const homeJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: homeUrl,
+    inLanguage: 'ja',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${homeUrl}?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE.name,
+    url: homeUrl,
+    logo: `${SITE.url}/clover-logo.svg`,
+    sameAs: [SITE.github],
+  },
+];
+
+---
+
+<BaseLayout title={`${SITE.name} - ${site.tagline}`} description={site.description} canonical={homeUrl} jsonLd={homeJsonLd}>
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="dust" aria-hidden="true">
+      <span class="dust-p" style="left: 16%; --d: 9s; --dl: 0s; --dx: 24px;"></span>
+      <span class="dust-p" style="left: 34%; --d: 11s; --dl: 2.6s; --dx: -18px;"></span>
+      <span class="dust-p" style="left: 55%; --d: 10s; --dl: 1.2s; --dx: 30px;"></span>
+      <span class="dust-p" style="left: 72%; --d: 12s; --dl: 4s; --dx: -26px;"></span>
+      <span class="dust-p" style="left: 88%; --d: 9.5s; --dl: 3.2s; --dx: 14px;"></span>
+    </div>
+    <div class="hero-inner">
+      <img class="hero-logo" src="/clover-logo.svg" alt="CloverTools ロゴ" width="96" height="96" fetchpriority="high" />
+      <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
+      <p class="hero-sub">{site.tagline}。{total} 個のツール、すぐに使えます。</p>
+      <div class="search-box">
+        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <input
+          class="search-input"
+          id="toolSearch"
+          type="search"
+          placeholder="ツールを検索（例: JSON…）"
+          autocomplete="off"
+          aria-label="ツールを検索"
+        />
+        <button class="search-clear" id="searchClear" type="button" aria-label="検索をクリア" hidden>
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+        <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
+      </div>
+      <p class="hero-caption">
+        <span id="builtCount" data-target={builtCount}>0</span> 個のツールが利用可能 · データはブラウザ内に留まります ·
+        <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> ランダム表示</button>
+      </p>
+    </div>
+  </section>
+
+  <nav class="home-tabs" id="homeTabs" aria-label="ツールカテゴリ">
+    <button class="home-tab active" data-tab="all" type="button">すべて</button>
+    {CATEGORIES.map((cat) => (
+      <button class="home-tab" data-tab={cat.id} type="button">{cat.name}</button>
+    ))}
+  </nav>
+
+  <div class="search-count" id="searchCount">{total} 個のツール</div>
+
+  <AdUnit adSlot="home_top" />
+
+  {CATEGORIES.map((cat, ci) => (
+    <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
+      <div class="category-head">
+        <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
+        <div>
+          <h2 class="category-title">{cat.name}</h2>
+          <p class="category-blurb">{cat.blurb}</p>
+        </div>
+        <span class="category-count">{TOOLS[cat.id].length} 個のツール</span>
+        <a class="category-more" href={`/ja/tools/${cat.id}/`} aria-label={`${cat.name} のツールをすべて表示`}>すべて表示 <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      </div>
+      <div class="tool-grid">
+        {TOOLS[cat.id].map((tool, ti) => (
+          <ToolCard
+            tool={tool}
+            category={cat.id}
+            searchText={`${tool.name} ${tool.oneLiner} ${tool.keywords.join(' ')}`}
+            delay={Math.min(ci * 10 + ti, 30) * 22}
+          />
+        ))}
+        <GridAdFiller adSlot="grid_filler" />
+      </div>
+    </section>
+  ))}
+
+  <div class="empty-state" id="searchEmpty">
+    <i class="bi bi-emoji-neutral" aria-hidden="true"></i>
+    <p>一致するツールが見つかりません</p>
+    <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">検索とフィルターをクリア</button>
+  </div>
+</BaseLayout>
+
+
+<script>
+  type SearchEntry = {
+    slug: string;
+    text: string;
+    py: string;
+    initials: string;
+    aliases: string[];
+    built: boolean;
+  };
+
+  const input = document.getElementById('toolSearch') as HTMLInputElement;
+  const empty = document.getElementById('searchEmpty') as HTMLElement;
+  const clearBtn = document.getElementById('searchClear') as HTMLButtonElement;
+  const emptyReset = document.getElementById('emptyReset') as HTMLButtonElement;
+  const countEl = document.getElementById('searchCount') as HTMLElement;
+  const randomBtn = document.getElementById('randomBtn') as HTMLButtonElement;
+  const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-category]'));
+  const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('.home-tab'));
+  let index: SearchEntry[] = [];
+  let indexBySlug = new Map<string, SearchEntry>();
+  let indexReady = false;
+  let indexLoading: Promise<void> | null = null;
+
+  function loadIndex(): Promise<void> {
+    if (indexReady) return Promise.resolve();
+    if (indexLoading) return indexLoading;
+    indexLoading = fetch('/ja/search-index.json')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: SearchEntry[]) => {
+        index = data;
+        indexBySlug = new Map(index.map((e) => [e.slug, e]));
+        indexReady = true;
+        applyFilter();
+      })
+      .catch(() => {
+        indexLoading = null;
+      });
+    return indexLoading;
+  }
+  const totalTools = sections.reduce(
+    (sum, section) => sum + section.querySelectorAll('.tool-card').length,
+    0,
+  );
+  let activeTab = 'all';
+
+  function matches(entry: SearchEntry | undefined, terms: string[], fallback: string): boolean {
+    if (!entry) {
+      const f = fallback.toLowerCase();
+      return terms.every((t) => f.includes(t));
+    }
+    return terms.every((term) => {
+      if (entry.text.toLowerCase().includes(term)) return true;
+      if (entry.py.includes(term)) return true;
+      if (entry.initials.includes(term)) return true;
+      return entry.aliases.some((a) => a.toLowerCase().includes(term));
+    });
+  }
+
+  function applyFilter() {
+    const query = input.value.trim().toLowerCase();
+    const terms = query.split(/\s+/).filter(Boolean);
+    clearBtn.hidden = query === '';
+    let visibleSections = 0;
+    let matchedCards = 0;
+
+    for (const section of sections) {
+      if (activeTab !== 'all' && section.dataset.category !== activeTab) {
+        section.style.display = 'none';
+        continue;
+      }
+      let visibleCards = 0;
+      const cards = Array.from(section.querySelectorAll<HTMLElement>('.tool-card'));
+      for (const card of cards) {
+        const slug = card.dataset.slug || '';
+        const show = terms.length === 0 || matches(indexBySlug.get(slug), terms, card.dataset.search || '');
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCards++;
+      }
+      section.style.display = visibleCards > 0 ? '' : 'none';
+      if (visibleCards > 0) {
+        visibleSections++;
+        matchedCards += visibleCards;
+      }
+    }
+
+    empty.classList.toggle('show', visibleSections === 0);
+    if (query) {
+      countEl.textContent = `一致したツール: ${matchedCards} 件`;
+    } else if (activeTab !== 'all') {
+      const name = tabs.find((t) => t.dataset.tab === activeTab)?.textContent || '';
+      countEl.textContent = `${name} · ${matchedCards} 個のツール`;
+    } else {
+      countEl.textContent = `${totalTools} 個のツール`;
+    }
+  }
+
+  input.addEventListener('input', () => {
+    loadIndex();
+    applyFilter();
+  });
+
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      activeTab = tab.dataset.tab || 'all';
+      for (const t of tabs) t.classList.toggle('active', t === tab);
+      applyFilter();
+      if (activeTab !== 'all') {
+        const section = document.getElementById(`cat-${activeTab}`);
+        if (section && section.style.display !== 'none') {
+          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  }
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    applyFilter();
+    input.focus();
+  });
+
+  emptyReset.addEventListener('click', () => {
+    input.value = '';
+    activeTab = 'all';
+    for (const t of tabs) t.classList.toggle('active', t.dataset.tab === 'all');
+    applyFilter();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  randomBtn.addEventListener('click', () => {
+    const pool = Array.from(document.querySelectorAll<HTMLElement>('.tool-card'));
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (pick) window.location.href = pick.getAttribute('href') || '/ja/';
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== '/') return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    e.preventDefault();
+    input.focus();
+    input.select();
+  });
+
+  // Decorative motion
+  document.documentElement.classList.add('js');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const cardEls = Array.from(document.querySelectorAll<HTMLElement>('.tool-card'));
+  if (!reduced && 'IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' },
+    );
+    cardEls.forEach((c) => observer.observe(c));
+  } else {
+    cardEls.forEach((c) => c.classList.add('revealed'));
+  }
+
+  const builtCountEl = document.getElementById('builtCount') as HTMLElement;
+  const countTarget = Number(builtCountEl.dataset.target || '0');
+  function countUp(el: HTMLElement, target: number, dur = 900) {
+    const start = performance.now();
+    function step(t: number) {
+      const p = Math.min(1, (t - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(target * eased));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  if (reduced) {
+    builtCountEl.textContent = String(countTarget);
+  } else {
+    countUp(builtCountEl, countTarget);
+  }
+
+  const kbd = document.getElementById('searchKbd') as HTMLElement;
+  const PLACEHOLDERS = [
+    'ツールを検索（例: JSON…）',
+    'md5 / sha で検索',
+    'Base64、UUID、正規表現…',
+    '旧暦、BMI、タイマー…',
+  ];
+  let ph = 0;
+  setInterval(() => {
+    if (document.activeElement === input || input.value) return;
+    ph = (ph + 1) % PLACEHOLDERS.length;
+    input.placeholder = PLACEHOLDERS[ph];
+  }, 3200);
+  function syncKbd() {
+    kbd.hidden = Boolean(input.value) || document.activeElement === input;
+  }
+  input.addEventListener('focus', syncKbd);
+  input.addEventListener('blur', syncKbd);
+  input.addEventListener('input', syncKbd);
+
+  const tabsNav = document.getElementById('homeTabs') as HTMLElement;
+  const indicator = document.createElement('span');
+  indicator.className = 'tab-indicator';
+  tabsNav.appendChild(indicator);
+  function moveIndicator() {
+    const active = tabsNav.querySelector<HTMLButtonElement>('.home-tab.active');
+    if (!active) return;
+    indicator.style.left = `${active.offsetLeft}px`;
+    indicator.style.width = `${active.offsetWidth}px`;
+  }
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      requestAnimationFrame(moveIndicator);
+    });
+  }
+  window.addEventListener('resize', moveIndicator);
+  window.addEventListener('load', moveIndicator);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlQ = urlParams.get('q');
+  if (urlQ) {
+    input.value = urlQ;
+    loadIndex().then(() => {
+      applyFilter();
+      document.getElementById('homeTabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  input.addEventListener('focusin', () => loadIndex());
+
+  applyFilter();
+  requestAnimationFrame(moveIndicator);
+  syncKbd();
+</script>

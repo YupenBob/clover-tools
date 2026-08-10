@@ -1,0 +1,229 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'nickname-text', 'ko')!;
+const related = getRelated(category, 'nickname-text', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="텍스트 입력" icon="bi-input-cursor">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="닉네임이나 아무 문자나 입력하세요. 예: Clover 클로버"></textarea>
+    <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">입력하면 즉시 모든 스타일이 생성됩니다. 영문·숫자·한글을 지원하며, 중국어 등 다른 문자는 그대로 유지됩니다. 결과를 클릭하면 복사됩니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="전체 스타일 미리보기" icon="bi-grid">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><i class="bi bi-clipboard"></i> 전체 복사</button>
+    </div>
+    <div class="nn-grid" id="nnGrid"></div>
+  </ToolPanel>
+
+  <ToolPanel title="스타일 설명" icon="bi-info-circle" className="mt-4">
+    <p class="field-hint" style="line-height:1.9">
+      이 도구는 20여 가지 유니코드 텍스트 스타일을 지원합니다: 굵게, 기울임, 굵은 기울임, 필기체(Script), 굵은 필기체,
+      프락투어(Fraktur), 굵은 프락투어, 이중선(Double-Struck), 산세리프, 굵은 산세리프, 기울인 산세리프,
+      굵은 기울인 산세리프, 고정폭(Monospace), 전각, 원문자, 괄호 문자, 사각 문자, 음영 원문자, 위 첨자,
+      아래 첨자, 화성문, 거울. 게임 닉네임, 커플 닉네임, QQ 닉네임, 위챗 닉네임, 개성 있는 서명 등
+      창의적인 텍스트를 생성하는 데 적합합니다. 모든 작업은 브라우저에서 로컬로 처리되며 데이터는 업로드되지 않습니다.
+    </p>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .nn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .nn-card {
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .nn-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
+  }
+
+  .nn-card .name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .nn-card .name i {
+    color: var(--primary-dark);
+  }
+
+  .nn-card .value {
+    font-size: 17px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.5;
+  }
+
+  .nn-card .value.empty {
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('nnInput');
+  const grid = byId<HTMLElement>('nnGrid');
+
+  function mkMap(up: number, lo: number, dig: number | undefined, over: Record<string, string> = {}) {
+    return (ch: string) => {
+      const c = ch.codePointAt(0)!;
+      if (c >= 65 && c <= 90) {
+        const letter = String.fromCharCode(c);
+        return over[letter] || String.fromCodePoint(up + (c - 65));
+      }
+      if (c >= 97 && c <= 122) {
+        const letter = String.fromCharCode(c);
+        return over[letter] || String.fromCodePoint(lo + (c - 97));
+      }
+      if (dig !== undefined && c >= 48 && c <= 57) return String.fromCodePoint(dig + (c - 48));
+      return ch;
+    };
+  }
+
+  function perChar(fn: (ch: string) => string) {
+    return (s: string) => Array.from(s).map(fn).join('');
+  }
+
+  function mkUpperOnly(base: number) {
+    return (ch: string) => {
+      const c = ch.codePointAt(0)!;
+      if (c >= 65 && c <= 90) return String.fromCodePoint(base + (c - 65));
+      return ch;
+    };
+  }
+
+  const SUP: Record<string, string> = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ', l: 'ˡ', m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
+  };
+  const SUB: Record<string, string> = {
+    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+    a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ', s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ',
+  };
+  const L33T: Record<string, string> = {
+    a: '@', b: '8', c: '(', e: '3', g: '9', i: '1', l: '1', o: '0', s: '$', t: '7', z: '2',
+  };
+
+  type Style = { id: string; name: string; fn: (s: string) => string };
+
+  const STYLES: Style[] = [
+    { id: 'bold', name: '굵게', fn: perChar(mkMap(0x1d400, 0x1d41a, 0x1d7ce)) },
+    { id: 'italic', name: '기울임', fn: perChar(mkMap(0x1d434, 0x1d44e, undefined, { h: '\u210e' })) },
+    { id: 'boldItalic', name: '굵은 기울임', fn: perChar(mkMap(0x1d468, 0x1d482, undefined)) },
+    {
+      id: 'script', name: '필기체',
+      fn: perChar(mkMap(0x1d49c, 0x1d4b6, undefined, {
+        B: '\u212c', E: '\u2130', F: '\u2131', H: '\u210b', I: '\u2110', L: '\u2112', M: '\u2133', R: '\u211b',
+        e: '\u212f', g: '\u210a', o: '\u2134',
+      })),
+    },
+    { id: 'boldScript', name: '굵은 필기체', fn: perChar(mkMap(0x1d4d0, 0x1d4ea, undefined)) },
+    {
+      id: 'fraktur', name: '프락투어',
+      fn: perChar(mkMap(0x1d504, 0x1d51e, undefined, {
+        C: '\u212d', H: '\u210c', I: '\u2111', R: '\u211c', Z: '\u2128',
+      })),
+    },
+    { id: 'boldFraktur', name: '굵은 프락투어', fn: perChar(mkMap(0x1d56c, 0x1d586, undefined)) },
+    {
+      id: 'doubleStruck', name: '이중선',
+      fn: perChar(mkMap(0x1d538, 0x1d552, 0x1d7d8, {
+        C: '\u2102', H: '\u210d', N: '\u2115', P: '\u2119', Q: '\u211a', R: '\u211d', Z: '\u2124',
+      })),
+    },
+    { id: 'sans', name: '산세리프', fn: perChar(mkMap(0x1d5a0, 0x1d5ba, 0x1d7e2)) },
+    { id: 'sansBold', name: '굵은 산세리프', fn: perChar(mkMap(0x1d5d4, 0x1d5ee, 0x1d7ec)) },
+    { id: 'sansItalic', name: '기울인 산세리프', fn: perChar(mkMap(0x1d608, 0x1d622, undefined)) },
+    { id: 'sansBoldItalic', name: '굵은 기울인 산세리프', fn: perChar(mkMap(0x1d63c, 0x1d656, undefined)) },
+    { id: 'mono', name: '고정폭', fn: perChar(mkMap(0x1d670, 0x1d68a, 0x1d7f6)) },
+    { id: 'fullwidth', name: '전각', fn: (s) => Array.from(s).map((ch) => {
+      const c = ch.codePointAt(0)!;
+      return c >= 33 && c <= 126 ? String.fromCharCode(c + 0xfee0) : ch;
+    }).join('') },
+    { id: 'circled', name: '원문자', fn: perChar(mkMap(0x24b6, 0x24d0, undefined)) },
+    { id: 'paren', name: '괄호 문자', fn: perChar(mkUpperOnly(0x1f110)) },
+    { id: 'squared', name: '사각 문자', fn: perChar(mkUpperOnly(0x1f130)) },
+    { id: 'negCircled', name: '음영 원문자', fn: perChar(mkUpperOnly(0x1f150)) },
+    { id: 'sup', name: '위 첨자', fn: (s) => Array.from(s.toLowerCase()).map((ch) => SUP[ch] || ch).join('') },
+    { id: 'sub', name: '아래 첨자', fn: (s) => Array.from(s.toLowerCase()).map((ch) => SUB[ch] || ch).join('') },
+    { id: 'mars', name: '화성문', fn: (s) => Array.from(s).map((ch) => {
+      const lower = ch.toLowerCase();
+      return L33T[lower] && Math.random() > 0.3 ? L33T[lower] : ch;
+    }).join('') },
+    { id: 'mirror', name: '거울', fn: (s) => Array.from(s).reverse().join('') },
+  ];
+
+  function render() {
+    hideStatus('nnStatus');
+    const text = input.value;
+    if (!text.trim()) {
+      grid.innerHTML = STYLES.map((s) =>
+        `<div class="nn-card"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value empty">텍스트를 입력하면 생성됩니다</div></div>`,
+      ).join('');
+      return;
+    }
+    grid.innerHTML = STYLES.map((s) => {
+      const value = s.fn(text);
+      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value">${value}</div></div>`;
+    }).join('');
+    showStatus('nnStatus', 'success', `${STYLES.length}가지 스타일이 생성되었습니다. 카드를 클릭하여 복사하세요`);
+  }
+
+  grid.addEventListener('click', (e) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>('.nn-card');
+    if (card) {
+      const value = card.querySelector('.value');
+      if (value && value.textContent && !value.classList.contains('empty')) {
+        window.CT.copy(value.textContent);
+      }
+    }
+  });
+
+  input.addEventListener('input', render);
+  byId<HTMLButtonElement>('nnSample').addEventListener('click', () => {
+    input.value = 'Clover 클로버';
+    render();
+  });
+  byId<HTMLButtonElement>('nnClear').addEventListener('click', () => {
+    input.value = '';
+    render();
+  });
+  byId<HTMLButtonElement>('nnCopyAll').addEventListener('click', () => {
+    const lines = STYLES.map((s) => {
+      const value = s.fn(input.value);
+      return `${s.name}：${value}`;
+    }).filter((l) => !l.endsWith('：'));
+    if (lines.length) window.CT.copy(lines.join('\n'));
+    else showStatus('nnStatus', 'info', '먼저 텍스트를 입력하세요');
+  });
+
+  render();
+</script>

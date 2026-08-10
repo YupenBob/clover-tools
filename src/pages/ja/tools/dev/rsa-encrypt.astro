@@ -1,0 +1,125 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'rsa-encrypt', 'ja')!;
+const related = getRelated(category, 'rsa-encrypt', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="鍵と操作" icon="bi-key">
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> 鍵ペア生成（2048）</button>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="rsaPub">公開鍵（PEM）</label>
+      <textarea class="textarea" id="rsaPub" spellcheck="false" placeholder="暗号化する側が使用"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="rsaPriv">秘密鍵（PEM）</label>
+      <textarea class="textarea" id="rsaPriv" spellcheck="false" placeholder="復号する側が使用、ローカルのみに保存"></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="rsaInput">平文 / 暗号文（Base64）</label>
+      <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="暗号化する平文、または復号する Base64 暗号文を入力"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> 暗号化</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> 復号</button>
+    </div>
+    <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">Web Crypto API（RSA-OAEP / SHA-256）に基づき、鍵はブラウザの外には出ません。一度の暗号化で扱える長さは鍵長に制限されます。</p>
+  </ToolPanel>
+
+  <ToolPanel title="結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  function ab2b64(buf: ArrayBuffer): string {
+    const bytes = new Uint8Array(buf);
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  function pem2buf(pem: string): ArrayBuffer {
+    const b64 = pem.replace(/-----BEGIN [^-]+-----|-----END [^-]+-----/g, '').replace(/\s+/g, '');
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  function buf2pem(buf: ArrayBuffer, label: string): string {
+    const b64 = ab2b64(buf).match(/.{1,64}/g)!.join('\n');
+    return `-----BEGIN ${label}-----\n${b64}\n-----END ${label}-----`;
+  }
+
+  async function generate() {
+    hideStatus('rsaStatus');
+    try {
+      const pair = await crypto.subtle.generateKey(
+        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        true,
+        ['encrypt', 'decrypt'],
+      );
+      const pub = await crypto.subtle.exportKey('spki', pair.publicKey);
+      const priv = await crypto.subtle.exportKey('pkcs8', pair.privateKey);
+      byId<HTMLTextAreaElement>('rsaPub').value = buf2pem(pub, 'PUBLIC KEY');
+      byId<HTMLTextAreaElement>('rsaPriv').value = buf2pem(priv, 'PRIVATE KEY');
+      showStatus('rsaStatus', 'success', '鍵ペアを生成しました');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', `生成に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  async function encrypt() {
+    hideStatus('rsaStatus');
+    const pubPem = byId<HTMLTextAreaElement>('rsaPub').value.trim();
+    const msg = byId<HTMLTextAreaElement>('rsaInput').value;
+    if (!pubPem || !msg) {
+      showStatus('rsaStatus', 'error', '公開鍵と平文を入力してください');
+      return;
+    }
+    try {
+      const key = await crypto.subtle.importKey('spki', pem2buf(pubPem), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt']);
+      const enc = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, new TextEncoder().encode(msg));
+      byId<HTMLTextAreaElement>('rsaOutput').value = ab2b64(enc);
+      showStatus('rsaStatus', 'success', '暗号化が完了しました');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', `暗号化に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  async function decrypt() {
+    hideStatus('rsaStatus');
+    const privPem = byId<HTMLTextAreaElement>('rsaPriv').value.trim();
+    const ct = byId<HTMLTextAreaElement>('rsaInput').value.trim();
+    if (!privPem || !ct) {
+      showStatus('rsaStatus', 'error', '秘密鍵と暗号文を入力してください');
+      return;
+    }
+    try {
+      const key = await crypto.subtle.importKey('pkcs8', pem2buf(privPem), { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
+      const dec = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, key, pem2buf(`-----BEGIN CT-----\n${ct}\n-----END CT-----`));
+      byId<HTMLTextAreaElement>('rsaOutput').value = new TextDecoder().decode(dec);
+      showStatus('rsaStatus', 'success', '復号が完了しました');
+    } catch (e) {
+      showStatus('rsaStatus', 'error', `復号に失敗しました：鍵が一致しないか、暗号文が壊れています`);
+    }
+  }
+
+  byId<HTMLButtonElement>('rsaGen').addEventListener('click', generate);
+  byId<HTMLButtonElement>('rsaEnc').addEventListener('click', encrypt);
+  byId<HTMLButtonElement>('rsaDec').addEventListener('click', decrypt);
+  bindCopyBtn('rsaCopy', () => byId<HTMLTextAreaElement>('rsaOutput').value);
+</script>

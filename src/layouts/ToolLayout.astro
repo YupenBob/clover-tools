@@ -35,7 +35,8 @@ const url = SITE.url + pathForLang(getToolHref(category, tool.slug), lang);
 const categoryUrl = SITE.url + pathForLang(`/tools/${category}/`, lang);
 const homeUrl = SITE.url + pathForLang('/', lang);
 const content = getToolContent(tool.slug, lang);
-const inLanguage = lang === 'en' ? 'en' : lang === 'tw' ? 'zh-Hant' : 'zh-CN';
+const inLanguage =
+  lang === 'en' ? 'en' : lang === 'tw' ? 'zh-Hant' : lang === 'ko' ? 'ko' : lang === 'ja' ? 'ja' : 'zh-CN';
 
 const jsonLd: Record<string, unknown>[] = [
   {

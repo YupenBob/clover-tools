@@ -1,0 +1,89 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'random-number', 'ja')!;
+const related = getRelated(category, 'random-number', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="乱数設定" icon="bi-shuffle">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="rnMin">最小値</label>
+        <input class="input" id="rnMin" type="number" value="1" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="rnMax">最大値</label>
+        <input class="input" id="rnMax" type="number" value="100" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="rnCount">個数</label>
+        <input class="input" id="rnCount" type="number" value="5" min="1" max="1000" />
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="rnUnique"><input type="checkbox" id="rnUnique" checked /> 重複なし（範囲が十分必要）</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rnBtn" type="button"><i class="bi bi-shuffle"></i> 乱数を生成</button>
+    </div>
+    <div class="status-msg" id="rnStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="生成結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="rnCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="rnOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  function randomInt(min: number, max: number): number {
+    const range = max - min + 1;
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    return min + (buf[0] % range);
+  }
+
+  function generate() {
+    hideStatus('rnStatus');
+    const min = Math.floor(Number(byId<HTMLInputElement>('rnMin').value));
+    const max = Math.floor(Number(byId<HTMLInputElement>('rnMax').value));
+    const count = Math.floor(Number(byId<HTMLInputElement>('rnCount').value));
+    const unique = byId<HTMLInputElement>('rnUnique').checked;
+    if (isNaN(min) || isNaN(max) || min >= max) {
+      showStatus('rnStatus', 'error', '最大値が最小値より大きいことを確認してください');
+      return;
+    }
+    if (isNaN(count) || count < 1) {
+      showStatus('rnStatus', 'error', '個数は1以上にしてください');
+      return;
+    }
+    if (unique && count > max - min + 1) {
+      showStatus('rnStatus', 'error', `範囲は ${max - min + 1} 個の数字しかないため、${count} 個の重複しない値を生成できません`);
+      return;
+    }
+    const values: number[] = [];
+    if (unique) {
+      const pool = new Set<number>();
+      while (pool.size < count) pool.add(randomInt(min, max));
+      values.push(...pool);
+      values.sort((a, b) => a - b);
+    } else {
+      for (let i = 0; i < count; i++) values.push(randomInt(min, max));
+    }
+    byId<HTMLTextAreaElement>('rnOutput').value = values.join('\n');
+    showStatus('rnStatus', 'success', `${count} 個の乱数を生成しました`);
+  }
+
+  byId<HTMLButtonElement>('rnBtn').addEventListener('click', generate);
+  bindCopyBtn('rnCopy', () => byId<HTMLTextAreaElement>('rnOutput').value);
+</script>

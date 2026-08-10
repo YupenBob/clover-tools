@@ -1,0 +1,117 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'uuid-generator', 'ja')!;
+const related = getRelated(category, 'uuid-generator', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="生成設定" icon="bi-hash">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="uuidType">種類</label>
+        <select class="select" id="uuidType">
+          <option value="v4" selected>UUID v4（ランダム）</option>
+          <option value="v7">UUID v7（時刻順）</option>
+          <option value="nanoid">NanoID</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="uuidCount">生成数</label>
+        <select class="select" id="uuidCount">
+          <option value="1" selected>1</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="uuidUpper"><input type="checkbox" id="uuidUpper" /> 大文字</label>
+      </div>
+      <div class="field">
+        <label class="field-label" for="uuidHyphen"><input type="checkbox" id="uuidHyphen" checked /> ハイフンを保持</label>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="uuidBtn" type="button"><i class="bi bi-hash"></i> 生成</button>
+    </div>
+    <div class="status-msg" id="uuidStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="生成結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uuidCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="uuidOutput" readonly spellcheck="false" placeholder="生成をクリックすると結果が表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  function randomBytes(n: number): Uint8Array {
+    const buf = new Uint8Array(n);
+    crypto.getRandomValues(buf);
+    return buf;
+  }
+
+  function hex(bytes: Uint8Array): string {
+    return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function uuidV4(withHyphen: boolean): string {
+    const b = randomBytes(16);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = hex(b);
+    return withHyphen
+      ? `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+      : h;
+  }
+
+  function uuidV7(withHyphen: boolean): string {
+    const b = randomBytes(16);
+    const ts = BigInt(Date.now());
+    for (let i = 0; i < 6; i++) {
+      b[i] = Number((ts >> BigInt(40 - i * 8)) & BigInt(0xff));
+    }
+    b[6] = (b[6] & 0x0f) | 0x70;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = hex(b);
+    return withHyphen
+      ? `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+      : h;
+  }
+
+  function nanoId(): string {
+    const alphabet = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict';
+    const bytes = randomBytes(21);
+    let out = '';
+    for (const b of bytes) out += alphabet[b & 63];
+    return out;
+  }
+
+  function generate() {
+    hideStatus('uuidStatus');
+    const type = byId<HTMLSelectElement>('uuidType').value;
+    const count = Number(byId<HTMLSelectElement>('uuidCount').value);
+    const upper = byId<HTMLInputElement>('uuidUpper').checked;
+    const hyphen = byId<HTMLInputElement>('uuidHyphen').checked;
+    const lines: string[] = [];
+    for (let i = 0; i < count; i++) {
+      let value = type === 'v4' ? uuidV4(hyphen) : type === 'v7' ? uuidV7(hyphen) : nanoId();
+      if (upper) value = value.toUpperCase();
+      lines.push(value);
+    }
+    byId<HTMLTextAreaElement>('uuidOutput').value = lines.join('\n');
+    showStatus('uuidStatus', 'success', `${count} 個を生成しました`);
+  }
+
+  byId<HTMLButtonElement>('uuidBtn').addEventListener('click', generate);
+  bindCopyBtn('uuidCopy', () => byId<HTMLTextAreaElement>('uuidOutput').value);
+</script>

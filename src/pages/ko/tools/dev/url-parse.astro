@@ -1,0 +1,107 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'url-parse', 'ko')!;
+const related = getRelated(category, 'url-parse', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="URL 입력" icon="bi-diagram-3">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+    </div>
+    <input class="input mono" id="upInput" type="text" placeholder="https://user:pass@example.com:8080/path?q=1&lang=zh#section" spellcheck="false" />
+    <div class="btn-row">
+      <button class="btn btn-primary" id="upBtn" type="button"><i class="bi bi-diagram-3"></i> 파싱</button>
+    </div>
+    <div class="status-msg" id="upStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="URL 구조" icon="bi-list-ol">
+    <table class="up-table" id="upTable"></table>
+  </ToolPanel>
+
+  <ToolPanel title="쿼리 매개변수" icon="bi-key" className="mt-4">
+    <table class="up-table" id="upParams"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .up-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .up-table th,
+  .up-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .up-table th {
+    width: 140px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .up-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  function esc(s: string): string {
+    return s.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function parse() {
+    hideStatus('upStatus');
+    const raw = byId<HTMLInputElement>('upInput').value.trim();
+    if (!raw) {
+      showStatus('upStatus', 'error', 'URL을 입력하세요');
+      return;
+    }
+    let u: URL;
+    try {
+      u = new URL(raw);
+    } catch {
+      showStatus('upStatus', 'error', 'URL이 올바르지 않습니다. 형식을 확인하세요(프로토콜(예: https://)이 포함되어야 합니다)');
+      byId<HTMLElement>('upTable').innerHTML = '';
+      byId<HTMLElement>('upParams').innerHTML = '';
+      return;
+    }
+    const rows: [string, string][] = [
+      ['프로토콜', u.protocol],
+      ['호스트명', u.hostname],
+      ['포트', u.port || '(기본값)'],
+      ['경로', u.pathname],
+      ['쿼리', u.search || '(없음)'],
+      ['앵커', u.hash || '(없음)'],
+      ['사용자명', u.username || '(없음)'],
+      ['비밀번호', u.password || '(없음)'],
+      ['전체 주소', u.href],
+    ];
+    byId<HTMLElement>('upTable').innerHTML = rows
+      .map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`)
+      .join('');
+    const params = Array.from(u.searchParams.entries());
+    byId<HTMLElement>('upParams').innerHTML = params.length
+      ? params.map(([k, v]) => `<tr><th>${esc(k)}</th><td>${esc(v)}</td></tr>`).join('')
+      : '<tr><td colspan="2">쿼리 매개변수가 없습니다</td></tr>';
+    showStatus('upStatus', 'success', `파싱 완료, 총 ${params.length}개의 쿼리 매개변수`);
+  }
+
+  byId<HTMLButtonElement>('upBtn').addEventListener('click', parse);
+  bindSample('upSample', 'upInput', 'https://user:pass@example.com:8080/path/to/page?q=clover&lang=zh-CN&page=2#section-a');
+  bindClear('upClear', ['upInput'], [], 'upStatus');
+</script>

@@ -1,0 +1,117 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'bmi', 'ja')!;
+const related = getRelated(category, 'bmi', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="身長・体重" icon="bi-heart-pulse">
+    <div class="field">
+      <label class="field-label" for="bmiHeight">身長：<span id="bmiHLabel">175</span> cm</label>
+      <input class="input" id="bmiHeight" type="range" min="100" max="230" value="175" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="bmiWeight">体重：<span id="bmiWLabel">70</span> kg</label>
+      <input class="input" id="bmiWeight" type="range" min="30" max="200" value="70" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bmiBtn" type="button"><i class="bi bi-calculator"></i> BMIを計算</button>
+    </div>
+    <div class="status-msg" id="bmiStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+    <div class="bmi-value" id="bmiValue">--</div>
+    <div class="bmi-scale">
+      <div class="bmi-seg bmi-low">低体重</div>
+      <div class="bmi-seg bmi-normal">普通</div>
+      <div class="bmi-seg bmi-over">過体重</div>
+      <div class="bmi-seg bmi-fat">肥満</div>
+    </div>
+    <div class="bmi-pos" id="bmiPos"></div>
+    <div class="lc-result mt-4" id="bmiDetail"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .bmi-value {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .bmi-scale {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr 1fr;
+    gap: 4px;
+    margin-top: var(--space-3);
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+  }
+
+  .bmi-seg {
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 12px;
+    color: #fff;
+  }
+
+  .bmi-low { background: #6aa5e0; }
+  .bmi-normal { background: #22a06b; }
+  .bmi-over { background: #d9a441; }
+  .bmi-fat { background: #d64545; }
+
+  .bmi-pos {
+    height: 10px;
+    margin-top: 8px;
+    border-radius: 5px;
+    background: var(--primary);
+    transition: margin-left 0.2s ease;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const hInput = byId<HTMLInputElement>('bmiHeight');
+  const wInput = byId<HTMLInputElement>('bmiWeight');
+
+  function calc() {
+    const h = Number(hInput.value);
+    const w = Number(wInput.value);
+    byId<HTMLElement>('bmiHLabel').textContent = String(h);
+    byId<HTMLElement>('bmiWLabel').textContent = String(w);
+    const bmi = w / Math.pow(h / 100, 2);
+    byId<HTMLElement>('bmiValue').textContent = bmi.toFixed(1);
+    const ranges: [number, string, number][] = [
+      [18.5, '低体重', 0],
+      [24, '普通', 15],
+      [28, '過体重', 47],
+      [100, '肥満', 68],
+    ];
+    const cat = ranges.find(([limit]) => bmi < limit) || ranges[3];
+    const colors: Record<string, string> = {
+      低体重: '#6aa5e0', 普通: '#22a06b', 過体重: '#d9a441', 肥満: '#d64545',
+    };
+    byId<HTMLElement>('bmiPos').style.marginLeft = `${cat[2]}%`;
+    byId<HTMLElement>('bmiPos').style.background = colors[cat[1]];
+    const minNormal = 18.5 * Math.pow(h / 100, 2);
+    const maxNormal = 23.9 * Math.pow(h / 100, 2);
+    byId<HTMLElement>('bmiDetail').innerHTML =
+      `<div>分類：<b style="color:${colors[cat[1]]}">${cat[1]}</b></div>` +
+      `<div>健康体重範囲：${minNormal.toFixed(1)} - ${maxNormal.toFixed(1)} kg</div>` +
+      `<div>アドバイス：${cat[1] === '普通' ? '現在の体重と良好な生活習慣を維持しましょう' : cat[1] === '低体重' ? '栄養摂取と筋力トレーニングを適度に増やしましょう' : cat[1] === '過体重' ? 'カロリー摂取を抑え、有酸素運動を増やしましょう' : '医師に相談し、減量計画を立てることをお勧めします'}</div>`;
+    hideStatus('bmiStatus');
+    showStatus('bmiStatus', 'success', `BMI = ${bmi.toFixed(1)}`);
+  }
+
+  byId<HTMLButtonElement>('bmiBtn').addEventListener('click', calc);
+  hInput.addEventListener('input', () => byId<HTMLElement>('bmiHLabel').textContent = hInput.value);
+  wInput.addEventListener('input', () => byId<HTMLElement>('bmiWLabel').textContent = wInput.value);
+  calc();
+</script>

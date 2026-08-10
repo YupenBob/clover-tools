@@ -1,0 +1,127 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'finance', 'ko')!;
+const related = getRelated(category, 'finance', 'ko', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="대출 월 상환액 (원리금 균등)" icon="bi-house">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finLoan">대출 총액 (만 위안)</label>
+          <input class="input" id="finLoan" type="number" value="100" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finYears">기간 (년)</label>
+          <input class="input" id="finYears" type="number" value="30" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRate">연이율 (%)</label>
+          <input class="input" id="finRate" type="number" value="3.6" step="0.05" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finLoanBtn" type="button"><i class="bi bi-calculator"></i> 월 상환액 계산</button>
+      </div>
+      <div class="lc-result" id="finLoanResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="복리 수익" icon="bi-graph-up">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finP">원금 (위안)</label>
+          <input class="input" id="finP" type="number" value="10000" step="1000" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRp">연이율 (%)</label>
+          <input class="input" id="finRp" type="number" value="5" step="0.1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finN">연수 (년)</label>
+          <input class="input" id="finN" type="number" value="10" step="1" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finCompoundBtn" type="button"><i class="bi bi-graph-up"></i> 복리 계산</button>
+      </div>
+      <div class="lc-result" id="finCompoundResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="백분율" icon="bi-percent">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finA">기준값 A</label>
+          <input class="input" id="finA" type="number" value="200" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finB">비교값 B</label>
+          <input class="input" id="finB" type="number" value="150" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finPctBtn" type="button"><i class="bi bi-percent"></i> 계산</button>
+      </div>
+      <div class="lc-result" id="finPctResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 64px;
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 14.5px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function fmt(n: number): string {
+    return n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
+  }
+
+  byId<HTMLButtonElement>('finLoanBtn').addEventListener('click', () => {
+    const loan = Number(byId<HTMLInputElement>('finLoan').value) * 10000;
+    const years = Number(byId<HTMLInputElement>('finYears').value);
+    const rate = Number(byId<HTMLInputElement>('finRate').value) / 100 / 12;
+    const n = years * 12;
+    if (loan <= 0 || n <= 0) return;
+    const m = rate === 0 ? loan / n : (loan * rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+    const total = m * n;
+    const interest = total - loan;
+    byId<HTMLElement>('finLoanResult').innerHTML =
+      `<div>월 상환액: <b>${fmt(m)}</b> 위안</div>` +
+      `<div>총 상환액: ${fmt(total)} 위안</div>` +
+      `<div>지급 이자: ${fmt(interest)} 위안</div>`;
+  });
+
+  byId<HTMLButtonElement>('finCompoundBtn').addEventListener('click', () => {
+    const p = Number(byId<HTMLInputElement>('finP').value);
+    const r = Number(byId<HTMLInputElement>('finRp').value) / 100;
+    const n = Number(byId<HTMLInputElement>('finN').value);
+    const total = p * Math.pow(1 + r, n);
+    byId<HTMLElement>('finCompoundResult').innerHTML =
+      `<div>${n}년 후 총액: <b>${fmt(total)}</b> 위안</div>` +
+      `<div>이자 수익: ${fmt(total - p)} 위안 (증가율 ${(((total - p) / p) * 100).toFixed(1)}%)</div>`;
+  });
+
+  byId<HTMLButtonElement>('finPctBtn').addEventListener('click', () => {
+    const a = Number(byId<HTMLInputElement>('finA').value);
+    const b = Number(byId<HTMLInputElement>('finB').value);
+    if (a === 0) return;
+    byId<HTMLElement>('finPctResult').innerHTML =
+      `<div>B는 A의 ${((b / a) * 100).toFixed(1)}%입니다</div>` +
+      `<div>B는 A보다 ${(Math.abs(b - a) / a * 100).toFixed(1)}% ${b >= a ? '더 많습니다' : '적습니다'}</div>` +
+      `<div>B는 A+B 합계의 ${((b / (a + b)) * 100).toFixed(1)}%입니다</div>`;
+  });
+</script>

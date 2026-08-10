@@ -1,0 +1,122 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'date-diff', 'ko')!;
+const related = getRelated(category, 'date-diff', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="날짜 간격 계산" icon="bi-hourglass-split">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="ddStart">시작 날짜</label>
+          <input class="input" id="ddStart" type="date" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="ddEnd">종료 날짜</label>
+          <input class="input" id="ddEnd" type="date" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="ddBtn" type="button"><i class="bi bi-hourglass-split"></i> 간격 계산</button>
+      </div>
+      <div class="status-msg" id="ddStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="ddResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="날짜 계산" icon="bi-calendar-plus">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="ddBase">시작 날짜</label>
+          <input class="input" id="ddBase" type="date" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="ddDays">증감 일수 (음수는 이전)</label>
+          <input class="input" id="ddDays" type="number" value="30" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="ddCalc" type="button"><i class="bi bi-calendar-plus"></i> 날짜 계산</button>
+      </div>
+      <div class="status-msg" id="ddCalcStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="ddCalcResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  function weekText(d: Date): string {
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+  }
+
+  function fmt(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function calcDiff() {
+    hideStatus('ddStatus');
+    const s = byId<HTMLInputElement>('ddStart').value;
+    const e = byId<HTMLInputElement>('ddEnd').value;
+    if (!s || !e) {
+      showStatus('ddStatus', 'error', '시작 날짜와 종료 날짜를 선택하세요');
+      return;
+    }
+    const start = new Date(s + 'T00:00:00');
+    const end = new Date(e + 'T00:00:00');
+    const diffMs = Math.abs(end.getTime() - start.getTime());
+    const days = Math.round(diffMs / 86400000);
+    const weeks = Math.floor(days / 7);
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth();
+    const years = Math.abs(end.getFullYear() - start.getFullYear());
+    const result = document.createElement('div');
+    result.innerHTML =
+      `<div>차이 일수: <b>${days}</b> 일</div>` +
+      `<div>약 ${weeks} 주 ${days % 7} 일</div>` +
+      `<div>약 ${Math.abs(months)} 개월${Math.abs(months) / 12 >= 1 ? ' (' + (Math.abs(months) / 12).toFixed(1) + '년)' : ''}</div>` +
+      `<div>${fmt(start)} ${weekText(start)} → ${fmt(end)} ${weekText(end)}</div>`;
+    byId<HTMLElement>('ddResult').innerHTML = result.innerHTML;
+    showStatus('ddStatus', 'success', '계산 완료');
+  }
+
+  function calcAdd() {
+    hideStatus('ddCalcStatus');
+    const base = byId<HTMLInputElement>('ddBase').value;
+    const days = Number(byId<HTMLInputElement>('ddDays').value);
+    if (!base || isNaN(days)) {
+      showStatus('ddCalcStatus', 'error', '날짜를 선택하고 일수를 입력하세요');
+      return;
+    }
+    const d = new Date(base + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    byId<HTMLElement>('ddCalcResult').textContent =
+      `${base}${days >= 0 ? ' 더하기 ' : ' 빼기 '}${Math.abs(days)}일 = ${fmt(d)} ${weekText(d)}`;
+    showStatus('ddCalcStatus', 'success', '계산 완료');
+  }
+
+  byId<HTMLButtonElement>('ddBtn').addEventListener('click', calcDiff);
+  byId<HTMLButtonElement>('ddCalc').addEventListener('click', calcAdd);
+  byId<HTMLInputElement>('ddStart').value = today;
+  byId<HTMLInputElement>('ddEnd').value = today;
+  byId<HTMLInputElement>('ddBase').value = today;
+</script>

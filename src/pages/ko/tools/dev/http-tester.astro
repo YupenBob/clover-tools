@@ -1,0 +1,135 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'http-tester', 'ko')!;
+const related = getRelated(category, 'http-tester', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="요청 설정" icon="bi-send">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="httpMethod">메서드</label>
+        <select class="select" id="httpMethod">
+          <option value="GET" selected>GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+          <option value="HEAD">HEAD</option>
+          <option value="OPTIONS">OPTIONS</option>
+        </select>
+      </div>
+      <div class="field" style="flex: 3">
+        <label class="field-label" for="httpUrl">URL</label>
+        <input class="input mono" id="httpUrl" type="text" placeholder="https://api.example.com/data" spellcheck="false" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="httpTimeout">타임아웃</label>
+        <select class="select" id="httpTimeout">
+          <option value="5000">5s</option>
+          <option value="10000" selected>10s</option>
+          <option value="30000">30s</option>
+        </select>
+      </div>
+    </div>
+    <div class="field mt-3">
+      <label class="field-label" for="httpHeaders">요청 헤더 (한 줄에 하나, 형식 Key: Value)</label>
+      <textarea class="textarea" id="httpHeaders" spellcheck="false" placeholder='Content-Type: application/json&#10;Authorization: Bearer xxx'></textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="httpBody">요청 본문 (POST/PUT/PATCH)</label>
+      <textarea class="textarea" id="httpBody" spellcheck="false" placeholder='{"key": "value"}'></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="httpSend" type="button"><i class="bi bi-send"></i> 요청 보내기</button>
+    </div>
+    <div class="status-msg" id="httpStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">참고: 브라우저 동일 출처 정책(CORS)에 따라 대상 API가 교차 출처를 허용해야 합니다. 허용하지 않으면 요청이 차단됩니다.</p>
+  </ToolPanel>
+
+  <ToolPanel title="응답 결과" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="httpCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+    </div>
+    <div class="http-meta" id="httpMeta">아직 요청을 보내지 않았습니다</div>
+    <textarea class="textarea" id="httpOutput" readonly spellcheck="false" placeholder="응답 내용이 여기에 표시됩니다"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .http-meta {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  async function send() {
+    hideStatus('httpStatus');
+    const url = byId<HTMLInputElement>('httpUrl').value.trim();
+    const method = byId<HTMLSelectElement>('httpMethod').value;
+    const timeout = Number(byId<HTMLSelectElement>('httpTimeout').value);
+    if (!url) {
+      showStatus('httpStatus', 'error', '요청 URL을 입력하세요');
+      return;
+    }
+    const headers: Record<string, string> = {};
+    for (const line of byId<HTMLTextAreaElement>('httpHeaders').value.split('\n')) {
+      const idx = line.indexOf(':');
+      if (idx > 0) headers[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    }
+    const body = byId<HTMLTextAreaElement>('httpBody').value;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    const meta = byId<HTMLElement>('httpMeta');
+    const output = byId<HTMLTextAreaElement>('httpOutput');
+    const start = performance.now();
+    meta.textContent = `${method} ${url} 전송 중...`;
+    output.value = '';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: ['GET', 'HEAD'].includes(method) ? undefined : body,
+        signal: controller.signal,
+      });
+      const duration = Math.round(performance.now() - start);
+      const text = await res.text();
+      const resHeaders = Array.from(res.headers.entries()).map(([k, v]) => `${k}: ${v}`).join('\n');
+      meta.textContent = `상태 ${res.status} ${res.statusText} · 소요 시간 ${duration}ms · 크기 ${text.length}자`;
+      output.value = `═══ 응답 헤더 ═══\n${resHeaders}\n\n═══ 응답 본문 ═══\n${text}`;
+      showStatus('httpStatus', res.ok ? 'success' : 'error', `요청 완료, 상태 코드 ${res.status}`);
+    } catch (e) {
+      meta.textContent = '요청 실패';
+      output.value = '';
+      if ((e as Error).name === 'AbortError') {
+        showStatus('httpStatus', 'error', `요청 시간 초과 (${timeout / 1000}s 초과)`);
+      } else {
+        showStatus('httpStatus', 'error', '요청 실패: 대상 API가 교차 출처(CORS)를 허용하지 않거나 주소에 접근할 수 없습니다');
+      }
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  byId<HTMLButtonElement>('httpSend').addEventListener('click', send);
+  byId<HTMLButtonElement>('httpSample').addEventListener('click', () => {
+    byId<HTMLInputElement>('httpUrl').value = 'https://httpbin.org/json';
+    byId<HTMLSelectElement>('httpMethod').value = 'GET';
+  });
+  bindCopyBtn('httpCopy', () => byId<HTMLTextAreaElement>('httpOutput').value);
+</script>

@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'url-encode', 'ja')!;
+const related = getRelated(category, 'url-encode', 'ja', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="URL またはテキストを入力" icon="bi-link-45deg">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+    </div>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="例: https://example.com/検索?q=日本語 のテキスト"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="urlMode">変換モード</label>
+        <select class="select" id="urlMode">
+          <option value="encodeComponent">エンコード（encodeURIComponent）</option>
+          <option value="encodeUri">エンコード（encodeURI、:/?# を保持）</option>
+          <option value="decodeComponent">デコード（decodeURIComponent）</option>
+          <option value="decodeUri">デコード（decodeURI）</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> 変換</button>
+    </div>
+    <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="変換結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+    </div>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('urlInput');
+  const output = byId<HTMLTextAreaElement>('urlOutput');
+
+  function convert() {
+    hideStatus('urlStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('urlStatus', 'error', '変換する内容を入力してください');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('urlMode').value;
+    try {
+      switch (mode) {
+        case 'encodeComponent': output.value = encodeURIComponent(src); break;
+        case 'encodeUri': output.value = encodeURI(src); break;
+        case 'decodeComponent': output.value = decodeURIComponent(src); break;
+        case 'decodeUri': output.value = decodeURI(src); break;
+      }
+      showStatus('urlStatus', 'success', '変換が完了しました');
+    } catch (e) {
+      output.value = '';
+      showStatus('urlStatus', 'error', `変換に失敗しました：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('urlBtn').addEventListener('click', convert);
+  bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
+  bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
+  bindCopyBtn('urlCopy', () => output.value);
+</script>

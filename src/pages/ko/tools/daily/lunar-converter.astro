@@ -1,0 +1,142 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'lunar-converter', 'ko')!;
+const related = getRelated(category, 'lunar-converter', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="양력 → 음력" icon="bi-arrow-down">
+      <div class="field">
+        <label class="field-label" for="lcSolar">양력 날짜</label>
+        <input class="input" id="lcSolar" type="date" />
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="lcToLunar" type="button"><i class="bi bi-moon-stars"></i> 음력으로 변환</button>
+        <button class="btn btn-ghost" id="lcSolarToday" type="button"><i class="bi bi-calendar-check"></i> 오늘</button>
+      </div>
+      <div class="status-msg" id="lcLunarStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="lcLunarResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="음력 → 양력" icon="bi-arrow-up">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="lcYear">음력 연도</label>
+          <select class="select" id="lcYear"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lcMonth">음력 월</label>
+          <select class="select" id="lcMonth"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="lcDay">음력 일</label>
+          <select class="select" id="lcDay"></select>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="field">
+          <label class="field-label" for="lcLeap"><input type="checkbox" id="lcLeap" /> 윤달</label>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="lcToSolar" type="button"><i class="bi bi-sun"></i> 양력으로 변환</button>
+        <button class="btn btn-ghost" id="lcTodayLunar" type="button"><i class="bi bi-calendar-check"></i> 오늘</button>
+      </div>
+      <div class="status-msg" id="lcSolarStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="lcSolarResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import { Solar, Lunar } from 'lunar-javascript';
+
+  const CHINESE_DAYS = ['初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
+    '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
+    '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十'];
+
+  const yearSel = byId<HTMLSelectElement>('lcYear');
+  const monthSel = byId<HTMLSelectElement>('lcMonth');
+  const daySel = byId<HTMLSelectElement>('lcDay');
+  const now = new Date();
+
+  for (let y = 1900; y <= 2100; y++) yearSel.add(new Option(String(y), String(y)));
+  for (let m = 1; m <= 12; m++) monthSel.add(new Option(`${m}월`, String(m)));
+  for (let d = 1; d <= 30; d++) daySel.add(new Option(CHINESE_DAYS[d - 1], String(d)));
+  yearSel.value = String(now.getFullYear());
+
+  function setTodaySolar() {
+    byId<HTMLInputElement>('lcSolar').value =
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    convertToLunar();
+  }
+
+  function setTodayLunar() {
+    const lunar = Solar.fromDate(now).getLunar();
+    const isLeap = lunar.getMonth() < 0;
+    yearSel.value = String(lunar.getYear());
+    monthSel.value = String(Math.abs(lunar.getMonth()));
+    daySel.value = String(lunar.getDay());
+    byId<HTMLInputElement>('lcLeap').checked = isLeap;
+    convertToSolar();
+  }
+
+  function convertToLunar() {
+    hideStatus('lcLunarStatus');
+    const val = byId<HTMLInputElement>('lcSolar').value;
+    if (!val) {
+      showStatus('lcLunarStatus', 'error', '양력 날짜를 선택하세요.');
+      return;
+    }
+    const [y, m, d] = val.split('-').map(Number);
+    const lunar = Solar.fromYmd(y, m, d).getLunar();
+    byId<HTMLElement>('lcLunarResult').innerHTML =
+      `<div>음력: ${lunar.getYearInChinese()}년 ${lunar.getMonthInChinese()}월${lunar.getDayInChinese()}</div>` +
+      `<div>간지: ${lunar.getYearInGanZhi()}년 · ${lunar.getMonthInGanZhi()}월 · ${lunar.getDayInGanZhi()}일</div>` +
+      `<div>띠: ${lunar.getYearShengXiao()}${lunar.getMonth() < 0 ? ' · 윤달' : ''}</div>` +
+      (lunar.getJieQi() ? `<div>절기: ${lunar.getJieQi()}</div>` : '');
+    showStatus('lcLunarStatus', 'success', '변환 완료');
+  }
+
+  function convertToSolar() {
+    hideStatus('lcSolarStatus');
+    const y = Number(yearSel.value);
+    const m = Number(monthSel.value);
+    const d = Number(daySel.value);
+    const leap = byId<HTMLInputElement>('lcLeap').checked;
+    try {
+      // 윤달은 이 라이브러리에서 음수 월로 표시됩니다. 예: -6은 윤6월을 의미
+      const solar = Lunar.fromYmd(y, leap ? -m : m, d).getSolar();
+      byId<HTMLElement>('lcSolarResult').textContent =
+        `양력: ${solar.toYmd()} (${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][solar.getWeek()]})`;
+      showStatus('lcSolarStatus', 'success', '변환 완료');
+    } catch {
+      showStatus('lcSolarStatus', 'error', '해당 음력 날짜가 존재하지 않습니다. 윤달 여부를 확인해 주세요.');
+    }
+  }
+
+  byId<HTMLButtonElement>('lcToLunar').addEventListener('click', convertToLunar);
+  byId<HTMLButtonElement>('lcToSolar').addEventListener('click', convertToSolar);
+  byId<HTMLButtonElement>('lcSolarToday').addEventListener('click', setTodaySolar);
+  byId<HTMLButtonElement>('lcTodayLunar').addEventListener('click', setTodayLunar);
+  setTodaySolar();
+  setTodayLunar();
+</script>

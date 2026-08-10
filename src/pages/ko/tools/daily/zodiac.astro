@@ -1,0 +1,94 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'zodiac', 'ko')!;
+const related = getRelated(category, 'zodiac', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="출생일" icon="bi-star">
+    <div class="field">
+      <label class="field-label" for="zdDate">날짜</label>
+      <input class="input" id="zdDate" type="date" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="zdBtn" type="button"><i class="bi bi-star"></i> 조회</button>
+    </div>
+    <div class="status-msg" id="zdStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="조회 결과" icon="bi-clipboard-data">
+    <div class="zd-grid" id="zdGrid"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .zd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .zd-item {
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    text-align: center;
+  }
+
+  .zd-item .label {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .zd-item .value {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import { Solar } from 'lunar-javascript';
+
+  const WUXING: Record<string, string> = {
+    甲: '목', 乙: '목', 丙: '화', 丁: '화', 戊: '토', 己: '토', 庚: '금', 辛: '금', 壬: '수', 癸: '수',
+  };
+
+  function run() {
+    hideStatus('zdStatus');
+    const val = byId<HTMLInputElement>('zdDate').value;
+    if (!val) {
+      showStatus('zdStatus', 'error', '날짜를 선택하세요');
+      return;
+    }
+    const [y, m, d] = val.split('-').map(Number);
+    const solar = Solar.fromYmd(y, m, d);
+    const lunar = solar.getLunar();
+    const ganZhi = lunar.getYearInGanZhi();
+    const wuxing = WUXING[ganZhi.charAt(0)] || '알 수 없음';
+    const items: [string, string][] = [
+      ['양력', `${y}-${m}-${d}`],
+      ['띠', lunar.getYearShengXiao()],
+      ['별자리', solar.getXingZuo()],
+      ['음력', `${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`],
+      ['연간지', `${ganZhi}年`],
+      ['오행', wuxing],
+    ];
+    byId<HTMLElement>('zdGrid').innerHTML = items
+      .map(([k, v]) => `<div class="zd-item"><span class="label">${k}</span><span class="value">${v}</span></div>`)
+      .join('');
+    showStatus('zdStatus', 'success', '조회 완료');
+  }
+
+  byId<HTMLButtonElement>('zdBtn').addEventListener('click', run);
+  const now = new Date();
+  byId<HTMLInputElement>('zdDate').value =
+    `${now.getFullYear() - 25}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+</script>

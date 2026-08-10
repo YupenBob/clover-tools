@@ -1,0 +1,1074 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'ball-tracker', 'ko')!;
+const related = getRelated(category, 'ball-tracker', 'ko', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="목표 공 추적 훈련" icon="bi-crosshair">
+    <div class="bt-panel">
+      <!-- 패널 배경 광휘 -->
+      <div class="bt-bg" aria-hidden="true">
+        <span class="bt-glow bt-glow-1"></span>
+        <span class="bt-glow bt-glow-2"></span>
+        <span class="bt-glow bt-glow-3"></span>
+      </div>
+
+      <!-- 제1막: 시작 -->
+      <section id="btStart" class="bt-act">
+        <header class="bt-hero">
+          <span class="bt-hero-badge"><i class="bi bi-crosshair" aria-hidden="true"></i></span>
+          <div class="bt-hero-title">목표 공 추적</div>
+          <p class="bt-lead">
+            움직이는 공들 사이에서 목표를 끝까지 고정하고, 유혹과 함정에 저항하며, 성급한 클릭을 참아내세요.
+            매번 올바른 클릭은 전전두엽 억제 조절 훈련입니다.
+          </p>
+        </header>
+
+        <div class="bt-section-title"><span>모드 선택</span></div>
+        <div class="bt-modes" id="btModes"></div>
+
+        <div class="bt-section-title"><span>훈련 설정</span></div>
+        <div class="bt-settings">
+          <div class="bt-setting-row">
+            <label for="btSize">공 개수</label>
+            <div class="bt-setting-control">
+              <input id="btSize" type="range" min="8" max="20" step="1" value="12" />
+              <span class="bt-setting-value" id="btSizeLabel">12</span>
+            </div>
+          </div>
+          <div class="bt-setting-row" id="btTargetsWrap">
+            <label for="btTargets">목표 개수</label>
+            <div class="bt-setting-control">
+              <input id="btTargets" type="range" min="1" max="3" step="1" value="2" />
+              <span class="bt-setting-value" id="btTargetsLabel">2</span>
+            </div>
+          </div>
+          <div class="bt-setting-row" id="btSpeedWrap">
+            <label for="btSpeed">이동 속도</label>
+            <div class="bt-setting-control">
+              <input id="btSpeed" type="range" min="400" max="1000" step="1" value="700" />
+              <span class="bt-setting-value" id="btSpeedLabel">700</span>
+            </div>
+          </div>
+          <div class="bt-setting-row">
+            <label for="btDur">훈련 시간</label>
+            <div class="bt-setting-control">
+              <input id="btDur" type="range" min="10" max="30" step="5" value="15" />
+              <span class="bt-setting-value" id="btDurLabel">15s</span>
+            </div>
+          </div>
+          <div class="bt-setting-row" id="btFluxWrap" hidden>
+            <label for="btFlux">혼입 주기</label>
+            <div class="bt-setting-control">
+              <input id="btFlux" type="range" min="3" max="8" step="1" value="5" />
+              <span class="bt-setting-value" id="btFluxLabel">5s</span>
+            </div>
+          </div>
+          <div class="bt-setting-row" id="btRotateWrap" hidden>
+            <label for="btRotate">회전 속도</label>
+            <div class="bt-setting-control">
+              <input id="btRotate" type="range" min="50" max="200" step="1" value="120" />
+              <span class="bt-setting-value" id="btRotateLabel">120°/s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bt-options">
+          <span class="bt-hint muted">개수 증감은 계속 새 공을 섞어 넣고, 전체 회전은 공간 지향력을 시험합니다</span>
+          <div class="bt-option-btns">
+            <button class="bt-icon-btn" id="btFull" type="button" title="집중 모드(전체 화면)"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
+            <button class="bt-icon-btn" id="btMute" type="button" title="효과음 켜기/끄기" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+          </div>
+        </div>
+
+        <button class="bt-start-btn" id="btStartBtn" type="button">
+          <i class="bi bi-play-fill" aria-hidden="true"></i> 훈련 시작
+        </button>
+      </section>
+
+      <!-- 제2막: 훈련 -->
+      <section class="bt-train" id="btTrain" hidden aria-label="훈련 진행 중">
+        <div class="bt-train-bg" aria-hidden="true">
+          <span class="bt-glow bt-glow-1"></span>
+          <span class="bt-glow bt-glow-3"></span>
+          <div class="bt-dust" aria-hidden="true">
+            <span class="bt-dust-p" style="--x: 14%; --d: 9s; --dl: 0s; --s: 5px;"></span>
+            <span class="bt-dust-p" style="--x: 32%; --d: 11s; --dl: 1.8s; --s: 4px;"></span>
+            <span class="bt-dust-p" style="--x: 55%; --d: 10s; --dl: 3.4s; --s: 6px;"></span>
+            <span class="bt-dust-p" style="--x: 74%; --d: 12s; --dl: 0.9s; --s: 5px;"></span>
+            <span class="bt-dust-p" style="--x: 88%; --d: 9.5s; --dl: 4.2s; --s: 4px;"></span>
+          </div>
+        </div>
+        <div class="bt-train-head bt-glass">
+          <button class="bt-exit" id="btExit" type="button" title="훈련 종료"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          <div class="bt-train-meta">
+            <span class="bt-train-mode" id="btModeLabel">목표 공 추적</span>
+            <span class="bt-train-phase" id="btPhaseText"></span>
+          </div>
+          <div class="bt-train-right">
+            <span class="bt-train-count" id="btCount"></span>
+            <span class="bt-train-timer" id="btTimer" hidden></span>
+          </div>
+        </div>
+        <div class="bt-train-body">
+          <div class="bt-stage" id="btStage">
+            <canvas id="btCanvas"></canvas>
+          </div>
+          <div class="bt-train-status" id="btTrainStatus" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- 제3막: 결과 -->
+      <section class="bt-result" id="btResult" hidden aria-label="훈련 결과">
+        <div class="bt-train-bg" aria-hidden="true">
+          <span class="bt-glow bt-glow-1"></span>
+          <span class="bt-glow bt-glow-3"></span>
+        </div>
+        <div class="bt-result-inner bt-glass">
+          <div class="bt-result-grade" id="btGrade"></div>
+          <div class="bt-result-metrics" id="btMetrics"></div>
+          <div class="bt-result-note" id="btNote"></div>
+          <div class="bt-result-trend" id="btTrend" aria-label="역대 정확도 추이"></div>
+          <div class="bt-result-actions">
+            <button class="btn btn-primary" id="btAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> 다시 한 세트</button>
+            <button class="btn" id="btBack" type="button"><i class="bi bi-crosshair" aria-hidden="true"></i> 모드 선택으로</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="bt-veil" id="btVeil" hidden>
+        <div class="bt-veil-inner" id="btVeilInner"></div>
+      </div>
+      <div class="bt-toast" id="btToast" hidden aria-live="polite"></div>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="훈련 목적: 전전두엽 억제 조절" icon="bi-crosshair">
+    <div class="bt-purpose">
+      <p>
+        목표 공 추적 훈련의 핵심은 <b>억제 조절</b>입니다. 전전두엽이 담당하는 고급 인지 기능으로,
+        동적 장면에서 목표를 계속 고정하고(주의 분배), 방해 자극에 저항하며(주의 산만 방지),
+        회전 좌표계에서 공간 방향을 유지합니다(공간 주의). 짧은 영상과 빠른 템포의 앱은
+        '보이면 바로 누르고 싶은' 충동 회로를 계속 훈련하지만, 이 훈련은 반대로
+        <b>정확히 보고, 끝까지 추적하고, 오래 기억하는</b> 능력을 요구합니다.
+        이것이 바로 전전두엽을 집중적으로 단련하는 방법입니다.
+      </p>
+      <div class="bt-purpose-grid">
+        <div class="bt-purpose-item">
+          <i class="bi bi-crosshair" aria-hidden="true"></i>
+          <b>동적 시각 추적</b>
+          <span>여러 동일한 공 사이에서 목표를 계속 고정하여 시각 작업 기억과 주의 분배를 훈련합니다.</span>
+        </div>
+        <div class="bt-purpose-item">
+          <i class="bi bi-shield-x" aria-hidden="true"></i>
+          <b>유혹과 방해에 저항</b>
+          <span>유혹 공과 함정 공은 현실의 방해 자극을 흉내 내며 '누르고 싶은 충동을 참는' 억제 능력을 단련합니다.</span>
+        </div>
+        <div class="bt-purpose-item">
+          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <b>공간 지향과 회전 추적</b>
+          <span>전체 회전은 운동 좌표계에 적응하게 하여 공간 작업 기억과 동적 주의를 강화합니다.</span>
+        </div>
+        <div class="bt-purpose-item">
+          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <b>정량적 성장 확인</b>
+          <span>정확도, 충동적 오클릭, 추이 보고서를 통해 억제 조절의 실제 변화를 확인할 수 있습니다.</span>
+        </div>
+      </div>
+
+      <h4>모드와 인지 기능 대응</h4>
+      <div class="bt-table-scroll">
+        <table class="bt-bench">
+          <thead>
+            <tr><th>모드</th><th>훈련 초점</th><th>대응 인지 능력</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>목표 공 추적</td><td>기본 동적 추적</td><td>시각 작업 기억, 주의 분배</td></tr>
+            <tr><td>개수 증감</td><td>추적 중 새 공 혼입</td><td>주의 유지, 간섭 저항</td></tr>
+            <tr><td>전체 회전</td><td>회전 장면 추적</td><td>공간 주의, 작업 기억</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted bt-tip">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        매일 3–5세트를 권장합니다. 목표는 표시가 사라진 뒤에도 목표를 계속 추적하는 것이며,
+        1회 성적보다 추이를 관찰하는 것이 중요합니다. 2주 이상 꾸준히 하면 더 확실한 변화를 볼 수 있습니다.
+      </p>
+    </div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  /* ═══ 目标球追踪：金色光晕沉浸 ═══ */
+  .bt-panel {
+    position: relative;
+  }
+
+  .bt-act {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bt-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .bt-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(72px);
+    pointer-events: none;
+  }
+
+  .bt-glow-1 {
+    width: 520px;
+    height: 520px;
+    top: -150px;
+    left: -130px;
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.3), transparent 66%);
+    animation: bt-breathe 9s ease-in-out infinite;
+  }
+
+  .bt-glow-2 {
+    width: 460px;
+    height: 460px;
+    top: 32%;
+    right: -170px;
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.2), transparent 66%);
+    animation: bt-breathe 12s ease-in-out infinite reverse;
+  }
+
+  .bt-glow-3 {
+    width: 380px;
+    height: 380px;
+    bottom: -130px;
+    left: 28%;
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.15), transparent 66%);
+    animation: bt-breathe 10s ease-in-out infinite 1.5s;
+  }
+
+  @keyframes bt-breathe {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.07); }
+  }
+
+  .bt-glass {
+    background: color-mix(in srgb, var(--bg-elevated) 66%, transparent) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent) !important;
+    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  }
+
+  /* ── Hero ── */
+  .bt-hero {
+    text-align: center;
+    padding: 6px 0 var(--space-5);
+  }
+
+  .bt-hero-badge {
+    width: 66px;
+    height: 66px;
+    margin: 0 auto var(--space-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    border-radius: 22px;
+    box-shadow: 0 10px 28px rgba(var(--primary-rgb), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    animation: bt-hero-in 0.5s ease both;
+  }
+
+  @keyframes bt-hero-in {
+    from { opacity: 0; transform: translateY(-12px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .bt-hero-title {
+    font-size: clamp(32px, 5.5vw, 46px);
+    font-weight: 800;
+    letter-spacing: 3px;
+    line-height: 1.25;
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary), var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 3px 12px rgba(var(--primary-rgb), 0.28));
+    margin-bottom: var(--space-3);
+  }
+
+  .bt-lead {
+    max-width: 560px;
+    margin: 0 auto;
+    font-size: 14.5px;
+    line-height: 1.9;
+    color: var(--text-secondary);
+  }
+
+  .bt-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 var(--space-3);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+
+  .bt-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── 模式卡片 ── */
+  .bt-modes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: var(--space-5);
+  }
+
+  .bt-mode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 8px 14px;
+    min-height: 108px;
+    border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-elevated) 62%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+    animation: bt-fade-up 0.5s ease both;
+  }
+
+  .bt-mode:nth-child(1) { animation-delay: 0.05s; }
+  .bt-mode:nth-child(2) { animation-delay: 0.12s; }
+  .bt-mode:nth-child(3) { animation-delay: 0.19s; }
+
+  @keyframes bt-fade-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bt-mode .bt-mode-ico {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--bg-elevated), color-mix(in srgb, var(--bg-elevated) 80%, var(--primary-light)));
+    border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+    box-shadow: 0 4px 12px rgba(60, 50, 20, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    font-size: 24px;
+    color: var(--text-tertiary);
+    transition: all 0.18s ease;
+  }
+
+  .bt-mode .bt-mode-desc {
+    font-size: 11.5px;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  .bt-mode:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+  }
+
+  .bt-mode.active {
+    border-color: var(--primary);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--primary-soft) 70%, var(--bg-elevated)), var(--primary-soft));
+    box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.28), var(--ring);
+    color: var(--primary-dark);
+  }
+
+  .bt-mode.active .bt-mode-ico {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+    border-color: var(--primary);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(var(--primary-rgb), 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* ── 设置 ── */
+  .bt-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--bg-elevated) 62%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    margin-bottom: var(--space-4);
+  }
+
+  .bt-setting-row {
+    display: grid;
+    grid-template-columns: 92px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0;
+  }
+
+  .bt-setting-row[hidden] {
+    display: none !important;
+  }
+
+  .bt-setting-row label {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+  }
+
+  .bt-setting-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bt-setting-control input[type='range'] {
+    flex: 1;
+    accent-color: var(--primary);
+    min-width: 120px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .bt-setting-control input[type='range']::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--primary-light), color-mix(in srgb, var(--primary) 35%, var(--border)));
+  }
+
+  .bt-setting-control input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin-top: -7px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #fff, var(--primary-light));
+    border: 2px solid var(--primary);
+    box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.45);
+  }
+
+  .bt-setting-value {
+    min-width: 38px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--primary-dark);
+    background: linear-gradient(145deg, var(--primary-soft), var(--bg-elevated));
+    border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+    border-radius: var(--radius-sm);
+    padding: 4px 8px;
+  }
+
+  .bt-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: var(--space-5);
+  }
+
+  .bt-hint {
+    font-size: 12.5px;
+  }
+
+  .bt-option-btns {
+    display: flex;
+    gap: 8px;
+  }
+
+  .bt-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .bt-icon-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+  }
+
+  .bt-start-btn {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+    color: #fff;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+
+  .bt-start-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.38) 50%, transparent 70%);
+    transform: translateX(-110%);
+    transition: transform 0.65s ease;
+    pointer-events: none;
+  }
+
+  .bt-start-btn:hover::before {
+    transform: translateX(110%);
+  }
+
+  .bt-start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    filter: brightness(1.05);
+  }
+
+  /* ── 训练幕 ── */
+  .bt-train {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    animation: bt-fade 0.25s ease;
+  }
+
+  @keyframes bt-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .bt-train-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+      radial-gradient(130% 100% at 50% 0%, color-mix(in srgb, var(--bg-elevated) 55%, transparent), transparent 62%),
+      radial-gradient(90% 70% at 50% 110%, rgba(var(--primary-rgb), 0.1), transparent 60%);
+  }
+
+  .bt-train-bg .bt-glow-1 {
+    width: 640px;
+    height: 640px;
+    top: -220px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.26), transparent 66%);
+  }
+
+  .bt-train-bg .bt-glow-3 {
+    width: 460px;
+    height: 460px;
+    bottom: -180px;
+    left: -140px;
+  }
+
+  .bt-dust {
+    position: absolute;
+    inset: 0;
+  }
+
+  .bt-dust-p {
+    position: absolute;
+    left: var(--x);
+    top: 58%;
+    width: var(--s, 5px);
+    height: var(--s, 5px);
+    border-radius: 50%;
+    background: rgba(var(--primary-rgb), 0.55);
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.65);
+    opacity: 0;
+    animation: bt-float var(--d, 10s) ease-in-out infinite;
+    animation-delay: var(--dl, 0s);
+  }
+
+  @keyframes bt-float {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    12% { opacity: 0.7; }
+    50% { transform: translateY(-36vh) translateX(16px); opacity: 0.5; }
+    85% { opacity: 0.35; }
+    100% { transform: translateY(-70vh) translateX(-10px); opacity: 0; }
+  }
+
+  .bt-train-head,
+  .bt-train-body,
+  .bt-result-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .bt-train-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px clamp(16px, 4vw, 40px);
+  }
+
+  .bt-exit {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .bt-exit:hover {
+    border-color: var(--error);
+    color: var(--error);
+  }
+
+  .bt-train-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .bt-train-mode {
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .bt-train-phase {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .bt-train-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bt-train-count {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .bt-train-timer {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .bt-train-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 3vh, 24px);
+    padding: clamp(12px, 3vw, 32px);
+    min-height: 0;
+  }
+
+  .bt-stage {
+    position: relative;
+    width: min(100%, 720px);
+    flex: 1;
+    min-height: 240px;
+    border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--bg-elevated) 42%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: inset 0 0 60px rgba(var(--primary-rgb), 0.06), var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  #btCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: manipulation;
+  }
+
+  .bt-train-status {
+    min-height: 26px;
+    text-align: center;
+    font-size: 14.5px;
+    color: var(--text-secondary);
+  }
+
+  .bt-train-status.error {
+    color: var(--error);
+    font-weight: 600;
+  }
+
+  /* ── 结果幕 ── */
+  .bt-result {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 4vw, 48px);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(10px);
+    animation: bt-fade 0.3s ease;
+  }
+
+  .bt-result-inner {
+    width: min(100%, 620px);
+    max-height: 92vh;
+    overflow: auto;
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .bt-result-grade {
+    font-size: clamp(40px, 8vw, 64px);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: var(--space-4);
+    animation: bt-pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+    text-shadow: 0 6px 28px rgba(var(--primary-rgb), 0.45);
+  }
+
+  @keyframes bt-pop {
+    from { opacity: 0; transform: scale(0.7); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .bt-result-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: var(--space-4);
+  }
+
+  .bt-metric {
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--bg-secondary) 70%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+
+  .bt-metric b {
+    display: block;
+    font-size: 24px;
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-family: var(--font-mono);
+  }
+
+  .bt-metric b small {
+    font-size: 13px;
+    margin-left: 2px;
+  }
+
+  .bt-metric span {
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .bt-result-note {
+    margin-bottom: var(--space-4);
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(120deg, var(--primary-soft), color-mix(in srgb, var(--primary-soft) 50%, var(--bg-elevated)));
+    border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .bt-result-trend {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 120px;
+    padding: 12px 10px 24px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    margin-bottom: var(--space-5);
+  }
+
+  .bt-bar {
+    flex: 1;
+    min-width: 12px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, var(--primary-light), var(--primary-dark));
+    box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.2);
+    position: relative;
+  }
+
+  .bt-bar:last-child {
+    box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.55);
+  }
+
+  .bt-bar::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+  }
+
+  .bt-trend-empty {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+
+  .bt-result-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .bt-result-actions .btn {
+    min-height: 48px;
+    padding: 0 26px;
+    font-size: 15px;
+  }
+
+  /* ── 遮罩 / toast ── */
+  .bt-veil {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .bt-veil[hidden],
+  .bt-toast[hidden],
+  .bt-train[hidden],
+  .bt-result[hidden] {
+    display: none !important;
+  }
+
+  .bt-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 95;
+    padding: 12px 24px;
+    border-radius: var(--radius-full);
+    background: var(--primary-dark);
+    color: #fff;
+    font-size: 14.5px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    animation: bt-toast-in 0.25s ease;
+  }
+
+  @keyframes bt-toast-in {
+    from { opacity: 0; transform: translate(-50%, -12px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* ── 训练目的 ── */
+  .bt-purpose p {
+    line-height: 1.9;
+    margin-bottom: var(--space-4);
+  }
+
+  .bt-purpose-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: var(--space-5);
+  }
+
+  .bt-purpose-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .bt-purpose-item i {
+    font-size: 20px;
+    color: var(--primary-dark);
+    margin-bottom: 2px;
+  }
+
+  .bt-purpose-item span {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .bt-purpose h4 {
+    margin: 0 0 10px;
+    font-size: 15px;
+  }
+
+  .bt-table-scroll {
+    overflow-x: auto;
+    margin-bottom: var(--space-5);
+  }
+
+  .bt-bench {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 420px;
+  }
+
+  .bt-bench th,
+  .bt-bench td {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+
+  .bt-bench th {
+    background: var(--bg-tertiary);
+    font-weight: 600;
+  }
+
+  .bt-tip {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .bt-tip i {
+    margin-top: 2px;
+    color: var(--primary-dark);
+  }
+
+  /* ── 暗色微调 ── */
+  [data-theme='dark'] .bt-glow-1,
+  [data-theme='dark'] .bt-train-bg .bt-glow-1 {
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.18), transparent 66%);
+  }
+
+  [data-theme='dark'] .bt-glow-2 {
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.13), transparent 66%);
+  }
+
+  [data-theme='dark'] .bt-glow-3 {
+    background: radial-gradient(circle, rgba(var(--primary-rgb), 0.1), transparent 66%);
+  }
+
+  @media (max-width: 640px) {
+    .bt-modes {
+      grid-template-columns: 1fr;
+    }
+
+    .bt-setting-row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .bt-options {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .bt-train-head {
+      padding: 10px 14px;
+    }
+
+    .bt-train-meta {
+      align-items: flex-start;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bt-glow,
+    .bt-dust-p,
+    .bt-mode,
+    .bt-hero-badge,
+    .bt-result-grade,
+    .bt-start-btn::before {
+      animation: none !important;
+    }
+
+    .bt-mode {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+<script>import '../../../../scripts/ball-tracker';</script>

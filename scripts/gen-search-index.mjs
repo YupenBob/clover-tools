@@ -128,33 +128,40 @@ mkdirSync(join(root, 'public'), { recursive: true });
 writeFileSync(join(root, 'public', 'search-index.json'), JSON.stringify(entries), 'utf8');
 console.log(`已生成 search-index.json（${entries.length} 条）`);
 
-// ── 英文搜索索引：从 src/lib/i18n/en.json 生成 public/en/search-index.json ──
-const enData = JSON.parse(readFileSync(join(root, 'src', 'lib', 'i18n', 'en.json'), 'utf8'));
-const enEntries = [];
-for (const [catKey, slugs] of Object.entries(slugByCategory)) {
-  for (const slug of slugs) {
-    const t = enData.tools?.[slug];
-    if (!t) continue;
-    const text = `${t.name || ''} ${t.oneLiner || ''} ${t.description || ''} ${(t.keywords || []).join(' ')}`;
-    const py = text.toLowerCase().replace(/[^a-z0-9]+/g, '');
-    const initials = text
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((w) => w[0]?.toLowerCase() || '')
-      .join('');
-    enEntries.push({
-      slug,
-      text,
-      py,
-      initials,
-      aliases: t.keywords || [],
-      built: true,
-    });
+// ── 英文 / 韩语 / 日语搜索索引：从 src/lib/i18n/{lang}.json 生成 public/{lang}/search-index.json ──
+function genLangEntries(langData) {
+  const langEntries = [];
+  for (const [, slugs] of Object.entries(slugByCategory)) {
+    for (const slug of slugs) {
+      const t = langData.tools?.[slug];
+      if (!t) continue;
+      const text = `${t.name || ''} ${t.oneLiner || ''} ${t.description || ''} ${(t.keywords || []).join(' ')}`;
+      const py = text.toLowerCase().replace(/[^a-z0-9]+/g, '');
+      const initials = text
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((w) => w[0]?.toLowerCase() || '')
+        .join('');
+      langEntries.push({
+        slug,
+        text,
+        py,
+        initials,
+        aliases: t.keywords || [],
+        built: true,
+      });
+    }
   }
+  return langEntries;
 }
-mkdirSync(join(root, 'public', 'en'), { recursive: true });
-writeFileSync(join(root, 'public', 'en', 'search-index.json'), JSON.stringify(enEntries), 'utf8');
-console.log(`已生成 en/search-index.json（${enEntries.length} 条）`);
+
+for (const lang of ['en', 'ko', 'ja']) {
+  const langData = JSON.parse(readFileSync(join(root, 'src', 'lib', 'i18n', lang + '.json'), 'utf8'));
+  const langEntries = genLangEntries(langData);
+  mkdirSync(join(root, 'public', lang), { recursive: true });
+  writeFileSync(join(root, 'public', lang, 'search-index.json'), JSON.stringify(langEntries), 'utf8');
+  console.log(`已生成 ${lang}/search-index.json（${langEntries.length} 条）`);
+}
 
 // ── 繁体搜索索引：由中文条目简转繁生成 public/zh-hant/search-index.json ──
 const twEntries = entries.map((e) => {
