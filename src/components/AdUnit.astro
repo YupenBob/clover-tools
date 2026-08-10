@@ -3,12 +3,13 @@ import { ADSENSE_CLIENT, getAdSlot, type AdSlotKey } from '../lib/ads';
 
 interface Props {
   adSlot: AdSlotKey;
+  format?: 'auto' | 'horizontal' | 'vertical' | 'rectangle';
   className?: string;
 }
 
-const { adSlot, className = '' } = Astro.props;
+const { adSlot, format = 'horizontal', className = '' } = Astro.props;
 const slotId = getAdSlot(adSlot);
-const classNames = ['ad-slot', className].filter(Boolean).join(' ');
+const classNames = ['ad-slot', `ad-slot--${format}`, className].filter(Boolean).join(' ');
 ---
 
 {slotId && (
@@ -18,10 +19,45 @@ const classNames = ['ad-slot', className].filter(Boolean).join(' ');
       style="display:block"
       data-ad-client={ADSENSE_CLIENT}
       data-ad-slot={slotId}
-      data-ad-format="horizontal"
+      data-ad-format={format}
       data-full-width-responsive="true"
     ></ins>
-    <script is:inline>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    <script is:inline>
+      (function () {
+        var el = document.currentScript.parentElement;
+        var done = false;
+        function schedulePush() {
+          var tries = 0;
+          function attempt() {
+            if (done) return;
+            if (el.offsetParent === null || el.clientWidth <= 0) {
+              if (tries++ < 30) requestAnimationFrame(attempt);
+              return;
+            }
+            done = true;
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          }
+          requestAnimationFrame(attempt);
+        }
+        schedulePush();
+        window.addEventListener('load', schedulePush);
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              for (var i = 0; i < entries.length; i++) {
+                if (entries[i].isIntersecting) {
+                  schedulePush();
+                  io.disconnect();
+                  break;
+                }
+              }
+            },
+            { rootMargin: '200px' },
+          );
+          io.observe(el);
+        }
+      })();
+    </script>
   </div>
 )}
 
@@ -37,5 +73,14 @@ const classNames = ['ad-slot', className].filter(Boolean).join(' ');
 
   .ad-slot ins {
     display: block;
+    width: 100%;
+  }
+
+  .ad-slot--rectangle {
+    min-height: 250px;
+  }
+
+  .ad-slot--vertical {
+    min-height: 600px;
   }
 </style>

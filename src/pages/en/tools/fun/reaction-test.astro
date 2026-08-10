@@ -1,0 +1,111 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'reaction-test', 'en')!;
+const related = getRelated(category, 'reaction-test', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Reaction Time Test" icon="bi-lightning-charge">
+    <button class="rt-area" id="rtArea" type="button">
+      <span id="rtText">Click to start. When the screen turns green, click as fast as possible.</span>
+    </button>
+    <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-4" id="rtResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .rt-area {
+    width: 100%;
+    min-height: 260px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+
+  .rt-area.waiting {
+    background: var(--error);
+    color: #fff;
+  }
+
+  .rt-area.go {
+    background: var(--success);
+    color: #fff;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const area = byId<HTMLButtonElement>('rtArea');
+  const text = byId<HTMLElement>('rtText');
+  const result = byId<HTMLElement>('rtResult');
+  let state: 'idle' | 'waiting' | 'go' = 'idle';
+  let goAt = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const history: number[] = [];
+
+  function renderHistory() {
+    if (history.length === 0) {
+      result.innerHTML = '<div class="muted">Your results will appear after you complete a round.</div>';
+      return;
+    }
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const best = Math.min(...history);
+    result.innerHTML =
+      `<div>This round: <b>${history[history.length - 1]}</b> ms</div>` +
+      `<div>Average: ${avg.toFixed(0)} ms · Best: ${best} ms · Total: ${history.length} attempts</div>`;
+  }
+
+  function startWait() {
+    state = 'waiting';
+    area.classList.add('waiting');
+    text.textContent = 'Waiting for green…';
+    const delay = 1500 + Math.random() * 2500;
+    timer = setTimeout(() => {
+      state = 'go';
+      area.classList.remove('waiting');
+      area.classList.add('go');
+      text.textContent = 'Click!';
+      goAt = performance.now();
+    }, delay);
+  }
+
+  area.addEventListener('click', () => {
+    if (state === 'idle') {
+      hideStatus('rtStatus');
+      startWait();
+      return;
+    }
+    if (state === 'waiting') {
+      if (timer) clearTimeout(timer);
+      state = 'idle';
+      area.classList.remove('waiting');
+      text.textContent = 'Too early! Wait for green and click to retry';
+      showStatus('rtStatus', 'error', "Clicked too early — this attempt doesn't count.");
+      return;
+    }
+    if (state === 'go') {
+      const ms = Math.round(performance.now() - goAt);
+      state = 'idle';
+      area.classList.remove('go');
+      text.textContent = `Reaction time ${ms} ms. Click to try again.`;
+      history.push(ms);
+      if (history.length > 5) history.shift();
+      renderHistory();
+      const grade = ms < 200 ? 'Lightning fast' : ms < 280 ? 'Quick reflexes' : ms < 350 ? 'Average' : ms < 450 ? 'A bit slow' : 'Time for a nap';
+      showStatus('rtStatus', 'success', `${ms} ms · ${grade}`);
+    }
+  });
+
+  renderHistory();
+</script>

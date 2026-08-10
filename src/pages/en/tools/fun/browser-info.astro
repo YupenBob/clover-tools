@@ -1,0 +1,87 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'browser-info', 'en')!;
+const related = getRelated(category, 'browser-info', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Browser & Device Info" icon="bi-browser-chrome">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="biRefresh" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+    </div>
+    <table class="bi-table" id="biTable"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .bi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .bi-table th,
+  .bi-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .bi-table th {
+    width: 180px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .bi-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function collect(): [string, string][] {
+    const nav = navigator;
+    const conn = (nav as unknown as { connection?: { effectiveType?: string; type?: string; downlink?: number; rtt?: number } }).connection;
+    const screen = window.screen;
+    const rows: [string, string][] = [
+      ['Browser', `${nav.userAgentData?.brands?.map((b: { brand: string; version: string }) => `${b.brand} ${b.version}`).join(' / ') || '—'}`],
+      ['User-Agent', nav.userAgent],
+      ['Platform', `${nav.platform}${nav.userAgentData?.mobile ? ' (Mobile)' : ''}`],
+      ['Language', `${nav.language} (${nav.languages?.join(', ') || '—'})`],
+      ['Online Status', nav.onLine ? 'Online' : 'Offline'],
+      ['Cookies Enabled', nav.cookieEnabled ? 'Yes' : 'No'],
+      ['Screen Resolution', `${screen.width} × ${screen.height}`],
+      ['Available Screen', `${screen.availWidth} × ${screen.availHeight}`],
+      ['Window Viewport', `${window.innerWidth} × ${window.innerHeight}`],
+      ['Pixel Ratio', String(window.devicePixelRatio || 1)],
+      ['CPU Cores', String(nav.hardwareConcurrency || 'Unknown')],
+      ['Device Memory', nav.deviceMemory ? `${nav.deviceMemory} GB` : 'Unknown'],
+      ['Network Type', conn ? `${conn.effectiveType || 'Unknown'} (${conn.type || 'Unknown'})` : 'Unknown'],
+      ['Network Bandwidth', conn?.downlink ? `${conn.downlink} Mbps` : 'Unknown'],
+      ['Network Latency', conn?.rtt ? `${conn.rtt} ms` : 'Unknown'],
+      ['Time Zone', Intl.DateTimeFormat().resolvedOptions().timeZone],
+      ['Dark Mode', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'Enabled' : 'Not enabled'],
+      ['Reduced Motion', window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'Enabled' : 'Not enabled'],
+      ['Touch Support', 'ontouchstart' in window ? 'Supported' : 'Not supported'],
+    ];
+    return rows;
+  }
+
+  function render() {
+    byId<HTMLElement>('biTable').innerHTML = collect()
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v.replace(/</g, '&lt;')}</td></tr>`)
+      .join('');
+  }
+
+  byId<HTMLButtonElement>('biRefresh').addEventListener('click', render);
+  window.addEventListener('resize', render);
+  render();
+</script>

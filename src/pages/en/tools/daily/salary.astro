@@ -1,0 +1,142 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'salary', 'en')!;
+const related = getRelated(category, 'salary', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Gross Salary" icon="bi-cash-stack">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="salGross">Gross monthly salary (CNY)</label>
+        <input class="input" id="salGross" type="number" value="15000" min="0" step="500" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="salCity">City</label>
+        <select class="select" id="salCity">
+          <option value="beijing" selected>Beijing</option>
+          <option value="shanghai">Shanghai</option>
+          <option value="guangzhou">Guangzhou</option>
+          <option value="shenzhen">Shenzhen</option>
+          <option value="hangzhou">Hangzhou</option>
+          <option value="chengdu">Chengdu</option>
+          <option value="wuhan">Wuhan</option>
+          <option value="nanjing">Nanjing</option>
+          <option value="other">Other (default ratio)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="salFund">Housing fund ratio</label>
+        <select class="select" id="salFund">
+          <option value="0.05">5%</option>
+          <option value="0.07" selected>7%</option>
+          <option value="0.12">12%</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="salBtn" type="button"><i class="bi bi-calculator"></i> Calculate net salary</button>
+    </div>
+    <div class="status-msg" id="salStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">Calculated using monthly salary withholding rates. Social insurance and housing fund use common simplified ratios (pension 8%, medical 2%, unemployment 0.5%). For reference only.</p>
+  </ToolPanel>
+
+  <ToolPanel title="Detailed Results" icon="bi-clipboard-data">
+    <table class="sal-table" id="salTable"></table>
+    <div class="sal-net" id="salNet"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .sal-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: var(--space-4);
+  }
+
+  .sal-table th,
+  .sal-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+  }
+
+  .sal-table th:first-child,
+  .sal-table td:first-child {
+    text-align: left;
+  }
+
+  .sal-table th {
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .sal-net {
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    background: var(--primary-soft);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const FUND_RATE: Record<string, number> = { beijing: 0.12, shanghai: 0.07, guangzhou: 0.05, shenzhen: 0.05, hangzhou: 0.12, chengdu: 0.05, wuhan: 0.08, nanjing: 0.08, other: 0.07 };
+
+  function calc() {
+    hideStatus('salStatus');
+    const gross = Number(byId<HTMLInputElement>('salGross').value);
+    if (isNaN(gross) || gross < 0) {
+      showStatus('salStatus', 'error', 'Please enter a valid gross salary.');
+      return;
+    }
+    const city = byId<HTMLSelectElement>('salCity').value;
+    const fundRate = Number(byId<HTMLSelectElement>('salFund').value);
+    const pension = gross * 0.08;
+    const medical = gross * 0.02;
+    const unemployment = gross * 0.005;
+    const housing = gross * fundRate;
+    const insuranceTotal = pension + medical + unemployment + housing;
+    const taxableBase = Math.max(0, gross - 5000 - insuranceTotal);
+    const tax = taxableBase <= 0 ? 0 : (() => {
+      const brackets: [number, number, number][] = [
+        [3000, 0.03, 0], [12000, 0.1, 210], [25000, 0.2, 1410],
+        [35000, 0.25, 2660], [55000, 0.3, 4410], [80000, 0.35, 7160], [Infinity, 0.45, 15160],
+      ];
+      const b = brackets.find(([limit]) => taxableBase <= limit)!;
+      return taxableBase * b[1] - b[2];
+    })();
+    const net = gross - insuranceTotal - tax;
+    const rows: [string, string][] = [
+      ['Gross salary', gross.toFixed(2)],
+      ['Pension (8%)', pension.toFixed(2)],
+      ['Medical (2%)', medical.toFixed(2)],
+      ['Unemployment (0.5%)', unemployment.toFixed(2)],
+      [`Housing fund (${(fundRate * 100).toFixed(0)}%)`, housing.toFixed(2)],
+      ['Social insurance & housing fund total', insuranceTotal.toFixed(2)],
+      ['Taxable income', taxableBase.toFixed(2)],
+      ['Income tax', tax.toFixed(2)],
+      ['Take-home pay', net.toFixed(2)],
+    ];
+    byId<HTMLElement>('salTable').innerHTML = rows
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`)
+      .join('');
+    byId<HTMLElement>('salNet').textContent = `Estimated take-home pay: ${net.toFixed(2)} CNY / month`;
+    showStatus('salStatus', 'success', `Social insurance & housing fund: ${(insuranceTotal / gross * 100).toFixed(1)}% of gross salary`);
+  }
+
+  byId<HTMLButtonElement>('salBtn').addEventListener('click', calc);
+  byId<HTMLSelectElement>('salFund').addEventListener('change', () => {
+    byId<HTMLSelectElement>('salFund').value = byId<HTMLSelectElement>('salFund').value;
+    calc();
+  });
+  calc();
+</script>

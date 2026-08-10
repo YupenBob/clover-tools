@@ -1,0 +1,120 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'image-to-base64', 'en')!;
+const related = getRelated(category, 'image-to-base64', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Select Image" icon="bi-image">
+    <div class="field">
+      <input class="input" id="i2bFile" type="file" accept="image/*" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="i2bWidth">Max width (0 = original)</label>
+        <input class="input" id="i2bWidth" type="number" value="0" min="0" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="i2bFmt">Output format</label>
+        <select class="select" id="i2bFmt">
+          <option value="image/png">PNG (lossless)</option>
+          <option value="image/jpeg" selected>JPEG (compressed)</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="i2bQ">Quality (JPEG/WebP)</label>
+        <input class="input" id="i2bQ" type="number" value="0.85" min="0.1" max="1" step="0.05" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="i2bBtn" type="button"><i class="bi bi-arrow-repeat"></i> Convert to Base64</button>
+      <button class="btn btn-ghost" id="i2bDownload" type="button"><i class="bi bi-download"></i> Download result</button>
+    </div>
+    <div class="status-msg" id="i2bStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Base64 Result" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea" id="i2bOutput" readonly spellcheck="false" placeholder="Base64 data will appear here"></textarea>
+    <div class="input-stats"><span id="i2bStats"></span></div>
+    <div class="i2b-preview" id="i2bPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .i2b-preview {
+    margin-top: var(--space-3);
+    display: none;
+    max-width: 240px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .i2b-preview img {
+    width: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  async function convert() {
+    hideStatus('i2bStatus');
+    const file = byId<HTMLInputElement>('i2bFile').files?.[0];
+    if (!file) {
+      showStatus('i2bStatus', 'error', 'Please select an image first.');
+      return;
+    }
+    const maxW = Number(byId<HTMLInputElement>('i2bWidth').value) || 0;
+    const mime = byId<HTMLSelectElement>('i2bFmt').value;
+    const quality = Math.min(1, Math.max(0.1, Number(byId<HTMLInputElement>('i2bQ').value) || 0.85));
+    const img = await createImageBitmap(file).catch(() => null);
+    let dataUrl: string;
+    if (!img || maxW <= 0) {
+      dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read file.'));
+        reader.readAsDataURL(file);
+      });
+    } else {
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      dataUrl = mime === 'image/png' ? canvas.toDataURL('image/png') : canvas.toDataURL(mime, quality);
+      img.close();
+    }
+    byId<HTMLTextAreaElement>('i2bOutput').value = dataUrl;
+    const kb = (dataUrl.length * 0.75) / 1024;
+    setStats('i2bStats', `Approx. ${kb.toFixed(1)} KB · Original file ${(file.size / 1024).toFixed(1)} KB`);
+    const preview = byId<HTMLElement>('i2bPreview');
+    preview.style.display = 'block';
+    preview.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+    showStatus('i2bStatus', 'success', 'Conversion complete.');
+  }
+
+  byId<HTMLButtonElement>('i2bBtn').addEventListener('click', convert);
+  byId<HTMLButtonElement>('i2bDownload').addEventListener('click', () => {
+    const out = byId<HTMLTextAreaElement>('i2bOutput').value;
+    if (!out) {
+      showStatus('i2bStatus', 'error', 'Please convert an image first.');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = out;
+    a.download = 'base64-result.txt';
+    a.click();
+  });
+  bindCopyBtn('i2bCopy', () => byId<HTMLTextAreaElement>('i2bOutput').value);
+</script>

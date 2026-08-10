@@ -59,17 +59,29 @@ flowchart LR
 
 ![CloverTools 首页](docs/screenshots/home.png)
 
+## 多语言与国际化（i18n）
+
+- 中文（默认，根路径）与 English（`/en/` 前缀）双语全站支持
+- 页头语言切换器按当前路径保持页面位置（404 页切换时回到对应语言首页）
+- 全站输出 `hreflang`（`zh-CN` / `en` / `x-default`）、语言专属 canonical 与 `og:locale`
+- 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、70 个工具的名称/描述/关键词与「使用说明」
+- 双语言搜索索引：`public/search-index.json`（中文 + 拼音）与 `public/en/search-index.json`（英文）
+- 英文工具页由 `scripts/i18n-translate.mjs`（DeepSeek API 批量翻译）与 `scripts/fix-big-pages.mjs`（超长页分段翻译）生成；新增工具后补充 `en.json` 英文元信息并重新构建即可
+
 ## 项目结构
 
 ```
 src/
   pages/index.astro                  # 首页：三分类目录 + 搜索
+  pages/en/                          # 英文版（/en/ 路由）：首页、关于、404、分类页与全部工具页
   pages/tools/{cat}/{slug}.astro     # 工具页（cat: dev | daily | fun）
   pages/tools/[category]/index.astro # 分类页（动态路由）
   pages/404.astro                    # 404 页
   layouts/                           # BaseLayout / ToolLayout
   components/                        # 页头、页脚、工具卡片
   lib/tools.ts                       # 工具清单：驱动首页、sitemap、重定向
+  lib/i18n.ts                        # 多语言助手：语言推断、路径换算、文案字典
+  lib/i18n/en.json                   # 英文数据字典（站点 / 分类 / 工具元信息 / 使用说明）
   styles/global.css                  # 设计系统：金色主题 + 深色模式
 functions/api/                       # Pages Functions（工具 API，如 ip.ts）
 public/

@@ -1,0 +1,129 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'diff', 'en')!;
+const related = getRelated(category, 'diff', 'en', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="Original Text (A)" icon="bi-file-text">
+      <div slot="actions">
+        <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><i class="bi bi-magic"></i> Sample</button>
+      </div>
+      <textarea class="textarea" id="diffA" spellcheck="false" placeholder="First text"></textarea>
+    </ToolPanel>
+    <ToolPanel title="Comparison Text (B)" icon="bi-file-text">
+      <div slot="actions">
+        <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><i class="bi bi-magic"></i> Sample</button>
+      </div>
+      <textarea class="textarea" id="diffB" spellcheck="false" placeholder="Second text"></textarea>
+    </ToolPanel>
+  </div>
+
+  <div class="btn-row mt-4">
+    <button class="btn btn-primary" id="diffBtn" type="button"><i class="bi bi-file-diff"></i> Compare</button>
+    <button class="btn btn-ghost" id="diffSwap" type="button"><i class="bi bi-arrow-left-right"></i> Swap A/B</button>
+  </div>
+  <div class="status-msg" id="diffStatus" role="status" aria-live="polite"></div>
+
+  <ToolPanel title="Diff Result" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea diff-output" id="diffOut" readonly spellcheck="false" placeholder="Diff result will appear here"></textarea>
+    <div class="input-stats"><span id="diffStats">0 lines</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .diff-output {
+    line-height: 1.45;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn } from '../../../../scripts/toolkit';
+
+  const SAMPLE_A = ['const a = 1;', 'const b = 2;', 'console.log(a + b);', '// comment'];
+  const SAMPLE_B = ['const a = 1;', 'const b = 3;', 'console.log(a * b);', 'console.log("done");'];
+  const diffA = byId<HTMLTextAreaElement>('diffA');
+  const diffB = byId<HTMLTextAreaElement>('diffB');
+  const out = byId<HTMLTextAreaElement>('diffOut');
+
+  function lcs(a: string[], b: string[]): number[][] {
+    const n = a.length;
+    const m = b.length;
+    const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+      }
+    }
+    return dp;
+  }
+
+  function diffText(aText: string, bText: string): string {
+    const a = aText.split('\n');
+    const b = bText.split('\n');
+    if (a.length * b.length > 4_000_000) {
+      const lines = [
+        'File too large; comparing line by line only:',
+        `A has ${a.length} lines, B has ${b.length} lines`
+      ];
+      const max = Math.max(a.length, b.length);
+      for (let i = 0; i < max; i++) {
+        const la = i < a.length ? a[i] : '';
+        const lb = i < b.length ? b[i] : '';
+        if (la !== lb) lines.push(`L${i + 1}: - ${la}\nL${i + 1}: + ${lb}`);
+      }
+      return lines.join('\n');
+    }
+    const dp = lcs(a, b);
+    const result: string[] = [];
+    let added = 0;
+    let removed = 0;
+    let i = 0;
+    let j = 0;
+    while (i < a.length || j < b.length) {
+      if (i < a.length && j < b.length && a[i] === b[j]) {
+        result.push(`  ${a[i]}`);
+        i++;
+        j++;
+      } else if (j < b.length && (i === a.length || dp[i][j + 1] >= dp[i + 1][j])) {
+        result.push(`+ ${b[j]}`);
+        added++;
+        j++;
+      } else {
+        result.push(`- ${a[i]}`);
+        removed++;
+        i++;
+      }
+    }
+    setStats('diffStats', `${result.length} lines · +${added} / -${removed}`);
+    return result.join('\n');
+  }
+
+  function run() {
+    hideStatus('diffStatus');
+    if (!diffA.value.trim() && !diffB.value.trim()) {
+      showStatus('diffStatus', 'error', 'Please enter at least one block of text');
+      return;
+    }
+    out.value = diffText(diffA.value, diffB.value);
+    showStatus('diffStatus', 'success', 'Comparison complete');
+  }
+
+  byId<HTMLButtonElement>('diffBtn').addEventListener('click', run);
+  byId<HTMLButtonElement>('diffSwap').addEventListener('click', () => {
+    const tmp = diffA.value;
+    diffA.value = diffB.value;
+    diffB.value = tmp;
+  });
+  byId<HTMLButtonElement>('diffSampleA').addEventListener('click', () => { diffA.value = SAMPLE_A.join('\n'); });
+  byId<HTMLButtonElement>('diffSampleB').addEventListener('click', () => { diffB.value = SAMPLE_B.join('\n'); });
+  bindCopyBtn('diffCopy', () => out.value);
+  setStats('diffStats', '0 lines');
+</script>

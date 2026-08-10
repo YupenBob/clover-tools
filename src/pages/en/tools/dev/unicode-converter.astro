@@ -1,0 +1,84 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'unicode-converter', 'en')!;
+const related = getRelated(category, 'unicode-converter', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Input Content" icon="bi-fonts">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+    </div>
+    <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder="Enter text or \uXXXX escape sequences"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> To Unicode</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> Restore Text</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> Analyze Characters</button>
+    </div>
+    <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Result" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  function toUnicode(text: string): string {
+    let out = '';
+    for (const ch of text) {
+      const code = ch.codePointAt(0)!;
+      out += code > 0xffff ? `\\u{${code.toString(16).toUpperCase()}}` : `\\u${code.toString(16).toUpperCase().padStart(4, '0')}`;
+    }
+    return out;
+  }
+
+  function fromUnicode(text: string): string {
+    return text.replace(/\\u\{([0-9a-fA-F]+)\}|\\u([0-9a-fA-F]{4})/g, (_m, p1, p2) => String.fromCodePoint(parseInt(p1 || p2, 16)));
+  }
+
+  function analyze(text: string): string {
+    const lines: string[] = [];
+    for (const ch of text) {
+      const code = ch.codePointAt(0)!;
+      lines.push(`${ch}\tU+${code.toString(16).toUpperCase().padStart(4, '0')}\t${code}\t${toUnicode(ch)}`);
+    }
+    return lines.join('\n');
+  }
+
+  function run(action: 'encode' | 'decode' | 'analyze') {
+    hideStatus('uc2Status');
+    const src = byId<HTMLTextAreaElement>('uc2Input').value;
+    if (!src) {
+      showStatus('uc2Status', 'error', 'Please enter something');
+      return;
+    }
+    if (action === 'encode') {
+      byId<HTMLTextAreaElement>('uc2Output').value = toUnicode(src);
+      showStatus('uc2Status', 'success', 'Encoding complete');
+    } else if (action === 'decode') {
+      byId<HTMLTextAreaElement>('uc2Output').value = fromUnicode(src);
+      showStatus('uc2Status', 'success', 'Decoding complete');
+    } else {
+      byId<HTMLTextAreaElement>('uc2Output').value = 'Character\tCode Point\tDecimal\tEscape\n' + analyze(src);
+      showStatus('uc2Status', 'success', 'Analysis complete');
+    }
+  }
+
+  byId<HTMLButtonElement>('uc2Enc').addEventListener('click', () => run('encode'));
+  byId<HTMLButtonElement>('uc2Dec').addEventListener('click', () => run('decode'));
+  byId<HTMLButtonElement>('uc2Char').addEventListener('click', () => run('analyze'));
+  bindSample('uc2Sample', 'uc2Input', 'Clover Tools Developer Toolkit');
+  bindClear('uc2Clear', ['uc2Input'], ['uc2Output'], 'uc2Status');
+  bindCopyBtn('uc2Copy', () => byId<HTMLTextAreaElement>('uc2Output').value);
+</script>

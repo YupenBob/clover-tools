@@ -1,0 +1,138 @@
+---
+import { ADSENSE_CLIENT, getAdSlot, type AdSlotKey } from '../lib/ads';
+
+interface Props {
+  adSlot: AdSlotKey;
+}
+
+const { adSlot } = Astro.props;
+const slotId = getAdSlot(adSlot);
+---
+
+{slotId && (
+  <div class="grid-filler" data-grid-filler hidden>
+    <ins
+      class="adsbygoogle"
+      style="display:block"
+      data-ad-client={ADSENSE_CLIENT}
+      data-ad-slot={slotId}
+      data-ad-format="horizontal"
+      data-full-width-responsive="true"
+    ></ins>
+    <script is:inline>
+      (function () {
+        var el = document.currentScript.parentElement;
+        var grid = el.parentElement;
+        var pushed = false;
+
+        function visibleCards() {
+          var cards = grid.querySelectorAll('.tool-card');
+          var out = [];
+          for (var i = 0; i < cards.length; i++) {
+            if (cards[i].offsetParent !== null) out.push(cards[i]);
+          }
+          return out;
+        }
+
+        function update() {
+          var cards = visibleCards();
+          var n = cards.length;
+          var tracks = (getComputedStyle(grid).gridTemplateColumns || '')
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+          var m = tracks.length;
+          var rem = m > 0 ? n % m : 0;
+          var span = m - rem;
+          if (m <= 1 || rem === 0 || span <= 0) {
+            el.hidden = true;
+            return;
+          }
+          el.hidden = false;
+          el.style.gridColumn = 'span ' + span;
+          var last = cards[cards.length - 1];
+          if (last) {
+            var h = last.getBoundingClientRect().height;
+            if (h > 0) el.style.height = Math.round(h) + 'px';
+          }
+          if (!pushed) schedulePush();
+        }
+
+        var raf = 0;
+        function schedule() {
+          if (raf) return;
+          raf = requestAnimationFrame(function () {
+            raf = 0;
+            update();
+          });
+        }
+
+        function schedulePush() {
+          var tries = 0;
+          function attempt() {
+            if (pushed) return;
+            if (el.offsetParent === null || el.clientWidth <= 0) {
+              if (tries++ < 30) requestAnimationFrame(attempt);
+              return;
+            }
+            pushed = true;
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          }
+          requestAnimationFrame(attempt);
+        }
+
+        update();
+        window.addEventListener('resize', schedule);
+        window.addEventListener('load', schedule);
+        window.addEventListener('load', schedulePush);
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(schedule);
+        }
+        if ('IntersectionObserver' in window) {
+          var ioPush = new IntersectionObserver(
+            function (entries) {
+              for (var i = 0; i < entries.length; i++) {
+                if (entries[i].isIntersecting) {
+                  schedulePush();
+                  ioPush.disconnect();
+                  break;
+                }
+              }
+            },
+            { rootMargin: '200px' },
+          );
+          ioPush.observe(el);
+        }
+        if (window.MutationObserver) {
+          var mo = new MutationObserver(schedule);
+          mo.observe(grid, { subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+          if (grid.parentElement) {
+            mo.observe(grid.parentElement, { attributes: true, attributeFilter: ['style'] });
+          }
+        }
+      })();
+    </script>
+  </div>
+)}
+
+<style>
+  .grid-filler {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .grid-filler[hidden] {
+    display: none;
+  }
+
+  .grid-filler:not([hidden]) {
+    display: flex;
+  }
+
+  .grid-filler ins {
+    display: block;
+    width: 100%;
+  }
+</style>

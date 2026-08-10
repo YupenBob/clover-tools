@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ToolCard from '../components/ToolCard.astro';
 import AdUnit from '../components/AdUnit.astro';
+import GridAdFiller from '../components/GridAdFiller.astro';
 import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
 import { SITE } from '../lib/site';
 import { pinyin } from 'pinyin-pro';
@@ -112,6 +113,7 @@ const homeJsonLd = [
             delay={Math.min(ci * 10 + ti, 30) * 22}
           />
         ))}
+        <GridAdFiller adSlot="grid_filler" />
       </div>
     </section>
   ))}

@@ -1,0 +1,123 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import ToolCard from '../../../../components/ToolCard.astro';
+import AdUnit from '../../../../components/AdUnit.astro';
+import GridAdFiller from '../../../../components/GridAdFiller.astro';
+import { SITE } from '../../../../lib/site';
+import {
+  getCategoryMetas,
+  getTools,
+  pathForLang,
+  type ToolCategory,
+} from '../../../../lib/i18n';
+
+export function getStaticPaths() {
+  return getCategoryMetas('en').map((cat) => ({
+    params: { category: cat.id },
+    props: { cat },
+  }));
+}
+
+const { cat } = Astro.props;
+const lang = 'en' as const;
+const url = `${SITE.url}/en/tools/${cat.id}/`;
+const tools = getTools(cat.id, lang);
+const others = getCategoryMetas(lang).filter((c) => c.id !== cat.id);
+
+const CATEGORY_DESC: Record<ToolCategory, string> = {
+  dev: 'Free online developer tools: JSON and code formatters, encryption, hashing, regex and API testing. Runs in your browser — no install, no sign-up.',
+  daily: 'Free online everyday tools: calendar, timestamp, unit and finance calculators. Runs in your browser, data never leaves your device.',
+  fun: 'Free online fun tools: lottery wheel, click speed test, ASCII art, image filters, random numbers and other creative gadgets to brighten your day.',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: `${cat.name} tools`,
+  description: cat.blurb,
+  url,
+  numberOfItems: tools.length,
+  itemListElement: tools.map((tool, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: `${url}${tool.slug}/`,
+    name: tool.name,
+  })),
+};
+---
+
+<BaseLayout
+  title={`${cat.name} tools - ${SITE.name}`}
+  description={CATEGORY_DESC[cat.id]}
+  keywords={[cat.name, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
+  canonical={url}
+  jsonLd={jsonLd}
+>
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/en/"><i class="bi bi-house-door" aria-hidden="true"></i> Home</a>
+    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <span>{cat.name} tools</span>
+  </nav>
+
+  <header class="tool-hero">
+    <h1>{cat.name} tools</h1>
+    <p class="tool-hero-desc">{cat.blurb} {getTools(cat.id, lang).length} in total, all running entirely in your browser.</p>
+  </header>
+
+  <AdUnit adSlot="category_top" />
+
+  <div class="tool-grid">
+    {tools.map((tool, ti) => (
+      <ToolCard tool={tool} category={cat.id} delay={Math.min(ti, 24) * 22} />
+    ))}
+    <GridAdFiller adSlot="grid_filler" />
+  </div>
+
+  <nav class="other-cats" aria-label="More categories">
+    <span class="other-cats-label">More categories</span>
+    {others.map((c) => (
+      <a class="other-cat-link" href={pathForLang(`/tools/${c.id}/`, lang)}>
+        <i class={`bi ${c.icon}`} aria-hidden="true"></i>
+        {c.name}
+      </a>
+    ))}
+  </nav>
+</BaseLayout>
+
+<style>
+  .other-cats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-top: var(--space-7);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--border);
+  }
+
+  .other-cats-label {
+    margin-right: var(--space-1);
+    color: var(--text-tertiary);
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  .other-cat-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .other-cat-link:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+</style>

@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'url-encode', 'en')!;
+const related = getRelated(category, 'url-encode', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Input URL or Text" icon="bi-link-45deg">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+    </div>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="e.g. https://example.com/search?q=中文"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="urlMode">Conversion Mode</label>
+        <select class="select" id="urlMode">
+          <option value="encodeComponent">Encode (encodeURIComponent)</option>
+          <option value="encodeUri">Encode (encodeURI, keeps :/?#)</option>
+          <option value="decodeComponent">Decode (decodeURIComponent)</option>
+          <option value="decodeUri">Decode (decodeURI)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> Convert</button>
+    </div>
+    <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Result" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('urlInput');
+  const output = byId<HTMLTextAreaElement>('urlOutput');
+
+  function convert() {
+    hideStatus('urlStatus');
+    const src = input.value;
+    if (!src) {
+      showStatus('urlStatus', 'error', 'Please enter content to convert');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('urlMode').value;
+    try {
+      switch (mode) {
+        case 'encodeComponent': output.value = encodeURIComponent(src); break;
+        case 'encodeUri': output.value = encodeURI(src); break;
+        case 'decodeComponent': output.value = decodeURIComponent(src); break;
+        case 'decodeUri': output.value = decodeURI(src); break;
+      }
+      showStatus('urlStatus', 'success', 'Conversion complete');
+    } catch (e) {
+      output.value = '';
+      showStatus('urlStatus', 'error', `Conversion failed: ${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('urlBtn').addEventListener('click', convert);
+  bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
+  bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
+  bindCopyBtn('urlCopy', () => output.value);
+</script>

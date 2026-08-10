@@ -1,0 +1,180 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'timer', 'en')!;
+const related = getRelated(category, 'timer', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="Countdown" icon="bi-hourglass-bottom">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="tmMin">Minutes</label>
+          <input class="input" id="tmMin" type="number" value="5" min="0" max="999" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="tmSec">Seconds</label>
+          <input class="input" id="tmSec" type="number" value="0" min="0" max="59" />
+        </div>
+      </div>
+      <div class="timer-display" id="cdDisplay">05:00</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="cdStart" type="button"><i class="bi bi-play-fill"></i> Start</button>
+        <button class="btn btn-secondary" id="cdPause" type="button"><i class="bi bi-pause-fill"></i> Pause</button>
+        <button class="btn btn-ghost" id="cdReset" type="button"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+      </div>
+      <div class="status-msg" id="cdStatus" role="status" aria-live="polite"></div>
+    </ToolPanel>
+
+    <ToolPanel title="Stopwatch" icon="bi-stopwatch">
+      <div class="timer-display" id="swDisplay">00:00.0</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="swStart" type="button"><i class="bi bi-play-fill"></i> Start</button>
+        <button class="btn btn-secondary" id="swPause" type="button"><i class="bi bi-pause-fill"></i> Pause</button>
+        <button class="btn btn-ghost" id="swLap" type="button"><i class="bi bi-flag-fill"></i> Lap</button>
+        <button class="btn btn-ghost" id="swReset" type="button"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+      </div>
+      <div class="lap-list" id="swLaps"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style is:global>
+  .timer-display {
+    margin: var(--space-4) 0;
+    font-family: var(--font-mono);
+    font-size: 46px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-align: center;
+    color: var(--primary-dark);
+  }
+
+  .lap-list {
+    max-height: 220px;
+    overflow-y: auto;
+    margin-top: var(--space-3);
+  }
+
+  .lap-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 4px;
+    border-bottom: 1px dashed var(--border);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  // Countdown
+  const cdDisplay = byId<HTMLElement>('cdDisplay');
+  let cdTotal = 0;
+  let cdLeft = 0;
+  let cdTimer: ReturnType<typeof setInterval> | null = null;
+
+  function fmtTime(totalSec: number): string {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function renderCd() {
+    cdDisplay.textContent = fmtTime(cdLeft);
+    if (cdLeft <= 0) {
+      stopCd();
+      byId<HTMLElement>('cdDisplay').textContent = '00:00';
+      showStatus('cdStatus', 'success', "Time's up!");
+    }
+  }
+
+  function startCd() {
+    if (cdTimer) return;
+    hideStatus('cdStatus');
+    if (cdLeft <= 0) {
+      const m = Number(byId<HTMLInputElement>('tmMin').value) || 0;
+      const s = Number(byId<HTMLInputElement>('tmSec').value) || 0;
+      cdTotal = m * 60 + s;
+      cdLeft = cdTotal;
+      if (cdLeft <= 0) {
+        showStatus('cdStatus', 'error', 'Please set a countdown duration.');
+        return;
+      }
+    }
+    cdTimer = setInterval(() => {
+      cdLeft--;
+      renderCd();
+    }, 1000);
+  }
+
+  function stopCd() {
+    if (cdTimer) {
+      clearInterval(cdTimer);
+      cdTimer = null;
+    }
+  }
+
+  byId<HTMLButtonElement>('cdStart').addEventListener('click', startCd);
+  byId<HTMLButtonElement>('cdPause').addEventListener('click', stopCd);
+  byId<HTMLButtonElement>('cdReset').addEventListener('click', () => {
+    stopCd();
+    cdLeft = 0;
+    renderCd();
+    hideStatus('cdStatus');
+  });
+
+  // Stopwatch
+  const swDisplay = byId<HTMLElement>('swDisplay');
+  const swLaps = byId<HTMLElement>('swLaps');
+  let swStartAt = 0;
+  let swElapsed = 0;
+  let swTimer: ReturnType<typeof setInterval> | null = null;
+  let lapNo = 0;
+
+  function fmtSw(ms: number): string {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    const t = Math.floor((ms % 1000) / 100);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${t}`;
+  }
+
+  function renderSw() {
+    swDisplay.textContent = fmtSw(swElapsed);
+  }
+
+  byId<HTMLButtonElement>('swStart').addEventListener('click', () => {
+    if (swTimer) return;
+    swStartAt = Date.now();
+    swTimer = setInterval(() => {
+      swElapsed = swElapsed + (Date.now() - swStartAt);
+      swStartAt = Date.now();
+      renderSw();
+    }, 90);
+  });
+  byId<HTMLButtonElement>('swPause').addEventListener('click', () => {
+    if (swTimer) {
+      clearInterval(swTimer);
+      swTimer = null;
+    }
+  });
+  byId<HTMLButtonElement>('swLap').addEventListener('click', () => {
+    if (!swTimer) return;
+    lapNo++;
+    swLaps.insertAdjacentHTML('afterbegin',
+      `<div class="lap-item"><span>Lap ${lapNo}</span><span>${fmtSw(swElapsed)}</span></div>`);
+  });
+  byId<HTMLButtonElement>('swReset').addEventListener('click', () => {
+    if (swTimer) clearInterval(swTimer);
+    swTimer = null;
+    swElapsed = 0;
+    lapNo = 0;
+    swLaps.innerHTML = '';
+    renderSw();
+  });
+</script>

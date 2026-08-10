@@ -1,0 +1,82 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'text-toolbox', 'en')!;
+const related = getRelated(category, 'text-toolbox', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Input Text" icon="bi-list-check">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttbSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="ttbClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+    </div>
+    <textarea class="textarea" id="ttbInput" spellcheck="false" placeholder="One item per line; supports deduplication, sorting, reversing, etc."></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ttbOp">Operation</label>
+        <select class="select" id="ttbOp">
+          <option value="dedupe" selected>Deduplicate</option>
+          <option value="sort">Sort (Ascending)</option>
+          <option value="sortDesc">Sort (Descending)</option>
+          <option value="reverse">Reverse Lines</option>
+          <option value="removeBlank">Remove Blank Lines</option>
+          <option value="trim">Trim Whitespace</option>
+          <option value="shuffle">Shuffle</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ttbBtn" type="button"><i class="bi bi-wrench"></i> Process</button>
+    </div>
+    <div class="status-msg" id="ttbStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Result" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="ttbCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea" id="ttbOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+    <div class="input-stats"><span id="ttbStats">0 lines</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const SAMPLE = ['apple', 'banana', 'apple', '', 'cherry', 'apple', 'date', ''];
+
+  function run() {
+    hideStatus('ttbStatus');
+    const op = byId<HTMLSelectElement>('ttbOp').value;
+    let lines = byId<HTMLTextAreaElement>('ttbInput').value.split('\n');
+    const before = lines.length;
+    switch (op) {
+      case 'dedupe': lines = [...new Set(lines)]; break;
+      case 'sort': lines = lines.sort((a, b) => a.localeCompare(b, 'zh-CN')); break;
+      case 'sortDesc': lines = lines.sort((a, b) => b.localeCompare(a, 'zh-CN')); break;
+      case 'reverse': lines = lines.reverse(); break;
+      case 'removeBlank': lines = lines.filter((l) => l.trim() !== ''); break;
+      case 'trim': lines = lines.map((l) => l.trim()); break;
+      case 'shuffle': {
+        for (let i = lines.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [lines[i], lines[j]] = [lines[j], lines[i]];
+        }
+        break;
+      }
+    }
+    byId<HTMLTextAreaElement>('ttbOutput').value = lines.join('\n');
+    setStats('ttbStats', `${lines.length} lines (originally ${before} lines)`);
+    showStatus('ttbStatus', 'success', 'Processing complete');
+  }
+
+  byId<HTMLButtonElement>('ttbBtn').addEventListener('click', run);
+  bindSample('ttbSample', 'ttbInput', SAMPLE.join('\n'));
+  bindClear('ttbClear', ['ttbInput'], ['ttbOutput'], 'ttbStatus');
+  bindCopyBtn('ttbCopy', () => byId<HTMLTextAreaElement>('ttbOutput').value);
+  setStats('ttbStats', '0 lines');
+</script>

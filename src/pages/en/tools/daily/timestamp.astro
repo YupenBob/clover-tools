@@ -1,0 +1,202 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'timestamp', 'en')!;
+const related = getRelated(category, 'timestamp', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <section class="tool-card-panel">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> Current Time</h2>
+      <div class="panel-actions">
+        <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Timestamp
+        </button>
+      </div>
+    </div>
+    <div class="now-grid">
+      <div class="now-item">
+        <span class="now-label">Local Time</span>
+        <span class="now-value mono" id="nowClock">--:--:--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">Seconds</span>
+        <span class="now-value mono" id="nowSeconds">--</span>
+      </div>
+      <div class="now-item">
+        <span class="now-label">Milliseconds</span>
+        <span class="now-value mono" id="nowMillis">--</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> Timestamp to Date</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="tsInput">Timestamp (seconds or milliseconds, auto-detected)</label>
+        <input class="input mono" id="tsInput" type="text" placeholder="e.g. 1785000000 or 1785000000123" spellcheck="false" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="tsToDateBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Convert
+      </button>
+      <button class="btn btn-ghost" id="tsUseNow" type="button">
+        <i class="bi bi-clock-history" aria-hidden="true"></i> Use current timestamp
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="tsDateOutput" class="textarea" readonly spellcheck="false" placeholder="Date result will appear here"></textarea>
+    </div>
+    <div class="status-msg" id="tsStatus" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> Date to Timestamp</h2>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="dateInput">Local date and time</label>
+        <input class="input" id="dateInput" type="datetime-local" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="nowBtn">&nbsp;</label>
+        <button class="btn btn-ghost" id="dateNowBtn" type="button">
+          <i class="bi bi-clock" aria-hidden="true"></i> Use current time
+        </button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="dateToTsBtn" type="button">
+        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Convert
+      </button>
+    </div>
+    <div class="output-area">
+      <textarea id="dateTsOutput" class="textarea" readonly spellcheck="false" placeholder="Second and millisecond timestamps will appear here"></textarea>
+    </div>
+    <div class="status-msg" id="dateStatus" role="status" aria-live="polite"></div>
+  </section>
+</ToolLayout>
+
+<style>
+  .now-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .now-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-4);
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+  }
+
+  .now-label {
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+  }
+
+  .now-value {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+</style>
+
+<script>
+  const nowClock = document.getElementById('nowClock') as HTMLElement;
+  const nowSeconds = document.getElementById('nowSeconds') as HTMLElement;
+  const nowMillis = document.getElementById('nowMillis') as HTMLElement;
+  const tsInput = document.getElementById('tsInput') as HTMLInputElement;
+  const tsDateOutput = document.getElementById('tsDateOutput') as HTMLTextAreaElement;
+  const tsStatus = document.getElementById('tsStatus') as HTMLElement;
+  const dateInput = document.getElementById('dateInput') as HTMLInputElement;
+  const dateTsOutput = document.getElementById('dateTsOutput') as HTMLTextAreaElement;
+  const dateStatus = document.getElementById('dateStatus') as HTMLElement;
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function formatDate(d: Date): string {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ` +
+      `(${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]})`;
+  }
+
+  function tick() {
+    const now = new Date();
+    nowClock.textContent = formatDate(now);
+    nowSeconds.textContent = String(Math.floor(now.getTime() / 1000));
+    nowMillis.textContent = String(now.getTime());
+  }
+
+  tick();
+  setInterval(tick, 1000);
+
+  (document.getElementById('copyNow') as HTMLButtonElement).addEventListener('click', (e) => {
+    window.CT.copy(nowSeconds.textContent || '', e.currentTarget as HTMLElement);
+  });
+
+  function showStatus(el: HTMLElement, type: 'success' | 'error', msg: string) {
+    el.className = `status-msg show ${type}`;
+    el.textContent = msg;
+  }
+
+  function parseTimestamp(text: string): { date: Date; unit: string } | null {
+    if (!/^\d{10,13}$/.test(text.trim())) return null;
+    const num = Number(text.trim());
+    if (text.trim().length === 10) return { date: new Date(num * 1000), unit: 'second' };
+    return { date: new Date(num), unit: 'millisecond' };
+  }
+
+  (document.getElementById('tsToDateBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const parsed = parseTimestamp(tsInput.value);
+    if (!parsed || isNaN(parsed.date.getTime())) {
+      showStatus(tsStatus, 'error', 'Please enter a 10-digit (seconds) or 13-digit (milliseconds) numeric timestamp');
+      return;
+    }
+    tsDateOutput.value = [
+      `Local time: ${formatDate(parsed.date)}`,
+      `ISO time: ${parsed.date.toISOString()}`,
+      `Unit: ${parsed.unit}-level timestamp`,
+    ].join('\n');
+    showStatus(tsStatus, 'success', 'Conversion successful');
+  });
+
+  (document.getElementById('tsUseNow') as HTMLButtonElement).addEventListener('click', () => {
+    tsInput.value = String(Math.floor(Date.now() / 1000));
+    (document.getElementById('tsToDateBtn') as HTMLButtonElement).click();
+  });
+
+  (document.getElementById('dateToTsBtn') as HTMLButtonElement).addEventListener('click', () => {
+    if (!dateInput.value) {
+      showStatus(dateStatus, 'error', 'Please select a date and time first');
+      return;
+    }
+    const ms = new Date(dateInput.value).getTime();
+    if (isNaN(ms)) {
+      showStatus(dateStatus, 'error', 'Invalid date and time');
+      return;
+    }
+    dateTsOutput.value = `Seconds: ${Math.floor(ms / 1000)}\nMilliseconds: ${ms}`;
+    showStatus(dateStatus, 'success', 'Conversion successful');
+  });
+
+  (document.getElementById('dateNowBtn') as HTMLButtonElement).addEventListener('click', () => {
+    const now = new Date();
+    dateInput.value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T` +
+      `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
+</script>

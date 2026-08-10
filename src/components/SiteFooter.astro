@@ -1,20 +1,24 @@
 ---
 import { SITE } from '../lib/site';
-import { CATEGORIES } from '../lib/tools';
+import { DICT, getCategoryMetas, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
+
+const lang: Lang = langFromUrl(Astro.url.pathname);
+const dict = DICT[lang];
+const categories = getCategoryMetas(lang);
 const year = new Date().getFullYear();
 const lastUpdated = new Date().toISOString().slice(0, 10);
 ---
 
 <footer class="site-footer">
   <div class="container footer-inner">
-    <span>© {year} {SITE.name} · 精选在线工具箱，数据在浏览器本地处理</span>
+    <span>© {year} {SITE.name} · {dict.footerTagline}</span>
     <div class="footer-links">
-      <span class="footer-updated"><i class="bi bi-calendar-check" aria-hidden="true"></i> 最近更新 {lastUpdated}</span>
-      {CATEGORIES.map((cat) => (
-        <a href={`/tools/${cat.id}/`}>{cat.name}</a>
+      <span class="footer-updated"><i class="bi bi-calendar-check" aria-hidden="true"></i> {dict.updated} {lastUpdated}</span>
+      {categories.map((cat) => (
+        <a href={pathForLang(`/tools/${cat.id}/`, lang)}>{cat.name}</a>
       ))}
-      <a href="/about/">关于</a>
-      <a href="/sitemap-index.xml">站点地图</a>
+      <a href={pathForLang('/about/', lang)}>{dict.about}</a>
+      <a href="/sitemap-index.xml">{dict.sitemap}</a>
       <a href={SITE.github} target="_blank" rel="noopener noreferrer">
         <i class="bi bi-github" aria-hidden="true"></i> GitHub
       </a>

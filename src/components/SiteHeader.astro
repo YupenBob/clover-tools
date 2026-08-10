@@ -1,20 +1,57 @@
 ---
 import { SITE } from '../lib/site';
+import { DICT, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
+
+const lang: Lang = langFromUrl(Astro.url.pathname);
+const other: Lang = lang === 'en' ? 'zh' : 'en';
+const homeHref = pathForLang('/', lang);
+const currentPath = stripLang(Astro.url.pathname);
+const switchBase = currentPath === '/404' || currentPath === '/404/' ? '/' : currentPath;
+const switchHref = pathForLang(switchBase, other);
+const dict = DICT[lang];
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/" aria-label="CloverTools 首页">
+    <a class="brand" href={homeHref} aria-label="CloverTools {dict.home}">
       <img class="brand-logo" src="/clover-logo.svg" alt="CloverTools logo" width="30" height="30" />
       <span class="brand-name">CloverTools</span>
     </a>
     <div class="header-actions">
-      <button class="icon-btn" id="themeToggle" type="button" aria-label="切换深色/浅色主题" title="切换主题">
+      <a class="lang-link" href={switchHref} title={dict.switchLang} aria-label={dict.switchLang}>
+        {other === 'en' ? 'EN' : '中文'}
+      </a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label={dict.switchTheme} title={dict.themeTitle}>
         <i class="bi bi-moon-stars" id="themeIcon" aria-hidden="true"></i>
       </button>
     </div>
   </div>
 </header>
+
+<style>
+  .lang-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .lang-link:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+</style>
 
 <script>
   const btn = document.getElementById('themeToggle') as HTMLButtonElement;

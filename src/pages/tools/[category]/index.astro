@@ -2,6 +2,7 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ToolCard from '../../../components/ToolCard.astro';
 import AdUnit from '../../../components/AdUnit.astro';
+import GridAdFiller from '../../../components/GridAdFiller.astro';
 import { CATEGORIES, TOOLS, type ToolCategory } from '../../../lib/tools';
 import { SITE } from '../../../lib/site';
 
@@ -60,6 +61,7 @@ const jsonLd = {
     {tools.map((tool, ti) => (
       <ToolCard tool={tool} category={cat.id} delay={Math.min(ti, 24) * 22} />
     ))}
+    <GridAdFiller adSlot="grid_filler" />
   </div>
 
   <nav class="other-cats" aria-label="其他分类">

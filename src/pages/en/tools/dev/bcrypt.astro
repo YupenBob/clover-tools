@@ -1,0 +1,110 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'bcrypt', 'en')!;
+const related = getRelated(category, 'bcrypt', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Generate Bcrypt Hash" icon="bi-shield-check">
+    <div class="field">
+      <label class="field-label" for="bcPwd">Password</label>
+      <input class="input" id="bcPwd" type="password" placeholder="Enter password to hash" autocomplete="off" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="bcRounds">Cost Factor</label>
+        <select class="select" id="bcRounds">
+          <option value="8">8 (Fast)</option>
+          <option value="10" selected>10 (Recommended)</option>
+          <option value="12">12 (Slow)</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcGen" type="button"><i class="bi bi-shield-check"></i> Generate Hash</button>
+    </div>
+    <div class="status-msg" id="bcGenStatus" role="status" aria-live="polite"></div>
+    <div class="output-area mt-3">
+      <textarea class="textarea" id="bcHash" readonly spellcheck="false" placeholder="Generated hash will appear here"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> Copy Hash</button>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title="Verify Password" icon="bi-shield-lock">
+    <div class="field">
+      <label class="field-label" for="bcCheckPwd">Password to Verify</label>
+      <input class="input" id="bcCheckPwd" type="password" placeholder="Enter password" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="bcCheckHash">Known Hash</label>
+      <textarea class="textarea" id="bcCheckHash" spellcheck="false" placeholder="Paste a Bcrypt hash starting with $2a$ / $2b$ / $2y$"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bcVerify" type="button"><i class="bi bi-shield-lock"></i> Verify</button>
+    </div>
+    <div class="status-msg" id="bcVerifyStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Notes" icon="bi-info-circle" className="mt-4">
+    <p class="field-hint" style="line-height:1.9">
+      Bcrypt is a salted hash algorithm. The hash includes a random salt and cost factor, so the same password produces a different result each time (the 10 in $2b$10$... is the cost factor).
+      When verifying, you must use the hash generated at that time. Higher cost factors are slower to compute and more resistant to brute-force attacks; 10–12 is recommended. Everything is computed locally in your browser, and your password never leaves your device.
+    </p>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import bcrypt from 'bcryptjs';
+
+  async function generate() {
+    hideStatus('bcGenStatus');
+    const pwd = byId<HTMLInputElement>('bcPwd').value;
+    if (!pwd) {
+      showStatus('bcGenStatus', 'error', 'Please enter a password');
+      return;
+    }
+    const rounds = Number(byId<HTMLSelectElement>('bcRounds').value);
+    const btn = byId<HTMLButtonElement>('bcGen');
+    btn.disabled = true;
+    showStatus('bcGenStatus', 'info', 'Computing (higher cost takes longer)…');
+    try {
+      const hash = await bcrypt.hash(pwd, rounds);
+      byId<HTMLTextAreaElement>('bcHash').value = hash;
+      showStatus('bcGenStatus', 'success', `Hash generated (cost ${rounds})`);
+    } catch (e) {
+      showStatus('bcGenStatus', 'error', `Generation failed: ${(e as Error).message}`);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function verify() {
+    hideStatus('bcVerifyStatus');
+    const pwd = byId<HTMLInputElement>('bcCheckPwd').value;
+    const hash = byId<HTMLTextAreaElement>('bcCheckHash').value.trim();
+    if (!pwd || !hash) {
+      showStatus('bcVerifyStatus', 'error', 'Please enter both password and hash');
+      return;
+    }
+    try {
+      const ok = await bcrypt.compare(pwd, hash);
+      const rounds = bcrypt.getRounds(hash);
+      showStatus('bcVerifyStatus', ok ? 'success' : 'error', ok ? `Password matches (cost ${rounds})` : `Password does not match (hash cost ${rounds})`);
+    } catch {
+      showStatus('bcVerifyStatus', 'error', 'Invalid hash format. Please ensure it starts with $2a$ / $2b$ / $2y$');
+    }
+  }
+
+  byId<HTMLButtonElement>('bcGen').addEventListener('click', generate);
+  byId<HTMLButtonElement>('bcVerify').addEventListener('click', verify);
+  byId<HTMLButtonElement>('bcCopy').addEventListener('click', (e) => {
+    window.CT.copy(byId<HTMLTextAreaElement>('bcHash').value, e.currentTarget as HTMLElement);
+  });
+</script>

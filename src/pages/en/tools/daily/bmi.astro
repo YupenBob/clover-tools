@@ -1,0 +1,117 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'bmi', 'en')!;
+const related = getRelated(category, 'bmi', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Height & Weight" icon="bi-heart-pulse">
+    <div class="field">
+      <label class="field-label" for="bmiHeight">Height: <span id="bmiHLabel">175</span> cm</label>
+      <input class="input" id="bmiHeight" type="range" min="100" max="230" value="175" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="bmiWeight">Weight: <span id="bmiWLabel">70</span> kg</label>
+      <input class="input" id="bmiWeight" type="range" min="30" max="200" value="70" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="bmiBtn" type="button"><i class="bi bi-calculator"></i> Calculate BMI</button>
+    </div>
+    <div class="status-msg" id="bmiStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Result" icon="bi-clipboard-data">
+    <div class="bmi-value" id="bmiValue">--</div>
+    <div class="bmi-scale">
+      <div class="bmi-seg bmi-low">Underweight</div>
+      <div class="bmi-seg bmi-normal">Normal</div>
+      <div class="bmi-seg bmi-over">Overweight</div>
+      <div class="bmi-seg bmi-fat">Obese</div>
+    </div>
+    <div class="bmi-pos" id="bmiPos"></div>
+    <div class="lc-result mt-4" id="bmiDetail"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .bmi-value {
+    text-align: center;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .bmi-scale {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr 1fr;
+    gap: 4px;
+    margin-top: var(--space-3);
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+  }
+
+  .bmi-seg {
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 12px;
+    color: #fff;
+  }
+
+  .bmi-low { background: #6aa5e0; }
+  .bmi-normal { background: #22a06b; }
+  .bmi-over { background: #d9a441; }
+  .bmi-fat { background: #d64545; }
+
+  .bmi-pos {
+    height: 10px;
+    margin-top: 8px;
+    border-radius: 5px;
+    background: var(--primary);
+    transition: margin-left 0.2s ease;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const hInput = byId<HTMLInputElement>('bmiHeight');
+  const wInput = byId<HTMLInputElement>('bmiWeight');
+
+  function calc() {
+    const h = Number(hInput.value);
+    const w = Number(wInput.value);
+    byId<HTMLElement>('bmiHLabel').textContent = String(h);
+    byId<HTMLElement>('bmiWLabel').textContent = String(w);
+    const bmi = w / Math.pow(h / 100, 2);
+    byId<HTMLElement>('bmiValue').textContent = bmi.toFixed(1);
+    const ranges: [number, string, number][] = [
+      [18.5, 'Underweight', 0],
+      [24, 'Normal', 15],
+      [28, 'Overweight', 47],
+      [100, 'Obese', 68],
+    ];
+    const cat = ranges.find(([limit]) => bmi < limit) || ranges[3];
+    const colors: Record<string, string> = {
+      Underweight: '#6aa5e0', Normal: '#22a06b', Overweight: '#d9a441', Obese: '#d64545',
+    };
+    byId<HTMLElement>('bmiPos').style.marginLeft = `${cat[2]}%`;
+    byId<HTMLElement>('bmiPos').style.background = colors[cat[1]];
+    const minNormal = 18.5 * Math.pow(h / 100, 2);
+    const maxNormal = 23.9 * Math.pow(h / 100, 2);
+    byId<HTMLElement>('bmiDetail').innerHTML =
+      `<div>Category: <b style="color:${colors[cat[1]]}">${cat[1]}</b></div>` +
+      `<div>Healthy weight range: ${minNormal.toFixed(1)} - ${maxNormal.toFixed(1)} kg</div>` +
+      `<div>Advice: ${cat[1] === 'Normal' ? 'Maintain your current weight and healthy routine' : cat[1] === 'Underweight' ? 'Increase nutrition and strength training' : cat[1] === 'Overweight' ? 'Control calorie intake and add cardio' : 'Consider consulting a doctor for a weight-loss plan'}</div>`;
+    hideStatus('bmiStatus');
+    showStatus('bmiStatus', 'success', `BMI = ${bmi.toFixed(1)}`);
+  }
+
+  byId<HTMLButtonElement>('bmiBtn').addEventListener('click', calc);
+  hInput.addEventListener('input', () => byId<HTMLElement>('bmiHLabel').textContent = hInput.value);
+  wInput.addEventListener('input', () => byId<HTMLElement>('bmiWLabel').textContent = wInput.value);
+  calc();
+</script>

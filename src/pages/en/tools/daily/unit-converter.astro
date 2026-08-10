@@ -1,0 +1,179 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'unit-converter', 'en')!;
+const related = getRelated(category, 'unit-converter', 'en', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Unit Converter" icon="bi-rulers">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="ucCat">Category</label>
+        <select class="select" id="ucCat">
+          <option value="length" selected>Length</option>
+          <option value="weight">Weight</option>
+          <option value="temperature">Temperature</option>
+          <option value="storage">Data Storage</option>
+          <option value="time">Time</option>
+          <option value="area">Area</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucFrom">From</label>
+        <select class="select" id="ucFrom"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="ucTo">To</label>
+        <select class="select" id="ucTo"></select>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="ucValue">Value</label>
+        <input class="input" id="ucValue" type="number" value="1" step="any" />
+      </div>
+      <div class="field">
+        <label class="field-label">&nbsp;</label>
+        <button class="btn btn-ghost" id="ucSwap" type="button"><i class="bi bi-arrow-left-right"></i> Swap Units</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="ucBtn" type="button"><i class="bi bi-arrow-repeat"></i> Convert</button>
+    </div>
+    <div class="status-msg" id="ucStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-3" id="ucResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 60px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 17px;
+    line-height: 1.7;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  type Unit = { id: string; name: string; factor?: number; offset?: number };
+
+  const CATEGORIES: Record<string, Unit[]> = {
+    length: [
+      { id: 'mm', name: 'Millimeters', factor: 0.001 },
+      { id: 'cm', name: 'Centimeters', factor: 0.01 },
+      { id: 'm', name: 'Meters', factor: 1 },
+      { id: 'km', name: 'Kilometers', factor: 1000 },
+      { id: 'in', name: 'Inches', factor: 0.0254 },
+      { id: 'ft', name: 'Feet', factor: 0.3048 },
+      { id: 'yd', name: 'Yards', factor: 0.9144 },
+      { id: 'mi', name: 'Miles', factor: 1609.344 },
+    ],
+    weight: [
+      { id: 'mg', name: 'Milligrams', factor: 0.000001 },
+      { id: 'g', name: 'Grams', factor: 0.001 },
+      { id: 'kg', name: 'Kilograms', factor: 1 },
+      { id: 't', name: 'Metric Tons', factor: 1000 },
+      { id: 'oz', name: 'Ounces', factor: 0.028349523125 },
+      { id: 'lb', name: 'Pounds', factor: 0.45359237 },
+      { id: 'jin', name: 'Jin', factor: 0.5 },
+    ],
+    temperature: [
+      { id: 'c', name: 'Celsius (°C)' },
+      { id: 'f', name: 'Fahrenheit (°F)' },
+      { id: 'k', name: 'Kelvin (K)' },
+    ],
+    storage: [
+      { id: 'b', name: 'B', factor: 1 },
+      { id: 'kb', name: 'KB', factor: 1024 },
+      { id: 'mb', name: 'MB', factor: 1024 ** 2 },
+      { id: 'gb', name: 'GB', factor: 1024 ** 3 },
+      { id: 'tb', name: 'TB', factor: 1024 ** 4 },
+      { id: 'pb', name: 'PB', factor: 1024 ** 5 },
+    ],
+    time: [
+      { id: 'ms', name: 'Milliseconds', factor: 0.001 },
+      { id: 's', name: 'Seconds', factor: 1 },
+      { id: 'min', name: 'Minutes', factor: 60 },
+      { id: 'h', name: 'Hours', factor: 3600 },
+      { id: 'd', name: 'Days', factor: 86400 },
+      { id: 'w', name: 'Weeks', factor: 604800 },
+      { id: 'mo', name: 'Months (30 days)', factor: 2592000 },
+      { id: 'y', name: 'Years (365 days)', factor: 31536000 },
+    ],
+    area: [
+      { id: 'm2', name: 'Square Meters', factor: 1 },
+      { id: 'km2', name: 'Square Kilometers', factor: 1e6 },
+      { id: 'mu', name: 'Chinese Mu', factor: 666.6667 },
+      { id: 'ha', name: 'Hectares', factor: 10000 },
+      { id: 'ft2', name: 'Square Feet', factor: 0.09290304 },
+    ],
+  };
+
+  const catSel = byId<HTMLSelectElement>('ucCat');
+  const fromSel = byId<HTMLSelectElement>('ucFrom');
+  const toSel = byId<HTMLSelectElement>('ucTo');
+  const result = byId<HTMLElement>('ucResult');
+
+  function populate() {
+    const units = CATEGORIES[catSel.value];
+    fromSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    toSel.innerHTML = units.map((u) => `<option value="${u.id}">${u.name}</option>`).join('');
+    if (catSel.value === 'temperature') {
+      toSel.value = 'f';
+    } else {
+      toSel.value = units[1].id;
+    }
+    convert();
+  }
+
+  function toBase(value: number, unit: Unit): number {
+    if (unit.id === 'c') return value;
+    if (unit.id === 'f') return (value - 32) / 1.8;
+    if (unit.id === 'k') return value - 273.15;
+    return value * (unit.factor ?? 1);
+  }
+
+  function fromBase(celsius: number, unit: Unit): number {
+    if (unit.id === 'c') return celsius;
+    if (unit.id === 'f') return celsius * 1.8 + 32;
+    if (unit.id === 'k') return celsius + 273.15;
+    return celsius / (unit.factor ?? 1);
+  }
+
+  function convert() {
+    hideStatus('ucStatus');
+    const value = Number(byId<HTMLInputElement>('ucValue').value);
+    const units = CATEGORIES[catSel.value];
+    const from = units.find((u) => u.id === fromSel.value)!;
+    const to = units.find((u) => u.id === toSel.value)!;
+    if (isNaN(value)) {
+      showStatus('ucStatus', 'error', 'Please enter a valid number');
+      return;
+    }
+    const base = toBase(value, from);
+    const out = fromBase(base, to);
+    const digits = Math.abs(out) >= 1e6 || (Math.abs(out) < 1e-4 && out !== 0) ? 8 : 4;
+    result.innerHTML = `<div>${value} ${from.name} = <b>${Number(out.toFixed(digits))}</b> ${to.name}</div>`;
+  }
+
+  catSel.addEventListener('change', populate);
+  byId<HTMLButtonElement>('ucSwap').addEventListener('click', () => {
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    convert();
+  });
+  byId<HTMLButtonElement>('ucBtn').addEventListener('click', convert);
+  byId<HTMLInputElement>('ucValue').addEventListener('input', convert);
+  fromSel.addEventListener('change', convert);
+  toSel.addEventListener('change', convert);
+  populate();
+</script>

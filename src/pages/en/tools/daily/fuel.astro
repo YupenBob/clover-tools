@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'fuel', 'en')!;
+const related = getRelated(category, 'fuel', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Fuel Log" icon="bi-fuel-pump">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="fuelKm">Odometer (km)</label>
+        <input class="input" id="fuelKm" type="number" value="500" step="10" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelAmount">Fuel Added (L)</label>
+        <input class="input" id="fuelAmount" type="number" value="40" step="1" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelPrice">Fuel Price (CNY/L)</label>
+        <input class="input" id="fuelPrice" type="number" value="7.5" step="0.1" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="fuelBtn" type="button"><i class="bi bi-fuel-pump"></i> Calculate Fuel Consumption</button>
+    </div>
+    <div class="status-msg" id="fuelStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Calculation Results" icon="bi-clipboard-data">
+    <div class="lc-result" id="fuelResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('fuelStatus');
+    const km = Number(byId<HTMLInputElement>('fuelKm').value);
+    const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
+    const price = Number(byId<HTMLInputElement>('fuelPrice').value);
+    if (km <= 0 || amount <= 0) {
+      showStatus('fuelStatus', 'error', 'Please enter valid mileage and fuel amount.');
+      return;
+    }
+    const per100 = amount / km * 100;
+    const cost = amount * price;
+    const perKm = cost / km;
+    const range = amount / per100 * 100;
+    byId<HTMLElement>('fuelResult').innerHTML =
+      `<div>Fuel consumption per 100 km: <b>${per100.toFixed(2)}</b> L/100km</div>` +
+      `<div>Fuel cost for this fill: ${cost.toFixed(2)} CNY</div>` +
+      `<div>Cost per km: ${perKm.toFixed(3)} CNY/km</div>` +
+      `<div>Estimated range with this fill: about ${range.toFixed(0)} km</div>`;
+    showStatus('fuelStatus', 'success', 'Calculation complete.');
+  }
+
+  byId<HTMLButtonElement>('fuelBtn').addEventListener('click', calc);
+</script>

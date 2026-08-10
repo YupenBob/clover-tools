@@ -1,0 +1,137 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'meme-generator', 'en')!;
+const related = getRelated(category, 'meme-generator', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="Image & Text" icon="bi-image-alt">
+    <div class="field">
+      <input class="input" id="mgFile" type="file" accept="image/*" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="mgTop">Top Text</label>
+      <input class="input" id="mgTop" type="text" placeholder="Top caption" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="mgBottom">Bottom Text</label>
+      <input class="input" id="mgBottom" type="text" placeholder="Bottom caption" />
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="mgSize">Font Scale</label>
+        <input class="input" id="mgSize" type="range" min="0.05" max="0.2" value="0.1" step="0.01" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="mgColor">Color</label>
+        <input class="input" type="color" id="mgColor" value="#ffffff" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="mgBtn" type="button"><i class="bi bi-image-alt"></i> Generate Meme</button>
+      <button class="btn btn-ghost" id="mgDownload" type="button"><i class="bi bi-download"></i> Download PNG</button>
+    </div>
+    <div class="status-msg" id="mgStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="Preview" icon="bi-eye">
+    <div class="mg-preview" id="mgPreview"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .mg-preview {
+    display: none;
+    max-width: 480px;
+    margin: 0 auto;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  :global(.mg-preview img) {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    display: block;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  let resultUrl = '';
+
+  function generate() {
+    hideStatus('mgStatus');
+    const file = byId<HTMLInputElement>('mgFile').files?.[0];
+    const top = byId<HTMLInputElement>('mgTop').value.trim();
+    const bottom = byId<HTMLInputElement>('mgBottom').value.trim();
+    if (!file) {
+      showStatus('mgStatus', 'error', 'Please select an image first');
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const size = Math.max(16, Math.round(img.width * Number(byId<HTMLInputElement>('mgSize').value)));
+      ctx.font = `900 ${size}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.lineWidth = size / 8;
+      ctx.strokeStyle = '#000';
+      ctx.fillStyle = byId<HTMLInputElement>('mgColor').value;
+      const wrap = (text: string, maxWidth: number): string[] => {
+        const words = text.split('');
+        const lines: string[] = [];
+        let line = '';
+        for (const ch of words) {
+          if (ctx.measureText(line + ch).width > maxWidth) {
+            lines.push(line);
+            line = ch;
+          } else {
+            line += ch;
+          }
+        }
+        if (line) lines.push(line);
+        return lines;
+      };
+      const drawText = (text: string, y: number) => {
+        const lines = wrap(text, img.width - 24);
+        const lh = size * 1.15;
+        lines.forEach((line, i) => {
+          ctx.strokeText(line, img.width / 2, y + i * lh);
+          ctx.fillText(line, img.width / 2, y + i * lh);
+        });
+      };
+      if (top) drawText(top, size);
+      if (bottom) drawText(bottom, img.height - size);
+      resultUrl = canvas.toDataURL('image/png');
+      const preview = byId<HTMLElement>('mgPreview');
+      preview.style.display = 'block';
+      preview.innerHTML = `<img src="${resultUrl}" alt="Meme preview">`;
+      showStatus('mgStatus', 'success', 'Meme generated');
+    };
+    img.onerror = () => showStatus('mgStatus', 'error', 'Failed to load image');
+    img.src = URL.createObjectURL(file);
+  }
+
+  byId<HTMLButtonElement>('mgBtn').addEventListener('click', generate);
+  byId<HTMLButtonElement>('mgDownload').addEventListener('click', () => {
+    if (!resultUrl) {
+      showStatus('mgStatus', 'error', 'Please generate a meme first');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = resultUrl;
+    a.download = 'clover-meme.png';
+    a.click();
+  });
+</script>

@@ -143,4 +143,22 @@ import { SITE } from '../lib/site';
       desc.textContent = '看起来地址后面多了点多余的内容，请从下面的入口进入。';
     })();
   }
+
+  // 英文路径访问 404 时，切换为英文文案
+  if (rawPath.startsWith('/en')) {
+    document.title = 'Page not found - CloverTools';
+    document.querySelector('.nf-title')!.textContent = 'Page not found';
+    document.getElementById('nfDesc')!.textContent =
+      'This link may be outdated, or the page is still under construction.';
+    document.getElementById('nfGo')!.setAttribute('href', '/en/tools/daily/calendar/');
+    document.querySelector('.nf-quick-label')!.textContent = 'POPULAR TOOLS';
+    document.querySelectorAll<HTMLAnchorElement>('.nf-quick-links a').forEach((a) => {
+      const zhPath = a.getAttribute('href');
+      if (zhPath && zhPath.startsWith('/')) a.setAttribute('href', `/en${zhPath}`);
+    });
+    document.querySelectorAll<HTMLAnchorElement>('.nf-actions a').forEach((a) => {
+      const zhPath = a.getAttribute('href');
+      if (zhPath === '/') a.setAttribute('href', '/en/');
+    });
+  }
 </script>

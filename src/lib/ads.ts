@@ -14,6 +14,10 @@ export const AD_SLOTS = {
   category_top: 'PLACEHOLDER_CATEGORY_TOP',
   /** 工具页：工具面板区之后、使用说明区之前 */
   tool_bottom: 'PLACEHOLDER_TOOL_BOTTOM',
+  /** 工具页：相关工具面板下方（侧栏矩形广告） */
+  tool_sidebar: '9174056084',
+  /** 首页/分类页工具网格：末行空白补齐广告 */
+  grid_filler: '4113301093',
 } as const;
 
 export type AdSlotKey = keyof typeof AD_SLOTS;

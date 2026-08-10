@@ -97,10 +97,12 @@ function initialsOf(text) {
 
 const categories = { dev: '开发实用', daily: '日常实用', fun: '趣味工具' };
 const entries = [];
+const slugByCategory = {};
 
 for (const [catKey] of Object.entries(categories)) {
   const section = manifest.split(`${catKey}: [`)[1].split(/\n  (?:dev|daily|fun): \[/)[0];
   const blocks = section.split('\n    {');
+  slugByCategory[catKey] = [];
   for (const block of blocks) {
     const slug = block.match(/slug: '([^']+)'/)?.[1];
     const name = block.match(/name: '([^']+)'/)?.[1];
@@ -108,6 +110,7 @@ for (const [catKey] of Object.entries(categories)) {
     const description = block.match(/description: '([^']+)'/)?.[1];
     const keywords = [...(block.match(/keywords: \[([^\]]*)\]/)?.[1] || '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
     if (!slug) continue;
+    slugByCategory[catKey].push(slug);
     const text = `${name || ''} ${oneLiner || ''} ${description || ''} ${keywords.join(' ')}`;
     entries.push({
       slug,
@@ -123,3 +126,31 @@ for (const [catKey] of Object.entries(categories)) {
 mkdirSync(join(root, 'public'), { recursive: true });
 writeFileSync(join(root, 'public', 'search-index.json'), JSON.stringify(entries), 'utf8');
 console.log(`已生成 search-index.json（${entries.length} 条）`);
+
+// ── 英文搜索索引：从 src/lib/i18n/en.json 生成 public/en/search-index.json ──
+const enData = JSON.parse(readFileSync(join(root, 'src', 'lib', 'i18n', 'en.json'), 'utf8'));
+const enEntries = [];
+for (const [catKey, slugs] of Object.entries(slugByCategory)) {
+  for (const slug of slugs) {
+    const t = enData.tools?.[slug];
+    if (!t) continue;
+    const text = `${t.name || ''} ${t.oneLiner || ''} ${t.description || ''} ${(t.keywords || []).join(' ')}`;
+    const py = text.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    const initials = text
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => w[0]?.toLowerCase() || '')
+      .join('');
+    enEntries.push({
+      slug,
+      text,
+      py,
+      initials,
+      aliases: t.keywords || [],
+      built: true,
+    });
+  }
+}
+mkdirSync(join(root, 'public', 'en'), { recursive: true });
+writeFileSync(join(root, 'public', 'en', 'search-index.json'), JSON.stringify(enEntries), 'utf8');
+console.log(`已生成 en/search-index.json（${enEntries.length} 条）`);

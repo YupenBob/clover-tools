@@ -10,6 +10,15 @@ declare global {
 
 let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
+function uiLang(): 'zh' | 'en' {
+  return document.documentElement.lang === 'en' ? 'en' : 'zh';
+}
+
+const TOAST_TEXT = {
+  zh: { copied: '已复制到剪贴板', copyFailed: '复制失败' },
+  en: { copied: 'Copied to clipboard', copyFailed: 'Copy failed' },
+};
+
 export function showToast(
   msg: string,
   type: 'default' | 'success' | 'error' | 'info' = 'default',
@@ -38,7 +47,7 @@ export async function copy(text: string, feedbackEl?: HTMLElement | null): Promi
     const ok = document.execCommand('copy');
     document.body.removeChild(ta);
     if (!ok) {
-      showToast('复制失败', 'error');
+      showToast(TOAST_TEXT[uiLang()].copyFailed, 'error');
       return false;
     }
   }
@@ -46,7 +55,7 @@ export async function copy(text: string, feedbackEl?: HTMLElement | null): Promi
     feedbackEl.classList.add('success');
     setTimeout(() => feedbackEl.classList.remove('success'), 800);
   }
-  showToast('已复制到剪贴板', 'success');
+  showToast(TOAST_TEXT[uiLang()].copied, 'success');
   return true;
 }
 

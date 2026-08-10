@@ -1,0 +1,127 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'finance', 'en')!;
+const related = getRelated(category, 'finance', 'en', 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="Loan Payment (Equal Installment)" icon="bi-house">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finLoan">Loan amount (10,000 yuan)</label>
+          <input class="input" id="finLoan" type="number" value="100" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finYears">Years</label>
+          <input class="input" id="finYears" type="number" value="30" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRate">Annual rate (%)</label>
+          <input class="input" id="finRate" type="number" value="3.6" step="0.05" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finLoanBtn" type="button"><i class="bi bi-calculator"></i> Calculate Payment</button>
+      </div>
+      <div class="lc-result" id="finLoanResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="Compound Interest" icon="bi-graph-up">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finP">Principal (yuan)</label>
+          <input class="input" id="finP" type="number" value="10000" step="1000" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finRp">Annual rate (%)</label>
+          <input class="input" id="finRp" type="number" value="5" step="0.1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finN">Years</label>
+          <input class="input" id="finN" type="number" value="10" step="1" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finCompoundBtn" type="button"><i class="bi bi-graph-up"></i> Calculate Compound Interest</button>
+      </div>
+      <div class="lc-result" id="finCompoundResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="Percentage" icon="bi-percent">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="finA">Base A</label>
+          <input class="input" id="finA" type="number" value="200" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="finB">Compared value B</label>
+          <input class="input" id="finB" type="number" value="150" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="finPctBtn" type="button"><i class="bi bi-percent"></i> Calculate</button>
+      </div>
+      <div class="lc-result" id="finPctResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 64px;
+    margin-top: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 14.5px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function fmt(n: number): string {
+    return n.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
+  }
+
+  byId<HTMLButtonElement>('finLoanBtn').addEventListener('click', () => {
+    const loan = Number(byId<HTMLInputElement>('finLoan').value) * 10000;
+    const years = Number(byId<HTMLInputElement>('finYears').value);
+    const rate = Number(byId<HTMLInputElement>('finRate').value) / 100 / 12;
+    const n = years * 12;
+    if (loan <= 0 || n <= 0) return;
+    const m = rate === 0 ? loan / n : (loan * rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+    const total = m * n;
+    const interest = total - loan;
+    byId<HTMLElement>('finLoanResult').innerHTML =
+      `<div>Monthly payment: <b>${fmt(m)}</b> yuan</div>` +
+      `<div>Total repayment: ${fmt(total)} yuan</div>` +
+      `<div>Interest paid: ${fmt(interest)} yuan</div>`;
+  });
+
+  byId<HTMLButtonElement>('finCompoundBtn').addEventListener('click', () => {
+    const p = Number(byId<HTMLInputElement>('finP').value);
+    const r = Number(byId<HTMLInputElement>('finRp').value) / 100;
+    const n = Number(byId<HTMLInputElement>('finN').value);
+    const total = p * Math.pow(1 + r, n);
+    byId<HTMLElement>('finCompoundResult').innerHTML =
+      `<div>Total after ${n} years: <b>${fmt(total)}</b> yuan</div>` +
+      `<div>Interest earned: ${fmt(total - p)} yuan (gain ${(((total - p) / p) * 100).toFixed(1)}%)</div>`;
+  });
+
+  byId<HTMLButtonElement>('finPctBtn').addEventListener('click', () => {
+    const a = Number(byId<HTMLInputElement>('finA').value);
+    const b = Number(byId<HTMLInputElement>('finB').value);
+    if (a === 0) return;
+    byId<HTMLElement>('finPctResult').innerHTML =
+      `<div>B is ${((b / a) * 100).toFixed(1)}% of A</div>` +
+      `<div>B is ${b >= a ? 'more' : 'less'} than A by ${(Math.abs(b - a) / a * 100).toFixed(1)}%</div>` +
+      `<div>B accounts for ${((b / (a + b)) * 100).toFixed(1)}% of A+B total</div>`;
+  });
+</script>

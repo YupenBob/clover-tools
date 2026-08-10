@@ -1,0 +1,221 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'jsonpath', 'en')!;
+const related = getRelated(category, 'jsonpath', 'en', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="JSON Data" icon="bi-braces">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+    </div>
+    <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="Paste JSON data"></textarea>
+    <div class="field mt-3">
+      <label class="field-label" for="jpExpr">JSONPath Expression</label>
+      <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> Query</button>
+    </div>
+    <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">Supports $.key, ['key'], [0], [*], .. recursive descent, and [?(@.key == value)] filtering.</p>
+  </ToolPanel>
+
+  <ToolPanel title="Query Results" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+    </div>
+    <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="Matching results will appear here"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../../scripts/toolkit';
+
+  const SAMPLE = {
+    store: {
+      book: [
+        { category: 'reference', author: 'Nigel Rees', title: 'Sayings', price: 8.95 },
+        { category: 'fiction', author: 'Evelyn Waugh', title: 'Sword', price: 12.99 },
+        { category: 'fiction', author: 'Herman Melville', title: 'Moby Dick', price: 8.99 },
+      ],
+      bicycle: { color: 'red', price: 399 },
+    },
+    expensive: 10,
+  };
+
+  function tokenize(expr: string): string[] {
+    const tokens: string[] = [];
+    let i = 0;
+    while (i < expr.length) {
+      const ch = expr[i];
+      if (ch === '$') { tokens.push('$'); i++; continue; }
+      if (ch === '.') {
+        if (expr[i + 1] === '.') {
+          tokens.push('..');
+          i += 2;
+          // After recursive descent, a property name or wildcard may follow: ..name / ..*
+          if (expr[i] === '*') {
+            tokens.push('*');
+            i++;
+          } else if (/[A-Za-z0-9_]/.test(expr[i] || '')) {
+            let j = i;
+            while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
+            tokens.push(expr.slice(i, j));
+            i = j;
+          }
+          continue;
+        }
+        if (expr[i + 1] === '*') { tokens.push('*'); i += 2; continue; }
+        let j = i + 1;
+        while (j < expr.length && /[A-Za-z0-9_\-]/.test(expr[j])) j++;
+        if (j === i + 1) throw new Error(`Missing property name at position ${i + 1} in expression`);
+        tokens.push(expr.slice(i + 1, j));
+        i = j;
+        continue;
+      }
+      if (ch === '[') {
+        let depth = 0;
+        let j = i;
+        while (j < expr.length) {
+          if (expr[j] === '[') depth++;
+          if (expr[j] === ']') { depth--; if (depth === 0) break; }
+          j++;
+        }
+        if (depth !== 0) throw new Error('Unclosed bracket');
+        tokens.push(expr.slice(i, j + 1));
+        i = j + 1;
+        continue;
+      }
+      throw new Error(`Unrecognized character: ${ch} (position ${i + 1})`);
+    }
+    return tokens;
+  }
+
+  function evalFilter(cond: string, node: unknown): boolean {
+    const m = cond.match(/^@(?:\.([A-Za-z0-9_]+)|\[['"]([A-Za-z0-9_]+)['"]\])?\s*(==|!=|<=|>=|<|>)?\s*(.+)?$/);
+    if (!m) return true;
+    const [, key1, key2, op, raw] = m;
+    if (!op && !raw) return node !== null && node !== undefined;
+    const val = (node as Record<string, unknown>)?.[key1 || key2];
+    if (val === undefined) return false;
+    if (!op) return Boolean(val);
+    let target: unknown = raw.trim();
+    if (/^-?\d+(\.\d+)?$/.test(target as string)) target = Number(target);
+    else if ((target as string) === 'true') target = true;
+    else if ((target as string) === 'false') target = false;
+    else if ((target as string) === 'null') target = null;
+    else target = String(target).replace(/^['"]|['"]$/g, '');
+    switch (op) {
+      case '==': return val === target;
+      case '!=': return val !== target;
+      case '<': return (val as number) < (target as number);
+      case '>': return (val as number) > (target as number);
+      case '<=': return (val as number) <= (target as number);
+      case '>=': return (val as number) >= (target as number);
+    }
+    return false;
+  }
+
+  function query(json: unknown, expr: string): unknown[] {
+    const tokens = tokenize(expr);
+    const results: unknown[] = [];
+    function walk(node: unknown, idx: number, isRecursive: boolean): void {
+      if (idx >= tokens.length) {
+        results.push(node);
+        return;
+      }
+      const token = tokens[idx];
+      if (token === '$') { walk(node, idx + 1, false); return; }
+      if (token === '..') { walk(node, idx + 1, true); return; }
+      if (isRecursive) {
+        // First try matching the remaining path at the current node
+        walk(node, idx, false);
+        // Then descend into each child to continue matching (keeping the same path segment)
+        if (node !== null && typeof node === 'object') {
+          const entries = Array.isArray(node) ? node : Object.values(node);
+          for (const child of entries) walk(child, idx, true);
+        }
+        return;
+      }
+      if (token === '*') {
+        if (node !== null && typeof node === 'object') {
+          const entries = Array.isArray(node) ? node : Object.values(node);
+          for (const child of entries) walk(child, idx + 1, false);
+        }
+        return;
+      }
+      if (token.startsWith('[')) {
+        const inner = token.slice(1, -1).trim();
+        if (inner === '*') {
+          if (node !== null && typeof node === 'object') {
+            const entries = Array.isArray(node) ? node : Object.values(node);
+            for (const child of entries) walk(child, idx + 1, false);
+          }
+          return;
+        }
+        if (inner.startsWith('?(')) {
+          const cond = inner.slice(2, -1);
+          if (Array.isArray(node)) {
+            for (const child of node) if (evalFilter(cond, child)) walk(child, idx + 1, false);
+          }
+          return;
+        }
+        if (/^\d+$/.test(inner)) {
+          if (Array.isArray(node) && node[Number(inner)] !== undefined) walk(node[Number(inner)], idx + 1, false);
+          return;
+        }
+        if (/^['"].*['"]$/.test(inner)) {
+          const key = inner.slice(1, -1);
+          if (node !== null && typeof node === 'object') walk((node as Record<string, unknown>)[key], idx + 1, false);
+          return;
+        }
+        throw new Error(`Unsupported bracket syntax: ${inner}`);
+      }
+      if (
+        node !== null &&
+        typeof node === 'object' &&
+        (node as Record<string, unknown>)[token] !== undefined
+      ) {
+        walk((node as Record<string, unknown>)[token], idx + 1, false);
+      }
+    }
+    walk(json, 0, false);
+    return results;
+  }
+
+  function run() {
+    hideStatus('jpStatus');
+    const json = byId<HTMLTextAreaElement>('jpJson').value.trim();
+    const expr = byId<HTMLInputElement>('jpExpr').value.trim();
+    if (!json || !expr) {
+      showStatus('jpStatus', 'error', 'Please enter both JSON data and an expression');
+      return;
+    }
+    let data: unknown;
+    try {
+      data = JSON.parse(json);
+    } catch (e) {
+      showStatus('jpStatus', 'error', `JSON parse failed: ${(e as Error).message}`);
+      return;
+    }
+    try {
+      const matches = query(data, expr);
+      byId<HTMLTextAreaElement>('jpOutput').value = matches.length
+        ? matches.map((m) => JSON.stringify(m, null, 2)).join('\n---\n')
+        : 'No matches found';
+      showStatus('jpStatus', 'success', `Matched ${matches.length} result${matches.length === 1 ? '' : 's'}`);
+    } catch (e) {
+      byId<HTMLTextAreaElement>('jpOutput').value = '';
+      showStatus('jpStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('jpBtn').addEventListener('click', run);
+  bindSample('jpSample', 'jpJson', JSON.stringify(SAMPLE, null, 2));
+  bindCopyBtn('jpCopy', () => byId<HTMLTextAreaElement>('jpOutput').value);
+</script>
