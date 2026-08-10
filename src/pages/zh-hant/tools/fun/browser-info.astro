@@ -1,0 +1,87 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'browser-info', 'tw')!;
+const related = getRelated(category, 'browser-info', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="瀏覽器與設備信息" icon="bi-browser-chrome">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="biRefresh" type="button"><i class="bi bi-arrow-clockwise"></i> 刷新</button>
+    </div>
+    <table class="bi-table" id="biTable"></table>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .bi-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .bi-table th,
+  .bi-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    word-break: break-all;
+  }
+
+  .bi-table th {
+    width: 180px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .bi-table td {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  function collect(): [string, string][] {
+    const nav = navigator;
+    const conn = (nav as unknown as { connection?: { effectiveType?: string; type?: string; downlink?: number; rtt?: number } }).connection;
+    const screen = window.screen;
+    const rows: [string, string][] = [
+      ['瀏覽器', `${nav.userAgentData?.brands?.map((b: { brand: string; version: string }) => `${b.brand} ${b.version}`).join(' / ') || '—'}`],
+      ['User-Agent', nav.userAgent],
+      ['平台', `${nav.platform}${nav.userAgentData?.mobile ? '（移動端）' : ''}`],
+      ['語言', `${nav.language}（${nav.languages?.join(', ') || '—'}）`],
+      ['在線狀態', nav.onLine ? '在線' : '離線'],
+      ['Cookie 可用', nav.cookieEnabled ? '是' : '否'],
+      ['屏幕分辨率', `${screen.width} × ${screen.height}`],
+      ['可用屏幕', `${screen.availWidth} × ${screen.availHeight}`],
+      ['窗口視口', `${window.innerWidth} × ${window.innerHeight}`],
+      ['像素比', String(window.devicePixelRatio || 1)],
+      ['CPU 核心數', String(nav.hardwareConcurrency || '未知')],
+      ['設備內存', nav.deviceMemory ? `${nav.deviceMemory} GB` : '未知'],
+      ['網絡類型', conn ? `${conn.effectiveType || '未知'}（${conn.type || '未知'}）` : '未知'],
+      ['網絡帶寬', conn?.downlink ? `${conn.downlink} Mbps` : '未知'],
+      ['網絡延遲', conn?.rtt ? `${conn.rtt} ms` : '未知'],
+      ['時區', Intl.DateTimeFormat().resolvedOptions().timeZone],
+      ['深色模式', window.matchMedia('(prefers-color-scheme: dark)').matches ? '啟用' : '未啟用'],
+      ['減少動效', window.matchMedia('(prefers-reduced-motion: reduce)').matches ? '啟用' : '未啟用'],
+      ['觸摸支持', 'ontouchstart' in window ? '支持' : '不支持'],
+    ];
+    return rows;
+  }
+
+  function render() {
+    byId<HTMLElement>('biTable').innerHTML = collect()
+      .map(([k, v]) => `<tr><th>${k}</th><td>${v.replace(/</g, '&lt;')}</td></tr>`)
+      .join('');
+  }
+
+  byId<HTMLButtonElement>('biRefresh').addEventListener('click', render);
+  window.addEventListener('resize', render);
+  render();
+</script>

@@ -1,0 +1,136 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'palette-generator', 'tw')!;
+const related = getRelated(category, 'palette-generator', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="配色配置" icon="bi-palette2">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="pgHue">主色相：<span id="pgHueLabel">38</span>°</label>
+        <input class="input" id="pgHue" type="range" min="0" max="360" value="38" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="pgScheme">配色方案</label>
+        <select class="select" id="pgScheme">
+          <option value="complementary" selected>互補色</option>
+          <option value="analogous">鄰近色</option>
+          <option value="triadic">三角色</option>
+          <option value="tetradic">四色</option>
+          <option value="mono">單色漸變</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="pgBtn" type="button"><i class="bi bi-palette2"></i> 生成色板</button>
+      <button class="btn btn-ghost" id="pgCopyAll" type="button"><i class="bi bi-clipboard"></i> 復制全部</button>
+    </div>
+    <div class="status-msg" id="pgStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="色板" icon="bi-grid">
+    <div class="pg-palette" id="pgPalette"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .pg-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .pg-swatch {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .pg-swatch:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .pg-swatch .color {
+    height: 90px;
+  }
+
+  .pg-swatch .info {
+    padding: 8px 10px;
+    background: var(--bg-elevated);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    text-align: center;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function hslToHex(h: number, s: number, l: number): string {
+    s /= 100;
+    l /= 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+    };
+    return '#' + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  function paletteFor(hue: number, scheme: string): string[] {
+    const schemes: Record<string, number[]> = {
+      complementary: [hue, hue + 180],
+      analogous: [hue - 30, hue, hue + 30, hue + 60],
+      triadic: [hue, hue + 120, hue + 240],
+      tetradic: [hue, hue + 90, hue + 180, hue + 270],
+      mono: [hue, hue, hue, hue, hue],
+    };
+    const hues = schemes[scheme] || schemes.complementary;
+    const palette: string[] = [];
+    hues.forEach((h, i) => {
+      const norm = ((h % 360) + 360) % 360;
+      if (scheme === 'mono') {
+        palette.push(hslToHex(norm, 45, 30 + i * 14));
+      } else {
+        palette.push(hslToHex(norm, i % 2 === 0 ? 55 : 45, i % 2 === 0 ? 62 : 52));
+      }
+    });
+    while (palette.length < 5) palette.push(hslToHex((hue + palette.length * 60) % 360, 50, 60));
+    return palette.slice(0, 5);
+  }
+
+  function generate() {
+    hideStatus('pgStatus');
+    const hue = Number(byId<HTMLInputElement>('pgHue').value);
+    const scheme = byId<HTMLSelectElement>('pgScheme').value;
+    const palette = paletteFor(hue, scheme);
+    byId<HTMLElement>('pgPalette').innerHTML = palette
+      .map((hex) => `<div class="pg-swatch" data-hex="${hex}"><div class="color" style="background:${hex}"></div><div class="info">${hex}</div></div>`)
+      .join('');
+    showStatus('pgStatus', 'success', '色板已生成，點擊色塊復制');
+  }
+
+  byId<HTMLElement>('pgPalette').addEventListener('click', (e) => {
+    const swatch = (e.target as HTMLElement).closest<HTMLElement>('.pg-swatch');
+    if (swatch) window.CT.copy(swatch.dataset.hex || '');
+  });
+  byId<HTMLButtonElement>('pgCopyAll').addEventListener('click', () => {
+    const hexes = Array.from(document.querySelectorAll<HTMLElement>('.pg-swatch')).map((s) => s.dataset.hex).filter(Boolean);
+    if (hexes.length) window.CT.copy(hexes.join(', '));
+    else showStatus('pgStatus', 'info', '請先生成色板');
+  });
+  byId<HTMLButtonElement>('pgBtn').addEventListener('click', generate);
+  byId<HTMLInputElement>('pgHue').addEventListener('input', () => {
+    byId<HTMLElement>('pgHueLabel').textContent = byId<HTMLInputElement>('pgHue').value;
+  });
+  generate();
+</script>

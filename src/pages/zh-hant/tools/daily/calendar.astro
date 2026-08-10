@@ -1,0 +1,594 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'calendar', 'tw')!;
+const related = getRelated(category, 'calendar', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="cal-wrap">
+    <section class="cal-panel">
+      <div class="cal-header">
+        <div>
+          <div class="cal-month" id="calMonth"></div>
+          <div class="cal-lunar-year" id="calLunarYear"></div>
+        </div>
+        <div class="cal-nav">
+          <button class="icon-btn" id="calPrev" type="button" aria-label="上一月"><i class="bi bi-chevron-left"></i></button>
+          <button class="btn btn-ghost btn-sm" id="calToday" type="button"><i class="bi bi-calendar-check"></i> 今天</button>
+          <button class="icon-btn" id="calNext" type="button" aria-label="下一月"><i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+
+      <div class="cal-week">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span>
+        <span class="wk-end">六</span><span class="wk-end">日</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div class="cal-terms">
+        <span class="cal-terms-label"><i class="bi bi-cloud-sun" aria-hidden="true"></i> 本月節氣</span>
+        <span class="cal-terms-list" id="calTerms"></span>
+      </div>
+    </section>
+
+    <aside class="almanac" id="almanac">
+      <div class="almanac-date">
+        <div class="almanac-day" id="alDay"></div>
+        <div class="almanac-sub" id="alSub"></div>
+      </div>
+      <div class="almanac-lunar" id="alLunar"></div>
+      <div class="almanac-tags" id="alTags"></div>
+
+      <div class="almanac-divider"></div>
+
+      <div class="almanac-yiji">
+        <div class="yiji-block yi">
+          <div class="yiji-title"><i class="bi bi-check2-circle" aria-hidden="true"></i> 宜</div>
+          <div class="yiji-cloud" id="alYi"></div>
+        </div>
+        <div class="yiji-block ji">
+          <div class="yiji-title"><i class="bi bi-x-circle" aria-hidden="true"></i> 忌</div>
+          <div class="yiji-cloud" id="alJi"></div>
+        </div>
+      </div>
+
+      <div class="almanac-divider"></div>
+
+      <div class="almanac-meta" id="alMeta"></div>
+      <p class="almanac-hint">點擊日歷中的日期查看當日黃歷</p>
+    </aside>
+  </div>
+</ToolLayout>
+
+<style is:global>
+  .cal-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--space-5);
+    align-items: start;
+  }
+
+  /* ── Left: calendar panel ── */
+  .cal-panel {
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .cal-month {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
+  .cal-lunar-year {
+    margin-top: 2px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
+
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .cal-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .cal-week span {
+    padding: 8px 0 4px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  .cal-week .wk-end {
+    color: var(--primary-dark);
+  }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+
+  .cal-cell {
+    display: flex;
+    align-items: stretch;
+    min-height: 76px;
+    padding: 8px 4px;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease, background-color 0.12s ease;
+  }
+
+  .cal-cell:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+  }
+
+  .cal-cell.other-month {
+    opacity: 0.3;
+    background: transparent;
+  }
+
+  .cell-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .cal-cell.wk-end .cell-day {
+    color: var(--primary-dark);
+  }
+
+  .cell-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .cal-cell.today .cell-day {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cal-cell.selected {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .cal-cell.selected .cell-day {
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+
+  .cell-lunar {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+
+  .cell-badge {
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .cell-badge.holiday {
+    background: var(--error-soft);
+    color: var(--error);
+  }
+
+  .cal-terms {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+    border-top: 1px dashed var(--border);
+    flex-wrap: wrap;
+  }
+
+  .cal-terms-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+
+  .cal-terms-label i {
+    color: var(--primary-dark);
+  }
+
+  .cal-terms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .term-chip {
+    padding: 2px 9px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12px;
+  }
+
+  /* ── Right: almanac card ── */
+  .almanac {
+    position: sticky;
+    top: calc(var(--header-h) + 16px);
+    padding: var(--space-5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .almanac-date {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .almanac-day {
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+
+  .almanac-sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+  }
+
+  .almanac-lunar {
+    margin-top: 6px;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+  }
+
+  .almanac-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-3);
+  }
+
+  .almanac-tags .tag {
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .almanac-tags .tag.jieqi {
+    color: var(--primary-dark);
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+
+  .almanac-tags .tag.holiday {
+    color: var(--error);
+    border-color: var(--error);
+    background: var(--error-soft);
+  }
+
+  .almanac-divider {
+    height: 1px;
+    margin: var(--space-4) 0;
+    background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+  }
+
+  .yiji-block {
+    margin-bottom: var(--space-3);
+  }
+
+  .yiji-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .yiji-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--space-2);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .yiji-block.yi .yiji-title {
+    color: var(--success);
+  }
+
+  .yiji-block.ji .yiji-title {
+    color: var(--error);
+  }
+
+  .yiji-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .yiji-cloud .chip {
+    padding: 4px 11px;
+    border-radius: var(--radius-full);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12.5px;
+  }
+
+  .almanac-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
+
+  .almanac-meta .meta-item {
+    text-align: center;
+    padding: var(--space-2);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .almanac-meta .meta-item .k {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .almanac-meta .meta-item .v {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+
+  .almanac-hint {
+    margin: var(--space-4) 0 0;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .cal-wrap {
+      grid-template-columns: 1fr;
+    }
+
+    .almanac {
+      position: static;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .cal-cell {
+      min-height: 58px;
+      padding: 6px 2px;
+    }
+
+    .cell-day {
+      font-size: 15px;
+    }
+
+    .cell-lunar {
+      font-size: 10px;
+    }
+
+    .cell-badge {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+  import { Solar, HolidayUtil } from 'lunar-javascript';
+
+  let viewYear = new Date().getFullYear();
+  let viewMonth = new Date().getMonth() + 1;
+  let selected = new Date();
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function ymd(d: Date): string {
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function isWeekend(d: Date): boolean {
+    return d.getDay() === 0 || d.getDay() === 6;
+  }
+
+  function renderHeader() {
+    byId<HTMLElement>('calMonth').textContent = `${viewYear} 年 ${viewMonth} 月`;
+    const firstLunar = Solar.fromYmd(viewYear, viewMonth, 1).getLunar();
+    byId<HTMLElement>('calLunarYear').textContent =
+      `農歷${firstLunar.getYearInChinese()}年 · ${firstLunar.getYearInGanZhi()}${firstLunar.getYearShengXiao()}年`;
+  }
+
+  function renderGrid() {
+    const grid = byId<HTMLElement>('calGrid');
+    const first = new Date(viewYear, viewMonth - 1, 1);
+    const startOffset = (first.getDay() + 6) % 7;
+    const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
+    const todayYmd = ymd(new Date());
+    let html = '';
+    for (let i = 0; i < 42; i++) {
+      const dayOffset = i - startOffset;
+      const date = new Date(viewYear, viewMonth - 1, 1 + dayOffset);
+      const isCurrent = dayOffset >= 0 && dayOffset < daysInMonth;
+      const y = date.getFullYear();
+      const m = date.getMonth() + 1;
+      const d = date.getDate();
+      const key = ymd(date);
+      const lunar = Solar.fromYmd(y, m, d).getLunar();
+      const holiday = HolidayUtil.getHoliday(key);
+      const jieQi = lunar.getJieQi();
+      const badge = holiday ? { text: holiday.getName(), cls: 'holiday' } : jieQi ? { text: jieQi, cls: '' } : null;
+      const cls = [
+        isCurrent ? '' : 'other-month',
+        isWeekend(date) ? 'wk-end' : '',
+        key === todayYmd ? 'today' : '',
+        key === ymd(selected) ? 'selected' : '',
+      ].join(' ');
+      html += `<div class="cal-cell ${cls}" data-y="${y}" data-m="${m}" data-d="${d}">` +
+        `<div class="cell-inner">` +
+          `<span class="cell-day">${d}</span>` +
+          `<span class="cell-lunar">${isCurrent ? lunar.getDayInChinese() : ''}</span>` +
+          (badge ? `<span class="cell-badge ${badge.cls}">${badge.text}</span>` : '') +
+        `</div>` +
+        '</div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  function renderTerms() {
+    const daysInMonth = new Date(viewYear, viewMonth, 0).getDate();
+    const terms: string[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const jieQi = Solar.fromYmd(viewYear, viewMonth, d).getLunar().getJieQi();
+      if (jieQi) terms.push(`${d} 日 ${jieQi}`);
+    }
+    byId<HTMLElement>('calTerms').innerHTML = terms.length
+      ? terms.map((t) => `<span class="term-chip">${t}</span>`).join('')
+      : '<span class="muted">本月無節氣</span>';
+  }
+
+  function renderAlmanac() {
+    const y = selected.getFullYear();
+    const m = selected.getMonth() + 1;
+    const d = selected.getDate();
+    const solar = Solar.fromYmd(y, m, d);
+    const lunar = solar.getLunar();
+    const holiday = HolidayUtil.getHoliday(ymd(selected));
+    const jieQi = lunar.getJieQi();
+    const ganZhi = lunar.getYearInGanZhi();
+    const wuxing: Record<string, string> = {
+      甲: '木', 乙: '木', 丙: '火', 丁: '火', 戊: '土', 己: '土', 庚: '金', 辛: '金', 壬: '水', 癸: '水',
+    };
+    byId<HTMLElement>('alDay').textContent = `${m} 月 ${d} 日`;
+    byId<HTMLElement>('alSub').textContent = `星期${'日一二三四五六'[selected.getDay()]}`;
+    byId<HTMLElement>('alLunar').textContent =
+      `農歷${lunar.getMonthInChinese()}月${lunar.getDayInChinese()} · ${lunar.getDayInGanZhi()}日`;
+    const tags: string[] = [];
+    if (holiday) tags.push(holiday.isWork() ? `${holiday.getName()}（調休上班）` : `${holiday.getName()}（放假）`);
+    if (jieQi) tags.push(jieQi);
+    byId<HTMLElement>('alTags').innerHTML = tags
+      .map((t) => `<span class="tag ${t === jieQi ? 'jieqi' : t.includes(holiday?.getName() || '') ? 'holiday' : ''}">${t}</span>`)
+      .join('');
+    const yi = lunar.getDayYi();
+    const ji = lunar.getDayJi();
+    byId<HTMLElement>('alYi').innerHTML = yi.length
+      ? yi.map((t: string) => `<span class="chip">${t}</span>`).join('')
+      : '<span class="muted">無特別適宜</span>';
+    byId<HTMLElement>('alJi').innerHTML = ji.length
+      ? ji.map((t: string) => `<span class="chip">${t}</span>`).join('')
+      : '<span class="muted">無特別忌諱</span>';
+    byId<HTMLElement>('alMeta').innerHTML = [
+      ['生肖', lunar.getYearShengXiao()],
+      ['星座', solar.getXingZuo()],
+      ['年幹支', `${ganZhi}年`],
+      ['五行', wuxing[ganZhi.charAt(0)] || '—'],
+    ].map(([k, v]) => `<div class="meta-item"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');
+  }
+
+  function render() {
+    renderHeader();
+    renderGrid();
+    renderTerms();
+    renderAlmanac();
+  }
+
+  byId<HTMLElement>('calGrid').addEventListener('click', (e) => {
+    const cell = (e.target as HTMLElement).closest<HTMLElement>('.cal-cell');
+    if (!cell) return;
+    selected = new Date(Number(cell.dataset.y), Number(cell.dataset.m) - 1, Number(cell.dataset.d));
+    render();
+  });
+
+  byId<HTMLButtonElement>('calPrev').addEventListener('click', () => {
+    viewMonth--;
+    if (viewMonth < 1) {
+      viewMonth = 12;
+      viewYear--;
+    }
+    render();
+  });
+
+  byId<HTMLButtonElement>('calNext').addEventListener('click', () => {
+    viewMonth++;
+    if (viewMonth > 12) {
+      viewMonth = 1;
+      viewYear++;
+    }
+    render();
+  });
+
+  byId<HTMLButtonElement>('calToday').addEventListener('click', () => {
+    const now = new Date();
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth() + 1;
+    selected = now;
+    render();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') byId<HTMLButtonElement>('calPrev').click();
+    if (e.key === 'ArrowRight') byId<HTMLButtonElement>('calNext').click();
+  });
+
+  render();
+</script>

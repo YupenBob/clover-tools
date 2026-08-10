@@ -1,0 +1,122 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'date-diff', 'tw')!;
+const related = getRelated(category, 'date-diff', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <div class="tool-layout">
+    <ToolPanel title="日期間隔計算" icon="bi-hourglass-split">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="ddStart">開始日期</label>
+          <input class="input" id="ddStart" type="date" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="ddEnd">結束日期</label>
+          <input class="input" id="ddEnd" type="date" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="ddBtn" type="button"><i class="bi bi-hourglass-split"></i> 計算間隔</button>
+      </div>
+      <div class="status-msg" id="ddStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="ddResult"></div>
+    </ToolPanel>
+
+    <ToolPanel title="日期推算" icon="bi-calendar-plus">
+      <div class="row">
+        <div class="field">
+          <label class="field-label" for="ddBase">起始日期</label>
+          <input class="input" id="ddBase" type="date" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="ddDays">增減天數（負數向前）</label>
+          <input class="input" id="ddDays" type="number" value="30" />
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="ddCalc" type="button"><i class="bi bi-calendar-plus"></i> 推算日期</button>
+      </div>
+      <div class="status-msg" id="ddCalcStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result" id="ddCalcResult"></div>
+    </ToolPanel>
+  </div>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  function weekText(d: Date): string {
+    return '周' + '日一二三四五六'[d.getDay()];
+  }
+
+  function fmt(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function calcDiff() {
+    hideStatus('ddStatus');
+    const s = byId<HTMLInputElement>('ddStart').value;
+    const e = byId<HTMLInputElement>('ddEnd').value;
+    if (!s || !e) {
+      showStatus('ddStatus', 'error', '請選擇開始與結束日期');
+      return;
+    }
+    const start = new Date(s + 'T00:00:00');
+    const end = new Date(e + 'T00:00:00');
+    const diffMs = Math.abs(end.getTime() - start.getTime());
+    const days = Math.round(diffMs / 86400000);
+    const weeks = Math.floor(days / 7);
+    const months = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth();
+    const years = Math.abs(end.getFullYear() - start.getFullYear());
+    const result = document.createElement('div');
+    result.innerHTML =
+      `<div>相差天數：<b>${days}</b> 天</div>` +
+      `<div>約 ${weeks} 周 ${days % 7} 天</div>` +
+      `<div>約 ${Math.abs(months)} 個月（${Math.abs(months) / 12 >= 1 ? (Math.abs(months) / 12).toFixed(1) + ' 年' : ''}）</div>` +
+      `<div>${fmt(start)} ${weekText(start)} → ${fmt(end)} ${weekText(end)}</div>`;
+    byId<HTMLElement>('ddResult').innerHTML = result.innerHTML;
+    showStatus('ddStatus', 'success', '計算完成');
+  }
+
+  function calcAdd() {
+    hideStatus('ddCalcStatus');
+    const base = byId<HTMLInputElement>('ddBase').value;
+    const days = Number(byId<HTMLInputElement>('ddDays').value);
+    if (!base || isNaN(days)) {
+      showStatus('ddCalcStatus', 'error', '請選擇日期並填寫天數');
+      return;
+    }
+    const d = new Date(base + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    byId<HTMLElement>('ddCalcResult').textContent =
+      `${base}${days >= 0 ? ' 加 ' : ' 減 '}${Math.abs(days)} 天 = ${fmt(d)} ${weekText(d)}`;
+    showStatus('ddCalcStatus', 'success', '推算完成');
+  }
+
+  byId<HTMLButtonElement>('ddBtn').addEventListener('click', calcDiff);
+  byId<HTMLButtonElement>('ddCalc').addEventListener('click', calcAdd);
+  byId<HTMLInputElement>('ddStart').value = today;
+  byId<HTMLInputElement>('ddEnd').value = today;
+  byId<HTMLInputElement>('ddBase').value = today;
+</script>

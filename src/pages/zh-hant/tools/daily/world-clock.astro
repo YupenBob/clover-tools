@@ -1,0 +1,204 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'world-clock', 'tw')!;
+const related = getRelated(category, 'world-clock', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="世界時鐘" icon="bi-globe-americas">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="wcTz">添加時區</label>
+        <select class="select" id="wcTz"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="wcAdd">&nbsp;</label>
+        <button class="btn btn-primary" id="wcAdd" type="button"><i class="bi bi-plus-lg"></i> 添加</button>
+      </div>
+    </div>
+    <div class="wc-grid" id="wcGrid"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style is:global>
+  .wc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .wc-card {
+    position: relative;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+  }
+
+  .wc-card .city {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .wc-card .time {
+    margin-top: 6px;
+    font-size: 24px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+  }
+
+  .wc-card .date {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--text-tertiary);
+  }
+
+  .wc-card .diff {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12px;
+  }
+
+  .wc-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .wc-remove:hover {
+    color: var(--error);
+    background: var(--error-soft);
+  }
+</style>
+
+<script>
+  import { byId } from '../../../../scripts/toolkit';
+
+  const ZONES: [string, string][] = [
+    ['Asia/Shanghai', '北京'],
+    ['Asia/Hong_Kong', '香港'],
+    ['Asia/Tokyo', '東京'],
+    ['Asia/Singapore', '新加坡'],
+    ['Asia/Dubai', '迪拜'],
+    ['Europe/London', '倫敦'],
+    ['Europe/Paris', '巴黎'],
+    ['Europe/Moscow', '莫斯科'],
+    ['America/New_York', '紐約'],
+    ['America/Los_Angeles', '洛杉磯'],
+    ['America/Chicago', '芝加哥'],
+    ['America/Sao_Paulo', '聖保羅'],
+    ['Australia/Sydney', '悉尼'],
+    ['Pacific/Auckland', '奧克蘭'],
+  ];
+  const DEFAULT = ['Asia/Shanghai', 'Asia/Tokyo', 'Europe/London', 'America/New_York'];
+  const grid = byId<HTMLElement>('wcGrid');
+  const tzSel = byId<HTMLSelectElement>('wcTz');
+  let zones: string[] = [...DEFAULT];
+
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+  });
+
+  function cityName(tz: string): string {
+    return ZONES.find(([z]) => z === tz)?.[1] || tz.replace(/_/g, ' ').split('/').pop() || tz;
+  }
+
+  function offsetOf(tz: string): number {
+    const parts: Record<string, string> = {};
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: false,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).formatToParts(new Date()).forEach((p) => {
+      if (p.type !== 'literal') parts[p.type] = p.value;
+    });
+    const asUtc = Date.UTC(
+      Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+      Number(parts.hour), Number(parts.minute), Number(parts.second),
+    );
+    return Math.round((asUtc - Date.now()) / 3600000);
+  }
+
+  function render() {
+    const now = new Date();
+    const localOffset = -now.getTimezoneOffset() / 60;
+    grid.innerHTML = zones
+      .map((tz) => {
+        const time = formatter.formatToParts(now);
+        const parts: Record<string, string> = {};
+        for (const p of time) parts[p.type] = p.value;
+        const offset = offsetOf(tz);
+        const diff = offset - localOffset;
+        const dateStr = new Intl.DateTimeFormat('zh-CN', {
+          year: 'numeric', month: '2-digit', day: '2-digit', timeZone: tz,
+        }).format(now);
+        return `<div class="wc-card" data-tz="${tz}">` +
+          `<button class="wc-remove" type="button" title="移除"><i class="bi bi-x-lg"></i></button>` +
+          `<div class="city">${cityName(tz)}</div>` +
+          `<div class="time">${parts.hour}:${parts.minute}:${parts.second}</div>` +
+          `<div class="date">${dateStr}</div>` +
+          `<span class="diff">${diff === 0 ? '與本地相同' : `與本地 ${diff > 0 ? '+' : ''}${diff} 小時`}</span>` +
+          '</div>';
+      })
+      .join('');
+  }
+
+  tzSel.innerHTML = ZONES
+    .filter(([z]) => !zones.includes(z))
+    .map(([z, name]) => `<option value="${z}">${name}（${z}）</option>`)
+    .join('');
+
+  byId<HTMLButtonElement>('wcAdd').addEventListener('click', () => {
+    const tz = tzSel.value;
+    if (!tz || zones.includes(tz)) {
+      window.CT.showToast('該時區已添加', 'info');
+      return;
+    }
+    zones.push(tz);
+    render();
+    tzSel.innerHTML = ZONES
+      .filter(([z]) => !zones.includes(z))
+      .map(([z, name]) => `<option value="${z}">${name}（${z}）</option>`)
+      .join('');
+  });
+
+  grid.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('.wc-remove');
+    if (!btn) return;
+    const tz = (btn.closest('.wc-card') as HTMLElement).dataset.tz;
+    zones = zones.filter((z) => z !== tz);
+    render();
+    tzSel.innerHTML = ZONES
+      .filter(([z]) => !zones.includes(z))
+      .map(([z, name]) => `<option value="${z}">${name}（${z}）</option>`)
+      .join('');
+  });
+
+  render();
+  setInterval(render, 1000);
+</script>

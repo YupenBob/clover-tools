@@ -1,0 +1,96 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'base64', 'tw')!;
+const related = getRelated(category, 'base64', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="輸入內容" icon="bi-input-cursor">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="b64Sample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="b64Clear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="b64Input" spellcheck="false" placeholder="輸入要編碼/解碼的文本"></textarea>
+    <div class="input-stats"><span id="b64InStats">0 字符</span></div>
+    <label class="field-label" for="urlSafe"><input type="checkbox" id="urlSafe" /> URL 安全模式（+/ 替換為 -_）</label>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="encodeBtn" type="button"><i class="bi bi-lock"></i> 編碼</button>
+      <button class="btn btn-secondary" id="decodeBtn" type="button"><i class="bi bi-unlock"></i> 解碼</button>
+    </div>
+    <div class="status-msg" id="b64Status" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="輸出結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="b64Copy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="b64Output" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+    <div class="input-stats"><span id="b64OutStats">0 字符</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('b64Input');
+  const output = byId<HTMLTextAreaElement>('b64Output');
+
+  function bytesToBinary(bytes: Uint8Array): string {
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return bin;
+  }
+
+  function encode(): void {
+    hideStatus('b64Status');
+    if (!input.value) {
+      showStatus('b64Status', 'error', '請輸入要編碼的內容');
+      return;
+    }
+    const bytes = new TextEncoder().encode(input.value);
+    let b64 = btoa(bytesToBinary(bytes));
+    if (byId<HTMLInputElement>('urlSafe').checked) {
+      b64 = b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    output.value = b64;
+    setStats('b64OutStats', `${output.value.length} 字符 · ${bytes.length} 字節`);
+    showStatus('b64Status', 'success', '編碼完成');
+  }
+
+  function decode(): void {
+    hideStatus('b64Status');
+    const text = input.value.trim();
+    if (!text) {
+      showStatus('b64Status', 'error', '請輸入要解碼的 Base64 內容');
+      return;
+    }
+    try {
+      let b64 = text;
+      if (byId<HTMLInputElement>('urlSafe').checked) {
+        b64 = b64.replace(/-/g, '+').replace(/_/g, '/');
+        while (b64.length % 4 !== 0) b64 += '=';
+      }
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      output.value = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      setStats('b64OutStats', `${output.value.length} 字符 · ${bytes.length} 字節`);
+      showStatus('b64Status', 'success', '解碼完成');
+    } catch (e) {
+      output.value = '';
+      showStatus('b64Status', 'error', `解碼失敗：內容不是有效的 Base64 / UTF-8（${(e as Error).message}）`);
+    }
+  }
+
+  byId<HTMLButtonElement>('encodeBtn').addEventListener('click', encode);
+  byId<HTMLButtonElement>('decodeBtn').addEventListener('click', decode);
+  bindSample('b64Sample', 'b64Input', 'CloverTools 開發者工具箱');
+  bindClear('b64Clear', ['b64Input'], ['b64Output'], 'b64Status');
+  bindCopyBtn('b64Copy', () => output.value);
+  input.addEventListener('input', () => setStats('b64InStats', `${input.value.length} 字符 · ${new TextEncoder().encode(input.value).length} 字節`));
+  setStats('b64InStats', '0 字符');
+</script>

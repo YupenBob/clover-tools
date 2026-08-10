@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pinyin } from 'pinyin-pro';
+const { s2t } = (await import('chinese-s2t')).default;
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = readFileSync(join(root, 'src', 'lib', 'tools.ts'), 'utf8');
@@ -154,3 +155,18 @@ for (const [catKey, slugs] of Object.entries(slugByCategory)) {
 mkdirSync(join(root, 'public', 'en'), { recursive: true });
 writeFileSync(join(root, 'public', 'en', 'search-index.json'), JSON.stringify(enEntries), 'utf8');
 console.log(`已生成 en/search-index.json（${enEntries.length} 条）`);
+
+// ── 繁体搜索索引：由中文条目简转繁生成 public/zh-hant/search-index.json ──
+const twEntries = entries.map((e) => {
+  const text = s2t(e.text);
+  return {
+    ...e,
+    text,
+    py: pyOf(text),
+    initials: initialsOf(text),
+    aliases: (e.aliases || []).map((a) => s2t(a)),
+  };
+});
+mkdirSync(join(root, 'public', 'zh-hant'), { recursive: true });
+writeFileSync(join(root, 'public', 'zh-hant', 'search-index.json'), JSON.stringify(twEntries), 'utf8');
+console.log(`已生成 zh-hant/search-index.json（${twEntries.length} 条）`);

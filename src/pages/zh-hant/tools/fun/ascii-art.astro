@@ -1,0 +1,546 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'ascii-art', 'tw')!;
+const related = getRelated(category, 'ascii-art', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <section class="tool-card-panel">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> 輸入內容</h2>
+    </div>
+
+    <div class="seg" id="asciiMode" role="tablist" aria-label="生成方式">
+      <button class="seg-btn active" type="button" data-mode="figlet" aria-pressed="true">英文藝術字</button>
+      <button class="seg-btn" type="button" data-mode="cjk" aria-pressed="false">中文像素畫</button>
+      <button class="seg-btn" type="button" data-mode="image" aria-pressed="false">圖片轉字符畫</button>
+    </div>
+
+    <div class="mode-panel" id="panelFiglet" data-mode-panel="figlet">
+      <textarea class="textarea" id="figletInput" placeholder="輸入英文或數字生成大字 Banner，支持換行；輸入中文時會自動切換為像素畫渲染" spellcheck="false"></textarea>
+      <div class="row mt-3">
+        <div class="field field-grow">
+          <label class="field-label" for="figletFont">字體風格</label>
+          <select class="select" id="figletFont"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="figletLayout">字距</label>
+          <select class="select" id="figletLayout">
+            <option value="default" selected>默認（字體設計）</option>
+            <option value="fitted">緊湊</option>
+            <option value="full">寬松</option>
+            <option value="universal">通用融合</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="figletWidth">每行寬度</label>
+          <select class="select" id="figletWidth">
+            <option value="40">40</option>
+            <option value="60" selected>60</option>
+            <option value="80">80</option>
+            <option value="120">120</option>
+            <option value="160">160</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+      </div>
+      <p class="field-hint" id="figletFontHint"></p>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" id="figletSample" type="button">
+          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+        </button>
+        <button class="btn btn-ghost btn-sm" id="figletClear" type="button">
+          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+        </button>
+      </div>
+    </div>
+
+    <div class="mode-panel" id="panelCjk" data-mode-panel="cjk" hidden>
+      <textarea class="textarea" id="cjkInput" placeholder="輸入中文、日文、符號等任意字符，逐字采樣生成像素風字符畫" spellcheck="false"></textarea>
+      <div class="row mt-3">
+        <div class="field">
+          <label class="field-label" for="cjkRes">清晰度（行/字）</label>
+          <select class="select" id="cjkRes">
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="cjkCharset">字符集</label>
+          <select class="select" id="cjkCharset">
+            <option value="gray" selected>細膩灰階（純 ASCII）</option>
+            <option value="block">高對比方塊</option>
+            <option value="binary">二進制點陣</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="cjkWidth">每行寬度</label>
+          <select class="select" id="cjkWidth">
+            <option value="40">40</option>
+            <option value="60" selected>60</option>
+            <option value="80">80</option>
+            <option value="120">120</option>
+            <option value="160">160</option>
+          </select>
+        </div>
+      </div>
+      <label class="check">
+        <input type="checkbox" id="cjkInvert"> 反色（白字黑底效果）
+      </label>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" id="cjkSample" type="button">
+          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+        </button>
+        <button class="btn btn-ghost btn-sm" id="cjkClear" type="button">
+          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+        </button>
+      </div>
+    </div>
+
+    <div class="mode-panel" id="panelImage" data-mode-panel="image" hidden>
+      <div class="dropzone" id="imgDrop" role="button" tabindex="0" aria-label="選擇圖片">
+        <i class="bi bi-image" aria-hidden="true"></i>
+        <p>點擊選擇或拖拽圖片到此處</p>
+        <span class="field-hint">支持 PNG / JPG / GIF / WebP，圖片僅在瀏覽器本地處理</span>
+        <input type="file" id="imgFile" accept="image/*" hidden>
+      </div>
+      <div class="img-preview" id="imgPreviewWrap" hidden>
+        <img id="imgPreview" alt="圖片預覽">
+        <div class="img-preview-meta">
+          <p id="imgFileName"></p>
+          <span class="field-hint" id="imgFileSize"></span>
+          <div class="btn-row">
+            <button class="btn btn-ghost btn-sm" id="imgReplace" type="button">重新選擇</button>
+            <button class="btn btn-ghost btn-sm" id="imgRemove" type="button">移除圖片</button>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="field">
+          <label class="field-label" for="imgWidth">輸出寬度（列）</label>
+          <select class="select" id="imgWidth">
+            <option value="60" selected>60</option>
+            <option value="80">80</option>
+            <option value="100">100</option>
+            <option value="120">120</option>
+            <option value="160">160</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="imgCharset">字符集</label>
+          <select class="select" id="imgCharset">
+            <option value="gray" selected>細膩灰階（純 ASCII）</option>
+            <option value="block">高對比方塊</option>
+            <option value="binary">二進制點陣</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="imgContrast">對比度 <span id="imgContrastVal">100%</span></label>
+          <input class="range" type="range" id="imgContrast" min="0" max="200" value="100" step="5">
+        </div>
+      </div>
+      <div class="row">
+        <label class="check">
+          <input type="checkbox" id="imgInvert"> 反色
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="asciiRender" type="button">
+        <i class="bi bi-stars" aria-hidden="true"></i> 生成字符畫
+      </button>
+      <button class="btn btn-ghost" id="asciiCopy" type="button">
+        <i class="bi bi-clipboard" aria-hidden="true"></i> 復制結果
+      </button>
+      <button class="btn btn-ghost" id="asciiDownload" type="button">
+        <i class="bi bi-download" aria-hidden="true"></i> 下載 .txt
+      </button>
+    </div>
+    <div class="status-msg" id="asciiStatus" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="tool-card-panel mt-4">
+    <div class="panel-head">
+      <h2 class="panel-title"><i class="bi bi-terminal" aria-hidden="true"></i> 終端輸出</h2>
+      <div class="panel-actions">
+        <label class="check check-sm" id="ansiWrap" title="開啟後下方終端預覽同步著色；復制到剪貼板的文本會嵌入 ANSI 轉義碼，粘貼到終端可顯示彩色（圖片模式為逐像素真彩色）">
+          <input type="checkbox" id="ansiColor"> ANSI 彩色（終端預覽 + 復制）
+        </label>
+      </div>
+    </div>
+    <div class="terminal" tabindex="0" role="region" aria-label="終端輸出">
+      <div class="term-bar">
+        <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-title" id="termTitle">clover@tools — bash</span>
+        <span class="term-meta" id="termMeta">80×24</span>
+      </div>
+      <div class="term-body" id="asciiOutput" aria-live="polite"></div>
+    </div>
+    <div class="input-stats"><span id="asciiStats">0 行 · 0 字符</span></div>
+  </section>
+</ToolLayout>
+
+<style>
+  .seg {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .seg-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .seg-btn:hover {
+    color: var(--text);
+  }
+
+  .seg-btn.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .seg-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+  }
+
+  .mode-panel {
+    margin-top: var(--space-4);
+  }
+
+  .mode-panel[hidden] {
+    display: none;
+  }
+
+  .field-grow {
+    flex: 2 1 260px !important;
+  }
+
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .check input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .check-sm {
+    font-size: 12.5px;
+  }
+
+  .range {
+    width: 100%;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: var(--space-6) var(--space-4);
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-tertiary);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .dropzone:hover,
+  .dropzone.dragover,
+  .dropzone:focus-visible {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+  }
+
+  .dropzone:focus-visible {
+    outline: none;
+    box-shadow: var(--ring);
+  }
+
+  .dropzone i {
+    font-size: 30px;
+    color: var(--primary-dark);
+  }
+
+  .dropzone p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .img-preview {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+  }
+
+  .img-preview img {
+    max-width: 150px;
+    max-height: 100px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--bg-tertiary);
+    flex-shrink: 0;
+  }
+
+  .img-preview-meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .img-preview-meta p {
+    margin: 0 0 2px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-all;
+  }
+
+  .img-preview-meta .btn-row {
+    margin: var(--space-2) 0 0;
+  }
+
+  /* ── 仿 Shell 終端（Phosphor 暗屏 / CRT 質感） ── */
+  /* 終端內容全部由 JS 動態生成，故使用 :global() 取消作用域限制 */
+  :global(.terminal) {
+    --term-bg: #0b0e13;
+    --term-bg-glow: rgba(63, 185, 80, 0.055);
+    --term-bar: #141821;
+    --term-border: #262c36;
+    --term-fg: #d6dbe3;
+    --term-dim: #79839a;
+    --term-green: #3fb950;
+    --term-blue: #58a6ff;
+    --term-white: #f0f6fc;
+    --term-cursor: rgba(240, 246, 252, 0.9);
+    border: 1px solid var(--term-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--term-bg);
+    box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    font-family: ui-monospace, 'Cascadia Mono', 'Cascadia Code', 'SF Mono', 'JetBrains Mono',
+      Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  }
+
+  :global(.terminal:focus) {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.18), var(--shadow-md);
+  }
+
+  :global(.term-bar) {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: var(--term-bar);
+    border-bottom: 1px solid var(--term-border);
+    color: var(--term-dim);
+    user-select: none;
+  }
+
+  :global(.term-dots) {
+    display: inline-flex;
+    gap: 7px;
+  }
+
+  :global(.term-dots i) {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.35);
+  }
+
+  :global(.term-dots i:nth-child(1)) {
+    background: #ff5f57;
+  }
+
+  :global(.term-dots i:nth-child(2)) {
+    background: #febc2e;
+  }
+
+  :global(.term-dots i:nth-child(3)) {
+    background: #28c840;
+  }
+
+  :global(.term-title) {
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+
+  :global(.term-meta) {
+    justify-self: end;
+    font-size: 11.5px;
+    color: var(--term-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.term-body) {
+    position: relative;
+    min-height: 264px;
+    max-height: 520px;
+    overflow: auto;
+    padding: 13px 16px 17px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--term-fg);
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 115%, var(--term-bg-glow), transparent 62%),
+      linear-gradient(180deg, #0c0f15 0%, #0a0d12 100%);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 暗角 */
+  :global(.term-body::before) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(ellipse at center, transparent 58%, rgba(0, 0, 0, 0.3) 100%);
+  }
+
+  /* 掃描線 */
+  :global(.term-body::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.025) 0 1px,
+      transparent 1px 3px
+    );
+  }
+
+  :global(.term-body ::selection) {
+    background: rgba(63, 185, 80, 0.3);
+    color: #fff;
+  }
+
+  :global(.term-body::-webkit-scrollbar) {
+    width: 10px;
+    height: 10px;
+  }
+
+  :global(.term-body::-webkit-scrollbar-thumb) {
+    background: #2b313c;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  :global(.term-body::-webkit-scrollbar-thumb:hover) {
+    background: #3a4250;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  :global(.term-body::-webkit-scrollbar-corner) {
+    background: transparent;
+  }
+
+  :global(.term-line) {
+    white-space: pre;
+  }
+
+  :global(.term-user),
+  :global(.term-host) {
+    color: var(--term-green);
+    text-shadow: 0 0 7px rgba(63, 185, 80, 0.35);
+  }
+
+  :global(.term-path) {
+    color: var(--term-blue);
+  }
+
+  :global(.term-dollar) {
+    color: var(--term-white);
+    font-weight: 600;
+  }
+
+  :global(.term-cmd) {
+    color: var(--term-fg);
+  }
+
+  :global(.term-pre) {
+    margin: 7px 0 10px;
+    font: inherit;
+    white-space: pre;
+    color: var(--term-fg);
+    line-height: 1.25;
+  }
+
+  :global(.term-hint) {
+    margin: 7px 0 10px;
+    color: var(--term-dim);
+    white-space: pre-wrap;
+  }
+
+  :global(.term-cursor) {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    margin-left: 1px;
+    vertical-align: -2px;
+    background: var(--term-cursor);
+    box-shadow: 0 0 6px rgba(240, 246, 252, 0.5);
+    animation: term-blink 1.06s steps(2, start) infinite;
+  }
+
+  @keyframes term-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>import '../../../../scripts/ascii-art';</script>

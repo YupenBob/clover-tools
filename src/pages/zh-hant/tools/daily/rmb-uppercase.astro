@@ -1,0 +1,121 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'rmb-uppercase', 'tw')!;
+const related = getRelated(category, 'rmb-uppercase', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="金額" icon="bi-currency-yen">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="rmbSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+    </div>
+    <div class="field">
+      <label class="field-label" for="rmbInput">數字金額（元）</label>
+      <input class="input" id="rmbInput" type="number" value="123456.78" step="0.01" />
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="rmbBtn" type="button"><i class="bi bi-currency-yen"></i> 轉換大寫</button>
+    </div>
+    <div class="status-msg" id="rmbStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="中文大寫" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="rmbCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <div class="lc-result rmb-result" id="rmbOutput">--</div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .rmb-result {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    line-height: 1.8;
+    min-height: 90px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample } from '../../../../scripts/toolkit';
+
+  const CN_NUM = ['零', '壹', '貳', '叁', '肆', '伍', '陸', '柒', '捌', '玖'];
+  const CN_UNIT = ['', '拾', '佰', '仟'];
+  const CN_BIG = ['', '萬', '億', '萬億'];
+
+  function sectionToCn(num: number): string {
+    if (num === 0) return '';
+    let out = '';
+    let zero = false;
+    for (let i = 3; i >= 0; i--) {
+      const digit = Math.floor(num / Math.pow(10, i)) % 10;
+      if (digit === 0) {
+        if (out && i > 0) zero = true;
+      } else {
+        if (zero) { out += '零'; zero = false; }
+        out += CN_NUM[digit] + CN_UNIT[i];
+      }
+    }
+    return out;
+  }
+
+  function toCnUpper(input: number): string {
+    if (isNaN(input)) return '無效金額';
+    const neg = input < 0;
+    const value = Math.abs(Math.round(input * 100) / 100);
+    const yuan = Math.floor(value);
+    const cents = Math.round((value - yuan) * 100);
+    const jiao = Math.floor(cents / 10);
+    const fen = cents % 10;
+    let out = '';
+    if (yuan === 0) {
+      out = '零';
+    } else {
+      let sections: number[] = [];
+      let n = yuan;
+      while (n > 0) {
+        sections.push(n % 10000);
+        n = Math.floor(n / 10000);
+      }
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const sec = sections[i];
+        const part = sectionToCn(sec);
+        if (part) out += part + CN_BIG[i];
+        else if (out && i > 0) out += '零';
+      }
+      if (out.endsWith('零')) out = out.slice(0, -1);
+      out += '元';
+    }
+    if (jiao === 0 && fen === 0) {
+      out += '整';
+    } else {
+      out += (jiao > 0 ? CN_NUM[jiao] + '角' : '零');
+      if (fen > 0) out += CN_NUM[fen] + '分';
+    }
+    return (neg ? '負' : '') + out;
+  }
+
+  function convert() {
+    hideStatus('rmbStatus');
+    const v = Number(byId<HTMLInputElement>('rmbInput').value);
+    if (isNaN(v)) {
+      showStatus('rmbStatus', 'error', '請輸入有效金額');
+      return;
+    }
+    if (Math.abs(v) > 1e12) {
+      showStatus('rmbStatus', 'error', '金額過大（超過萬億）');
+      return;
+    }
+    byId<HTMLElement>('rmbOutput').textContent = toCnUpper(v);
+    showStatus('rmbStatus', 'success', '轉換完成');
+  }
+
+  byId<HTMLButtonElement>('rmbBtn').addEventListener('click', convert);
+  bindSample('rmbSample', 'rmbInput', '1000500.09');
+  bindCopyBtn('rmbCopy', () => byId<HTMLElement>('rmbOutput').textContent);
+</script>

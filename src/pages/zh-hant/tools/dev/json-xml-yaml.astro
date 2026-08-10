@@ -1,0 +1,142 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'json-xml-yaml', 'tw')!;
+const related = getRelated(category, 'json-xml-yaml', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="輸入源數據" icon="bi-input-cursor">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="fmtSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="fmtClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="srcInput" spellcheck="false" placeholder="粘貼 JSON / XML / YAML 數據"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="modeSelect">轉換方向</label>
+        <select class="select" id="modeSelect">
+          <option value="json2xml">JSON → XML</option>
+          <option value="xml2json">XML → JSON</option>
+          <option value="json2yaml">JSON → YAML</option>
+          <option value="yaml2json">YAML → JSON</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="fmtBtn" type="button"><i class="bi bi-arrow-repeat"></i> 轉換</button>
+    </div>
+    <div class="status-msg" id="fmtStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="fmtCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="outOutput" readonly spellcheck="false" placeholder="轉換結果將顯示在這裏"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const SAMPLE = JSON.stringify({ name: 'Clover', version: '3.0', free: true, tags: ['dev', 'tools'] }, null, 2);
+  const input = byId<HTMLTextAreaElement>('srcInput');
+  const output = byId<HTMLTextAreaElement>('outOutput');
+
+  function xmlEscape(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function jsonToXml(value: unknown, name: string, depth: number): string {
+    const pad = '  '.repeat(depth);
+    const padIn = '  '.repeat(depth + 1);
+    if (value === null || value === undefined) return `${pad}<${name}/>`;
+    if (Array.isArray(value)) {
+      if (value.length === 0) return `${pad}<${name}/>`;
+      const itemName = name.replace(/s$/, '') || 'item';
+      return `${pad}<${name}>\n${value.map((v) => jsonToXml(v, itemName, depth + 1)).join('\n')}\n${pad}</${name}>`;
+    }
+    if (typeof value === 'object') {
+      const entries = Object.entries(value as Record<string, unknown>);
+      if (entries.length === 0) return `${pad}<${name}/>`;
+      return `${pad}<${name}>\n${entries
+        .map(([k, v]) => jsonToXml(v, /^[A-Za-z_][A-Za-z0-9_.-]*$/.test(k) ? k : 'item', depth + 1))
+        .join('\n')}\n${pad}</${name}>`;
+    }
+    if (typeof value === 'string') return `${pad}<${name}>${xmlEscape(value)}</${name}>`;
+    return `${pad}<${name}>${String(value)}</${name}>`;
+  }
+
+  function xmlToJson(xml: string): unknown {
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    const err = doc.querySelector('parsererror');
+    if (err) throw new Error('XML 格式錯誤：' + err.textContent?.slice(0, 120));
+    const root = doc.documentElement;
+    function nodeToJson(node: Element): unknown {
+      const attrs: Record<string, string> = {};
+      for (const attr of Array.from(node.attributes)) attrs['@' + attr.name] = attr.value;
+      const children = Array.from(node.children);
+      const text = (node.textContent || '').trim();
+      let result: Record<string, unknown> = attrs;
+      if (children.length > 0) {
+        const groups: Record<string, unknown[]> = {};
+        for (const child of children) {
+          const name = child.tagName;
+          (groups[name] ||= []).push(nodeToJson(child));
+        }
+        for (const [name, list] of Object.entries(groups)) {
+          result[name] = list.length === 1 ? list[0] : list;
+        }
+        const innerText = (children.length === 1 && (node.firstChild?.textContent || '').trim())
+          ? '' : text;
+        if (innerText) result['#text'] = innerText;
+      } else if (text) {
+        result = attrs['#text'] ? attrs : { ...attrs, '#text': text };
+      }
+      return Object.keys(result).length ? result : text;
+    }
+    return nodeToJson(root);
+  }
+
+  async function convert() {
+    hideStatus('fmtStatus');
+    const src = input.value.trim();
+    if (!src) {
+      showStatus('fmtStatus', 'error', '請先輸入數據');
+      return;
+    }
+    const mode = byId<HTMLSelectElement>('modeSelect').value;
+    try {
+      const { parse: parseYaml, stringify: stringifyYaml } = await import('yaml');
+      switch (mode) {
+        case 'json2xml': {
+          const value = JSON.parse(src);
+          output.value = jsonToXml(value, 'root', 0);
+          break;
+        }
+        case 'xml2json':
+          output.value = JSON.stringify(xmlToJson(src), null, 2);
+          break;
+        case 'json2yaml':
+          output.value = stringifyYaml(JSON.parse(src));
+          break;
+        case 'yaml2json':
+          output.value = JSON.stringify(parseYaml(src), null, 2);
+          break;
+      }
+      showStatus('fmtStatus', 'success', '轉換完成');
+    } catch (e) {
+      output.value = '';
+      showStatus('fmtStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('fmtBtn').addEventListener('click', convert);
+  bindSample('fmtSample', 'srcInput', SAMPLE);
+  bindClear('fmtClear', ['srcInput'], ['outOutput'], 'fmtStatus');
+  bindCopyBtn('fmtCopy', () => output.value);
+</script>

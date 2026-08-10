@@ -1,0 +1,94 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'js-formatter', 'tw')!;
+const related = getRelated(category, 'js-formatter', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="輸入 JavaScript" icon="bi-filetype-js">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jsSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="jsClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="jsInput" spellcheck="false" placeholder="粘貼 JavaScript 代碼"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jsFmt" type="button"><i class="bi bi-braces"></i> 格式化</button>
+      <button class="btn btn-secondary" id="jsMin" type="button"><i class="bi bi-arrows-collapse"></i> 壓縮</button>
+    </div>
+    <div class="status-msg" id="jsStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="輸出結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="jsCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="jsOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+    <div class="input-stats"><span id="jsStats">0 字符</span></div>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const input = byId<HTMLTextAreaElement>('jsInput');
+  const output = byId<HTMLTextAreaElement>('jsOutput');
+
+  async function runFormat() {
+    hideStatus('jsStatus');
+    if (!input.value.trim()) {
+      showStatus('jsStatus', 'error', '請輸入 JavaScript 代碼');
+      return;
+    }
+    try {
+      showStatus('jsStatus', 'info', '正在加載格式化引擎（首次約 1MB）……');
+      const prettier = await import('prettier/standalone');
+      const babelPlugin = await import('prettier/plugins/babel');
+      const estreePlugin = await import('prettier/plugins/estree');
+      showStatus('jsStatus', 'info', '正在格式化……');
+      output.value = await prettier.format(input.value, {
+        parser: 'babel',
+        plugins: [babelPlugin, estreePlugin] as never,
+        semi: true,
+        singleQuote: true,
+        tabWidth: 2,
+        printWidth: 100,
+      });
+      setStats('jsStats', `${output.value.length} 字符`);
+      showStatus('jsStatus', 'success', '格式化完成');
+    } catch (e) {
+      output.value = '';
+      showStatus('jsStatus', 'error', `解析失敗：${(e as Error).message}`);
+    }
+  }
+
+  async function runMinify() {
+    hideStatus('jsStatus');
+    if (!input.value.trim()) {
+      showStatus('jsStatus', 'error', '請輸入 JavaScript 代碼');
+      return;
+    }
+    try {
+      showStatus('jsStatus', 'info', '正在加載壓縮引擎……');
+      const { minify: terserMinify } = await import('terser');
+      showStatus('jsStatus', 'info', '正在壓縮……');
+      const result = await terserMinify(input.value, { mangle: true, compress: true });
+      output.value = result.code || '';
+      setStats('jsStats', `${output.value.length} 字符`);
+      showStatus('jsStatus', 'success', '壓縮完成');
+    } catch (e) {
+      output.value = '';
+      showStatus('jsStatus', 'error', `壓縮失敗：${(e as Error).message}`);
+    }
+  }
+
+  byId<HTMLButtonElement>('jsFmt').addEventListener('click', runFormat);
+  byId<HTMLButtonElement>('jsMin').addEventListener('click', runMinify);
+  bindSample('jsSample', 'jsInput', 'const tools=["json","base64"];function greet(name){return "Hello "+name} console.log(greet("Clover"));');
+  bindClear('jsClear', ['jsInput'], ['jsOutput'], 'jsStatus');
+  bindCopyBtn('jsCopy', () => output.value);
+  setStats('jsStats', '0 字符');
+</script>

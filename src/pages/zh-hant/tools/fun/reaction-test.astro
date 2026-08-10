@@ -1,0 +1,111 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'reaction-test', 'tw')!;
+const related = getRelated(category, 'reaction-test', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="反應力測試" icon="bi-lightning-charge">
+    <button class="rt-area" id="rtArea" type="button">
+      <span id="rtText">點擊開始，屏幕變綠後盡快點擊</span>
+    </button>
+    <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
+    <div class="lc-result mt-4" id="rtResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .rt-area {
+    width: 100%;
+    min-height: 260px;
+    border: none;
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 19px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+
+  .rt-area.waiting {
+    background: var(--error);
+    color: #fff;
+  }
+
+  .rt-area.go {
+    background: var(--success);
+    color: #fff;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  const area = byId<HTMLButtonElement>('rtArea');
+  const text = byId<HTMLElement>('rtText');
+  const result = byId<HTMLElement>('rtResult');
+  let state: 'idle' | 'waiting' | 'go' = 'idle';
+  let goAt = 0;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const history: number[] = [];
+
+  function renderHistory() {
+    if (history.length === 0) {
+      result.innerHTML = '<div class="muted">完成一次挑戰後顯示成績</div>';
+      return;
+    }
+    const avg = history.reduce((a, b) => a + b, 0) / history.length;
+    const best = Math.min(...history);
+    result.innerHTML =
+      `<div>本次反應：<b>${history[history.length - 1]}</b> ms</div>` +
+      `<div>平均：${avg.toFixed(0)} ms · 最佳：${best} ms · 共 ${history.length} 次</div>`;
+  }
+
+  function startWait() {
+    state = 'waiting';
+    area.classList.add('waiting');
+    text.textContent = '等待變綠……';
+    const delay = 1500 + Math.random() * 2500;
+    timer = setTimeout(() => {
+      state = 'go';
+      area.classList.remove('waiting');
+      area.classList.add('go');
+      text.textContent = '點擊！';
+      goAt = performance.now();
+    }, delay);
+  }
+
+  area.addEventListener('click', () => {
+    if (state === 'idle') {
+      hideStatus('rtStatus');
+      startWait();
+      return;
+    }
+    if (state === 'waiting') {
+      if (timer) clearTimeout(timer);
+      state = 'idle';
+      area.classList.remove('waiting');
+      text.textContent = '太早了！等變綠再點，點擊重試';
+      showStatus('rtStatus', 'error', '提前點擊，本次無效');
+      return;
+    }
+    if (state === 'go') {
+      const ms = Math.round(performance.now() - goAt);
+      state = 'idle';
+      area.classList.remove('go');
+      text.textContent = `反應時間 ${ms} ms，點擊再來一次`;
+      history.push(ms);
+      if (history.length > 5) history.shift();
+      renderHistory();
+      const grade = ms < 200 ? '極速反應' : ms < 280 ? '反應敏捷' : ms < 350 ? '正常水平' : ms < 450 ? '偏慢' : '該補覺了';
+      showStatus('rtStatus', 'success', `${ms} ms · ${grade}`);
+    }
+  });
+
+  renderHistory();
+</script>

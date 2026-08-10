@@ -1,0 +1,105 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'hash', 'tw')!;
+const related = getRelated(category, 'hash', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="輸入內容" icon="bi-fingerprint">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="hashInput" spellcheck="false" placeholder="輸入要計算哈希的文本，或選擇文件"></textarea>
+    <div class="row mt-3">
+      <div class="field">
+        <label class="field-label" for="hashAlgo">算法</label>
+        <select class="select" id="hashAlgo">
+          <option value="md5">MD5</option>
+          <option value="sha1">SHA-1</option>
+          <option value="sha256" selected>SHA-256</option>
+          <option value="sha512">SHA-512</option>
+          <option value="sha3">SHA3-256</option>
+          <option value="ripemd">RIPEMD-160</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="hashFile">文本或文件</label>
+        <input class="input" type="file" id="hashFile" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="hashBtn" type="button"><i class="bi bi-fingerprint"></i> 計算哈希</button>
+    </div>
+    <div class="status-msg" id="hashStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="哈希結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="hashOutput" readonly spellcheck="false" placeholder="哈希值將顯示在這裏"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import CryptoJS from 'crypto-js';
+
+  const input = byId<HTMLTextAreaElement>('hashInput');
+  const fileEl = byId<HTMLInputElement>('hashFile');
+
+  function toHex(buffer: ArrayBuffer): string {
+    return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function hashText(algo: string, text: string): string {
+    switch (algo) {
+      case 'md5': return CryptoJS.MD5(text).toString();
+      case 'sha1': return CryptoJS.SHA1(text).toString();
+      case 'sha256': return CryptoJS.SHA256(text).toString();
+      case 'sha512': return CryptoJS.SHA512(text).toString();
+      case 'sha3': return CryptoJS.SHA3(text, { outputLength: 256 }).toString();
+      case 'ripemd': return CryptoJS.RIPEMD160(text).toString();
+      default: throw new Error('未知算法');
+    }
+  }
+
+  async function run() {
+    hideStatus('hashStatus');
+    const algo = byId<HTMLSelectElement>('hashAlgo').value;
+    if (fileEl.files && fileEl.files[0]) {
+      const file = fileEl.files[0];
+      if (file.size > 64 * 1024 * 1024) {
+        showStatus('hashStatus', 'error', '文件過大（超過 64MB），請使用文本輸入');
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      if (algo === 'md5') {
+        const wordArray = CryptoJS.lib.WordArray.create(buf);
+        byId<HTMLTextAreaElement>('hashOutput').value = CryptoJS.MD5(wordArray).toString();
+      } else {
+        const name = algo === 'sha1' ? 'SHA-1' : algo === 'sha256' ? 'SHA-256' : algo === 'sha512' ? 'SHA-512' : algo === 'sha3' ? 'SHA3-256' : 'RIPEMD-160';
+        const digest = await crypto.subtle.digest(name, buf);
+        byId<HTMLTextAreaElement>('hashOutput').value = toHex(digest);
+      }
+      showStatus('hashStatus', 'success', `文件 ${file.name}（${(file.size / 1024).toFixed(1)} KB）哈希計算完成`);
+      return;
+    }
+    if (!input.value) {
+      showStatus('hashStatus', 'error', '請輸入文本或選擇文件');
+      return;
+    }
+    byId<HTMLTextAreaElement>('hashOutput').value = hashText(algo, input.value);
+    showStatus('hashStatus', 'success', '哈希計算完成');
+  }
+
+  byId<HTMLButtonElement>('hashBtn').addEventListener('click', run);
+  bindSample('hashSample', 'hashInput', 'CloverTools');
+  bindClear('hashClear', ['hashInput'], ['hashOutput'], 'hashStatus');
+  bindCopyBtn('hashCopy', () => byId<HTMLTextAreaElement>('hashOutput').value);
+</script>

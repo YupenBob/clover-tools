@@ -1,0 +1,165 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../lib/site';
+---
+
+<BaseLayout
+  title={`頁面不存在 - ${SITE.name}`}
+  description="你訪問的頁面不存在或已遷移，返回首頁繼續尋找工具。"
+  canonical={`${SITE.url}/zh-hant/`}
+>
+  <section class="nf">
+    <img class="nf-logo" src="/clover-logo.svg" alt="CloverTools 圖標" width="64" height="64" />
+    <p class="nf-code">404</p>
+    <h1 class="nf-title">頁面不存在</h1>
+    <p class="nf-desc" id="nfDesc">這個鏈接可能已失效，或者頁面還在建設中。</p>
+    <div class="nf-actions">
+      <a class="btn btn-primary" href="/zh-hant/"><i class="bi bi-house-door" aria-hidden="true"></i> 返回首頁</a>
+      <a class="btn btn-secondary" href="/zh-hant/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> 打開在線萬年歷</a>
+    </div>
+    <div class="nf-quick">
+      <span class="nf-quick-label">常用工具</span>
+      <div class="nf-quick-links">
+        <a href="/zh-hant/tools/dev/json-formatter/">JSON 格式化</a>
+        <a href="/zh-hant/tools/daily/timestamp/">時間戳</a>
+        <a href="/zh-hant/tools/dev/base64/">Base64</a>
+        <a href="/zh-hant/tools/dev/qrcode/">二維碼</a>
+      </div>
+    </div>
+    <p class="nf-path" id="nfPath"></p>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-8) 0;
+    text-align: center;
+  }
+
+  .nf-logo {
+    filter: drop-shadow(0 4px 12px rgba(var(--primary-rgb), 0.35));
+  }
+
+  .nf-code {
+    margin: var(--space-4) 0 0;
+    font-size: 72px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    line-height: 1;
+    background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .nf-title {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: 24px;
+  }
+
+  .nf-desc {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-5);
+    max-width: 440px;
+  }
+
+  .nf-actions {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .nf-quick {
+    margin-top: var(--space-7);
+  }
+
+  .nf-quick-label {
+    display: block;
+    color: var(--text-tertiary);
+    font-size: 12.5px;
+    letter-spacing: 2px;
+    margin-bottom: var(--space-3);
+  }
+
+  .nf-quick-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .nf-quick-links a {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  }
+
+  .nf-quick-links a:hover {
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .nf-path {
+    margin-top: var(--space-5);
+    color: var(--text-tertiary);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    word-break: break-all;
+    max-width: 520px;
+  }
+</style>
+
+<script>
+  // 自愈：剝離地址尾部多余的全角符號（如 ）：），嘗試跳回正確頁面
+  const rawPath = window.location.pathname;
+  const decoded = decodeURIComponent(rawPath);
+  const cleaned = decoded.replace(/[\u3000-\u303f\uff00-\uffef\s]+$/g, '');
+  const cleanedPath = cleaned === decoded ? rawPath : encodeURI(cleaned);
+  const desc = document.getElementById('nfDesc') as HTMLElement;
+  const goBtn = document.getElementById('nfGo') as HTMLAnchorElement;
+  const pathEl = document.getElementById('nfPath') as HTMLElement;
+
+  pathEl.textContent = `當前地址：${rawPath}`;
+
+  if (cleanedPath !== rawPath && cleanedPath.startsWith('/')) {
+    (async () => {
+      try {
+        const res = await fetch(cleanedPath, { method: 'HEAD' });
+        if (res.ok) {
+          window.location.replace(cleanedPath);
+          return;
+        }
+      } catch {
+        // 保持原樣
+      }
+      desc.textContent = '看起來地址後面多了點多余的內容，請從下面的入口進入。';
+    })();
+  }
+
+  // 英文路徑訪問 404 時，切換為英文文案
+  if (rawPath.startsWith('/en')) {
+    document.title = 'Page not found - CloverTools';
+    document.querySelector('.nf-title')!.textContent = 'Page not found';
+    document.getElementById('nfDesc')!.textContent =
+      'This link may be outdated, or the page is still under construction.';
+    document.getElementById('nfGo')!.setAttribute('href', '/en/tools/daily/calendar/');
+    document.querySelector('.nf-quick-label')!.textContent = 'POPULAR TOOLS';
+    document.querySelectorAll<HTMLAnchorElement>('.nf-quick-links a').forEach((a) => {
+      const zhPath = a.getAttribute('href');
+      if (zhPath && zhPath.startsWith('/')) a.setAttribute('href', `/en${zhPath}`);
+    });
+    document.querySelectorAll<HTMLAnchorElement>('.nf-actions a').forEach((a) => {
+      const zhPath = a.getAttribute('href');
+      if (zhPath === '/') a.setAttribute('href', '/en/');
+    });
+  }
+</script>

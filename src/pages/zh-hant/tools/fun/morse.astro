@@ -1,0 +1,130 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'morse', 'tw')!;
+const related = getRelated(category, 'morse', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="摩斯密碼轉換" icon="bi-broadcast">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="moSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="moClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="moMode">方向</label>
+        <select class="select" id="moMode">
+          <option value="encode" selected>文字 → 摩斯電碼</option>
+          <option value="decode">摩斯電碼 → 文字</option>
+        </select>
+      </div>
+    </div>
+    <textarea class="textarea" id="moInput" spellcheck="false" placeholder="輸入文字或摩斯電碼（字母間用空格，單詞間用 / 分隔）"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="moBtn" type="button"><i class="bi bi-broadcast"></i> 轉換</button>
+    </div>
+    <div class="status-msg" id="moStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="moCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="moOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+  </ToolPanel>
+
+  <ToolPanel title="摩斯電碼表" icon="bi-table" className="mt-4">
+    <div class="mo-table" id="moTable"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .mo-table {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 6px;
+  }
+
+  .mo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 12px;
+    border-radius: 6px;
+    background: var(--bg-secondary);
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const MORSE: Record<string, string> = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....',
+    I: '..', J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.',
+    Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-',
+    Y: '-.--', Z: '--..',
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-',
+    '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.',
+    '.': '.-.-.-', ',': '--..--', '?': '..--..', "'": '.----.', '!': '-.-.--',
+    '/': '-..-.', '(': '-.--.', ')': '-.--.-', '&': '.-...', ':': '---...',
+    ';': '-.-.-.', '=': '-...-', '+': '.-.-.', '-': '-....-', _: '..--.-',
+    '"': '.-..-.', $: '...-..-', '@': '.--.-.',
+  };
+  const REVERSE = Object.fromEntries(Object.entries(MORSE).map(([k, v]) => [v, k]));
+
+  function encode(text: string): string {
+    return text
+      .toUpperCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) =>
+        word.split('').map((ch) => {
+          if (!MORSE[ch]) throw new Error(`暫不支持字符：${ch}（摩斯密碼僅支持英文、數字與常用符號）`);
+          return MORSE[ch];
+        }).join(' '),
+      )
+      .join(' / ');
+  }
+
+  function decode(text: string): string {
+    return text
+      .split('/')
+      .map((word) =>
+        word.trim().split(/\s+/).filter(Boolean).map((code) => {
+          if (!REVERSE[code]) throw new Error(`無法識別的電碼：${code}`);
+          return REVERSE[code];
+        }).join(''),
+      )
+      .join(' ');
+  }
+
+  function convert() {
+    hideStatus('moStatus');
+    const src = byId<HTMLTextAreaElement>('moInput').value.trim();
+    if (!src) {
+      showStatus('moStatus', 'error', '請輸入內容');
+      return;
+    }
+    try {
+      const out = byId<HTMLSelectElement>('moMode').value === 'encode' ? encode(src) : decode(src);
+      byId<HTMLTextAreaElement>('moOutput').value = out;
+      showStatus('moStatus', 'success', '轉換完成');
+    } catch (e) {
+      byId<HTMLTextAreaElement>('moOutput').value = '';
+      showStatus('moStatus', 'error', (e as Error).message);
+    }
+  }
+
+  byId<HTMLButtonElement>('moBtn').addEventListener('click', convert);
+  bindSample('moSample', 'moInput', 'SOS CLOVER');
+  bindClear('moClear', ['moInput'], ['moOutput'], 'moStatus');
+  bindCopyBtn('moCopy', () => byId<HTMLTextAreaElement>('moOutput').value);
+  byId<HTMLElement>('moTable').innerHTML = Object.entries(MORSE)
+    .map(([ch, code]) => `<div class="mo-item"><span>${ch}</span><span>${code}</span></div>`)
+    .join('');
+</script>

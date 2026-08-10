@@ -1,14 +1,17 @@
 ---
 import { SITE } from '../lib/site';
-import { DICT, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
+import { DICT, LANGS, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
-const other: Lang = lang === 'en' ? 'zh' : 'en';
 const homeHref = pathForLang('/', lang);
 const currentPath = stripLang(Astro.url.pathname);
 const switchBase = currentPath === '/404' || currentPath === '/404/' ? '/' : currentPath;
-const switchHref = pathForLang(switchBase, other);
 const dict = DICT[lang];
+const LANG_LABELS: Record<Lang, string> = {
+  zh: '简体',
+  tw: '繁體',
+  en: 'EN',
+};
 ---
 
 <header class="site-header">
@@ -18,9 +21,13 @@ const dict = DICT[lang];
       <span class="brand-name">CloverTools</span>
     </a>
     <div class="header-actions">
-      <a class="lang-link" href={switchHref} title={dict.switchLang} aria-label={dict.switchLang}>
-        {other === 'en' ? 'EN' : '中文'}
-      </a>
+      <select class="lang-select" id="langSelect" aria-label={dict.switchLang} title={dict.switchLang}>
+        {LANGS.map((l) => (
+          <option value={pathForLang(switchBase, l)} data-lang={l} selected={l === lang}>
+            {LANG_LABELS[l]}
+          </option>
+        ))}
+      </select>
       <button class="icon-btn" id="themeToggle" type="button" aria-label={dict.switchTheme} title={dict.themeTitle}>
         <i class="bi bi-moon-stars" id="themeIcon" aria-hidden="true"></i>
       </button>
@@ -29,13 +36,12 @@ const dict = DICT[lang];
 </header>
 
 <style>
-  .lang-link {
+  .lang-select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 44px;
     height: 32px;
-    padding: 0 10px;
+    padding: 0 8px;
     border: 1px solid var(--border);
     border-radius: var(--radius-full);
     background: var(--bg-elevated);
@@ -43,15 +49,30 @@ const dict = DICT[lang];
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.3px;
+    cursor: pointer;
     transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
   }
 
-  .lang-link:hover {
+  .lang-select:hover {
     border-color: var(--primary);
     color: var(--primary-dark);
     transform: translateY(-1px);
   }
 </style>
+
+<script>
+  const langSelect = document.getElementById('langSelect') as HTMLSelectElement;
+  langSelect.addEventListener('change', () => {
+    const opt = langSelect.selectedOptions[0];
+    const target = opt?.dataset.lang || 'zh';
+    try {
+      localStorage.setItem('clover-lang', target);
+    } catch {
+      /* ignore */
+    }
+    if (opt?.value) window.location.href = opt.value;
+  });
+</script>
 
 <script>
   const btn = document.getElementById('themeToggle') as HTMLButtonElement;

@@ -1,0 +1,99 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'workday', 'tw')!;
+const related = getRelated(category, 'workday', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="日期區間" icon="bi-briefcase">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="wdStart">開始日期</label>
+        <input class="input" id="wdStart" type="date" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="wdEnd">結束日期</label>
+        <input class="input" id="wdEnd" type="date" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="wdBtn" type="button"><i class="bi bi-briefcase"></i> 計算工作日</button>
+    </div>
+    <div class="status-msg" id="wdStatus" role="status" aria-live="polite"></div>
+    <p class="field-hint">自動排除周末，並依據國務院節假日安排識別調休（假日上班計入工作日）。</p>
+  </ToolPanel>
+
+  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+    <div class="lc-result" id="wdResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 1.9;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+  import { HolidayUtil } from 'lunar-javascript';
+
+  function pad(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  function calc() {
+    hideStatus('wdStatus');
+    const s = byId<HTMLInputElement>('wdStart').value;
+    const e = byId<HTMLInputElement>('wdEnd').value;
+    if (!s || !e) {
+      showStatus('wdStatus', 'error', '請選擇日期區間');
+      return;
+    }
+    const start = new Date(s + 'T00:00:00');
+    const end = new Date(e + 'T00:00:00');
+    if (end < start) {
+      showStatus('wdStatus', 'error', '結束日期不能早於開始日期');
+      return;
+    }
+    let workdays = 0;
+    let holidays = 0;
+    let makeups = 0;
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const ymd = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(cursor.getDate())}`;
+      const h = HolidayUtil.getHoliday(ymd);
+      const weekend = cursor.getDay() === 0 || cursor.getDay() === 6;
+      if (h) {
+        if (h.isWork()) { workdays++; makeups++; }
+        else { holidays++; }
+      } else if (!weekend) {
+        workdays++;
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    byId<HTMLElement>('wdResult').innerHTML =
+      `<div>工作日：<b>${workdays}</b> 天（含調休上班 ${makeups} 天）</div>` +
+      `<div>法定節假日（含周末）：${holidays} 天</div>` +
+      `<div>區間總天數：${totalDays} 天</div>`;
+    showStatus('wdStatus', 'success', '計算完成');
+  }
+
+  byId<HTMLButtonElement>('wdBtn').addEventListener('click', calc);
+  const now = new Date();
+  byId<HTMLInputElement>('wdStart').value = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const end = new Date(now);
+  end.setMonth(end.getMonth() + 1);
+  byId<HTMLInputElement>('wdEnd').value = `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
+</script>

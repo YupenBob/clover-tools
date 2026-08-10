@@ -1,0 +1,75 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'fuel', 'tw')!;
+const related = getRelated(category, 'fuel', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="加油記錄" icon="bi-fuel-pump">
+    <div class="row">
+      <div class="field">
+        <label class="field-label" for="fuelKm">行駛裏程（km）</label>
+        <input class="input" id="fuelKm" type="number" value="500" step="10" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelAmount">加油量（L）</label>
+        <input class="input" id="fuelAmount" type="number" value="40" step="1" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="fuelPrice">油價（元/L）</label>
+        <input class="input" id="fuelPrice" type="number" value="7.5" step="0.1" />
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="fuelBtn" type="button"><i class="bi bi-fuel-pump"></i> 計算油耗</button>
+    </div>
+    <div class="status-msg" id="fuelStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+    <div class="lc-result" id="fuelResult"></div>
+  </ToolPanel>
+</ToolLayout>
+
+<style>
+  .lc-result {
+    min-height: 90px;
+    padding: var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    font-size: 15px;
+    line-height: 2;
+  }
+</style>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+
+  function calc() {
+    hideStatus('fuelStatus');
+    const km = Number(byId<HTMLInputElement>('fuelKm').value);
+    const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
+    const price = Number(byId<HTMLInputElement>('fuelPrice').value);
+    if (km <= 0 || amount <= 0) {
+      showStatus('fuelStatus', 'error', '請填寫有效的裏程與加油量');
+      return;
+    }
+    const per100 = amount / km * 100;
+    const cost = amount * price;
+    const perKm = cost / km;
+    const range = amount / per100 * 100;
+    byId<HTMLElement>('fuelResult').innerHTML =
+      `<div>百公裏油耗：<b>${per100.toFixed(2)}</b> L/100km</div>` +
+      `<div>本次油費：${cost.toFixed(2)} 元</div>` +
+      `<div>每公裏成本：${perKm.toFixed(3)} 元/km</div>` +
+      `<div>滿箱（同量）可行駛約 ${range.toFixed(0)} km</div>`;
+    showStatus('fuelStatus', 'success', '計算完成');
+  }
+
+  byId<HTMLButtonElement>('fuelBtn').addEventListener('click', calc);
+</script>

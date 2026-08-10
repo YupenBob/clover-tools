@@ -40,6 +40,7 @@ const resolvedTitle = title ?? `${SITE.name} - ${site.tagline}`;
 const resolvedDescription = description ?? site.description;
 const canonicalPath = stripLang(new URL(canonical).pathname);
 const zhUrl = SITE.url + pathForLang(canonicalPath, 'zh');
+const twUrl = SITE.url + pathForLang(canonicalPath, 'tw');
 const enUrl = SITE.url + pathForLang(canonicalPath, 'en');
 const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
@@ -55,6 +56,7 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     {keywords && <meta name="keywords" content={keywords.join(',')} />}
     <link rel="canonical" href={canonical} />
     <link rel="alternate" hreflang="zh-CN" href={zhUrl} />
+    <link rel="alternate" hreflang="zh-Hant" href={twUrl} />
     <link rel="alternate" hreflang="en" href={enUrl} />
     <link rel="alternate" hreflang="x-default" href={zhUrl} />
 
@@ -94,6 +96,41 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="icon" href="/clover-logo.svg" type="image/svg+xml" />
+
+    <script is:inline>
+      // 首次访问按浏览器语言自动切换到对应语言版本（记住选择，之后不再跳转）
+      (function () {
+        try {
+          var saved = localStorage.getItem('clover-lang');
+          if (saved) return;
+          var nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+          var target;
+          if (nav.indexOf('zh') === 0) {
+            target =
+              nav.indexOf('hant') >= 0 ||
+              nav.indexOf('tw') >= 0 ||
+              nav.indexOf('hk') >= 0 ||
+              nav.indexOf('mo') >= 0
+                ? 'tw'
+                : 'zh';
+          } else {
+            target = 'en';
+          }
+          var path = window.location.pathname;
+          var current = path.indexOf('/en') === 0 ? 'en' : path.indexOf('/zh-hant') === 0 ? 'tw' : 'zh';
+          if (target === current) {
+            localStorage.setItem('clover-lang', target);
+            return;
+          }
+          var base = path.replace(/^\/(en|zh-hant)(?=\/|$)/, '') || '/';
+          var dest = target === 'en' ? '/en' + base : target === 'tw' ? '/zh-hant' + base : base;
+          localStorage.setItem('clover-lang', target);
+          window.location.replace(dest);
+        } catch (e) {
+          /* 忽略 localStorage 不可用等异常 */
+        }
+      })();
+    </script>
 
     <script is:inline>
       (function () {

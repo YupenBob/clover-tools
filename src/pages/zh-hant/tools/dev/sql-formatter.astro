@@ -1,0 +1,164 @@
+---
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ToolPanel from '../../../../components/ToolPanel.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'sql-formatter', 'tw')!;
+const related = getRelated(category, 'sql-formatter', 'tw', 6);
+---
+
+<ToolLayout category={category} tool={tool} related={related}>
+  <ToolPanel title="輸入 SQL" icon="bi-database">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+    </div>
+    <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="粘貼 SQL 語句"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="sqfBtn" type="button"><i class="bi bi-braces"></i> 格式化</button>
+      <button class="btn btn-secondary" id="sqfMin" type="button"><i class="bi bi-arrows-collapse"></i> 壓縮</button>
+    </div>
+    <div class="status-msg" id="sqfStatus" role="status" aria-live="polite"></div>
+  </ToolPanel>
+
+  <ToolPanel title="格式化結果" icon="bi-box-arrow-in-down">
+    <div slot="actions">
+      <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+    </div>
+    <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+  </ToolPanel>
+</ToolLayout>
+
+<script>
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+
+  const KEYWORDS = new Set([
+    'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT', 'OFFSET',
+    'JOIN', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'FULL JOIN', 'CROSS JOIN', 'ON', 'USING',
+    'UNION', 'UNION ALL', 'INSERT INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE FROM', 'RETURNING',
+    'CASE', 'WHEN', 'THEN', 'ELSE', 'END', 'AS', 'AND', 'OR', 'NOT', 'IN', 'EXISTS', 'BETWEEN',
+    'DISTINCT', 'FROM', 'INTO', 'ASC', 'DESC',
+  ]);
+  const CLAUSE_KEYS = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT', 'OFFSET', 'UNION', 'UNION ALL', 'VALUES', 'SET', 'RETURNING'];
+
+  function tokenize(sql: string): string[] {
+    const tokens: string[] = [];
+    let cur = '';
+    for (let i = 0; i < sql.length; i++) {
+      const ch = sql[i];
+      if (ch === "'" || ch === '"' || ch === '`') {
+        if (cur) { tokens.push(cur); cur = ''; }
+        let j = i + 1;
+        while (j < sql.length) {
+          if (sql[j] === '\\') j += 2;
+          else if (sql[j] === ch) { j++; break; }
+          else j++;
+        }
+        tokens.push(sql.slice(i, j));
+        i = j - 1;
+        continue;
+      }
+      if (ch === '(' || ch === ')' || ch === ',') {
+        if (cur) { tokens.push(cur); cur = ''; }
+        tokens.push(ch);
+        continue;
+      }
+      if (/\s/.test(ch)) {
+        if (cur) { tokens.push(cur); cur = ''; }
+        continue;
+      }
+      cur += ch;
+    }
+    if (cur) tokens.push(cur);
+    return tokens;
+  }
+
+  function formatSql(sql: string, indentStr: string): string {
+    const tokens = tokenize(sql);
+    const out: string[] = [];
+    let depth = 0;
+    let clause = 'SELECT';
+    let prevSignificant = '';
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      const upper = tok.toUpperCase();
+      if (KEYWORDS.has(upper)) {
+        if (tok === '(' || tok === ')') { out.push(tok); continue; }
+        if (prevSignificant && !prevSignificant.endsWith(',')) out.push(' ');
+        if (upper === 'AND' || upper === 'OR' || CLAUSE_KEYS.includes(upper)) {
+          if (out.length) out.push('\n' + '  '.repeat(depth));
+          clause = upper === 'AND' || upper === 'OR' ? clause : upper;
+        }
+        out.push(upper);
+        prevSignificant = upper;
+        continue;
+      }
+      if (tok === '(') {
+        if (prevSignificant) out.push(' ');
+        out.push('(');
+        depth++;
+        prevSignificant = '(';
+        continue;
+      }
+      if (tok === ')') {
+        depth = Math.max(0, depth - 1);
+        out.push('\n' + '  '.repeat(depth) + ')');
+        prevSignificant = ')';
+        continue;
+      }
+      if (tok === ',') {
+        if (clause === 'SELECT' || clause === 'VALUES' || depth > 0) {
+          out.push(',\n' + '  '.repeat(depth));
+        } else {
+          out.push(', ');
+        }
+        prevSignificant = ',';
+        continue;
+      }
+      out.push((prevSignificant ? ' ' : '') + tok);
+      prevSignificant = tok;
+    }
+    return out.join('').trim();
+  }
+
+  function minify(sql: string): string {
+    const tokens = tokenize(sql);
+    let out = '';
+    for (let i = 0; i < tokens.length; i++) {
+      const tok = tokens[i];
+      if (tok === '(' || tok === ')') { out += tok; continue; }
+      if (tok === ',') { out += ','; continue; }
+      if (i > 0 && out && !/^[,()]$/.test(tok)) out += ' ';
+      out += tok;
+    }
+    return out.trim();
+  }
+
+  function runFormat() {
+    hideStatus('sqfStatus');
+    const src = byId<HTMLTextAreaElement>('sqfInput').value.trim();
+    if (!src) {
+      showStatus('sqfStatus', 'error', '請輸入 SQL');
+      return;
+    }
+    try {
+      byId<HTMLTextAreaElement>('sqfOutput').value = formatSql(src, '  ');
+      showStatus('sqfStatus', 'success', '格式化完成');
+    } catch (e) {
+      showStatus('sqfStatus', 'error', (e as Error).message);
+    }
+  }
+
+  function runMin() {
+    hideStatus('sqfStatus');
+    byId<HTMLTextAreaElement>('sqfOutput').value = minify(byId<HTMLTextAreaElement>('sqfInput').value);
+    showStatus('sqfStatus', 'success', '壓縮完成');
+  }
+
+  byId<HTMLButtonElement>('sqfBtn').addEventListener('click', runFormat);
+  byId<HTMLButtonElement>('sqfMin').addEventListener('click', runMin);
+  bindSample('sqfSample', 'sqfInput', "select u.id,u.name,count(o.id) as orders from users u left join orders o on u.id=o.user_id where u.status='active' group by u.id,u.name having count(o.id)>2 order by orders desc limit 10");
+  bindClear('sqfClear', ['sqfInput'], ['sqfOutput'], 'sqfStatus');
+  bindCopyBtn('sqfCopy', () => byId<HTMLTextAreaElement>('sqfOutput').value);
+</script>
