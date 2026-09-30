@@ -1,5 +1,6 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import ToolGuide from '../components/ToolGuide.astro';
 import AdUnit from '../components/AdUnit.astro';
 import type { ToolCategory, ToolMeta } from '../lib/tools';
 import { getToolHref } from '../lib/tools';
@@ -12,6 +13,7 @@ import {
   pathForLang,
   type Lang,
 } from '../lib/i18n';
+import { getGuidesForTool } from '../lib/guides';
 
 const APP_CATEGORY: Record<ToolCategory, string> = {
   dev: 'DeveloperApplication',
@@ -35,6 +37,8 @@ const url = SITE.url + pathForLang(getToolHref(category, tool.slug), lang);
 const categoryUrl = SITE.url + pathForLang(`/tools/${category}/`, lang);
 const homeUrl = SITE.url + pathForLang('/', lang);
 const content = getToolContent(tool.slug, lang);
+const detail = content?.detail;
+const guides = getGuidesForTool(tool.slug);
 const inLanguage =
   lang === 'en' ? 'en' : lang === 'tw' ? 'zh-Hant' : lang === 'ko' ? 'ko' : lang === 'ja' ? 'ja' : 'zh-CN';
 
@@ -129,6 +133,8 @@ const jsonLd: Record<string, unknown>[] = [
       </ul>
     </section>
   )}
+
+  {detail && <ToolGuide detail={detail} guides={guides} toolName={tool.name} lang={lang} />}
 </BaseLayout>
 
 <style>

@@ -1,6 +1,25 @@
+export interface ToolExample {
+  label: string;
+  input: string;
+  output: string;
+  outputFormat?: 'text' | 'code';
+}
+
+export interface ToolDetail {
+  /** A problem-led introduction, shown in the server-rendered guide section. */
+  intro: string;
+  steps: string[];
+  examples: ToolExample[];
+  principles: string[];
+  pitfalls: string[];
+  faqs: { q: string; a: string }[];
+  privacy: string;
+}
+
 export interface ToolContent {
   usage: string;
   features: { icon: string; text: string }[];
+  detail?: ToolDetail;
 }
 
 /**

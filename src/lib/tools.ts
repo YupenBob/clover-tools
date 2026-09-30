@@ -21,10 +21,10 @@ export interface CategoryMeta {
 
 export const CATEGORIES: CategoryMeta[] = [
   {
-    id: 'dev',
-    name: '开发实用',
-    icon: 'bi-code-square',
-    blurb: '编码、格式化、加解密与调试，开发日常高频刚需。',
+    id: 'fun',
+    name: '趣味工具',
+    icon: 'bi-emoji-sunglasses',
+    blurb: '减压、娱乐与创意小玩意，给忙碌的日常加点乐趣。',
   },
   {
     id: 'daily',
@@ -33,10 +33,10 @@ export const CATEGORIES: CategoryMeta[] = [
     blurb: '日期、理财、换算与效率小工具，生活工作两相宜。',
   },
   {
-    id: 'fun',
-    name: '趣味工具',
-    icon: 'bi-emoji-sunglasses',
-    blurb: '减压、娱乐与创意小玩意，给忙碌的日常加点乐趣。',
+    id: 'dev',
+    name: '开发实用',
+    icon: 'bi-code-square',
+    blurb: '编码、格式化、加解密与调试，开发日常高频刚需。',
   },
 ];
 

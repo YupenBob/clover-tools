@@ -1,0 +1,15 @@
+---
+import LegalPage from '../../components/LegalPage.astro';
+import { LANGS, type Lang } from '../../lib/i18n';
+import { LEGAL } from '../../../config/site.mjs';
+import { LOCALES } from '../../../config/routes.mjs';
+
+export function getStaticPaths() {
+  return LANGS.filter((lang) => LOCALES[lang].prefix).flatMap((lang) => LEGAL.kinds.map((legal) => ({
+    params: { lang: LOCALES[lang].prefix.slice(1), legal }, props: { lang, kind: legal },
+  })));
+}
+
+const { lang, kind } = Astro.props as { lang: Lang; kind: 'privacy' | 'terms' | 'contact' };
+---
+<LegalPage kind={kind} lang={lang} />

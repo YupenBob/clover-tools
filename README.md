@@ -22,7 +22,9 @@
   <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-70-gold?style=flat-square" alt="70 tools"></a>
 </p>
 
-CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 70 个逐一手写的工具页面。所有工具纯浏览器处理、数据不出本地，打开即用，无需下载、无需注册。
+CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 70 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+
+项目推进顺序与衡量方式见 [战略路线图](docs/STRATEGY.md)，配置职责、内容维护和发布检查见 [质量说明](docs/QUALITY.md)。
 
 ## 数据面板
 
@@ -30,18 +32,18 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 | --- | --- |
 | 工具总数 | 70（开发实用 37 · 日常实用 20 · 趣味工具 13） |
 | 工具 API | 1 个 Pages Function |
-| 内容生态 | 137 篇 CSDN SEO 文章 + 品牌文 + 发布排期 |
-| 数据处理 | 100% 浏览器端，数据不出本地 |
+| 内容生态 | 16 篇站内指南、20 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
+| 数据处理 | 多数工具本地处理；网络工具明确说明请求边界 |
 | 使用门槛 | 零注册、零安装、即开即用 |
 
 ## 特性
 
 - **即开即用**：无需注册、无需安装，打开页面直接使用
-- **隐私优先**：全部纯浏览器处理，数据不出本地
+- **隐私说明**：多数工具本地处理，网络工具说明发送对象，五语隐私/条款/联系页公开可查
 - **精品手写**：每个工具页逐一手写，内置输入校验、错误提示、复制 / 清空 / 示例与 Ctrl+Enter 快捷执行，拒绝模板化
 - **三分类目录**：开发实用 / 日常实用 / 趣味工具，首页搜索直达
 - **设计与体验**：金色主题 + 深色模式、移动端适配、全站图标统一 iconfont（禁止 emoji 字符）
-- **工程化完备**：Astro 5 静态构建、SEO meta + JSON-LD + sitemap 自动生成、构建后自动质检（链接完整性 / SEO 结构 / emoji 扫描）
+- **发布检查**：Astro 5 静态构建、SEO meta + JSON-LD + sitemap 自动生成；build 自动检查内容关联、链接、SEO、收录一致性与图标，CI 补充浏览器回归
 - **全球加速**：Cloudflare Pages + CDN 托管，R2 存储大文件 / 媒体，Pages Functions 提供工具 API
 
 ## 技术架构
@@ -64,7 +66,8 @@ flowchart LR
 - 简体中文（默认，根路径）、繁體中文（`/zh-hant/`）、English（`/en/`）、한국어（`/ko/`）与日本語（`/ja/`）五语全站支持
 - 首次访问按浏览器语言自动切换到对应语言版本（localStorage 记住选择，页头可随时手动切换）
 - 页头语言切换器按当前路径保持页面位置（404 页切换时回到对应语言首页）
-- 全站输出 `hreflang`（`zh-CN` / `zh-Hant` / `ko` / `ja` / `en` / `x-default`）、语言专属 canonical 与 `og:locale`
+- 页面输出语言专属 canonical 与 `og:locale`；`hreflang` 只指向真实存在且允许收录的版本。工具/分类页当前沿用简体优先收录，其他语言仍可访问，审核后通过 `config/routes.mjs` 开放
+- 指南当前仅简体：首次访问不会跳转到不存在的翻译，手动切换到其他语言会进入该语言首页；繁体政策页统一使用 `/zh-hant/`
 - 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、70 个工具的名称/描述/关键词与「使用说明」
 - 韩语/日语文案集中在 `src/lib/i18n/ko.json`、`ja.json`（由 `scripts/gen-ko-ja-data.mjs` 基于英文数据翻译生成）
 - 繁体页面由 `scripts/gen-zhhant.mjs` 基于简体页用 `chinese-s2t` 自动生成，无需维护第二份文案
@@ -84,14 +87,20 @@ src/
   components/                        # 页头、页脚、工具卡片
   lib/tools.ts                       # 工具清单：驱动首页、sitemap、重定向
   lib/i18n.ts                        # 多语言助手：语言推断、路径换算、文案字典
+  lib/guides.ts  lib/tool-details.ts  # 指南内容、工具深度说明与关联
+  lib/legal.ts                       # 五语政策/联系文案
+  pages/guides/                      # 站内指南目录与文章
+  pages/robots.txt.ts                 # 从站点配置生成 robots
   lib/i18n/en.json                   # 英文数据字典（站点 / 分类 / 工具元信息 / 使用说明）
   styles/global.css                  # 设计系统：金色主题 + 深色模式
 functions/api/                       # Pages Functions（工具 API，如 ip.ts）
 public/
-  _headers  _redirects  robots.txt   # Pages 配置
+  _headers  _redirects               # Pages 配置
   clover-logo.svg  og-image.jpg      # 品牌资产
 legacy/                              # 旧版 CloverTools 代码归档（仅参考）
 scripts/                             # 质检与生成脚本（链接、SEO、emoji、sitemap、CSDN）
+config/                              # 站点、语言路由/收录策略、内容质量阈值
+.github/workflows/quality.yml        # 构建与浏览器回归
 data/                                # 内容数据（articles.json / keywords.json）
 csdn/                                # CSDN 发布包（137 篇文章 + 品牌文 + 排期表）
 ```
@@ -104,10 +113,13 @@ cd clover-tools
 npm install
 
 npm run dev        # 本地开发 http://localhost:4321
-npm run build      # 构建到 dist/
+npm run build      # 测试、构建到 dist/，并自动检查
 npm run preview    # 本地预览构建产物
-npm run check      # 构建后质检：链接完整性 + SEO 结构 + emoji 扫描
+npm run check      # 对现有 dist 检查内容、链接、SEO 与图标
+npm run check:browser # 临时预览与真实浏览器回归
 ```
+
+建议 Node 24、npm >= 10.8.2。站点域名可用 `PUBLIC_SITE_URL` 覆盖；canonical、sitemap、robots 与检查同步读取配置，示例见 `.env.example`。
 
 ## 分类导览
 
@@ -155,9 +167,9 @@ wrangler r2 object put clovertools-media/<key> --file <path>
 
 ## 内容生态（CSDN）
 
-SEO 文章已从站内剥离，独立发布在 CSDN；运行 `npm run csdn:build` 生成发布包到 `csdn/`（137 篇 SEO 文章 + 品牌文 + 发布排期表，详见 `csdn/README.md`）。
+CSDN 发布包独立维护；运行 `npm run csdn:build` 生成到 `csdn/`（137 篇文章 + 品牌文 + 发布排期表，详见 `csdn/README.md`）。站内另维护 16 篇场景指南，与工具相互链接并展示参考来源。
 
 ## 约定
 
-- 全中文站点，无营销文案、无注册引导
+- 默认简体中文，另有繁体、英文、韩文与日文版本，无注册引导
 - 旧版 Vercel 相关代码已整体归档在 `legacy/`，仅作参考

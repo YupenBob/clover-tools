@@ -1,104 +1,106 @@
-/**
- * 链接完整性检查：遍历 dist 内所有 HTML，验证内部 href/src 是否存在。
- * 用法：node scripts/check-links.mjs
- */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, dirname, normalize } from 'node:path';
-import { fileURLToPath } from 'node:url';
+/** Verify links and require sitemap coverage to match the rendered index policy. */
+import { readFileSync, existsSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { root, buildSiteUrl } from './lib/build-config.mjs';
+import {
+  walk,
+  relativePath,
+  pagePath,
+  outputPath,
+  attributes,
+  decodeEntities,
+  isVerificationFile,
+  htmlTags,
+} from './lib/artifacts.mjs';
+import { isIndexablePath } from '../config/routes.mjs';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
-
-function walk(dir) {
-  const files = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      files.push(...walk(full));
-    } else {
-      files.push(full);
-    }
-  }
-  return files;
-}
-
-if (!statSync(dist, { throwIfNoEntry: false })) {
+if (!existsSync(dist)) {
   console.error('dist 目录不存在，请先运行 npm run build');
   process.exit(1);
 }
-
-const htmlFiles = walk(dist).filter((f) => f.endsWith('.html'));
+const siteUrl = buildSiteUrl();
+const files = walk(dist).filter(
+  (file) =>
+    file.endsWith('.html') && !isVerificationFile(relativePath(dist, file)),
+);
 const problems = [];
-const pending = [];
+const expectedUrls = new Set();
 
-for (const file of htmlFiles) {
+for (const file of files) {
+  const from = relativePath(dist, file);
+  const path = pagePath(from);
   const content = readFileSync(file, 'utf8');
-  const refs = [...content.matchAll(/(?:href|src)="([^"]+)"/g)].map((m) => m[1]);
-  for (const ref of refs) {
-    if (!ref.startsWith('/')) continue;
-    if (ref.includes('#') || ref.includes('?')) continue;
-    let target = ref;
-    if (target.endsWith('/')) target += 'index.html';
-    const resolved = normalize(join(dist, target));
-    if (!statSync(resolved, { throwIfNoEntry: false })) {
-      const from = file.replace(dist + '\\', '').replace(dist + '/', '');
-      // 已登记在工具清单但尚未制作页面的工具，属于待建页面（Phase 3），仅警告
-      if (/^\/tools\/(dev|daily|fun)\/[^/]+\/$/.test(ref)) {
-        pending.push(`${from} -> ${ref}`);
-      } else {
-        problems.push(`${from} -> ${ref}`);
+  if (isIndexablePath(path)) expectedUrls.add(siteUrl + path);
+  // Do not interpret HTML examples or JavaScript strings as live links.
+  const markup = content.replace(
+    /<script\b[^>]*>[\s\S]*?<\/script>/g,
+    (script) => script.slice(0, script.indexOf('>') + 1),
+  );
+  for (const match of htmlTags(markup).filter((tag) =>
+    /^<(?:a|link|script|img|source|iframe|video|audio)\b/.test(tag),
+  )) {
+    const tag = attributes(match);
+    for (const ref of [tag.href, tag.src].filter(Boolean)) {
+      try {
+        const url = new URL(ref, siteUrl + path);
+        if (url.origin !== siteUrl) continue;
+        const target = outputPath(dist, url.pathname);
+        if (!statSync(target, { throwIfNoEntry: false })?.isFile())
+          problems.push(`${from} -> ${ref}`);
+      } catch {
+        problems.push(`${from}: 无效 URL ${ref}`);
       }
     }
   }
 }
 
-if (pending.length) {
-  console.warn(`提示：${pending.length} 个工具页待建（已登记清单，未生成页面）：`);
-  pending.slice(0, 8).forEach((p) => console.warn('  ' + p));
-  if (pending.length > 8) console.warn(`  ... 等 ${pending.length} 处`);
+const actualUrls = new Set();
+const sitemapIndex = join(dist, 'sitemap-index.xml');
+function locations(xml) {
+  return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) =>
+    decodeEntities(match[1]),
+  );
 }
-
-if (problems.length) {
-  console.error(`发现 ${problems.length} 个失效链接：`);
-  problems.forEach((p) => console.error('  ' + p));
-  process.exit(1);
-}
-
-// ── sitemap 完整性：所有 URL 与 dist 产物一一对应 ──
-const sitemapIndexFile = join(dist, 'sitemap-index.xml');
-let sitemapCount = 0;
-let sitemapProblems = [];
-if (!statSync(sitemapIndexFile, { throwIfNoEntry: false })) {
-  sitemapProblems.push('缺少 dist/sitemap-index.xml');
+if (!existsSync(sitemapIndex)) {
+  problems.push('缺少 dist/sitemap-index.xml');
 } else {
-  const sitemapIndex = readFileSync(sitemapIndexFile, 'utf8');
-  const sitemapFiles = [...sitemapIndex.matchAll(/<loc>([^<]+)<\/loc>/g)]
-    .map((m) => m[1])
-    .map((loc) => join(dist, new URL(loc).pathname.replace(/^\//, '')));
-  for (const file of sitemapFiles) {
-    if (!statSync(file, { throwIfNoEntry: false })) {
-      sitemapProblems.push(`sitemap 指向不存在的产物：${file.replace(dist, '')}`);
-    } else {
-      const xml = readFileSync(file, 'utf8');
-      const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-      sitemapCount += urls.length;
-      for (const url of urls) {
-        const { pathname } = new URL(url);
-        const target = pathname.endsWith('/')
-          ? join(dist, pathname, 'index.html')
-          : join(dist, pathname);
-        if (!statSync(target, { throwIfNoEntry: false })) {
-          sitemapProblems.push(`sitemap URL 无对应产物：${url}`);
-        }
+  for (const loc of locations(readFileSync(sitemapIndex, 'utf8'))) {
+    try {
+      const url = new URL(loc);
+      const file = outputPath(dist, url.pathname);
+      if (url.origin !== siteUrl || !existsSync(file)) {
+        problems.push(`sitemap 索引地址无效：${loc}`);
+        continue;
       }
+      for (const entry of locations(readFileSync(file, 'utf8'))) {
+        if (actualUrls.has(entry)) problems.push(`sitemap 重复 URL：${entry}`);
+        actualUrls.add(entry);
+        if (!expectedUrls.has(entry))
+          problems.push(`sitemap 包含非可收录页面：${entry}`);
+      }
+    } catch {
+      problems.push(`sitemap 索引无法解析：${loc}`);
     }
   }
 }
-
-if (sitemapProblems.length) {
-  console.error(`sitemap 检查失败（${sitemapProblems.length} 处）：`);
-  sitemapProblems.forEach((p) => console.error('  ' + p));
+for (const url of expectedUrls) {
+  if (!actualUrls.has(url)) problems.push(`可收录页面遗漏于 sitemap：${url}`);
+}
+const robots = join(dist, 'robots.txt');
+if (
+  !existsSync(robots) ||
+  !readFileSync(robots, 'utf8').includes(
+    `Sitemap: ${siteUrl}/sitemap-index.xml`,
+  )
+) {
+  problems.push('robots.txt 中的 sitemap 地址与站点配置不一致');
+}
+if (problems.length) {
+  console.error(`链接 / sitemap 检查失败（${problems.length} 处）：`);
+  problems.forEach((problem) => console.error('  ' + problem));
   process.exit(1);
 }
-
-console.log(`链接检查通过：${htmlFiles.length} 个页面，无失效链接；sitemap ${sitemapCount} 条 URL 与产物一一对应`);
+console.log(
+  `链接检查通过：${files.length} 个页面无失效链接；sitemap ${actualUrls.size} 条 URL 与可收录页面一致`,
+);

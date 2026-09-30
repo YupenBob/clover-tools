@@ -1,6 +1,9 @@
 ---
 import '../styles/global.css';
 import '../styles/vendor/bootstrap-icons.css';
+import LanguagePreference from '../components/LanguagePreference.astro';
+import { ADSENSE_CLIENT } from '../lib/ads';
+import { alternateLanguages, isIndexablePath } from '../../config/routes.mjs';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import { SITE } from '../lib/site';
@@ -22,6 +25,8 @@ interface Props {
   ogImage?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   ads?: boolean;
+  /** Set false for temporary low-quality/unfinished variants that should not be indexed. */
+  indexable?: boolean;
 }
 
 const {
@@ -32,6 +37,7 @@ const {
   ogImage = SITE.url + '/og-image.jpg',
   jsonLd,
   ads = true,
+  indexable = true,
 } = Astro.props;
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
@@ -39,11 +45,11 @@ const site = siteForLang(lang);
 const resolvedTitle = title ?? `${SITE.name} - ${site.tagline}`;
 const resolvedDescription = description ?? site.description;
 const canonicalPath = stripLang(new URL(canonical).pathname);
-const zhUrl = SITE.url + pathForLang(canonicalPath, 'zh');
-const twUrl = SITE.url + pathForLang(canonicalPath, 'tw');
-const koUrl = SITE.url + pathForLang(canonicalPath, 'ko');
-const jaUrl = SITE.url + pathForLang(canonicalPath, 'ja');
-const enUrl = SITE.url + pathForLang(canonicalPath, 'en');
+const canIndex = indexable && isIndexablePath(Astro.url.pathname);
+const alternates = alternateLanguages(Astro.url.pathname).map((locale) => ({
+  lang: HTML_LANG[locale as Lang], href: SITE.url + pathForLang(canonicalPath, locale as Lang),
+}));
+const defaultAlternate = alternates.find((entry) => entry.lang === HTML_LANG.zh) ?? alternates[0];
 const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 ---
@@ -56,13 +62,10 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <title>{resolvedTitle}</title>
     <meta name="description" content={resolvedDescription} />
     {keywords && <meta name="keywords" content={keywords.join(',')} />}
+    {!canIndex && <meta name="robots" content="noindex,follow" />}
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang="zh-CN" href={zhUrl} />
-    <link rel="alternate" hreflang="zh-Hant" href={twUrl} />
-    <link rel="alternate" hreflang="ko" href={koUrl} />
-    <link rel="alternate" hreflang="ja" href={jaUrl} />
-    <link rel="alternate" hreflang="en" href={enUrl} />
-    <link rel="alternate" hreflang="x-default" href={zhUrl} />
+    {alternates.map(({ lang, href }) => <link rel="alternate" hreflang={lang} href={href} />)}
+    {defaultAlternate && <link rel="alternate" hreflang="x-default" href={defaultAlternate.href} />}
 
     {ads && (
       <>
@@ -70,7 +73,7 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
         <script
           is:inline
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2739960879713370"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
           crossorigin="anonymous"
         ></script>
       </>
@@ -101,62 +104,7 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
 
     <link rel="icon" href="/clover-logo.svg" type="image/svg+xml" />
 
-    <script is:inline>
-      // 首次访问按浏览器语言自动切换到对应语言版本（记住选择，之后不再跳转）
-      (function () {
-        try {
-          var saved = localStorage.getItem('clover-lang');
-          if (saved) return;
-          var nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
-          var target;
-          if (nav.indexOf('zh') === 0) {
-            target =
-              nav.indexOf('hant') >= 0 ||
-              nav.indexOf('tw') >= 0 ||
-              nav.indexOf('hk') >= 0 ||
-              nav.indexOf('mo') >= 0
-                ? 'tw'
-                : 'zh';
-          } else if (nav.indexOf('ko') === 0) {
-            target = 'ko';
-          } else if (nav.indexOf('ja') === 0) {
-            target = 'ja';
-          } else {
-            target = 'en';
-          }
-          var path = window.location.pathname;
-          var current =
-            path.indexOf('/en') === 0
-              ? 'en'
-              : path.indexOf('/zh-hant') === 0
-                ? 'tw'
-                : path.indexOf('/ko') === 0
-                  ? 'ko'
-                  : path.indexOf('/ja') === 0
-                    ? 'ja'
-                    : 'zh';
-          if (target === current) {
-            localStorage.setItem('clover-lang', target);
-            return;
-          }
-          var base = path.replace(/^\/(en|zh-hant|ko|ja)(?=\/|$)/, '') || '/';
-          var dest =
-            target === 'en'
-              ? '/en' + base
-              : target === 'tw'
-                ? '/zh-hant' + base
-                : target === 'ko'
-                  ? '/ko' + base
-                  : target === 'ja'
-                    ? '/ja' + base
-                    : base;
-          localStorage.setItem('clover-lang', target);
-          window.location.replace(dest);
-        } catch (e) {
-          /* 忽略 localStorage 不可用等异常 */
-        }
-      })();
-    </script>
+    <LanguagePreference />
 
     <script is:inline>
       (function () {

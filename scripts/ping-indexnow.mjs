@@ -6,9 +6,11 @@
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildSiteUrl } from './lib/build-config.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const HOST = 'clovertools.cn';
+const SITE_URL = buildSiteUrl();
+const HOST = new URL(SITE_URL).host;
 
 function findKeyFile() {
   const publicDir = join(root, 'public');
@@ -51,7 +53,7 @@ if (!urls.length) {
 const payload = {
   host: HOST,
   key,
-  keyLocation: `https://${HOST}/${key}.txt`,
+  keyLocation: `${SITE_URL}/${key}.txt`,
   urlList: urls,
 };
 

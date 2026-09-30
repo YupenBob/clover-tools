@@ -18,6 +18,10 @@ const lastUpdated = new Date().toISOString().slice(0, 10);
         <a href={pathForLang(`/tools/${cat.id}/`, lang)}>{cat.name}</a>
       ))}
       <a href={pathForLang('/about/', lang)}>{dict.about}</a>
+      <a href="/guides/">{dict.guides}</a>
+      <a href={pathForLang('/privacy/', lang)}>{dict.privacy}</a>
+      <a href={pathForLang('/terms/', lang)}>{dict.terms}</a>
+      <a href={pathForLang('/contact/', lang)}>{dict.contact}</a>
       <a href="/sitemap-index.xml">{dict.sitemap}</a>
       <a href={SITE.github} target="_blank" rel="noopener noreferrer">
         <i class="bi bi-github" aria-hidden="true"></i> GitHub

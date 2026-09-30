@@ -1,8 +1,12 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { buildSiteUrl } from './scripts/lib/build-config.mjs';
+import { isIndexablePath } from './config/routes.mjs';
+
+const siteUrl = buildSiteUrl();
 
 export default defineConfig({
-  site: 'https://clovertools.cn',
+  site: siteUrl,
   output: 'static',
   vite: {
     optimizeDeps: {
@@ -19,7 +23,7 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      lastmod: new Date(),
+      filter: (page) => isIndexablePath(new URL(page).pathname),
     }),
   ],
 });

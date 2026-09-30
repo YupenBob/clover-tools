@@ -6,16 +6,19 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build",
+    "build": "npm test && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
     "preview": "astro preview",
-    "check": "node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
-    "check:all": "npm run build && npm run check",
+    "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
+    "test": "node --test scripts/tests/*.test.mjs",
+    "check:all": "npm run build",
+    "check:browser": "node scripts/smoke-growth.mjs",
     "csdn:build": "node scripts/build-csdn.mjs",
     "icons:slim": "node scripts/slim-icons.mjs",
     "redirects": "node scripts/gen-redirects.mjs",
     "indexnow": "node scripts/ping-indexnow.mjs",
     "deploy:media": "wrangler r2 object put"
   },
+  "engines": { "node": ">=22.18.0", "npm": ">=10.8.2" },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
     "astro": "^5.0.0",

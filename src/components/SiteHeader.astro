@@ -1,6 +1,7 @@
 ---
 import { SITE } from '../lib/site';
 import { DICT, LANGS, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
+import { switchLanguagePath } from '../../config/routes.mjs';
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const homeHref = pathForLang('/', lang);
@@ -25,7 +26,7 @@ const LANG_LABELS: Record<Lang, string> = {
     <div class="header-actions">
       <select class="lang-select" id="langSelect" aria-label={dict.switchLang} title={dict.switchLang}>
         {LANGS.map((l) => (
-          <option value={pathForLang(switchBase, l)} data-lang={l} selected={l === lang}>
+          <option value={switchLanguagePath(switchBase, l)} data-lang={l} selected={l === lang}>
             {LANG_LABELS[l]}
           </option>
         ))}
@@ -72,7 +73,7 @@ const LANG_LABELS: Record<Lang, string> = {
     } catch {
       /* ignore */
     }
-    if (opt?.value) window.location.href = opt.value;
+    if (opt?.value) window.location.href = opt.value + window.location.search + window.location.hash;
   });
 </script>
 

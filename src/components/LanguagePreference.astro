@@ -1,0 +1,33 @@
+---
+import { LOCALES, ROUTE_POLICY, availableLanguages, languageFromPath, switchLanguagePath } from '../../config/routes.mjs';
+
+const path = Astro.url.pathname;
+const currentLanguage = languageFromPath(path);
+const languagePaths = Object.fromEntries(Object.keys(LOCALES).map((lang) => [lang,
+  availableLanguages(path).includes(lang) ? switchLanguagePath(path, lang) : null,
+]));
+const languageRules = Object.entries(LOCALES).flatMap(([lang, locale]) =>
+  locale.browserPrefixes.map((prefix) => ({ lang, prefix }))).sort((a, b) => b.prefix.length - a.prefix.length);
+const fallbackLanguage = ROUTE_POLICY.browserFallbackLanguage;
+---
+
+<script is:inline define:vars={{ currentLanguage, languagePaths, languageRules, fallbackLanguage }}>
+  (function () {
+    try {
+      if (localStorage.getItem('clover-lang')) return;
+      var nav = (navigator.language || '').toLowerCase();
+      var rule = languageRules.find(function (entry) {
+        return nav === entry.prefix || nav.indexOf(entry.prefix + '-') === 0;
+      });
+      var target = rule ? rule.lang : fallbackLanguage;
+      localStorage.setItem('clover-lang', target);
+      var dest = languagePaths[target];
+      // A direct link to content without a translation must remain readable.
+      if (target !== currentLanguage && dest) {
+        window.location.replace(dest + window.location.search + window.location.hash);
+      }
+    } catch (e) {
+      /* Storage restrictions should not prevent reading the page. */
+    }
+  })();
+</script>
