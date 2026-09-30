@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "npm test && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
+    "build": "npm test && npm run prepare:hls && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
     "preview": "astro preview",
     "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
     "test": "node --test scripts/tests/*.test.mjs",
@@ -16,9 +16,15 @@
     "icons:slim": "node scripts/slim-icons.mjs",
     "redirects": "node scripts/gen-redirects.mjs",
     "indexnow": "node scripts/ping-indexnow.mjs",
-    "deploy:media": "wrangler r2 object put"
+    "deploy:media": "wrangler r2 object put",
+    "prepare:hls": "node scripts/prepare-hls-core.mjs",
+    "predev": "npm run prepare:hls",
+    "check:hls-browser": "node scripts/smoke-hls.mjs"
   },
-  "engines": { "node": ">=22.18.0", "npm": ">=10.8.2" },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": ">=10.8.2"
+  },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
     "astro": "^5.0.0",
@@ -41,6 +47,7 @@
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "playwright-core": "^1.62.1",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "@ffmpeg/core": "0.12.10"
   }
 }

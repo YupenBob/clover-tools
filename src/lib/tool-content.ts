@@ -27,6 +27,15 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  'm3u8-downloader': {
+    usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。404、410、播放列表标记的缺口会自动跳过，其他失败先重试；已完成分片保存在当前浏览器，可暂停继续，也可刷新后重新解析同一列表恢复缓存。导出时按原顺序重新封装成功分片并接续时间轴，支持 MP4 与 TS。目标站点需要允许跨域访问。',
+    features: [
+      { icon: 'bi-skip-forward', text: '缺失分片自动跳过，后续分片继续下载' },
+      { icon: 'bi-arrow-repeat', text: '超时重试、暂停继续与缓存续传' },
+      { icon: 'bi-camera-video', text: 'MP4 / TS 重新封装，不重新编码' },
+      { icon: 'bi-shield-lock', text: '分片缓存与合并均在本地，视频不上传' },
+    ],
+  },
   'json-formatter': {
     usage:
       '在线 JSON 格式化与校验工具：粘贴 JSON 后自动美化排版，支持压缩输出与缩进自定义；语法错误会定位到具体行号，方便快速排查接口返回与配置文件问题。所有处理都在浏览器本地完成，数据不会上传。',

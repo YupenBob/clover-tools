@@ -1,0 +1,138 @@
+---
+import ToolPanel from './ToolPanel.astro';
+import { hlsCopy } from '../lib/hls/copy';
+import { langFromUrl } from '../lib/i18n';
+import { HLS_CONFIG } from '../../config/hls.mjs';
+const copy = hlsCopy(langFromUrl(Astro.url.pathname));
+---
+
+<div id="hlsDownloader" data-copy={JSON.stringify(copy)}>
+  <ToolPanel title={copy.source} icon="bi-link-45deg">
+    <span slot="actions" class="hls-badge"><i class="bi bi-skip-forward" aria-hidden="true"></i>{copy.skipBadge}</span>
+    <form id="hlsForm">
+      <label class="field-label" for="hlsUrl">{copy.url}</label>
+      <div class="hls-source-row">
+        <input class="input mono" id="hlsUrl" type="url" required placeholder={copy.urlPlaceholder} autocomplete="off" spellcheck="false" aria-describedby="hlsSourceNote" />
+        <button class="btn btn-primary" id="hlsParse" type="submit"><i class="bi bi-search" aria-hidden="true"></i>{copy.parse}</button>
+      </div>
+      <p class="hls-note" id="hlsSourceNote">{copy.sourceNote}</p>
+      <details class="hls-settings">
+        <summary><i class="bi bi-sliders" aria-hidden="true"></i>{copy.settings}</summary>
+        <div class="hls-settings-grid">
+          <div class="field"><label class="field-label" for="hlsConcurrency">{copy.concurrency}</label><input class="input" id="hlsConcurrency" type="number" min={HLS_CONFIG.limits.concurrency[0]} max={HLS_CONFIG.limits.concurrency[1]} value={HLS_CONFIG.defaults.concurrency} required /></div>
+          <div class="field"><label class="field-label" for="hlsRetries">{copy.retries}</label><input class="input" id="hlsRetries" type="number" min={HLS_CONFIG.limits.retries[0]} max={HLS_CONFIG.limits.retries[1]} value={HLS_CONFIG.defaults.retries} required /></div>
+          <div class="field"><label class="field-label" for="hlsTimeout">{copy.timeout}</label><input class="input" id="hlsTimeout" type="number" min={HLS_CONFIG.limits.timeoutSeconds[0]} max={HLS_CONFIG.limits.timeoutSeconds[1]} value={HLS_CONFIG.defaults.timeoutSeconds} required /></div>
+          <div class="field"><label class="field-label" for="hlsFilename">{copy.filename}</label><input class="input" id="hlsFilename" value={HLS_CONFIG.defaults.filename} maxlength="120" /></div>
+          <div class="field"><label class="field-label" for="hlsRangeStart">{copy.rangeStart}</label><input class="input" id="hlsRangeStart" type="number" min="1" value="1" required /></div>
+          <div class="field"><label class="field-label" for="hlsRangeEnd">{copy.rangeEnd}</label><input class="input" id="hlsRangeEnd" type="number" min="1" /></div>
+        </div>
+        <label class="hls-checkbox"><input id="hlsCredentials" type="checkbox" />{copy.credentials}</label>
+      </details>
+    </form>
+    <div id="hlsQuality" class="hls-quality" hidden>
+      <label class="field-label" for="hlsVariant">{copy.quality}</label>
+      <div class="hls-source-row"><select class="select" id="hlsVariant"></select><button class="btn btn-secondary" id="hlsLoadVariant" type="button">{copy.loadQuality}</button></div>
+    </div>
+    <p id="hlsStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
+  </ToolPanel>
+
+  <ToolPanel title={copy.workspace} icon="bi-download" className="hls-task-panel">
+    <div id="hlsEmpty" class="hls-empty">
+      <div class="hls-film" aria-hidden="true"><span></span><span></span><span class="hls-film-gap"></span><span></span><span></span></div>
+      <h3>{copy.empty}</h3><p>{copy.emptyNote}</p>
+    </div>
+    <div id="hlsTask" hidden>
+      <p class="hls-task-meta" id="hlsTaskMeta"></p>
+      <div class="hls-toolbar">
+        <button class="btn btn-primary" id="hlsStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>{copy.start}</span></button>
+        <button class="btn btn-secondary" id="hlsPause" type="button" hidden><i class="bi bi-pause-fill" aria-hidden="true"></i>{copy.pause}</button>
+        <button class="btn btn-secondary btn-sm" id="hlsRetry" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>{copy.retry}</button>
+        <button class="btn btn-ghost btn-sm" id="hlsClear" type="button"><i class="bi bi-trash3" aria-hidden="true"></i>{copy.clear}</button>
+      </div>
+      <div class="hls-progress-head"><span id="hlsProgressLabel">0 / 0</span><span class="mono" id="hlsSpeed"></span></div>
+      <div class="hls-progress" id="hlsProgress" role="progressbar" aria-label={copy.workspace} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hlsProgressDone"></span><span id="hlsProgressSkipped"></span></div>
+      <dl class="hls-stats">
+        <div><dt>{copy.doneLabel}</dt><dd id="hlsDone">0</dd></div><div><dt>{copy.skippedLabel}</dt><dd id="hlsSkipped">0</dd></div>
+        <div><dt>{copy.bytesLabel}</dt><dd id="hlsBytes">0 B</dd></div><div><dt>{copy.durationLabel}</dt><dd id="hlsDuration">00:00</dd></div>
+      </dl>
+      <div class="hls-segments-heading"><h3>{copy.segments}</h3><div class="hls-legend"><span class="pending">{copy.pending}</span><span class="fetching">{copy.fetching}</span><span class="done">{copy.done}</span><span class="skipped">{copy.skipped}</span></div></div>
+      <div id="hlsSegmentGrid" class="hls-segment-grid"></div>
+      <div class="hls-pagination" id="hlsPagination" hidden><button id="hlsPrevious" class="btn btn-ghost btn-sm" type="button">{copy.previous}</button><span id="hlsPageLabel"></span><button id="hlsNext" class="btn btn-ghost btn-sm" type="button">{copy.next}</button></div>
+      <p id="hlsGapNote" class="hls-gap-note" hidden></p>
+      <p class="hls-note"><i class="bi bi-hdd" aria-hidden="true"></i>{copy.storageNote}</p>
+    </div>
+  </ToolPanel>
+
+  <ToolPanel title={copy.exportTitle} icon="bi-camera-video" className="hls-export-panel">
+    <p class="hls-export-note">{copy.exportNote}</p>
+    <div class="hls-toolbar"><button class="btn btn-primary" id="hlsMp4" type="button" disabled><i class="bi bi-download" aria-hidden="true"></i>{copy.mp4}</button><button class="btn btn-secondary" id="hlsTs" type="button" disabled>{copy.ts}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
+    <p id="hlsExportStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
+    <div id="hlsPreviewArea" hidden><video id="hlsPreview" controls preload="metadata" aria-label={copy.preview}></video><a class="btn btn-secondary btn-sm" id="hlsSaveAgain">{copy.saveAgain}</a></div>
+    <p class="hls-note hls-limitations">{copy.limitations}</p>
+    <p class="hls-credit">{copy.attribution} <a href="https://github.com/Momo707577045/m3u8-downloader" target="_blank" rel="noopener noreferrer">m3u8-downloader</a></p>
+  </ToolPanel>
+</div>
+
+<script>import '../scripts/m3u8-downloader';</script>
+
+<style>
+  #hlsDownloader { display: grid; gap: var(--space-5); min-width: 0; }
+  .hls-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: var(--radius-full); background: var(--primary-soft); color: var(--primary-dark); font-size: 11px; font-weight: 600; }
+  .hls-source-row { display: flex; gap: 10px; align-items: stretch; }
+  .hls-source-row .input, .hls-source-row .select { flex: 1; min-width: 0; }
+  .hls-source-row .btn { flex-shrink: 0; }
+  .hls-note { display: flex; gap: 7px; align-items: baseline; color: var(--text-secondary); font-size: 12px; line-height: 1.8; margin: 10px 0 0; }
+  .hls-settings { border-top: 1px solid var(--border); margin-top: 18px; padding-top: 14px; }
+  .hls-settings summary { display: flex; gap: 8px; align-items: center; width: fit-content; cursor: pointer; font-size: 13px; color: var(--text-secondary); }
+  .hls-settings summary::after { content: '+'; font-family: var(--font-mono); padding-left: 4px; }
+  .hls-settings[open] summary::after { content: '−'; }
+  .hls-settings summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 5px; }
+  .hls-settings-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  .hls-settings-grid .field { margin: 0; min-width: 0; }
+  .hls-checkbox { display: flex; gap: 8px; align-items: center; margin-top: 14px; font-size: 13px; color: var(--text-secondary); }
+  .hls-checkbox input { accent-color: var(--primary-dark); }
+  .hls-quality { margin-top: 18px; }
+  .hls-status { padding: 11px 13px; border-radius: var(--radius-sm); background: var(--primary-soft); color: var(--text-secondary); font-size: 13px; margin: 16px 0 0; overflow-wrap: anywhere; }
+  .hls-status[data-kind='error'] { background: var(--error-soft); color: var(--error); }
+  .hls-empty { text-align: center; padding: 30px 16px; }
+  .hls-empty h3 { font-size: 17px; margin: 18px 0 9px; }
+  .hls-empty p { color: var(--text-secondary); font-size: 13px; margin: 0; }
+  .hls-film { display: flex; gap: 5px; justify-content: center; }
+  .hls-film span { width: 37px; height: 29px; border: 1px solid var(--primary-light); border-block-width: 4px; border-radius: 4px; background: var(--primary-soft); }
+  .hls-film .hls-film-gap { width: 16px; border: 1px dashed var(--border-strong); background: transparent; }
+  .hls-task-meta { color: var(--text-secondary); font-size: 13px; margin: 0 0 14px; }
+  .hls-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .hls-progress-head { display: flex; justify-content: space-between; color: var(--text-secondary); font-size: 12px; margin: 22px 0 7px; }
+  .hls-progress { display: flex; height: 7px; overflow: hidden; border-radius: var(--radius-full); background: var(--bg-tertiary); }
+  .hls-progress span { width: 0; }
+  #hlsProgressDone { background: var(--primary); } #hlsProgressSkipped { background: var(--error); }
+  .hls-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 18px 0; margin: 0; border-bottom: 1px solid var(--border); }
+  .hls-stats dt { color: var(--text-secondary); font-size: 12px; }
+  .hls-stats dd { font-family: var(--font-mono); font-size: 20px; font-weight: 600; margin: 5px 0 0; letter-spacing: -0.6px; overflow-wrap: anywhere; }
+  #hlsSkipped { color: var(--error); }
+  .hls-segments-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin: 18px 0 12px; }
+  .hls-segments-heading h3 { font-size: 13px; margin: 0; }
+  .hls-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; color: var(--text-secondary); }
+  .hls-legend span { display: flex; gap: 4px; align-items: center; }
+  .hls-legend span::before { content: ''; width: 7px; height: 7px; border-radius: 2px; background: var(--bg-tertiary); }
+  .hls-legend .fetching::before { background: var(--primary); } .hls-legend .done::before { background: var(--success); } .hls-legend .skipped::before { background: var(--error); }
+  .hls-segment-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(30px, 1fr)); gap: 5px; }
+  .hls-segment-grid :global(button) { min-width: 0; padding: 6px 0; background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; font: 10px var(--font-mono); cursor: default; }
+  .hls-segment-grid :global(button[data-state='fetching']), .hls-segment-grid :global(button[data-state='retrying']) { background: var(--primary-soft); border-color: var(--primary); color: var(--primary-dark); }
+  .hls-segment-grid :global(button[data-state='done']) { background: var(--success-soft); border-color: var(--success); color: var(--success); }
+  .hls-segment-grid :global(button[data-state='skipped']) { background: var(--error-soft); border-color: var(--error); color: var(--error); }
+  .hls-segment-grid :global(button[data-retry='true']) { cursor: pointer; }
+  .hls-segment-grid :global(button:focus-visible) { outline: 2px solid var(--primary-dark); outline-offset: 2px; }
+  .hls-pagination { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; margin-top: 12px; }
+  .hls-gap-note { color: var(--warning); background: var(--warning-soft); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12px; margin: 15px 0 0; }
+  .hls-export-note { font-size: 13px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 16px; }
+  .hls-limitations { padding-top: 14px; margin-top: 18px; border-top: 1px solid var(--border); }
+  .hls-credit { margin: 8px 0 0; font-size: 11px; color: var(--text-tertiary); }
+  #hlsPreview { display: block; width: 100%; max-height: 360px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin: 16px 0 10px; }
+  #hlsDownloader [hidden] { display: none !important; }
+  @media (max-width: 560px) {
+    .hls-source-row { flex-direction: column; } .hls-settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hls-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hls-badge { font-size: 10px; max-width: 155px; }
+    .hls-toolbar .btn { font-size: 12px; padding-inline: 12px; } .hls-legend { gap: 7px; }
+  }
+</style>

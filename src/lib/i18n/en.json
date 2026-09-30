@@ -793,6 +793,17 @@
         "morse decoder",
         "morse translator"
       ]
+    },
+    "m3u8-downloader": {
+      "name": "M3U8 Video Downloader",
+      "oneLiner": "Skip missing segments and join the rest into MP4.",
+      "description": "Download HLS videos with retries, automatic gap skipping, pause, resume and local caching. Remux saved segments into MP4 or TS in your browser.",
+      "keywords": [
+        "m3u8 downloader",
+        "HLS download",
+        "skip missing segments",
+        "m3u8 to mp4"
+      ]
     }
   },
   "content": {
@@ -2271,6 +2282,27 @@
         {
           "icon": "bi-lightbulb",
           "text": "Morse code chart reference"
+        }
+      ]
+    },
+    "m3u8-downloader": {
+      "usage": "Parse an M3U8 URL, choose a quality and start downloading. Missing segments are skipped; other failures are retried. Completed segments stay in the browser cache for resuming after a reload. Export remuxes saved segments in their original order onto a continuous timeline. The source must allow CORS; external audio tracks and DRM are not supported.",
+      "features": [
+        {
+          "icon": "bi-skip-forward",
+          "text": "Skip missing segments and continue downloading"
+        },
+        {
+          "icon": "bi-arrow-repeat",
+          "text": "Retries, pause, resume and local caching"
+        },
+        {
+          "icon": "bi-camera-video",
+          "text": "MP4 / TS remuxing without re-encoding"
+        },
+        {
+          "icon": "bi-shield-lock",
+          "text": "Video processing and cache stay in your browser"
         }
       ]
     }

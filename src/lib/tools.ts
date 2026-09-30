@@ -10,6 +10,7 @@ export interface ToolMeta {
   tier: 'P0' | 'P1';
   worker?: boolean;
   legacyPath?: string;
+  legacyAliases?: string[];
 }
 
 export interface CategoryMeta {
@@ -415,6 +416,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
   ],
   daily: [
+    {
+      slug: 'm3u8-downloader',
+      name: 'M3U8 视频下载器',
+      oneLiner: '自动跳过缺失分片，接续合并并导出 MP4。',
+      description: '在线 M3U8 视频下载器，支持并发下载、失败重试、缺失分片自动跳过、暂停继续与本地缓存续传，重新封装时间轴后导出 MP4 或 TS，音视频处理在浏览器本地完成。',
+      icon: 'bi-camera-video',
+      keywords: ['m3u8下载', '视频下载', 'HLS', 'ts合并', '缺失分片', 'm3u8转mp4'],
+      tier: 'P0',
+    },
     {
       slug: 'calendar',
       name: '在线万年历',
