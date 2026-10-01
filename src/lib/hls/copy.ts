@@ -1,6 +1,7 @@
 import chineseS2t from 'chinese-s2t';
 import type { Lang } from '../i18n';
 import { HLS_CONFIG } from '../../../config/hls.mjs';
+import { streamTranslations } from './stream-copy';
 
 const zh = {
   source: '视频来源', url: 'M3U8 播放列表地址', urlPlaceholder: 'https://example.com/video/index.m3u8',
@@ -19,7 +20,7 @@ const zh = {
   mp4: '导出 MP4', ts: '导出 TS', report: '下载缺失报告', cancelExport: '取消导出',
   loadCore: '正在加载本地合并引擎 {percent}%', preparing: '正在准备分片 {done} / {total}', merging: '正在接续时间轴并封装 {percent}%',
   exported: '已生成 {format} · {size}，可预览或再次保存', saveAgain: '再次保存视频', preview: '导出视频预览',
-  limitations: '首次导出需加载约 {coreMiB} MiB 引擎。单次导出上限 {maxMiB} MiB；大视频可按分片范围分批下载。目标站点须允许跨域访问。',
+  limitations: '首次处理需加载约 {coreMiB} MiB 引擎。普通导出上限 {maxMiB} MiB；特大模式逐片写入文件，仍受单片大小和磁盘空间限制。目标站点须允许跨域访问。',
   gapNote: '已跳过 {count} 个分片（{duration}）。这些画面无法恢复，后续内容继续接上。',
   parseBusy: '正在读取播放列表…', clearDone: '本任务缓存已清除，可重新下载', noneSkipped: '没有可重试的分片',
   invalidUrl: '请输入有效的 HTTP / HTTPS 视频地址。', invalidPlaylist: '这不是有效的 HLS 播放列表，请检查链接或列表内容。',
@@ -58,7 +59,7 @@ const en: typeof zh = {
   mp4: 'Export MP4', ts: 'Export TS', report: 'Download gap report', cancelExport: 'Cancel export',
   loadCore: 'Loading local remux engine {percent}%', preparing: 'Preparing segments {done} / {total}', merging: 'Joining timeline and remuxing {percent}%',
   exported: '{format} ready · {size}. Preview or save again.', saveAgain: 'Save video again', preview: 'Exported video preview',
-  limitations: 'The first export loads a ~{coreMiB} MiB engine. Exports are limited to {maxMiB} MiB; use segment ranges for larger videos. The source must allow CORS.',
+  limitations: 'Processing loads a ~{coreMiB} MiB engine. Standard export is limited to {maxMiB} MiB. Large-video mode writes segments to disk, subject to segment size and free space. The source must allow CORS.',
   gapNote: '{count} segments skipped ({duration}). Missing footage cannot be recovered; later content continues.',
   parseBusy: 'Reading playlist…', clearDone: 'Task cache cleared; you can download again', noneSkipped: 'No segments to retry',
   invalidUrl: 'Enter a valid HTTP / HTTPS video URL.', invalidPlaylist: 'Invalid HLS playlist. Check the URL and playlist content.',
@@ -94,7 +95,7 @@ const ko: typeof zh = {
   exportTitle: '연결 및 내보내기', exportNote: '저장된 조각을 원래 순서대로 재인코딩 없이 연속 시간축으로 연결합니다. 누락 영상은 제외됩니다.',
   mp4: 'MP4 내보내기', ts: 'TS 내보내기', report: '누락 보고서 저장', cancelExport: '내보내기 취소', loadCore: '로컬 병합 엔진 로드 중 {percent}%', preparing: '조각 준비 중 {done} / {total}', merging: '시간축 연결 및 파일 생성 중 {percent}%',
   exported: '{format} 생성 완료 · {size}. 미리 보거나 다시 저장할 수 있습니다.', saveAgain: '영상 다시 저장', preview: '내보낸 영상 미리 보기',
-  limitations: '첫 내보내기에 약 {coreMiB} MiB 엔진을 로드합니다. {maxMiB} MiB까지 지원하며 큰 영상은 조각 범위로 나누세요. 소스 서버가 CORS를 허용해야 합니다.',
+  limitations: '처리에 약 {coreMiB} MiB 엔진을 로드합니다. 일반 내보내기는 {maxMiB} MiB까지 지원합니다. 대용량 모드는 세그먼트 크기와 디스크 공간의 제한을 받습니다. 소스 서버가 CORS를 허용해야 합니다.',
   gapNote: '조각 {count}개({duration})를 건너뛰었습니다. 누락 영상은 복원할 수 없으며 이후 내용은 이어집니다.', parseBusy: '재생목록 읽는 중…', clearDone: '작업 캐시를 삭제했습니다. 다시 다운로드할 수 있습니다.', noneSkipped: '재시도할 조각이 없습니다.',
   invalidUrl: '올바른 HTTP / HTTPS 영상 주소를 입력하세요.', invalidPlaylist: '유효한 HLS 목록이 아닙니다. 링크와 내용을 확인하세요.', unsupportedPlaylist: '변수를 사용하는 목록은 지원하지 않습니다. 실제 미디어 목록 주소를 사용하세요.',
   unsupportedEncryption: '지원하지 않는 암호화 또는 DRM입니다. 표준 AES-128을 지원합니다.', externalAudio: '별도 오디오 트랙은 지원하지 않습니다. 오디오가 포함된 목록을 선택하세요.',
@@ -120,7 +121,7 @@ const ja: typeof zh = {
   exportTitle: '接続して書き出す', exportNote: '成功した部分を元の順序で連続した時間軸に再格納します。再エンコードせず、欠損映像は除外します。',
   mp4: 'MP4 を書き出す', ts: 'TS を書き出す', report: '欠損レポートを保存', cancelExport: '書き出しをキャンセル', loadCore: 'ローカルエンジンを読み込み中 {percent}%', preparing: 'セグメント準備中 {done} / {total}', merging: '時間軸を接続して再格納中 {percent}%',
   exported: '{format} を作成 · {size}。プレビューまたは再保存できます。', saveAgain: '動画を再保存', preview: '書き出した動画のプレビュー',
-  limitations: '初回書き出し時に約 {coreMiB} MiB のエンジンを読み込みます。上限は {maxMiB} MiB。大きい動画は範囲を分けてください。配信元の CORS 許可が必要です。',
+  limitations: '処理時に約 {coreMiB} MiB のエンジンを読み込みます。通常の出力上限は {maxMiB} MiB。大容量モードにはセグメントサイズと空き容量の制限があります。配信元の CORS 許可が必要です。',
   gapNote: '{count} 個（{duration}）をスキップしました。欠損映像は復元できませんが、後続の映像は接続します。', parseBusy: 'プレイリストを読み込み中…', clearDone: 'キャッシュを削除しました。再ダウンロードできます。', noneSkipped: '再試行するセグメントはありません。',
   invalidUrl: '有効な HTTP / HTTPS の動画 URL を入力してください。', invalidPlaylist: '無効な HLS リストです。リンクと内容を確認してください。', unsupportedPlaylist: '変数を含むリストには対応していません。展開済みメディアリストを使用してください。',
   unsupportedEncryption: '非対応の暗号化または DRM です。標準 AES-128 に対応しています。', externalAudio: '外部音声トラックは非対応です。音声を含むリストを選んでください。',
@@ -132,12 +133,13 @@ const ja: typeof zh = {
   storageNote: 'キャッシュはこのブラウザに保存されます。再読み込み後に同じリストを解析すると復元できます。', attribution: '参考プロジェクト', probeSkipped: '破損した {count} セグメントを除外し、レポートに記録しました。',
 };
 
-export type HlsCopy = typeof zh;
+export type HlsCopy = typeof zh & typeof streamTranslations.zh;
 export function hlsCopy(lang: Lang): HlsCopy {
   const source = lang === 'en' ? en : lang === 'ko' ? ko : lang === 'ja' ? ja : zh;
-  const tokens = { maxMiB: HLS_CONFIG.limits.exportBytes / 1048576, coreMiB: Math.ceil(HLS_CONFIG.core.estimatedBytes / 1048576) };
-  return Object.fromEntries(Object.entries(source).map(([key, value]) => {
+  const tokens = { maxMiB: HLS_CONFIG.limits.exportBytes / 1048576, coreMiB: Math.ceil(HLS_CONFIG.core.estimatedBytes / 1048576), segmentMiB: HLS_CONFIG.stream.segmentBytes / 1048576 };
+  const extra = lang === 'en' ? streamTranslations.en : lang === 'ko' ? streamTranslations.ko : lang === 'ja' ? streamTranslations.ja : streamTranslations.zh;
+  return Object.fromEntries(Object.entries({ ...source, ...extra }).map(([key, value]) => {
     const localized = lang === 'tw' ? chineseS2t.s2t(value) : value;
-    return [key, localized.replace(/\{(maxMiB|coreMiB)\}/g, (_, token) => String(tokens[token]))];
+    return [key, localized.replace(/\{(maxMiB|coreMiB|segmentMiB)\}/g, (_, token) => String(tokens[token]))];
   })) as HlsCopy;
 }

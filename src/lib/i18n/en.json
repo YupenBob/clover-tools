@@ -796,13 +796,15 @@
     },
     "m3u8-downloader": {
       "name": "M3U8 Video Downloader",
-      "oneLiner": "Skip missing segments and join the rest into MP4.",
-      "description": "Download HLS videos with retries, automatic gap skipping, pause, resume and local caching. Remux saved segments into MP4 or TS in your browser.",
+      "oneLiner": "Skip missing segments; choose a format and stream large videos to disk.",
+      "description": "Download HLS with gap skipping, retries and cached resume. Export MP4 / TS normally, or stream the original format / MP4 to a local file to reduce memory use.",
       "keywords": [
         "m3u8 downloader",
         "HLS download",
         "skip missing segments",
-        "m3u8 to mp4"
+        "m3u8 to mp4",
+        "streaming download",
+        "large video download"
       ]
     }
   },
@@ -2286,7 +2288,7 @@
       ]
     },
     "m3u8-downloader": {
-      "usage": "Parse an M3U8 URL, choose a quality and start downloading. Missing segments are skipped; other failures are retried. Completed segments stay in the browser cache for resuming after a reload. Export remuxes saved segments in their original order onto a continuous timeline. The source must allow CORS; external audio tracks and DRM are not supported.",
+      "usage": "Parse an M3U8 URL and select a quality. Missing segments are skipped; other failures are retried. Normal mode exports MP4 / TS. In Chrome / Edge with native file writing, enable large-video mode, choose original format / MP4, prepare and select a file to stream to disk. Pause, save the current part, or restore after a reload and authorize the file to rebuild from cache and continue. The source must allow CORS; external audio tracks and DRM are not supported.",
       "features": [
         {
           "icon": "bi-skip-forward",
@@ -2294,11 +2296,11 @@
         },
         {
           "icon": "bi-arrow-repeat",
-          "text": "Retries, pause, resume and local caching"
+          "text": "Pause, partial save and cached recovery after reload"
         },
         {
           "icon": "bi-camera-video",
-          "text": "MP4 / TS remuxing without re-encoding"
+          "text": "Choose a format and stream large videos to disk"
         },
         {
           "icon": "bi-shield-lock",

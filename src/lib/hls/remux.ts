@@ -2,6 +2,8 @@ import workerUrl from '../../scripts/hls-remux.worker.ts?worker&url';
 import { HlsError } from './playlist';
 import type { DownloadTask } from './downloader';
 import { HLS_CONFIG, hlsCorePath } from '../../../config/hls.mjs';
+import type { MediaInfo } from './timeline';
+import type { StreamFormat, MediaFormat } from './file';
 
 /** A disposable worker lets cancellation interrupt FFmpeg's synchronous WASM execution. */
 export class Remuxer {
@@ -16,10 +18,17 @@ export class Remuxer {
       const pending = this.pending.get(data.id);
       if (!pending) return;
       clearTimeout(pending.timer); this.pending.delete(data.id);
-      if (data.error) pending.reject(new HlsError(data.error.startsWith('coreLoadError') ? 'coreLoadError' : 'remuxError', data.error));
+      if (data.error) pending.reject(new HlsError(data.code || (data.error.startsWith('coreLoadError') ? 'coreLoadError' : 'remuxError'), data.error));
       else pending.resolve(data.result);
     };
     this.worker.onerror = (event) => { console.error('HLS worker failed:', event.message); this.stop(new HlsError(this.loaded ? 'remuxError' : 'coreLoadError', event.message)); };
+  }
+  async load(): Promise<void> {
+    if (!this.loaded) { await this.request('load', { base: new URL(hlsCorePath(), location.origin).href }); this.loaded = true; }
+  }
+  async inspect(bytes: ArrayBuffer): Promise<MediaInfo> { await this.load(); return this.request('inspect', { bytes }, [bytes]); }
+  async fragment(bytes: ArrayBuffer, format: StreamFormat): Promise<{ bytes: ArrayBuffer; info: MediaInfo; format: MediaFormat; heapBytes: number }> {
+    await this.load(); return this.request('fragment', { bytes, format }, [bytes]);
   }
   private request(action: string, payload: Record<string, unknown>, transfer: Transferable[] = []): Promise<any> {
     if (this.stopped) return Promise.reject(this.stopped);
@@ -42,8 +51,7 @@ export class Remuxer {
     // WASM has a finite address space; refuse a doomed allocation and retain the disk cache.
     const size = segments.reduce((sum, segment) => sum + task.results[segment.index].bytes, 0);
     if (size > HLS_CONFIG.limits.exportBytes) throw new HlsError('exportTooLarge');
-    await this.request('load', { base: new URL(hlsCorePath(), location.origin).href });
-    this.loaded = true;
+    await this.load();
     const files: { name: string; duration: number }[] = [];
     for (const segment of segments) {
       const blob = await task.cache.get(task.chunkId(segment));
@@ -54,8 +62,7 @@ export class Remuxer {
       const name = `segment-${segment.index}.${segment.init ? 'mp4' : 'ts'}`;
       await this.request('write', { name, bytes }, [bytes]);
       if (!await this.request('probe', { name })) {
-        task.results[segment.index] = { ...task.results[segment.index], state: 'skipped', bytes: 0, error: 'invalidMedia' };
-        await task.cache.remove?.(task.chunkId(segment));
+        await task.skip(segment, 'invalidMedia');
         progress(files.length, segments.length);
         continue;
       }

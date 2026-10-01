@@ -28,11 +28,11 @@ export interface ToolContent {
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
   'm3u8-downloader': {
-    usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。404、410、播放列表标记的缺口会自动跳过，其他失败先重试；已完成分片保存在当前浏览器，可暂停继续，也可刷新后重新解析同一列表恢复缓存。导出时按原顺序重新封装成功分片并接续时间轴，支持 MP4 与 TS。目标站点需要允许跨域访问。',
+    usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。缺失分片自动跳过，其他失败先重试。普通模式可导出 MP4 / TS；支持原生文件写入的 Chrome / Edge 可开启特大模式，选择原格式或 MP4，准备后选择文件，边下载边保存以降低内存占用。可暂停、保存当前部分，刷新后恢复任务并授权文件，从缓存重建后继续。目标站点需要允许跨域访问。',
     features: [
       { icon: 'bi-skip-forward', text: '缺失分片自动跳过，后续分片继续下载' },
-      { icon: 'bi-arrow-repeat', text: '超时重试、暂停继续与缓存续传' },
-      { icon: 'bi-camera-video', text: 'MP4 / TS 重新封装，不重新编码' },
+      { icon: 'bi-arrow-repeat', text: '暂停、部分保存、刷新恢复与缓存续传' },
+      { icon: 'bi-camera-video', text: '选择格式，特大视频边下载边保存' },
       { icon: 'bi-shield-lock', text: '分片缓存与合并均在本地，视频不上传' },
     ],
   },

@@ -33,6 +33,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
       <label class="field-label" for="hlsVariant">{copy.quality}</label>
       <div class="hls-source-row"><select class="select" id="hlsVariant"></select><button class="btn btn-secondary" id="hlsLoadVariant" type="button">{copy.loadQuality}</button></div>
     </div>
+    <div class="hls-restore" id="hlsRestoreArea" hidden><p class="hls-note">{copy.restoreNote}</p><button class="btn btn-secondary btn-sm" id="hlsRestore" type="button">{copy.restoreTask}</button></div>
     <p id="hlsStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
   </ToolPanel>
 
@@ -46,6 +47,8 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
       <div class="hls-toolbar">
         <button class="btn btn-primary" id="hlsStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>{copy.start}</span></button>
         <button class="btn btn-secondary" id="hlsPause" type="button" hidden><i class="bi bi-pause-fill" aria-hidden="true"></i>{copy.pause}</button>
+        <button class="btn btn-secondary btn-sm" id="hlsSavePartial" type="button" hidden><i class="bi bi-hdd" aria-hidden="true"></i>{copy.savePartial}</button>
+        <button class="btn btn-secondary btn-sm" id="hlsChangeFile" type="button" hidden>{copy.chooseAnotherFile}</button>
         <button class="btn btn-secondary btn-sm" id="hlsRetry" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>{copy.retry}</button>
         <button class="btn btn-ghost btn-sm" id="hlsClear" type="button"><i class="bi bi-trash3" aria-hidden="true"></i>{copy.clear}</button>
       </div>
@@ -55,6 +58,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
         <div><dt>{copy.doneLabel}</dt><dd id="hlsDone">0</dd></div><div><dt>{copy.skippedLabel}</dt><dd id="hlsSkipped">0</dd></div>
         <div><dt>{copy.bytesLabel}</dt><dd id="hlsBytes">0 B</dd></div><div><dt>{copy.durationLabel}</dt><dd id="hlsDuration">00:00</dd></div>
       </dl>
+      <div id="hlsWrittenArea" class="hls-written" hidden><span>{copy.writtenLabel}</span><strong class="mono" id="hlsWritten">0 B</strong></div>
       <div class="hls-segments-heading"><h3>{copy.segments}</h3><div class="hls-legend"><span class="pending">{copy.pending}</span><span class="fetching">{copy.fetching}</span><span class="done">{copy.done}</span><span class="skipped">{copy.skipped}</span></div></div>
       <div id="hlsSegmentGrid" class="hls-segment-grid"></div>
       <div class="hls-pagination" id="hlsPagination" hidden><button id="hlsPrevious" class="btn btn-ghost btn-sm" type="button">{copy.previous}</button><span id="hlsPageLabel"></span><button id="hlsNext" class="btn btn-ghost btn-sm" type="button">{copy.next}</button></div>
@@ -65,7 +69,11 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
 
   <ToolPanel title={copy.exportTitle} icon="bi-camera-video" className="hls-export-panel">
     <p class="hls-export-note">{copy.exportNote}</p>
-    <div class="hls-toolbar"><button class="btn btn-primary" id="hlsMp4" type="button" disabled><i class="bi bi-download" aria-hidden="true"></i>{copy.mp4}</button><button class="btn btn-secondary" id="hlsTs" type="button" disabled>{copy.ts}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
+    <div class="hls-export-options">
+      <div class="field"><label class="field-label" for="hlsFormat">{copy.formatLabel}</label><select class="select" id="hlsFormat"><option value="mp4">MP4</option><option value="ts">TS</option></select></div>
+      <div class="hls-stream-option"><label class="hls-checkbox"><input id="hlsStream" type="checkbox" aria-describedby="hlsStreamNote" />{copy.streamMode}</label><p id="hlsStreamNote" class="hls-note">{copy.streamNote}</p></div>
+    </div>
+    <div class="hls-toolbar"><button class="btn btn-primary" id="hlsExport" type="button" disabled><i class="bi bi-download" aria-hidden="true"></i>{copy.exportSelected}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
     <p id="hlsExportStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
     <div id="hlsPreviewArea" hidden><video id="hlsPreview" controls preload="metadata" aria-label={copy.preview}></video><a class="btn btn-secondary btn-sm" id="hlsSaveAgain">{copy.saveAgain}</a></div>
     <p class="hls-note hls-limitations">{copy.limitations}</p>
@@ -128,11 +136,16 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
   .hls-export-note { font-size: 13px; line-height: 1.8; color: var(--text-secondary); margin-bottom: 16px; }
   .hls-limitations { padding-top: 14px; margin-top: 18px; border-top: 1px solid var(--border); }
   .hls-credit { margin: 8px 0 0; font-size: 11px; color: var(--text-tertiary); }
+  .hls-export-options { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr); gap: 18px; align-items: start; margin-bottom: 18px; }
+  .hls-export-options .field { margin: 0; } .hls-stream-option .hls-checkbox { margin-top: 0; min-height: 24px; color: var(--text-primary); font-weight: 600; }
+  .hls-written { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--primary-soft); border-radius: var(--radius-sm); font-size: 12px; margin-top: 12px; }
+  .hls-restore { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 8px; } .hls-restore .btn { margin-top: 8px; }
   #hlsPreview { display: block; width: 100%; max-height: 360px; background: var(--bg-secondary); border-radius: var(--radius-sm); margin: 16px 0 10px; }
   #hlsDownloader [hidden] { display: none !important; }
   @media (max-width: 560px) {
     .hls-source-row { flex-direction: column; } .hls-settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .hls-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .hls-badge { font-size: 10px; max-width: 155px; }
     .hls-toolbar .btn { font-size: 12px; padding-inline: 12px; } .hls-legend { gap: 7px; }
+    .hls-export-options { grid-template-columns: 1fr; gap: 12px; }
   }
 </style>

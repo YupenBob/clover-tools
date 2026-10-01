@@ -1,9 +1,11 @@
-import { SegmentCache } from '../lib/hls/cache';
+import { SegmentCache, type SavedTask } from '../lib/hls/cache';
 import { DownloadTask, loadPlaylist, type DownloadOptions } from '../lib/hls/downloader';
 import { HlsError, httpUrl, playlistId, type Playlist } from '../lib/hls/playlist';
 import { Remuxer } from '../lib/hls/remux';
 import type { HlsCopy } from '../lib/hls/copy';
 import { HLS_CONFIG } from '../../config/hls.mjs';
+import { StreamingTask } from '../lib/hls/stream';
+import { chooseFile, DiskSink, supportsFileSaving, type SaveFileHandle, type StreamFormat } from '../lib/hls/file';
 
 const root = document.getElementById('hlsDownloader');
 if (root) {
@@ -35,6 +37,7 @@ if (root) {
   let outputUrl: string | undefined, page = 0, timer: ReturnType<typeof setTimeout> | undefined;
   let speedTimer: ReturnType<typeof setInterval> | undefined, lastBytes = 0, lastTime = performance.now();
   let originalIndices: number[] = [];
+  let streaming: StreamingTask | undefined, handle: SaveFileHandle | undefined, savedTask: SavedTask | undefined;
   const pageSize = HLS_CONFIG.ui.segmentsPerPage;
 
   function options(): DownloadOptions {
@@ -58,20 +61,31 @@ if (root) {
   }
 
   function controls() {
-    button('hlsParse').disabled = busy || exporting || parsing;
-    button('hlsLoadVariant').disabled = busy || exporting || parsing;
+    const streamMode = input('hlsStream').checked, openFile = !!streaming?.writable;
+    button('hlsParse').disabled = busy || exporting || parsing || openFile;
+    button('hlsLoadVariant').disabled = busy || exporting || parsing || openFile;
     button('hlsStart').hidden = busy;
-    button('hlsStart').disabled = !task || exporting || parsing || !task.results.some((result) => result.state === 'pending');
-    element('hlsStart').querySelector('span')!.textContent = started ? copy.resume : copy.start;
+    button('hlsStart').disabled = !task || exporting || parsing || (!streamMode && !task.results.some((result) => result.state === 'pending')) || !!(streamMode && (streaming?.finished && !openFile || !task?.results.some((result) => ['done', 'pending'].includes(result.state))));
+    element('hlsStart').querySelector('span')!.textContent = streamMode ? openFile ? copy.resume : streaming?.info ? copy.streamChoose : copy.streamPrepare : started ? copy.resume : copy.start;
     button('hlsPause').hidden = !busy;
     button('hlsRetry').disabled = !task || busy || exporting || parsing || !task.playlist.segments.some((segment) => !segment.gap && task!.results[segment.index].state === 'skipped');
     button('hlsClear').disabled = !task || busy || exporting || parsing;
     const canExport = !!task && totals().done > 0 && !busy && !exporting && !parsing;
-    button('hlsMp4').disabled = button('hlsTs').disabled = !canExport;
+    button('hlsExport').hidden = streamMode;
+    button('hlsExport').disabled = !canExport;
+    button('hlsSavePartial').hidden = !streamMode || !openFile;
+    button('hlsSavePartial').disabled = busy || exporting || parsing || !streaming?.segments;
+    button('hlsChangeFile').hidden = !streamMode || !streaming?.info || streaming.finished || openFile || !handle;
+    button('hlsChangeFile').disabled = busy || exporting || parsing;
+    input('hlsStream').disabled = busy || exporting || parsing || openFile || !supportsFileSaving();
+    element<HTMLSelectElement>('hlsFormat').disabled = busy || exporting || parsing || openFile;
+    element('hlsWrittenArea').hidden = !streamMode;
+    button('hlsRestore').disabled = busy || exporting || parsing || openFile;
     button('hlsReport').disabled = !task;
     button('hlsCancelExport').hidden = !exporting;
     for (const id of ['hlsConcurrency', 'hlsRetries', 'hlsTimeout', 'hlsCredentials', 'hlsRangeStart', 'hlsRangeEnd', 'hlsUrl', 'hlsVariant'])
-      (element(id) as HTMLInputElement).disabled = busy || exporting || parsing;
+      (element(id) as HTMLInputElement).disabled = busy || exporting || parsing || openFile;
+    input('hlsFilename').disabled = busy || exporting || parsing || openFile;
   }
 
   function draw() {
@@ -124,6 +138,8 @@ if (root) {
   }
 
   async function acceptPlaylist(playlist: Playlist) {
+    await streaming?.dispose(); streaming = undefined; handle = undefined;
+    element('hlsWritten').textContent = '0 B';
     if (playlist.variants.length) {
       task = undefined; originalIndices = []; started = false; clearPreview();
       element('hlsEmpty').hidden = false; element('hlsTask').hidden = true;
@@ -171,7 +187,9 @@ if (root) {
 
   async function download() {
     if (!task || busy || exporting || parsing) return;
+    if (input('hlsStream').checked) { await streamDownload(); return; }
     Object.assign(task.options, options());
+    delete task.options.maxBytes;
     clearPreview(); busy = true; started = true; controls(); status('downloading');
     lastBytes = totals().bytes; lastTime = performance.now();
     speedTimer = setInterval(() => {
@@ -189,7 +207,65 @@ if (root) {
   }
 
   function filename(format: string): string {
-    return (input('hlsFilename').value.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '-').replace(/\.(mp4|ts)$/i, '') || HLS_CONFIG.defaults.filename) + '.' + format;
+    return (input('hlsFilename').value.trim().replace(/[<>:"/\\|?*\x00-\x1f]/g, '-').replace(/\.(mp4|ts|aac)$/i, '') || HLS_CONFIG.defaults.filename) + '.' + format;
+  }
+
+  function remember(): Promise<unknown> {
+    if (!task) return Promise.resolve();
+    savedTask = { id: task.id, playlist: task.playlist, indices: originalIndices, source: input('hlsUrl').value,
+      filename: input('hlsFilename').value, format: element<HTMLSelectElement>('hlsFormat').value as StreamFormat,
+      rangeStart: input('hlsRangeStart').value, rangeEnd: input('hlsRangeEnd').value, handle, options: options() };
+    return cache.remember(savedTask);
+  }
+  function makeStream(): StreamingTask {
+    return new StreamingTask(task!, element<HTMLSelectElement>('hlsFormat').value as StreamFormat,
+      () => new Remuxer((event, progress) => {
+        if (event === 'loading') status('loadCore', { percent: Math.round(progress * 100) }, 'info', 'hlsExportStatus');
+      }), ({ bytes, segments, heapBytes }) => {
+        root!.dataset.workerHeap = String(heapBytes);
+        element('hlsWritten').textContent = size(bytes);
+        status('streamWritten', { count: segments, size: size(bytes) }, 'info', 'hlsExportStatus'); scheduleDraw();
+      });
+  }
+  async function streamDownload(freshFile = false) {
+    if (busy || exporting || parsing) return;
+    if (!task || !supportsFileSaving()) { failure(new HlsError('streamUnsupported')); return; }
+    busy = true; started = true; clearPreview(); controls();
+    try {
+      Object.assign(task.options, options());
+      if (!streaming || !streaming.writable && streaming.finished) { await streaming?.dispose(); streaming = makeStream(); }
+      if (!streaming.info) {
+        status('preparing', { done: 0, total: task.results.length });
+        status('preparing', { done: 0, total: task.results.length }, 'info', 'hlsExportStatus');
+        await remember(); await streaming.prepare();
+        status('streamReady', { format: streaming.output!.toUpperCase() });
+        element('hlsExportStatus').hidden = true;
+        return;
+      }
+      if (!streaming.writable) {
+        // No await precedes this picker / permission request in the button's second click.
+        status('streamReady', { format: streaming.output!.toUpperCase() });
+        handle = await chooseFile(filename(streaming.output!), streaming.output!, freshFile ? undefined : handle);
+        await remember(); streaming.attach(await DiskSink.open(handle));
+      }
+      status('downloading'); await streaming.run();
+      if (streaming.finished) status('streamComplete', { format: streaming.output!.toUpperCase(), size: size(streaming.bytes) });
+      else status('streamPaused');
+    } catch (error) {
+      failure(error);
+      // A failed native stream cannot be reused; its disk chunks remain recoverable.
+      if (error instanceof HlsError && !['fileCancelled', 'filePermissionError'].includes(error.code)) {
+        await streaming?.dispose(); streaming = undefined;
+      }
+    } finally { busy = false; draw(); }
+  }
+  function formats(streamMode: boolean) {
+    const select = element<HTMLSelectElement>('hlsFormat'); select.replaceChildren();
+    for (const [value, label] of streamMode ? [['original', copy.originalFormat], ['mp4', 'MP4']] : [['mp4', 'MP4'], ['ts', 'TS']]) {
+      const option = document.createElement('option'); option.value = value; option.textContent = label; select.append(option);
+    }
+    select.value = streamMode ? HLS_CONFIG.stream.defaultFormat : 'mp4';
+    element('hlsStreamNote').textContent = supportsFileSaving() ? copy.streamNote : copy.streamUnsupported;
   }
   function save(blob: Blob, name: string): string {
     const url = URL.createObjectURL(blob); const link = document.createElement('a');
@@ -227,12 +303,23 @@ if (root) {
   });
   button('hlsStart').addEventListener('click', () => void download());
   button('hlsPause').addEventListener('click', () => task?.pause());
-  button('hlsRetry').addEventListener('click', () => { if (!busy && !exporting && !parsing) { task?.retrySkipped(); void download(); } });
+  async function retry(index?: number) {
+    if (!task || busy || exporting || parsing) return;
+    parsing = true; controls();
+    try { await streaming?.dispose(); streaming = undefined; await task.retrySkipped(index); }
+    catch (error) { failure(error); }
+    finally { parsing = false; draw(); }
+    if (input('hlsStream').checked) status('rebuildNote');
+    await download();
+  }
+  button('hlsRetry').addEventListener('click', () => void retry());
   button('hlsClear').addEventListener('click', async () => {
     if (!task || busy || exporting || parsing) return;
     parsing = true; controls();
     try {
+      await streaming?.dispose(); streaming = undefined; handle = undefined;
       await cache.clear(task.id);
+      savedTask = undefined; element('hlsRestoreArea').hidden = true; element('hlsWritten').textContent = '0 B';
       task = new DownloadTask(task.playlist, task.id, cache, options(), scheduleDraw);
       clearPreview(); started = false; status('clearDone');
     } catch (error) { failure(error); }
@@ -240,16 +327,58 @@ if (root) {
   });
   element('hlsSegmentGrid').addEventListener('click', (event) => {
     const cell = (event.target as HTMLElement).closest<HTMLButtonElement>('button[data-index]');
-    if (cell?.dataset.retry === 'true') { task?.retrySkipped(Number(cell.dataset.index)); void download(); }
+    if (cell?.dataset.retry === 'true') void retry(Number(cell.dataset.index));
   });
   button('hlsPrevious').addEventListener('click', () => { page--; draw(); });
   button('hlsNext').addEventListener('click', () => { page++; draw(); });
-  button('hlsMp4').addEventListener('click', () => void exportVideo('mp4'));
-  button('hlsTs').addEventListener('click', () => void exportVideo('ts'));
+  button('hlsExport').addEventListener('click', () => void exportVideo(element<HTMLSelectElement>('hlsFormat').value as 'mp4' | 'ts'));
+  input('hlsStream').addEventListener('change', () => {
+    void streaming?.dispose(); streaming = undefined; handle = undefined; formats(input('hlsStream').checked); draw();
+  });
+  element('hlsFormat').addEventListener('change', () => { void streaming?.dispose(); streaming = undefined; handle = undefined; draw(); });
+  button('hlsSavePartial').addEventListener('click', async () => {
+    if (busy || exporting || parsing || !streaming?.writable) return;
+    exporting = true; controls();
+    try { await streaming.finish(); status('partialSaved', { size: size(streaming.bytes) }); await streaming.dispose(); streaming = undefined; }
+    catch (error) { failure(error); await streaming?.dispose(); streaming = undefined; }
+    finally { exporting = false; draw(); }
+  });
+  button('hlsChangeFile').addEventListener('click', () => void streamDownload(true));
+  input('hlsFilename').addEventListener('change', () => {
+    if (!busy && !exporting && !parsing && !streaming?.writable) {
+      if (streaming?.finished) { void streaming.dispose(); streaming = undefined; }
+      handle = undefined; draw();
+    }
+  });
+  button('hlsRestore').addEventListener('click', async () => {
+    if (!savedTask || busy || exporting || parsing) return;
+    parsing = true; controls();
+    try {
+      await streaming?.dispose(); streaming = undefined;
+      const snapshot = savedTask;
+      if (await playlistId(snapshot.playlist) !== snapshot.id) throw new HlsError('invalidPlaylist');
+      if (!supportsFileSaving()) throw new HlsError('streamUnsupported');
+      input('hlsStream').checked = true; formats(true); element<HTMLSelectElement>('hlsFormat').value = snapshot.format;
+      input('hlsUrl').value = snapshot.source; input('hlsFilename').value = snapshot.filename;
+      input('hlsRangeStart').value = snapshot.rangeStart; input('hlsRangeEnd').value = snapshot.rangeEnd;
+      if (snapshot.options) {
+        input('hlsConcurrency').value = String(snapshot.options.concurrency); input('hlsRetries').value = String(snapshot.options.retries);
+        input('hlsTimeout').value = String(snapshot.options.timeout / 1000); input('hlsCredentials').checked = snapshot.options.credentials === 'include';
+      }
+      task = new DownloadTask(snapshot.playlist, snapshot.id, cache, options(), scheduleDraw);
+      const count = await task.restore(); originalIndices = snapshot.indices; handle = snapshot.handle;
+      master = undefined; element('hlsQuality').hidden = true; page = 0; started = true; clearPreview();
+      element('hlsEmpty').hidden = true; element('hlsTask').hidden = false; element('hlsRestoreArea').hidden = true;
+      element('hlsTaskMeta').textContent = translate('ready', { count: task.results.length, duration: seconds(task.playlist.duration) });
+      element('hlsWritten').textContent = '0 B'; status('streamRestored', { count });
+    } catch (error) { failure(error); }
+    finally { parsing = false; draw(); }
+  });
   button('hlsCancelExport').addEventListener('click', () => remuxer?.stop());
   button('hlsReport').addEventListener('click', () => {
     if (!task) return;
     const report = { source: task.playlist.url, created: new Date().toISOString(), snapshot: task.playlist.live,
+      streaming: input('hlsStream').checked ? { format: element<HTMLSelectElement>('hlsFormat').value, writtenBytes: streaming?.bytes || 0 } : undefined,
       totals: totals(), segments: task.playlist.segments.map((segment, index) => ({ index: originalIndices[index],
         sequence: segment.sequence, url: segment.url, start: segment.start, duration: segment.duration,
         discontinuity: segment.discontinuity, ...task!.results[index] })) };
@@ -260,11 +389,13 @@ if (root) {
     if (event.ctrlKey && event.key === 'Enter' && !button('hlsParse').disabled) element<HTMLFormElement>('hlsForm').requestSubmit();
   });
   window.addEventListener('pagehide', () => {
-    disposed = true; task?.pause(); parseController?.abort(); remuxer?.stop();
+    disposed = true; task?.pause(); parseController?.abort(); remuxer?.stop(); void streaming?.dispose(); streaming = undefined;
     clearInterval(speedTimer); clearTimeout(timer); if (outputUrl) URL.revokeObjectURL(outputUrl);
   });
   window.addEventListener('pageshow', (event) => { if (event.persisted) { disposed = false; busy = false; exporting = false; parsing = false; draw(); } });
   const source = new URLSearchParams(location.search).get('source');
   if (source) { input('hlsUrl').value = source; void parse(source); }
+  void cache.active().then((saved) => { if (!disposed && saved) { savedTask = saved; element('hlsRestoreArea').hidden = false; } }).catch((error) => failure(error));
+  formats(false);
   controls();
 }

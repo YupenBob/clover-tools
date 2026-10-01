@@ -6,6 +6,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, statSync, cpSync } from 'node:fs';
 import { dirname, join, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkStreaming } from './hls-stream-browser.mjs';
+import { HLS_CONFIG } from '../config/hls.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'output/playwright/hls');
@@ -16,23 +18,42 @@ mkdirSync(output, { recursive: true });
 // Other work may rebuild dist concurrently; serve a private snapshot for this regression.
 cpSync(join(root, 'dist'), dist, { recursive: true });
 const command = (program, args, cwd = root) => execFileSync(program, args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 20 * 1048576 });
-for (const format of ['ts', 'fmp4']) {
+for (const format of ['ts', 'fmp4', 'bframes']) {
   const directory = join(output, format); mkdirSync(directory, { recursive: true });
   command(ffmpeg, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=size=160x90:rate=15', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000',
-    '-t', '12', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-g', '30', '-sc_threshold', '0', '-c:a', 'aac', '-b:a', '64k',
+    '-t', '12', '-c:v', 'libx264', '-preset', format === 'bframes' ? 'medium' : 'ultrafast', ...(format === 'bframes' ? ['-bf', '2'] : []), '-pix_fmt', 'yuv420p', '-g', '30', '-sc_threshold', '0', '-c:a', 'aac', '-b:a', '64k',
     '-f', 'hls', '-hls_time', '2', '-hls_list_size', '0', '-hls_flags', 'independent_segments',
     ...(format === 'fmp4' ? ['-hls_segment_type', 'fmp4'] : []),
-    '-hls_segment_filename', join(directory, format === 'ts' ? 'seg%d.ts' : 'seg%d.m4s'), join(directory, 'index.m3u8')], directory);
+    '-hls_segment_filename', join(directory, format === 'fmp4' ? 'seg%d.m4s' : 'seg%d.ts'), join(directory, 'index.m3u8')], directory);
 }
 const counts = new Map();
+const audioDirectory = join(output, 'aac'); mkdirSync(audioDirectory, { recursive: true });
+command(ffmpeg, ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=48000', '-t', '12', '-c:a', 'aac', '-b:a', '64k', '-f', 'segment', '-segment_time', '2', '-segment_format', 'adts', join(audioDirectory, 'seg%d.aac')]);
+const audioDuration = (data) => { let p = 0, frames = 0; while (p < data.length) { p += ((data[p + 3] & 3) << 11) | (data[p + 4] << 3) | (data[p + 5] >> 5); frames++; } return frames * 1024 / 48000; };
+writeFileSync(join(audioDirectory, 'index.m3u8'), '#EXTM3U\n' + Array.from({ length: 6 }, (_, i) => `#EXTINF:${audioDuration(readFileSync(join(audioDirectory, `seg${i}.aac`))).toFixed(9)},\nseg${i}.aac`).join('\n') + '\n#EXT-X-ENDLIST');
 let slow = false;
+let recoverSkipped = false;
+const largePacket = new Uint8Array(188).fill(255); largePacket.set([0x47, 0x1f, 0xff, 0x10]);
+command(ffmpeg, ['-v', 'error', '-y', '-i', join(output, 'ts/seg0.ts'), '-map', '0:v:0', '-c', 'copy', '-muxdelay', '0', '-f', 'mpegts', join(output, 'large-video.ts')]);
+const largeSource = readFileSync(join(output, 'large-video.ts'));
+const largePadding = Buffer.alloc(Math.ceil((32 * 1048576 - largeSource.length) / 188) * 188);
+for (let p = 0; p < largePadding.length; p += 188) largePadding.set(largePacket, p);
+const largeFile = join(output, 'large.ts'); writeFileSync(largeFile, Buffer.concat([largeSource, largePadding]));
+const largeCount = Math.ceil(HLS_CONFIG.limits.exportBytes / statSync(largeFile).size) + 2;
 const csp = readFileSync(join(root, 'public/_headers'), 'utf8').match(/Content-Security-Policy: ([^\r\n]+)/)[1];
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.m3u8': 'application/vnd.apple.mpegurl', '.ts': 'video/mp2t', '.mp4': 'video/mp4', '.m4s': 'video/mp4', '.bin': 'application/octet-stream' };
 const server = createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname;
   counts.set(path, (counts.get(path) || 0) + 1);
   if (path.startsWith('/media/')) {
-    const format = path.includes('/fmp4/') ? 'fmp4' : 'ts';
+    if (path.startsWith('/media/large/')) {
+      if (path.endsWith('index.m3u8')) {
+        response.setHeader('Content-Type', mime['.m3u8']);
+        response.end('#EXTM3U\n' + Array.from({ length: largeCount }, (_, i) => `${i ? '#EXT-X-DISCONTINUITY\n' : ''}#EXTINF:2,\nseg${i}.ts`).join('\n') + '\n#EXT-X-ENDLIST');
+      } else { response.setHeader('Content-Type', mime['.ts']); response.end(readFileSync(largeFile)); }
+      return;
+    }
+    const format = path.includes('/fmp4/') ? 'fmp4' : path.includes('/aac/') ? 'aac' : path.includes('/bframes/') ? 'bframes' : 'ts';
     const name = path.split('/').at(-1);
     if (name === 'master.m3u8') {
       response.setHeader('Content-Type', mime['.m3u8']);
@@ -47,8 +68,8 @@ const server = createServer(async (request, response) => {
       if (format === 'fmp4') text = text.replace('seg3.m4s', '#EXT-X-GAP\nseg3.m4s');
       response.setHeader('Content-Type', mime['.m3u8']); response.end(text); return;
     }
-    if (name === 'seg1.ts' || name === 'seg1.m4s') { response.statusCode = 404; response.end(); return; }
-    if (name === 'seg3.ts') { response.statusCode = 410; response.end(); return; }
+    if ((!recoverSkipped && name === 'seg1.ts') || name === 'seg1.m4s' || name === 'seg1.aac') { response.statusCode = 404; response.end(); return; }
+    if (!recoverSkipped && name === 'seg3.ts') { response.statusCode = 410; response.end(); return; }
     if (name === 'seg2.ts' && counts.get(path) === 1) { response.statusCode = 503; response.end(); return; }
     if (slow) await new Promise((resolve) => setTimeout(resolve, 180));
     if (name === 'seg4.ts') {
@@ -79,7 +100,7 @@ function verify(file, format, retained, duration) {
   command(ffmpeg, ['-v', 'error', '-xerror', '-i', file, '-f', 'null', '-']);
   let expected;
   const referenceFiles = [];
-  if (format === 'ts') expected = retained.flatMap((index) => { const reference = join(output, 'ts', `seg${index}.ts`); referenceFiles.push(reference); return frames(reference); });
+  if (format !== 'fmp4') expected = retained.flatMap((index) => { const reference = join(output, format, `seg${index}.ts`); referenceFiles.push(reference); return frames(reference); });
   else {
     expected = retained.flatMap((index) => {
       const reference = join(output, `reference-${index}.mp4`);
@@ -116,12 +137,14 @@ try {
     await page.waitForFunction(() => !document.getElementById('hlsParse').disabled);
   };
   const finish = async () => {
+    if (await page.locator('#hlsStart').isDisabled()) return;
     await page.locator('#hlsStart').click();
     await page.waitForFunction(() => document.getElementById('hlsStatus').textContent.includes('下载结束'));
   };
   const exportFile = async (id, name) => {
+    await page.locator('#hlsFormat').selectOption(name.endsWith('.ts') ? 'ts' : 'mp4');
     const download = page.waitForEvent('download', { timeout: 240000 });
-    await page.locator(id).click();
+    await page.locator('#hlsExport').click();
     // Surface an engine failure quickly instead of waiting for a download that cannot happen.
     await page.waitForFunction(() => !document.getElementById('hlsCancelExport').hidden || document.getElementById('hlsExportStatus').dataset.kind === 'error');
     const result = await Promise.race([download, page.waitForFunction(() => document.getElementById('hlsExportStatus').dataset.kind === 'error', null, { timeout: 240000 }).then(async () => { throw new Error(await page.locator('#hlsExportStatus').textContent()); })]);
@@ -130,6 +153,7 @@ try {
     return file;
   };
   await page.goto(base + '/tools/daily/m3u8-downloader/');
+  if (process.env.HLS_STREAM_ONLY !== '1') {
   await page.screenshot({ path: join(output, 'desktop-empty.png'), fullPage: true });
   await page.locator('#hlsUrl').fill(base + '/media/ts/master.m3u8'); await page.locator('#hlsParse').click();
   await page.locator('#hlsQuality').waitFor({ state: 'visible' }); await page.locator('#hlsLoadVariant').click();
@@ -145,7 +169,7 @@ try {
   await finish();
   for (const index of [0, 2, 4, 5]) assert.equal(counts.get(`/media/ts/seg${index}.ts`), before.get(`/media/ts/seg${index}.ts`));
   console.log('PASS reload restores cached segments without requesting them again');
-  await page.locator('#hlsMp4').click(); await page.locator('#hlsCancelExport').click();
+  await page.locator('#hlsExport').click(); await page.locator('#hlsCancelExport').click();
   await page.waitForFunction(() => document.getElementById('hlsExportStatus').textContent.includes('已取消'));
   console.log('PASS export cancellation interrupts worker and keeps cache');
   const mp4 = await exportFile('#hlsMp4', 'missing-ts.mp4');
@@ -184,6 +208,8 @@ try {
   await page.locator('#hlsUrl').fill(base + '/media/ts/external.m3u8'); await page.locator('#hlsParse').click();
   await page.locator('#hlsQuality').waitFor({ state: 'visible' }); await page.locator('#hlsLoadVariant').click();
   assert.ok((await page.locator('#hlsStatus').textContent()).includes('独立音轨')); console.log('PASS external audio explicitly rejected');
+  }
+  await checkStreaming({ page, context, base, output, counts, verify, setSlow: (value) => slow = value, setRecoverSkipped: (value) => recoverSkipped = value, ffmpeg, ffprobe });
   for (const [prefix, lang, label] of [['/en', 'en', 'Parse URL'], ['/ko', 'ko', '링크 분석'], ['/ja', 'ja', 'リンクを解析'], ['/zh-hant', 'tw', '解析鏈接']]) {
     await page.evaluate((value) => localStorage.setItem('clover-lang', value), lang);
     await page.goto(base + prefix + '/tools/daily/m3u8-downloader/');
