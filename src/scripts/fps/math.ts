@@ -19,7 +19,9 @@ export function mouseGain(settings: Settings): number {
   if (settings.calibrationGain > 0) return radians(settings.calibrationGain);
   if (settings.cm360 > 0) return radians((360 * 2.54) / (settings.dpi * settings.cm360));
   return radians(
-    GAME_PROFILES[settings.game as keyof typeof GAME_PROFILES].values.yaw * settings.sensitivity,
+    GAME_PROFILES[settings.game as keyof typeof GAME_PROFILES].values.yaw *
+      settings.sensitivity *
+      settings.turnMultiplier,
   );
 }
 export function cmPerTurn(settings: Settings): number {

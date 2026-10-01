@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { FPS_CONFIG, TRAINING_MODES, WEAPON_PROFILES } from '../../config/fps.mjs';
 import { localizedPath } from '../../config/routes.mjs';
 import { BROWSER_CHECKS } from '../../config/quality.mjs';
+import { TrainingSession } from '../../src/scripts/fps/core.ts';
+import { mouseGain } from '../../src/scripts/fps/math.ts';
 
 /** Uses the existing browser harness; no production test controls or alternate game rules. */
 export async function runFpsChecks({ run, remember, base, artifacts }) {
@@ -58,7 +60,9 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         hidden: document.hidden,
         trace: window.__fpsLockTrace,
       }));
-      throw new Error(`Range start failed: ${JSON.stringify(state)}`, { cause: error });
+      throw new Error(`Range start failed: ${JSON.stringify(state)}`, {
+        cause: error,
+      });
     }
     assert.equal(await page.evaluate(() => document.pointerLockElement?.id), 'fpsCanvas');
   }
@@ -88,7 +92,9 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         hidden: document.hidden,
         locked: document.pointerLockElement?.id || null,
       }));
-      throw new Error(`Recovery failed: ${JSON.stringify(state)}`, { cause: error });
+      throw new Error(`Recovery failed: ${JSON.stringify(state)}`, {
+        cause: error,
+      });
     }
   }
   for (const [lang, title] of [
@@ -220,6 +226,103 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         await page.evaluate((key) => localStorage.getItem(key), FPS_CONFIG.storage.preferences),
         null,
       );
+    },
+  );
+  await run(
+    'FPS bot range: sectors, moving bots, unlimited ammo and faster turning preferences',
+    { viewport: { width: 1440, height: 1000 } },
+    async (page, context) => {
+      await open(page, context);
+      await page.locator('[data-fps-preset=botWarmup]').click();
+      assert.equal(await page.locator('[name=mode]:checked').inputValue(), 'free');
+      assert.equal(
+        await page.locator('[name=turnMultiplier]').inputValue(),
+        String(FPS_CONFIG.defaults.turnMultiplier),
+      );
+      await page.locator('[name=sector]').selectOption('surround');
+      await page.locator('[name=movingBots]').check();
+      assert.equal(await page.locator('[name=speed]').isEnabled(), true);
+      await page.locator('[name=headOnlyBots]').uncheck();
+      await page.locator('[name=turnMultiplier]').fill('6');
+      await page.reload();
+      await page.waitForSelector('#fpsTrainer[data-ready=true]');
+      assert.equal(await page.locator('[name=turnMultiplier]').inputValue(), '6');
+      assert.equal(await page.locator('[name=sector]').inputValue(), 'surround');
+      assert.equal(await page.locator('[name=movingBots]').isChecked(), true);
+      assert.equal(await page.locator('[name=headOnlyBots]').isChecked(), false);
+      await page.locator('[data-fps-preset=botWarmup]').click();
+      await enter(page);
+      await page.screenshot({ path: join(artifacts, 'fps-bot-range.png') });
+      assert.equal(await page.locator('#fpsAmmo').innerText(), '∞');
+      await page.mouse.move(720, 500);
+      await page.mouse.move(1000, 500);
+      await page.screenshot({ path: join(artifacts, 'fps-bot-turn.png') });
+      await page.mouse.down();
+      await page.waitForTimeout(3300);
+      await page.mouse.up();
+      assert.equal(await page.locator('#fpsAmmo').innerText(), '∞');
+      await pause(page);
+      await page.locator('#fpsFinish').click();
+      assert.ok(
+        Number(await page.locator('[data-metric=shots] strong').innerText()) >
+          WEAPON_PROFILES.ak47.values.magazine,
+      );
+      const stored = await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key))[0],
+        FPS_CONFIG.storage.history,
+      );
+      assert.equal(stored.settings.turnMultiplier, 6);
+    },
+  );
+  await run(
+    'FPS small balls: actual hit, rapid respawn and ball-specific report',
+    { viewport: { width: 1440, height: 1000 } },
+    async (page, context) => {
+      await open(page, context);
+      await page.evaluate(() => {
+        crypto.getRandomValues = (array) => {
+          array.fill(22);
+          return array;
+        };
+      });
+      await page.locator('[data-fps-preset=ballWarmup]').click();
+      await page.screenshot({
+        path: join(artifacts, 'fps-ball-settings.png'),
+        fullPage: true,
+      });
+      await enter(page);
+      const simulation = new TrainingSession(FPS_CONFIG.presets.ballWarmup, 22);
+      const target = simulation.targets[0],
+        eye = simulation.eye;
+      const yaw = Math.atan2(target.x - eye.x, eye.z - target.z);
+      const pitch = Math.atan2(target.y - eye.y, Math.hypot(target.x - eye.x, target.z - eye.z));
+      await page.evaluate(
+        ({ dx, dy }) =>
+          document.dispatchEvent(new MouseEvent('mousemove', { movementX: dx, movementY: dy })),
+        {
+          dx: yaw / mouseGain(simulation.settings),
+          dy: -pitch / mouseGain(simulation.settings),
+        },
+      );
+      await page.waitForTimeout(100);
+      await page.screenshot({
+        path: join(artifacts, 'fps-small-ball-range.png'),
+      });
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.waitForTimeout(200);
+      assert.equal(await page.locator('#fpsKills').innerText(), '1');
+      await pause(page);
+      await page.locator('#fpsFinish').click();
+      assert.equal(await page.locator('[data-metric=headRate]').count(), 0);
+      assert.match(await page.locator('#fpsImpactTitle').innerText(), /小球/);
+      const stored = await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key))[0],
+        FPS_CONFIG.storage.history,
+      );
+      assert.equal(stored.impacts[0].region, 'ball');
+      assert.equal(stored.headRate, null);
+      assert.equal(stored.targets, 1);
     },
   );
   for (const mode of Object.keys(TRAINING_MODES).filter((id) => TRAINING_MODES[id].timed)) {

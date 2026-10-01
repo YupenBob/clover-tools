@@ -1,6 +1,7 @@
 import chineseS2t from 'chinese-s2t';
 import { FPS_CONFIG } from '../../config/fps.mjs';
 import type { Lang } from './i18n';
+import { FPS_RANGE_TEXT, type FpsRangeText } from './fps-range-i18n.ts';
 
 const zh = {
   resetSettings: '清除设置与校准',
@@ -520,32 +521,45 @@ const ja: Text = {
   free: '自由練習',
   freeDesc: '自由に移動と射撃を行い、手動で終了します。',
 };
-export type FpsText = Text;
-export function fpsText(lang: Lang): Text {
-  const source = { zh, en, ko, ja }[lang as 'zh' | 'en' | 'ko' | 'ja'] || zh;
+export type FpsText = Text & FpsRangeText;
+export function fpsText(lang: Lang): FpsText {
+  const locale = lang === 'tw' ? 'zh' : lang;
+  const source = {
+    ...({ zh, en, ko, ja }[locale] || zh),
+    ...(FPS_RANGE_TEXT[locale] || FPS_RANGE_TEXT.zh),
+  };
   return Object.fromEntries(
     Object.entries(source).map(([key, value]) => [
       key,
-      (lang === 'tw' ? chineseS2t.s2t(value) : value).replaceAll(
-        '{distance}',
-        String(FPS_CONFIG.calibration.distanceCm),
-      ),
+      (lang === 'tw' ? chineseS2t.s2t(value) : value)
+        .replaceAll('{distance}', String(FPS_CONFIG.calibration.distanceCm))
+        .replaceAll('{multiplier}', String(FPS_CONFIG.defaults.turnMultiplier)),
     ]),
-  ) as Text;
+  ) as FpsText;
 }
 export const FPS_META = {
   zh: {
     name: zh.title,
     oneLiner: '停稳再开枪，练预瞄、急停与步枪控枪。',
     description:
-      '面向 CS2 与瓦洛兰特玩家的第一人称练枪靶场，提供四把步枪、点射、急停、预瞄、压枪、跟枪与切换训练，支持灵敏度校准、参数来源说明和本地成绩记录。',
-    keywords: ['FPS练枪', 'CS2练枪', '瓦洛兰特练枪', '急停训练', '预瞄', '压枪', 'aim trainer'],
+      '面向 CS2 与瓦洛兰特玩家的第一人称练枪靶场，提供 Bot 热身、小球点击及四把步枪的点射、急停、预瞄、压枪与跟枪训练，支持浏览器转向倍率、灵敏度校准和本地成绩。',
+    keywords: [
+      'FPS练枪',
+      'CS2练枪',
+      '瓦洛兰特练枪',
+      'Bot热身',
+      '小球点击',
+      '急停训练',
+      '预瞄',
+      '压枪',
+      'aim trainer',
+    ],
   },
   en: {
     name: en.title,
     oneLiner: 'Practice pre-aim, stopping and rifle control.',
     description:
-      'First-person aim training for CS2 and VALORANT: practice strafing, peeking and recoil with four rifles, sensitivity calibration and local results.',
+      'First-person CS2 and VALORANT practice with a bot range, small-ball clicking and four rifles. Adjust browser turning, calibrate sensitivity and review local results.',
     keywords: [
       'FPS aim trainer',
       'CS2 aim training',
@@ -558,23 +572,26 @@ export const FPS_META = {
     name: ko.title,
     oneLiner: '사전 조준, 정지 사격과 소총 반동 제어를 연습하세요.',
     description:
-      'CS2와 발로란트 플레이어를 위한 1인칭 에임 훈련장. 소총 4종으로 미세 조준, 정지 사격, 피킹과 반동 제어를 연습하며 감도 보정, 매개변수 출처와 기기 내 기록을 제공합니다.',
+      'CS2와 발로란트용 1인칭 봇 사격장과 작은 공 클릭 훈련. 소총 4종으로 정지 사격과 반동을 연습하고 브라우저 회전 배율, 감도 보정과 기기 내 기록을 사용하세요.',
     keywords: ['FPS 에임 훈련', 'CS2 에임', '발로란트 연습', '정지 사격', '반동 제어'],
   },
   ja: {
     name: ja.title,
     oneLiner: 'プリエイム、停止射撃とライフルの反動制御を練習。',
     description:
-      'CS2とVALORANT向けの一人称エイム練習場。4種類のライフルで微調整、停止射撃、ピークと反動制御を練習し、感度校正、パラメータの出典と端末内の結果を確認できます。',
+      'CS2とVALORANT向けのBot射撃場と小球クリック練習。4種類のライフルで停止射撃や反動を練習し、旋回倍率、感度校正と端末内の結果を確認できます。',
     keywords: ['FPSエイム練習', 'CS2練習', 'VALORANTエイム', '停止射撃', '反動制御'],
   },
 };
 export function fpsContent(lang: Lang) {
   const t = fpsText(lang);
   return {
-    usage: `${t.intro} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
+    usage: `${t.rangeIntro} ${t.turnHint} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
     features: [
-      { icon: 'bi-crosshair', text: `${t.micro} / ${t.strafe} / ${t.peek}` },
+      {
+        icon: 'bi-crosshair',
+        text: `${t.botWarmup} / ${t.dots} / ${t.strafe}`,
+      },
       { icon: 'bi-bullseye', text: `${t.spray} / ${t.track} / ${t.switch}` },
       { icon: 'bi-sliders', text: `${t.sensitivity} / ${t.calibration}` },
       { icon: 'bi-bar-chart', text: `${t.report} / ${t.history}` },

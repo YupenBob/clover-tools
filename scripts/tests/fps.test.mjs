@@ -180,10 +180,38 @@ test('a previous unlock notification cannot cancel the next explicit capture req
   assert.equal(pointer.acceptChange(), false);
 });
 
+test('unsupported raw input is probed once per page instead of consuming resume request quota', async () => {
+  let owned = false;
+  const calls = [];
+  const pointer = new PointerCapture({
+    available: () => true,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+    },
+    request: (raw) => {
+      calls.push(raw);
+      if (raw) throw new DOMException('unsupported', 'NotSupportedError');
+      owned = true;
+    },
+  });
+  for (let turn = 0; turn < 3; turn++) {
+    assert.equal(await pointer.request(), 'requested');
+    assert.equal(pointer.acceptChange(), true);
+    assert.equal(pointer.raw, false);
+    pointer.cancel();
+  }
+  assert.deepEqual(calls, [true, false, false, false]);
+});
+
 const near = (actual, expected, tolerance = 1e-8) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
 test('mouse angular gain, physical calibration and reference FOV have reversible units', () => {
-  const settings = normalizeSettings({ sensitivity: 1, dpi: 800 });
+  const settings = normalizeSettings({
+    sensitivity: 1,
+    dpi: 800,
+    turnMultiplier: 1,
+  });
   near(mouseGain(settings), radians(FPS_DATA.cs2.variables.m_yaw));
   near(cmPerTurn(settings), (360 * 2.54) / (800 * 0.022));
   settings.cm360 = 40;
@@ -214,12 +242,148 @@ test('configuration normalizes malformed preferences and incompatible rifles wit
     quality: '__proto__',
   });
   assert.equal(s.game, 'cs2');
-  assert.equal(s.mode, 'micro');
+  assert.equal(s.mode, FPS_CONFIG.defaults.mode);
   assert.equal(s.distance, FPS_CONFIG.controls.distance.min);
   assert.equal(s.count, FPS_CONFIG.controls.count.max);
   const val = normalizeSettings({ game: 'valorant', weapon: 'ak47' });
   assert.equal(WEAPON_PROFILES[val.weapon].values.game, 'valorant');
   assert.equal(val.fov, GAME_PROFILES.valorant.values.defaultFov);
+});
+test('browser turning is faster by default while physical input calibration takes priority', () => {
+  const settings = normalizeSettings({ sensitivity: 1 });
+  near(
+    mouseGain(settings),
+    radians(FPS_DATA.cs2.variables.m_yaw * FPS_CONFIG.defaults.turnMultiplier),
+  );
+  settings.turnMultiplier = 8;
+  settings.cm360 = 35;
+  near(cmPerTurn(settings), 35);
+  settings.calibrationGain = 0.04;
+  near(mouseGain(settings), radians(0.04));
+  const legacy = normalizeSettings({
+    game: 'cs2',
+    mode: 'micro',
+    sensitivity: 1.3,
+  });
+  assert.equal(legacy.sensitivity, 1.3);
+  assert.equal(legacy.turnMultiplier, FPS_CONFIG.defaults.turnMultiplier);
+  const val = normalizeSettings({ game: 'valorant', turnMultiplier: 1 });
+  near(mouseGain(val), radians(GAME_PROFILES.valorant.values.yaw * val.sensitivity));
+});
+test('bot sectors, movement and infinite ammunition obey settings with deterministic respawns', () => {
+  for (const sector of Object.keys(FPS_CONFIG.sectors)) {
+    const s = new TrainingSession({ mode: 'free', sector, count: 12 }, 45);
+    const half = radians(FPS_CONFIG.sectors[sector] / 2);
+    for (const t of s.targets) {
+      assert.ok(Math.abs(Math.atan2(t.x, FPS_CONFIG.scene.spawnZ - t.z)) <= half);
+      assert.ok(
+        Math.hypot(t.x, t.z - FPS_CONFIG.scene.spawnZ) <=
+          s.settings.distance * (1 + FPS_CONFIG.scene.bot.radialJitter),
+      );
+    }
+    const original = s.targets.map((t) => [t.x, t.z]);
+    s.advanceTo(1);
+    assert.deepEqual(
+      s.targets.map((t) => [t.x, t.z]),
+      original,
+    );
+  }
+  const moving = new TrainingSession({ mode: 'free', movingBots: true }, 45);
+  const original = moving.targets.map((t) => [t.x, t.z]);
+  moving.advanceTo(1);
+  assert.notDeepEqual(
+    moving.targets.map((t) => [t.x, t.z]),
+    original,
+  );
+  const endless = new TrainingSession({ mode: 'free', infiniteAmmo: true });
+  endless.setInput(0, { firing: true });
+  endless.advanceTo(4);
+  assert.ok(endless.result().shots > endless.weapon.values.magazine);
+  assert.equal(endless.ammo, endless.weapon.values.magazine);
+  endless.reload(4);
+  assert.equal(endless.reloadUntil, 0);
+  const magazine = new TrainingSession({ mode: 'free', infiniteAmmo: false });
+  magazine.setInput(0, { firing: true });
+  magazine.advanceTo(4);
+  assert.equal(magazine.result().shots, magazine.weapon.values.magazine);
+});
+test('small balls have spherical hit regions, one-hit completion and no headshot metric', () => {
+  const s = new TrainingSession({ mode: 'dots', count: 1, distance: 10 }, 22);
+  const target = s.targets[0];
+  const yaw = Math.atan2(target.x - s.eye.x, s.eye.z - target.z);
+  const pitch = Math.atan2(target.y - s.eye.y, Math.hypot(target.x - s.eye.x, target.z - s.eye.z));
+  assert.equal(s.intersection(direction(yaw, pitch)).region, 'ball');
+  const miss = Math.atan2(
+    target.y + FPS_CONFIG.scene.ball.radius * s.scale * 1.1 - s.eye.y,
+    s.eye.z - target.z,
+  );
+  assert.equal(s.intersection(direction(yaw, miss)), null);
+  s.aim(0, yaw / mouseGain(s.settings), -pitch / mouseGain(s.settings));
+  s.setInput(0, { firing: true });
+  s.setInput(0.001, { firing: false });
+  assert.equal(s.result().targets, 1);
+  assert.equal(s.result().heads, 0);
+  assert.equal(s.result().headRate, null);
+  assert.equal(target.visible, false);
+  s.advanceTo(0.1);
+  assert.equal(target.visible, true);
+  assert.equal(target.generation, 2);
+  assert.equal(s.result().firstRate, 1);
+});
+test('small-ball precision remains exact at long range across all four rifles; bot headshot-only is optional', () => {
+  for (const [weapon, profile] of Object.entries(WEAPON_PROFILES)) {
+    const s = new TrainingSession(
+      {
+        mode: 'dots',
+        count: 1,
+        distance: 40,
+        difficulty: 'hard',
+        weapon,
+        game: profile.values.game,
+      },
+      12,
+    );
+    const t = s.targets[0],
+      eye = s.eye;
+    s.aim(
+      0,
+      Math.atan2(t.x - eye.x, eye.z - t.z) / mouseGain(s.settings),
+      -Math.atan2(t.y - eye.y, Math.hypot(t.x - eye.x, t.z - eye.z)) / mouseGain(s.settings),
+    );
+    s.setInput(0, { firing: true });
+    s.setInput(0.001, { firing: false });
+    assert.equal(s.result().accuracy, 1);
+    assert.equal(s.recoilX, 0);
+    assert.equal(s.recoilY, 0);
+  }
+  for (const headOnlyBots of [true, false]) {
+    const s = new TrainingSession({ mode: 'free', weapon: 'm4a1s', count: 1, headOnlyBots }, 22);
+    const t = s.targets[0];
+    s.aim(0, Math.atan2(t.x - s.eye.x, s.eye.z - t.z) / mouseGain(s.settings), 0);
+    s.setInput(0, { firing: true });
+    s.setInput(0.001, { firing: false });
+    assert.equal(s.result().heads, 1);
+    assert.equal(s.result().targets, headOnlyBots ? 1 : 0);
+  }
+});
+test('bot movement and small-ball respawns are identical at 30/60/144 rendering FPS', () => {
+  for (const mode of ['free', 'dots']) {
+    function replay(fps) {
+      const s = new TrainingSession({ mode, count: 6, movingBots: true }, 22);
+      const t = s.targets[0],
+        eye = s.eye;
+      s.aim(
+        0,
+        Math.atan2(t.x - eye.x, eye.z - t.z) / mouseGain(s.settings),
+        -Math.atan2(t.y - eye.y, Math.hypot(t.x - eye.x, t.z - eye.z)) / mouseGain(s.settings),
+      );
+      s.setInput(0, { firing: true });
+      for (let frame = 0; frame <= fps * 2; frame++) s.advanceTo(frame / fps);
+      return { result: s.result(0), targets: s.targets };
+    }
+    assert.deepEqual(replay(30), replay(60));
+    assert.deepEqual(replay(60), replay(144));
+  }
 });
 test('all gameplay parameters declare units, source/version and fidelity without invented measurements', () => {
   for (const profile of [...Object.values(GAME_PROFILES), ...Object.values(WEAPON_PROFILES)]) {

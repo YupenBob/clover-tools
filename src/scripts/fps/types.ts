@@ -3,7 +3,7 @@ export interface Vec3 {
   y: number;
   z: number;
 }
-export type Region = 'head' | 'body' | 'legs';
+export type Region = 'head' | 'body' | 'legs' | 'ball';
 export interface Evidence {
   unit: string;
   status: 'source' | 'measured' | 'approximate';
@@ -68,6 +68,11 @@ export interface Settings {
   aspect: string;
   cm360: number;
   calibrationGain: number;
+  turnMultiplier: number;
+  sector: string;
+  movingBots: boolean;
+  infiniteAmmo: boolean;
+  headOnlyBots: boolean;
   muted: boolean;
   quality: string;
 }
@@ -84,6 +89,8 @@ export interface Target {
   x: number;
   z: number;
   baseX: number;
+  baseZ: number;
+  y: number;
   health: number;
   visible: boolean;
   exposedAt: number | null;
@@ -116,7 +123,10 @@ export interface TrainingMode {
   cover: boolean;
   headOnly: boolean;
   timed: boolean;
-  spawn(index: number, count: number, random: () => number): number;
+  ball: boolean;
+  precision: boolean;
+  customBots: boolean;
+  spawn(index: number, count: number, random: () => number, settings: Settings): Vec3;
 }
 export interface SessionResult {
   version: number;

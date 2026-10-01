@@ -90,22 +90,26 @@ function initialize(root: HTMLElement) {
       output.value = `${settings[key as keyof Settings]} ${FPS_CONFIG.controls[key].unit}`;
     }
     $('fpsGain').textContent =
-      `${cmPerTurn(settings).toFixed(1)} cm/360${settings.calibrationGain ? ' · ' + text.calibrated : ''}`;
+      `${text.referenceGain}: ${cmPerTurn(settings).toFixed(1)} cm/360${settings.calibrationGain ? ' · ' + text.calibrated : ''}`;
     const countPolicy = TRAINING_MODES[settings.mode as keyof typeof TRAINING_MODES].count;
     control('count').disabled = countPolicy !== null;
     control('duration').disabled =
       !TRAINING_MODES[settings.mode as keyof typeof TRAINING_MODES].timed;
-    control('speed').disabled =
-      !TRAINING_MODES[settings.mode as keyof typeof TRAINING_MODES].moving;
+    const policy = TRAINING_MODES[settings.mode as keyof typeof TRAINING_MODES];
+    const bots = 'customBots' in policy && policy.customBots;
+    control('speed').disabled = !(bots ? settings.movingBots : policy.moving);
+    $('fpsBotOptions').hidden = !bots;
+    for (const key of ['sector', 'movingBots', 'infiniteAmmo', 'headOnlyBots'])
+      control(key).disabled = !bots;
+    control('turnMultiplier').disabled = settings.cm360 > 0 || settings.calibrationGain > 0;
   }
   function readForm(): Settings {
     const data = new FormData(form),
       values: Record<string, unknown> = { ...settings };
     for (const [key, value] of data.entries())
       values[key] = key in FPS_CONFIG.controls ? Number(value) : value;
-    values.muted =
-      control('muted') instanceof HTMLInputElement &&
-      (control('muted') as HTMLInputElement).checked;
+    for (const key of ['muted', 'movingBots', 'infiniteAmmo', 'headOnlyBots'])
+      values[key] = (control(key) as HTMLInputElement).checked;
     return normalizeSettings(values);
   }
   function refresh() {
@@ -135,6 +139,19 @@ function initialize(root: HTMLElement) {
     },
     options,
   );
+  for (const button of root.querySelectorAll<HTMLButtonElement>('[data-fps-preset]')) {
+    button.addEventListener(
+      'click',
+      () => {
+        const preset =
+          FPS_CONFIG.presets[button.dataset.fpsPreset as keyof typeof FPS_CONFIG.presets];
+        settings = normalizeSettings({ ...readForm(), ...preset });
+        storage.savePreferences(settings);
+        refresh();
+      },
+      options,
+    );
+  }
   form.addEventListener(
     'submit',
     (event) => {
@@ -318,7 +335,10 @@ function initialize(root: HTMLElement) {
       `${Math.max(0, session.mode.timed ? settings.duration - session.time : session.time).toFixed(1)} s`;
     $('fpsAmmo').textContent = session.reloadUntil
       ? text.reload
-      : `${session.ammo} / ${session.weapon.values.magazine}`;
+      : session.mode.customBots && settings.infiniteAmmo
+        ? '∞'
+        : `${session.ammo} / ${session.weapon.values.magazine}`;
+    $('fpsKills').textContent = String(result.targets);
     $('fpsAccuracy').textContent =
       result.accuracy === null ? '—' : `${(result.accuracy * 100).toFixed(0)}%`;
     if (!calibrating)

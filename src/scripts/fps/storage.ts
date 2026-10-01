@@ -38,6 +38,9 @@ export function normalizeSettings(raw: Partial<Settings> = {}): Settings {
     next.difficulty = raw.difficulty;
   if (raw.quality && Object.hasOwn(FPS_CONFIG.quality, raw.quality)) next.quality = raw.quality;
   if (raw.aspect && FPS_CONFIG.aspects.includes(raw.aspect)) next.aspect = raw.aspect;
+  if (raw.sector && Object.hasOwn(FPS_CONFIG.sectors, raw.sector)) next.sector = raw.sector;
+  for (const key of ['movingBots', 'infiniteAmmo', 'headOnlyBots'] as const)
+    if (typeof raw[key] === 'boolean') next[key] = raw[key];
   next.muted = raw.muted === true;
   return next;
 }
@@ -82,7 +85,10 @@ export class FpsStorage {
     );
   }
   savePreferences(settings: Settings) {
-    this.write(FPS_CONFIG.storage.preferences, { version: FPS_CONFIG.storage.version, settings });
+    this.write(FPS_CONFIG.storage.preferences, {
+      version: FPS_CONFIG.storage.version,
+      settings,
+    });
   }
   clearPreferences() {
     try {

@@ -55,13 +55,17 @@ export function renderReport(result: SessionResult, t: FpsText) {
   const metrics = $('fpsMetrics');
   metrics.replaceChildren();
   const policy = TRAINING_MODES[result.settings.mode as keyof typeof TRAINING_MODES];
+  const ball = 'ball' in policy && policy.ball;
+  $('fpsImpactTitle').textContent = ball ? t.ballImpactTitle : t.impactTitle;
+  $('fpsImpactHint').textContent = ball ? t.ballImpactHint : t.impactHint;
+  $('fpsImpactChart').setAttribute('aria-label', ball ? t.ballImpactTitle : t.impactTitle);
   for (const key of [
     'elapsed',
     'shots',
     'hits',
     'targets',
     'accuracy',
-    'headRate',
+    ...(ball ? [] : ['headRate']),
     ...policy.metrics,
   ]) {
     const tile = node('div');
@@ -77,9 +81,27 @@ export function renderReport(result: SessionResult, t: FpsText) {
   chart.replaceChildren();
   const span = FPS_CONFIG.scene.impacts.reportSpanDegrees;
   chart.append(
-    svg('line', { x1: 200, x2: 200, y1: 10, y2: 230, stroke: 'var(--border-strong)' }),
-    svg('line', { x1: 10, x2: 390, y1: 120, y2: 120, stroke: 'var(--border-strong)' }),
-    svg('circle', { cx: 200, cy: 120, r: 12, fill: 'none', stroke: 'var(--primary)' }),
+    svg('line', {
+      x1: 200,
+      x2: 200,
+      y1: 10,
+      y2: 230,
+      stroke: 'var(--border-strong)',
+    }),
+    svg('line', {
+      x1: 10,
+      x2: 390,
+      y1: 120,
+      y2: 120,
+      stroke: 'var(--border-strong)',
+    }),
+    svg('circle', {
+      cx: 200,
+      cy: 120,
+      r: 12,
+      fill: 'none',
+      stroke: 'var(--primary)',
+    }),
     svg('text', { x: 207, y: 115, fill: 'var(--text-secondary)', 'font-size': 10 }, '0°'),
   );
   for (const shot of result.impacts)

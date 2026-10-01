@@ -5,6 +5,7 @@ import {
   TRAINING_MODES,
 } from '../../../config/fps.mjs';
 import { MODES } from './modes.ts';
+import { roomWalls } from './layout.ts';
 import { SessionStatistics } from './statistics.ts';
 import { normalizeSettings, comparisonKey } from './storage.ts';
 import {
@@ -38,7 +39,14 @@ export class TrainingSession {
   readonly weapon: WeaponProfile;
   readonly mode;
   readonly targets: Target[] = [];
-  input: Input = { forward: 0, side: 0, walk: false, crouch: false, firing: false, ads: false };
+  input: Input = {
+    forward: 0,
+    side: 0,
+    walk: false,
+    crouch: false,
+    firing: false,
+    ads: false,
+  };
   player = {
     x: FPS_CONFIG.scene.spawnX,
     z: FPS_CONFIG.scene.spawnZ,
@@ -80,7 +88,12 @@ export class TrainingSession {
     this.weapon = WEAPON_PROFILES[
       this.settings.weapon as keyof typeof WEAPON_PROFILES
     ] as unknown as WeaponProfile;
-    this.mode = MODES[this.settings.mode];
+    const registered = MODES[this.settings.mode];
+    this.mode = {
+      ...registered,
+      moving: registered.customBots ? this.settings.movingBots : registered.moving,
+      headOnly: registered.customBots ? this.settings.headOnlyBots : registered.headOnly,
+    };
     this.random = seededRandom(seed);
     this.ammo = this.weapon.values.magazine;
     const policy = TRAINING_MODES[this.settings.mode as keyof typeof TRAINING_MODES];
@@ -91,6 +104,8 @@ export class TrainingSession {
         x: 0,
         z: 0,
         baseX: 0,
+        baseZ: 0,
+        y: 0,
         health: 0,
         visible: true,
         exposedAt: null,
@@ -125,14 +140,16 @@ export class TrainingSession {
     return direction(this.player.yaw + this.recoilX, this.player.pitch + this.recoilY);
   }
   private spawn(target: Target) {
-    target.baseX = this.mode.spawn(
+    const point = this.mode.spawn(
       target.id,
       TRAINING_MODES[this.settings.mode as keyof typeof TRAINING_MODES].count ??
         this.settings.count,
       this.random,
+      this.settings,
     );
-    target.x = target.baseX;
-    target.z = FPS_CONFIG.scene.spawnZ - this.settings.distance;
+    target.x = target.baseX = point.x;
+    target.z = target.baseZ = point.z;
+    target.y = point.y;
     target.health = this.game.values.health;
     target.visible = true;
     target.exposedAt = null;
@@ -168,10 +185,18 @@ export class TrainingSession {
       this.fire(at);
   }
   clearInput() {
-    this.input = { forward: 0, side: 0, walk: false, crouch: false, firing: false, ads: false };
+    this.input = {
+      forward: 0,
+      side: 0,
+      walk: false,
+      crouch: false,
+      firing: false,
+      ads: false,
+    };
   }
   reload(at: number) {
     this.advanceTo(at);
+    if (this.mode.customBots && this.settings.infiniteAmmo) return;
     if (!this.ended && this.ammo < this.weapon.values.magazine && this.reloadUntil === 0) {
       this.reloadUntil = this.time + this.weapon.values.reload;
       this.nextShotAt = Math.max(this.nextShotAt, this.reloadUntil);
@@ -224,18 +249,22 @@ export class TrainingSession {
       if (target.visible && this.mode.moving) {
         const difficulty =
           FPS_CONFIG.difficulties[this.settings.difficulty as keyof typeof FPS_CONFIG.difficulties];
-        target.x =
-          target.baseX +
-          Math.sin(
-            (this.time * this.settings.speed * difficulty.speedScale) /
-              FPS_CONFIG.scene.targetSpan +
-              target.id,
-          ) *
-            FPS_CONFIG.scene.targetSpan;
+        const span = this.mode.customBots
+          ? FPS_CONFIG.scene.bot.movementSpan
+          : FPS_CONFIG.scene.targetSpan;
+        const offset =
+          Math.sin((this.time * this.settings.speed * difficulty.speedScale) / span + target.id) *
+          span;
+        const angle = this.mode.customBots
+          ? Math.atan2(target.baseX, FPS_CONFIG.scene.spawnZ - target.baseZ)
+          : 0;
+        target.x = target.baseX + Math.cos(angle) * offset;
+        target.z = target.baseZ + Math.sin(angle) * offset;
       }
     }
     this.updateExposure();
-    if (this.intersection(this.ray)?.region === 'head') this.statistics.cover(dt);
+    if (['head', 'ball'].includes(this.intersection(this.ray)?.region || ''))
+      this.statistics.cover(dt);
     if (
       this.input.firing &&
       this.time + FPS_CONFIG.simulation.epsilon >= this.nextShotAt &&
@@ -298,7 +327,7 @@ export class TrainingSession {
     if (Math.abs(p.z) === FPS_CONFIG.scene.playerLimit) p.vz = 0;
   }
   private head(target: Target): Vec3 {
-    return { x: target.x, y: FPS_CONFIG.scene.target.headY, z: target.z };
+    return { x: target.x, y: target.y, z: target.z };
   }
   private updateExposure() {
     const vfov = radians(verticalFov(this.settings.fov, this.game.values.referenceAspect));
@@ -345,6 +374,21 @@ export class TrainingSession {
       : null;
     for (const target of this.targets) {
       if (!target.visible) continue;
+      if (this.mode.ball) {
+        const distance = raySphere(
+          origin,
+          ray,
+          this.head(target),
+          FPS_CONFIG.scene.ball.radius * scale,
+        );
+        if (
+          distance !== null &&
+          (cover === null || distance < cover) &&
+          (!closest || distance < closest.distance)
+        )
+          closest = { target, region: 'ball', distance };
+        continue;
+      }
       const candidates: [Region, number | null][] = [
         ['head', raySphere(origin, ray, this.head(target), t.headRadius * scale)],
         [
@@ -352,8 +396,16 @@ export class TrainingSession {
           rayBox(
             origin,
             ray,
-            { x: target.x - (t.torsoWidth * scale) / 2, y: t.torsoMin, z: target.z - t.depth / 2 },
-            { x: target.x + (t.torsoWidth * scale) / 2, y: t.torsoMax, z: target.z + t.depth / 2 },
+            {
+              x: target.x - (t.torsoWidth * scale) / 2,
+              y: t.torsoMin,
+              z: target.z - t.depth / 2,
+            },
+            {
+              x: target.x + (t.torsoWidth * scale) / 2,
+              y: t.torsoMax,
+              z: target.z + t.depth / 2,
+            },
           ),
         ],
         [
@@ -361,8 +413,16 @@ export class TrainingSession {
           rayBox(
             origin,
             ray,
-            { x: target.x - (t.legWidth * scale) / 2, y: t.legMin, z: target.z - t.depth / 2 },
-            { x: target.x + (t.legWidth * scale) / 2, y: t.legMax, z: target.z + t.depth / 2 },
+            {
+              x: target.x - (t.legWidth * scale) / 2,
+              y: t.legMin,
+              z: target.z - t.depth / 2,
+            },
+            {
+              x: target.x + (t.legWidth * scale) / 2,
+              y: t.legMax,
+              z: target.z + t.depth / 2,
+            },
           ),
         ],
       ];
@@ -378,6 +438,7 @@ export class TrainingSession {
     return closest;
   }
   private damage(region: Region, distance: number) {
+    if (region === 'ball') return this.game.values.health;
     const w = this.weapon.values;
     if (w.damageRanges) {
       const range =
@@ -415,7 +476,7 @@ export class TrainingSession {
     )
       return;
     const w = this.weapon.values;
-    this.ammo--;
+    if (!(this.mode.customBots && this.settings.infiniteAmmo)) this.ammo--;
     this.lastShotAt = at;
     this.nextShotAt = at + (this.input.ads ? w.adsInterval : w.interval);
     const movingFactor = clamp(
@@ -423,11 +484,12 @@ export class TrainingSession {
       0,
       1,
     );
-    const spread =
-      (this.input.ads ? w.adsSpread : this.input.crouch ? w.crouchSpread : w.standSpread) +
-      w.spread +
-      movingFactor * w.moveSpread +
-      this.burst * FPS_CONFIG.recoilModel.fireSpreadPerRound;
+    const spread = this.mode.precision
+      ? 0
+      : (this.input.ads ? w.adsSpread : this.input.crouch ? w.crouchSpread : w.standSpread) +
+        w.spread +
+        movingFactor * w.moveSpread +
+        this.burst * FPS_CONFIG.recoilModel.fireSpreadPerRound;
     const angle = this.random() * Math.PI * 2,
       radius = Math.sqrt(this.random()) * spread;
     const yaw = this.player.yaw + this.recoilX + Math.cos(angle) * radius;
@@ -438,21 +500,11 @@ export class TrainingSession {
     const wall = this.mode.cover
       ? rayBox(origin, ray, FPS_CONFIG.scene.cover.min, FPS_CONFIG.scene.cover.max)
       : null;
-    const backWall = rayBox(
-      origin,
-      ray,
-      {
-        x: -FPS_CONFIG.scene.width / 2,
-        y: 0,
-        z: -FPS_CONFIG.scene.depth + FPS_CONFIG.scene.spawnZ - 0.1,
-      },
-      {
-        x: FPS_CONFIG.scene.width / 2,
-        y: FPS_CONFIG.scene.height,
-        z: -FPS_CONFIG.scene.depth + FPS_CONFIG.scene.spawnZ,
-      },
-    );
-    const length = hit?.distance ?? wall ?? backWall ?? this.settings.distance;
+    const distances = roomWalls(this.settings.distance)
+      .map((box) => rayBox(origin, ray, box.min, box.max))
+      .filter((d): d is number => d !== null);
+    const roomDistance = distances.length ? Math.min(...distances) : null;
+    const length = hit?.distance ?? wall ?? roomDistance ?? this.settings.distance;
     const nearest = this.targets
       .filter((target) => target.visible)
       .sort(
@@ -468,10 +520,7 @@ export class TrainingSession {
       );
       errorY = degrees(
         pitch -
-          Math.atan2(
-            FPS_CONFIG.scene.target.headY - origin.y,
-            Math.hypot(nearest.x - origin.x, nearest.z - origin.z),
-          ),
+          Math.atan2(nearest.y - origin.y, Math.hypot(nearest.x - origin.x, nearest.z - origin.z)),
       );
     }
     const record: Shot = {
@@ -502,6 +551,7 @@ export class TrainingSession {
     if (hit) {
       hit.target.health -= record.damage;
       if (
+        hit.region === 'ball' ||
         (this.mode.headOnly && hit.region === 'head') ||
         (!this.mode.headOnly && hit.target.health <= 0)
       ) {
@@ -510,11 +560,21 @@ export class TrainingSession {
           hit.target.health = this.game.values.health;
         else {
           hit.target.visible = false;
-          hit.target.respawnAt = at + FPS_CONFIG.scene.respawnSeconds;
+          hit.target.respawnAt =
+            at +
+            (this.mode.ball
+              ? FPS_CONFIG.scene.ball.respawnSeconds
+              : this.mode.customBots
+                ? FPS_CONFIG.scene.botRespawnSeconds
+                : FPS_CONFIG.scene.respawnSeconds);
         }
       }
     }
     this.event('shot', at);
+    if (this.mode.precision) {
+      this.onShot?.(record);
+      return;
+    }
     this.burst++;
     const vertical =
       w.recoilVertical *
@@ -538,6 +598,7 @@ export class TrainingSession {
     this.onShot?.(record);
   }
   result(timestamp = Date.now()): SessionResult {
+    const score = this.statistics.score(this.time);
     return {
       version: FPS_CONFIG.storage.version,
       revision: FPS_CONFIG.revision,
@@ -546,7 +607,8 @@ export class TrainingSession {
       timestamp,
       elapsed: this.time,
       completed: this.ended,
-      ...this.statistics.score(this.time),
+      ...score,
+      headRate: this.mode.ball ? null : score.headRate,
       impacts: [...this.shots],
       timeline: [...this.timeline],
     };

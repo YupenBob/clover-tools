@@ -12,6 +12,7 @@ export class PointerCapture {
   private armed = false;
   private captured = false;
   private pending = false;
+  private rawAvailable = true;
   raw = false;
 
   constructor(surface: PointerSurface) {
@@ -24,11 +25,12 @@ export class PointerCapture {
     const current = () => this.armed && this.generation === generation && this.surface.available();
     this.pending = this.armed = true;
     this.captured = false;
-    this.raw = true;
+    this.raw = this.rawAvailable;
     try {
       try {
-        await this.surface.request(true);
+        await this.surface.request(this.raw);
       } catch (error) {
+        if ((error as { name?: string }).name === 'NotSupportedError') this.rawAvailable = false;
         if (!current()) return 'cancelled';
         if ((error as { name?: string }).name !== 'NotSupportedError') throw error;
         this.raw = false;

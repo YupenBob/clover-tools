@@ -16,16 +16,19 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
   <div class="fps" id="fpsTrainer" data-lang={lang}>
     <script type="application/json" id="fpsText" set:html={serialized} />
     <section id="fpsSetup">
-      <div class="fps-intro"><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.intro}</p></div>
+      <div class="fps-intro"><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.rangeIntro}</p></div>
       <form id="fpsSettings">
+        <fieldset class="fps-quick"><legend>{t.quickStart}</legend><div class="fps-preset-row">{Object.keys(FPS_CONFIG.presets).map((id) => <button type="button" class="btn btn-secondary" data-fps-preset={id}>{label(id)}</button>)}</div></fieldset>
         <div class="fps-row">
           <label>{t.game}<select name="game" id="fpsGame">{Object.entries(GAME_PROFILES).map(([id, game]) => <option value={id}>{game.name}</option>)}</select></label>
           <label>{t.weapon}<select name="weapon" id="fpsWeapon">{Object.entries(WEAPON_PROFILES).map(([id, weapon]) => <option value={id} data-game={weapon.values.game}>{weapon.name}</option>)}</select></label>
         </div>
+        <div class="fps-turn"><label>{t.turnMultiplier}<span class="fps-slider"><input name="turnMultiplier" type="range" min={FPS_CONFIG.controls.turnMultiplier.min} max={FPS_CONFIG.controls.turnMultiplier.max} step={FPS_CONFIG.controls.turnMultiplier.step} value={settings.turnMultiplier} /><output data-output="turnMultiplier">{settings.turnMultiplier} ×</output></span></label><p class="fps-small">{t.turnHint}</p></div>
         <fieldset class="fps-modes"><legend>{t.mode}</legend>{Object.keys(TRAINING_MODES).map((id) => <label class="fps-mode"><input type="radio" name="mode" value={id} checked={id === settings.mode} /><span><strong>{label(id)}</strong><small>{label(id + 'Desc')}</small></span></label>)}</fieldset>
+        <fieldset id="fpsBotOptions" class="fps-details"><legend>{t.botOptions}</legend><label>{t.sector}<select name="sector">{Object.keys(FPS_CONFIG.sectors).map((id) => <option value={id}>{label(id)}</option>)}</select></label><div class="fps-preset-row">{(['movingBots', 'infiniteAmmo', 'headOnlyBots'] as const).map((key) => <label class="fps-check"><input name={key} type="checkbox" checked={settings[key]} />{label(key)}</label>)}</div></fieldset>
         <fieldset class="fps-options"><legend>{t.settings}</legend>
           <div class="fps-row">{ranges.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<span class="fps-slider"><input name={key} type="range" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} /><output data-output={key}>{settings[key]} {limit.unit}</output></span></label>; })}</div>
-          <div class="fps-row"><label>{t.difficulty}<select name="difficulty">{Object.keys(FPS_CONFIG.difficulties).map((id) => <option value={id} selected={id === settings.difficulty}>{label(id)}</option>)}</select></label><label>{t.quality}<select name="quality">{Object.keys(FPS_CONFIG.quality).map((id) => <option value={id}>{label(id)}</option>)}</select></label></div>
+          <div class="fps-row"><label>{t.difficulty}<select name="difficulty">{Object.keys(FPS_CONFIG.difficulties).map((id) => <option value={id} selected={id === settings.difficulty}>{label(id)}</option>)}</select></label><label>{t.quality}<select name="quality">{Object.keys(FPS_CONFIG.quality).map((id) => <option value={id}>{label(id)}</option>)}</select></label></div><p class="fps-small">{t.ballSizeHint}</p>
         </fieldset>
         <details class="fps-details" open><summary>{t.sensitivity} / {t.calibration}</summary>
           <div class="fps-row">{numbers.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<input name={key} type="number" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} required /></label>; })}</div>
@@ -44,13 +47,13 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
     <section id="fpsReport" hidden aria-labelledby="fpsReportTitle">
       <div class="fps-report-head"><h3 id="fpsReportTitle">{t.report}</h3><span id="fpsCompletion" class="fps-tag"></span></div>
       <div id="fpsMetrics" class="fps-metrics"></div>
-      <figure><figcaption>{t.impactTitle}</figcaption><svg id="fpsImpactChart" viewBox="0 0 400 240" role="img" aria-label={t.impactTitle}></svg><p class="fps-small">{t.impactHint}</p></figure>
+      <figure><figcaption id="fpsImpactTitle">{t.impactTitle}</figcaption><svg id="fpsImpactChart" viewBox="0 0 400 240" role="img" aria-label={t.impactTitle}></svg><p id="fpsImpactHint" class="fps-small">{t.impactHint}</p></figure>
       <figure><figcaption>{t.timelineTitle}</figcaption><div class="fps-timeline-wrap"><svg id="fpsTimeline" viewBox="0 0 700 130" role="img" aria-label={t.timelineTitle}></svg></div><p class="fps-small">{t.timelineHint}</p></figure>
       <div class="fps-row"><button type="button" class="btn btn-primary" id="fpsAgain">{t.again}</button><button type="button" class="btn btn-secondary" id="fpsBack">{t.back}</button></div>
     </section>
     <section id="fpsStage" class="fps-stage" hidden aria-label={t.title}>
       <div class="fps-canvas-wrap"><canvas id="fpsCanvas" aria-label={t.title}></canvas><div id="fpsCrosshair" class="fps-crosshair" aria-hidden="true"></div></div>
-      <div class="fps-hud"><div><strong id="fpsDrill"></strong><small id="fpsInputStatus"></small></div><div><small id="fpsTimeLabel">{t.time}</small><strong id="fpsTime">{settings.duration}</strong></div><div><small>{t.ammo}</small><strong id="fpsAmmo"></strong></div><div><small>{t.accuracy}</small><strong id="fpsAccuracy"></strong></div></div>
+      <div class="fps-hud"><div><strong id="fpsDrill"></strong><small id="fpsInputStatus"></small></div><div><small id="fpsTimeLabel">{t.time}</small><strong id="fpsTime">{settings.duration}</strong></div><div><small>{t.kills}</small><strong id="fpsKills">0</strong></div><div><small>{t.ammo}</small><strong id="fpsAmmo"></strong></div><div><small>{t.accuracy}</small><strong id="fpsAccuracy"></strong></div></div>
       <div id="fpsMovement" class="fps-movement"></div><div class="fps-key-help">{t.controls}</div>
       <div id="fpsVeil" class="fps-veil"><div class="fps-pause-card"><h3 id="fpsPauseTitle">{t.pause}</h3><p id="fpsPauseMessage"></p><button type="button" class="btn btn-primary" id="fpsResume">{t.resume}</button><div class="fps-pause-actions"><button type="button" class="btn btn-secondary" id="fpsFullscreen">{t.fullscreen}</button><button type="button" class="btn btn-secondary" id="fpsFinish">{t.finish}</button></div></div></div>
     </section>
@@ -59,6 +62,8 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
 <script>import '../scripts/fps/controller';</script>
 <style>
   .fps { min-width: 0; }
+  .fps-preset-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0 0; }
+  .fps-turn { border-left: 3px solid var(--primary); padding: 10px 14px; margin-bottom: 22px; background: var(--bg-secondary); }
   .fps [hidden] { display: none !important; }
   .fps-intro { padding: 10px 0 22px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
   .fps-tag { color: var(--primary-dark); font: 700 .75rem var(--font-mono); letter-spacing: .08em; }

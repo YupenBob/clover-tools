@@ -3,6 +3,7 @@ import { FPS_CONFIG } from '../../../config/fps.mjs';
 import { verticalFov, radians, degrees } from './math.ts';
 import type { TrainingSession } from './core.ts';
 import type { Shot } from './types.ts';
+import { RangeModels } from './range-models.ts';
 
 /** Rendering consumes domain state; it never decides a hit or changes the clock. */
 export class RangeRenderer {
@@ -11,8 +12,6 @@ export class RangeRenderer {
   private camera = new THREE.PerspectiveCamera();
   private targets = new Map<number, THREE.Group>();
   private impacts: { mesh: THREE.Mesh; time: number }[] = [];
-  private materials: THREE.Material[] = [];
-  private geometries: THREE.BufferGeometry[] = [];
   private observer: ResizeObserver;
   private gun = new THREE.Group();
   lost = false;
@@ -22,67 +21,28 @@ export class RangeRenderer {
     onLoss: () => void,
   ) {
     const quality = FPS_CONFIG.quality[session.settings.quality as keyof typeof FPS_CONFIG.quality];
-    const context = canvas.getContext('webgl2', { antialias: quality.antialias });
+    const context = canvas.getContext('webgl2', {
+      antialias: quality.antialias,
+    });
     if (!context) throw new Error('WebGL 2 unavailable');
-    this.renderer = new THREE.WebGLRenderer({ canvas, context, antialias: quality.antialias });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      context,
+      antialias: quality.antialias,
+    });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, quality.pixelRatio));
     const c = FPS_CONFIG.scene,
       p = c.palette;
     this.scene.background = new THREE.Color(p.background);
-    this.scene.add(new THREE.HemisphereLight(p.wall, p.cover, 2));
-    const floor = this.box(c.width, 0.1, c.depth, p.floor);
-    floor.position.set(0, -0.05, -c.depth / 2 + c.spawnZ);
-    this.scene.add(floor);
-    const wall = this.box(c.width, c.height, 0.1, p.wall);
-    wall.position.set(0, c.height / 2, -c.depth + c.spawnZ);
-    this.scene.add(wall);
-    const grid = new THREE.GridHelper(c.depth, c.depth, p.grid, p.grid);
-    grid.position.set(0, 0.003, -c.depth / 2 + c.spawnZ);
-    this.scene.add(grid);
-    // GridHelper owns separate geometry/materials; dispose through the scene traversal.
-    if (session.mode.cover) {
-      const { min, max } = c.cover;
-      const cover = this.box(max.x - min.x, max.y - min.y, max.z - min.z, p.cover);
-      cover.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2);
-      this.scene.add(cover);
-    }
-    const headLine = this.box(c.width, 0.012, 0.012, p.head);
-    headLine.position.set(0, c.target.headY, -c.depth + c.spawnZ + 0.1);
-    this.scene.add(headLine);
+    this.scene.add(new THREE.HemisphereLight(p.wall, p.cover, c.architecture.lightIntensity));
+    const models = new RangeModels();
+    this.scene.add(models.environment(session));
     for (const target of session.targets) {
-      const group = new THREE.Group(),
-        shape = c.target,
-        scale = session.scale;
-      const geometry = new THREE.SphereGeometry(shape.headRadius * scale, 16, 12);
-      this.geometries.push(geometry);
-      const material = this.material(p.head);
-      const head = new THREE.Mesh(geometry, material);
-      head.position.y = shape.headY;
-      group.add(head);
-      const torso = this.box(
-        shape.torsoWidth * scale,
-        shape.torsoMax - shape.torsoMin,
-        shape.depth,
-        p.target,
-      );
-      torso.position.y = (shape.torsoMin + shape.torsoMax) / 2;
-      group.add(torso);
-      const legs = this.box(
-        shape.legWidth * scale,
-        shape.legMax - shape.legMin,
-        shape.depth,
-        p.cover,
-      );
-      legs.position.y = (shape.legMin + shape.legMax) / 2;
-      group.add(legs);
+      const group = models.target(session);
       this.targets.set(target.id, group);
       this.scene.add(group);
     }
-    const body = this.box(c.gun.body.x, c.gun.body.y, c.gun.body.z, p.ink);
-    const barrel = this.box(c.gun.barrel.x, c.gun.barrel.y, c.gun.barrel.z, p.cover);
-    barrel.position.z = -c.gun.body.z / 2;
-    this.gun.add(body, barrel);
-    this.gun.position.set(c.gun.offset.x, c.gun.offset.y, c.gun.offset.z);
+    this.gun = models.weapon();
     this.camera.add(this.gun);
     this.scene.add(this.camera);
     this.camera.near = 0.03;
@@ -101,16 +61,6 @@ export class RangeRenderer {
     this.resize();
   }
   private events = new AbortController();
-  private material(color: string) {
-    const material = new THREE.MeshLambertMaterial({ color });
-    this.materials.push(material);
-    return material;
-  }
-  private box(x: number, y: number, z: number, color: string) {
-    const geometry = new THREE.BoxGeometry(x, y, z);
-    this.geometries.push(geometry);
-    return new THREE.Mesh(geometry, this.material(color));
-  }
   resize() {
     const rect = this.canvas.parentElement!.getBoundingClientRect(),
       settings = this.session.settings;
@@ -158,7 +108,7 @@ export class RangeRenderer {
     this.gun.visible = !s.input.ads;
     for (const target of s.targets) {
       const group = this.targets.get(target.id)!;
-      group.position.set(target.x, 0, target.z);
+      group.position.set(target.x, s.mode.ball ? target.y : 0, target.z);
       group.visible = target.visible;
     }
     while (this.impacts[0] && s.time - this.impacts[0].time > FPS_CONFIG.scene.impacts.lifetime)
