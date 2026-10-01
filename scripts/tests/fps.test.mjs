@@ -148,6 +148,38 @@ test('late raw-input error preserves a valid fallback grant; legacy denial still
   assert.equal(await legacy.request(), 'requested');
 });
 
+test('a previous unlock notification cannot cancel the next explicit capture request', async () => {
+  let owned = false,
+    grant;
+  const pointer = new PointerCapture({
+    available: () => true,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+    },
+    request: () =>
+      new Promise((resolve) => {
+        grant = resolve;
+      }),
+  });
+  let request = pointer.request();
+  owned = true;
+  assert.equal(pointer.acceptChange(), true);
+  grant();
+  assert.equal(await request, 'requested');
+  pointer.cancel();
+  request = pointer.request();
+  assert.equal(pointer.acceptChange(), false);
+  owned = true;
+  assert.equal(pointer.acceptChange(), true);
+  grant();
+  assert.equal(await request, 'requested');
+  owned = false;
+  assert.equal(pointer.acceptChange(), false);
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+});
+
 const near = (actual, expected, tolerance = 1e-8) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
 test('mouse angular gain, physical calibration and reference FOV have reversible units', () => {

@@ -10,6 +10,7 @@ export class PointerCapture {
   private surface: PointerSurface;
   private generation = 0;
   private armed = false;
+  private captured = false;
   private pending = false;
   raw = false;
 
@@ -22,6 +23,7 @@ export class PointerCapture {
     const generation = ++this.generation;
     const current = () => this.armed && this.generation === generation && this.surface.available();
     this.pending = this.armed = true;
+    this.captured = false;
     this.raw = true;
     try {
       try {
@@ -49,10 +51,15 @@ export class PointerCapture {
   /** Called for native lock changes, including grants arriving after blur/exit. */
   acceptChange(): boolean {
     if (!this.surface.owns()) {
+      // An earlier exit notification can arrive while a fresh request is awaiting its grant.
+      if (this.armed && !this.captured && this.surface.available()) return false;
       this.cancel();
       return false;
     }
-    if (this.armed && this.surface.available()) return true;
+    if (this.armed && this.surface.available()) {
+      this.captured = true;
+      return true;
+    }
     this.cancel();
     return false;
   }
@@ -67,6 +74,7 @@ export class PointerCapture {
 
   cancel() {
     this.armed = false;
+    this.captured = false;
     this.generation++;
     if (this.surface.owns()) this.surface.release();
   }

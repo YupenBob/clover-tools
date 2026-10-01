@@ -70,6 +70,27 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
     // A real Esc exit arms the browser's relock cooldown. Keep the user click after that window.
     await page.waitForTimeout(BROWSER_CHECKS.pointerUnlockSettleMs);
   }
+  async function recover(page) {
+    // Let native unlock notifications settle before a new user gesture, including synthetic hide tests.
+    await page.waitForFunction(() => document.pointerLockElement === null);
+    await page.waitForTimeout(BROWSER_CHECKS.pointerUnlockSettleMs);
+    await page.locator('#fpsResume').click();
+    try {
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'running',
+      );
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        phase: document.querySelector('#fpsStage').dataset.phase,
+        message: document.querySelector('#fpsPauseMessage').textContent,
+        trace: window.__fpsLockTrace,
+        focused: document.hasFocus(),
+        hidden: document.hidden,
+        locked: document.pointerLockElement?.id || null,
+      }));
+      throw new Error(`Recovery failed: ${JSON.stringify(state)}`, { cause: error });
+    }
+  }
   for (const [lang, title] of [
     ['zh', 'FPS练枪'],
     ['tw', 'FPS練槍'],
@@ -327,10 +348,7 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await enter(page);
       await page.evaluate(() => window.dispatchEvent(new Event('blur')));
       assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'paused');
-      await page.locator('#fpsResume').click();
-      await page.waitForFunction(
-        () => document.querySelector('#fpsStage').dataset.phase === 'running',
-      );
+      await recover(page);
       await page.evaluate(() => {
         Object.defineProperty(document, 'hidden', {
           configurable: true,
@@ -342,10 +360,7 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await page.evaluate(() => {
         delete document.hidden;
       });
-      await page.locator('#fpsResume').click();
-      await page.waitForFunction(
-        () => document.querySelector('#fpsStage').dataset.phase === 'running',
-      );
+      await recover(page);
       await page.evaluate(() =>
         document
           .querySelector('#fpsCanvas')
