@@ -39,13 +39,28 @@ export function normalizeSettings(raw: Partial<Settings> = {}): Settings {
   if (raw.quality && Object.hasOwn(FPS_CONFIG.quality, raw.quality)) next.quality = raw.quality;
   if (raw.aspect && FPS_CONFIG.aspects.includes(raw.aspect)) next.aspect = raw.aspect;
   if (raw.sector && Object.hasOwn(FPS_CONFIG.sectors, raw.sector)) next.sector = raw.sector;
-  for (const key of ['movingBots', 'infiniteAmmo', 'headOnlyBots'] as const)
+  for (const key of [
+    'movingBots',
+    'infiniteAmmo',
+    'headOnlyBots',
+    'showWeapon',
+    'weaponMotion',
+  ] as const)
     if (typeof raw[key] === 'boolean') next[key] = raw[key];
   next.muted = raw.muted === true;
   return next;
 }
 export function comparisonKey(settings: Settings): string {
-  const { muted: _muted, quality: _quality, ...comparable } = settings;
+  const {
+    muted: _muted,
+    quality: _quality,
+    volume: _volume,
+    shotVolume: _shotVolume,
+    hitVolume: _hitVolume,
+    showWeapon: _showWeapon,
+    weaponMotion: _weaponMotion,
+    ...comparable
+  } = settings;
   return JSON.stringify([FPS_CONFIG.revision, comparable]);
 }
 export class FpsStorage {

@@ -97,6 +97,176 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       });
     }
   }
+  await run(
+    'FPS presentation: gesture audio, waveform, reload and pause cleanup',
+    { viewport: { width: 1440, height: 1000 } },
+    async (page, context) => {
+      await context.addInitScript(() => {
+        window.__fpsAudioContexts = [];
+        window.__fpsAudioMeters = [];
+        window.__fpsAudioVoices = [];
+        const NativeAudio = window.AudioContext;
+        window.AudioContext = class extends NativeAudio {
+          constructor(...args) {
+            super(...args);
+            window.__fpsAudioContexts.push(this);
+          }
+          createDynamicsCompressor() {
+            const compressor = super.createDynamicsCompressor(),
+              analyser = super.createAnalyser();
+            compressor.connect(analyser);
+            window.__fpsAudioMeters.push(analyser);
+            return compressor;
+          }
+          createBufferSource() {
+            const source = super.createBufferSource(),
+              start = source.start.bind(source),
+              stop = source.stop.bind(source);
+            const entry = { started: false, stopped: false, ended: false, duration: 0 };
+            source.addEventListener('ended', () => {
+              entry.ended = true;
+            });
+            source.start = (...args) => {
+              entry.started = true;
+              entry.duration = source.buffer.duration;
+              window.__fpsAudioVoices.push(entry);
+              return start(...args);
+            };
+            source.stop = (...args) => {
+              entry.stopped = true;
+              return stop(...args);
+            };
+            return source;
+          }
+        };
+      });
+      await open(page, context);
+      await page.locator('[data-fps-preset=ballWarmup]').click();
+      await page.locator('#fpsTestAudio').click();
+      await page.waitForFunction(
+        () => document.querySelector('#fpsAudioStatus').dataset.state === 'running',
+      );
+      await page.waitForFunction(() =>
+        window.__fpsAudioMeters.some((meter) => {
+          const values = new Float32Array(meter.fftSize);
+          meter.getFloatTimeDomainData(values);
+          return values.some((value) => Math.abs(value) > 0.001);
+        }),
+      );
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      assert.equal(await page.locator('#fpsStage').isHidden(), true);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: join(artifacts, 'fps-polished-settings.png'), fullPage: true });
+      await enter(page);
+      await page.waitForFunction(
+        () => document.querySelector('#fpsAudioHud').dataset.state === 'running',
+      );
+      assert.equal(await page.evaluate(() => window.__fpsAudioContexts[0].state), 'closed');
+      await page.mouse.down();
+      await page.waitForTimeout(100);
+      await page.mouse.up();
+      await page.keyboard.press('r');
+      await page.waitForFunction(() => !document.querySelector('#fpsReloadProgress').hidden);
+      assert.ok(
+        await page.evaluate(() => window.__fpsAudioVoices.some((voice) => voice.duration > 1)),
+      );
+      await page.screenshot({ path: join(artifacts, 'fps-polished-reload.png') });
+      await pause(page);
+      assert.equal(await page.locator('#fpsAudioHud').getAttribute('data-state'), 'ready');
+      assert.equal(
+        await page.evaluate(
+          () =>
+            window.__fpsAudioVoices.filter(
+              (voice) => voice.started && !voice.stopped && !voice.ended,
+            ).length,
+        ),
+        0,
+      );
+      const count = await page.evaluate(() => window.__fpsAudioVoices.length);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.waitForTimeout(100);
+      assert.equal(await page.evaluate(() => window.__fpsAudioVoices.length), count);
+      await page.locator('#fpsFinish').click();
+      await page.waitForFunction(() =>
+        window.__fpsAudioContexts.every((ctx) => ctx.state === 'closed'),
+      );
+    },
+  );
+  await run('FPS presentation: mute and saved visual controls', {}, async (page, context) => {
+    const requested = [];
+    page.on('request', (request) => requested.push(request.url()));
+    await open(page, context);
+    await page.locator('[name=muted]').check();
+    await page.locator('[name=showWeapon]').uncheck();
+    await page.locator('[name=weaponMotion]').uncheck();
+    await page.locator('[name=volume]').evaluate((element) => {
+      element.value = '35';
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.reload();
+    await page.waitForSelector('#fpsTrainer[data-ready=true]');
+    assert.equal(await page.locator('[name=volume]').inputValue(), '35');
+    assert.equal(await page.locator('[name=showWeapon]').isChecked(), false);
+    assert.equal(await page.locator('[name=weaponMotion]').isChecked(), false);
+    await enter(page);
+    assert.equal(await page.locator('#fpsAudioHud').getAttribute('data-state'), 'muted');
+    assert.equal(
+      requested.some((url) => /\/fps\/audio\/.*\.wav/.test(url)),
+      false,
+    );
+    await page.mouse.down();
+    await page.waitForTimeout(100);
+    await page.mouse.up();
+    await pause(page);
+    await page.locator('#fpsFinish').click();
+    assert.ok(
+      await page.evaluate(
+        (key) => JSON.parse(localStorage.getItem(key))[0].shots > 0,
+        FPS_CONFIG.storage.history,
+      ),
+    );
+  });
+  await run(
+    'FPS presentation: denied audio does not deny mouse capture or training',
+    {},
+    async (page, context) => {
+      await context.addInitScript(() => {
+        AudioContext.prototype.resume = () =>
+          Promise.reject(new DOMException('Denied test audio', 'NotAllowedError'));
+      });
+      await open(page, context);
+      await enter(page);
+      await page.waitForFunction(
+        () => document.querySelector('#fpsAudioHud').dataset.state === 'blocked',
+      );
+      await page.mouse.down();
+      await page.waitForTimeout(100);
+      await page.mouse.up();
+      await page.keyboard.down('d');
+      await page.waitForTimeout(100);
+      await page.keyboard.up('d');
+      assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'running');
+      await pause(page);
+      await page.locator('#fpsFinish').click();
+    },
+  );
+  await run(
+    'FPS presentation: missing audio files keep an explicit degraded state',
+    {},
+    async (page, context) => {
+      await context.route('**/fps/audio/*.wav', (route) => route.abort());
+      await open(page, context);
+      await enter(page);
+      assert.equal(await page.locator('#fpsAudioHud').getAttribute('data-state'), 'unavailable');
+      await page.mouse.down();
+      await page.waitForTimeout(100);
+      await page.mouse.up();
+      await pause(page);
+      await page.locator('#fpsFinish').click();
+      assert.equal(await page.locator('#fpsReport').isVisible(), true);
+    },
+  );
   for (const [lang, title] of [
     ['zh', 'FPS练枪'],
     ['tw', 'FPS練槍'],
@@ -138,6 +308,31 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       },
     );
   }
+  await run(
+    'FPS presentation: four rifle silhouettes and visible ADS',
+    { viewport: { width: 1440, height: 1000 } },
+    async (page, context) => {
+      await open(page, context);
+      for (const [id, weapon] of Object.entries(WEAPON_PROFILES)) {
+        await page.locator('#fpsGame').selectOption(weapon.values.game);
+        await page.locator('#fpsWeapon').selectOption(id);
+        await page.locator('[data-fps-preset=ballWarmup]').click();
+        await enter(page);
+        await page.screenshot({ path: join(artifacts, `fps-viewmodel-${id}.png`) });
+        if (weapon.values.adsZoom > 1) {
+          await page.mouse.down({ button: 'right' });
+          await page.waitForFunction(
+            () => document.querySelector('#fpsStage').dataset.ads === 'true',
+          );
+          await page.screenshot({ path: join(artifacts, `fps-viewmodel-${id}-ads.png`) });
+          await page.mouse.up({ button: 'right' });
+        }
+        await pause(page);
+        await page.locator('#fpsFinish').click();
+        await page.locator('#fpsBack').click();
+      }
+    },
+  );
   await run(
     'FPS desktop: live shots, movement, crouch, reload, pause and local results',
     { viewport: { width: 1440, height: 1000 } },
@@ -280,6 +475,15 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
     async (page, context) => {
       await open(page, context);
       await page.evaluate(() => {
+        window.__fpsAimTrace = [];
+        document.addEventListener('mousemove', (event) => {
+          if (document.querySelector('#fpsStage').dataset.phase === 'running')
+            window.__fpsAimTrace.push({
+              x: event.movementX,
+              y: event.movementY,
+              locked: !!document.pointerLockElement,
+            });
+        });
         crypto.getRandomValues = (array) => {
           array.fill(22);
           return array;
@@ -311,7 +515,16 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await page.mouse.down();
       await page.mouse.up();
       await page.waitForTimeout(200);
-      assert.equal(await page.locator('#fpsKills').innerText(), '1');
+      assert.equal(
+        await page.locator('#fpsKills').innerText(),
+        '1',
+        JSON.stringify(
+          await page.evaluate(() => ({
+            trace: window.__fpsAimTrace,
+            prefs: localStorage.getItem('ct-fps-prefs'),
+          })),
+        ),
+      );
       await pause(page);
       await page.locator('#fpsFinish').click();
       assert.equal(await page.locator('[data-metric=headRate]').count(), 0);
@@ -415,6 +628,7 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
     {},
     async (page, context) => {
       await open(page, context);
+      await page.locator('#fpsAdvanced summary').click();
       await page.locator('[name=cm360]').fill('40');
       await page.locator('#fpsCalibrate').click();
       await page.waitForFunction(

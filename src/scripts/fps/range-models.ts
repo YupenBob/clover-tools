@@ -1,34 +1,77 @@
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { FPS_CONFIG } from '../../../config/fps.mjs';
 import { roomWalls } from './layout.ts';
 import type { TrainingSession } from './core.ts';
 
-/** Original procedural scenery and targets. Hit rules remain in the simulation. */
+/** Original geometry. Collision and target sizes come from the domain configuration. */
 export class RangeModels {
-  box(x: number, y: number, z: number, color: string) {
-    return new THREE.Mesh(new THREE.BoxGeometry(x, y, z), new THREE.MeshLambertMaterial({ color }));
+  private materials = new Map<string, THREE.MeshStandardMaterial>();
+  private geometries = new Map<string, THREE.BufferGeometry>();
+  private segments: number;
+  constructor(segments: number) {
+    this.segments = segments;
   }
-  sphere(radius: number, color: string) {
-    return new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 20, 14),
-      new THREE.MeshLambertMaterial({ color }),
+  material(color: string, roughness = FPS_CONFIG.scene.materials.roughness) {
+    const key = `${color}:${roughness}`;
+    if (!this.materials.has(key))
+      this.materials.set(
+        key,
+        new THREE.MeshStandardMaterial({
+          color,
+          roughness,
+          metalness: FPS_CONFIG.scene.materials.metalness,
+        }),
+      );
+    return this.materials.get(key)!;
+  }
+  box(x: number, y: number, z: number, color: string, rounded = false) {
+    const c = FPS_CONFIG.scene.mannequin,
+      key = `box:${x}:${y}:${z}:${rounded}`;
+    if (!this.geometries.has(key))
+      this.geometries.set(
+        key,
+        rounded
+          ? new RoundedBoxGeometry(x, y, z, c.segments, Math.min(c.bevel, x / 4, y / 4, z / 4))
+          : new THREE.BoxGeometry(x, y, z),
+      );
+    const mesh = new THREE.Mesh(this.geometries.get(key), this.material(color));
+    mesh.castShadow = mesh.receiveShadow = true;
+    return mesh;
+  }
+  sphere(radius: number, color: string, polished = false) {
+    const key = `sphere:${radius}`;
+    if (!this.geometries.has(key))
+      this.geometries.set(
+        key,
+        new THREE.SphereGeometry(radius, this.segments, Math.round(this.segments * 0.75)),
+      );
+    const mesh = new THREE.Mesh(
+      this.geometries.get(key),
+      this.material(color, polished ? FPS_CONFIG.scene.materials.ballRoughness : undefined),
     );
+    mesh.castShadow = true;
+    return mesh;
   }
   environment(session: TrainingSession) {
     const group = new THREE.Group(),
       c = FPS_CONFIG.scene,
       p = c.palette,
       a = c.architecture;
+    const walls = roomWalls(session.settings.distance);
     const floor = this.box(c.width, a.floorThickness, c.depth, p.floor);
     floor.position.set(0, -a.floorThickness / 2, c.spawnZ);
     group.add(floor);
     const grid = new THREE.GridHelper(c.width, c.width / a.gridSpacing, p.grid, p.grid);
     grid.position.set(0, a.gridElevation, c.spawnZ);
+    const gridMaterial = grid.material as THREE.LineBasicMaterial;
+    gridMaterial.transparent = true;
+    gridMaterial.opacity = a.shadowOpacity;
     group.add(grid);
     const platform = this.box(a.platformSize, a.floorThickness, a.platformSize, p.platform);
     platform.position.set(0, -a.floorThickness / 2 + a.platformTop, 0);
     group.add(platform);
-    for (const { min, max } of roomWalls(session.settings.distance)) {
+    for (const { min, max } of walls) {
       const w = max.x - min.x,
         d = max.z - min.z,
         x = (min.x + max.x) / 2,
@@ -38,35 +81,75 @@ export class RangeModels {
       group.add(wall);
       for (const [height, thickness, color] of [
         [c.target.headY, a.headLineThickness, p.head],
-        [a.stripeY, a.stripeHeight, p.cover],
+        [a.baseHeight / 2, a.baseHeight, p.cover],
+        [a.lightHeight, a.lightThickness, p.light],
       ] as const) {
-        const line = this.box(w + a.wallThickness, thickness, d + a.wallThickness, color);
+        const line = this.box(w + a.panelInset, thickness, d + a.panelInset, color);
         line.position.set(x, height, z);
+        if (color === p.light) {
+          line.material.emissive.set(color);
+          line.material.emissiveIntensity = a.fillIntensity;
+        }
         group.add(line);
       }
+      const horizontal = w > d,
+        span = horizontal ? w : d;
+      for (let along = -span / 2 + a.panelSpacing; along < span / 2; along += a.panelSpacing) {
+        const rib = this.box(
+          horizontal ? a.panelWidth : w + a.panelInset,
+          c.height,
+          horizontal ? d + a.panelInset : a.panelWidth,
+          p.grid,
+        );
+        rib.position.set(x + (horizontal ? along : 0), c.height / 2, z + (horizontal ? 0 : along));
+        group.add(rib);
+      }
     }
+    const half = (walls[0].max.x - walls[0].min.x) / 2;
+    const ceiling = this.box(half * 2, a.floorThickness, half * 2, p.wall);
+    ceiling.position.set(0, c.height + a.floorThickness / 2, c.spawnZ);
+    ceiling.castShadow = false;
+    group.add(ceiling);
     for (const side of [-1, 1]) {
       const edge = this.box(a.platformSize, a.platformEdge, a.platformEdge, p.head);
-      edge.position.set(0, 0, (side * a.platformSize) / 2);
+      edge.position.set(0, a.platformTop, (side * a.platformSize) / 2);
       const other = this.box(a.platformEdge, a.platformEdge, a.platformSize, p.head);
-      other.position.set((side * a.platformSize) / 2, 0, 0);
+      other.position.set((side * a.platformSize) / 2, a.platformTop, 0);
       group.add(edge, other);
     }
-    // A visible distance ring distinguishes the bot zone from the central movement platform.
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(
         session.settings.distance - a.platformEdge,
         session.settings.distance + a.platformEdge,
         96,
       ),
-      new THREE.MeshBasicMaterial({ color: p.head, side: THREE.DoubleSide }),
+      new THREE.MeshBasicMaterial({ color: p.grid, side: THREE.DoubleSide }),
     );
     ring.rotation.x = -Math.PI / 2;
-    ring.position.set(0, a.platformEdge / 2, c.spawnZ);
+    ring.position.set(0, a.gridElevation * 2, c.spawnZ);
     group.add(ring);
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = labelCanvas.height = a.labelResolution;
+    const ctx = labelCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = p.ink;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const font = getComputedStyle(document.documentElement).getPropertyValue('--font-mono');
+      ctx.font = `600 ${a.labelResolution / 4}px ${font || 'monospace'}`;
+      ctx.fillText(`${session.settings.distance} m`, a.labelResolution / 2, a.labelResolution / 2);
+      const texture = new THREE.CanvasTexture(labelCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(a.labelSize * 2, a.labelSize),
+        new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+      );
+      label.position.set(0, a.stripeY, walls[0].max.z + a.panelInset);
+      group.add(label);
+    }
     if (session.mode.cover) {
       const { min, max } = c.cover;
-      const cover = this.box(max.x - min.x, max.y - min.y, max.z - min.z, p.cover);
+      const cover = this.box(max.x - min.x, max.y - min.y, max.z - min.z, p.cover, true);
       cover.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2);
       group.add(cover);
     }
@@ -80,52 +163,36 @@ export class RangeModels {
       p = c.palette,
       scale = session.scale;
     if (session.mode.ball) {
-      group.add(this.sphere(c.ball.radius * scale, p.ball));
+      group.add(this.sphere(c.ball.radius * scale, p.ball, true));
       return group;
     }
-    const head = this.sphere(t.headRadius * scale, p.head);
+    const head = this.sphere(t.headRadius * scale, p.head, true);
     head.position.y = t.headY;
     group.add(head);
-    const torso = this.box(t.torsoWidth * scale, t.torsoMax - t.torsoMin, t.depth, p.target);
+    const visor = this.box(t.headRadius * scale, m.visorHeight * scale, m.vestInset, p.visor, true);
+    visor.position.set(0, t.headY, t.headRadius * scale - m.vestInset);
+    group.add(visor);
+    const torso = this.box(t.torsoWidth * scale, t.torsoMax - t.torsoMin, t.depth, p.target, true);
     torso.position.y = (t.torsoMin + t.torsoMax) / 2;
     group.add(torso);
     const vest = this.box(
-      t.torsoWidth * scale - m.vestInset,
+      t.torsoWidth * scale - m.vestInset * 2,
       (t.torsoMax - t.torsoMin) / 2,
       t.depth + m.vestInset,
       p.vest,
+      true,
     );
     vest.position.y = t.torsoMax - (t.torsoMax - t.torsoMin) / 4;
     group.add(vest);
-    // Two contrasting trouser panels share the simulation's continuous leg region.
-    for (const side of [-1, 1]) {
-      const leg = this.box(
-        (t.legWidth * scale) / 2,
-        t.legMax - t.legMin,
-        t.depth,
-        side < 0 ? p.cover : p.vest,
-      );
-      leg.position.set((side * t.legWidth * scale) / 4, (t.legMin + t.legMax) / 2, 0);
-      group.add(leg);
-    }
-    const belt = this.box(t.torsoWidth * scale, m.beltHeight, t.depth + m.vestInset, p.ink);
+    // A painted center seam keeps the lower plate consistent with the continuous leg hit region.
+    const legs = this.box(t.legWidth * scale, t.legMax - t.legMin, t.depth, p.cover, true);
+    legs.position.y = (t.legMin + t.legMax) / 2;
+    const seam = this.box(m.seam, t.legMax - t.legMin, t.depth + m.vestInset, p.vest);
+    seam.position.y = legs.position.y;
+    group.add(legs, seam);
+    const belt = this.box(t.torsoWidth * scale, m.beltHeight, t.depth + m.vestInset, p.ink, true);
     belt.position.y = t.torsoMin + m.beltHeight / 2;
     group.add(belt);
-    return group;
-  }
-  weapon() {
-    const group = new THREE.Group(),
-      c = FPS_CONFIG.scene,
-      p = c.palette;
-    const body = this.box(c.gun.body.x, c.gun.body.y, c.gun.body.z, p.ink);
-    const barrel = this.box(c.gun.barrel.x, c.gun.barrel.y, c.gun.barrel.z, p.cover);
-    barrel.position.z = -c.gun.body.z / 2;
-    const magazine = this.box(c.gun.magazine.x, c.gun.magazine.y, c.gun.magazine.z, p.vest);
-    magazine.position.y = -(c.gun.body.y + c.gun.magazine.y) / 2;
-    const grip = this.box(c.gun.grip.x, c.gun.grip.y, c.gun.grip.z, p.cover);
-    grip.position.set(0, -(c.gun.body.y + c.gun.grip.y) / 2, c.gun.body.z / 4);
-    group.add(body, barrel, magazine, grip);
-    group.position.set(c.gun.offset.x, c.gun.offset.y, c.gun.offset.z);
     return group;
   }
 }

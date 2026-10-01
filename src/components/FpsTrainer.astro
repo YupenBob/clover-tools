@@ -11,14 +11,19 @@ const ranges = ['duration', 'distance', 'count', 'speed'] as const;
 const numbers = ['dpi', 'sensitivity', 'fov', 'cm360'] as const;
 const label = (key: string) => t[key as keyof FpsText];
 const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
+const palette = FPS_CONFIG.scene.palette;
+const reticle = FPS_CONFIG.feedback.crosshair;
+const rangeStyle = `--fps-room:${palette.background};--fps-ink:${palette.ink};--fps-ball:${palette.ball};--fps-hit:${palette.hit};--fps-head:${palette.head};--fps-light:${palette.light};--fps-hud:${palette.ink}e6;--fps-reticle:${reticle.color};--fps-outline:${reticle.outline};--fps-reticle-size:${reticle.size}px;--fps-reticle-gap:${reticle.gap}px;--fps-reticle-stroke:${reticle.stroke}px;--fps-marker-size:${FPS_CONFIG.feedback.hitMarkerSize}px;`;
 ---
 <ToolPanel title={t.title} icon="bi-crosshair">
-  <div class="fps" id="fpsTrainer" data-lang={lang}>
+  <div class="fps" id="fpsTrainer" data-lang={lang} style={rangeStyle}>
     <script type="application/json" id="fpsText" set:html={serialized} />
     <section id="fpsSetup">
-      <div class="fps-intro"><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.rangeIntro}</p></div>
+      <div class="fps-intro"><div><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.rangeIntro}</p></div><svg class="fps-range-sketch" viewBox="0 0 280 150" aria-hidden="true"><path d="M18 120H262M48 142L116 72M232 142L164 72M80 105H200" /><circle cx="82" cy="68" r="17" /><circle cx="168" cy="36" r="12" /><circle cx="228" cy="77" r="15" /><path class="fps-sketch-aim" d="M132 62V72M132 86V96M115 79H125M139 79H149" /></svg></div>
       <form id="fpsSettings">
-        <fieldset class="fps-quick"><legend>{t.quickStart}</legend><div class="fps-preset-row">{Object.keys(FPS_CONFIG.presets).map((id) => <button type="button" class="btn btn-secondary" data-fps-preset={id}>{label(id)}</button>)}</div></fieldset>
+        <fieldset class="fps-quick"><legend>{t.quickStart}</legend><div class="fps-preset-row">{Object.entries(FPS_CONFIG.presets).map(([id, preset]) => <button type="button" class="btn btn-secondary fps-preset" data-fps-preset={id}><strong>{label(id)}</strong><small>{label(preset.mode + 'Desc')}</small></button>)}</div></fieldset>
+        <div class="fps-start-row"><button type="submit" class="btn btn-primary" id="fpsStart"><i class="bi bi-crosshair" aria-hidden="true"></i>{t.start}</button><p class="fps-small">{t.controls}<br />{t.adsHint}</p></div>
+        <div class="fps-workbench"><div class="fps-training-column">
         <div class="fps-row">
           <label>{t.game}<select name="game" id="fpsGame">{Object.entries(GAME_PROFILES).map(([id, game]) => <option value={id}>{game.name}</option>)}</select></label>
           <label>{t.weapon}<select name="weapon" id="fpsWeapon">{Object.entries(WEAPON_PROFILES).map(([id, weapon]) => <option value={id} data-game={weapon.values.game}>{weapon.name}</option>)}</select></label>
@@ -30,14 +35,20 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
           <div class="fps-row">{ranges.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<span class="fps-slider"><input name={key} type="range" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} /><output data-output={key}>{settings[key]} {limit.unit}</output></span></label>; })}</div>
           <div class="fps-row"><label>{t.difficulty}<select name="difficulty">{Object.keys(FPS_CONFIG.difficulties).map((id) => <option value={id} selected={id === settings.difficulty}>{label(id)}</option>)}</select></label><label>{t.quality}<select name="quality">{Object.keys(FPS_CONFIG.quality).map((id) => <option value={id}>{label(id)}</option>)}</select></label></div><p class="fps-small">{t.ballSizeHint}</p>
         </fieldset>
-        <details class="fps-details" open><summary>{t.sensitivity} / {t.calibration}</summary>
+        </div><aside class="fps-session-column" aria-label={t.workbench}>
+        <fieldset class="fps-audio-options fps-details"><legend>{t.viewAndSound}</legend>
+          {(['volume', 'shotVolume', 'hitVolume'] as const).map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<span class="fps-slider"><input name={key} type="range" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} /><output data-output={key}>{settings[key]} {limit.unit}</output></span></label>; })}
+          <div class="fps-preset-row">{(['muted', 'showWeapon', 'weaponMotion'] as const).map((key) => <label class="fps-check"><input name={key} type="checkbox" checked={settings[key]} />{label(key)}</label>)}</div>
+          <button type="button" class="btn btn-secondary" id="fpsTestAudio">{t.testAudio}</button><p id="fpsAudioStatus" class="fps-small" role="status" aria-live="polite"></p><p class="fps-small">{t.audioHint}</p>
+        </fieldset>
+        <details class="fps-details" id="fpsAdvanced"><summary>{t.advancedSettings}</summary>
           <div class="fps-row">{numbers.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<input name={key} type="number" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} required /></label>; })}</div>
-          <div class="fps-row"><label>{t.aspect}<select name="aspect">{FPS_CONFIG.aspects.map((id) => <option value={id}>{label(id)}</option>)}</select></label><label class="fps-check"><input name="muted" type="checkbox" />{t.muted}</label></div>
+          <label>{t.aspect}<select name="aspect">{FPS_CONFIG.aspects.map((id) => <option value={id}>{label(id)}</option>)}</select></label>
           <p class="fps-small">{t.cmHint}</p><p class="fps-small">{t.calibrateHint}</p>
           <button type="button" class="btn btn-secondary" id="fpsCalibrate">{t.calibration}</button><output id="fpsGain" class="fps-small"></output>
         </details>
-        <div class="fps-start-row"><button type="submit" class="btn btn-primary" id="fpsStart"><i class="bi bi-crosshair" aria-hidden="true"></i>{t.start}</button><p class="fps-small">{t.controls}<br />{t.adsHint}</p></div>
         <button type="button" class="btn btn-secondary" id="fpsResetSettings">{t.resetSettings}</button>
+        </aside></div>
       </form>
       <p id="fpsStatus" class="fps-message" role="status" aria-live="polite"></p>
       <p class="fps-small fps-fidelity">{t.fidelity}</p>
@@ -52,8 +63,9 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
       <div class="fps-row"><button type="button" class="btn btn-primary" id="fpsAgain">{t.again}</button><button type="button" class="btn btn-secondary" id="fpsBack">{t.back}</button></div>
     </section>
     <section id="fpsStage" class="fps-stage" hidden aria-label={t.title}>
-      <div class="fps-canvas-wrap"><canvas id="fpsCanvas" aria-label={t.title}></canvas><div id="fpsCrosshair" class="fps-crosshair" aria-hidden="true"></div></div>
-      <div class="fps-hud"><div><strong id="fpsDrill"></strong><small id="fpsInputStatus"></small></div><div><small id="fpsTimeLabel">{t.time}</small><strong id="fpsTime">{settings.duration}</strong></div><div><small>{t.kills}</small><strong id="fpsKills">0</strong></div><div><small>{t.ammo}</small><strong id="fpsAmmo"></strong></div><div><small>{t.accuracy}</small><strong id="fpsAccuracy"></strong></div></div>
+      <div class="fps-canvas-wrap"><canvas id="fpsCanvas" aria-label={t.title}></canvas><div id="fpsCrosshair" class="fps-crosshair" aria-hidden="true"></div><div id="fpsHitMarker" class="fps-hit-marker" hidden aria-hidden="true"></div><span id="fpsHitText" class="fps-hit-text" hidden aria-hidden="true"></span></div>
+      <div class="fps-hud"><div class="fps-hud-mode"><strong id="fpsDrill"></strong><small id="fpsInputStatus"></small><small id="fpsAudioHud"></small></div><div class="fps-hud-stats"><div><small id="fpsTimeLabel">{t.time}</small><strong id="fpsTime">{settings.duration}</strong></div><div><small>{t.kills}</small><strong id="fpsKills">0</strong></div><div><small>{t.accuracy}</small><strong id="fpsAccuracy"></strong></div></div></div>
+      <div class="fps-ammo"><small id="fpsGunLabel"></small><strong id="fpsAmmo"></strong><small>{t.ammo}</small><progress id="fpsReloadProgress" max="1" value="0" hidden aria-label={t.reload}></progress></div>
       <div id="fpsMovement" class="fps-movement"></div><div class="fps-key-help">{t.controls}</div>
       <div id="fpsVeil" class="fps-veil"><div class="fps-pause-card"><h3 id="fpsPauseTitle">{t.pause}</h3><p id="fpsPauseMessage"></p><button type="button" class="btn btn-primary" id="fpsResume">{t.resume}</button><div class="fps-pause-actions"><button type="button" class="btn btn-secondary" id="fpsFullscreen">{t.fullscreen}</button><button type="button" class="btn btn-secondary" id="fpsFinish">{t.finish}</button></div></div></div>
     </section>
@@ -122,6 +134,63 @@ const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
   .fps-pause-card { max-width: 520px; margin: 20px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 28px; border-radius: var(--radius-lg); text-align: center; }
   .fps-pause-card p { font-size: .9rem; color: var(--text-secondary); }.fps-pause-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
   .fps :is(button, input, select, summary):focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+  .fps-intro { display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; gap: 24px; padding: 8px 0 24px; }
+  .fps-range-sketch { width: 100%; height: auto; color: var(--fps-ball); }
+  .fps-range-sketch path { fill: none; stroke: var(--border-strong); stroke-width: 1.5; }
+  .fps-range-sketch circle { fill: currentColor; }
+  .fps-range-sketch .fps-sketch-aim { stroke: var(--primary); stroke-width: 2; }
+  .fps-quick .fps-preset-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 0; }
+  .fps-preset { display: flex; flex-direction: column; align-items: flex-start; text-align: left; white-space: normal; padding: 18px; border-top: 3px solid var(--primary); min-height: 104px; }
+  .fps-preset[data-active=true] { background: var(--primary-soft); border-color: var(--primary); }
+  .fps-preset strong { font-size: .92rem; }
+  .fps-preset small { font-size: .75rem; font-weight: 400; color: var(--text-secondary); line-height: 1.5; }
+  .fps-workbench { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); align-items: start; gap: 24px; }
+  .fps-training-column, .fps-session-column { min-width: 0; }
+  .fps-session-column { border-left: 1px solid var(--border); padding-left: 24px; }
+  .fps-start-row { padding-bottom: 24px; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+  .fps-start-row #fpsStart { min-width: 220px; justify-content: center; padding: 14px 24px; font-size: 1rem; }
+  .fps-start-row p { min-width: 0; }
+  .fps-audio-options { padding: 16px; border: 1px solid var(--border); }
+  .fps-audio-options legend { padding: 0 6px; margin-bottom: 0; }
+  .fps-audio-options > label { margin: 0 0 14px; }
+  .fps-audio-options .fps-preset-row { gap: 12px 18px; margin: 0 0 18px; }
+  #fpsAudioStatus[data-state=unavailable], #fpsAudioStatus[data-state=blocked] { color: var(--warning); }
+  .fps-modes { gap: 8px; }
+  .fps-mode { padding: 12px; background: var(--bg-elevated); }
+  .fps-mode:has(input:checked) { box-shadow: inset 3px 0 var(--primary); }
+  .fps-stage { background: var(--fps-ink); color: var(--fps-light); }
+  .fps-crosshair { width: var(--fps-reticle-size); height: var(--fps-reticle-size); filter: drop-shadow(0 0 1px var(--fps-outline)); }
+  .fps-crosshair::before, .fps-crosshair::after { box-shadow: none; }
+  .fps-crosshair::before { width: 100%; height: var(--fps-reticle-stroke); left: 0; top: calc((var(--fps-reticle-size) - var(--fps-reticle-stroke)) / 2); background: linear-gradient(to right, var(--fps-reticle) calc((100% - var(--fps-reticle-gap)) / 2), transparent 0 calc((100% + var(--fps-reticle-gap)) / 2), var(--fps-reticle) 0); }
+  .fps-crosshair::after { height: 100%; width: var(--fps-reticle-stroke); top: 0; left: calc((var(--fps-reticle-size) - var(--fps-reticle-stroke)) / 2); background: linear-gradient(to bottom, var(--fps-reticle) calc((100% - var(--fps-reticle-gap)) / 2), transparent 0 calc((100% + var(--fps-reticle-gap)) / 2), var(--fps-reticle) 0); }
+  .fps-crosshair.hit { --fps-reticle: var(--fps-hit); filter: drop-shadow(0 0 1px var(--fps-outline)); }
+  .fps-hit-marker { position: absolute; width: var(--fps-marker-size); height: var(--fps-marker-size); top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--fps-hit); pointer-events: none; filter: drop-shadow(0 0 1px var(--fps-outline)); }
+  .fps-hit-marker[data-complete=true] { color: var(--fps-head); }
+  .fps-hit-marker::before, .fps-hit-marker::after { content: ''; position: absolute; left: 0; top: 50%; width: 100%; height: var(--fps-reticle-stroke); background: linear-gradient(to right, currentColor 35%, transparent 0 65%, currentColor 0); transform: rotate(45deg); }
+  .fps-hit-marker::after { transform: rotate(-45deg); }
+  .fps-hit-text { position: absolute; top: calc(50% + var(--fps-marker-size)); left: 50%; transform: translateX(-50%); padding: 3px 8px; border-radius: var(--radius-sm); font: 600 .7rem var(--font-mono); background: var(--fps-hud); color: var(--fps-light); pointer-events: none; }
+  .fps-hud { top: 24px; left: 24px; right: 24px; padding: 0; background: none; border: 0; border-radius: 0; align-items: start; }
+  .fps-hud-mode, .fps-hud-stats { background: var(--fps-hud); border: 1px solid color-mix(in srgb, var(--fps-light) 16%, transparent); border-radius: var(--radius-md); padding: 14px 18px; }
+  .fps-hud-mode { max-width: 46%; }
+  .fps-hud-mode strong { font-size: .88rem; line-height: 1.5; }
+  .fps-hud small { color: color-mix(in srgb, var(--fps-light) 72%, transparent); line-height: 1.5; }
+  .fps-hud-stats { display: flex; gap: 28px; text-align: right; }
+  .fps-hud-stats strong { font-size: 1.55rem; line-height: 1.35; }
+  #fpsAudioHud[data-state=unavailable], #fpsAudioHud[data-state=blocked] { color: var(--fps-head); max-width: 380px; }
+  .fps-ammo { position: absolute; bottom: 26px; right: 28px; text-align: right; min-width: 110px; padding: 12px 16px; background: var(--fps-hud); border-radius: var(--radius-md); pointer-events: none; }
+  .fps-ammo strong { display: block; font: 600 1.65rem var(--font-mono); margin: 4px 0; }
+  .fps-ammo small { display: block; font: .7rem var(--font-mono); color: color-mix(in srgb, var(--fps-light) 72%, transparent); }
+  #fpsReloadProgress { width: 100%; height: 4px; margin-top: 8px; accent-color: var(--fps-head); }
+  .fps-movement { bottom: 58px; left: 24px; transform: none; background: var(--fps-hud); color: var(--fps-head); border-radius: var(--radius-sm); padding: 8px 12px; }
+  .fps-stage[data-stable=true] .fps-movement { color: var(--fps-hit); }
+  .fps-key-help { bottom: 24px; left: 24px; right: auto; max-width: calc(100% - 260px); text-align: left; background: none; color: var(--fps-ink); padding: 0; font-size: .7rem; text-shadow: 0 1px var(--fps-light); }
+  .fps-veil { background: color-mix(in srgb, var(--fps-ink) 32%, transparent); backdrop-filter: blur(3px); }
+  .fps-pause-card { background: var(--fps-hud); border-color: color-mix(in srgb, var(--fps-light) 20%, transparent); padding: 32px; color: var(--fps-light); box-shadow: var(--shadow-lg); }
+  .fps-pause-card h3 { margin-top: 0; font-size: 1.4rem; }
+  .fps-pause-card p { color: color-mix(in srgb, var(--fps-light) 80%, transparent); line-height: 1.7; }
+  .fps-pause-card .btn-secondary { background: transparent; color: var(--fps-light); border-color: color-mix(in srgb, var(--fps-light) 25%, transparent); }
+  @media(max-width:1100px) { .fps-workbench { grid-template-columns: 1fr; }.fps-session-column { border-left: 0; border-top: 1px solid var(--border); padding: 24px 0 0; }.fps-session-column .fps-start-row { display: flex; }.fps-start-row #fpsStart { width: auto; }.fps-audio-options { max-width: 100%; } }
+  @media(max-width:600px) { .fps-intro { grid-template-columns: 1fr; gap: 10px; }.fps-range-sketch { display: none; }.fps-quick .fps-preset-row { grid-template-columns: 1fr; }.fps-preset { min-height: 0; padding: 14px; }.fps-session-column .fps-start-row { display: block; }.fps-start-row #fpsStart { width: 100%; }.fps-hud { top: 12px; left: 12px; right: 12px; gap: 10px; }.fps-hud-mode, .fps-hud-stats { padding: 8px 10px; }.fps-hud-stats { gap: 12px; }.fps-hud-stats strong { font-size: 1rem; }.fps-hud-mode strong { font-size: .7rem; }.fps-ammo { right: 12px; bottom: 12px; }.fps-movement, .fps-key-help { left: 12px; }.fps-key-help { max-width: calc(100% - 170px); } }
   @media(max-width:600px) { .fps-row, .fps-modes { grid-template-columns: 1fr; }.fps-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }.fps-hud { gap: 8px; padding: 10px; }.fps-hud strong { font-size: .9rem; }.fps-hud small { max-width: 130px; }.fps-history-head { flex-wrap: wrap; } }
   @media(prefers-reduced-motion:reduce) { .fps * { transition: none !important; } }
 </style>

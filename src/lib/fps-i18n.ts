@@ -2,6 +2,7 @@ import chineseS2t from 'chinese-s2t';
 import { FPS_CONFIG } from '../../config/fps.mjs';
 import type { Lang } from './i18n';
 import { FPS_RANGE_TEXT, type FpsRangeText } from './fps-range-i18n.ts';
+import { FPS_POLISH_TEXT, type FpsPolishText } from './fps-polish-i18n.ts';
 
 const zh = {
   resetSettings: '清除设置与校准',
@@ -521,12 +522,13 @@ const ja: Text = {
   free: '自由練習',
   freeDesc: '自由に移動と射撃を行い、手動で終了します。',
 };
-export type FpsText = Text & FpsRangeText;
+export type FpsText = Text & FpsRangeText & FpsPolishText;
 export function fpsText(lang: Lang): FpsText {
   const locale = lang === 'tw' ? 'zh' : lang;
   const source = {
     ...({ zh, en, ko, ja }[locale] || zh),
     ...(FPS_RANGE_TEXT[locale] || FPS_RANGE_TEXT.zh),
+    ...(FPS_POLISH_TEXT[locale] || FPS_POLISH_TEXT.zh),
   };
   return Object.fromEntries(
     Object.entries(source).map(([key, value]) => [
@@ -586,7 +588,7 @@ export const FPS_META = {
 export function fpsContent(lang: Lang) {
   const t = fpsText(lang);
   return {
-    usage: `${t.rangeIntro} ${t.turnHint} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
+    usage: `${t.rangeIntro} ${t.turnHint} ${t.audioHint} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
     features: [
       {
         icon: 'bi-crosshair',

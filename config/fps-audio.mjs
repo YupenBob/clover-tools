@@ -1,0 +1,60 @@
+/** CC0 source recordings; local derivatives are original sound design, not game audio. */
+export const FPS_AUDIO_ASSETS = {
+  ak47: {
+    file: '/fps/audio/ak47.wav',
+    source: 'firearms',
+    original: 'AK-47/C_28P.wav',
+    originalSha256: 'e0934c1d79192d2216db62fdf6ab57bf9d5d585267af367a1cfb21f0972a537d',
+    start: 0.606,
+    duration: 0.45,
+  },
+  ar15: {
+    file: '/fps/audio/ar15.wav',
+    source: 'firearms',
+    original: 'AR-15/D_32P.wav',
+    originalSha256: 'acee9d2106b68fe5956225a19d7aedf943d97793817f9bda9d486a2b74b0a812',
+    start: 0.699,
+    duration: 0.45,
+  },
+  reload: {
+    file: '/fps/audio/reload.wav',
+    source: 'mechanical',
+    original: 'assaultriflereload1_0.wav',
+    originalSha256: 'efb2d724d634eabe6ba8d3065686abca848bb7497d4d43a5e4aed5e5ea23016f',
+    start: 0,
+    duration: 1.56,
+  },
+  action: {
+    file: '/fps/audio/action.wav',
+    source: 'mechanical',
+    original: 'assaultriflereload1_0.wav',
+    originalSha256: 'efb2d724d634eabe6ba8d3065686abca848bb7497d4d43a5e4aed5e5ea23016f',
+    start: 1.2,
+    duration: 0.24,
+  },
+};
+export const FPS_AUDIO_SOURCES = {
+  firearms: {
+    title: 'The Free Firearm Sound Library',
+    author: 'Ben Jaszczak, Brian Nelson, Kevin Heras, Matthew Nanney',
+    page: 'https://opengameart.org/content/the-free-firearm-sound-library',
+    download: 'https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z',
+    sha256: 'cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6',
+    license: 'CC0-1.0',
+  },
+  mechanical: {
+    title: 'Gun reload sounds',
+    author: 'SpringySpringo',
+    page: 'https://opengameart.org/content/gun-reload-sounds',
+    download: 'https://opengameart.org/sites/default/files/assaultriflereload1_0.wav',
+    sha256: 'efb2d724d634eabe6ba8d3065686abca848bb7497d4d43a5e4aed5e5ea23016f',
+    license: 'CC0-1.0',
+  },
+};
+export const FPS_AUDIO_ENCODING = {
+  sampleRate: 44100,
+  channels: 1,
+  codec: 'pcm_s16le',
+  filter: 'highpass=f=60,loudnorm=I=-18:TP=-3:LRA=7,afade=t=out:st={fadeStart}:d=0.06',
+  fadeSeconds: 0.06,
+};

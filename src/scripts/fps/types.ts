@@ -74,6 +74,11 @@ export interface Settings {
   infiniteAmmo: boolean;
   headOnlyBots: boolean;
   muted: boolean;
+  volume: number;
+  shotVolume: number;
+  hitVolume: number;
+  showWeapon: boolean;
+  weaponMotion: boolean;
   quality: string;
 }
 export interface Input {
@@ -117,6 +122,10 @@ export interface TimelineEvent {
   kind: 'move' | 'release' | 'stable' | 'shot';
   speed: number;
 }
+/** Presentation notifications never determine damage, statistics or simulation time. */
+export type FeedbackEvent =
+  | { kind: 'shot'; time: number; shot: Shot; completed: boolean }
+  | { kind: 'reload-start' | 'reload-end' | 'empty'; time: number };
 export interface TrainingMode {
   id: string;
   moving: boolean;

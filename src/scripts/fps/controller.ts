@@ -10,8 +10,9 @@ import { calibratedGain, cmPerTurn } from './math';
 import { FpsStorage, normalizeSettings } from './storage';
 import { renderHistory, renderReport, renderSources } from './report';
 import { PointerCapture } from './pointer';
+import { RangeAudio, type AudioStatus } from './audio';
 import type { FpsText } from '../../lib/fps-i18n';
-import type { Settings, Shot } from './types';
+import type { Settings, FeedbackEvent } from './types';
 import type { RangeRenderer } from './renderer';
 
 const root = document.getElementById('fpsTrainer');
@@ -45,7 +46,8 @@ function initialize(root: HTMLElement) {
     raf = 0,
     oldOverflow = '';
   const pressed = new Set<string>();
-  let audio: AudioContext | null = null;
+  let audio: RangeAudio | null = null;
+  let markerUntil = 0;
   const events = new AbortController(),
     options = { signal: events.signal };
   const status = (message: string) => {
@@ -55,6 +57,25 @@ function initialize(root: HTMLElement) {
     form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
   const activeTime = (at = performance.now()) =>
     elapsedBase + (running ? Math.max(0, at - anchor) / 1000 : 0);
+  function audioStatus(state: AudioStatus) {
+    const labels = {
+      idle: text.audioIdle,
+      loading: text.audioLoading,
+      ready: text.audioReady,
+      running: text.audioRunning,
+      muted: text.audioMuted,
+      blocked: text.audioBlocked,
+      unavailable: text.audioUnavailable,
+    };
+    for (const id of ['fpsAudioStatus', 'fpsAudioHud']) {
+      $(id).textContent = labels[state];
+      $(id).dataset.state = state;
+    }
+  }
+  function disposeAudio() {
+    audio?.dispose();
+    audio = null;
+  }
   const capture = new PointerCapture({
     available: () =>
       !!session &&
@@ -108,7 +129,14 @@ function initialize(root: HTMLElement) {
       values: Record<string, unknown> = { ...settings };
     for (const [key, value] of data.entries())
       values[key] = key in FPS_CONFIG.controls ? Number(value) : value;
-    for (const key of ['muted', 'movingBots', 'infiniteAmmo', 'headOnlyBots'])
+    for (const key of [
+      'muted',
+      'movingBots',
+      'infiniteAmmo',
+      'headOnlyBots',
+      'showWeapon',
+      'weaponMotion',
+    ])
       values[key] = (control(key) as HTMLInputElement).checked;
     return normalizeSettings(values);
   }
@@ -117,6 +145,12 @@ function initialize(root: HTMLElement) {
     renderSources(settings, text);
     renderHistory(storage, settings, text, root.dataset.lang || 'en');
     if (!storage.available) status(text.storageError);
+    if (!audio) audioStatus(settings.muted || settings.volume === 0 ? 'muted' : 'idle');
+    for (const button of root.querySelectorAll<HTMLElement>('[data-fps-preset]'))
+      button.dataset.active = String(
+        FPS_CONFIG.presets[button.dataset.fpsPreset as keyof typeof FPS_CONFIG.presets].mode ===
+          settings.mode,
+      );
   }
   form.addEventListener(
     'input',
@@ -134,6 +168,8 @@ function initialize(root: HTMLElement) {
           calibrationGain: 0,
         });
       } else settings = readForm();
+      disposeAudio();
+      audioStatus(settings.muted || settings.volume === 0 ? 'muted' : 'idle');
       storage.savePreferences(settings);
       refresh();
     },
@@ -146,6 +182,7 @@ function initialize(root: HTMLElement) {
         const preset =
           FPS_CONFIG.presets[button.dataset.fpsPreset as keyof typeof FPS_CONFIG.presets];
         settings = normalizeSettings({ ...readForm(), ...preset });
+        disposeAudio();
         storage.savePreferences(settings);
         refresh();
       },
@@ -161,6 +198,19 @@ function initialize(root: HTMLElement) {
     options,
   );
   $('fpsCalibrate').addEventListener('click', () => void enter(true), options);
+  $('fpsTestAudio').addEventListener(
+    'click',
+    () => {
+      disposeAudio();
+      audio = new RangeAudio(readForm(), audioStatus);
+      const current = audio;
+      current.activate();
+      void current.prepare().then(() => {
+        if (audio === current) current.test();
+      });
+    },
+    options,
+  );
   $('fpsClear').addEventListener(
     'click',
     () => {
@@ -174,6 +224,7 @@ function initialize(root: HTMLElement) {
     () => {
       storage.clearPreferences();
       settings = normalizeSettings();
+      disposeAudio();
       status('');
       refresh();
     },
@@ -229,6 +280,7 @@ function initialize(root: HTMLElement) {
         return;
       }
       disposeRenderer();
+      disposeAudio();
       const fresh = canvas.cloneNode(false) as HTMLCanvasElement;
       canvas.replaceWith(fresh);
       canvas = fresh;
@@ -241,7 +293,27 @@ function initialize(root: HTMLElement) {
       calibrationCounts = 0;
       elapsedBase = 0;
       lastHud = 0;
-      session.onShot = feedback;
+      session.onFeedback = feedback;
+      markerUntil = 0;
+      $('fpsHitMarker').hidden = true;
+      $('fpsHitText').hidden = true;
+      $('fpsCrosshair').classList.remove('hit');
+      if (!calibration) {
+        audio = new RangeAudio(settings, audioStatus);
+        const pendingAudio = audio;
+        await pendingAudio.prepare();
+        if (
+          generation !== entryGeneration ||
+          document.hidden ||
+          !document.hasFocus() ||
+          events.signal.aborted
+        ) {
+          if (audio === pendingAudio) disposeAudio();
+          session = null;
+          status(text.pause);
+          return;
+        }
+      }
       oldOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       stage.hidden = false;
@@ -256,6 +328,7 @@ function initialize(root: HTMLElement) {
       $<HTMLButtonElement>('fpsResume').disabled = false;
       $('fpsDrill').textContent =
         `${session.game.name} / ${session.weapon.name} · ${text[settings.mode as keyof FpsText]}`;
+      $('fpsGunLabel').textContent = session.weapon.name;
       $('fpsTimeLabel').textContent = session.mode.timed ? text.time : text.freeTime;
       renderer.render();
       hud();
@@ -266,6 +339,7 @@ function initialize(root: HTMLElement) {
       stage.hidden = true;
       document.body.style.overflow = oldOverflow;
       disposeRenderer();
+      disposeAudio();
       session = null;
       status(text.unsupported);
     } finally {
@@ -274,11 +348,13 @@ function initialize(root: HTMLElement) {
   }
   async function lock() {
     if (running) return;
+    audio?.activate(session?.time || 0);
     if ((await capture.request()) === 'failed') pause(text.lockError);
   }
   function resume() {
     if (!session || !renderer || renderer.lost || stage.hidden || running) return;
     running = true;
+    audio?.syncTime(session.time);
     anchor = lastFrame = performance.now();
     lastHud = 0;
     veil.hidden = true;
@@ -293,6 +369,7 @@ function initialize(root: HTMLElement) {
     if (running && !calibrating) session.advanceTo(activeTime(at));
     elapsedBase = session.time;
     running = false;
+    audio?.stop();
     pressed.clear();
     session.clearInput();
     cancelAnimationFrame(raf);
@@ -318,6 +395,10 @@ function initialize(root: HTMLElement) {
     lastFrame = now;
     if (!calibrating) session.advanceTo(activeTime(now));
     renderer.render();
+    if (session.time >= markerUntil) {
+      $('fpsCrosshair').classList.remove('hit');
+      $('fpsHitMarker').hidden = $('fpsHitText').hidden = true;
+    }
     if (now - lastHud >= FPS_CONFIG.feedback.hudInterval * 1000) {
       hud();
       lastHud = now;
@@ -341,6 +422,11 @@ function initialize(root: HTMLElement) {
     $('fpsKills').textContent = String(result.targets);
     $('fpsAccuracy').textContent =
       result.accuracy === null ? '—' : `${(result.accuracy * 100).toFixed(0)}%`;
+    const progress = $<HTMLProgressElement>('fpsReloadProgress');
+    progress.hidden = !session.reloadUntil;
+    progress.value = session.reloadUntil
+      ? 1 - (session.reloadUntil - session.time) / session.weapon.values.reload
+      : 0;
     if (!calibrating)
       $('fpsMovement').textContent =
         `${session.stable ? text.stable : text.moving} · ${session.speed.toFixed(2)} m/s${session.input.ads ? ' · ' + text.ads : ''}`;
@@ -364,6 +450,7 @@ function initialize(root: HTMLElement) {
     if (document.fullscreenElement === stage) void document.exitFullscreen().catch(() => {});
     document.body.style.overflow = oldOverflow;
     disposeRenderer();
+    disposeAudio();
   }
   function finish(show = true) {
     if (!session) return;
@@ -515,39 +602,31 @@ function initialize(root: HTMLElement) {
       capture.cancel();
       if (session) finish(false);
       events.abort();
-      void audio?.close();
+      disposeAudio();
     },
     { once: true },
   );
-  function feedback(shot: Shot) {
-    renderer?.impact(shot);
-    $('fpsCrosshair').classList.toggle('hit', !!shot.region);
-    setTimeout(
-      () => $('fpsCrosshair').classList.remove('hit'),
-      FPS_CONFIG.feedback.flashSeconds * 1000,
-    );
-    if (settings.muted) return;
+  function feedback(event: FeedbackEvent) {
+    renderer?.feedback(event);
     try {
-      audio ||= new AudioContext();
-      void audio.resume();
-      const oscillator = audio.createOscillator(),
-        gain = audio.createGain(),
-        sound = FPS_CONFIG.feedback.audio;
-      oscillator.frequency.value = shot.region ? sound.hitHz : sound.missHz;
-      gain.gain.setValueAtTime(sound.volume, audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + sound.duration);
-      oscillator.connect(gain).connect(audio.destination);
-      oscillator.start();
-      oscillator.stop(audio.currentTime + sound.duration);
-      oscillator.onended = () => {
-        oscillator.disconnect();
-        gain.disconnect();
-      };
+      audio?.feedback(event);
     } catch {
-      /* Audio is optional. */
+      disposeAudio();
+      audioStatus('unavailable');
     }
+    if (event.kind !== 'shot' || !event.shot.region) return;
+    markerUntil = event.time + FPS_CONFIG.feedback.markerSeconds;
+    $('fpsCrosshair').classList.add('hit');
+    $('fpsHitMarker').hidden = $('fpsHitText').hidden = false;
+    $('fpsHitMarker').dataset.complete = String(event.completed);
+    $('fpsHitText').textContent = event.completed
+      ? text.feedbackComplete
+      : event.shot.region === 'head'
+        ? text.feedbackHead
+        : text.feedbackHit;
   }
   refresh();
+  audioStatus(settings.muted || settings.volume === 0 ? 'muted' : 'idle');
   if (matchMedia('(pointer: coarse)').matches) {
     status(text.desktop);
     $<HTMLButtonElement>('fpsStart').disabled = true;

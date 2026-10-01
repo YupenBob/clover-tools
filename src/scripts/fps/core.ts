@@ -22,6 +22,7 @@ import {
 } from './math.ts';
 import type {
   GameProfile,
+  FeedbackEvent,
   Input,
   Region,
   SessionResult,
@@ -78,6 +79,7 @@ export class TrainingSession {
   private wasStable = true;
   private wasMoving = false;
   onShot?: (shot: Shot) => void;
+  onFeedback?: (event: FeedbackEvent) => void;
 
   constructor(settings: Partial<Settings> = {}, seed = 1, viewportAspect = 16 / 9) {
     this.viewportAspect = viewportAspect;
@@ -177,6 +179,8 @@ export class TrainingSession {
     if (this.weapon.values.adsZoom <= 1) this.input.ads = false;
     if ((previous.forward || previous.side) && !this.input.forward && !this.input.side)
       this.event('release');
+    if (this.input.firing && !previous.firing && this.ammo === 0 && !this.reloadUntil)
+      this.onFeedback?.({ kind: 'empty', time: at });
     if (
       this.input.firing &&
       !previous.firing &&
@@ -201,6 +205,7 @@ export class TrainingSession {
       this.reloadUntil = this.time + this.weapon.values.reload;
       this.nextShotAt = Math.max(this.nextShotAt, this.reloadUntil);
       this.input.firing = false;
+      this.onFeedback?.({ kind: 'reload-start', time: this.time });
     }
   }
   advanceTo(seconds: number) {
@@ -234,6 +239,7 @@ export class TrainingSession {
     if (this.reloadUntil > 0 && this.time >= this.reloadUntil) {
       this.ammo = this.weapon.values.magazine;
       this.reloadUntil = 0;
+      this.onFeedback?.({ kind: 'reload-end', time: this.time });
     }
     if (
       this.time - this.lastShotAt >
@@ -548,6 +554,7 @@ export class TrainingSession {
       this.mode.headOnly,
       policy.metrics.includes('stableDelayMs'),
     );
+    let completed = false;
     if (hit) {
       hit.target.health -= record.damage;
       if (
@@ -556,6 +563,7 @@ export class TrainingSession {
         (!this.mode.headOnly && hit.target.health <= 0)
       ) {
         this.statistics.complete(at, hit.target.id);
+        completed = true;
         if ('persistent' in policy && policy.persistent)
           hit.target.health = this.game.values.health;
         else {
@@ -573,6 +581,7 @@ export class TrainingSession {
     this.event('shot', at);
     if (this.mode.precision) {
       this.onShot?.(record);
+      this.onFeedback?.({ kind: 'shot', time: at, shot: record, completed });
       return;
     }
     this.burst++;
@@ -596,6 +605,7 @@ export class TrainingSession {
       radians(w.recoilCap / 2),
     );
     this.onShot?.(record);
+    this.onFeedback?.({ kind: 'shot', time: at, shot: record, completed });
   }
   result(timestamp = Date.now()): SessionResult {
     const score = this.statistics.score(this.time);
