@@ -13,10 +13,6 @@ export class PointerCapture {
   private pending = false;
   raw = false;
 
-  get requesting() {
-    return this.pending;
-  }
-
   constructor(surface: PointerSurface) {
     this.surface = surface;
   }
@@ -59,6 +55,14 @@ export class PointerCapture {
     if (this.armed && this.surface.available()) return true;
     this.cancel();
     return false;
+  }
+
+  /** Raw-input rejection can emit an error after the ordinary-input grant succeeded. */
+  handleError(): boolean {
+    if (this.pending || (this.armed && this.surface.owns() && this.surface.available()))
+      return false;
+    this.cancel();
+    return true;
   }
 
   cancel() {

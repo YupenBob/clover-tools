@@ -406,7 +406,7 @@ function initialize(root: HTMLElement) {
   document.addEventListener(
     'pointerlockerror',
     () => {
-      if (!stage.hidden && !capture.requesting) pause(text.lockError);
+      if (!stage.hidden && capture.handleError()) pause(text.lockError);
     },
     options,
   );

@@ -116,6 +116,38 @@ test('denied or unfocused mouse capture stays inactive and requires a fresh requ
   assert.equal(pointer.acceptChange(), false);
 });
 
+test('late raw-input error preserves a valid fallback grant; legacy denial still releases intent', async () => {
+  let owned = false,
+    available = true;
+  const pointer = new PointerCapture({
+    available: () => available,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+    },
+    request: (raw) => {
+      if (raw) throw new DOMException('unsupported', 'NotSupportedError');
+      owned = true;
+    },
+  });
+  assert.equal(await pointer.request(), 'requested');
+  assert.equal(pointer.handleError(), false);
+  assert.equal(owned, true);
+  assert.equal(pointer.acceptChange(), true);
+  available = false;
+  assert.equal(pointer.handleError(), true);
+  assert.equal(owned, false);
+  const legacy = new PointerCapture({
+    available: () => true,
+    owns: () => false,
+    release: () => {},
+    request: () => {},
+  });
+  assert.equal(await legacy.request(), 'requested');
+  assert.equal(legacy.handleError(), true);
+  assert.equal(await legacy.request(), 'requested');
+});
+
 const near = (actual, expected, tolerance = 1e-8) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
 test('mouse angular gain, physical calibration and reference FOV have reversible units', () => {

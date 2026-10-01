@@ -263,6 +263,10 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         await page.locator('[name=mode][value=free]').check();
         await enter(page);
         assert.match(await page.locator('#fpsInputStatus').innerText(), /普通鼠标/);
+        // Linux Chromium can emit the raw request's error after granting ordinary input.
+        await page.evaluate(() => document.dispatchEvent(new Event('pointerlockerror')));
+        assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'running');
+        assert.equal(await page.evaluate(() => document.pointerLockElement?.id), 'fpsCanvas');
         await page.mouse.down({ button: 'right' });
         await page.waitForTimeout(150);
         assert.equal(await page.locator('#fpsStage').getAttribute('data-ads'), 'true');
