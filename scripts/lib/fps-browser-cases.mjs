@@ -13,15 +13,53 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
     await page.waitForSelector('#fpsTrainer[data-ready=true]');
   }
   async function enter(page) {
+    await page.evaluate(() => {
+      const trace = (window.__fpsLockTrace = []);
+      const record = (event) =>
+        trace.push({
+          event,
+          locked: document.pointerLockElement?.id || null,
+          focused: document.hasFocus(),
+          at: performance.now(),
+        });
+      document.addEventListener('pointerlockchange', () => record('change'));
+      document.addEventListener('pointerlockerror', () => record('error'));
+      window.addEventListener('blur', () => record('blur'));
+      const original = HTMLCanvasElement.prototype.requestPointerLock;
+      HTMLCanvasElement.prototype.requestPointerLock = function (options) {
+        record(options?.unadjustedMovement ? 'request-raw' : 'request-adjusted');
+        const pending = original.call(this, options);
+        Promise.resolve(pending).then(
+          () => record('resolved'),
+          (error) => record(`rejected:${error.name}:${error.message}`),
+        );
+        return pending;
+      };
+    });
     await page.locator('#fpsStart').click();
     await page.waitForFunction(() =>
       ['running', 'paused'].includes(document.querySelector('#fpsStage').dataset.phase),
     );
     if ((await page.locator('#fpsStage').getAttribute('data-phase')) === 'paused')
       await page.locator('#fpsResume').click();
-    await page.waitForFunction(
-      () => document.querySelector('#fpsStage').dataset.phase === 'running',
-    );
+    try {
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'running',
+      );
+    } catch (error) {
+      const state = await page.evaluate(() => ({
+        phase: document.querySelector('#fpsStage').dataset.phase,
+        message: document.querySelector('#fpsPauseMessage').textContent,
+        status: document.querySelector('#fpsStatus').textContent,
+        elapsed: document.querySelector('#fpsStage').dataset.elapsed,
+        locked: document.pointerLockElement?.id || null,
+        active: document.activeElement?.id,
+        focused: document.hasFocus(),
+        hidden: document.hidden,
+        trace: window.__fpsLockTrace,
+      }));
+      throw new Error(`Range start failed: ${JSON.stringify(state)}`, { cause: error });
+    }
     assert.equal(await page.evaluate(() => document.pointerLockElement?.id), 'fpsCanvas');
   }
   async function pause(page) {
