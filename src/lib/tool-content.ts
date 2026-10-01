@@ -1,3 +1,5 @@
+import { fpsContent } from './fps-i18n.ts';
+
 export interface ToolExample {
   label: string;
   input: string;
@@ -27,6 +29,7 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  'fps-aim-trainer': fpsContent('zh'),
   'json-formatter': {
     usage:
       '在线 JSON 格式化与校验工具：粘贴 JSON 后自动美化排版，支持压缩输出与缩进自定义；语法错误会定位到具体行号，方便快速排查接口返回与配置文件问题。所有处理都在浏览器本地完成，数据不会上传。',

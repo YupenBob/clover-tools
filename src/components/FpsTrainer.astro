@@ -1,0 +1,122 @@
+---
+import ToolPanel from './ToolPanel.astro';
+import { FPS_CONFIG, GAME_PROFILES, WEAPON_PROFILES, TRAINING_MODES } from '../../config/fps.mjs';
+import { fpsText, type FpsText } from '../lib/fps-i18n';
+import type { Lang } from '../lib/i18n';
+import { normalizeSettings } from '../scripts/fps/storage';
+const { lang } = Astro.props as { lang: Lang };
+const t = fpsText(lang);
+const settings = normalizeSettings();
+const ranges = ['duration', 'distance', 'count', 'speed'] as const;
+const numbers = ['dpi', 'sensitivity', 'fov', 'cm360'] as const;
+const label = (key: string) => t[key as keyof FpsText];
+const serialized = JSON.stringify(t).replace(/</g, '\\u003c');
+---
+<ToolPanel title={t.title} icon="bi-crosshair">
+  <div class="fps" id="fpsTrainer" data-lang={lang}>
+    <script type="application/json" id="fpsText" set:html={serialized} />
+    <section id="fpsSetup">
+      <div class="fps-intro"><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.intro}</p></div>
+      <form id="fpsSettings">
+        <div class="fps-row">
+          <label>{t.game}<select name="game" id="fpsGame">{Object.entries(GAME_PROFILES).map(([id, game]) => <option value={id}>{game.name}</option>)}</select></label>
+          <label>{t.weapon}<select name="weapon" id="fpsWeapon">{Object.entries(WEAPON_PROFILES).map(([id, weapon]) => <option value={id} data-game={weapon.values.game}>{weapon.name}</option>)}</select></label>
+        </div>
+        <fieldset class="fps-modes"><legend>{t.mode}</legend>{Object.keys(TRAINING_MODES).map((id) => <label class="fps-mode"><input type="radio" name="mode" value={id} checked={id === settings.mode} /><span><strong>{label(id)}</strong><small>{label(id + 'Desc')}</small></span></label>)}</fieldset>
+        <fieldset class="fps-options"><legend>{t.settings}</legend>
+          <div class="fps-row">{ranges.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<span class="fps-slider"><input name={key} type="range" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} /><output data-output={key}>{settings[key]} {limit.unit}</output></span></label>; })}</div>
+          <div class="fps-row"><label>{t.difficulty}<select name="difficulty">{Object.keys(FPS_CONFIG.difficulties).map((id) => <option value={id} selected={id === settings.difficulty}>{label(id)}</option>)}</select></label><label>{t.quality}<select name="quality">{Object.keys(FPS_CONFIG.quality).map((id) => <option value={id}>{label(id)}</option>)}</select></label></div>
+        </fieldset>
+        <details class="fps-details" open><summary>{t.sensitivity} / {t.calibration}</summary>
+          <div class="fps-row">{numbers.map((key) => { const limit = FPS_CONFIG.controls[key]; return <label>{label(key)}<input name={key} type="number" min={limit.min} max={limit.max} step={limit.step} value={settings[key]} required /></label>; })}</div>
+          <div class="fps-row"><label>{t.aspect}<select name="aspect">{FPS_CONFIG.aspects.map((id) => <option value={id}>{label(id)}</option>)}</select></label><label class="fps-check"><input name="muted" type="checkbox" />{t.muted}</label></div>
+          <p class="fps-small">{t.cmHint}</p><p class="fps-small">{t.calibrateHint}</p>
+          <button type="button" class="btn btn-secondary" id="fpsCalibrate">{t.calibration}</button><output id="fpsGain" class="fps-small"></output>
+        </details>
+        <div class="fps-start-row"><button type="submit" class="btn btn-primary" id="fpsStart"><i class="bi bi-crosshair" aria-hidden="true"></i>{t.start}</button><p class="fps-small">{t.controls}<br />{t.adsHint}</p></div>
+        <button type="button" class="btn btn-secondary" id="fpsResetSettings">{t.resetSettings}</button>
+      </form>
+      <p id="fpsStatus" class="fps-message" role="status" aria-live="polite"></p>
+      <p class="fps-small fps-fidelity">{t.fidelity}</p>
+      <details class="fps-details"><summary>{t.sourceTitle}</summary><div id="fpsSources"></div></details>
+      <div class="fps-history-head"><h3>{t.history}</h3><button type="button" class="btn btn-secondary" id="fpsClear">{t.clear}</button></div><p class="fps-small">{t.sameSetup}</p><div id="fpsHistory"></div><p class="fps-small">{t.privacy}</p>
+    </section>
+    <section id="fpsReport" hidden aria-labelledby="fpsReportTitle">
+      <div class="fps-report-head"><h3 id="fpsReportTitle">{t.report}</h3><span id="fpsCompletion" class="fps-tag"></span></div>
+      <div id="fpsMetrics" class="fps-metrics"></div>
+      <figure><figcaption>{t.impactTitle}</figcaption><svg id="fpsImpactChart" viewBox="0 0 400 240" role="img" aria-label={t.impactTitle}></svg><p class="fps-small">{t.impactHint}</p></figure>
+      <figure><figcaption>{t.timelineTitle}</figcaption><div class="fps-timeline-wrap"><svg id="fpsTimeline" viewBox="0 0 700 130" role="img" aria-label={t.timelineTitle}></svg></div><p class="fps-small">{t.timelineHint}</p></figure>
+      <div class="fps-row"><button type="button" class="btn btn-primary" id="fpsAgain">{t.again}</button><button type="button" class="btn btn-secondary" id="fpsBack">{t.back}</button></div>
+    </section>
+    <section id="fpsStage" class="fps-stage" hidden aria-label={t.title}>
+      <div class="fps-canvas-wrap"><canvas id="fpsCanvas" aria-label={t.title}></canvas><div id="fpsCrosshair" class="fps-crosshair" aria-hidden="true"></div></div>
+      <div class="fps-hud"><div><strong id="fpsDrill"></strong><small id="fpsInputStatus"></small></div><div><small id="fpsTimeLabel">{t.time}</small><strong id="fpsTime">{settings.duration}</strong></div><div><small>{t.ammo}</small><strong id="fpsAmmo"></strong></div><div><small>{t.accuracy}</small><strong id="fpsAccuracy"></strong></div></div>
+      <div id="fpsMovement" class="fps-movement"></div><div class="fps-key-help">{t.controls}</div>
+      <div id="fpsVeil" class="fps-veil"><div class="fps-pause-card"><h3 id="fpsPauseTitle">{t.pause}</h3><p id="fpsPauseMessage"></p><button type="button" class="btn btn-primary" id="fpsResume">{t.resume}</button><div class="fps-pause-actions"><button type="button" class="btn btn-secondary" id="fpsFullscreen">{t.fullscreen}</button><button type="button" class="btn btn-secondary" id="fpsFinish">{t.finish}</button></div></div></div>
+    </section>
+  </div>
+</ToolPanel>
+<script>import '../scripts/fps/controller';</script>
+<style>
+  .fps { min-width: 0; }
+  .fps [hidden] { display: none !important; }
+  .fps-intro { padding: 10px 0 22px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+  .fps-tag { color: var(--primary-dark); font: 700 .75rem var(--font-mono); letter-spacing: .08em; }
+  .fps-intro h3 { font-size: clamp(1.4rem, 3vw, 2rem); line-height: 1.3; margin: 12px 0; }
+  .fps-intro p { color: var(--text-secondary); margin: 0; }
+  .fps-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+  label { display: flex; flex-direction: column; gap: 7px; font-size: .88rem; min-width: 0; }
+  select, input[type=number] { width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--border-strong); background: var(--bg-elevated); color: var(--text); border-radius: var(--radius-sm); font: inherit; }
+  input[type=range] { width: 100%; accent-color: var(--primary); }
+  fieldset { border: 0; padding: 0; margin: 0 0 22px; min-width: 0; }
+  legend { font-weight: 700; margin-bottom: 12px; }
+  .fps-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .fps-modes legend { float: none; width: 100%; }
+  .fps-mode { flex-direction: row; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+  .fps-mode:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+  .fps-mode input { accent-color: var(--primary); margin-top: 4px; }
+  .fps-mode strong { display: block; margin-bottom: 4px; }
+  .fps-mode small { color: var(--text-secondary); font-size: .78rem; line-height: 1.5; display: block; }
+  .fps-slider { display: flex; gap: 10px; align-items: center; }
+  .fps-slider output { min-width: 62px; font: .8rem var(--font-mono); text-align: right; }
+  .fps-small { font-size: .78rem; color: var(--text-secondary); line-height: 1.6; }
+  .fps-details { margin-bottom: 22px; padding: 14px; background: var(--bg-secondary); border-radius: var(--radius-sm); }
+  .fps-details summary { cursor: pointer; font-weight: 600; margin-bottom: 12px; }
+  .fps-check { flex-direction: row; align-items: center; }
+  .fps-check input { accent-color: var(--primary); }
+  .fps-start-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .fps-start-row p { margin: 0; flex: 1; min-width: 200px; }
+  .fps-message { color: var(--info); font-size: .85rem; margin: 14px 0; }
+  .fps-fidelity { border-left: 3px solid var(--primary); padding-left: 12px; margin-top: 20px; }
+  .fps-history-head, .fps-report-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 25px 0 12px; }
+  .fps-history-head h3, .fps-report-head h3 { margin: 0; }
+  .fps-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .fps-metrics :global(.fps-metric) { padding: 14px 12px; border-bottom: 2px solid var(--border); background: var(--bg-secondary); }
+  .fps-metrics :global(strong) { display: block; font: 600 1.25rem var(--font-mono); margin-top: 8px; }
+  .fps-metrics :global(small) { color: var(--text-secondary); font-size: .75rem; }
+  figure { margin: 24px 0; }
+  figcaption { font-weight: 600; margin-bottom: 12px; }
+  #fpsImpactChart { width: 100%; max-height: 280px; background: var(--bg-secondary); border: 1px solid var(--border); }
+  .fps-timeline-wrap { overflow-x: auto; }
+  #fpsTimeline { width: 100%; min-width: 550px; background: var(--bg-secondary); }
+  .fps :global(table) { font-size: .75rem; width: 100%; border-collapse: collapse; }
+  .fps :global(th), .fps :global(td) { text-align: left; padding: 8px 5px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+  #fpsSources, #fpsHistory { overflow-x: auto; }
+  .fps-stage { position: fixed; inset: 0; z-index: 1000; background: #000; color: var(--text); }
+  .fps-canvas-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #fpsCanvas { display: block; }
+  .fps-crosshair { position: absolute; left: 50%; top: 50%; width: 15px; height: 15px; transform: translate(-50%, -50%); pointer-events: none; }
+  .fps-crosshair::before, .fps-crosshair::after { content: ''; position: absolute; background: var(--brand-ink); box-shadow: 0 0 2px #fff; }
+  .fps-crosshair::before { height: 2px; width: 15px; top: 6px; }.fps-crosshair::after { width: 2px; height: 15px; left: 6px; }
+  .fps-crosshair.hit { filter: drop-shadow(0 0 5px var(--success)); }
+  .fps-hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 20px; padding: 12px 18px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); pointer-events: none; }
+  .fps-hud strong { display: block; font: 600 1.1rem var(--font-mono); }.fps-hud small { display: block; font-size: .7rem; color: var(--text-secondary); }
+  .fps-movement { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); padding: 6px 14px; background: var(--bg-elevated); border-radius: var(--radius-full); font: .8rem var(--font-mono); pointer-events: none; }
+  .fps-key-help { position: absolute; bottom: 16px; left: 16px; right: 16px; text-align: center; font-size: .75rem; padding: 8px; background: var(--bg-elevated); pointer-events: none; }
+  .fps-veil { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.42); }
+  .fps-pause-card { max-width: 520px; margin: 20px; background: var(--bg-elevated); border: 1px solid var(--border); padding: 28px; border-radius: var(--radius-lg); text-align: center; }
+  .fps-pause-card p { font-size: .9rem; color: var(--text-secondary); }.fps-pause-actions { display: flex; gap: 12px; justify-content: center; margin-top: 16px; }
+  .fps :is(button, input, select, summary):focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+  @media(max-width:600px) { .fps-row, .fps-modes { grid-template-columns: 1fr; }.fps-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }.fps-hud { gap: 8px; padding: 10px; }.fps-hud strong { font-size: .9rem; }.fps-hud small { max-width: 130px; }.fps-history-head { flex-wrap: wrap; } }
+  @media(prefers-reduced-motion:reduce) { .fps * { transition: none !important; } }
+</style>

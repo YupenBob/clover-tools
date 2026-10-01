@@ -65,7 +65,10 @@ function genToolPages() {
     mkdirSync(outDir, { recursive: true });
     for (const file of readdirSync(srcDir).filter((f) => f.endsWith('.astro'))) {
       const slug = file.replace(/\.astro$/, '');
-      let text = s2t(readFileSync(join(srcDir, file), 'utf8'));
+      const source = readFileSync(join(srcDir, file), 'utf8');
+      // Shared UI routes keep their hand-maintained imports and language constant.
+      if (source.includes('@shared-tool-ui')) continue;
+      let text = s2t(source);
       text = replaceFrontmatter(text, toolFrontmatter(cat, slug));
       text = text.replace(
         /<ToolLayout category=\{category\} tool=\{tool\} related=\{related\}[^>]*>/,

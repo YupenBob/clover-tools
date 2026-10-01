@@ -58,6 +58,7 @@ function listFiles(cat) {
 const files = ['dev', 'daily', 'fun']
   .flatMap(listFiles)
   .filter((f) => !SKIP.has(f.slug))
+  .filter((f) => !readFileSync(join(root, 'src', 'pages', 'tools', f.cat, f.slug + '.astro'), 'utf8').includes('@shared-tool-ui'))
   .filter((f) => !readDone().has(f.slug))
   .filter((f) => !ONLY || ONLY.includes(f.slug));
 

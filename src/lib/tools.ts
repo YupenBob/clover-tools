@@ -1,3 +1,5 @@
+import { FPS_META } from './fps-i18n.ts';
+
 export type ToolCategory = 'dev' | 'daily' | 'fun';
 
 export interface ToolMeta {
@@ -10,6 +12,7 @@ export interface ToolMeta {
   tier: 'P0' | 'P1';
   worker?: boolean;
   legacyPath?: string;
+  legacyAliases?: string[];
 }
 
 export interface CategoryMeta {
@@ -617,6 +620,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
   ],
   fun: [
+    { slug: 'fps-aim-trainer', ...FPS_META.zh, icon: 'bi-crosshair', tier: 'P1' },
     {
       slug: 'ascii-art',
       name: 'ASCII 艺术字',

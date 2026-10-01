@@ -5,7 +5,7 @@
 <h1 align="center">CloverTools</h1>
 
 <p align="center">
-  精选在线工具箱 · 70 个手写工具 · 即开即用 · 无需注册
+  精选在线工具箱 · 71 个手写工具 · 即开即用 · 无需注册
 </p>
 
 <p align="center">
@@ -19,10 +19,10 @@
   <a href="https://github.com/YupenBob/clover-tools"><img src="https://img.shields.io/github/last-commit/YupenBob/clover-tools?label=last%20commit&color=gold&style=flat-square" alt="Last commit"></a>
   <a href="https://astro.build"><img src="https://img.shields.io/badge/Astro-5-gold?style=flat-square&logo=astro&logoColor=white" alt="Astro 5"></a>
   <a href="https://pages.cloudflare.com"><img src="https://img.shields.io/badge/Cloudflare%20Pages-deployed-gold?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages"></a>
-  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-70-gold?style=flat-square" alt="70 tools"></a>
+  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-71-gold?style=flat-square" alt="71 tools"></a>
 </p>
 
-CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 70 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 71 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
 
 项目推进顺序与衡量方式见 [战略路线图](docs/STRATEGY.md)，配置职责、内容维护和发布检查见 [质量说明](docs/QUALITY.md)。
 
@@ -52,7 +52,7 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 flowchart LR
   U[用户浏览器] --> CF[Cloudflare 全球 CDN]
   CF --> P[Cloudflare Pages 静态站点]
-  P --> T[70 个手写工具页]
+  P --> T[71 个手写工具页]
   T --> F[Pages Functions 工具 API]
   F --> R2[(Cloudflare R2 媒体存储)]
 ```
@@ -68,9 +68,9 @@ flowchart LR
 - 页头语言切换器按当前路径保持页面位置（404 页切换时回到对应语言首页）
 - 页面输出语言专属 canonical 与 `og:locale`；`hreflang` 只指向真实存在且允许收录的版本。工具/分类页当前沿用简体优先收录，其他语言仍可访问，审核后通过 `config/routes.mjs` 开放
 - 指南当前仅简体：首次访问不会跳转到不存在的翻译，手动切换到其他语言会进入该语言首页；繁体政策页统一使用 `/zh-hant/`
-- 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、70 个工具的名称/描述/关键词与「使用说明」
+- 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、71 个工具的名称/描述/关键词与「使用说明」
 - 韩语/日语文案集中在 `src/lib/i18n/ko.json`、`ja.json`（由 `scripts/gen-ko-ja-data.mjs` 基于英文数据翻译生成）
-- 繁体页面由 `scripts/gen-zhhant.mjs` 基于简体页用 `chinese-s2t` 自动生成，无需维护第二份文案
+- 繁体页面由 `scripts/gen-zhhant.mjs` 基于简体页用 `chinese-s2t` 自动生成；标记 `@shared-tool-ui` 的 FPS 等共享界面维护薄路由，批量页面翻译会跳过，文案仍共用词典
 - 五语言搜索索引：`public/search-index.json`（简体）、`public/zh-hant/search-index.json`（繁体）、`public/en/search-index.json`（英文）、`public/ko/search-index.json`（韩语）与 `public/ja/search-index.json`（日语）
 - 英文工具页由 `scripts/i18n-translate.mjs`（DeepSeek API 批量翻译）与 `scripts/fix-big-pages.mjs`（超长页分段翻译）生成；新增工具后补充 `en.json` 英文元信息并重新构建即可
 
@@ -127,9 +127,11 @@ npm run check:browser # 临时预览与真实浏览器回归
 | --- | --- | --- |
 | 开发实用（37） | 编码、格式化、加解密与调试，开发日常高频刚需 | JSON 格式化与校验、JSON/XML/YAML 互转、正则测试、Base64、哈希与加解密、JWT 解码、二维码、HTTP 测试、IP 查询 |
 | 日常实用（20） | 日期、理财、换算与效率小工具，生活工作两相宜 | 在线万年历、公历农历互转、世界时钟、时间戳转换、年龄计算、单位换算、人民币大写、键盘测试 |
-| 趣味工具（13） | 减压、娱乐与创意小玩意，给忙碌的日常加点乐趣 | ASCII 艺术字、点击速度测试、反应力测试、舒尔特训练、目标球追踪、抽奖、摩斯密码 |
+| 趣味工具（14） | 减压、娱乐与创意小玩意，给忙碌的日常加点乐趣 | FPS练枪、ASCII 艺术字、点击速度测试、反应力测试、舒尔特训练、目标球追踪、抽奖、摩斯密码 |
 
 ## 添加工具（精品制作规范）
+
+FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练和自由热身，支持灵敏度校准与本地成绩。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。配置、参数来源、近似模型边界和验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
 
 1. 在 `src/lib/tools.ts` 的对应分类数组里登记工具元信息（slug、名称、一句话描述、iconfont 图标类、关键词、tier）
 2. 手写页面 `src/pages/tools/{cat}/{slug}.astro`，使用 `ToolLayout`

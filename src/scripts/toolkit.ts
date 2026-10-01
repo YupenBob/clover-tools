@@ -57,7 +57,8 @@ export function bindClear(
 
 export function bindCtrlEnter(inputId: string, fn: () => void): void {
   byId<HTMLTextAreaElement | HTMLInputElement>(inputId).addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'Enter') {
+    const key = e as KeyboardEvent;
+    if (key.ctrlKey && key.key === 'Enter') {
       e.preventDefault();
       fn();
     }

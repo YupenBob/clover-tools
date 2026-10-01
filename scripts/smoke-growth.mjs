@@ -9,6 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { root } from './lib/build-config.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { LEGAL } from '../config/site.mjs';
+import { runFpsChecks } from './lib/fps-browser-cases.mjs';
 
 let server;
 let browser;
@@ -272,6 +273,7 @@ try {
       },
     );
   }
+  await runFpsChecks({ run, remember, base, artifacts });
   console.log(`Browser growth checks passed: ${passed} scenarios`);
 } catch (error) {
   console.error(error);

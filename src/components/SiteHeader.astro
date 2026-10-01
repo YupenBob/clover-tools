@@ -83,7 +83,7 @@ const LANG_LABELS: Record<Lang, string> = {
 
   function applyTheme(theme: 'light' | 'dark') {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('clover-theme', theme);
+    try { localStorage.setItem('clover-theme', theme); } catch { /* Keep theme switching available without storage. */ }
     icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
   }
 

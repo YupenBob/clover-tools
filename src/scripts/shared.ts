@@ -41,7 +41,7 @@ export function showToast(
 }
 
 export async function copy(text: string, feedbackEl?: HTMLElement | null): Promise<boolean> {
-  if (!text && text !== 0) return false;
+  if (!text && (text as unknown) !== 0) return false;
   const value = String(text);
   try {
     await navigator.clipboard.writeText(value);

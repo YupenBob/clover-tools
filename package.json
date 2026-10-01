@@ -9,16 +9,20 @@
     "build": "npm test && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
     "preview": "astro preview",
     "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
-    "test": "node --test scripts/tests/*.test.mjs",
+    "test": "npm run check:fps-types && node --test scripts/tests/*.test.mjs",
     "check:all": "npm run build",
     "check:browser": "node scripts/smoke-growth.mjs",
     "csdn:build": "node scripts/build-csdn.mjs",
     "icons:slim": "node scripts/slim-icons.mjs",
     "redirects": "node scripts/gen-redirects.mjs",
     "indexnow": "node scripts/ping-indexnow.mjs",
-    "deploy:media": "wrangler r2 object put"
+    "deploy:media": "wrangler r2 object put",
+    "check:fps-types": "tsc --project tsconfig.fps.json"
   },
-  "engines": { "node": ">=22.18.0", "npm": ">=10.8.2" },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": ">=10.8.2"
+  },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
     "astro": "^5.0.0",
@@ -36,11 +40,14 @@
     "prettier": "^3.9.6",
     "qrcode": "^1.5.4",
     "terser": "^5.49.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "playwright-core": "^1.62.1",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "@types/three": "0.186.0",
+    "typescript": "5.9.3"
   }
 }
