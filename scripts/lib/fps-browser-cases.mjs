@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { FPS_CONFIG, TRAINING_MODES, WEAPON_PROFILES } from '../../config/fps.mjs';
 import { localizedPath } from '../../config/routes.mjs';
+import { BROWSER_CHECKS } from '../../config/quality.mjs';
 
 /** Uses the existing browser harness; no production test controls or alternate game rules. */
 export async function runFpsChecks({ run, remember, base, artifacts }) {
@@ -28,6 +29,8 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
     await page.waitForFunction(
       () => document.querySelector('#fpsStage').dataset.phase === 'paused',
     );
+    // A real Esc exit arms the browser's relock cooldown. Keep the user click after that window.
+    await page.waitForTimeout(BROWSER_CHECKS.pointerUnlockSettleMs);
   }
   for (const [lang, title] of [
     ['zh', 'FPS练枪'],
@@ -62,7 +65,10 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         );
         if (lang === 'en') {
           await page.locator('#themeToggle').click();
-          await page.screenshot({ path: join(artifacts, 'fps-settings-dark.png'), fullPage: true });
+          await page.screenshot({
+            path: join(artifacts, 'fps-settings-dark.png'),
+            fullPage: true,
+          });
         }
       },
     );
@@ -104,8 +110,22 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
           document.querySelector('#fpsPauseMessage').textContent.includes('全屏'),
       );
       await page.locator('#fpsResume').click();
-      await page.waitForTimeout(200);
-      assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'running');
+      try {
+        await page.waitForFunction(
+          () => document.querySelector('#fpsStage').dataset.phase === 'running',
+        );
+      } catch (error) {
+        const state = await page.evaluate(() => ({
+          phase: document.querySelector('#fpsStage').dataset.phase,
+          message: document.querySelector('#fpsPauseMessage').textContent,
+          locked: !!document.pointerLockElement,
+          focused: document.hasFocus(),
+          hidden: document.hidden,
+        }));
+        throw new Error(`Fullscreen resume failed: ${JSON.stringify(state)}`, {
+          cause: error,
+        });
+      }
       await pause(page);
       await page.locator('#fpsFinish').click();
       assert.equal(await page.locator('#fpsReport').isVisible(), true);
@@ -119,7 +139,10 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       assert.ok(stored[0].heads >= 1);
       assert.equal(stored[0].completed, false);
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: join(artifacts, 'fps-report-desktop.png'), fullPage: true });
+      await page.screenshot({
+        path: join(artifacts, 'fps-report-desktop.png'),
+        fullPage: true,
+      });
       await page.locator('#fpsBack').click();
       await page.reload();
       await page.waitForSelector('#fpsTrainer[data-ready=true]');
@@ -157,9 +180,24 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         await page.waitForFunction(
           () => document.querySelector('#fpsStage').dataset.phase === 'running',
         );
-        await page
-          .locator('#fpsReport')
-          .waitFor({ state: 'visible', timeout: (FPS_CONFIG.controls.duration.min + 12) * 1000 });
+        try {
+          await page.locator('#fpsReport').waitFor({
+            state: 'visible',
+            timeout: (FPS_CONFIG.controls.duration.min + 12) * 1000,
+          });
+        } catch (error) {
+          const state = await page.evaluate(() => ({
+            phase: document.querySelector('#fpsStage').dataset.phase,
+            message: document.querySelector('#fpsPauseMessage').textContent,
+            elapsed: document.querySelector('#fpsStage').dataset.elapsed,
+            locked: !!document.pointerLockElement,
+            focused: document.hasFocus(),
+            hidden: document.hidden,
+          }));
+          throw new Error(`Timed ${mode} session failed: ${JSON.stringify(state)}`, {
+            cause: error,
+          });
+        }
         assert.equal(await page.locator('#fpsCompletion').innerText(), '已完成');
         assert.equal(await page.evaluate(() => document.pointerLockElement), null);
         assert.equal(await page.locator('[data-metric=accuracy] strong').innerText(), '—');
@@ -214,6 +252,11 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await page.locator('[name=cm360]').fill('40');
       await page.locator('#fpsCalibrate').click();
       await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'paused',
+      );
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      await page.locator('#fpsResume').click();
+      await page.waitForFunction(
         () => document.querySelector('#fpsStage').dataset.phase === 'calibrating',
       );
       await page.mouse.move(100, 100);
@@ -247,7 +290,10 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         () => document.querySelector('#fpsStage').dataset.phase === 'running',
       );
       await page.evaluate(() => {
-        Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          value: true,
+        });
         document.dispatchEvent(new Event('visibilitychange'));
       });
       assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'paused');
@@ -279,7 +325,96 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await page.waitForFunction(
         () => document.querySelector('#fpsStage').dataset.phase === 'paused',
       );
+      await page.locator('#fpsResume').click();
+      await page.waitForFunction(() =>
+        document.querySelector('#fpsPauseMessage').textContent.includes('锁定失败'),
+      );
       assert.match(await page.locator('#fpsPauseMessage').innerText(), /锁定失败/);
+      await page.locator('#fpsFinish').click();
+    },
+  );
+  await run(
+    'FPS mouse ownership: preparation, cancelled late grants and focus never capture automatically',
+    {},
+    async (page, context) => {
+      await open(page, context);
+      await page.route('**/renderer.*.js', async (route) => {
+        await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+        await route.continue();
+      });
+      await page.locator('#fpsStart').click();
+      await page.waitForFunction(() =>
+        document.querySelector('#fpsStatus').textContent.includes('暂停'),
+      );
+      assert.equal(await page.locator('#fpsStage').isVisible(), false);
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      await page.unroute('**/renderer.*.js');
+      await page.locator('#fpsStart').click();
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'paused',
+      );
+      await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      assert.equal(await page.locator('#fpsStage').getAttribute('data-elapsed'), '0.000');
+      await page.screenshot({ path: join(artifacts, 'fps-ready-desktop.png') });
+      await page.evaluate(() => {
+        const original = HTMLCanvasElement.prototype.requestPointerLock;
+        window.__fpsOriginalLock = original;
+        HTMLCanvasElement.prototype.requestPointerLock = function (options) {
+          const pending = original.call(this, options);
+          document.querySelector('#fpsFinish').focus();
+          window.dispatchEvent(new Event('blur'));
+          return pending;
+        };
+      });
+      await page.locator('#fpsResume').click();
+      await page.waitForTimeout(300);
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'paused');
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'fpsFinish');
+      await page.evaluate(() => {
+        HTMLCanvasElement.prototype.requestPointerLock = window.__fpsOriginalLock;
+        window.dispatchEvent(new Event('focus'));
+      });
+      await page.waitForTimeout(100);
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      await page.locator('#fpsResume').click();
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'running',
+      );
+      await page.evaluate((ms) => {
+        const until = performance.now() + ms;
+        while (performance.now() < until) {
+          /* Deliberate short render stall. */
+        }
+      }, FPS_CONFIG.simulation.maxFrameGap * 500);
+      await page.waitForTimeout(100);
+      assert.equal(await page.locator('#fpsStage').getAttribute('data-phase'), 'running');
+      assert.equal(await page.evaluate(() => document.pointerLockElement?.id), 'fpsCanvas');
+      await page.evaluate(() => {
+        // Pause controls are hidden while running. Preserve focus on the visible canvas instead.
+        const canvas = document.querySelector('#fpsCanvas');
+        canvas.tabIndex = 0;
+        canvas.focus();
+        window.dispatchEvent(new Event('blur'));
+      });
+      assert.equal(await page.evaluate(() => document.activeElement.id), 'fpsCanvas');
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
+      await page.locator('#fpsResume').click();
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'running',
+      );
+      await page.evaluate((ms) => {
+        const until = performance.now() + ms;
+        while (performance.now() < until) {
+          /* Deliberate long render stall. */
+        }
+      }, FPS_CONFIG.simulation.maxFrameGap * 1200);
+      await page.waitForFunction(
+        () => document.querySelector('#fpsStage').dataset.phase === 'paused',
+      );
+      assert.match(await page.locator('#fpsPauseMessage').innerText(), /画面停顿/);
+      assert.equal(await page.evaluate(() => document.pointerLockElement), null);
       await page.locator('#fpsFinish').click();
     },
   );
@@ -294,9 +429,14 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
         true,
       );
-      await page.screenshot({ path: join(artifacts, 'fps-settings-mobile.png'), fullPage: true });
+      await page.screenshot({
+        path: join(artifacts, 'fps-settings-mobile.png'),
+        fullPage: true,
+      });
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.screenshot({ path: join(artifacts, 'fps-mobile-viewport.png') });
+      await page.screenshot({
+        path: join(artifacts, 'fps-mobile-viewport.png'),
+      });
     },
   );
   await run(

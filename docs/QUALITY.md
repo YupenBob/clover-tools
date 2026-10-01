@@ -50,6 +50,8 @@ node node_modules/playwright-core/cli.js install --with-deps chromium
 
 可通过 `PLAYWRIGHT_CHANNEL`、`TEST_BASE_URL`、`TEST_PORT`、`TEST_TIMEOUT_MS` 和 `TEST_STARTUP_TIMEOUT_MS` 配置浏览器与预览。未指定地址时临时服务使用空闲端口，测试结束自动关闭。截图保存在忽略目录 `output/playwright/`。
 
+FPS 原生 Esc 暂停测试按 `config/quality.mjs` 的 `BROWSER_CHECKS.pointerUnlockSettleMs` 等待浏览器重新锁定窗口，随后以实际运行状态判定恢复，不能用固定几百毫秒假定锁定已经成功。全屏恢复失败会输出暂停提示、焦点、可见性与锁定状态用于诊断。鼠标所有权回归覆盖异步准备不锁定、不计时，迟到的原生授权在失焦后立即释放，自动暂停不抢控件焦点，返回页面不自动恢复。浏览器检查使用 headless 模式。
+
 静态检查会拒绝缺失工具页、包含查询参数的失效资源、站内绝对地址失效、无效 canonical、虚构语言版本、收录策略与 noindex 冲突，以及 sitemap 遗漏/重复/包含非收录页。验证文件不参与页面结构检查。
 
 ## 发布
@@ -60,10 +62,10 @@ Cloudflare Pages 现有构建命令 `npm run build` 已包含静态质量检查�
 
 ## 本轮验证基线（2026-10-01）
 
-- FPS 类型检查和 21 个单元/反例测试通过；包含 13 项训练规则/统计/存储测试与 8 项站点检查。
+- FPS 类型检查和 24 个单元/反例测试通过；包含 16 项训练规则/统计/存储/鼠标生命周期测试与 8 项站点检查。
 - 71 个工具、21 份深度说明、16 篇指南通过内容关联检查。
 - 417 个站点 HTML 页面通过链接及 SEO 检查；116 条 sitemap 地址与允许收录页面一致。
-- 47 个真实浏览器场景通过；FPS 图表、靶场、深色主题及移动端截图已人工查看。
+- 48 个真实浏览器场景通过；FPS 图表、靶场、准备面板、深色主题及移动端截图已人工查看。
 
 存储异常测试同时发现并修复全站主题读写在禁用 localStorage 时的未捕获错误。主题仍可切换，FPS 训练和报告仍可用。FPS 的来源核验不等于原游戏行为验证，证据状态与复现边界见 [FPS-AIM-TRAINER.md](FPS-AIM-TRAINER.md)。
 

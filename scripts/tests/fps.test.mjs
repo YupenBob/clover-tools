@@ -15,6 +15,106 @@ import {
 } from '../../src/scripts/fps/math.ts';
 import { comparisonKey, FpsStorage, normalizeSettings } from '../../src/scripts/fps/storage.ts';
 import { fpsText } from '../../src/lib/fps-i18n.ts';
+import { PointerCapture } from '../../src/scripts/fps/pointer.ts';
+
+test('mouse capture requires an explicit active request and releases late grants after cancellation', async () => {
+  let grant,
+    owned = false,
+    available = true,
+    requests = 0,
+    releases = 0;
+  const pointer = new PointerCapture({
+    available: () => available,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+      releases++;
+    },
+    request: () => {
+      requests++;
+      return new Promise((resolve) => {
+        grant = resolve;
+      });
+    },
+  });
+  available = false;
+  assert.equal(await pointer.request(), 'ignored');
+  assert.equal(requests, 0);
+  available = true;
+  const pending = pointer.request();
+  assert.equal(await pointer.request(), 'ignored');
+  pointer.cancel();
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+  assert.equal(owned, false);
+  grant();
+  assert.equal(await pending, 'cancelled');
+  assert.equal(releases, 1);
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+  assert.equal(releases, 2);
+});
+test('cancelled raw-input requests never retry, while a fresh click can use supported fallback', async () => {
+  let rejectRaw,
+    cancelled = true,
+    owned = false;
+  const calls = [];
+  const pointer = new PointerCapture({
+    available: () => true,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+    },
+    request: (raw) => {
+      calls.push(raw);
+      if (raw)
+        return cancelled
+          ? new Promise((_, reject) => {
+              rejectRaw = reject;
+            })
+          : Promise.reject(new DOMException('unsupported', 'NotSupportedError'));
+      owned = true;
+    },
+  });
+  const pending = pointer.request();
+  pointer.cancel();
+  rejectRaw(new DOMException('unsupported', 'NotSupportedError'));
+  assert.equal(await pending, 'cancelled');
+  assert.deepEqual(calls, [true]);
+  cancelled = false;
+  assert.equal(await pointer.request(), 'requested');
+  assert.equal(pointer.raw, false);
+  assert.equal(pointer.acceptChange(), true);
+  pointer.cancel();
+  assert.equal(owned, false);
+});
+test('denied or unfocused mouse capture stays inactive and requires a fresh request', async () => {
+  let available = true,
+    owned = false,
+    deny = true;
+  const pointer = new PointerCapture({
+    available: () => available,
+    owns: () => owned,
+    release: () => {
+      owned = false;
+    },
+    request: () => {
+      if (deny) throw new DOMException('denied', 'NotAllowedError');
+    },
+  });
+  assert.equal(await pointer.request(), 'failed');
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+  deny = false;
+  assert.equal(await pointer.request(), 'requested');
+  available = false;
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+  assert.equal(owned, false);
+  available = true;
+  owned = true;
+  assert.equal(pointer.acceptChange(), false);
+});
 
 const near = (actual, expected, tolerance = 1e-8) =>
   assert.ok(Math.abs(actual - expected) <= tolerance, `${actual} != ${expected}`);
@@ -276,7 +376,11 @@ test('storage handles denied access, corrupt records, capacity and comparable co
   for (let i = 0; i < FPS_CONFIG.storage.capacity + 2; i++)
     storage.save({ ...result, timestamp: i });
   assert.equal(storage.history().length, FPS_CONFIG.storage.capacity);
-  storage.save({ ...result, revision: 'previous-model', comparisonKey: 'previous-model' });
+  storage.save({
+    ...result,
+    revision: 'previous-model',
+    comparisonKey: 'previous-model',
+  });
   assert.equal(storage.history()[0].revision, 'previous-model');
   assert.notEqual(storage.history()[0].comparisonKey, comparisonKey(result.settings));
   map.set(FPS_CONFIG.storage.history, JSON.stringify([{ ...result, accuracy: 'corrupt' }]));

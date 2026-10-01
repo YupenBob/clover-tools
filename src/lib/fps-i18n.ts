@@ -17,6 +17,10 @@ const zh = {
   finish: '结束并查看报告',
   pause: '训练已暂停',
   resume: '点击恢复',
+  ready: '靶场已准备好',
+  begin: '点击开始并锁定鼠标',
+  captureHint: '仅在点击开始或恢复后锁定鼠标；Esc 或切出页面立即释放，回来后不会自动锁定。',
+  stalled: '画面停顿，训练已暂停。可结束本轮，切换为“流畅”画质后再试。',
   back: '返回设置',
   again: '再练一次',
   duration: '训练时长',
@@ -52,7 +56,7 @@ const zh = {
   loading: '正在准备靶场…',
   unsupported:
     '当前环境无法启动三维训练。请使用支持 WebGL 2 和鼠标锁定的桌面浏览器，并检查硬件加速设置。',
-  lockError: '鼠标锁定失败。请回到此页面，再点击恢复。',
+  lockError: '鼠标锁定失败。Esc 后浏览器可能短暂限制重新锁定，请稍候再点击恢复。',
   raw: '已请求原始鼠标输入',
   adjusted: '使用普通鼠标输入，请校准以减小系统加速差异。',
   contextLost: '图形上下文已丢失，训练已暂停。请结束本轮并重新进入靶场。',
@@ -138,6 +142,11 @@ const en: Text = {
   finish: 'Finish and review',
   pause: 'Training paused',
   resume: 'Click to resume',
+  ready: 'Range ready',
+  begin: 'Click to start and capture mouse',
+  captureHint:
+    'Mouse capture starts only after clicking start or resume. Esc or leaving the page releases it; returning never captures it automatically.',
+  stalled: 'Rendering stalled and training paused. Finish this round and try Performance quality.',
   back: 'Back to settings',
   again: 'Train again',
   duration: 'Duration',
@@ -176,7 +185,8 @@ const en: Text = {
   loading: 'Preparing range…',
   unsupported:
     '3D training is unavailable. Use a desktop browser with WebGL 2 and Pointer Lock, and check hardware acceleration.',
-  lockError: 'Pointer Lock failed. Return to this page and click resume.',
+  lockError:
+    'Pointer Lock failed. The browser may briefly block relocking after Esc. Wait a moment, then click resume.',
   raw: 'Raw mouse input requested',
   adjusted: 'Standard mouse input is active. Calibrate to reduce system acceleration differences.',
   contextLost:
@@ -264,6 +274,12 @@ const ko: Text = {
   finish: '종료하고 결과 보기',
   pause: '훈련 일시 정지',
   resume: '클릭하여 계속',
+  ready: '훈련장 준비 완료',
+  begin: '클릭하여 시작하고 마우스 잠금',
+  captureHint:
+    '시작 또는 계속 버튼을 클릭한 뒤에만 마우스를 잠급니다. Esc 또는 페이지 이탈 시 해제하며, 돌아와도 자동으로 잠그지 않습니다.',
+  stalled:
+    '화면이 멈춰 훈련을 일시 정지했습니다. 이번 훈련을 종료하고 성능 화질로 다시 시도하세요.',
   back: '설정으로 돌아가기',
   again: '다시 훈련',
   duration: '훈련 시간',
@@ -302,7 +318,8 @@ const ko: Text = {
   loading: '훈련장 준비 중…',
   unsupported:
     '3D 훈련을 사용할 수 없습니다. WebGL 2와 포인터 잠금을 지원하는 데스크톱 브라우저에서 하드웨어 가속을 확인하세요.',
-  lockError: '포인터 잠금에 실패했습니다. 이 페이지로 돌아와 계속 버튼을 누르세요.',
+  lockError:
+    '포인터 잠금에 실패했습니다. Esc 후 브라우저가 잠시 재잠금을 제한할 수 있습니다. 잠시 기다린 뒤 계속을 누르세요.',
   raw: '원시 마우스 입력 요청됨',
   adjusted: '일반 마우스 입력을 사용합니다. 시스템 가속 차이를 줄이려면 보정하세요.',
   contextLost: '그래픽 연결이 끊겨 훈련이 정지되었습니다. 이번 훈련을 종료한 뒤 다시 입장하세요.',
@@ -388,6 +405,12 @@ const ja: Text = {
   finish: '終了して結果を見る',
   pause: '一時停止中',
   resume: 'クリックして再開',
+  ready: '射撃場の準備完了',
+  begin: 'クリックして開始・マウスをロック',
+  captureHint:
+    '開始・再開をクリックした場合のみマウスをロックします。Escやページを離れると解除し、戻っても自動ではロックしません。',
+  stalled:
+    '描画が止まったため一時停止しました。この練習を終了し、パフォーマンス画質で再度お試しください。',
   back: '設定に戻る',
   again: 'もう一度練習',
   duration: '練習時間',
@@ -425,7 +448,8 @@ const ja: Text = {
   loading: '射撃場を準備中…',
   unsupported:
     '3D練習を起動できません。WebGL 2とポインターロックに対応したデスクトップブラウザで、ハードウェアアクセラレーションを確認してください。',
-  lockError: 'ポインターロックに失敗しました。このページに戻り、再開をクリックしてください。',
+  lockError:
+    'ポインターロックに失敗しました。Esc直後はブラウザが再ロックを制限する場合があります。少し待って再開をクリックしてください。',
   raw: 'Rawマウス入力を要求済み',
   adjusted: '通常のマウス入力を使用中です。システム加速の差を減らすため校正してください。',
   contextLost:
@@ -548,7 +572,7 @@ export const FPS_META = {
 export function fpsContent(lang: Lang) {
   const t = fpsText(lang);
   return {
-    usage: `${t.intro} ${t.fidelity} ${t.privacy}`,
+    usage: `${t.intro} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
     features: [
       { icon: 'bi-crosshair', text: `${t.micro} / ${t.strafe} / ${t.peek}` },
       { icon: 'bi-bullseye', text: `${t.spray} / ${t.track} / ${t.switch}` },

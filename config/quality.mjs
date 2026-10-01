@@ -11,3 +11,6 @@ export const CONTENT_LIMITS = {
   examplesMin: 2,
   faqsMin: 2,
 };
+
+/** Chromium denies pointer relock briefly after a native Esc exit; this is test pacing, not a game rule. */
+export const BROWSER_CHECKS = { pointerUnlockSettleMs: 1500 };

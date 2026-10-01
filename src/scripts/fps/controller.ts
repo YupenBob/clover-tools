@@ -9,6 +9,7 @@ import { TrainingSession } from './core';
 import { calibratedGain, cmPerTurn } from './math';
 import { FpsStorage, normalizeSettings } from './storage';
 import { renderHistory, renderReport, renderSources } from './report';
+import { PointerCapture } from './pointer';
 import type { FpsText } from '../../lib/fps-i18n';
 import type { Settings, Shot } from './types';
 import type { RangeRenderer } from './renderer';
@@ -34,10 +35,9 @@ function initialize(root: HTMLElement) {
     renderer: RangeRenderer | null = null;
   let running = false,
     starting = false,
-    locking = false,
     calibrating = false,
-    calibrationCounts = 0,
-    rawRequested = false;
+    calibrationCounts = 0;
+  let entryGeneration = 0;
   let anchor = 0,
     elapsedBase = 0,
     lastFrame = 0,
@@ -55,6 +55,19 @@ function initialize(root: HTMLElement) {
     form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
   const activeTime = (at = performance.now()) =>
     elapsedBase + (running ? Math.max(0, at - anchor) / 1000 : 0);
+  const capture = new PointerCapture({
+    available: () =>
+      !!session &&
+      !!renderer &&
+      !renderer.lost &&
+      !stage.hidden &&
+      !document.hidden &&
+      document.hasFocus() &&
+      !events.signal.aborted,
+    request: (raw) => canvas.requestPointerLock(raw ? { unadjustedMovement: true } : undefined),
+    owns: () => document.pointerLockElement === canvas,
+    release: () => document.exitPointerLock(),
+  });
 
   function writeForm() {
     for (const [key, value] of Object.entries(settings)) {
@@ -184,10 +197,20 @@ function initialize(root: HTMLElement) {
       return;
     }
     starting = true;
+    const generation = ++entryGeneration;
     status(text.loading);
     try {
       // The substantial graphics dependency is requested only after entering the range.
       const { RangeRenderer } = await import('./renderer');
+      if (
+        generation !== entryGeneration ||
+        document.hidden ||
+        !document.hasFocus() ||
+        events.signal.aborted
+      ) {
+        status(text.pause);
+        return;
+      }
       disposeRenderer();
       const fresh = canvas.cloneNode(false) as HTMLCanvasElement;
       canvas.replaceWith(fresh);
@@ -205,12 +228,14 @@ function initialize(root: HTMLElement) {
       oldOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       stage.hidden = false;
-      stage.dataset.phase = 'loading';
+      stage.dataset.phase = 'paused';
       renderer = new RangeRenderer(canvas, session, () => pause(text.contextLost));
       $('fpsReport').hidden = true;
       veil.hidden = false;
-      $('fpsPauseTitle').textContent = calibration ? text.calibration : text.pause;
-      $('fpsPauseMessage').textContent = calibration ? text.calibrating : text.controls;
+      $('fpsPauseTitle').textContent = calibration ? text.calibration : text.ready;
+      $('fpsPauseMessage').textContent =
+        `${text.captureHint} ${calibration ? text.calibrating : text.controls}`;
+      $('fpsResume').textContent = text.begin;
       $<HTMLButtonElement>('fpsResume').disabled = false;
       $('fpsDrill').textContent =
         `${session.game.name} / ${session.weapon.name} · ${text[settings.mode as keyof FpsText]}`;
@@ -218,7 +243,7 @@ function initialize(root: HTMLElement) {
       renderer.render();
       hud();
       status('');
-      await lock();
+      // Loading can outlive the initiating click. Only a fresh button click may capture the mouse.
     } catch {
       running = false;
       stage.hidden = true;
@@ -231,22 +256,8 @@ function initialize(root: HTMLElement) {
     }
   }
   async function lock() {
-    if (!session || renderer?.lost || stage.hidden) return;
-    locking = true;
-    try {
-      rawRequested = true;
-      try {
-        await canvas.requestPointerLock({ unadjustedMovement: true });
-      } catch (error) {
-        if ((error as DOMException).name !== 'NotSupportedError') throw error;
-        rawRequested = false;
-        await canvas.requestPointerLock();
-      }
-    } catch {
-      pause(text.lockError);
-    } finally {
-      locking = false;
-    }
+    if (running) return;
+    if ((await capture.request()) === 'failed') pause(text.lockError);
   }
   function resume() {
     if (!session || !renderer || renderer.lost || stage.hidden || running) return;
@@ -255,11 +266,12 @@ function initialize(root: HTMLElement) {
     lastHud = 0;
     veil.hidden = true;
     stage.dataset.phase = calibrating ? 'calibrating' : 'running';
-    $('fpsInputStatus').textContent = rawRequested ? text.raw : text.adjusted;
+    $('fpsInputStatus').textContent = capture.raw ? text.raw : text.adjusted;
     if (calibrating) $('fpsMovement').textContent = text.calibrating;
     raf = requestAnimationFrame(frame);
   }
   function pause(message = text.pause, at = performance.now()) {
+    capture.cancel();
     if (!session || stage.hidden) return;
     if (running && !calibrating) session.advanceTo(activeTime(at));
     elapsedBase = session.time;
@@ -275,16 +287,15 @@ function initialize(root: HTMLElement) {
     stage.dataset.phase = renderer?.lost ? 'lost' : 'paused';
     $('fpsPauseTitle').textContent = text.pause;
     $('fpsPauseMessage').textContent = message;
+    $('fpsResume').textContent = text.resume;
     $<HTMLButtonElement>('fpsResume').disabled = !!renderer?.lost;
-    if (document.pointerLockElement === canvas) document.exitPointerLock();
     hud();
     renderer?.render();
-    $('fpsResume').focus();
   }
   function frame(now: number) {
     if (!running || !session || !renderer) return;
     if ((now - lastFrame) / 1000 > FPS_CONFIG.simulation.maxFrameGap) {
-      pause(text.pause, lastFrame);
+      pause(text.stalled, lastFrame);
       return;
     }
     lastFrame = now;
@@ -322,13 +333,14 @@ function initialize(root: HTMLElement) {
     renderer = null;
   }
   function closeStage() {
+    entryGeneration++;
+    capture.cancel();
     running = false;
     pressed.clear();
     session?.clearInput();
     cancelAnimationFrame(raf);
     stage.hidden = true;
     stage.dataset.phase = 'closed';
-    if (document.pointerLockElement === canvas) document.exitPointerLock();
     if (document.fullscreenElement === stage) void document.exitFullscreen().catch(() => {});
     document.body.style.overflow = oldOverflow;
     disposeRenderer();
@@ -386,7 +398,7 @@ function initialize(root: HTMLElement) {
   document.addEventListener(
     'pointerlockchange',
     () => {
-      if (document.pointerLockElement === canvas) resume();
+      if (capture.acceptChange()) resume();
       else if (running) pause();
     },
     options,
@@ -394,15 +406,25 @@ function initialize(root: HTMLElement) {
   document.addEventListener(
     'pointerlockerror',
     () => {
-      if (!stage.hidden && !locking) pause(text.lockError);
+      if (!stage.hidden && !capture.requesting) pause(text.lockError);
     },
     options,
   );
-  window.addEventListener('blur', () => pause(), options);
+  window.addEventListener(
+    'blur',
+    () => {
+      entryGeneration++;
+      pause();
+    },
+    options,
+  );
   document.addEventListener(
     'visibilitychange',
     () => {
-      if (document.hidden) pause();
+      if (document.hidden) {
+        entryGeneration++;
+        pause();
+      }
     },
     options,
   );
@@ -469,6 +491,8 @@ function initialize(root: HTMLElement) {
   window.addEventListener(
     'pagehide',
     () => {
+      entryGeneration++;
+      capture.cancel();
       if (session) finish(false);
       events.abort();
       void audio?.close();

@@ -2,10 +2,11 @@ import { FPS_DATA } from './fps-data.mjs';
 import { FPS_SOURCES } from './fps-sources.mjs';
 
 export const FPS_CONFIG = {
-  revision: '2026-09-30.1',
+  revision: '2026-10-01.1',
   simulation: {
     step: 1 / 240,
-    maxFrameGap: 0.25,
+    // Brief render stalls must not eject the player from mouse capture.
+    maxFrameGap: 1,
     pitchLimit: 85,
     epsilon: 1e-8,
     shotLimit: 1500,

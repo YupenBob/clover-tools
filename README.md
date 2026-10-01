@@ -131,7 +131,7 @@ npm run check:browser # 临时预览与真实浏览器回归
 
 ## 添加工具（精品制作规范）
 
-FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练和自由热身，支持灵敏度校准与本地成绩。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。配置、参数来源、近似模型边界和验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
+FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练和自由热身，支持灵敏度校准与本地成绩。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。画面准备完成后需点击开始才锁定鼠标；Esc 或切出页面会释放，返回后需主动恢复。配置、参数来源、近似模型边界和验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
 
 1. 在 `src/lib/tools.ts` 的对应分类数组里登记工具元信息（slug、名称、一句话描述、iconfont 图标类、关键词、tier）
 2. 手写页面 `src/pages/tools/{cat}/{slug}.astro`，使用 `ToolLayout`
