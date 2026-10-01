@@ -57,6 +57,13 @@ function initialize(root: HTMLElement) {
     form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement;
   const activeTime = (at = performance.now()) =>
     elapsedBase + (running ? Math.max(0, at - anchor) / 1000 : 0);
+  function simulationTime(at = performance.now()) {
+    const time = activeTime(at);
+    // A queued input keeps its timestamp but its fresh feedback must survive dispatch delay.
+    // Catch-up events still use their earlier simulation times and retain the lateness limit.
+    audio?.syncTime(time);
+    return time;
+  }
   function audioStatus(state: AudioStatus) {
     const labels = {
       idle: text.audioIdle,
@@ -366,7 +373,7 @@ function initialize(root: HTMLElement) {
   function pause(message = text.pause, at = performance.now()) {
     capture.cancel();
     if (!session || stage.hidden) return;
-    if (running && !calibrating) session.advanceTo(activeTime(at));
+    if (running && !calibrating) session.advanceTo(simulationTime(at));
     elapsedBase = session.time;
     running = false;
     audio?.stop();
@@ -393,7 +400,7 @@ function initialize(root: HTMLElement) {
       return;
     }
     lastFrame = now;
-    if (!calibrating) session.advanceTo(activeTime(now));
+    if (!calibrating) session.advanceTo(simulationTime(now));
     renderer.render();
     if (session.time >= markerUntil) {
       $('fpsCrosshair').classList.remove('hit');
@@ -458,7 +465,7 @@ function initialize(root: HTMLElement) {
       finishCalibration(false);
       return;
     }
-    if (running) session.advanceTo(activeTime());
+    if (running) session.advanceTo(simulationTime());
     const result = session.result();
     closeStage();
     storage.save(result);
@@ -495,7 +502,7 @@ function initialize(root: HTMLElement) {
   function movement(at = performance.now()) {
     if (!session || !running || calibrating) return;
     const keys = FPS_CONFIG.keys;
-    session.setInput(activeTime(at), {
+    session.setInput(simulationTime(at), {
       forward: Number(pressed.has(keys.forward)) - Number(pressed.has(keys.back)),
       side: Number(pressed.has(keys.right)) - Number(pressed.has(keys.left)),
       walk: pressed.has(keys.walk),
@@ -540,7 +547,7 @@ function initialize(root: HTMLElement) {
     (event) => {
       if (!running || document.pointerLockElement !== canvas || !session) return;
       if (calibrating) calibrationCounts += event.movementX;
-      else session.aim(activeTime(event.timeStamp), event.movementX, event.movementY);
+      else session.aim(simulationTime(event.timeStamp), event.movementX, event.movementY);
     },
     options,
   );
@@ -557,7 +564,7 @@ function initialize(root: HTMLElement) {
       pressed.add(event.code);
       movement(event.timeStamp);
       if (event.code === FPS_CONFIG.keys.reload && !event.repeat && !calibrating)
-        session.reload(activeTime(event.timeStamp));
+        session.reload(simulationTime(event.timeStamp));
     },
     options,
   );
@@ -580,8 +587,8 @@ function initialize(root: HTMLElement) {
         finishCalibration(true);
         return;
       }
-      if (event.button === 0) session.setInput(activeTime(event.timeStamp), { firing: true });
-      if (event.button === 2) session.setInput(activeTime(event.timeStamp), { ads: true });
+      if (event.button === 0) session.setInput(simulationTime(event.timeStamp), { firing: true });
+      if (event.button === 2) session.setInput(simulationTime(event.timeStamp), { ads: true });
     },
     options,
   );
@@ -589,8 +596,8 @@ function initialize(root: HTMLElement) {
     'mouseup',
     (event) => {
       if (!running || !session || calibrating) return;
-      if (event.button === 0) session.setInput(activeTime(event.timeStamp), { firing: false });
-      if (event.button === 2) session.setInput(activeTime(event.timeStamp), { ads: false });
+      if (event.button === 0) session.setInput(simulationTime(event.timeStamp), { firing: false });
+      if (event.button === 2) session.setInput(simulationTime(event.timeStamp), { ads: false });
     },
     options,
   );
