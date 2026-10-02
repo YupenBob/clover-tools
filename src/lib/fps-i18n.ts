@@ -3,6 +3,7 @@ import { FPS_CONFIG } from '../../config/fps.mjs';
 import type { Lang } from './i18n';
 import { FPS_RANGE_TEXT, type FpsRangeText } from './fps-range-i18n.ts';
 import { FPS_POLISH_TEXT, type FpsPolishText } from './fps-polish-i18n.ts';
+import { FPS_DRILL_TEXT, type FpsDrillText } from './fps-drill-i18n.ts';
 
 const zh = {
   resetSettings: '清除设置与校准',
@@ -522,13 +523,14 @@ const ja: Text = {
   free: '自由練習',
   freeDesc: '自由に移動と射撃を行い、手動で終了します。',
 };
-export type FpsText = Text & FpsRangeText & FpsPolishText;
+export type FpsText = Text & FpsRangeText & FpsPolishText & FpsDrillText;
 export function fpsText(lang: Lang): FpsText {
   const locale = lang === 'tw' ? 'zh' : lang;
   const source = {
     ...({ zh, en, ko, ja }[locale] || zh),
     ...(FPS_RANGE_TEXT[locale] || FPS_RANGE_TEXT.zh),
     ...(FPS_POLISH_TEXT[locale] || FPS_POLISH_TEXT.zh),
+    ...(FPS_DRILL_TEXT[locale] || FPS_DRILL_TEXT.zh),
   };
   return Object.fromEntries(
     Object.entries(source).map(([key, value]) => [

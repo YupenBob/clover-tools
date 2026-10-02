@@ -5,6 +5,7 @@ import {
   TRAINING_MODES,
 } from '../../../config/fps.mjs';
 import { MODES } from './modes.ts';
+import { DRILLS, type GuidedDrill } from './drills.ts';
 import { roomWalls } from './layout.ts';
 import { SessionStatistics } from './statistics.ts';
 import { normalizeSettings, comparisonKey } from './storage.ts';
@@ -39,6 +40,7 @@ export class TrainingSession {
   readonly game: GameProfile;
   readonly weapon: WeaponProfile;
   readonly mode;
+  readonly drill?: GuidedDrill;
   readonly targets: Target[] = [];
   input: Input = {
     forward: 0,
@@ -97,6 +99,7 @@ export class TrainingSession {
       headOnly: registered.customBots ? this.settings.headOnlyBots : registered.headOnly,
     };
     this.random = seededRandom(seed);
+    if (this.mode.drill) this.drill = DRILLS[this.mode.drill](this.settings, this.random);
     this.ammo = this.weapon.values.magazine;
     const policy = TRAINING_MODES[this.settings.mode as keyof typeof TRAINING_MODES];
     const count = policy.count ?? this.settings.count;
@@ -141,14 +144,41 @@ export class TrainingSession {
   get ray() {
     return direction(this.player.yaw + this.recoilX, this.player.pitch + this.recoilY);
   }
+  get obstacles() {
+    return this.mode.cover ? [this.drill?.cover ?? FPS_CONFIG.scene.cover] : [];
+  }
+  private observation() {
+    return {
+      time: this.time,
+      x: this.player.x,
+      z: this.player.z,
+      speed: this.speed,
+      maxSpeed: this.weapon.values.maxSpeed,
+      stable: this.stable,
+    };
+  }
+  private syncDrill() {
+    if (!this.drill) return;
+    const target = this.targets[0];
+    if (target.generation !== this.drill.round) this.spawn(target);
+    target.visible = this.drill.active;
+  }
+  private obstruction(origin: Vec3, ray: Vec3) {
+    const distances = [...this.obstacles, ...roomWalls(this.settings.distance)]
+      .map((box) => rayBox(origin, ray, box.min, box.max))
+      .filter((d): d is number => d !== null);
+    return distances.length ? Math.min(...distances) : null;
+  }
   private spawn(target: Target) {
-    const point = this.mode.spawn(
-      target.id,
-      TRAINING_MODES[this.settings.mode as keyof typeof TRAINING_MODES].count ??
-        this.settings.count,
-      this.random,
-      this.settings,
-    );
+    const point =
+      this.drill?.point ??
+      this.mode.spawn(
+        target.id,
+        TRAINING_MODES[this.settings.mode as keyof typeof TRAINING_MODES].count ??
+          this.settings.count,
+        this.random,
+        this.settings,
+      );
     target.x = target.baseX = point.x;
     target.z = target.baseZ = point.z;
     target.y = point.y;
@@ -251,7 +281,7 @@ export class TrainingSession {
       if (this.time - this.lastShotAt > this.weapon.values.recovery) this.burst = 0;
     }
     for (const target of this.targets) {
-      if (!target.visible && this.time >= target.respawnAt) this.spawn(target);
+      if (!this.drill && !target.visible && this.time >= target.respawnAt) this.spawn(target);
       if (target.visible && this.mode.moving) {
         const difficulty =
           FPS_CONFIG.difficulties[this.settings.difficulty as keyof typeof FPS_CONFIG.difficulties];
@@ -269,6 +299,8 @@ export class TrainingSession {
       }
     }
     this.updateExposure();
+    this.drill?.step(this.observation());
+    this.syncDrill();
     if (['head', 'ball'].includes(this.intersection(this.ray)?.region || ''))
       this.statistics.cover(dt);
     if (
@@ -283,8 +315,7 @@ export class TrainingSession {
   }
   private move(dt: number) {
     const p = this.player,
-      g = this.game.values,
-      cover = FPS_CONFIG.scene.cover;
+      g = this.game.values;
     const length = Math.hypot(this.input.forward, this.input.side);
     const top =
       this.weapon.values.maxSpeed *
@@ -316,12 +347,13 @@ export class TrainingSession {
       FPS_CONFIG.scene.playerLimit,
     );
     const r = FPS_CONFIG.scene.bodyRadius;
-    const collides =
-      this.mode.cover &&
-      nextX > cover.min.x - r &&
-      nextX < cover.max.x + r &&
-      nextZ > cover.min.z - r &&
-      nextZ < cover.max.z + r;
+    const collides = this.obstacles.some(
+      (cover) =>
+        nextX > cover.min.x - r &&
+        nextX < cover.max.x + r &&
+        nextZ > cover.min.z - r &&
+        nextZ < cover.max.z + r,
+    );
     if (!collides) {
       p.x = nextX;
       p.z = nextZ;
@@ -340,7 +372,7 @@ export class TrainingSession {
     const aspect = this.settings.aspect === 'native' ? this.viewportAspect : 4 / 3;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
     for (const target of this.targets) {
-      if (!target.visible || target.exposedAt !== null) continue;
+      if (!target.visible && !this.drill) continue;
       const head = this.head(target),
         eye = this.eye;
       const x = head.x - eye.x,
@@ -350,23 +382,23 @@ export class TrainingSession {
       const yaw = Math.atan2(x, -z),
         pitch = Math.atan2(y, Math.hypot(x, z));
       const ray = { x: x / distance, y: y / distance, z: z / distance };
-      const obstruction = this.mode.cover
-        ? rayBox(eye, ray, FPS_CONFIG.scene.cover.min, FPS_CONFIG.scene.cover.max)
-        : null;
+      const obstruction = this.obstruction(eye, ray);
+      const angle = degrees(
+        Math.hypot(
+          angleDifference(yaw, this.player.yaw + this.recoilX),
+          pitch - this.player.pitch - this.recoilY,
+        ),
+      );
+      this.drill?.exposure(obstruction === null || obstruction > distance, angle, this.time);
       if (
+        target.visible &&
+        target.exposedAt === null &&
         (obstruction === null || obstruction > distance) &&
         Math.abs(angleDifference(yaw, this.player.yaw + this.recoilX)) < hfov / 2 &&
         Math.abs(pitch - this.player.pitch - this.recoilY) < vfov / 2
       ) {
         target.exposedAt = this.time;
-        this.statistics.exposure(
-          degrees(
-            Math.hypot(
-              angleDifference(yaw, this.player.yaw + this.recoilX),
-              pitch - this.player.pitch - this.recoilY,
-            ),
-          ),
-        );
+        this.statistics.exposure(angle);
       }
     }
   }
@@ -375,9 +407,7 @@ export class TrainingSession {
       t = FPS_CONFIG.scene.target,
       scale = this.scale;
     let closest: { target: Target; region: Region; distance: number } | null = null;
-    const cover = this.mode.cover
-      ? rayBox(origin, ray, FPS_CONFIG.scene.cover.min, FPS_CONFIG.scene.cover.max)
-      : null;
+    const cover = this.obstruction(origin, ray);
     for (const target of this.targets) {
       if (!target.visible) continue;
       if (this.mode.ball) {
@@ -503,14 +533,8 @@ export class TrainingSession {
     const ray = direction(yaw, pitch),
       hit = this.intersection(ray),
       origin = this.eye;
-    const wall = this.mode.cover
-      ? rayBox(origin, ray, FPS_CONFIG.scene.cover.min, FPS_CONFIG.scene.cover.max)
-      : null;
-    const distances = roomWalls(this.settings.distance)
-      .map((box) => rayBox(origin, ray, box.min, box.max))
-      .filter((d): d is number => d !== null);
-    const roomDistance = distances.length ? Math.min(...distances) : null;
-    const length = hit?.distance ?? wall ?? roomDistance ?? this.settings.distance;
+    const wall = this.obstruction(origin, ray);
+    const length = hit?.distance ?? wall ?? this.settings.distance;
     const nearest = this.targets
       .filter((target) => target.visible)
       .sort(
@@ -552,10 +576,14 @@ export class TrainingSession {
       nearest,
       hit?.target,
       this.mode.headOnly,
-      policy.metrics.includes('stableDelayMs'),
+      !this.drill && policy.metrics.includes('stableDelayMs'),
     );
     let completed = false;
-    if (hit) {
+    if (this.drill) {
+      completed = this.drill.shot(record, this.observation());
+      if (completed) this.statistics.complete(at, hit!.target.id);
+      this.syncDrill();
+    } else if (hit) {
       hit.target.health -= record.damage;
       if (
         hit.region === 'ball' ||
@@ -618,6 +646,7 @@ export class TrainingSession {
       elapsed: this.time,
       completed: this.ended,
       ...score,
+      ...(this.drill ? { ...this.drill.metrics(), drill: this.drill.result() } : {}),
       headRate: this.mode.ball ? null : score.headRate,
       impacts: [...this.shots],
       timeline: [...this.timeline],

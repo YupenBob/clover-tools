@@ -142,16 +142,39 @@ export class RangeModels {
       texture.colorSpace = THREE.SRGBColorSpace;
       const label = new THREE.Mesh(
         new THREE.PlaneGeometry(a.labelSize * 2, a.labelSize),
-        new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+        new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          depthWrite: false,
+        }),
       );
       label.position.set(0, a.stripeY, walls[0].max.z + a.panelInset);
       group.add(label);
     }
-    if (session.mode.cover) {
-      const { min, max } = c.cover;
+    for (const { min, max } of session.obstacles) {
       const cover = this.box(max.x - min.x, max.y - min.y, max.z - min.z, p.cover, true);
       cover.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2);
       group.add(cover);
+      const ratio = FPS_CONFIG.drills.presentation.coverPanelRatio;
+      const face = this.box(
+        (max.x - min.x) * ratio,
+        (max.y - min.y) * ratio,
+        a.panelInset,
+        p.vest,
+        true,
+      );
+      face.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, max.z - a.panelInset / 2);
+      group.add(face);
+      // Edge inlays are inside the same collision bounds.
+      for (const side of [-1, 1]) {
+        const trim = this.box(a.panelInset, max.y - min.y, a.panelInset, p.head);
+        trim.position.set(
+          side > 0 ? max.x - a.panelInset / 2 : min.x + a.panelInset / 2,
+          (max.y + min.y) / 2,
+          max.z - a.panelInset / 2,
+        );
+        group.add(trim);
+      }
     }
     return group;
   }

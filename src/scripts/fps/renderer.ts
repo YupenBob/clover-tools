@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { FPS_CONFIG } from '../../../config/fps.mjs';
 import { verticalFov, radians, degrees } from './math.ts';
 import type { TrainingSession } from './core.ts';
+import { DrillScene } from './drill-scene.ts';
 import type { Shot, FeedbackEvent } from './types.ts';
 import { RangeModels } from './range-models.ts';
 import { createWeaponModel } from './weapon-model.ts';
@@ -9,6 +10,7 @@ import { weaponPose } from './presentation.ts';
 
 /** Rendering consumes domain state; it never decides a hit or changes the clock. */
 export class RangeRenderer {
+  private drillScene: DrillScene;
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera();
@@ -69,6 +71,8 @@ export class RangeRenderer {
     this.scene.add(key, key.target);
     const models = new RangeModels(quality.sphereSegments);
     this.scene.add(models.environment(session));
+    this.drillScene = new DrillScene(session, models);
+    this.scene.add(this.drillScene.group);
     for (const target of session.targets) {
       const group = models.target(session);
       this.targets.set(target.id, group);
@@ -142,6 +146,7 @@ export class RangeRenderer {
   }
   render() {
     if (this.lost) return;
+    this.drillScene.update();
     const s = this.session,
       p = s.player;
     this.camera.position.set(p.x, s.eye.y, p.z);

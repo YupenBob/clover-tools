@@ -3,7 +3,7 @@ import { FPS_SOURCES } from './fps-sources.mjs';
 import { FPS_AUDIO_ASSETS } from './fps-audio.mjs';
 
 export const FPS_CONFIG = {
-  revision: '2026-10-02.1',
+  revision: '2026-10-02.2',
   simulation: {
     step: 1 / 240,
     // Brief render stalls must not eject the player from mouse capture.
@@ -98,6 +98,40 @@ export const FPS_CONFIG = {
     recoilWarmup: { mode: 'spray', distance: 10, duration: 60 },
   },
   calibration: { distanceCm: 10, minCounts: 20 },
+  // Original drills; distances are metres, timings are simulation seconds.
+  drills: {
+    strafe: {
+      gateX: 0.9,
+      minimumTravel: 0.65,
+      minimumSpeedRatio: 0.4,
+      targetJitter: 0.3,
+      laneDepth: 0.5,
+    },
+    peek: {
+      cover: {
+        min: { x: -0.8, y: 0, z: 1.65 },
+        max: { x: 0.8, y: 2.35, z: 2.25 },
+      },
+      safeHalfWidth: 0.3,
+      laneDepth: 0.45,
+      resetHold: 0.12,
+      minimumTravel: 0.55,
+      targetAngleMin: 3,
+      targetAngleMax: 6,
+      gateX: 1.15,
+    },
+    presentation: {
+      feedbackSeconds: 2.2,
+      markerHeight: 0.015,
+      markerWidth: 0.07,
+      markerDepth: 0.85,
+      beaconHeight: 0.65,
+      beaconWidth: 0.06,
+      coverPanelRatio: 0.8,
+    },
+    recordCapacity: 80,
+    reportRows: 10,
+  },
   difficulties: {
     easy: { targetScale: 1.4, speedScale: 0.75 },
     standard: { targetScale: 1, speedScale: 1 },
@@ -563,7 +597,8 @@ export const TRAINING_MODES = {
     metrics: ['firstRate', 'meanHitMs'],
   },
   strafe: {
-    behavior: 'random',
+    behavior: 'center',
+    drill: 'strafe',
     count: 1,
     moving: false,
     cover: false,
@@ -572,11 +607,12 @@ export const TRAINING_MODES = {
     metrics: ['movingRate', 'stableDelayMs'],
   },
   peek: {
-    behavior: 'lanes',
-    count: 2,
+    behavior: 'center',
+    drill: 'peek',
+    count: 1,
     moving: false,
     cover: true,
-    headOnly: false,
+    headOnly: true,
     timed: true,
     metrics: ['placementDegrees', 'firstRate', 'meanHitMs'],
   },

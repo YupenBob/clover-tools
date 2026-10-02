@@ -431,16 +431,15 @@ test('ray primitives detect boundaries, parallel rays and distinct head/body/leg
   s.advanceTo(2);
   near(s.result().coverage, 0.5);
 });
-test('cover blocks targets before exposure; lanes are centered and cover collision is enforced', () => {
+test('peek starts with one concealed target and uses its shared cover collision bounds', () => {
   const s = new TrainingSession({ mode: 'peek' });
-  assert.equal(s.targets.length, 2);
-  near(s.targets[0].baseX, -s.targets[1].baseX);
+  assert.equal(s.targets.length, 1);
   assert.ok(s.targets.every((target) => target.exposedAt === null));
   const target = s.targets[0];
   assert.equal(s.intersection(direction(Math.atan2(target.x, s.eye.z - target.z), 0)), null);
   s.setInput(0, { forward: 1 });
   s.advanceTo(1);
-  assert.ok(s.player.z >= FPS_CONFIG.scene.cover.max.z + FPS_CONFIG.scene.bodyRadius);
+  assert.ok(s.player.z >= s.obstacles[0].max.z + FPS_CONFIG.scene.bodyRadius);
   s.setInput(1, { side: 1, forward: 0 });
   s.advanceTo(1.6);
   assert.ok(s.targets.some((target) => target.exposedAt !== null));

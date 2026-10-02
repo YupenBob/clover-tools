@@ -40,6 +40,7 @@ export const MODES: Record<string, TrainingMode> = Object.fromEntries(
     id,
     {
       id,
+      drill: 'drill' in options ? (options.drill as TrainingMode['drill']) : undefined,
       moving: options.moving,
       cover: options.cover,
       headOnly: options.headOnly,

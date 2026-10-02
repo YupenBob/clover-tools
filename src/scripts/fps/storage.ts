@@ -151,6 +151,34 @@ export class FpsStorage {
           )
         )
           return false;
+        if (item.drill !== undefined) {
+          const d = item.drill;
+          if (
+            !d ||
+            !['attempts', 'successes', 'prematureShots', 'movingShots', 'missedShots'].every(
+              (key) => Number.isInteger(d[key]) && d[key] >= 0,
+            ) ||
+            d.successes + d.movingShots + d.missedShots !== d.attempts ||
+            !Array.isArray(d.records) ||
+            d.records.length > FPS_CONFIG.drills.recordCapacity ||
+            d.records.length > d.attempts ||
+            !d.records.every(
+              (r: Record<string, unknown>) =>
+                r &&
+                Number.isInteger(r.round) &&
+                Number(r.round) >= 1 &&
+                (r.side === 1 || r.side === -1) &&
+                Number.isFinite(r.time) &&
+                Number(r.time) >= 0 &&
+                Number(r.time) <= item.elapsed + FPS_CONFIG.simulation.epsilon &&
+                ['success', 'moving', 'miss'].includes(String(r.reason)) &&
+                ['stableDelayMs', 'placementDegrees'].every(
+                  (key) => r[key] === null || (Number.isFinite(r[key]) && Number(r[key]) >= 0),
+                ),
+            )
+          )
+            return false;
+        }
         return Array.isArray(item.impacts) && Array.isArray(item.timeline);
       })
       .slice(0, FPS_CONFIG.storage.capacity);

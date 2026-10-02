@@ -9,6 +9,7 @@ import { TrainingSession } from './core';
 import { calibratedGain, cmPerTurn } from './math';
 import { FpsStorage, normalizeSettings } from './storage';
 import { renderHistory, renderReport, renderSources } from './report';
+import { renderDrillBrief, renderDrillHud } from './drill-ui';
 import { PointerCapture } from './pointer';
 import { RangeAudio, type AudioStatus } from './audio';
 import type { FpsText } from '../../lib/fps-i18n';
@@ -149,6 +150,7 @@ function initialize(root: HTMLElement) {
   }
   function refresh() {
     writeForm();
+    renderDrillBrief(settings, text);
     renderSources(settings, text);
     renderHistory(storage, settings, text, root.dataset.lang || 'en');
     if (!storage.available) status(text.storageError);
@@ -440,6 +442,7 @@ function initialize(root: HTMLElement) {
     stage.dataset.stable = String(session.stable);
     stage.dataset.ads = String(session.input.ads);
     stage.dataset.elapsed = session.time.toFixed(3);
+    renderDrillHud(session, text);
   }
   function disposeRenderer() {
     renderer?.dispose();

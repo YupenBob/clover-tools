@@ -9,6 +9,7 @@ import { comparisonKey, type FpsStorage } from './storage.ts';
 import type { FpsText } from '../../lib/fps-i18n';
 import type { SessionResult, Settings } from './types.ts';
 import { byId } from '../toolkit';
+import { REASON_TEXT } from './drill-ui.ts';
 
 const $ = <T extends HTMLElement>(id: string) => byId<T>(id);
 function node(tag: string, text?: string) {
@@ -76,6 +77,42 @@ export function renderReport(result: SessionResult, t: FpsText) {
       node('strong', format(key, result[key as keyof SessionResult] as number | null)),
     );
     metrics.append(tile);
+  }
+  const rounds = $('fpsRoundReport');
+  rounds.hidden = !result.drill;
+  $('fpsRoundTable').replaceChildren();
+  if (result.drill) {
+    const drill = result.drill;
+    for (const [key, value] of [
+      ['drillAttempts', drill.attempts],
+      ['drillPasses', drill.successes],
+      [
+        'drillPassRate',
+        drill.attempts ? `${((drill.successes / drill.attempts) * 100).toFixed(1)}%` : '—',
+      ],
+      ['drillPremature', drill.prematureShots],
+    ] as const) {
+      const tile = node('div');
+      tile.className = 'fps-metric';
+      tile.dataset.metric = key;
+      tile.append(node('small', t[key]), node('strong', String(value)));
+      metrics.append(tile);
+    }
+    $('fpsRoundTable').append(
+      drill.records.length
+        ? table(
+            [t.drillRound, t.drillResult, t.stableDelayMs, t.placementDegrees],
+            drill.records
+              .slice(-FPS_CONFIG.drills.reportRows)
+              .map((r) => [
+                `${r.round} · ${r.side > 0 ? t.drillRight : t.drillLeft}`,
+                t[REASON_TEXT[r.reason]],
+                format('stableDelayMs', r.stableDelayMs),
+                format('placementDegrees', r.placementDegrees),
+              ]),
+          )
+        : node('p', t.drillNoAttempts),
+    );
   }
   const chart = document.getElementById('fpsImpactChart')!;
   chart.replaceChildren();

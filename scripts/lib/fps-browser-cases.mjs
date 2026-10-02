@@ -327,6 +327,14 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
           await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
           true,
         );
+        for (const mode of ['strafe', 'peek']) {
+          await page.locator(`[name=mode][value=${mode}]`).check();
+          assert.equal(await page.locator('#fpsDrillBrief').isVisible(), true);
+          assert.ok((await page.locator('#fpsBriefGoal').innerText()).length > 20);
+          assert.equal(await page.locator('#fpsBriefSteps span').count(), 3);
+          assert.equal(await page.locator('[name=count]').isDisabled(), true);
+          assert.doesNotMatch(await page.locator('#fpsDrillBrief').innerText(), /undefined|\{side\}/);
+        }
         if (lang === 'en') {
           await page.locator('#themeToggle').click();
           await page.screenshot({
@@ -567,6 +575,64 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       assert.equal(stored.targets, 1);
     },
   );
+  for (const mode of ['strafe', 'peek']) {
+    await run(
+      `FPS guided ${mode}: native movement, first-shot gating, return and round report`,
+      { viewport: { width: 1440, height: 1000 } },
+      async (page, context) => {
+        await context.addInitScript(() => {
+          window.__fpsDrillKeys = [];
+          for (const type of ['keydown', 'keyup']) document.addEventListener(type, event => {
+            if (event.code === 'KeyD' || event.code === 'KeyA') window.__fpsDrillKeys.push({ type, code: event.code, time: event.timeStamp });
+          });
+          crypto.getRandomValues = array => { array.fill(22); return array; };
+        });
+        await open(page, context);
+        await page.locator(`[name=mode][value=${mode}]`).check();
+        await page.locator('[name=distance]').fill('5');
+        await page.locator('[name=difficulty]').selectOption('easy');
+        await page.locator('#fpsDrillBrief').screenshot({ path: join(artifacts, `fps-guided-${mode}-brief.png`) });
+        await enter(page);
+        await page.mouse.down(); await page.mouse.up();
+        await page.waitForFunction(() => document.querySelector('#fpsCoachFeedback').dataset.result === 'travel');
+        assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-round'), '1');
+        await page.waitForTimeout(600);
+        await page.keyboard.down('KeyD'); await page.waitForTimeout(350); await page.keyboard.up('KeyD');
+        const holdMs = await page.evaluate(() => {
+          const [down, up] = window.__fpsDrillKeys; return up.time - down.time;
+        });
+        await page.waitForFunction(() => document.querySelector('#fpsStage').dataset.stable === 'true');
+        await page.waitForFunction((phase) => document.querySelector('#fpsDrillCoach').dataset.drillPhase === phase, mode === 'strafe' ? 'settle' : 'fire');
+        await page.screenshot({ path: join(artifacts, `fps-guided-${mode}-range.png`) });
+        await page.mouse.down(); await page.mouse.up();
+        if (mode === 'strafe') {
+          await page.waitForFunction(() => document.querySelector('#fpsDrillCoach').dataset.round === '2');
+          assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-side'), '-1');
+        } else {
+          await page.waitForFunction(() => document.querySelector('#fpsDrillCoach').dataset.drillPhase === 'return');
+          await page.waitForTimeout(300);
+          assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-round'), '1');
+          await page.screenshot({ path: join(artifacts, 'fps-guided-peek-return.png') });
+          await pause(page);
+          assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-round'), '1');
+          await recover(page);
+          await page.keyboard.down('KeyA'); await page.waitForTimeout(holdMs); await page.keyboard.up('KeyA');
+          await page.waitForFunction(() => document.querySelector('#fpsDrillCoach').dataset.round === '2');
+          assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-side'), '-1');
+          assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-drill-phase'), 'peek');
+        }
+        await pause(page); await page.locator('#fpsFinish').click();
+        assert.equal(await page.locator('#fpsRoundReport').isVisible(), true);
+        assert.equal(await page.locator('[data-metric=drillAttempts] strong').innerText(), '1');
+        assert.equal(await page.locator('[data-metric=drillPremature] strong').innerText(), '1');
+        const stored = await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0], FPS_CONFIG.storage.history);
+        assert.equal(stored.drill.attempts, 1);
+        assert.equal(stored.drill.records.length, 1);
+        assert.ok(stored.drill.records[0].stableDelayMs !== null);
+        await page.locator('#fpsRoundReport').screenshot({ path: join(artifacts, `fps-guided-${mode}-report.png`) });
+      },
+    );
+  }
   for (const mode of Object.keys(TRAINING_MODES).filter((id) => TRAINING_MODES[id].timed)) {
     await run(
       `FPS ${mode}: full timed session and report`,
@@ -828,6 +894,8 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       await open(page, context);
       assert.equal(await page.locator('#fpsStart').isDisabled(), true);
       assert.match(await page.locator('#fpsStatus').innerText(), /电脑键盘与鼠标/);
+      await page.locator('[name=mode][value=peek]').check();
+      assert.equal(await page.locator('#fpsDrillBrief').isVisible(), true);
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
         true,

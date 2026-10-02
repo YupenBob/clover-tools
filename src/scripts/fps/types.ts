@@ -128,6 +128,7 @@ export type FeedbackEvent =
   | { kind: 'reload-start' | 'reload-end' | 'empty'; time: number };
 export interface TrainingMode {
   id: string;
+  drill?: 'strafe' | 'peek';
   moving: boolean;
   cover: boolean;
   headOnly: boolean;
@@ -136,6 +137,23 @@ export interface TrainingMode {
   precision: boolean;
   customBots: boolean;
   spawn(index: number, count: number, random: () => number, settings: Settings): Vec3;
+}
+export type DrillReason = 'success' | 'moving' | 'miss' | 'travel' | 'side' | 'lane' | 'return';
+export interface DrillAttempt {
+  round: number;
+  side: number;
+  time: number;
+  reason: DrillReason;
+  stableDelayMs: number | null;
+  placementDegrees: number | null;
+}
+export interface DrillResult {
+  attempts: number;
+  successes: number;
+  prematureShots: number;
+  movingShots: number;
+  missedShots: number;
+  records: DrillAttempt[];
 }
 export interface SessionResult {
   version: number;
@@ -161,4 +179,5 @@ export interface SessionResult {
   coverage: number | null;
   impacts: Shot[];
   timeline: TimelineEvent[];
+  drill?: DrillResult;
 }
