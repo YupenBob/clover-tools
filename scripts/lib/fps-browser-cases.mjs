@@ -582,8 +582,12 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
       async (page, context) => {
         await context.addInitScript(() => {
           window.__fpsDrillKeys = [];
+          window.__fpsDrillButtons = [];
           for (const type of ['keydown', 'keyup']) document.addEventListener(type, event => {
             if (event.code === 'KeyD' || event.code === 'KeyA') window.__fpsDrillKeys.push({ type, code: event.code, time: event.timeStamp });
+          });
+          for (const type of ['mousedown', 'mouseup']) document.addEventListener(type, event => {
+            if (event.button === 0 && document.querySelector('#fpsStage')?.dataset.phase === 'running') window.__fpsDrillButtons.push({ type, time: event.timeStamp });
           });
           crypto.getRandomValues = array => { array.fill(22); return array; };
         });
@@ -593,7 +597,10 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
         await page.locator('[name=difficulty]').selectOption('easy');
         await page.locator('#fpsDrillBrief').screenshot({ path: join(artifacts, `fps-guided-${mode}-brief.png`) });
         await enter(page);
-        await page.mouse.down(); await page.mouse.up();
+        // Exercise an actual invalid burst. Slow remote drivers may hold even a click for several rounds.
+        await page.mouse.down();
+        await page.waitForTimeout(WEAPON_PROFILES.ak47.values.interval * 2500);
+        await page.mouse.up();
         await page.waitForFunction(() => document.querySelector('#fpsCoachFeedback').dataset.result === 'travel');
         assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-round'), '1');
         await page.waitForTimeout(600);
@@ -621,11 +628,20 @@ export async function runFpsChecks({ run, remember, base, artifacts }) {
           assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-side'), '-1');
           assert.equal(await page.locator('#fpsDrillCoach').getAttribute('data-drill-phase'), 'peek');
         }
-        await pause(page); await page.locator('#fpsFinish').click();
+        await pause(page);
+        const remainingAmmo = Number((await page.locator('#fpsAmmo').innerText()).split('/')[0]);
+        await page.locator('#fpsFinish').click();
         assert.equal(await page.locator('#fpsRoundReport').isVisible(), true);
         assert.equal(await page.locator('[data-metric=drillAttempts] strong').innerText(), '1');
-        assert.equal(await page.locator('[data-metric=drillPremature] strong').innerText(), '1');
         const stored = await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0], FPS_CONFIG.storage.history);
+        const buttons = await page.evaluate(() => window.__fpsDrillButtons);
+        const firstDown = buttons.findIndex(event => event.type === 'mousedown');
+        const firstUp = buttons.slice(firstDown + 1).find(event => event.type === 'mouseup');
+        assert.ok(firstUp.time - buttons[firstDown].time >= WEAPON_PROFILES.ak47.values.interval * 2000, JSON.stringify(buttons));
+        assert.equal(stored.shots, WEAPON_PROFILES.ak47.values.magazine - remainingAmmo, JSON.stringify({ stored, buttons }));
+        assert.ok(stored.drill.prematureShots >= 3);
+        assert.equal(stored.drill.prematureShots, stored.shots - stored.drill.attempts, JSON.stringify({ stored, buttons }));
+        assert.equal(Number(await page.locator('[data-metric=drillPremature] strong').innerText()), stored.drill.prematureShots);
         assert.equal(stored.drill.attempts, 1);
         assert.equal(stored.drill.records.length, 1);
         assert.ok(stored.drill.records[0].stableDelayMs !== null);
