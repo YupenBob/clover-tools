@@ -6,6 +6,7 @@ export interface DrillObservation {
   time: number;
   x: number;
   z: number;
+  yaw: number;
   speed: number;
   maxSpeed: number;
   stable: boolean;
@@ -21,6 +22,7 @@ export class GuidedDrill {
   point: Vec3;
   last: DrillAttempt | null = null;
   private anchorX = FPS_CONFIG.scene.spawnX;
+  private location = { x: FPS_CONFIG.scene.spawnX, z: FPS_CONFIG.scene.spawnZ, yaw: 0 };
   private peakSpeed = 0;
   private safeSince: number | null = null;
   private placement: number | null = null;
@@ -73,6 +75,34 @@ export class GuidedDrill {
         ? 2
         : 1;
   }
+  get returnCue(): { key: 'left' | 'right' | 'forward' | 'back' | null; distance: number } {
+    const c = FPS_CONFIG.drills.peek;
+    const p = this.location;
+    const x =
+      clamp(
+        p.x,
+        FPS_CONFIG.scene.spawnX - c.safeHalfWidth,
+        FPS_CONFIG.scene.spawnX + c.safeHalfWidth,
+      ) - p.x;
+    const z =
+      clamp(p.z, FPS_CONFIG.scene.spawnZ - c.laneDepth, FPS_CONFIG.scene.spawnZ + c.laneDepth) -
+      p.z;
+    const distance = Math.hypot(x, z);
+    if (distance <= FPS_CONFIG.simulation.epsilon) return { key: null, distance: 0 };
+    const side = x * Math.cos(p.yaw) + z * Math.sin(p.yaw);
+    const forward = x * Math.sin(p.yaw) - z * Math.cos(p.yaw);
+    return {
+      key:
+        Math.abs(side) > Math.abs(forward)
+          ? side > 0
+            ? 'right'
+            : 'left'
+          : forward > 0
+            ? 'forward'
+            : 'back',
+      distance,
+    };
+  }
   private target(): Vec3 {
     const c = FPS_CONFIG.drills;
     const x =
@@ -103,6 +133,9 @@ export class GuidedDrill {
     }
   }
   step(o: DrillObservation) {
+    this.location.x = o.x;
+    this.location.z = o.z;
+    this.location.yaw = o.yaw;
     const c = FPS_CONFIG.drills;
     if (this.phase === 'return') {
       const safe =

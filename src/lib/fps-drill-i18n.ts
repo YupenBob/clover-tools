@@ -1,4 +1,5 @@
 const zh = {
+  drillSafeDistance: '距安全区',
   drillBrief: '本轮练习',
   drillGoal: '回合目标',
   drillRound: '回合',
@@ -39,6 +40,7 @@ const zh = {
 };
 type Text = { [K in keyof typeof zh]: string };
 const en: Text = {
+  drillSafeDistance: 'to safe zone',
   drillBrief: 'THIS DRILL',
   drillGoal: 'Round objective',
   drillRound: 'Round',
@@ -80,6 +82,7 @@ const en: Text = {
   drillReady: 'Keep moving',
 };
 const ja: Text = {
+  drillSafeDistance: '安全域まで',
   drillBrief: '今回の練習',
   drillGoal: 'ラウンド目標',
   drillRound: 'ラウンド',
@@ -120,6 +123,7 @@ const ja: Text = {
   drillReady: '移動を続ける',
 };
 const ko: Text = {
+  drillSafeDistance: '안전 구역까지',
   drillBrief: '이번 훈련',
   drillGoal: '라운드 목표',
   drillRound: '라운드',

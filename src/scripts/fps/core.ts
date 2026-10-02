@@ -152,6 +152,7 @@ export class TrainingSession {
       time: this.time,
       x: this.player.x,
       z: this.player.z,
+      yaw: this.player.yaw,
       speed: this.speed,
       maxSpeed: this.weapon.values.maxSpeed,
       stable: this.stable,
@@ -332,7 +333,10 @@ export class TrainingSession {
       const x = Math.cos(p.yaw) * side + Math.sin(p.yaw) * forward;
       const z = Math.sin(p.yaw) * side - Math.cos(p.yaw) * forward;
       const current = p.vx * x + p.vz * z;
-      const add = Math.min(Math.max(0, top - current), top * g.acceleration * dt);
+      // Stance caps speed separately from the acceleration reference. Using the crouch
+      // cap for both can make acceleration weaker than the minimum ground friction.
+      const reference = top + (this.weapon.values.maxSpeed - top) * g.stanceAccelerationBlend;
+      const add = Math.min(Math.max(0, top - current), reference * g.acceleration * dt);
       p.vx += x * add;
       p.vz += z * add;
     }

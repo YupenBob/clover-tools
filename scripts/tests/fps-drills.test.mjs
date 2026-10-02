@@ -66,6 +66,22 @@ test('peek requires return behind cover and settled dwell before switching sides
   assert.equal(s.drill.phase, 'fire');
   tap(s);
   assert.equal(s.drill.phase, 'return');
+  assert.equal(s.drill.returnCue.key, 'left');
+  assert.ok(s.drill.returnCue.distance > 0);
+  for (const [yaw, key] of [
+    [Math.PI, 'right'],
+    [Math.PI / 2, 'back'],
+    [-Math.PI / 2, 'forward'],
+  ]) {
+    s.player.yaw = yaw;
+    s.advanceTo(s.time + FPS_CONFIG.simulation.step);
+    assert.equal(
+      s.drill.returnCue.key,
+      key,
+      'return input must follow the actual camera orientation',
+    );
+  }
+  s.player.yaw = 0;
   assert.equal(s.targets[0].visible, false);
   assert.equal(s.result().drill.successes, 1);
   s.advanceTo(s.time + 1);
@@ -83,6 +99,8 @@ test('peek requires return behind cover and settled dwell before switching sides
   assert.equal(s.drill.round, 2);
   assert.equal(s.drill.side, -1);
   assert.equal(s.drill.phase, 'peek');
+  assert.equal(s.drill.returnCue.key, null);
+  assert.equal(s.drill.returnCue.distance, 0);
   assert.equal(s.targets[0].visible, true);
   assert.equal(s.targets[0].exposedAt, null);
   assert.ok(s.targets[0].x < 0);
@@ -105,7 +123,11 @@ test('wrong direction and walking around the cover do not create eligible peek r
   traverse(withdrawn, -1);
   withdrawn.advanceTo(withdrawn.time + 0.8);
   tap(withdrawn);
-  assert.equal(withdrawn.result().drill.attempts, 0, 'a concealed shot after returning early is ineligible');
+  assert.equal(
+    withdrawn.result().drill.attempts,
+    0,
+    'a concealed shot after returning early is ineligible',
+  );
   assert.equal(withdrawn.drill.last.reason, 'travel');
 });
 test('guided drills replay identically at 30/60/144 render FPS, including first-shot reports', () => {

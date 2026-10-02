@@ -56,7 +56,13 @@ export function renderDrillHud(session: TrainingSession, t: FpsText) {
   const side = `${drill.side > 0 ? '→' : '←'} ${FPS_CONFIG.keys[drill.side > 0 ? 'right' : 'left'].replace(/^Key/, '')} · ${drill.side > 0 ? t.drillRight : t.drillLeft}`;
   byId<HTMLElement>('fpsCoachRound').textContent =
     `${t.drillRound} ${String(drill.round).padStart(2, '0')}`;
-  byId<HTMLElement>('fpsCoachSide').textContent = drill.phase === 'return' ? t.drillReturn : side;
+  const cue = drill.returnCue;
+  byId<HTMLElement>('fpsCoachSide').textContent =
+    drill.phase === 'return'
+      ? cue.key
+        ? `${FPS_CONFIG.keys[cue.key].replace(/^Key/, '')} · ${t.drillSafeDistance} ${cue.distance.toFixed(2)} m`
+        : t.drillReturn
+      : side;
   sequence(
     byId('fpsCoachSteps'),
     drill.steps.map((key) => t[key as keyof FpsText]),

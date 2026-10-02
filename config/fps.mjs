@@ -3,7 +3,7 @@ import { FPS_SOURCES } from './fps-sources.mjs';
 import { FPS_AUDIO_ASSETS } from './fps-audio.mjs';
 
 export const FPS_CONFIG = {
-  revision: '2026-10-02.2',
+  revision: '2026-10-03.1',
   simulation: {
     step: 1 / 240,
     // Brief render stalls must not eject the player from mouse capture.
@@ -385,6 +385,8 @@ export const GAME_PROFILES = {
       defaultFov: 90,
       defaultSensitivity: 1,
       acceleration: cv.sv_accelerate,
+      // Approximate stance model: 1 keeps running speed as the acceleration reference.
+      stanceAccelerationBlend: 1,
       friction: cv.sv_friction,
       stopSpeed: cv.sv_stopspeed * 0.0254,
       stopRatio: 0.34,
@@ -432,6 +434,8 @@ export const GAME_PROFILES = {
       defaultFov: 103,
       defaultSensitivity: 0.35,
       acceleration: 18,
+      // 0 uses the current stance cap as the acceleration reference.
+      stanceAccelerationBlend: 0,
       friction: 18,
       stopSpeed: 1.5,
       stopRatio: 0.275,
