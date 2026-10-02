@@ -30,6 +30,15 @@ export interface ToolContent {
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
   'fps-aim-trainer': fpsContent('zh'),
+  'm3u8-downloader': {
+    usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。缺失分片自动跳过，其他失败先重试。普通模式可导出 MP4 / TS；支持原生文件写入的 Chrome / Edge 可开启特大模式，选择原格式或 MP4，准备后选择文件，边下载边保存以降低内存占用。可暂停、保存当前部分，刷新后恢复任务并授权文件，从缓存重建后继续。目标站点需要允许跨域访问。',
+    features: [
+      { icon: 'bi-skip-forward', text: '缺失分片自动跳过，后续分片继续下载' },
+      { icon: 'bi-arrow-repeat', text: '暂停、部分保存、刷新恢复与缓存续传' },
+      { icon: 'bi-camera-video', text: '选择格式，特大视频边下载边保存' },
+      { icon: 'bi-shield-lock', text: '分片缓存与合并均在本地，视频不上传' },
+    ],
+  },
   'json-formatter': {
     usage:
       '在线 JSON 格式化与校验工具：粘贴 JSON 后自动美化排版，支持压缩输出与缩进自定义；语法错误会定位到具体行号，方便快速排查接口返回与配置文件问题。所有处理都在浏览器本地完成，数据不会上传。',

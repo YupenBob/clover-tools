@@ -68,15 +68,15 @@ FPS 原生 Esc 暂停测试按 `config/quality.mjs` 的 `BROWSER_CHECKS.pointerU
 
 FPS 启动失败的检查日志记录原生锁定请求、授权/错误与失焦事件顺序，辅助定位不同平台的 Pointer Lock 差异；这些观察仅存在于浏览器检查中。
 
-Cloudflare Pages 现有构建命令 `npm run build` 已包含静态质量检查，无需另开绕过检查的发布命令。GitHub Actions 在 push/PR 上运行完整构建和浏览器回归，并使用 `https://quality.example` 验证非生产域名配置。工作流本身不修改 Cloudflare 后台设置，也不替代线上部署状态确认。
+`npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。当前 Cloudflare Pages 项目使用直接上传模式，GitHub 推送不会自动上线；需要单独上传同一已验证产物并核实自定义域名。发布步骤见 [RELEASE.md](RELEASE.md)。
 
 发布顺序：完成修改 → 完整检查 → 更新 README/相关文档 → 提交 → 推送 → 检查远程工作流与部署状态。`npm run indexnow` 仅在部署确认后手动运行，不能为尚未上线的产物主动推送收录。
 
 ## 本轮验证基线（2026-10-03）
 
-- FPS 类型检查和 47 个单元/反例测试通过；包含 39 项训练规则/统计/存储/鼠标生命周期/画面音频测试与 8 项站点检查。
-- 71 个工具、21 份深度说明、16 篇指南通过内容关联检查。
-- 417 个站点 HTML 页面通过链接及 SEO 检查；116 条 sitemap 地址与允许收录页面一致。
+- FPS / HLS 类型检查和 74 个单元/反例测试通过；包含 39 项 FPS、27 项 HLS 和 8 项站点检查。
+- 72 个工具、22 份深度说明、16 篇指南通过内容关联检查。
+- 422 个站点 HTML 页面通过链接及 SEO 检查；117 条 sitemap 地址与允许收录页面一致。
 - 58 个真实 Chromium 浏览器场景通过；包含 29 项站点场景与 29 项 FPS 场景，新增实际音频输出、静音、音频拒绝/加载失败及四枪开镜回归。FPS 图表、Bot 与小球靶场、四把步枪和开镜、准备面板、深浅主题及移动端截图已人工查看。
 
 存储异常测试同时发现并修复全站主题读写在禁用 localStorage 时的未捕获错误。主题仍可切换，FPS 训练和报告仍可用。FPS 的来源核验不等于原游戏行为验证，证据状态与复现边界见 [FPS-AIM-TRAINER.md](FPS-AIM-TRAINER.md)。

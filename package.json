@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "npm test && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
+    "build": "npm test && npm run prepare:hls && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
     "preview": "astro preview",
     "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
-    "test": "npm run check:fps-types && node --test scripts/tests/*.test.mjs",
+    "test": "npm run check:fps-types && npm run check:hls-types && node --test scripts/tests/*.test.mjs",
     "check:all": "npm run build",
     "check:browser": "node scripts/smoke-growth.mjs",
     "csdn:build": "node scripts/build-csdn.mjs",
@@ -17,7 +17,11 @@
     "redirects": "node scripts/gen-redirects.mjs",
     "indexnow": "node scripts/ping-indexnow.mjs",
     "deploy:media": "wrangler r2 object put",
-    "check:fps-types": "tsc --project tsconfig.fps.json"
+    "check:fps-types": "tsc --project tsconfig.fps.json",
+    "check:hls-types": "tsc --project tsconfig.hls.json",
+    "prepare:hls": "node scripts/prepare-hls-core.mjs",
+    "predev": "npm run prepare:hls",
+    "check:hls-browser": "node scripts/smoke-hls.mjs"
   },
   "engines": {
     "node": ">=22.18.0",
@@ -48,6 +52,7 @@
     "playwright-core": "^1.62.1",
     "wrangler": "^4.0.0",
     "@types/three": "0.186.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "@ffmpeg/core": "0.12.10"
   }
 }

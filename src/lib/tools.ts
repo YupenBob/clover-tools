@@ -419,6 +419,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   ],
   daily: [
     {
+      slug: 'm3u8-downloader',
+      name: 'M3U8 视频下载器',
+      oneLiner: '跳过缺失分片，支持格式选择与大视频流式保存。',
+      description: '在线 M3U8 视频下载器，支持缺失分片跳过、重试、暂停与缓存续传。普通模式导出 MP4 或 TS，特大视频可按原格式或 MP4 边下载边保存，接续保留分片的时间轴，降低内存占用。',
+      icon: 'bi-camera-video',
+      keywords: ['m3u8下载', '视频下载', 'HLS', 'ts合并', '缺失分片', 'm3u8转mp4', '流式下载', '大视频下载'],
+      tier: 'P0',
+    },
+    {
       slug: 'calendar',
       name: '在线万年历',
       oneLiner: '公历农历对照、节气和节假日查询。',
