@@ -27,6 +27,8 @@ interface Props {
   ads?: boolean;
   /** Set false for temporary low-quality/unfinished variants that should not be indexed. */
   indexable?: boolean;
+  /** Opt-in content width for tool workspaces; other pages keep the site width. */
+  contentClass?: string;
 }
 
 const {
@@ -38,6 +40,7 @@ const {
   jsonLd,
   ads = true,
   indexable = true,
+  contentClass = '',
 } = Astro.props;
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
@@ -130,13 +133,13 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     </script>
   </head>
   <body>
-    <SiteHeader />
+    <SiteHeader containerClass={contentClass} />
     <main class="page-body">
-      <div class="container">
+      <div class:list={['container', contentClass]}>
         <slot />
       </div>
     </main>
-    <SiteFooter />
+    <SiteFooter containerClass={contentClass} />
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

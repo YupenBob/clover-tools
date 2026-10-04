@@ -9,12 +9,12 @@ const related = getRelated(category, 'url-encode', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="URL 또는 텍스트 입력" icon="bi-link-45deg">
+  <ToolPanel title="URL 또는 텍스트 입력" icon="bi-link-45deg" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> 예시</button>
       <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
     </div>
-    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="예: https://example.com/搜索?q=中文 내용"></textarea>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="예: https://example.com/搜索?q=中文 내용" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
       <div class="field">
         <label class="field-label" for="urlMode">변환 모드</label>
@@ -32,16 +32,16 @@ const related = getRelated(category, 'url-encode', 'ko', 6);
     <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
     </div>
-    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('urlInput');
   const output = byId<HTMLTextAreaElement>('urlOutput');
@@ -72,4 +72,5 @@ const related = getRelated(category, 'url-encode', 'ko', 6);
   bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
   bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
   bindCopyBtn('urlCopy', () => output.value);
+  bindCtrlEnter('urlInput', () => byId<HTMLButtonElement>('urlBtn').click());
 </script>

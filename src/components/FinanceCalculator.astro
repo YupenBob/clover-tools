@@ -1,0 +1,39 @@
+---
+import DailyToolData from './DailyToolData.astro';
+import { dailyText } from '../lib/daily-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = dailyText(lang);
+const modes = [['loan', t.loan, 'bi-house'], ['compound', t.compound, 'bi-graph-up'], ['percentage', t.percentage, 'bi-percent']];
+---
+<DailyToolData lang={lang} />
+<section class="finance-workspace" aria-label={t.calculate}>
+  <div class="finance-tabs" role="tablist" aria-label={t.calculate}>{modes.map(([mode, label, icon], i) => <button class="finance-tab" id={`finTab-${mode}`} type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} aria-controls={`finPanel-${mode}`} tabindex={i === 0 ? 0 : -1} data-mode={mode}><i class={`bi ${icon}`} aria-hidden="true"></i>{label}</button>)}</div>
+  <div class="daily-composition finance-panel" id="finPanel-loan" role="tabpanel" aria-labelledby="finTab-loan" tabindex="0">
+    <section class="daily-surface" aria-labelledby="finLoanHeading"><h2 id="finLoanHeading" class="daily-eyebrow">{t.parameters}</h2><form id="finLoanForm" novalidate>
+      <div class="field"><label class="field-label" for="finLoan">{t.loanAmount}</label><input class="input mono" id="finLoan" type="number" min="0" step="any" value="100" /></div>
+      <div class="daily-fields"><div class="field"><label class="field-label" for="finYears">{t.loanYears}</label><input class="input mono" id="finYears" type="number" min="0" step="any" value="30" /></div><div class="field"><label class="field-label" for="finRate">{t.annualRate}</label><input class="input mono" id="finRate" type="number" min="0" step="any" value="3.6" /></div></div>
+      <p class="daily-note">{t.loanHint}</p><div class="btn-row"><button class="btn btn-primary" id="finLoanBtn" type="submit">{t.calculate}</button></div><div class="status-msg" id="finLoanStatus" role="status" aria-live="polite"></div>
+    </form></section>
+    <section class="daily-result finance-result" id="finLoanResult" aria-labelledby="finLoanResultHeading"><h2 class="daily-eyebrow" id="finLoanResultHeading">{t.monthlyPayment}</h2><div class="finance-number"><output class="daily-number" id="finMonthly">—</output><span>{t.amountCny}</span></div><div class="finance-stack" aria-hidden="true"><span id="finPrincipalBar"></span><span id="finInterestBar"></span></div><div class="finance-legend"><span><i class="principal-dot" aria-hidden="true"></i>{t.principal}</span><span><i class="interest-dot" aria-hidden="true"></i>{t.interest}</span></div><dl class="daily-facts"><div><dt>{t.totalRepayment}</dt><dd id="finTotal">—</dd></div><div><dt>{t.interest}</dt><dd id="finInterest">—</dd></div><div><dt>{t.paymentCount}</dt><dd id="finMonths">—</dd></div></dl><div class="daily-result-actions"><button class="btn btn-secondary" id="finLoanCopy" type="button" disabled>{t.copy}</button></div></section>
+  </div>
+  <div class="daily-composition finance-panel" id="finPanel-compound" role="tabpanel" aria-labelledby="finTab-compound" tabindex="0" hidden>
+    <section class="daily-surface" aria-labelledby="finCompoundHeading"><h2 id="finCompoundHeading" class="daily-eyebrow">{t.parameters}</h2><form id="finCompoundForm" novalidate>
+      <div class="field"><label class="field-label" for="finP">{t.compoundPrincipal}</label><input class="input mono" id="finP" type="number" min="0" step="any" value="10000" /></div>
+      <div class="daily-fields"><div class="field"><label class="field-label" for="finRp">{t.annualRate}</label><input class="input mono" id="finRp" type="number" min="-100" step="any" value="5" /></div><div class="field"><label class="field-label" for="finN">{t.compoundYears}</label><input class="input mono" id="finN" type="number" min="0" step="any" value="10" /></div></div>
+      <p class="daily-note">{t.compoundHint}</p><div class="btn-row"><button class="btn btn-primary" id="finCompoundBtn" type="submit">{t.calculate}</button></div><div class="status-msg" id="finCompoundStatus" role="status" aria-live="polite"></div>
+    </form></section>
+    <section class="daily-result finance-result" id="finCompoundResult" aria-labelledby="finCompoundResultHeading"><h2 class="daily-eyebrow" id="finCompoundResultHeading">{t.finalAmount}</h2><div class="finance-number"><output class="daily-number" id="finFinal">—</output><span>{t.amountCny}</span></div><div class="finance-stack" aria-hidden="true"><span id="finBaseBar"></span><span id="finGainBar"></span></div><div class="finance-legend"><span><i class="principal-dot" aria-hidden="true"></i><span id="finBaseLegend">{t.principal}</span></span><span><i class="interest-dot" aria-hidden="true"></i>{t.gain}</span></div><dl class="daily-facts"><div><dt>{t.principal}</dt><dd id="finBase">—</dd></div><div><dt>{t.gain}</dt><dd id="finGain">—</dd></div><div><dt>{t.growth}</dt><dd id="finGrowth">—</dd></div></dl><div class="daily-result-actions"><button class="btn btn-secondary" id="finCompoundCopy" type="button" disabled>{t.copy}</button></div></section>
+  </div>
+  <div class="daily-composition finance-panel" id="finPanel-percentage" role="tabpanel" aria-labelledby="finTab-percentage" tabindex="0" hidden>
+    <section class="daily-surface" aria-labelledby="finPctHeading"><h2 id="finPctHeading" class="daily-eyebrow">{t.parameters}</h2><form id="finPctForm" novalidate>
+      <div class="daily-fields"><div class="field"><label class="field-label" for="finA">{t.baseA}</label><input class="input mono" id="finA" type="number" step="any" value="200" /></div><div class="field"><label class="field-label" for="finB">{t.compareB}</label><input class="input mono" id="finB" type="number" step="any" value="150" /></div></div>
+      <p class="daily-note">{t.percentageHint}</p><div class="btn-row"><button class="btn btn-primary" id="finPctBtn" type="submit">{t.calculate}</button></div><div class="status-msg" id="finPctStatus" role="status" aria-live="polite"></div>
+    </form></section>
+    <section class="daily-result finance-result" id="finPctResult" aria-labelledby="finPctResultHeading"><h2 class="daily-eyebrow" id="finPctResultHeading">{t.ratio}</h2><div class="finance-number"><output class="daily-number" id="finRatio">—</output><span>%</span></div><div class="percentage-comparison"><span>A</span><i id="finABar" aria-hidden="true"></i><span id="finAValue">—</span><span>B</span><i id="finBBar" aria-hidden="true"></i><span id="finBValue">—</span></div><dl class="daily-facts"><div><dt>{t.change}</dt><dd id="finChange">—</dd></div><div><dt>{t.share}</dt><dd id="finShare">—</dd></div></dl><div class="daily-result-actions"><button class="btn btn-secondary" id="finPctCopy" type="button" disabled>{t.copy}</button></div></section>
+  </div>
+</section>
+<script>
+  import '../scripts/finance-calculator';
+</script>

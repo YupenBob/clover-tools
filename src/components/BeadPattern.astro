@@ -1,0 +1,37 @@
+---
+import FunToolData from './FunToolData.astro';
+import { funText } from '../lib/fun-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const copy = funText(lang);
+const t = copy.beads;
+---
+<FunToolData lang={lang} tool="beads" />
+<div class="bead-studio fun-composition">
+  <section class="bead-paper" aria-labelledby="bpHeading">
+    <div class="fun-section-head"><div><span class="fun-kicker">PIXEL TO PATTERN</span><h2 id="bpHeading">{t.preview}</h2></div><span class="fun-local"><i class="bi bi-shield-check" aria-hidden="true"></i>{copy.local}</span></div>
+    <div class="bead-metrics" aria-live="polite"><div><strong id="bpTotal">—</strong><span>{t.beadCount}</span></div><div><strong id="bpColorCount">—</strong><span>{t.colorCount}</span></div><div><strong class="mono" id="bpDimensions">—</strong><span>{t.dimensions}</span></div></div>
+    <div class="bead-frame" id="bpFrame"><div class="bead-zoom-plane" id="bpPlane"><canvas id="bpCanvas" role="img" aria-label={t.chartLabel}></canvas></div></div>
+    <div class="bead-view-controls"><label class="fun-check"><input type="checkbox" id="bpCodes" checked />{t.showCodes}</label><div><label for="bpZoom">{t.zoom}</label><select class="select" id="bpZoom"><option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option><option value="3">3×</option></select></div></div>
+    <div class="btn-row bead-export"><button class="btn btn-primary" type="button" id="bpPng" disabled><i class="bi bi-download" aria-hidden="true"></i>{t.chartPng}</button><button class="btn btn-ghost" type="button" id="bpPrint" disabled><i class="bi bi-printer" aria-hidden="true"></i>{t.print}</button></div>
+  </section>
+  <aside class="fun-settings" aria-labelledby="bpSettingsHeading">
+    <span class="fun-kicker">MAKE SOMETHING SMALL</span><h2 id="bpSettingsHeading">{t.settings}</h2><p class="fun-intro">{t.studio}</p>
+    <div class="bead-upload" id="bpDrop"><img id="bpSource" alt={t.source} width="96" height="96" /><div><input id="bpFile" type="file" accept="image/png,image/jpeg,image/webp" hidden /><button class="btn btn-secondary" type="button" id="bpUpload"><i class="bi bi-image" aria-hidden="true"></i>{t.upload}</button><span class="fun-note">{t.uploadHint}</span></div></div>
+    <form id="bpForm" novalidate>
+      <div class="field"><div class="fun-label-line"><label class="field-label" for="bpGrid">{t.grid}</label><output id="bpGridValue" for="bpGrid">32</output></div><input class="fun-range" id="bpGrid" type="range" min="16" max="96" step="1" value="32" /></div>
+      <div class="field"><div class="fun-label-line"><label class="field-label" for="bpColors">{t.colors}</label><output id="bpColorsValue" for="bpColors">8</output></div><input class="fun-range" id="bpColors" type="range" min="2" max="32" step="1" value="8" /></div>
+      <div class="field"><label class="field-label" for="bpMode">{t.paletteMode}</label><select class="select" id="bpMode"><option value="auto">{t.auto}</option><option value="custom">{t.custom}</option></select></div>
+      <div class="field" id="bpCustomField" hidden><label class="field-label" for="bpCustom">{t.customLabel}</label><textarea class="textarea mono" id="bpCustom" rows="3" maxlength="300" aria-describedby="bpCustomHint">#254B39, #4C956C, #A8C88A, #F2C66D, #FFFCF5</textarea><p class="fun-note" id="bpCustomHint">{t.customHint}</p></div>
+      <button class="fun-text-button" type="button" id="bpDemo"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{t.demo}</button>
+    </form>
+    <p class="fun-note bead-palette-note">{t.hint}<br />{t.transparency}</p>
+    <div class="status-msg" id="bpStatus" role="status" aria-live="polite"></div>
+  </aside>
+  <section class="bead-materials" aria-labelledby="bpMaterialsHeading"><div class="fun-section-head"><h2 id="bpMaterialsHeading">{t.materials}</h2><div class="btn-row"><button class="btn btn-ghost btn-sm" type="button" id="bpCopy" disabled><i class="bi bi-clipboard" aria-hidden="true"></i>{t.copyMaterials}</button><button class="btn btn-ghost btn-sm" type="button" id="bpCsv" disabled>{t.csv}</button></div></div><div class="bead-color-list" id="bpMaterials"></div></section>
+</div>
+<div class="bead-print-sheet"><canvas id="bpPrintCanvas" role="img" aria-label={t.chartLabel}></canvas></div>
+<script>
+  import '../scripts/bead-pattern';
+</script>

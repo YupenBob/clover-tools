@@ -2,6 +2,9 @@
 import { SITE } from '../lib/site';
 import { DICT, getCategoryMetas, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
 
+interface Props { containerClass?: string; }
+const { containerClass = '' } = Astro.props;
+
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
 const categories = getCategoryMetas(lang);
@@ -10,7 +13,7 @@ const lastUpdated = new Date().toISOString().slice(0, 10);
 ---
 
 <footer class="site-footer">
-  <div class="container footer-inner">
+  <div class:list={['container', 'footer-inner', containerClass]}>
     <span>© {year} {SITE.name} · {dict.footerTagline}</span>
     <div class="footer-links">
       <span class="footer-updated"><i class="bi bi-calendar-check" aria-hidden="true"></i> {dict.updated} {lastUpdated}</span>

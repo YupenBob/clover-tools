@@ -8,12 +8,12 @@ const tool = getToolMeta(category, 'unicode-converter', 'ja')!;
 const related = getRelated(category, 'unicode-converter', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="入力内容" icon="bi-fonts">
+  <ToolPanel title="入力内容" icon="bi-fonts" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> サンプル</button>
       <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
     </div>
-    <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder="テキストまたは \\uXXXX エスケープを入力"></textarea>
+    <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder={"テキストまたは \\uXXXX エスケープを入力"} aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> Unicode に変換</button>
       <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> テキストに戻す</button>
@@ -22,16 +22,16 @@ const related = getRelated(category, 'unicode-converter', 'ja', 6);
     <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
     </div>
-    <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
+    <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="結果がここに表示されます" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   function toUnicode(text: string): string {
     let out = '';
@@ -62,15 +62,20 @@ const related = getRelated(category, 'unicode-converter', 'ja', 6);
       showStatus('uc2Status', 'error', '内容を入力してください');
       return;
     }
-    if (action === 'encode') {
-      byId<HTMLTextAreaElement>('uc2Output').value = toUnicode(src);
-      showStatus('uc2Status', 'success', 'エンコード完了');
-    } else if (action === 'decode') {
-      byId<HTMLTextAreaElement>('uc2Output').value = fromUnicode(src);
-      showStatus('uc2Status', 'success', 'デコード完了');
-    } else {
-      byId<HTMLTextAreaElement>('uc2Output').value = '文字\tコードポイント\t10進数\tエスケープ\n' + analyze(src);
-      showStatus('uc2Status', 'success', '解析完了');
+    try {
+      if (action === 'encode') {
+        byId<HTMLTextAreaElement>('uc2Output').value = toUnicode(src);
+        showStatus('uc2Status', 'success', 'エンコード完了');
+      } else if (action === 'decode') {
+        byId<HTMLTextAreaElement>('uc2Output').value = fromUnicode(src);
+        showStatus('uc2Status', 'success', 'デコード完了');
+      } else {
+        byId<HTMLTextAreaElement>('uc2Output').value = '文字\tコードポイント\t10進数\tエスケープ\n' + analyze(src);
+        showStatus('uc2Status', 'success', '解析完了');
+      }
+    } catch (error) {
+      byId<HTMLTextAreaElement>('uc2Output').value = '';
+      showStatus('uc2Status', 'error', (error as Error).message);
     }
   }
 
@@ -80,4 +85,5 @@ const related = getRelated(category, 'unicode-converter', 'ja', 6);
   bindSample('uc2Sample', 'uc2Input', '開発者ツールボックス Clover Tools');
   bindClear('uc2Clear', ['uc2Input'], ['uc2Output'], 'uc2Status');
   bindCopyBtn('uc2Copy', () => byId<HTMLTextAreaElement>('uc2Output').value);
+  bindCtrlEnter('uc2Input', () => byId<HTMLButtonElement>('uc2Enc').click());
 </script>

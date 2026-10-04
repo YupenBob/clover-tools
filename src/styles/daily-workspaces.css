@@ -1,0 +1,1050 @@
+/* Each daily tool owns its composition; typography and controls keep the brand. */
+.tool-page .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.tool-page .daily-surface {
+  padding: clamp(20px, 2.5vw, 32px);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--bg-elevated);
+}
+.tool-page .daily-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.tool-page :is(.daily-section-head, .date-offset) h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+.tool-page .daily-section-head h2 i {
+  color: var(--primary-dark);
+}
+.tool-page .daily-eyebrow {
+  margin: 0 0 24px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.tool-page .daily-section-head .daily-eyebrow {
+  margin: 0;
+  font-size: 12px;
+}
+.tool-page .daily-note {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.tool-page .daily-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.tool-page .daily-live > span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary-dark);
+}
+.tool-page .daily-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.tool-page .daily-fields > * {
+  min-width: 0;
+}
+.tool-page .daily-fields .field-label {
+  min-height: 20px;
+}
+.tool-page .daily-composition {
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  align-items: start;
+}
+.tool-page .daily-composition > * {
+  min-width: 0;
+}
+.tool-page .daily-result {
+  padding: 20px 4px 0;
+}
+.tool-page .daily-number {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(60px, 7vw, 96px);
+  font-weight: 650;
+  letter-spacing: -0.07em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.tool-page .daily-result-actions {
+  margin-top: 28px;
+}
+.tool-page .daily-facts {
+  display: grid;
+  gap: 0;
+  margin: 24px 0 0;
+}
+.tool-page .daily-facts > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tool-page .daily-facts dt {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.tool-page .daily-facts dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 17px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.tool-page .daily-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.tool-page .daily-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+.tool-page :is(.daily-surface, .daily-result) .input[aria-invalid="true"] {
+  border-color: var(--error);
+}
+
+/* A compact keypad sits beside an open calculation tape. */
+.tool-page .calc-composition {
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  max-width: 1000px;
+  width: 100%;
+  margin-inline: auto;
+  align-items: start;
+}
+.tool-page .calc-composition > * {
+  min-width: 0;
+}
+.tool-page .calc-machine {
+  padding: 24px;
+}
+.tool-page .calc-machine .daily-section-head {
+  margin-bottom: 12px;
+}
+.tool-page .calc-machine .btn {
+  font-size: 11px;
+  padding: 8px 10px;
+}
+.tool-page .calc-display {
+  padding: 20px 16px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: var(--bg-secondary);
+}
+.tool-page .calc-expression {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 17px;
+  text-align: right;
+  outline-offset: 6px;
+}
+.tool-page .calc-result {
+  display: block;
+  max-width: 100%;
+  margin-top: 14px;
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: right;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+.tool-page .calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.tool-page .calc-key {
+  height: 54px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tool-page .calc-key.fn {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+.tool-page .calc-key.op {
+  background: var(--primary-soft);
+  color: var(--brand-ink);
+}
+.tool-page .calc-key.eq {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+  color: var(--bg-elevated);
+}
+.tool-page .calc-key:hover {
+  box-shadow: inset 0 0 0 1px var(--primary-dark);
+}
+.tool-page .calc-key:active {
+  transform: translateY(1px);
+}
+.tool-page .calc-tape {
+  padding: 20px 0;
+}
+.tool-page .calc-tape .daily-section-head {
+  margin-bottom: 0;
+}
+.tool-page .calc-history-empty {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  padding: 75px 30px;
+  margin-top: 28px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.tool-page .calc-history-empty i {
+  font-size: 32px;
+  color: var(--primary-dark);
+  opacity: 0.65;
+}
+.tool-page .calc-history-empty p {
+  margin: 0;
+  line-height: 1.8;
+}
+.tool-page .calc-history-empty[hidden] {
+  display: none;
+}
+.tool-page .calc-history {
+  display: grid;
+  gap: 0;
+  max-height: 460px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+.tool-page .calc-history button {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 18px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: right;
+  cursor: pointer;
+}
+.tool-page .calc-history button:hover {
+  background: var(--primary-soft);
+}
+.tool-page .calc-history code {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.tool-page .calc-history strong {
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+/* The timer's ring and lap ledger communicate two distinct kinds of time. */
+.tool-page .timer-composition {
+  display: grid;
+  gap: 24px;
+  align-items: stretch;
+}
+.tool-page .timer-composition > * {
+  min-width: 0;
+}
+.tool-page .timer-state {
+  padding: 5px 10px;
+  border-radius: 100px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.tool-page .timer-state[data-state="running"] {
+  background: var(--primary-soft);
+  color: var(--brand-ink);
+}
+.tool-page .timer-state[data-state="finished"] {
+  background: var(--brand-ink);
+  color: var(--bg-elevated);
+}
+.tool-page .countdown-dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 250px);
+  aspect-ratio: 1;
+  margin: 6px auto 20px;
+}
+.tool-page .countdown-dial svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.tool-page .countdown-dial circle {
+  fill: none;
+  stroke-width: 5;
+}
+.tool-page .dial-track {
+  stroke: var(--border);
+}
+.tool-page .dial-progress {
+  stroke: var(--primary-dark);
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.tool-page .countdown-dial[data-state="finished"] .timer-digits {
+  color: var(--primary-dark);
+}
+.tool-page .timer-digits {
+  z-index: 1;
+  max-width: 100%;
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(38px, 4vw, 58px);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.tool-page .timer-presets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.tool-page .timer-presets .btn {
+  padding: 8px 4px;
+  font-size: 12px;
+}
+.tool-page .timer-presets [aria-pressed="true"] {
+  background: var(--primary-soft);
+  border-color: var(--primary-dark);
+  color: var(--brand-ink);
+}
+.tool-page .timer-duration {
+  max-width: 320px;
+  margin-inline: auto;
+}
+.tool-page .timer-controls {
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.tool-page .timer-controls .btn {
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+  padding-inline: 10px;
+}
+.tool-page .timer-sound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tool-page .countdown-panel > .daily-note {
+  text-align: center;
+}
+.tool-page .stopwatch-readout {
+  display: grid;
+  place-items: center;
+  min-height: 225px;
+  margin: 6px 0 24px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--primary-soft), var(--bg));
+}
+.tool-page .stopwatch-readout .timer-digits {
+  font-size: clamp(38px, 4.3vw, 64px);
+  overflow-wrap: anywhere;
+  text-align: center;
+  padding: 12px;
+}
+.tool-page .stopwatch-laps {
+  margin-top: 30px;
+}
+.tool-page .lap-labels,
+.tool-page #swLaps li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  text-align: right;
+}
+.tool-page .lap-labels {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.tool-page .lap-labels > :first-child,
+.tool-page #swLaps li > :first-child {
+  text-align: left;
+}
+.tool-page #swLaps {
+  max-height: 210px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tool-page #swLaps li {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.tool-page #swLaps strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tool-page .lap-empty {
+  padding: 22px 0;
+  text-align: center;
+}
+.tool-page .lap-empty[hidden] {
+  display: none;
+}
+
+/* BMI is a continuous scale, with the selected standard visible beside it. */
+.tool-page .bmi-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tool-page .bmi-field-head .field-label {
+  margin: 0;
+}
+.tool-page .number-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tool-page .number-with-unit input {
+  max-width: 110px;
+  text-align: right;
+  font-size: 18px;
+}
+.tool-page .number-with-unit > span {
+  width: 20px;
+}
+.tool-page .bmi-measurement {
+  margin: 26px 0;
+}
+.tool-page .bmi-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 24px;
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.tool-page .bmi-range::-webkit-slider-runnable-track {
+  height: 5px;
+  border-radius: 100px;
+  background: linear-gradient(
+    to right,
+    var(--primary-dark) var(--range-position, 50%),
+    var(--border-strong) var(--range-position, 50%)
+  );
+}
+.tool-page .bmi-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6.5px;
+  border: 3px solid var(--bg-elevated);
+  border-radius: 50%;
+  background: var(--primary-dark);
+  box-shadow: 0 0 0 1px var(--primary-dark);
+}
+.tool-page .bmi-range::-moz-range-track {
+  height: 5px;
+  border-radius: 100px;
+  background: var(--border-strong);
+}
+.tool-page .bmi-range::-moz-range-progress {
+  height: 5px;
+  border-radius: 100px;
+  background: var(--primary-dark);
+}
+.tool-page .bmi-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--bg-elevated);
+  border-radius: 50%;
+  background: var(--primary-dark);
+  box-shadow: 0 0 0 1px var(--primary-dark);
+}
+.tool-page .bmi-number-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+.tool-page .bmi-category {
+  border: 1px solid var(--border-strong);
+  padding: 7px 12px;
+  border-radius: 100px;
+  color: var(--brand-ink);
+  font-size: 13px;
+}
+.tool-page .bmi-scale-wrap {
+  margin-top: 36px;
+}
+.tool-page .bmi-scale {
+  position: relative;
+  display: grid;
+  grid-template-columns: 6.5fr 5.5fr 4fr 12fr;
+  gap: 3px;
+  height: 12px;
+}
+.tool-page .bmi-scale > span {
+  border-radius: 4px;
+}
+.tool-page .bmi-scale > :nth-child(1),
+.tool-page .bmi-scale-key [data-category="0"] {
+  background: #82a2ac;
+}
+.tool-page .bmi-scale > :nth-child(2),
+.tool-page .bmi-scale-key [data-category="1"] {
+  background: #80a47a;
+}
+.tool-page .bmi-scale > :nth-child(3),
+.tool-page .bmi-scale-key [data-category="2"] {
+  background: #d4ab5e;
+}
+.tool-page .bmi-scale > :nth-child(4),
+.tool-page .bmi-scale-key [data-category="3"] {
+  background: #c48272;
+}
+.tool-page .bmi-marker {
+  position: absolute;
+  top: -7px;
+  left: 39%;
+  width: 5px;
+  height: 26px;
+  border-radius: 4px;
+  background: var(--brand-ink);
+  box-shadow: 0 0 0 3px var(--bg);
+  transform: translateX(-50%);
+}
+.tool-page .bmi-marker[hidden] {
+  display: none;
+}
+.tool-page .bmi-ticks {
+  position: relative;
+  height: 18px;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.tool-page .bmi-ticks > span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.tool-page .bmi-ticks > :first-child {
+  left: 0;
+  transform: none;
+}
+.tool-page .bmi-ticks > :last-child {
+  right: 0;
+  transform: none;
+}
+.tool-page .bmi-scale-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 20px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.tool-page .bmi-scale-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.tool-page .bmi-scale-key i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.tool-page .bmi-weight-reference {
+  display: grid;
+  gap: 12px;
+  padding: 24px 0 0;
+  margin-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.tool-page .bmi-weight-reference > span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tool-page .bmi-weight-reference > strong {
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Finance exposes one scenario at a time, with an immediately readable total. */
+.tool-page .finance-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 24px;
+  margin-bottom: 8px;
+}
+.tool-page .finance-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 20px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tool-page .finance-tab[aria-selected="true"] {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+  color: var(--bg-elevated);
+}
+.tool-page .finance-panel[hidden] {
+  display: none;
+}
+.tool-page .finance-number {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tool-page .finance-number .daily-number {
+  font-size: clamp(38px, 5vw, 68px);
+}
+.tool-page .finance-number > span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.tool-page .finance-stack {
+  display: flex;
+  gap: 4px;
+  height: 10px;
+  margin-top: 32px;
+  border-radius: 100px;
+  overflow: hidden;
+  background: var(--border);
+}
+.tool-page .finance-stack > :first-child {
+  background: var(--brand-ink);
+}
+.tool-page .finance-stack > :last-child {
+  background: var(--primary-dark);
+}
+.tool-page .finance-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin-top: 12px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+.tool-page .finance-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.tool-page .finance-legend i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.tool-page .principal-dot {
+  background: var(--brand-ink);
+}
+.tool-page .interest-dot {
+  background: var(--primary-dark);
+}
+.tool-page .percentage-comparison {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) minmax(0, 100px);
+  gap: 12px;
+  margin-top: 30px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.tool-page .percentage-comparison i {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--brand-ink);
+}
+.tool-page .percentage-comparison i:nth-child(5) {
+  background: var(--primary-dark);
+}
+.tool-page .percentage-comparison > span:nth-child(3n) {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.tool-page .finance-result[data-trend="loss"] #finGainBar {
+  background: #c48272;
+}
+.tool-page .finance-result[data-trend="loss"] .interest-dot {
+  background: #c48272;
+}
+
+/* Calendar results use a visible path and separate elapsed/calendar units. */
+.tool-page .date-composition {
+  display: grid;
+  gap: clamp(28px, 4.5vw, 56px);
+  align-items: start;
+}
+.tool-page .date-composition > * {
+  min-width: 0;
+}
+.tool-page .date-form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.tool-page .date-result {
+  padding-top: 30px;
+}
+.tool-page .date-result .daily-eyebrow {
+  margin-bottom: 12px;
+}
+.tool-page .date-number,
+.tool-page .age-number {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.tool-page :is(.date-number, .age-number) > span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.tool-page .date-journey {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.tool-page .date-journey > span {
+  position: relative;
+  flex: 1;
+  min-width: 20px;
+  height: 1px;
+  background: var(--border-strong);
+}
+.tool-page .date-journey > span::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-strong);
+  transform: rotate(45deg);
+}
+.tool-page .date-metrics {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  margin: 24px 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.tool-page .date-metrics dt {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tool-page .date-metrics dd {
+  margin: 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.tool-page .date-offset {
+  padding: 26px 4px 0;
+}
+.tool-page .date-offset h2 {
+  margin-bottom: 24px;
+}
+.tool-page .offset-result {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  margin-top: 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary-soft), var(--bg));
+}
+.tool-page .offset-result .daily-eyebrow {
+  margin: 0;
+}
+.tool-page .offset-result output {
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(23px, 2.8vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+.tool-page .offset-result > span:last-child {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* Age emphasizes completed years, then the next birthday in its annual cycle. */
+.tool-page .age-span {
+  margin: 16px 0 30px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.tool-page .age-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.tool-page .age-facts dt {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.tool-page .age-facts dd {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.tool-page .age-facts strong {
+  color: var(--brand-ink);
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.tool-page .birthday-timeline {
+  margin-top: 26px;
+}
+.tool-page .birthday-timeline .daily-section-head {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.tool-page .birthday-timeline strong {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.tool-page .birthday-timeline progress {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 7px;
+  border: 0;
+  border-radius: 100px;
+  background: var(--border);
+}
+.tool-page .birthday-timeline progress::-webkit-progress-bar {
+  border-radius: 100px;
+  background: var(--border);
+}
+.tool-page .birthday-timeline progress::-webkit-progress-value {
+  border-radius: 100px;
+  background: var(--primary-dark);
+}
+.tool-page .birthday-timeline progress::-moz-progress-bar {
+  border-radius: 100px;
+  background: var(--primary-dark);
+}
+.tool-page .birthday-timeline time {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: right;
+}
+
+@media (min-width: 900px) {
+  .tool-page .daily-composition {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  }
+  .tool-page .calc-composition {
+    grid-template-columns: minmax(0, 430px) minmax(0, 1fr);
+  }
+  .tool-page .timer-composition {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tool-page .date-composition {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr);
+  }
+}
+@media (max-width: 899px) {
+  .tool-page .calc-composition {
+    max-width: 520px;
+  }
+  .tool-page .timer-composition {
+    max-width: 680px;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .tool-page .daily-result {
+    padding-top: 0;
+  }
+  .tool-page .date-offset {
+    padding-top: 0;
+  }
+}
+@media (max-width: 640px) {
+  .tool-page .daily-surface {
+    padding: 20px;
+    border-radius: 18px;
+  }
+  .tool-page .daily-section-head {
+    gap: 10px;
+  }
+  .tool-page .daily-fields {
+    gap: 12px;
+  }
+  .tool-page .daily-fields .input {
+    padding-inline: 10px;
+  }
+  .tool-page .daily-fields input[type="date"] {
+    font-size: 12px;
+    min-width: 0;
+  }
+  .tool-page .calc-key {
+    height: 50px;
+  }
+  .tool-page .calc-history-empty {
+    padding: 32px 20px;
+  }
+  .tool-page .calc-tape {
+    padding-top: 0;
+  }
+  .tool-page .countdown-dial {
+    width: 220px;
+  }
+  .tool-page .stopwatch-readout {
+    min-height: 180px;
+  }
+  .tool-page .timer-controls .btn {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  .tool-page .bmi-number-row {
+    gap: 14px;
+  }
+  .tool-page .finance-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding-bottom: 18px;
+  }
+  .tool-page .finance-tab {
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 5px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+  .tool-page .finance-tab i {
+    display: none;
+  }
+  .tool-page .finance-number .daily-number {
+    font-size: 40px;
+  }
+  .tool-page .date-metrics {
+    grid-template-columns: 1fr 2fr;
+    gap: 16px;
+  }
+  .tool-page .age-facts {
+    gap: 12px;
+  }
+  .tool-page .age-facts strong {
+    font-size: 20px;
+  }
+}

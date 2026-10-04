@@ -8,12 +8,12 @@ const tool = getToolMeta(category, 'html-formatter', 'ko')!;
 const related = getRelated(category, 'html-formatter', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="HTML 입력" icon="bi-filetype-html">
+  <ToolPanel title="HTML 입력" icon="bi-filetype-html" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><i class="bi bi-magic"></i> 예시</button>
       <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
     </div>
-    <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="HTML 코드를 붙여넣으세요"></textarea>
+    <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="HTML 코드를 붙여넣으세요" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="htmlFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
       <button class="btn btn-secondary" id="htmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
@@ -23,17 +23,17 @@ const related = getRelated(category, 'html-formatter', 'ko', 6);
     <div class="status-msg" id="htmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
     </div>
-    <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+    <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="htmlStats">0자</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('htmlInput');
   const output = byId<HTMLTextAreaElement>('htmlOutput');
@@ -140,4 +140,5 @@ const related = getRelated(category, 'html-formatter', 'ko', 6);
   bindClear('htmlClear', ['htmlInput'], ['htmlOutput'], 'htmlStatus');
   bindCopyBtn('htmlCopy', () => output.value);
   setStats('htmlStats', '0자');
+  bindCtrlEnter('htmlInput', () => byId<HTMLButtonElement>('htmlFmt').click());
 </script>

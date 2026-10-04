@@ -1,0 +1,24 @@
+---
+import DailyToolData from './DailyToolData.astro';
+import { dailyText } from '../lib/daily-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = dailyText(lang);
+---
+<DailyToolData lang={lang} />
+<div class="date-composition">
+  <section class="daily-surface date-interval" aria-labelledby="ddHeading">
+    <div class="daily-section-head"><h2 id="ddHeading">{t.interval}</h2><span class="daily-live"><span aria-hidden="true"></span>{t.live}</span></div>
+    <form id="ddForm" novalidate><div class="daily-fields"><div class="field"><label class="field-label" for="ddStart">{t.dateStart}</label><input class="input" id="ddStart" type="date" min="0001-01-01" max="9999-12-31" /></div><div class="field"><label class="field-label" for="ddEnd">{t.dateEnd}</label><input class="input" id="ddEnd" type="date" min="0001-01-01" max="9999-12-31" /></div></div><div class="date-form-options"><label class="daily-checkbox"><input type="checkbox" id="ddInclusive" /> {t.inclusive}</label><button class="btn btn-secondary" id="ddBtn" type="submit">{t.calculate}</button></div><div class="status-msg" id="ddStatus" role="status" aria-live="polite"></div></form>
+    <div class="date-result" id="ddResult"><div class="daily-eyebrow" id="ddResultLabel">{t.elapsedDays}</div><div class="date-number"><output class="daily-number" id="ddNumber">—</output><span>{t.days}</span></div><div class="date-journey"><time id="ddFromLabel"></time><span aria-hidden="true"></span><time id="ddToLabel"></time></div><dl class="date-metrics"><div><dt>{t.fullWeeks}</dt><dd id="ddWeeks">—</dd></div><div><dt>{t.calendarSpan}</dt><dd id="ddCalendar">—</dd></div></dl></div>
+    <p class="daily-note">{t.intervalRule}</p><p class="daily-note">{t.calendarPolicy}</p><div class="daily-result-actions"><button class="btn btn-ghost" id="ddCopy" type="button" disabled>{t.copy}</button></div>
+  </section>
+  <section class="date-offset" aria-labelledby="ddOffsetHeading">
+    <h2 id="ddOffsetHeading">{t.dateOffset}</h2><form id="ddOffsetForm" novalidate><div class="field"><label class="field-label" for="ddBase">{t.baseDate}</label><input class="input" id="ddBase" type="date" min="0001-01-01" max="9999-12-31" /></div><div class="field"><label class="field-label" for="ddDays">{t.offsetDays}</label><input class="input mono" id="ddDays" type="number" step="1" value="30" /><p class="daily-note">{t.offsetHint}</p></div><div class="btn-row"><button class="btn btn-primary" id="ddCalc" type="submit">{t.calculate}</button></div><div class="status-msg" id="ddOffsetStatus" role="status" aria-live="polite"></div></form>
+    <div class="offset-result" id="ddOffsetResult"><span class="daily-eyebrow">{t.offsetResult}</span><output id="ddOffsetDate">—</output><span id="ddOffsetWeekday"></span></div><div class="daily-result-actions"><button class="btn btn-secondary" id="ddOffsetCopy" type="button" disabled>{t.copy}</button></div>
+  </section>
+</div>
+<script>
+  import '../scripts/date-interval';
+</script>

@@ -9,12 +9,12 @@ const related = getRelated(category, 'json-xml-yaml', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="소스 데이터 입력" icon="bi-input-cursor">
+  <ToolPanel title="소스 데이터 입력" icon="bi-input-cursor" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="fmtSample" type="button"><i class="bi bi-magic"></i> 예시</button>
       <button class="btn btn-ghost btn-sm" id="fmtClear" type="button"><i class="bi bi-x-circle"></i> 비우기</button>
     </div>
-    <textarea class="textarea" id="srcInput" spellcheck="false" placeholder="JSON / XML / YAML 데이터를 붙여넣으세요"></textarea>
+    <textarea class="textarea" id="srcInput" spellcheck="false" placeholder="JSON / XML / YAML 데이터를 붙여넣으세요" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
       <div class="field">
         <label class="field-label" for="modeSelect">변환 방향</label>
@@ -32,16 +32,16 @@ const related = getRelated(category, 'json-xml-yaml', 'ko', 6);
     <div class="status-msg" id="fmtStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="fmtCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
     </div>
-    <textarea class="textarea" id="outOutput" readonly spellcheck="false" placeholder="변환 결과가 여기에 표시됩니다"></textarea>
+    <textarea class="textarea" id="outOutput" readonly spellcheck="false" placeholder="변환 결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const SAMPLE = JSON.stringify({ name: 'Clover', version: '3.0', free: true, tags: ['dev', 'tools'] }, null, 2);
   const input = byId<HTMLTextAreaElement>('srcInput');
@@ -139,4 +139,5 @@ const related = getRelated(category, 'json-xml-yaml', 'ko', 6);
   bindSample('fmtSample', 'srcInput', SAMPLE);
   bindClear('fmtClear', ['srcInput'], ['outOutput'], 'fmtStatus');
   bindCopyBtn('fmtCopy', () => output.value);
+  bindCtrlEnter('srcInput', () => byId<HTMLButtonElement>('fmtBtn').click());
 </script>

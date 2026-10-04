@@ -8,12 +8,12 @@ const tool = getToolMeta(category, 'sql-formatter', 'ja')!;
 const related = getRelated(category, 'sql-formatter', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="SQL 入力" icon="bi-database">
+  <ToolPanel title="SQL 入力" icon="bi-database" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
       <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
     </div>
-    <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="SQL 文を貼り付け"></textarea>
+    <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="SQL 文を貼り付け" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="sqfBtn" type="button"><i class="bi bi-braces"></i> フォーマット</button>
       <button class="btn btn-secondary" id="sqfMin" type="button"><i class="bi bi-arrows-collapse"></i> 圧縮</button>
@@ -21,16 +21,16 @@ const related = getRelated(category, 'sql-formatter', 'ja', 6);
     <div class="status-msg" id="sqfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="フォーマット結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="フォーマット結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
     </div>
-    <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
+    <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果はここに表示されます" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const KEYWORDS = new Set([
     'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT', 'OFFSET',
@@ -160,4 +160,5 @@ const related = getRelated(category, 'sql-formatter', 'ja', 6);
   bindSample('sqfSample', 'sqfInput', "select u.id,u.name,count(o.id) as orders from users u left join orders o on u.id=o.user_id where u.status='active' group by u.id,u.name having count(o.id)>2 order by orders desc limit 10");
   bindClear('sqfClear', ['sqfInput'], ['sqfOutput'], 'sqfStatus');
   bindCopyBtn('sqfCopy', () => byId<HTMLTextAreaElement>('sqfOutput').value);
+  bindCtrlEnter('sqfInput', () => byId<HTMLButtonElement>('sqfBtn').click());
 </script>

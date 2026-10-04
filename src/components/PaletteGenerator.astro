@@ -1,0 +1,133 @@
+---
+import ToolPanel from './ToolPanel.astro';
+import type { Lang } from '../lib/i18n';
+
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const copy = {
+  zh: {
+    palette: '色板', config: '配色配置', hue: '主色相', scheme: '配色方案',
+    complementary: '互补色', analogous: '邻近色', triadic: '三角色', tetradic: '四色', mono: '单色渐变',
+    generate: '生成色板', copyAll: '复制全部', copyColor: '复制色值',
+    hint: '点选色块，复制 HEX 色值。', generated: '色板已更新。',
+  },
+  tw: {
+    palette: '色板', config: '配色配置', hue: '主色相', scheme: '配色方案',
+    complementary: '互補色', analogous: '鄰近色', triadic: '三角色', tetradic: '四色', mono: '單色漸變',
+    generate: '生成色板', copyAll: '複製全部', copyColor: '複製色值',
+    hint: '點選色塊，複製 HEX 色值。', generated: '色板已更新。',
+  },
+  en: {
+    palette: 'Swatches', config: 'Palette settings', hue: 'Hue', scheme: 'Color scheme',
+    complementary: 'Complementary', analogous: 'Analogous', triadic: 'Triadic', tetradic: 'Tetradic', mono: 'Monochrome',
+    generate: 'Generate palette', copyAll: 'Copy all', copyColor: 'Copy color',
+    hint: 'Select a swatch to copy its HEX value.', generated: 'Palette updated.',
+  },
+  ko: {
+    palette: '색상 팔레트', config: '팔레트 설정', hue: '주 색상', scheme: '배색 방식',
+    complementary: '보색', analogous: '유사색', triadic: '삼색', tetradic: '사색', mono: '단색 그라데이션',
+    generate: '팔레트 생성', copyAll: '전체 복사', copyColor: '색상 복사',
+    hint: '색상을 선택하면 HEX 값이 복사됩니다.', generated: '팔레트가 업데이트되었습니다.',
+  },
+  ja: {
+    palette: 'カラーパレット', config: '配色設定', hue: '色相', scheme: '配色スキーム',
+    complementary: '補色', analogous: '類似色', triadic: 'トライアド', tetradic: 'テトラード', mono: '単色グラデーション',
+    generate: 'パレットを生成', copyAll: 'すべてコピー', copyColor: '色をコピー',
+    hint: '色を選択すると HEX 値をコピーできます。', generated: 'パレットを更新しました。',
+  },
+};
+const t = copy[lang];
+const schemes = ['complementary', 'analogous', 'triadic', 'tetradic', 'mono'] as const;
+---
+
+<ToolPanel title={t.palette} icon="bi-grid" surface="plain" description={t.hint}>
+  <div class="pg-palette" id="pgPalette" data-copy-label={t.copyColor}></div>
+</ToolPanel>
+
+<ToolPanel title={t.config} icon="bi-palette2">
+  <div class="row">
+    <div class="field">
+      <label class="field-label" for="pgHue">{t.hue}: <span id="pgHueLabel">38</span>°</label>
+      <input class="input" id="pgHue" type="range" min="0" max="360" value="38" />
+    </div>
+    <div class="field">
+      <label class="field-label" for="pgScheme">{t.scheme}</label>
+      <select class="select" id="pgScheme">
+        {schemes.map((scheme) => <option value={scheme}>{t[scheme]}</option>)}
+      </select>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="pgBtn" type="button"><i class="bi bi-palette2" aria-hidden="true"></i> {t.generate}</button>
+    <button class="btn btn-ghost" id="pgCopyAll" type="button"><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copyAll}</button>
+  </div>
+  <div class="status-msg" id="pgStatus" role="status" aria-live="polite" data-message={t.generated}></div>
+</ToolPanel>
+
+<script>
+  import { byId, showStatus, hideStatus } from '../scripts/toolkit';
+
+  const hueInput = byId<HTMLInputElement>('pgHue');
+  const schemeInput = byId<HTMLSelectElement>('pgScheme');
+  const palette = byId<HTMLElement>('pgPalette');
+  const status = byId<HTMLElement>('pgStatus');
+
+  function hslToHex(h: number, s: number, l: number): string {
+    h = ((h % 360) + 360) % 360;
+    s /= 100;
+    l /= 100;
+    const f = (n: number) => {
+      const k = (n + h / 30) % 12;
+      const a = s * Math.min(l, 1 - l);
+      return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+    };
+    return '#' + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  function generate(announce = false) {
+    const h = Number(hueInput.value);
+    // Every tone belongs to the selected harmony; padding does not add unrelated hues.
+    const harmonies: Record<string, [number, number, number][]> = {
+      complementary: [[h, 55, 62], [h, 45, 80], [h, 45, 32], [h + 180, 45, 52], [h + 180, 45, 76]],
+      analogous: [-40, -20, 0, 20, 40].map((offset) => [h + offset, 50, 62]),
+      triadic: [[h, 55, 62], [h, 45, 80], [h + 120, 50, 56], [h + 240, 45, 52], [h + 240, 45, 78]],
+      tetradic: [[h, 55, 62], [h + 90, 45, 52], [h + 180, 50, 62], [h + 270, 45, 52], [h, 45, 80]],
+      mono: [24, 38, 52, 66, 80].map((l) => [h, 45, l]),
+    };
+    const tones = harmonies[schemeInput.value] ?? harmonies.complementary;
+    const swatches = tones.map(([hue, saturation, lightness]) => {
+      const hex = hslToHex(hue, saturation, lightness);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'pg-swatch';
+      button.dataset.hex = hex;
+      button.setAttribute('aria-label', `${palette.dataset.copyLabel}: ${hex}`);
+      const color = document.createElement('span');
+      color.className = 'color';
+      color.style.backgroundColor = hex;
+      color.setAttribute('aria-hidden', 'true');
+      const value = document.createElement('span');
+      value.className = 'info';
+      value.textContent = hex;
+      button.append(color, value);
+      return button;
+    });
+    palette.replaceChildren(...swatches);
+    byId<HTMLElement>('pgHueLabel').textContent = hueInput.value;
+    hideStatus('pgStatus');
+    if (announce) showStatus('pgStatus', 'success', status.dataset.message ?? '');
+  }
+
+  palette.addEventListener('click', (event) => {
+    const swatch = (event.target as HTMLElement).closest<HTMLButtonElement>('.pg-swatch');
+    if (swatch) window.CT.copy(swatch.dataset.hex ?? '');
+  });
+  byId<HTMLButtonElement>('pgCopyAll').addEventListener('click', () => {
+    const hexes = Array.from(palette.querySelectorAll<HTMLButtonElement>('.pg-swatch'), (s) => s.dataset.hex);
+    window.CT.copy(hexes.join(', '));
+  });
+  byId<HTMLButtonElement>('pgBtn').addEventListener('click', () => generate(true));
+  hueInput.addEventListener('input', () => generate());
+  schemeInput.addEventListener('change', () => generate());
+  generate();
+</script>

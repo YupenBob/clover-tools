@@ -1,0 +1,9 @@
+---
+import { dailyText, DAILY_LOCALES } from '../lib/daily-tool-i18n';
+import type { Lang } from '../lib/i18n';
+import '../styles/daily-workspaces.css';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const payload = JSON.stringify({ lang, copy: dailyText(lang), locale: DAILY_LOCALES[lang] }).replace(/</g, '\\u003c');
+---
+<script type="application/json" id="dailyData" set:html={payload} />

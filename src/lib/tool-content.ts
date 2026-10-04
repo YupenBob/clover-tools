@@ -29,6 +29,33 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  'perler-beads': {
+    usage: '上传 PNG、JPG 或 WebP，设置最长边豆数和颜色数量，或填写手头豆子的 HEX 色值。预览中可放大查看，透明格子不计入用量；下载带坐标与编号的 PNG 图纸，复制或导出逐色用量清单。编号是本图内部编号，请自行核对实际豆色。',
+    features: [
+      { icon: 'bi-grid', text: '16–96 豆的网格与编号图纸' },
+      { icon: 'bi-palette', text: '自动取色或自定义 HEX 色板' },
+      { icon: 'bi-list-ol', text: '逐色用量与 CSV 清单' },
+      { icon: 'bi-shield-check', text: '图片在浏览器本地处理' },
+    ],
+  },
+  'personality-test': {
+    usage: '按平时的行为回答 24 道原创情境题，每题选择一个符合程度，可返回修改。完成后查看四个偏好维度、复制结果或下载分享卡片。持平维度用 X 标记，百分比描述答题倾向；本工具供娱乐与自我观察，并非官方 MBTI 测评。',
+    features: [
+      { icon: 'bi-pencil', text: '24 道原创情境题，支持回看修改' },
+      { icon: 'bi-bar-chart', text: '四维偏好与持平结果展示' },
+      { icon: 'bi-download', text: '生成可分享的 PNG 地图卡片' },
+      { icon: 'bi-shield-check', text: '答案只保留在本次访问' },
+    ],
+  },
+  'avatar-generator': {
+    usage: '输入昵称或种子，选择机器人、像素或几何画风，调整角色颜色、背景、外框和透明效果。相同种子与设置会生成同一个原创头像，也可随机生成或从示例开始。支持 256、512、1024 像素 PNG 与矢量 SVG 下载。',
+    features: [
+      { icon: 'bi-robot', text: '机器人、像素与几何三种原创画风' },
+      { icon: 'bi-palette', text: '自定义配色、外框和透明背景' },
+      { icon: 'bi-arrow-repeat', text: '种子可复现，支持复制设置' },
+      { icon: 'bi-download', text: 'PNG 与 SVG 本地导出' },
+    ],
+  },
   'fps-aim-trainer': fpsContent('zh'),
   'm3u8-downloader': {
     usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。缺失分片自动跳过，其他失败先重试。普通模式可导出 MP4 / TS；支持原生文件写入的 Chrome / Edge 可开启特大模式，选择原格式或 MP4，准备后选择文件，边下载边保存以降低内存占用。可暂停、保存当前部分，刷新后恢复任务并授权文件，从缓存重建后继续。目标站点需要允许跨域访问。',
@@ -472,12 +499,12 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'age-calculator': {
     usage:
-      '年龄计算器：从出生日期精确计算周岁、虚岁与出生天数，支持实时更新，适合办理证件、报名登记与日常查询。',
+      '年龄计算器：选择出生日期与截至日期，实时查看周岁、日历年龄、已出生天数和下一次生日；按年份计龄采用截至年份减出生年份加一。',
     features: [
-      { icon: 'bi-person', text: '周岁与虚岁计算' },
+      { icon: 'bi-person', text: '周岁与日历年龄' },
       { icon: 'bi-calendar-event', text: '出生天数统计' },
       { icon: 'bi-hourglass', text: '距离生日的天数提示' },
-      { icon: 'bi-check2-circle', text: '结果实时刷新' },
+      { icon: 'bi-check2-circle', text: '自定义截至日期' },
     ],
   },
   timer: {
@@ -492,12 +519,12 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   bmi: {
     usage:
-      'BMI 体重指数计算器：根据身高体重计算指数并对照健康区间给出参考，附带体重范围建议，帮助了解自身体重状况。',
+      'BMI 体重指数计算器：支持公英制单位、中国与 WHO 成人参考标准，身高体重改变时更新指数与连续刻度，并显示参考区间对应的体重范围。',
     features: [
       { icon: 'bi-heart-pulse', text: 'BMI 指数计算' },
-      { icon: 'bi-graph-up', text: '健康区间对照' },
-      { icon: 'bi-rulers', text: '单位切换（cm / m）' },
-      { icon: 'bi-check2-circle', text: '参考建议说明' },
+      { icon: 'bi-graph-up', text: '可选成人参考标准' },
+      { icon: 'bi-rulers', text: '公英制单位切换' },
+      { icon: 'bi-check2-circle', text: '对应体重范围' },
     ],
   },
   salary: {
@@ -522,11 +549,11 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   calculator: {
     usage:
-      '多功能计算器：支持四则运算、阶乘、幂、开方、质数判定与数列求和等常用数学函数，满足日常计算与学习需求。',
+      '多功能计算器：支持四则运算、括号、幂、开方、阶乘与百分比，可输入表达式、复制结果，并从本次访问的记录中再次使用计算。',
     features: [
       { icon: 'bi-calculator', text: '四则混合运算' },
       { icon: 'bi-123', text: '幂、开方与阶乘' },
-      { icon: 'bi-arrow-repeat', text: '质数判定与数列求和' },
+      { icon: 'bi-clock-history', text: '计算记录与结果复制' },
       { icon: 'bi-keyboard', text: '键盘输入支持' },
     ],
   },

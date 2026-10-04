@@ -3,6 +3,9 @@ import { SITE } from '../lib/site';
 import { DICT, LANGS, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
 import { switchLanguagePath } from '../../config/routes.mjs';
 
+interface Props { containerClass?: string; }
+const { containerClass = '' } = Astro.props;
+
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const homeHref = pathForLang('/', lang);
 const currentPath = stripLang(Astro.url.pathname);
@@ -18,7 +21,7 @@ const LANG_LABELS: Record<Lang, string> = {
 ---
 
 <header class="site-header">
-  <div class="container header-inner">
+  <div class:list={['container', 'header-inner', containerClass]}>
     <a class="brand" href={homeHref} aria-label="CloverTools {dict.home}">
       <img class="brand-logo" src="/clover-logo.svg" alt="CloverTools logo" width="30" height="30" />
       <span class="brand-name">CloverTools</span>

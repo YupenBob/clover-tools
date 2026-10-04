@@ -12,6 +12,9 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = readFileSync(join(root, 'src', 'lib', 'tools.ts'), 'utf8');
 
 const ALIASES = {
+  'perler-beads': ['拼豆', '拼豆图纸', '拼豆生成器', 'perler', 'beads', '像素图纸'],
+  'personality-test': ['人格', '性格测试', 'mbti', '四维', '人格测试'],
+  'avatar-generator': ['头像', '头像生成', 'avatar', '像素头像', '机器人'],
   'json-formatter': ['json格式化', 'json压缩', 'json校验', '格式化'],
   'json-convert': ['json转csv', 'json转excel', 'csv', '表格'],
   'json-xml-yaml': ['json转xml', 'json转yaml', 'yaml', 'xml转json'],

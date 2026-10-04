@@ -124,7 +124,13 @@ function verify(file, format, retained, duration) {
 }
 
 try {
-  browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || (process.platform === 'win32' ? 'msedge' : 'chromium'), headless: true });
+  browser = await chromium.launch({
+    executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
+    channel: process.env.PLAYWRIGHT_EXECUTABLE_PATH
+      ? undefined
+      : process.env.PLAYWRIGHT_CHANNEL || (process.platform === 'win32' ? 'msedge' : 'chromium'),
+    headless: true,
+  });
   const context = await browser.newContext({ locale: 'zh-CN', acceptDownloads: true });
   await context.addInitScript(() => localStorage.setItem('clover-lang', 'zh'));
   await context.route('**/*', (route) => new URL(route.request().url()).origin === base ? route.continue() : route.abort());

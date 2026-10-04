@@ -1,0 +1,30 @@
+---
+import ToolPanel from './ToolPanel.astro';
+import { colorText } from '../lib/visual-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = colorText(lang);
+---
+<ToolPanel title={t.settings} icon="bi-palette" description={t.hint}>
+  <script type="application/json" id="colorTextLabels" set:html={JSON.stringify(t).replace(/</g, '\\u003c')} />
+  <div class="color-fields">
+    <div class="field"><label class="field-label" for="ccPicker">{t.picker}</label><input class="input color-picker" type="color" id="ccPicker" value="#c9a96e" /></div>
+    <div class="field"><label class="field-label" for="ccHex">HEX</label><input class="input mono" id="ccHex" type="text" value="#c9a96e" spellcheck="false" /></div>
+    <div class="field"><label class="field-label" for="ccRgb">RGB</label><input class="input mono" id="ccRgb" type="text" value="201, 169, 110" spellcheck="false" /></div>
+    <div class="field"><label class="field-label" for="ccHsl">HSL</label><input class="input mono" id="ccHsl" type="text" value="39, 46%, 61%" spellcheck="false" /></div>
+  </div>
+  <div class="status-msg" id="ccStatus" role="status" aria-live="polite"></div>
+</ToolPanel>
+<ToolPanel title={t.preview} icon="bi-eye" surface="plain">
+  <div class="color-display" id="ccPreview"><span>HEX</span><strong id="ccPreviewValue">#c9a96e</strong><span>CloverTools</span></div>
+  <div class="color-values" id="ccDetail">
+    {['HEX', 'RGB', 'HSL'].map((format) => <button class="color-value" type="button" data-format={format} aria-label={`${t.copy}: ${format}`}><span>{format}</span><code></code><i class="bi bi-clipboard" aria-hidden="true"></i></button>)}
+  </div>
+  <div slot="footer" class="color-variants" id="ccVariants">
+    {[t.complement, t.darker, t.lighter].map((label) => <button class="color-variant" type="button"><span class="color-variant-swatch" aria-hidden="true"></span><span>{label}</span><code></code></button>)}
+  </div>
+</ToolPanel>
+<script>
+  import '../scripts/color-converter';
+</script>

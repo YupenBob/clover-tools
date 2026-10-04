@@ -1,0 +1,11 @@
+---
+import { funText } from '../lib/fun-tool-i18n';
+import type { Lang } from '../lib/i18n';
+import '../styles/fun-workspaces.css';
+interface Props { lang: Lang; tool: 'beads' | 'avatar' | 'quiz'; }
+const { lang, tool } = Astro.props;
+const { beads, avatar, quiz, ...common } = funText(lang);
+const sections = { beads, avatar, quiz };
+const payload = JSON.stringify({ lang, copy: { ...common, [tool]: sections[tool] } }).replace(/</g, '\\u003c');
+---
+<script type="application/json" id="funData" set:html={payload} />

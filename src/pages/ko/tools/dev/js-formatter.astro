@@ -9,12 +9,12 @@ const related = getRelated(category, 'js-formatter', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="JavaScript 입력" icon="bi-filetype-js">
+  <ToolPanel title="JavaScript 입력" icon="bi-filetype-js" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="jsSample" type="button"><i class="bi bi-magic"></i> 예시</button>
       <button class="btn btn-ghost btn-sm" id="jsClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
     </div>
-    <textarea class="textarea" id="jsInput" spellcheck="false" placeholder="JavaScript 코드를 붙여넣으세요"></textarea>
+    <textarea class="textarea" id="jsInput" spellcheck="false" placeholder="JavaScript 코드를 붙여넣으세요" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="jsFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
       <button class="btn btn-secondary" id="jsMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
@@ -22,17 +22,17 @@ const related = getRelated(category, 'js-formatter', 'ko', 6);
     <div class="status-msg" id="jsStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="jsCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
     </div>
-    <textarea class="textarea" id="jsOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
+    <textarea class="textarea" id="jsOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="jsStats">0자</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('jsInput');
   const output = byId<HTMLTextAreaElement>('jsOutput');
@@ -91,4 +91,5 @@ const related = getRelated(category, 'js-formatter', 'ko', 6);
   bindClear('jsClear', ['jsInput'], ['jsOutput'], 'jsStatus');
   bindCopyBtn('jsCopy', () => output.value);
   setStats('jsStats', '0자');
+  bindCtrlEnter('jsInput', () => byId<HTMLButtonElement>('jsFmt').click());
 </script>

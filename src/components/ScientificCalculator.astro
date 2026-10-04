@@ -1,0 +1,50 @@
+---
+import DailyToolData from './DailyToolData.astro';
+import { dailyText } from '../lib/daily-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = dailyText(lang);
+const keys = [
+  ['C', 'C', t.calcClear, 'fn'], ['back', '⌫', t.calcBack, 'fn'], ['(', '(', '(', 'fn'], [')', ')', ')', 'fn'],
+  ['!', 'n!', t.calcFactorial, 'fn'], ['sqrt', '√', t.calcRoot, 'fn'], ['pow', 'xʸ', t.calcPower, 'fn'], ['/', '÷', '÷', 'op'],
+  ['7', '7', '7', 'num'], ['8', '8', '8', 'num'], ['9', '9', '9', 'num'], ['*', '×', '×', 'op'],
+  ['4', '4', '4', 'num'], ['5', '5', '5', 'num'], ['6', '6', '6', 'num'], ['-', '−', '−', 'op'],
+  ['1', '1', '1', 'num'], ['2', '2', '2', 'num'], ['3', '3', '3', 'num'], ['+', '+', '+', 'op'],
+  ['sign', '±', t.calcSign, 'fn'], ['0', '0', '0', 'num'], ['.', '.', '.', 'num'], ['=', '=', t.calcEquals, 'eq'],
+];
+---
+<DailyToolData lang={lang} />
+<div class="calc-composition">
+  <section class="daily-surface calc-machine" aria-labelledby="calcHeading">
+    <div class="daily-section-head"><h2 class="daily-eyebrow" id="calcHeading">{t.calcResult}</h2><button class="btn btn-ghost" id="calcCopy" type="button"><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copy}</button></div>
+    <div class="calc-display">
+      <label class="sr-only" for="calcExpr">{t.calcExpression}</label>
+      <input class="calc-expression" id="calcExpr" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="0" maxlength="2000" />
+      <output class="calc-result" id="calcResult" for="calcExpr" aria-label={t.calcResult}>0</output>
+    </div>
+    <div class="calc-grid">
+      {keys.map(([key, text, label, variant]) => (
+        <button class={`calc-key ${variant}`} type="button" data-key={key} aria-label={label}>
+          {key === 'back' ? (
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M7 4h9v10H7L2 9Z" />
+              <path d="m9 7 4 4m0-4-4 4" />
+            </svg>
+          ) : text}
+        </button>
+      ))}
+    </div>
+    <div class="status-msg" id="calcStatus" role="status" aria-live="polite"></div>
+    <p class="daily-note">{t.calcHint}</p>
+  </section>
+  <section class="calc-tape" aria-labelledby="calcHistoryHeading">
+    <div class="daily-section-head"><h2 id="calcHistoryHeading">{t.calcHistory}</h2><button class="btn btn-ghost" type="button" id="calcHistoryClear" disabled>{t.calcClear}</button></div>
+    <p class="daily-note">{t.calcHistoryHint}</p>
+    <div class="calc-history-empty" id="calcHistoryEmpty"><i class="bi bi-clock-history" aria-hidden="true"></i><p>{t.calcEmpty}</p></div>
+    <ol class="calc-history" id="calcHistory"></ol>
+  </section>
+</div>
+<script>
+  import '../scripts/scientific-calculator';
+</script>

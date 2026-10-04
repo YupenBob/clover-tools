@@ -9,12 +9,12 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="输入 XML" icon="bi-filetype-xml">
+  <ToolPanel title="输入 XML" icon="bi-filetype-xml" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><i class="bi bi-magic"></i> 示例</button>
       <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
     </div>
-    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="粘贴 XML 数据"></textarea>
+    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="粘贴 XML 数据" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="xmlFmt" type="button"><i class="bi bi-braces"></i> 格式化</button>
       <button class="btn btn-secondary" id="xmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 压缩</button>
@@ -23,17 +23,17 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <div class="status-msg" id="xmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="输出结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="输出结果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
     </div>
-    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
+    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="结果将显示在这里" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="xmlStats">0 字符</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('xmlInput');
   const output = byId<HTMLTextAreaElement>('xmlOutput');
@@ -124,4 +124,5 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
   bindClear('xmlClear', ['xmlInput'], ['xmlOutput'], 'xmlStatus');
   bindCopyBtn('xmlCopy', () => output.value);
   setStats('xmlStats', '0 字符');
+  bindCtrlEnter('xmlInput', () => byId<HTMLButtonElement>('xmlFmt').click());
 </script>

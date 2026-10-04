@@ -1,0 +1,41 @@
+---
+import DailyToolData from './DailyToolData.astro';
+import { dailyText, interpolate } from '../lib/daily-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const t = dailyText(lang);
+---
+<DailyToolData lang={lang} />
+<div class="timer-composition">
+  <section class="daily-surface countdown-panel" aria-labelledby="cdHeading">
+    <div class="daily-section-head"><h2 id="cdHeading"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {t.countdown}</h2><span class="timer-state" id="cdState" data-state="ready">{t.ready}</span></div>
+    <div class="countdown-dial" id="cdDial" data-state="ready">
+      <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="dial-track" cx="120" cy="120" r="106" /><circle class="dial-progress" id="cdProgress" cx="120" cy="120" r="106" pathLength="1" /></svg>
+      <output class="timer-digits" id="cdDisplay" role="timer" aria-live="off" aria-label={t.countdown}>05:00</output>
+    </div>
+    <div class="timer-presets" aria-label={t.minutes}>{[1, 5, 15, 25].map((minutes) => <button class="btn btn-ghost" type="button" data-minutes={minutes} aria-pressed={minutes === 5 ? 'true' : 'false'}>{interpolate(t.timerPreset, { minutes })}</button>)}</div>
+    <div class="daily-fields timer-duration">
+      <div class="field"><label class="field-label" for="tmMin">{t.minutes}</label><input class="input mono" id="tmMin" type="number" min="0" max="999" step="1" value="5" /></div>
+      <div class="field"><label class="field-label" for="tmSec">{t.seconds}</label><input class="input mono" id="tmSec" type="number" min="0" max="59" step="1" value="0" /></div>
+    </div>
+    <div class="btn-row timer-controls"><button class="btn btn-primary" id="cdStart" type="button">{t.start}</button><button class="btn btn-secondary" id="cdPause" type="button" disabled>{t.pause}</button><button class="btn btn-ghost" id="cdReset" type="button">{t.reset}</button></div>
+    <label class="timer-sound"><input id="cdSound" type="checkbox" /> {t.timerSound}</label>
+    <div class="status-msg" id="cdStatus" role="status" aria-live="polite"></div>
+    <p class="daily-note">{t.timerHint}</p>
+  </section>
+  <section class="daily-surface stopwatch-panel" aria-labelledby="swHeading">
+    <div class="daily-section-head"><h2 id="swHeading"><i class="bi bi-stopwatch" aria-hidden="true"></i> {t.stopwatch}</h2><span class="timer-state" id="swState" data-state="ready">{t.ready}</span></div>
+    <div class="stopwatch-readout"><output class="timer-digits" id="swDisplay" role="timer" aria-live="off" aria-label={t.stopwatch}>00:00.0</output></div>
+    <div class="btn-row timer-controls"><button class="btn btn-primary" id="swStart" type="button">{t.start}</button><button class="btn btn-secondary" id="swPause" type="button" disabled>{t.pause}</button><button class="btn btn-secondary" id="swLap" type="button" disabled>{t.lap}</button><button class="btn btn-ghost" id="swReset" type="button">{t.reset}</button></div>
+    <div class="stopwatch-laps">
+      <div class="lap-labels" aria-hidden="true"><span>{t.lapNumber}</span><span>{t.lapSplit}</span><span>{t.lapTotal}</span></div>
+      <p class="lap-empty daily-note" id="swLapEmpty">{t.lapEmpty}</p>
+      <ol id="swLaps" aria-label={t.lap}></ol>
+    </div>
+    <div class="status-msg" id="swStatus" role="status" aria-live="polite"></div>
+  </section>
+</div>
+<script>
+  import '../scripts/timer-tools';
+</script>

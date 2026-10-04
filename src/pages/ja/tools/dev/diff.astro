@@ -9,32 +9,32 @@ const related = getRelated(category, 'diff', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <div class="tool-layout">
-    <ToolPanel title="元のテキスト（A）" icon="bi-file-text">
+  <div class="diff-inputs">
+    <ToolPanel title="元のテキスト（A）" icon="bi-file-text" headingId="diff-heading-1">
       <div slot="actions">
         <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><i class="bi bi-magic"></i> サンプル</button>
       </div>
-      <textarea class="textarea" id="diffA" spellcheck="false" placeholder="1 番目のテキスト"></textarea>
+      <textarea class="textarea" id="diffA" spellcheck="false" placeholder="1 番目のテキスト" aria-labelledby="diff-heading-1"></textarea>
     </ToolPanel>
-    <ToolPanel title="比較テキスト（B）" icon="bi-file-text">
+    <ToolPanel title="比較テキスト（B）" icon="bi-file-text" headingId="diff-heading-2">
       <div slot="actions">
         <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><i class="bi bi-magic"></i> サンプル</button>
       </div>
-      <textarea class="textarea" id="diffB" spellcheck="false" placeholder="2 番目のテキスト"></textarea>
+      <textarea class="textarea" id="diffB" spellcheck="false" placeholder="2 番目のテキスト" aria-labelledby="diff-heading-2"></textarea>
     </ToolPanel>
   </div>
 
-  <div class="btn-row mt-4">
+  <div class="btn-row diff-actions">
     <button class="btn btn-primary" id="diffBtn" type="button"><i class="bi bi-file-diff"></i> 比較</button>
     <button class="btn btn-ghost" id="diffSwap" type="button"><i class="bi bi-arrow-left-right"></i> A/B を入れ替え</button>
   </div>
   <div class="status-msg" id="diffStatus" role="status" aria-live="polite"></div>
 
-  <ToolPanel title="差分結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="差分結果" icon="bi-box-arrow-in-down" headingId="diff-heading-3">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
     </div>
-    <textarea class="textarea diff-output" id="diffOut" readonly spellcheck="false" placeholder="差分結果がここに表示されます"></textarea>
+    <textarea class="textarea diff-output" id="diffOut" readonly spellcheck="false" placeholder="差分結果がここに表示されます" aria-labelledby="diff-heading-3"></textarea>
     <div class="input-stats"><span id="diffStats">0 行</span></div>
   </ToolPanel>
 </ToolLayout>
@@ -46,7 +46,7 @@ const related = getRelated(category, 'diff', 'ja', 6);
 </style>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const SAMPLE_A = ['const a = 1;', 'const b = 2;', 'console.log(a + b);', '// comment'];
   const SAMPLE_B = ['const a = 1;', 'const b = 3;', 'console.log(a * b);', 'console.log("done");'];
@@ -107,6 +107,8 @@ const related = getRelated(category, 'diff', 'ja', 6);
   function run() {
     hideStatus('diffStatus');
     if (!diffA.value.trim() && !diffB.value.trim()) {
+      out.value = '';
+      setStats('diffStats', '0');
       showStatus('diffStatus', 'error', '少なくとも 1 つのテキストを入力してください');
       return;
     }
@@ -122,6 +124,8 @@ const related = getRelated(category, 'diff', 'ja', 6);
   });
   byId<HTMLButtonElement>('diffSampleA').addEventListener('click', () => { diffA.value = SAMPLE_A.join('\n'); });
   byId<HTMLButtonElement>('diffSampleB').addEventListener('click', () => { diffB.value = SAMPLE_B.join('\n'); });
+  bindCtrlEnter('diffA', run);
+  bindCtrlEnter('diffB', run);
   bindCopyBtn('diffCopy', () => out.value);
   setStats('diffStats', '0 行');
 </script>

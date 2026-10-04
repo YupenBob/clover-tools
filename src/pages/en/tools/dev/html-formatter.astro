@@ -8,12 +8,12 @@ const tool = getToolMeta(category, 'html-formatter', 'en')!;
 const related = getRelated(category, 'html-formatter', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input HTML" icon="bi-filetype-html">
+  <ToolPanel title="Input HTML" icon="bi-filetype-html" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><i class="bi bi-magic"></i> Sample</button>
       <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
     </div>
-    <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="Paste HTML code"></textarea>
+    <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="Paste HTML code" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="htmlFmt" type="button"><i class="bi bi-braces"></i> Format</button>
       <button class="btn btn-secondary" id="htmlMin" type="button"><i class="bi bi-arrows-collapse"></i> Minify</button>
@@ -23,17 +23,17 @@ const related = getRelated(category, 'html-formatter', 'en', 6);
     <div class="status-msg" id="htmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Output" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
     </div>
-    <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+    <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="htmlStats">0 characters</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('htmlInput');
   const output = byId<HTMLTextAreaElement>('htmlOutput');
@@ -140,4 +140,5 @@ const related = getRelated(category, 'html-formatter', 'en', 6);
   bindClear('htmlClear', ['htmlInput'], ['htmlOutput'], 'htmlStatus');
   bindCopyBtn('htmlCopy', () => output.value);
   setStats('htmlStats', '0 characters');
+  bindCtrlEnter('htmlInput', () => byId<HTMLButtonElement>('htmlFmt').click());
 </script>

@@ -3,17 +3,25 @@ interface Props {
   title: string;
   icon?: string;
   className?: string;
+  /** Use a plain surface when the tool itself supplies the visual canvas. */
+  surface?: 'card' | 'plain';
+  description?: string;
+  headingId?: string;
 }
 
-const { title, icon = 'bi-tools', className = '' } = Astro.props;
+const { title, icon = 'bi-tools', className = '', surface = 'card', description, headingId } = Astro.props;
 ---
 
-<section class={`tool-card-panel ${className}`}>
+<section class={`tool-card-panel ${className}`} data-surface={surface}>
   <div class="panel-head">
-    <h2 class="panel-title"><i class={`bi ${icon}`} aria-hidden="true"></i> {title}</h2>
-    <div class="panel-actions">
-      <slot name="actions" />
+    <div>
+      <h2 class="panel-title" id={headingId}><i class={`bi ${icon}`} aria-hidden="true"></i> {title}</h2>
+      {description && <p class="panel-description">{description}</p>}
     </div>
+    {Astro.slots.has('actions') && <div class="panel-actions">
+      <slot name="actions" />
+    </div>}
   </div>
   <slot />
+  {Astro.slots.has('footer') && <footer class="panel-footer"><slot name="footer" /></footer>}
 </section>

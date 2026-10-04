@@ -497,8 +497,8 @@
     },
     "age-calculator": {
       "name": "Age Calculator",
-      "oneLiner": "Age calculation precise to the day and moment.",
-      "description": "Online age calculator: exact age, Chinese age, and days since birth from birthdate. Checks if birthday has passed.",
+      "oneLiner": "Calendar age, days since birth and the next birthday.",
+      "description": "Age calculator for completed years, calendar age, days lived and the next birthday. Choose a reference date, with explicit month-end and leap-day rules.",
       "keywords": [
         "age calculator",
         "age from birthdate",
@@ -519,8 +519,8 @@
     },
     "bmi": {
       "name": "BMI Calculator",
-      "oneLiner": "Calculate BMI from height and weight with healthy ranges.",
-      "description": "Online BMI calculator: compute your body mass index, compare healthy ranges, see standard weight, switch units. Check weight status.",
+      "oneLiner": "BMI from height and weight, with selectable adult references.",
+      "description": "BMI calculator with metric and imperial units, Chinese and WHO adult references, a continuous scale and the corresponding weight range. Updates as you type.",
       "keywords": [
         "bmi calculator",
         "body mass index",
@@ -552,8 +552,8 @@
     },
     "calculator": {
       "name": "Multi-function Calculator",
-      "oneLiner": "Standard and scientific calculation with common functions.",
-      "description": "Online scientific calculator: mixed operations, factorial, powers, roots, prime checks, sums, constants. Free math calculator for daily use.",
+      "oneLiner": "Arithmetic, powers, roots and factorials with reusable history.",
+      "description": "Online calculator for arithmetic, parentheses, powers, roots, factorials and percentages. Type expressions, copy results and reuse calculations from this visit.",
       "keywords": [
         "calculator online",
         "scientific calculator",
@@ -817,6 +817,42 @@
         "m3u8 to mp4",
         "streaming download",
         "large video download"
+      ]
+    },
+    "perler-beads": {
+      "name": "Perler Bead Pattern Maker",
+      "oneLiner": "Turn images into numbered bead charts with a materials list.",
+      "description": "Turn images into numbered bead charts. Adjust grid size, use a custom HEX palette, count materials and export PNG or CSV. Images stay on your device.",
+      "keywords": [
+        "perler bead pattern",
+        "bead pattern maker",
+        "image to beads",
+        "fuse beads",
+        "pixel art pattern"
+      ]
+    },
+    "personality-test": {
+      "name": "Personality Style Test",
+      "oneLiner": "Explore four preferences with 24 original questions and a sharing card.",
+      "description": "Explore four preferences with 24 original questions. Review answers and save a sharing card. An MBTI-style activity for reflection, not the official assessment.",
+      "keywords": [
+        "personality test",
+        "personality style",
+        "MBTI style",
+        "four preferences",
+        "fun personality quiz"
+      ]
+    },
+    "avatar-generator": {
+      "name": "Creative Avatar Generator",
+      "oneLiner": "Three original styles, your colors, and a ready-to-use avatar.",
+      "description": "Create original robot, pixel or geometric avatars from a seed. Customize colors, frames and transparency, then export PNG or SVG. No sign-up required.",
+      "keywords": [
+        "avatar generator",
+        "pixel avatar",
+        "robot avatar",
+        "random avatar",
+        "SVG avatar"
       ]
     }
   },
@@ -1729,11 +1765,11 @@
       ]
     },
     "age-calculator": {
-      "usage": "Age calculator that computes exact age, Chinese nominal age and days since birth, with live updates. Convenient for paperwork, registration and everyday queries.",
+      "usage": "Choose a birth date and reference date to view completed years, calendar age, days lived and the next birthday. Year-based age is reference year minus birth year plus one.",
       "features": [
         {
           "icon": "bi-person",
-          "text": "Exact and nominal age"
+          "text": "Completed years and calendar age"
         },
         {
           "icon": "bi-calendar-event",
@@ -1745,7 +1781,7 @@
         },
         {
           "icon": "bi-check2-circle",
-          "text": "Real-time results"
+          "text": "Choose a reference date"
         }
       ]
     },
@@ -1771,7 +1807,7 @@
       ]
     },
     "bmi": {
-      "usage": "BMI calculator: compute your body mass index from height and weight, compare against healthy ranges, get weight range suggestions and switch units easily.",
+      "usage": "Calculate BMI using metric or imperial units. Select the Chinese or WHO adult reference to see a continuous scale and the corresponding weight range.",
       "features": [
         {
           "icon": "bi-heart-pulse",
@@ -1779,15 +1815,15 @@
         },
         {
           "icon": "bi-graph-up",
-          "text": "Healthy range comparison"
+          "text": "Select an adult reference"
         },
         {
           "icon": "bi-rulers",
-          "text": "Unit switch (cm / m)"
+          "text": "Metric and imperial units"
         },
         {
           "icon": "bi-check2-circle",
-          "text": "Reference suggestions"
+          "text": "Corresponding weight range"
         }
       ]
     },
@@ -1834,7 +1870,7 @@
       ]
     },
     "calculator": {
-      "usage": "Multi-function calculator with mixed arithmetic, factorials, powers, roots, prime checking and sequence sums. Covers daily and study needs.",
+      "usage": "Calculate arithmetic, powers, roots, factorials and percentages. Enter an expression, copy the result or select a calculation from this visit to reuse it.",
       "features": [
         {
           "icon": "bi-calculator",
@@ -1845,8 +1881,8 @@
           "text": "Powers, roots and factorials"
         },
         {
-          "icon": "bi-arrow-repeat",
-          "text": "Prime checking and sequence sums"
+          "icon": "bi-clock-history",
+          "text": "Calculation history and result copying"
         },
         {
           "icon": "bi-keyboard",
@@ -2340,6 +2376,189 @@
           "text": "Video processing and cache stay in your browser"
         }
       ]
+    },
+    "perler-beads": {
+      "usage": "Choose a PNG, JPG or WebP and adjust the longest grid side and color limit, or enter your own bead colors as HEX values. Zoom in to check details, download a numbered PNG chart with coordinates and a color-count legend, or copy/export the materials list. Empty cells do not count as beads; chart codes are not manufacturer color codes.",
+      "features": [
+        {
+          "icon": "bi-grid",
+          "text": "16–96 bead grids with numbered charts"
+        },
+        {
+          "icon": "bi-palette",
+          "text": "Automatic or custom HEX palettes"
+        },
+        {
+          "icon": "bi-list-ol",
+          "text": "Color counts and materials CSV"
+        },
+        {
+          "icon": "bi-shield-check",
+          "text": "Images processed on your device"
+        }
+      ],
+      "detail": {
+        "intro": "A favorite picture can contain too many colors to make by hand. Reducing it to a suitable grid and a limited palette produces a chart you can follow and a materials list you can check before starting.",
+        "steps": [
+          "Choose a PNG, JPG or WebP, or try the clover example.",
+          "Set the longest side and choose extracted colors or your own HEX palette.",
+          "Check the enlarged preview and download the numbered chart and materials list."
+        ],
+        "examples": [
+          {
+            "label": "A small pegboard",
+            "input": "Square image, longest side 32, maximum 8 colors",
+            "output": "A 32 × 32 chart; empty cells are excluded, and all color counts add up to the bead total."
+          },
+          {
+            "label": "Use your own colors",
+            "input": "#254B39, #4C956C, #A8C88A, #F2C66D, #FFFCF5",
+            "output": "Visible pixels are matched to this palette. Unused colors are omitted from the materials list."
+          }
+        ],
+        "principles": [
+          "The shorter side is scaled proportionally and rounded, with at least one cell.",
+          "Extracted palettes use weighted color splitting and approximate matching. Custom palettes match directly to the specified HEX values.",
+          "Pixels with alpha below 128 are empty. Other translucent pixels are blended onto white; each occupied cell uses one bead."
+        ],
+        "pitfalls": [
+          "Screen colors do not guarantee a match to physical beads. Codes are chart-specific, not MARD or other brand codes.",
+          "Small lettering, gradients and details can disappear at low resolutions. Increase the grid size or crop the source first."
+        ],
+        "faqs": [
+          {
+            "q": "Why do the codes differ from my bead brand?",
+            "a": "This is a generic HEX palette. The numbers only link the chart to its materials list. Enter your own colors and compare them with physical beads before making the pattern."
+          },
+          {
+            "q": "What can I download?",
+            "a": "The PNG includes the grid, row and column coordinates, color codes and a materials legend. The CSV lists codes, HEX values and bead counts. Printing uses the same numbered chart."
+          }
+        ],
+        "privacy": "Reading, resizing, quantization and downloads happen in your browser. Images are not uploaded. Reloading clears the current image and settings; downloaded files are saved by you."
+      }
+    },
+    "personality-test": {
+      "usage": "Answer 24 original everyday prompts using your usual behavior. Choose one response per question and go back to change answers. Complete the quiz to see four preference dimensions, copy the result or save a sharing card. X marks tied dimensions; percentages describe your answers. This activity is for entertainment and reflection, not the official MBTI assessment.",
+      "features": [
+        {
+          "icon": "bi-pencil",
+          "text": "24 original prompts with answer review"
+        },
+        {
+          "icon": "bi-bar-chart",
+          "text": "Four dimensions with explicit tied results"
+        },
+        {
+          "icon": "bi-download",
+          "text": "Downloadable PNG preference card"
+        },
+        {
+          "icon": "bi-shield-check",
+          "text": "Answers kept only for this visit"
+        }
+      ],
+      "detail": {
+        "intro": "Everyday choices reflect both habits and context. These original prompts summarize your answers across four preference dimensions, offering a starting point for reflection and conversations rather than a fixed label.",
+        "steps": [
+          "Start with your usual behavior in mind.",
+          "Choose one response per question. Go back to edit; previous answers stay selected.",
+          "After 24 answers, review the map, copy it or save a sharing card."
+        ],
+        "examples": [
+          {
+            "label": "A balanced result",
+            "input": "Choose “It depends” on every question",
+            "output": "Each dimension is 50% / 50% and the code is XXXX; no side is forced."
+          },
+          {
+            "label": "Changing an answer",
+            "input": "Review your answers, change a response and complete the quiz again",
+            "output": "Scores and the sharing card are recalculated. The previous report cannot be exported while editing."
+          }
+        ],
+        "principles": [
+          "Each dimension has six prompts, three in each direction. Responses score from −2 to 2.",
+          "The left percentage is 50 + raw score / 12 × 50, rounded to a whole number; the right side completes 100%.",
+          "Positive scores select the left letter, negative scores the right, and ties use X. Percentages are answer tendencies, not confidence or ability."
+        ],
+        "pitfalls": [
+          "This original activity uses MBTI-style categories. It is not an official assessment and has no claimed psychometric validation.",
+          "Time, role and situation can affect responses. Do not use this entertainment activity for hiring, diagnosis or major life decisions."
+        ],
+        "faqs": [
+          {
+            "q": "What does X mean?",
+            "a": "X indicates equal scores on both sides of a dimension. It keeps the balance in your answers rather than naming an additional personality type."
+          },
+          {
+            "q": "Are my answers saved?",
+            "a": "Answers are kept only in this page’s memory, without uploads or local storage. Reloading clears them. Sharing cards contain results and notes, not individual answers."
+          }
+        ],
+        "privacy": "Responses and scores are processed in page memory without uploads or localStorage. You choose whether to copy results or save a card. Leaving or reloading the page clears the answers."
+      }
+    },
+    "avatar-generator": {
+      "usage": "Enter a name or seed, then choose robot, pixel or geometric art. Customize character and background colors, frame and transparency. The same seed and drawing settings reproduce the same original avatar. Try a random seed or a gallery sample, then download a 256, 512 or 1024 pixel PNG, or a vector SVG.",
+      "features": [
+        {
+          "icon": "bi-robot",
+          "text": "Three original robot, pixel and geometric styles"
+        },
+        {
+          "icon": "bi-palette",
+          "text": "Custom colors, frames and transparent backgrounds"
+        },
+        {
+          "icon": "bi-arrow-repeat",
+          "text": "Reproducible seeds and copyable settings"
+        },
+        {
+          "icon": "bi-download",
+          "text": "Local PNG and SVG exports"
+        }
+      ],
+      "detail": {
+        "intro": "For a social profile, game group or project, begin with a seed and adjust the style and colors. Original geometric rules generate the artwork; keeping the settings lets you return to the same character.",
+        "steps": [
+          "Enter a seed, choose a gallery sample or generate a random character.",
+          "Choose a style and adjust colors, frame and transparency.",
+          "Select a PNG size and download, or save the vector SVG. Copy settings to record your seed."
+        ],
+        "examples": [
+          {
+            "label": "Find the same character",
+            "input": "Seed Clover, robot style, the same colors and frame",
+            "output": "The same drawing each time. A different seed or drawing setting changes the corresponding parts."
+          },
+          {
+            "label": "Use another background",
+            "input": "Transparent background, 1024 × 1024 PNG",
+            "output": "A PNG with real transparency. SVG also omits the background rectangle and can scale in compatible software."
+          }
+        ],
+        "principles": [
+          "Seeds are Unicode NFC-normalized, then passed through a fixed hash and pseudorandom sequence.",
+          "Names are hashed only, never inserted as SVG text. Colors, shapes and sizes are constrained.",
+          "PNG rasterizes at your chosen size. SVG stores vector artwork in a 320 × 320 view box."
+        ],
+        "pitfalls": [
+          "Reproduction requires the same seed, style, colors, frame and transparency. PNG size changes resolution only.",
+          "The finite drawing rules can produce similar or repeated avatars. They do not guarantee global uniqueness or reserve a username."
+        ],
+        "faqs": [
+          {
+            "q": "Can I scale the SVG?",
+            "a": "Yes, SVG stores original vector shapes. Social sites that accept only raster images should use a downloaded PNG."
+          },
+          {
+            "q": "Will transparency be preserved?",
+            "a": "Yes. The checkerboard only helps preview transparency. It is not included in PNG or SVG downloads."
+          }
+        ],
+        "privacy": "Seeds, colors and drawing generation remain on your device, without uploading names or saving a history. Copied settings include the seed you entered; inspect them before sharing."
+      }
     }
   }
 }

@@ -9,12 +9,12 @@ const related = getRelated(category, 'sql-formatter', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入 SQL" icon="bi-database">
+  <ToolPanel title="輸入 SQL" icon="bi-database" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><i class="bi bi-magic"></i> 示例</button>
       <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
     </div>
-    <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="粘貼 SQL 語句"></textarea>
+    <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="粘貼 SQL 語句" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="sqfBtn" type="button"><i class="bi bi-braces"></i> 格式化</button>
       <button class="btn btn-secondary" id="sqfMin" type="button"><i class="bi bi-arrows-collapse"></i> 壓縮</button>
@@ -22,16 +22,16 @@ const related = getRelated(category, 'sql-formatter', 'tw', 6);
     <div class="status-msg" id="sqfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="格式化結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="格式化結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
     </div>
-    <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+    <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const KEYWORDS = new Set([
     'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT', 'OFFSET',
@@ -161,4 +161,5 @@ const related = getRelated(category, 'sql-formatter', 'tw', 6);
   bindSample('sqfSample', 'sqfInput', "select u.id,u.name,count(o.id) as orders from users u left join orders o on u.id=o.user_id where u.status='active' group by u.id,u.name having count(o.id)>2 order by orders desc limit 10");
   bindClear('sqfClear', ['sqfInput'], ['sqfOutput'], 'sqfStatus');
   bindCopyBtn('sqfCopy', () => byId<HTMLTextAreaElement>('sqfOutput').value);
+  bindCtrlEnter('sqfInput', () => byId<HTMLButtonElement>('sqfBtn').click());
 </script>

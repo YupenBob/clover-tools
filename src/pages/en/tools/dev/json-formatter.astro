@@ -9,7 +9,7 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> Input JSON</h2>
+      <h2 class="panel-title" id="json-input-heading"><i class="bi bi-input-cursor" aria-hidden="true"></i> Input JSON</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="fillSample" type="button">
           <i class="bi bi-magic" aria-hidden="true"></i> Sample
@@ -19,7 +19,7 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
         </button>
       </div>
     </div>
-    <textarea id="jsonInput" class="textarea" spellcheck="false" placeholder='Paste JSON, e.g. {"name":"Clover","tools":99}'></textarea>
+    <textarea id="jsonInput" class="textarea" aria-labelledby="json-input-heading" spellcheck="false" placeholder='Paste JSON, e.g. {"name":"Clover","tools":99}'></textarea>
     <div class="input-stats"><span id="inputStats">0 characters</span></div>
 
     <div class="row">
@@ -55,7 +55,7 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Output</h2>
+      <h2 class="panel-title" id="json-output-heading"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Output</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyOutput" type="button">
           <i class="bi bi-clipboard" aria-hidden="true"></i> Copy
@@ -63,7 +63,7 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
       </div>
     </div>
     <div class="output-area">
-      <textarea id="jsonOutput" class="textarea" readonly spellcheck="false" placeholder="Formatted result will appear here"></textarea>
+      <textarea id="jsonOutput" class="textarea" aria-labelledby="json-output-heading" readonly spellcheck="false" placeholder="Formatted result will appear here"></textarea>
     </div>
     <div class="input-stats"><span id="outputStats">0 characters</span></div>
   </section>
@@ -179,7 +179,7 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
   });
 
   input.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'Enter') {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       (document.getElementById('formatBtn') as HTMLButtonElement).click();
     }

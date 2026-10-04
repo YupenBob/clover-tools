@@ -1,0 +1,31 @@
+---
+import FunToolData from './FunToolData.astro';
+import { funText } from '../lib/fun-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const copy = funText(lang);
+const t = copy.quiz;
+---
+<FunToolData lang={lang} tool="quiz" />
+<div class="personality-studio fun-composition">
+  <section class="quiz-intro" id="pqIntro" aria-labelledby="pqIntroHeading">
+    <div class="quiz-intro-copy"><span class="fun-kicker">A MOMENT FOR YOURSELF</span><p class="quiz-eyebrow">{t.eyebrow}</p><h2 id="pqIntroHeading">{t.heading}</h2><p class="quiz-lead">{t.intro}</p><div class="quiz-facts"><span><i class="bi bi-clock" aria-hidden="true"></i>{t.duration}</span><span><i class="bi bi-pencil" aria-hidden="true"></i>{t.count}</span></div><button class="btn btn-primary" type="button" id="pqStart">{t.start}<i class="bi bi-arrow-right" aria-hidden="true"></i></button><p class="fun-note"><i class="bi bi-shield-check" aria-hidden="true"></i>{t.private}</p></div>
+    <div class="quiz-intro-art" aria-hidden="true"><div class="quiz-art-caption">FOUR WAYS TO SEE YOU</div><div class="quiz-symbol symbol-energy"><span>E / I</span><div></div></div><div class="quiz-symbol symbol-focus"><span>S / N</span><div></div></div><div class="quiz-symbol symbol-decision"><span>T / F</span><div></div></div><div class="quiz-symbol symbol-rhythm"><span>J / P</span><div></div></div><div class="quiz-art-footer">CLOVER / SELF EXPLORATION</div></div>
+    <p class="quiz-notice">{t.notice}</p>
+  </section>
+  <section class="quiz-question-card" id="pqQuestionCard" aria-labelledby="pqQuestion" hidden>
+    <div class="quiz-progress-head"><span class="fun-kicker" id="pqCounter">01 / 24</span><span class="fun-note" id="pqProgressText" aria-live="polite">{t.progress.replace('{done}', '0')}</span></div>
+    <progress class="quiz-progress" id="pqProgress" max="24" value="0" aria-label={t.progress.replace('{done}', '0')}></progress>
+    <form id="pqForm"><fieldset class="fun-fieldset quiz-question-fieldset"><legend id="pqQuestion" tabindex="-1">{t.questions[0]}</legend><p class="fun-note quiz-choice-hint">{t.choiceHint}</p><div class="quiz-choices">{t.choices.map((choice, i) => <label class="quiz-choice"><input type="radio" name="pqAnswer" value={2 - i} /><span class="quiz-choice-dot" aria-hidden="true"></span><span>{choice}</span></label>)}</div></fieldset><div class="quiz-navigation"><button class="btn btn-ghost" type="button" id="pqPrevious" disabled><i class="bi bi-arrow-left" aria-hidden="true"></i>{t.previous}</button><button class="btn btn-primary" type="submit" id="pqNext">{t.next}<i class="bi bi-arrow-right" aria-hidden="true"></i></button></div></form>
+    <div class="status-msg" id="pqStatus" role="status" aria-live="polite"></div>
+    <p class="fun-note quiz-privacy-note">{t.private}</p>
+  </section>
+  <section class="quiz-result" id="pqResult" aria-labelledby="pqResultHeading" hidden>
+    <div class="quiz-map"><div class="fun-section-head"><div><span class="fun-kicker">A MAP, NOT A BOX</span><h2 id="pqResultHeading">{t.result}</h2></div><span class="quiz-report-mark">24 / 24</span></div><div class="quiz-code-row"><output id="pqCode" class="quiz-code">—</output><div class="quiz-mini-art" aria-hidden="true"><span></span><span></span><span></span><span></span></div></div><div id="pqAxes" class="quiz-axis-list"></div><p class="fun-note quiz-balanced-hint">{t.balancedHint}</p></div>
+    <aside class="quiz-reflection"><span class="fun-kicker">ROOM TO BE YOURSELF</span><h3>{t.eyebrow}</h3><p class="quiz-reflection-lead">{t.resultHint}</p><div id="pqDescriptions" class="quiz-descriptions"></div><div class="quiz-result-actions"><button class="btn btn-primary" type="button" id="pqSave" disabled><i class="bi bi-download" aria-hidden="true"></i>{t.save}</button><button class="btn btn-secondary" type="button" id="pqCopy" disabled><i class="bi bi-clipboard" aria-hidden="true"></i>{t.copyResult}</button><button class="fun-text-button" type="button" id="pqEdit">{t.edit}<i class="bi bi-arrow-right" aria-hidden="true"></i></button><button class="fun-text-button" type="button" id="pqRestart"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{t.restart}</button></div><p class="fun-note">{t.notice}</p><div class="status-msg" id="pqExportStatus" role="status" aria-live="polite"></div></aside>
+  </section>
+</div>
+<script>
+  import '../scripts/personality-test';
+</script>

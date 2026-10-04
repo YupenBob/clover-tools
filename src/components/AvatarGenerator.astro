@@ -1,0 +1,39 @@
+---
+import FunToolData from './FunToolData.astro';
+import { funText } from '../lib/fun-tool-i18n';
+import type { Lang } from '../lib/i18n';
+interface Props { lang: Lang; }
+const { lang } = Astro.props;
+const copy = funText(lang);
+const t = copy.avatar;
+const styles = ['orbit', 'pixel', 'tile'];
+const shapes = ['round', 'soft', 'square'];
+const moods = [['#E6AD62', '#F6EDDD'], ['#7FB9A2', '#E7F1E8'], ['#A6A4D4', '#ECEAF5'], ['#E399A0', '#F9E8E6'], ['#7BB0CB', '#E5F0F5']];
+---
+<FunToolData lang={lang} tool="avatar" />
+<div class="avatar-studio fun-composition">
+  <section class="avatar-showcase" aria-labelledby="avHeading">
+    <div class="fun-section-head"><div><span class="fun-kicker">YOUR LITTLE ALTER EGO</span><h2 id="avHeading">{t.preview}</h2></div><span class="avatar-edition mono" id="avEdition">512 × 512</span></div>
+    <div class="avatar-stage" id="avStage"><span class="avatar-orbit orbit-one" aria-hidden="true"></span><span class="avatar-orbit orbit-two" aria-hidden="true"></span><div class="avatar-portrait" id="avPortrait"><img id="avImage" width="320" height="320" alt={t.preview} /></div><span class="avatar-stamp">CLOVER / ORIGINAL</span></div>
+    <div class="avatar-understage"><p>{t.studio}</p><button class="btn btn-secondary" type="button" id="avRandom"><i class="bi bi-shuffle" aria-hidden="true"></i>{t.random}</button></div>
+    <div class="avatar-gallery-head"><h3>{t.gallery}</h3><p class="fun-note">{t.galleryHint}</p></div>
+    <div class="avatar-gallery" id="avGallery"></div>
+  </section>
+  <section class="fun-settings avatar-settings" aria-labelledby="avSettingsHeading">
+    <div class="avatar-settings-head"><div><span class="fun-kicker">CHARACTER STUDIO</span><h2 id="avSettingsHeading">{t.settings}</h2></div><div class="avatar-mini-preview" id="avMiniPreview"><img id="avMiniImage" width="68" height="68" alt="" /></div></div>
+    <form id="avForm" novalidate>
+      <div class="field"><label class="field-label" for="avSeed">{t.seed}</label><input class="input" id="avSeed" type="text" maxlength="80" value="Clover" autocomplete="off" aria-describedby="avSeedHint" /><p class="fun-note" id="avSeedHint">{t.seedHint}</p></div>
+      <fieldset class="fun-fieldset"><legend class="field-label">{t.styles}</legend><div class="avatar-style-choices">{styles.map((style, i) => <label><input type="radio" name="avStyle" value={style} checked={i === 0} /><span><i class:list={['bi', ['bi-robot', 'bi-grid', 'bi-hexagon'][i]]} aria-hidden="true"></i>{t.styleNames[i]}</span></label>)}</div></fieldset>
+      <fieldset class="fun-fieldset"><legend class="field-label">{t.palette}</legend><div class="avatar-moods">{moods.map(([accent, background], i) => <button type="button" class="avatar-mood" data-accent={accent} data-background={background} aria-label={`${t.accent} ${accent}, ${t.background} ${background}`} aria-pressed={i === 0 ? 'true' : 'false'} style={`--mood-accent:${accent};--mood-background:${background}`}><span></span></button>)}</div></fieldset>
+      <div class="fun-two-fields"><div class="field"><label class="field-label" for="avAccent">{t.accent}</label><input id="avAccent" class="fun-color-input" type="color" value="#E6AD62" /></div><div class="field"><label class="field-label" for="avBackground">{t.background}</label><input id="avBackground" class="fun-color-input" type="color" value="#F6EDDD" /></div></div>
+      <div class="fun-two-fields"><div class="field"><label class="field-label" for="avShape">{t.shape}</label><select class="select" id="avShape">{shapes.map((shape, i) => <option value={shape}>{t.shapes[i]}</option>)}</select></div><div class="field"><label class="field-label" for="avSize">{t.size}</label><select class="select" id="avSize"><option value="256">256 × 256</option><option value="512" selected>512 × 512</option><option value="1024">1024 × 1024</option></select></div></div>
+      <label class="fun-check avatar-transparent"><input id="avTransparent" type="checkbox" />{t.transparent}</label>
+    </form>
+    <div class="avatar-save-actions"><button class="btn btn-primary" type="button" id="avPng"><i class="bi bi-download" aria-hidden="true"></i>{copy.downloadPng}</button><button class="btn btn-secondary" type="button" id="avSvg">{copy.downloadSvg}</button><button class="fun-text-button" type="button" id="avCopy"><i class="bi bi-clipboard" aria-hidden="true"></i>{t.copySeed}</button><button class="fun-text-button" type="button" id="avReset"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>{copy.reset}</button></div>
+    <p class="fun-note avatar-original"><i class="bi bi-shield-check" aria-hidden="true"></i>{t.original}</p>
+    <div class="status-msg" id="avStatus" role="status" aria-live="polite"></div>
+  </section>
+</div>
+<script>
+  import '../scripts/avatar-generator';
+</script>

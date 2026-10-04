@@ -10,6 +10,10 @@ import { root } from './lib/build-config.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { LEGAL } from '../config/site.mjs';
 import { runFpsChecks } from './lib/fps-browser-cases.mjs';
+import { runToolWorkspaceChecks } from './lib/tool-workspace-browser-cases.mjs';
+import { runToolDetailChecks } from './lib/tool-detail-browser-cases.mjs';
+import { runDailyToolChecks } from './lib/daily-tool-browser-cases.mjs';
+import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 
 let server;
 let browser;
@@ -99,8 +103,9 @@ try {
     }
   }
   browser = await chromium.launch({
+    executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH,
     channel:
-      process.env.PLAYWRIGHT_CHANNEL ||
+      process.env.PLAYWRIGHT_EXECUTABLE_PATH ? undefined : process.env.PLAYWRIGHT_CHANNEL ||
       (process.platform === 'win32' ? 'msedge' : 'chromium'),
     headless: true,
   });
@@ -273,6 +278,10 @@ try {
       },
     );
   }
+  await runToolWorkspaceChecks({ run, remember, base, artifacts });
+  await runToolDetailChecks({ run, remember, base, artifacts });
+  await runDailyToolChecks({ run, remember, base, artifacts });
+  await runFunToolChecks({ run, remember, base, artifacts });
   await runFpsChecks({ run, remember, base, artifacts });
   console.log(`Browser growth checks passed: ${passed} scenarios`);
 } catch (error) {

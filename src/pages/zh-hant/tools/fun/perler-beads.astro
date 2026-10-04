@@ -1,0 +1,13 @@
+---
+// @shared-tool-ui: a shared original composition for every language.
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import BeadPattern from '../../../../components/BeadPattern.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+const lang = 'tw' as const;
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'perler-beads', lang);
+const related = getRelated(category, tool.slug, lang, 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <BeadPattern lang={lang} />
+</ToolLayout>

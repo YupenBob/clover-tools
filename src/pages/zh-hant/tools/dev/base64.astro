@@ -9,12 +9,12 @@ const related = getRelated(category, 'base64', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入內容" icon="bi-input-cursor">
+  <ToolPanel title="輸入內容" icon="bi-input-cursor" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="b64Sample" type="button"><i class="bi bi-magic"></i> 示例</button>
       <button class="btn btn-ghost btn-sm" id="b64Clear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
     </div>
-    <textarea class="textarea" id="b64Input" spellcheck="false" placeholder="輸入要編碼/解碼的文本"></textarea>
+    <textarea class="textarea" id="b64Input" spellcheck="false" placeholder="輸入要編碼/解碼的文本" aria-labelledby="tool-input-heading"></textarea>
     <div class="input-stats"><span id="b64InStats">0 字符</span></div>
     <label class="field-label" for="urlSafe"><input type="checkbox" id="urlSafe" /> URL 安全模式（+/ 替換為 -_）</label>
     <div class="btn-row">
@@ -24,17 +24,17 @@ const related = getRelated(category, 'base64', 'tw', 6);
     <div class="status-msg" id="b64Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="輸出結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="輸出結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="b64Copy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
     </div>
-    <textarea class="textarea" id="b64Output" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
+    <textarea class="textarea" id="b64Output" readonly spellcheck="false" placeholder="結果將顯示在這裏" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="b64OutStats">0 字符</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('b64Input');
   const output = byId<HTMLTextAreaElement>('b64Output');
@@ -93,4 +93,5 @@ const related = getRelated(category, 'base64', 'tw', 6);
   bindCopyBtn('b64Copy', () => output.value);
   input.addEventListener('input', () => setStats('b64InStats', `${input.value.length} 字符 · ${new TextEncoder().encode(input.value).length} 字節`));
   setStats('b64InStats', '0 字符');
+  bindCtrlEnter('b64Input', () => byId<HTMLButtonElement>('encodeBtn').click());
 </script>

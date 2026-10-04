@@ -9,12 +9,12 @@ const related = getRelated(category, 'css-formatter', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="CSS Input" icon="bi-filetype-css">
+  <ToolPanel title="CSS Input" icon="bi-filetype-css" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="cssSample" type="button"><i class="bi bi-magic"></i> Sample</button>
       <button class="btn btn-ghost btn-sm" id="cssClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
     </div>
-    <textarea class="textarea" id="cssInput" spellcheck="false" placeholder="Paste CSS code"></textarea>
+    <textarea class="textarea" id="cssInput" spellcheck="false" placeholder="Paste CSS code" aria-labelledby="tool-input-heading"></textarea>
     <div class="row">
       <div class="field">
         <label class="field-label" for="cssIndent">Indent</label>
@@ -34,17 +34,17 @@ const related = getRelated(category, 'css-formatter', 'en', 6);
     <div class="status-msg" id="cssStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Output" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="cssCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
     </div>
-    <textarea class="textarea" id="cssOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+    <textarea class="textarea" id="cssOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="cssStats">0 chars</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('cssInput');
   const output = byId<HTMLTextAreaElement>('cssOutput');
@@ -74,7 +74,9 @@ const related = getRelated(category, 'css-formatter', 'en', 6);
         i = end === -1 ? css.length : end + 1;
         continue;
       }
-      if (ch === '{' || ch === '}' || ch === ';') {
+      if (ch === '(' || ch === '[') depth++;
+      if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+      if (depth === 0 && (ch === '{' || ch === '}' || ch === ';')) {
         if (cur.trim()) tokens.push(cur.trim());
         tokens.push(ch);
         cur = '';
@@ -91,48 +93,56 @@ const related = getRelated(category, 'css-formatter', 'en', 6);
     const lines: string[] = [];
     let depth = 0;
     let pendingRule = '';
-    for (const token of tokens) {
+    for (const [index, token] of tokens.entries()) {
       if (token === '{') {
-        lines.push('  '.repeat(depth) + pendingRule + ' {');
+        lines.push(indent.repeat(depth) + pendingRule + ' {');
         pendingRule = '';
         depth++;
       } else if (token === '}') {
-        depth = Math.max(0, depth - 1);
-        lines.push('  '.repeat(depth) + '}');
-      } else if (token === ';') {
         if (pendingRule) {
-          lines.push('  '.repeat(depth) + pendingRule + ';');
+          lines.push(indent.repeat(depth) + pendingRule + ';');
           pendingRule = '';
         }
-      } else if (depth > 0 && token.includes(':')) {
+        depth = Math.max(0, depth - 1);
+        lines.push(indent.repeat(depth) + '}');
+      } else if (token === ';') {
+        if (pendingRule) {
+          lines.push(indent.repeat(depth) + pendingRule + ';');
+          pendingRule = '';
+        }
+      } else if (depth > 0 && token.includes(':') && tokens[index + 1] !== '{') {
         const [prop, ...rest] = token.split(':');
         const value = rest.join(':').trim();
-        pendingRule = `${prop.trim()}: ${value};`;
+        pendingRule = `${prop.trim()}: ${value}`;
       } else {
         pendingRule = (pendingRule ? pendingRule + ' ' : '') + token;
       }
     }
     if (pendingRule) lines.push(pendingRule);
     if (sort) {
-      const blockRe = /^(\s*)(.+?)\{\n([\s\S]*?)\n(\s*)\}/gm;
-      let result = lines.join('\n');
-      result = result.replace(blockRe, (_m, ind, sel, body, closeInd) => {
-        const props = body.split('\n').map((l) => l.trim()).filter(Boolean);
-        props.sort((a, b) => a.localeCompare(b));
-        return `${ind}${sel}{\n${props.map((p) => ind + '  ' + p).join('\n')}\n${closeInd}}`;
-      });
-      return result;
+      const sorted: string[] = [];
+      let declarations: string[] = [];
+      const flush = () => {
+        // Stable property sorting preserves the order of repeated fallbacks.
+        declarations.sort((a, b) => a.trim().split(':', 1)[0].localeCompare(b.trim().split(':', 1)[0]));
+        sorted.push(...declarations);
+        declarations = [];
+      };
+      for (const line of lines) {
+        if (/^\s*[\w-]+:/.test(line) && line.endsWith(';')) declarations.push(line);
+        else { flush(); sorted.push(line); }
+      }
+      flush();
+      return sorted.join('\n');
     }
     return lines.join('\n');
   }
 
   function minifyCss(css: string): string {
-    return tokenize(css)
-      .map((t) => (t === '{' ? '{' : t === '}' ? '}' : t === ';' ? ';' : t))
-      .join('')
-      .replace(/;}/g, '}')
-      .replace(/\s+/g, ' ')
-      .replace(/ ?([{}:;,]) ?/g, '$1')
+    // Keep quoted values and calc() whitespace intact while compacting separators.
+    return tokenize(css).join('')
+      .replace(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(;)(?=})|\s*([{};,])\s*|:\s+|\s+/g,
+        (match, quoted, closing, separator) => quoted ?? (closing ? '' : separator ?? (match.startsWith(':') ? ':' : ' ')))
       .trim();
   }
 
@@ -162,4 +172,5 @@ const related = getRelated(category, 'css-formatter', 'en', 6);
   bindClear('cssClear', ['cssInput'], ['cssOutput'], 'cssStatus');
   bindCopyBtn('cssCopy', () => output.value);
   setStats('cssStats', '0 chars');
+  bindCtrlEnter('cssInput', () => byId<HTMLButtonElement>('cssFmt').click());
 </script>

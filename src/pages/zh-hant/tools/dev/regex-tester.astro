@@ -9,12 +9,12 @@ const related = getRelated(category, 'regex-tester', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="正則表達式" icon="bi-asterisk">
+  <ToolPanel title="正則表達式" icon="bi-asterisk" headingId="regex-heading-1">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="reSample" type="button"><i class="bi bi-magic"></i> 示例</button>
     </div>
     <div class="field">
-      <input class="input mono" id="rePattern" type="text" placeholder="例如 \b\w+@\w+\.\w+\b" spellcheck="false" />
+      <input class="input mono" id="rePattern" aria-labelledby="regex-heading-1" type="text" placeholder={"例如 \\b\\w+@\\w+\\.\\w+\\b"} spellcheck="false" />
     </div>
     <div class="re-flags">
       <label class="flag-chip"><input type="checkbox" id="flagG" checked /> g 全局</label>
@@ -30,15 +30,15 @@ const related = getRelated(category, 'regex-tester', 'tw', 6);
     <div class="status-msg" id="reStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="匹配高亮" icon="bi-eye">
-    <div class="regex-view" id="reView"></div>
+  <ToolPanel title="匹配高亮" icon="bi-eye" headingId="regex-heading-2">
+    <div class="regex-view" id="reView" role="region" aria-labelledby="regex-heading-2"></div>
   </ToolPanel>
 
-  <ToolPanel title="匹配結果" icon="bi-list-ol" className="mt-4">
+  <ToolPanel title="匹配結果" icon="bi-list-ol" className="mt-4" headingId="regex-heading-3">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="reCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
     </div>
-    <textarea class="textarea" id="reOutput" readonly spellcheck="false" placeholder="匹配項與捕獲組將顯示在這裏"></textarea>
+    <textarea class="textarea" id="reOutput" aria-labelledby="regex-heading-3" readonly spellcheck="false" placeholder="匹配項與捕獲組將顯示在這裏"></textarea>
   </ToolPanel>
 </ToolLayout>
 
@@ -109,6 +109,8 @@ const related = getRelated(category, 'regex-tester', 'tw', 6);
     const pattern = patternEl.value;
     const text = textEl.value;
     if (!pattern) {
+      view.textContent = text;
+      output.value = '';
       showStatus('reStatus', 'error', '請輸入正則表達式');
       return;
     }
@@ -142,7 +144,10 @@ const related = getRelated(category, 'regex-tester', 'tw', 6);
           }
         }
         last = m.index + m[0].length;
-        if (m[0].length === 0) regex.lastIndex++;
+        if (m[0].length === 0) {
+          const code = text.codePointAt(regex.lastIndex);
+          regex.lastIndex += regex.unicode && code !== undefined && code > 0xffff ? 2 : 1;
+        }
         if (count > 5000) {
           lines.push('（匹配過多，已截斷）');
           break;

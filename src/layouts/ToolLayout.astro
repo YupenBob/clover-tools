@@ -14,6 +14,8 @@ import {
   type Lang,
 } from '../lib/i18n';
 import { getGuidesForTool } from '../lib/guides';
+import { toolWorkspace, type ToolWorkspace, type ToolLayoutMode } from '../lib/tool-presentation';
+import '../styles/tool-workspace.css';
 
 const APP_CATEGORY: Record<ToolCategory, string> = {
   dev: 'DeveloperApplication',
@@ -26,9 +28,11 @@ interface Props {
   tool: ToolMeta;
   related: ToolMeta[];
   categoryName?: string;
+  layout?: ToolLayoutMode;
+  workspace?: ToolWorkspace;
 }
 
-const { category, tool, related } = Astro.props;
+const { category, tool, related, layout = 'wide', workspace = toolWorkspace(tool.slug) } = Astro.props;
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
 const categoryMeta = getCategoryMeta(category, lang);
@@ -78,7 +82,9 @@ const jsonLd: Record<string, unknown>[] = [
   keywords={tool.keywords}
   canonical={url}
   jsonLd={jsonLd}
+  contentClass="tool-container"
 >
+ <article class="tool-page" data-tool={tool.slug} data-category={category} data-layout={layout} data-workspace={workspace}>
   <nav class="breadcrumb" aria-label={dict.breadcrumb}>
     <a href={pathForLang('/', lang)}>
       <i class="bi bi-house-door" aria-hidden="true"></i> {dict.home}
@@ -89,16 +95,22 @@ const jsonLd: Record<string, unknown>[] = [
     <span>{tool.name}</span>
   </nav>
 
-  <header class="tool-hero">
-    <h1>{tool.name}</h1>
-    <p class="tool-hero-desc">{tool.description}</p>
-  </header>
+  <slot name="hero">
+    <header class="tool-hero">
+      <div class="tool-emblem" aria-hidden="true"><i class={`bi ${tool.icon}`}></i></div>
+      <div class="tool-heading">
+        <p class="tool-eyebrow">{categoryName}<span aria-hidden="true">/</span>CloverTools</p>
+        <h1>{tool.name}</h1>
+        <p class="tool-hero-desc">{tool.description}</p>
+      </div>
+    </header>
+  </slot>
 
-  <div class="tool-layout with-sidebar">
-    <div>
+  <div class:list={['tool-layout', { 'with-sidebar': layout === 'sidebar' }]}>
+    <div class="tool-workspace">
       <slot />
     </div>
-    <div class="tool-sidebar">
+    <div class="tool-discovery">
       <aside class="related-panel">
         <h2 class="panel-title"><i class="bi bi-collection" aria-hidden="true"></i> {dict.related}</h2>
         <div class="related-list">
@@ -111,7 +123,7 @@ const jsonLd: Record<string, unknown>[] = [
         </div>
       </aside>
 
-      <AdUnit adSlot="tool_sidebar" format="rectangle" />
+      <AdUnit adSlot="tool_sidebar" format={layout === 'sidebar' ? 'rectangle' : 'horizontal'} />
     </div>
   </div>
 
@@ -135,21 +147,19 @@ const jsonLd: Record<string, unknown>[] = [
   )}
 
   {detail && <ToolGuide detail={detail} guides={guides} toolName={tool.name} lang={lang} />}
+ </article>
 </BaseLayout>
 
 <style>
-  .tool-sidebar {
+  .tool-discovery {
     display: flex;
     flex-direction: column;
   }
 
   .tool-about {
     margin-top: var(--space-7);
-    padding: var(--space-5);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--bg-elevated);
-    box-shadow: var(--shadow-sm);
+    padding: var(--space-5) 0;
+    border-top: 1px solid var(--border);
   }
 
   .usage-title {

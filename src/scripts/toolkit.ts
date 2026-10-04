@@ -1,10 +1,10 @@
 /**
  * 工具页公共交互内核：状态提示、字符统计、复制/清空/示例、快捷键、下载。
  */
-export function byId<T extends HTMLElement>(id: string): T {
+export function byId<T extends Element>(id: string): T {
   const el = document.getElementById(id);
   if (!el) throw new Error(`element #${id} not found`);
-  return el as T;
+  return el as unknown as T;
 }
 
 export function showStatus(id: string, type: 'success' | 'error' | 'info', msg: string): void {
@@ -58,7 +58,7 @@ export function bindClear(
 export function bindCtrlEnter(inputId: string, fn: () => void): void {
   byId<HTMLTextAreaElement | HTMLInputElement>(inputId).addEventListener('keydown', (e) => {
     const key = e as KeyboardEvent;
-    if (key.ctrlKey && key.key === 'Enter') {
+    if ((key.ctrlKey || key.metaKey) && key.key === 'Enter') {
       e.preventDefault();
       fn();
     }

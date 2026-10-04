@@ -9,12 +9,12 @@ const related = getRelated(category, 'url-encode', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input URL or Text" icon="bi-link-45deg">
+  <ToolPanel title="Input URL or Text" icon="bi-link-45deg" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> Sample</button>
       <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
     </div>
-    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="e.g. https://example.com/search?q=中文"></textarea>
+    <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="e.g. https://example.com/search?q=中文" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
       <div class="field">
         <label class="field-label" for="urlMode">Conversion Mode</label>
@@ -32,16 +32,16 @@ const related = getRelated(category, 'url-encode', 'en', 6);
     <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Result" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
     </div>
-    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
+    <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('urlInput');
   const output = byId<HTMLTextAreaElement>('urlOutput');
@@ -72,4 +72,5 @@ const related = getRelated(category, 'url-encode', 'en', 6);
   bindSample('urlSample', 'urlInput', 'https://tools.example.com/search?q=CloverTools&lang=中文');
   bindClear('urlClear', ['urlInput'], ['urlOutput'], 'urlStatus');
   bindCopyBtn('urlCopy', () => output.value);
+  bindCtrlEnter('urlInput', () => byId<HTMLButtonElement>('urlBtn').click());
 </script>

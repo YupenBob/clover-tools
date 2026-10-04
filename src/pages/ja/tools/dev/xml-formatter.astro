@@ -9,12 +9,12 @@ const related = getRelated(category, 'xml-formatter', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="XML 入力" icon="bi-filetype-xml">
+  <ToolPanel title="XML 入力" icon="bi-filetype-xml" headingId="tool-input-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
       <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
     </div>
-    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="XML データを貼り付け"></textarea>
+    <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="XML データを貼り付け" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
       <button class="btn btn-primary" id="xmlFmt" type="button"><i class="bi bi-braces"></i> 整形</button>
       <button class="btn btn-secondary" id="xmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 圧縮</button>
@@ -23,17 +23,17 @@ const related = getRelated(category, 'xml-formatter', 'ja', 6);
     <div class="status-msg" id="xmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
     </div>
-    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
+    <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="結果はここに表示されます" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="xmlStats">0 文字</span></div>
   </ToolPanel>
 </ToolLayout>
 
 <script>
-  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear } from '../../../../scripts/toolkit';
+  import { byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear, bindCtrlEnter } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('xmlInput');
   const output = byId<HTMLTextAreaElement>('xmlOutput');
@@ -124,4 +124,5 @@ const related = getRelated(category, 'xml-formatter', 'ja', 6);
   bindClear('xmlClear', ['xmlInput'], ['xmlOutput'], 'xmlStatus');
   bindCopyBtn('xmlCopy', () => output.value);
   setStats('xmlStats', '0 文字');
+  bindCtrlEnter('xmlInput', () => byId<HTMLButtonElement>('xmlFmt').click());
 </script>

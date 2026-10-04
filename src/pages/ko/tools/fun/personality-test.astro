@@ -1,0 +1,13 @@
+---
+// @shared-tool-ui: a shared original composition for every language.
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import PersonalityTest from '../../../../components/PersonalityTest.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+const lang = 'ko' as const;
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'personality-test', lang);
+const related = getRelated(category, tool.slug, lang, 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <PersonalityTest lang={lang} />
+</ToolLayout>
