@@ -8,7 +8,7 @@
 - Cloudflare Pages：`clovertools`，直接上传模式，生产分支 `main`；自定义域名 `clovertools.cn`。
 - 静态产物：`dist/`；Pages Functions 同时由 Wrangler 打包。项目名、输出目录和 R2 绑定见 `wrangler.toml`。
 
-推送 GitHub 与发布站点是两个操作。当前项目未配置 GitHub 自动部署，不能把推送成功或 CI 通过当作上线成功。凭据只从本地环境或部署平台读取，`.env`、依赖目录、构建输出和测试视频不提交。
+生产发布由 `.github/workflows/quality.yml` 自动执行：推送 `main` 后先完成质量检查，再使用仓库 Actions Secrets/Variables 中的 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID` 上传 Cloudflare Pages。只有部署和正式域名验收也通过，才视为上线完成；PR 和其他分支只执行质量检查。凭据不需要放入本地工作环境，`.env`、依赖目录、构建输出和测试视频不提交。
 
 ## 发布步骤
 
@@ -16,8 +16,8 @@
 2. `npm ci` 安装锁定依赖；`npm run check:all` 执行类型/规则测试、FFmpeg 本地分片准备、静态构建和内容/链接/SEO/图标检查。
 3. `npm run check:browser` 验证站点和 FPS；`npm run check:hls-browser` 验证实际媒体、缺口处理、流式写入和生产 CSP。媒体验证需 native FFmpeg/FFprobe，支持通过 `FFMPEG_PATH` / `FFPROBE_PATH` 指定；两个浏览器检查均支持 `PLAYWRIGHT_CHANNEL` 或 `PLAYWRIGHT_EXECUTABLE_PATH`，显式可执行文件优先。
 4. 维护文档、提交、推送 GitHub，并确认同一提交的 CI 通过。CI 包含 HLS 媒体回归；运行器安装 native FFmpeg 只用于生成/解码验证样本，站点运行时使用锁定的 WASM 包。
-5. 使用 `wrangler pages deploy dist --project-name clovertools --branch main --commit-hash <已推送提交>` 上传同一构建产物；发布前确认工作目录无未提交的产品变更。额外的凭据文件可由 Wrangler 的 `--env-file` 指定。
-6. 核实 Cloudflare 部署状态、生产分支与提交哈希。对自定义域名检查首页、五语言入口、新工具、关键脚本/音频/FFmpeg 分片、sitemap 和 API，并用真实浏览器检查生产 CSP 下的加载和操作。
+5. `main` 的检查通过后，部署任务在同一提交下以生产 origin 重新构建，使用 `wrangler pages deploy dist --project-name clovertools --branch main --commit-hash <已推送提交>` 上传。生产部署串行执行；构建与上传前都检查远程 `main`，跳过已被新提交替代的版本。质量任务的 `https://quality.example` 产物不会上传生产。
+6. 部署任务运行 `node scripts/verify-production.mjs`，核实 Cloudflare 部署状态、生产分支与提交哈希；检查正式域名的五语言首页、新工具、同构建脚本/音频/FFmpeg 分片、sitemap、搜索索引和 API，并执行三个新工具的 20 项真实浏览器场景。验收报告、截图和下载样本作为 Actions artifact 保存 7 天。必要时仍可在有凭据的本地环境按上述 Wrangler 命令手动部署。
 
 ## 发布产物边界
 

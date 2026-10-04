@@ -28,3 +28,70 @@ jobs:
       - name: Install native media validation tools
         run: sudo apt-get update && sudo apt-get install --no-install-recommends -y ffmpeg
       - run: npm run check:hls-browser
+
+  deploy:
+    name: Deploy production to Cloudflare Pages
+    needs: quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: clovertools-production
+      cancel-in-progress: false
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      PLAYWRIGHT_CHANNEL: chromium
+      PUBLIC_SITE_URL: https://clovertools.cn
+      CLOUDFLARE_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check production revision
+        id: revision
+        run: |
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::A newer main commit exists; skipping this production release."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.revision.outputs.current == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        if: steps.revision.outputs.current == 'true'
+        run: npm ci
+      - name: Build production origin
+        if: steps.revision.outputs.current == 'true'
+        run: npm run check:all
+      - name: Install verification browser
+        if: steps.revision.outputs.current == 'true'
+        run: node node_modules/playwright-core/cli.js install --with-deps chromium
+      - name: Deploy and verify production
+        if: steps.revision.outputs.current == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || vars.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in Actions Secrets/Variables."
+            exit 1
+          fi
+          printf '::add-mask::%s\n' "$CLOUDFLARE_API_TOKEN"
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo "::notice::A newer main commit exists; skipping this production release."
+            exit 0
+          fi
+          npx --no-install wrangler pages deploy dist --project-name clovertools --branch main --commit-hash "$GITHUB_SHA"
+          node scripts/verify-production.mjs
+      - name: Save production verification evidence
+        if: always() && steps.revision.outputs.current == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-verification-${{ github.sha }}
+          path: output/production-verification/
+          if-no-files-found: ignore
+          retention-days: 7

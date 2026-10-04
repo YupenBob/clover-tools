@@ -73,7 +73,7 @@ FPS 原生 Esc 暂停测试按 `config/quality.mjs` 的 `BROWSER_CHECKS.pointerU
 
 FPS 启动失败的检查日志记录原生锁定请求、授权/错误与失焦事件顺序，辅助定位不同平台的 Pointer Lock 差异；这些观察仅存在于浏览器检查中。
 
-`npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。当前 Cloudflare Pages 项目使用直接上传模式，GitHub 推送不会自动上线；需要单独上传同一已验证产物并核实自定义域名。发布步骤见 [RELEASE.md](RELEASE.md)。
+`npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。`main` 检查通过后自动在同一提交下以生产域名重新构建，并使用仓库 Cloudflare 凭据直接上传 Pages。部署后的 `scripts/verify-production.mjs` 验证生产提交、正式域名、静态资源与 20 项新工具浏览器场景；结果作为 Actions artifact 保存。发布步骤见 [RELEASE.md](RELEASE.md)。
 
 发布顺序：完成修改 → 完整检查 → 更新 README/相关文档 → 提交 → 推送 → 检查远程工作流与部署状态。`npm run indexnow` 仅在部署确认后手动运行，不能为尚未上线的产物主动推送收录。
 
