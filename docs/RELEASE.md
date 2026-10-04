@@ -8,7 +8,7 @@
 - Cloudflare Pages：`clovertools`，直接上传模式，生产分支 `main`；自定义域名 `clovertools.cn`。
 - 静态产物：`dist/`；Pages Functions 同时由 Wrangler 打包。项目名、输出目录和 R2 绑定见 `wrangler.toml`。
 
-生产发布由 `.github/workflows/quality.yml` 自动执行：推送 `main` 后先完成质量检查，再使用仓库 Actions Secrets/Variables 中的 `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID` 上传 Cloudflare Pages。只有部署和正式域名验收也通过，才视为上线完成；PR 和其他分支只执行质量检查。凭据不需要放入本地工作环境，`.env`、依赖目录、构建输出和测试视频不提交。
+生产发布由 `.github/workflows/quality.yml` 自动执行：推送 `main` 后先完成质量检查，再使用仓库 Actions 中的 `CLOUDFLARE_API_TOKEN`（Secret）和 `CLOUDFLARE_ACCOUNT_ID`（Secret 或 Variable）上传 Cloudflare Pages。Token 从 Secret 读取，使运行日志自动遮蔽其值。只有部署和正式域名验收也通过，才视为上线完成；PR 和其他分支只执行质量检查。凭据不需要放入本地工作环境，`.env`、依赖目录、构建输出和测试视频不提交。
 
 ## 发布步骤
 
