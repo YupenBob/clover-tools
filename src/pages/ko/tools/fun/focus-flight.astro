@@ -1,0 +1,19 @@
+---
+// @shared-tool-ui: a shared flight composition for every language.
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import FocusFlight from '../../../../components/FocusFlight.astro';
+import { getToolMeta, getRelated } from '../../../../lib/i18n';
+import { flightText } from '../../../../lib/focus-flight-i18n';
+const lang = 'ko' as const;
+const category = 'fun' as const;
+const tool = getToolMeta(category, 'focus-flight', lang);
+const related = getRelated(category, tool.slug, lang, 6);
+const copy = flightText(lang);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <header slot="hero" class="tool-hero">
+    <div class="tool-emblem" aria-hidden="true"><i class="bi bi-airplane"></i></div>
+    <div class="tool-heading"><p class="tool-eyebrow">FOCUS AIRLINES<span aria-hidden="true">/</span>CloverTools</p><h1>{tool.name}</h1><p class="tool-hero-desc">{copy.subtitle}</p></div>
+  </header>
+  <FocusFlight lang={lang} />
+</ToolLayout>

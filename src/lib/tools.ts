@@ -630,6 +630,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   ],
   fun: [
     {
+      slug: 'focus-flight',
+      name: '专注航班',
+      oneLiner: '领取登机牌，让一次专注变成一段小小旅程。',
+      description: '免费专注航班计时器，选择亚洲城市航线与 1–180 分钟专注时长，飞机随倒计时前进，支持暂停续航、刷新恢复、机舱白噪音、沉浸模式和落地纪念卡，航程日志保存在当前浏览器。',
+      icon: 'bi-airplane',
+      keywords: ['专注航班', '专注计时器', '番茄钟', '专注飞行', 'focus flight', '白噪音'],
+      tier: 'P0',
+    },
+    {
       slug: 'perler-beads',
       name: '拼豆图纸生成器',
       oneLiner: '图片变编号拼豆图纸，附每种颜色的用量清单。',

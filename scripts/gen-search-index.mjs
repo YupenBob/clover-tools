@@ -83,6 +83,7 @@ const ALIASES = {
   'browser-info': ['浏览器信息', '设备信息'],
   'image-filter': ['滤镜', '照片'],
   morse: ['摩斯', 'morse', '电码'],
+  'focus-flight': ['专注航班', '专注飞行', '番茄钟', 'pomodoro', 'focus flight'],
 };
 
 function pyOf(text) {

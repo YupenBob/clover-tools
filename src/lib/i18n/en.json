@@ -18,6 +18,18 @@
     }
   },
   "tools": {
+    "focus-flight": {
+      "name": "Focus Flight",
+      "oneLiner": "Get a boarding pass. Turn one focus session into a little journey.",
+      "description": "Flight-themed focus timer with six routes, custom sessions, pause, reload recovery, cabin ambience and PNG arrival cards. Logs stay in your browser.",
+      "keywords": [
+        "focus flight",
+        "focus timer",
+        "pomodoro timer",
+        "flight focus",
+        "cabin white noise"
+      ]
+    },
     "json-formatter": {
       "name": "JSON Formatter & Validator",
       "oneLiner": "Format, minify and validate JSON with instant syntax error location.",
@@ -857,6 +869,67 @@
     }
   },
   "content": {
+    "focus-flight": {
+      "usage": "Choose a route, name one task and set 1–180 whole minutes before takeoff. Watch your plane move along an illustrated route. Pause and resume, or restore after a reload. Cabin ambience, an arrival chime and an immersive view are optional. Complete a flight to save a PNG arrival card. Your last 20 completed flights stay in this browser and can be cleared.",
+      "features": [
+        {
+          "icon": "bi-airplane",
+          "text": "Six Asian routes with visible flight progress"
+        },
+        {
+          "icon": "bi-clock",
+          "text": "1–180 minutes, pause, resume and reload recovery"
+        },
+        {
+          "icon": "bi-volume-up",
+          "text": "Local cabin ambience, arrival chime and immersive view"
+        },
+        {
+          "icon": "bi-download",
+          "text": "PNG arrival cards and a local flight log"
+        }
+      ],
+      "detail": {
+        "intro": "Starting a task often means drawing your attention back from everything else. Pick a destination and a clear block of time. Boarding and landing give reading, studying or working a small beginning-and-end ritual.",
+        "steps": [
+          "Choose a route, name one task and set a preset or 1–180 whole minutes.",
+          "Take off. Optionally turn on ambience or immersive view. Pause to rest, then resume.",
+          "On arrival, review the record, save a PNG card and start another journey."
+        ],
+        "examples": [
+          {
+            "label": "Read one chapter",
+            "input": "Shanghai → Tokyo, 25 minutes, task “Read chapter three”",
+            "output": "Your plane follows your timer progress. Arrival records 25 minutes and your task; download a keepsake card."
+          },
+          {
+            "label": "Take a short break",
+            "input": "Pause a 25-minute session after 10 minutes, rest for 5 minutes, then resume",
+            "output": "15 minutes remain. The break is excluded and the expected arrival moves later."
+          }
+        ],
+        "principles": [
+          "An absolute deadline drives the timer; callbacks update the display. Background tabs and reloads do not restart it. Pausing saves the remaining time.",
+          "Maps and routes are schematic. Airport codes set the atmosphere; your chosen duration is independent of actual airline timetables and flight distances.",
+          "Only a completed countdown enters the log. Ending early adds no arrival record. Statistics use the last 20 records and today follows your device’s local date."
+        ],
+        "pitfalls": [
+          "The tool does not lock your device, block other apps or verify that you are working. It records completed timers.",
+          "Changing your system clock affects the timer. After device sleep, the display catches up. The arrival sound plays only when the page can play audio."
+        ],
+        "faqs": [
+          {
+            "q": "Can I restore a closed flight?",
+            "a": "Yes, in the same browser with local storage allowed. An unpaused flight continues by its deadline while closed; a paused flight keeps its remaining time. Clearing site data, ending a private session or changing devices removes access."
+          },
+          {
+            "q": "How is pausing different from ending early?",
+            "a": "Pausing keeps the flight for later. Ending early cancels it without adding a completed record. The log retains the last 20 completed flights."
+          }
+        ],
+        "privacy": "Your task, active flight and last 20 completed records are stored locally in this browser, without uploading tasks or logs or requiring an account. Clear the log whenever you like. Exported cards contain your task; review them before sharing. All audio is synthesized locally."
+      }
+    },
     "json-formatter": {
       "usage": "Free online JSON formatter and validator: paste JSON to auto-prettify, minify or validate. Syntax errors are located to the exact line number, making it easy to debug API responses and config files. All processing happens in your browser — nothing is uploaded.",
       "features": [

@@ -3,6 +3,7 @@ export type ToolWorkspace = 'flow' | 'split' | 'dashboard' | 'canvas' | 'inspect
 export type ToolLayoutMode = 'wide' | 'sidebar';
 
 const WORKSPACES: Record<string, ToolWorkspace> = {
+  'focus-flight': 'flow',
   'json-formatter': 'split',
   base64: 'split',
   'url-encode': 'split',

@@ -7,6 +7,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright-core';
 import { root } from './lib/build-config.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
+import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { hlsCorePath } from '../config/hls.mjs';
 
@@ -14,7 +15,7 @@ const base = new URL(process.env.PUBLIC_SITE_URL || 'https://clovertools.cn').or
 const dist = join(root, 'dist');
 const artifacts = join(root, 'output/production-verification');
 const report = { origin: base, commit: process.env.GITHUB_SHA || null, deployment: null, checks: [], success: false };
-const slugs = ['perler-beads', 'personality-test', 'avatar-generator'];
+const slugs = ['focus-flight', 'perler-beads', 'personality-test', 'avatar-generator'];
 const expectedCsp = (await readFile(join(root, 'public/_headers'), 'utf8')).match(/Content-Security-Policy: ([^\r\n]+)/)[1];
 const assets = new Set();
 await mkdir(artifacts, { recursive: true });
@@ -156,7 +157,10 @@ async function verifyBrowser() {
   async function remember(context, lang) {
     await context.addInitScript(value => localStorage.setItem('clover-lang', value), lang);
   }
-  try { await runFunToolChecks({ run, remember, base, artifacts }); }
+  try {
+    await runFunToolChecks({ run, remember, base, artifacts });
+    await runFocusFlightChecks({ run, remember, base, artifacts });
+  }
   finally { await browser.close(); }
 }
 

@@ -73,9 +73,17 @@ FPS 原生 Esc 暂停测试按 `config/quality.mjs` 的 `BROWSER_CHECKS.pointerU
 
 FPS 启动失败的检查日志记录原生锁定请求、授权/错误与失焦事件顺序，辅助定位不同平台的 Pointer Lock 差异；这些观察仅存在于浏览器检查中。
 
-`npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。`main` 检查通过后自动在同一提交下以生产域名重新构建，并使用仓库 Cloudflare 凭据直接上传 Pages。部署后的 `scripts/verify-production.mjs` 验证生产提交、正式域名、静态资源与 20 项新工具浏览器场景；结果作为 Actions artifact 保存。发布步骤见 [RELEASE.md](RELEASE.md)。
+`npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。`main` 检查通过后自动在同一提交下以生产域名重新构建，并使用仓库 Cloudflare 凭据直接上传 Pages。部署后的 `scripts/verify-production.mjs` 验证生产提交、正式域名、静态资源、三个趣味工具与专注航班的真实浏览器场景；结果作为 Actions artifact 保存。发布步骤见 [RELEASE.md](RELEASE.md)。
 
 发布顺序：完成修改 → 完整检查 → 更新 README/相关文档 → 提交 → 推送 → 检查远程工作流与部署状态。Bing / Google 提交由独立 Actions 工作流在部署成功后和每日定时执行，只读取已经上线的 sitemap；Google 需先配置 Search Console 服务账号。也可手动运行，设置与边界见 [SEARCH-SUBMISSION.md](SEARCH-SUBMISSION.md)。
+
+## 专注航班验证（2026-10-05）
+
+- FPS / HLS / 工具类型检查与 152 项单元、反例检查通过，其中 11 项新增检查覆盖时长校验、后台截止时间、暂停和多次恢复、存储输入验证、完成去重、20 条日志上限、航线坐标与五语文案。
+- 完整构建为 442 个站点页面；76 个工具、26 份深度说明、16 篇指南通过内容关联检查。121 条 sitemap 地址与可收录页面一致，链接、SEO、收录策略与图标检查通过。
+- 整站 213 项 Chromium 场景通过。新增 15 项专注航班场景包含五语整数分钟校验、暂停排除休息、落地与实际 PNG 下载、日志清空后刷新、手机深色与音频、沉浸及 Esc、提前结束、跨语言恢复、多标签同步、禁用存储和音频，以及生产 CSP。首页与分类搜索同步验证新入口。
+- 新工具在五语、1440 / 768 / 360px、浅色 / 深色共 30 项布局检查中无横向溢出；地图占满工具宽度，手机先显示登机牌再显示路线卡，沉浸模式让页头退出键盘焦点范围。最终桌面、手机截图和真实纪念卡已人工查看，位于忽略目录 `output/focus-flight/`。
+- 未新增运行时依赖，客户端脚本约 17 KiB；状态逻辑、恢复边界与本地数据说明见 [FOCUS-FLIGHT.md](FOCUS-FLIGHT.md)。发布检查已纳入五语专注航班路由、资产、搜索、sitemap 与实际操作；生产上线需以 Actions 部署验收为准。
 
 ## 三个趣味工具验证（2026-10-04）
 

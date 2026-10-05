@@ -29,6 +29,15 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  'focus-flight': {
+    usage: '选择航线，填写这一程要做的一件事，设定 1–180 分钟专注时长后起飞。飞机随专注进度沿示意航线前进，可暂停和续航，刷新后恢复。按需打开机舱白噪音、落地提示音或沉浸模式，完成后保存 PNG 纪念卡。最近 20 次已完成航程保存在当前浏览器，可随时清空。',
+    features: [
+      { icon: 'bi-airplane', text: '六条亚洲城市航线与可视化飞行进度' },
+      { icon: 'bi-clock', text: '1–180 分钟、暂停续航与刷新恢复' },
+      { icon: 'bi-volume-up', text: '机舱白噪音、独立提示音与沉浸模式' },
+      { icon: 'bi-download', text: '落地纪念卡与本地飞行日志' },
+    ],
+  },
   'perler-beads': {
     usage: '上传 PNG、JPG 或 WebP，设置最长边豆数和颜色数量，或填写手头豆子的 HEX 色值。预览中可放大查看，透明格子不计入用量；下载带坐标与编号的 PNG 图纸，复制或导出逐色用量清单。编号是本图内部编号，请自行核对实际豆色。',
     features: [

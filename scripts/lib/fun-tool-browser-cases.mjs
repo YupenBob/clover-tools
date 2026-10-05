@@ -497,8 +497,9 @@ export async function runFunToolChecks({ run, remember, base, artifacts }) {
       async (page, context) => {
         await remember(context, lang);
         await page.goto(base + localizedPath("/tools/fun/", lang));
-        assert.equal(await page.locator(".tool-card").count(), 17);
+        assert.equal(await page.locator(".tool-card").count(), 18);
         for (const [slug, query] of [
+          ['focus-flight', lang === 'zh' ? '专注' : lang === 'tw' ? '專注' : lang === 'en' ? 'focus flight' : lang === 'ko' ? '집중' : '集中フライト'],
           [
             "perler-beads",
             lang === "zh" || lang === "tw"
