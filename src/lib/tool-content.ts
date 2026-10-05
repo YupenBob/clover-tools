@@ -30,11 +30,11 @@ export interface ToolContent {
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
   'focus-flight': {
-    usage: '选择航线，填写这一程要做的一件事，设定 1–180 分钟专注时长后起飞。飞机随专注进度沿示意航线前进，可暂停和续航，刷新后恢复。按需打开机舱白噪音、落地提示音或沉浸模式，完成后保存 PNG 纪念卡。最近 20 次已完成航程保存在当前浏览器，可随时清空。',
+    usage: '选择航线、任务和 1–180 分钟时长，领取登机牌，撕下副票后登机。进入 SVG 舷窗客舱，经历起飞、巡航和抵达；可切换真实地理航图，选择晴空、日落或夜航，分别调整引擎与气流。支持暂停续航、刷新恢复，抵达后保存盖章 PNG 登机牌。最近 20 次完成航程保存在此浏览器，可随时清空。',
     features: [
-      { icon: 'bi-airplane', text: '六条亚洲城市航线与可视化飞行进度' },
+      { icon: 'bi-airplane', text: '真实地理航图、六条航线与撕票登机' },
       { icon: 'bi-clock', text: '1–180 分钟、暂停续航与刷新恢复' },
-      { icon: 'bi-volume-up', text: '机舱白噪音、独立提示音与沉浸模式' },
+      { icon: 'bi-volume-up', text: 'SVG 舷窗、三种光线与分层客舱声场' },
       { icon: 'bi-download', text: '落地纪念卡与本地飞行日志' },
     ],
   },

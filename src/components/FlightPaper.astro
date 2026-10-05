@@ -1,0 +1,15 @@
+---
+interface Props { stub?: boolean; }
+const {stub=false}=Astro.props;
+const id=stub?'fpStub':'fpMain';
+---
+<svg class="ff-paper-surface" viewBox="0 0 560 340" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <linearGradient id={id+'Light'} x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffef7"/><stop offset=".6" stop-color="#f4f2e8"/><stop offset="1" stop-color="#e8e5d9"/></linearGradient>
+    <filter id={id+'Grain'}><feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="2" seed="21"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".035"/></feComponentTransfer><feBlend in="SourceGraphic" mode="multiply"/></filter>
+  </defs>
+  <rect width="560" height="340" rx="2" fill={'url(#'+id+'Light)'} filter={'url(#'+id+'Grain)'}/>
+  <path d="M0 192H560M0 194H560" stroke="#315650" stroke-opacity=".025"/>
+  <path d="M195 0L201 340" stroke="#a59f8d" stroke-opacity=".06"/>
+  <path d="M197 0L203 340" stroke="#fff" stroke-opacity=".27"/>
+</svg>

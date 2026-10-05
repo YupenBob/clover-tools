@@ -1,0 +1,47 @@
+---
+import FlightPaper from './FlightPaper.astro';
+import type { FlightText } from '../lib/focus-flight-i18n';
+import type { JourneyText } from '../lib/flight-journey-i18n';
+interface Props { t: FlightText; j: JourneyText; }
+const {t,j}=Astro.props;
+const fibers='M0 0'+Array.from({length:85},(_,i)=>'L'+(i%3===0?8:i%3===1?3:6)+' '+(i*4)).join('')+'L0 340Z';
+---
+<div class="ff-paper-ticket" id="ffPaperTicket" data-torn="false">
+  <div class="ff-paper-main">
+    <FlightPaper />
+    <div class="ff-ticket-band"></div>
+    <div class="ff-paper-brand">
+      <svg class="ff-clover-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 15C-1 7 9-6 16 7C23-6 33 7 17 16C33 24 23 37 16 24C9 37-1 24 15 17Z" fill="currentColor"/><path d="M17 18Q22 24 20 31" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <div><strong>Clover航空</strong><small>CLOVER AIR · BOARDING PASS</small></div>
+      <span class="ff-paper-class">PRIORITY<br /><b>FOCUS</b></span>
+    </div>
+    <div class="ff-paper-route">
+      <div><span class="ff-ticket-route-label">{t.departure}</span><strong class="mono" id="ffPaperFrom">PVG</strong><span id="ffPaperFromCity">{t.cities[0]}</span></div>
+      <div class="ff-ticket-flight"><span>{t.flight}</span><b class="mono" id="ffPaperFlight">CF 025</b><svg viewBox="0 0 60 16" aria-hidden="true"><path d="M0 8H60" stroke="currentColor" stroke-dasharray="1 3"/><path d="M36 8L27 5L24 0H21L23 7L15 7L12 3H10L12 8L10 13H12L15 9L23 9L21 16H24L27 11Z" fill="currentColor"/></svg></div>
+      <div><span class="ff-ticket-route-label">{t.arrival}</span><strong class="mono" id="ffPaperTo">HND</strong><span id="ffPaperToCity">{t.cities[1]}</span></div>
+    </div>
+    <div class="ff-paper-detail">
+      <div><span>{j.issued}</span><b class="mono" id="ffPaperDate">05 OCT 2026</b></div>
+      <div><span>{j.boardingTime}</span><b class="mono" id="ffPaperTime">—</b></div>
+      <div class="ff-ticket-seat"><span>{t.seat}</span><b class="mono">01A</b></div>
+      <div><span>{t.gate}</span><b class="mono">C01</b></div>
+      <div><span>{t.duration}</span><b class="mono" id="ffPaperDuration">25 {t.minutes}</b></div>
+      <div><span>{j.sequence}</span><b class="mono" id="ffPaperSequence">001</b></div>
+    </div>
+    <div class="ff-ticket-intention"><span>{j.taskLabel}</span><p class="ff-paper-task" id="ffPaperTask">{t.taskDefault}</p></div>
+    <div class="ff-ticket-machine"><svg class="ff-main-barcode" id="ffMainBarcode" viewBox="0 0 180 27" aria-hidden="true">{Array.from({length:69},(_,i)=><path d={'M'+(i*2.6)+' 0V27'} stroke="#263f3b" stroke-width={i%3===0?1.8:.8}/>)}</svg><span class="mono" id="ffTicketSerial">CF025 · PVGHND · 01A</span><span>CLOVER AIR · YOUR TIME IN FLIGHT</span></div>
+    <div class="ff-paper-stamp" id="ffBoardStamp">{j.boarded}</div>
+    <svg class="ff-torn-fibers" viewBox="0 0 10 340" preserveAspectRatio="none" aria-hidden="true"><path d={fibers} fill="#f8f5e9"/></svg>
+  </div>
+  <button type="button" class="ff-paper-stub" id="ffTear" aria-label={j.tear} aria-describedby="ffTearHint">
+    <FlightPaper stub />
+    <span class="ff-stub-brand">Clover航空</span>
+    <span class="ff-stub-title">{j.stub}</span>
+    <strong class="mono" id="ffStubRoute">PVG / HND</strong>
+    <span class="ff-stub-flight mono" id="ffStubFlight">CF 025</span>
+    <span class="ff-stub-seat mono">GATE C01 · SEAT <b>01A</b></span>
+    <svg class="ff-barcode" id="ffStubBarcode" viewBox="0 0 110 35" aria-hidden="true">{Array.from({length:39},(_,i)=><path d={'M'+(i*2.8)+' 0V35'} stroke="#263f3b" stroke-width={i%3===0?1.8:.8}/>)}</svg>
+    <span class="ff-tear-grip" aria-hidden="true">⠿</span><span id="ffTearHint">{j.tearHint}</span>
+    <svg class="ff-perforation" viewBox="0 0 2 340" preserveAspectRatio="none" aria-hidden="true"><path d="M1 0V340" stroke="#9b9b88" stroke-dasharray="2 5" stroke-width="1"/></svg><span class="ff-stub-back" aria-hidden="true"></span>
+  </button>
+</div>

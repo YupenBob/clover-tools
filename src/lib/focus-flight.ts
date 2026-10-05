@@ -1,10 +1,12 @@
+import { greatCircle } from './flight-experience.ts';
 export const FLIGHT_ROUTES = [
-  { id: 'shanghai-tokyo', from: 'PVG', to: 'HND', minutes: 25, origin: [121.8, 31.1], destination: [139.8, 35.5] },
-  { id: 'beijing-seoul', from: 'PEK', to: 'ICN', minutes: 35, origin: [116.6, 40.1], destination: [126.5, 37.5] },
-  { id: 'taipei-hongkong', from: 'TPE', to: 'HKG', minutes: 45, origin: [121.2, 25.1], destination: [113.9, 22.3] },
-  { id: 'hongkong-singapore', from: 'HKG', to: 'SIN', minutes: 60, origin: [113.9, 22.3], destination: [104, 1.4] },
-  { id: 'chengdu-bangkok', from: 'TFU', to: 'BKK', minutes: 90, origin: [104.4, 30.3], destination: [100.8, 13.7] },
-  { id: 'tokyo-sapporo', from: 'HND', to: 'CTS', minutes: 120, origin: [139.8, 35.5], destination: [141.7, 42.8] },
+  // OurAirports public-domain airport coordinates, verified 2026-10-05.
+  { id: 'shanghai-tokyo', from: 'PVG', to: 'HND', minutes: 25, origin: [121.805, 31.1434], destination: [139.786958, 35.549678] },
+  { id: 'beijing-seoul', from: 'PEK', to: 'ICN', minutes: 35, origin: [116.596702, 40.077349], destination: [126.450996, 37.469101] },
+  { id: 'taipei-hongkong', from: 'TPE', to: 'HKG', minutes: 45, origin: [121.233002, 25.0777], destination: [113.914862, 22.31184] },
+  { id: 'hongkong-singapore', from: 'HKG', to: 'SIN', minutes: 60, origin: [113.914862, 22.31184], destination: [103.994003, 1.35019] },
+  { id: 'chengdu-bangkok', from: 'TFU', to: 'BKK', minutes: 90, origin: [104.441284, 30.31252], destination: [100.747002, 13.6811] },
+  { id: 'tokyo-sapporo', from: 'HND', to: 'CTS', minutes: 120, origin: [139.786958, 35.549678], destination: [141.690414, 42.774753] },
 ] as const;
 export const ROUTE_CITIES = [[0,1],[2,3],[4,5],[5,6],[7,8],[1,9]] as const;
 
@@ -103,19 +105,21 @@ export function parseFlightHistory(raw: string | null): FlightRecord[] {
 export function addFlightRecord(history: FlightRecord[], record: FlightRecord): FlightRecord[] {
   return parseFlightHistory(JSON.stringify([record, ...history]));
 }
-/** A regional schematic: geographic positions with a curved, illustrative flight path. */
+/** Uniform-scale Mercator, identical to prepare-flight-geography.py. */
 export function mapPoint(coords: readonly number[]): [number, number] {
-  return [(coords[0] - 85) / 70 * 800, (55 - coords[1]) / 65 * 500];
+  const scale = 800 / (70 * Math.PI / 180);
+  const mercator = (lat: number) => Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+  return [(coords[0] - 85) * Math.PI / 180 * scale, (mercator(55) - mercator(coords[1])) * scale];
 }
 export function routeGeometry(routeId: string, progress = 0) {
   const route = flightRoute(routeId);
   if (!route) throw new RangeError('route');
   const from = mapPoint(route.origin), to = mapPoint(route.destination);
-  const bend = Math.min(110, Math.hypot(to[0] - from[0], to[1] - from[1]) * 0.45);
-  const control: [number, number] = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2 - bend];
   const p = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
-  const x = (1 - p) ** 2 * from[0] + 2 * (1 - p) * p * control[0] + p ** 2 * to[0];
-  const y = (1 - p) ** 2 * from[1] + 2 * (1 - p) * p * control[1] + p ** 2 * to[1];
-  const angle = Math.atan2(2 * (1 - p) * (control[1] - from[1]) + 2 * p * (to[1] - control[1]), 2 * (1 - p) * (control[0] - from[0]) + 2 * p * (to[0] - control[0])) * 180 / Math.PI;
-  return { from, to, path: `M ${from.join(' ')} Q ${control.join(' ')} ${to.join(' ')}`, x, y, angle };
+  const [x,y] = mapPoint(greatCircle(route.origin,route.destination,p));
+  const before = mapPoint(greatCircle(route.origin,route.destination,Math.max(0,p-0.001)));
+  const after = mapPoint(greatCircle(route.origin,route.destination,Math.min(1,p+0.001)));
+  const angle = Math.atan2(after[1]-before[1],after[0]-before[0])*180/Math.PI;
+  const path = Array.from({length:65},(_,i) => `${i?'L':'M'} ${mapPoint(greatCircle(route.origin,route.destination,i/64)).map(v=>v.toFixed(3)).join(' ')}`).join(' ');
+  return { from, to, path, x, y, angle };
 }

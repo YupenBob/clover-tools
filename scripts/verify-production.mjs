@@ -88,7 +88,7 @@ async function files(directory) {
 }
 
 async function verifyAssets() {
-  for (const folder of [hlsCorePath(), '/fps/audio']) {
+  for (const folder of [hlsCorePath(), '/fps/audio', '/focus-flight']) {
     for (const file of await files(join(dist, folder))) assets.add('/' + file.slice(dist.length + 1).replaceAll('\\', '/'));
   }
   const pending = [...assets];

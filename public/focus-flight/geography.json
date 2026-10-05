@@ -1,0 +1,46 @@
+{
+  "prepared": "2026-10-05",
+  "projection": "Mercator, equal horizontal and vertical scale",
+  "bounds": [
+    85,
+    -10,
+    155,
+    55
+  ],
+  "processing": "Geographic clipping and topology-preserving 0.025 degree simplification. SVG paths, without raster textures. Terrain areas are physical geography, not elevation measurements.",
+  "sources": [
+    {
+      "name": "ne_10m_land",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_land.geojson",
+      "sha256": "1ac90796408bc6ad6911d69448485d3c4dbf2190370080368a09976e1c9f7416",
+      "license": "Public Domain",
+      "terms": "https://www.naturalearthdata.com/about/terms-of-use/"
+    },
+    {
+      "name": "ne_10m_lakes",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_lakes.geojson",
+      "sha256": "2d036f53dedec578001c5c30c2959ee7d4eebc1306900fa4367c49929ec8f2d9",
+      "license": "Public Domain",
+      "terms": "https://www.naturalearthdata.com/about/terms-of-use/"
+    },
+    {
+      "name": "ne_10m_geography_regions_polys",
+      "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_geography_regions_polys.geojson",
+      "sha256": "b7b26e50ea917d3696aec87f932def2bf5f890f5770e441d59c162c6f4c92a77",
+      "license": "Public Domain",
+      "terms": "https://www.naturalearthdata.com/about/terms-of-use/"
+    },
+    {
+      "name": "OurAirports coordinates",
+      "url": "https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/airports.csv",
+      "sha256": "1baffe51282f40a192490ff27654309dd9252e9dafd7a179f69b2f4fa96a75af",
+      "license": "Public Domain",
+      "terms": "https://ourairports.com/data/"
+    }
+  ],
+  "output": {
+    "file": "src/lib/flight-geography.json",
+    "bytes": 231012,
+    "sha256": "4aee2383a3446a1500ea00b05ae95895af61798f940110aa47d84782aca0ae26"
+  }
+}

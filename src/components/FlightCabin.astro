@@ -1,0 +1,60 @@
+---
+// Original vector illustration. Every visible surface is SVG; no image textures.
+---
+<svg class="ff-cabin-art" id="ffCabinArt" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="fcWall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#33342f"/><stop offset=".45" stop-color="#191e1d"/><stop offset="1" stop-color="#090f12"/></linearGradient>
+    <radialGradient id="fcWallLight" cx=".74" cy=".45" r=".65"><stop class="fc-wall-glow" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fcFrame" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#cdc9bb"/><stop offset=".18" stop-color="#757971"/><stop offset=".52" stop-color="#393f3b"/><stop offset=".8" stop-color="#9b9b89"/><stop offset="1" stop-color="#d5cfb8"/></linearGradient>
+    <linearGradient id="fcInner" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#111818"/><stop offset=".14" stop-color="#404944"/><stop offset=".5" stop-color="#747667"/><stop offset=".9" stop-color="#283330"/><stop offset="1" stop-color="#060f14"/></linearGradient>
+    <linearGradient id="fcSky" x1="0" y1="0" x2="0" y2="1"><stop class="fc-sky-top"/><stop class="fc-sky-middle" offset=".52"/><stop class="fc-sky-bottom" offset="1"/></linearGradient>
+    <radialGradient id="fcSun"><stop class="fc-sun-color" stop-opacity=".9"/><stop class="fc-sun-color" offset=".2" stop-opacity=".38"/><stop class="fc-sun-color" offset="1" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fcCloud" x1="0" y1="0" x2="0" y2="1"><stop class="fc-cloud-light"/><stop class="fc-cloud-shadow" offset="1"/></linearGradient>
+    <linearGradient id="fcWing" x1=".7" y1="0" x2=".2" y2="1"><stop stop-color="#e0e0d3"/><stop class="fc-wing-light" offset=".35"/><stop stop-color="#63777d" offset=".7"/><stop stop-color="#d2d2bd" offset="1"/></linearGradient>
+    <linearGradient id="fcWingEdge" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#253b47"/><stop offset=".35" stop-color="#b9c6c8"/><stop offset="1" stop-color="#0b2430"/></linearGradient>
+    <linearGradient id="fcGlass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".15"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#d5f5ff" stop-opacity=".015"/><stop offset="1" stop-color="#fff" stop-opacity=".12"/></linearGradient>
+    <filter id="fcShadow" x="-30%" y="-20%" width="160%" height="150%"><feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".6"/></filter>
+    <filter id="fcSoft"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="fcCloudSoft" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="2.8"/></filter>
+    <filter id="fcGrain"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" seed="7"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".04"/></feComponentTransfer><feBlend in="SourceGraphic" mode="soft-light"/></filter>
+    <clipPath id="fcWindow"><path d="M1046 160C930 160 875 224 873 336L868 535C866 657 916 716 1041 720C1162 722 1222 663 1225 544L1228 339C1229 220 1163 160 1046 160Z"/></clipPath>
+  </defs>
+  <rect width="1440" height="900" fill="url(#fcWall)" />
+  <rect width="1440" height="900" fill="url(#fcWallLight)" />
+  <path d="M692-30Q738 450 668 950M1360-30Q1298 450 1355 950" fill="none" stroke="#87948a" stroke-opacity=".08" stroke-width="2" />
+  <path d="M727 91Q1040 32 1360 83" fill="none" stroke="#e8e1c7" stroke-opacity=".12" stroke-width="3"/>
+  <path d="M813 766Q1047 827 1285 766" fill="none" stroke="#aeb7a8" stroke-opacity=".07" stroke-width="2"/>
+  <g filter="url(#fcShadow)">
+    <path d="M1045 110C895 108 824 193 823 332L816 540C812 697 883 777 1041 778C1193 779 1270 698 1277 547L1280 333C1282 184 1197 108 1045 110Z" fill="url(#fcFrame)" stroke="#cdd2c4" stroke-opacity=".2" stroke-width="1.5"/>
+    <path d="M1045 134C912 131 847 207 847 336L840 540C837 680 900 751 1041 753C1177 754 1246 684 1251 545L1256 335C1257 204 1181 132 1045 134Z" fill="url(#fcInner)" stroke="#070f11" stroke-width="3"/>
+  </g>
+  <g clip-path="url(#fcWindow)">
+    <rect x="820" y="145" width="500" height="610" fill="url(#fcSky)"/>
+    <circle cx="1110" cy="361" r="180" fill="url(#fcSun)" class="ff-sun-glow"/>
+    <circle cx="1110" cy="361" r="20" class="fc-sun-core"/>
+    <g class="ff-stars" fill="#e3eeff">{Array.from({length:34},(_,i)=><circle cx={850+(i*79)%380} cy={173+(i*43)%220} r={i%3===0?1.3:.7} opacity={.25+i%5*.13}/>)}</g>
+    <g class="ff-distant-clouds" filter="url(#fcSoft)">
+      <path d="M760 460Q806 432 843 450Q901 420 947 444Q988 415 1040 442Q1110 397 1173 428Q1240 410 1350 446V800H750Z" fill="url(#fcCloud)" opacity=".6"/>
+      <path d="M750 514Q823 458 893 493Q956 440 1016 478Q1090 449 1147 478Q1195 448 1260 466L1400 510V800H750Z" fill="url(#fcCloud)" opacity=".8"/>
+    </g>
+    <g class="ff-cloud-bank" filter="url(#fcCloudSoft)" fill="url(#fcCloud)">
+      <path d="M690 660C725 603 778 616 808 587C835 540 875 551 903 567C935 531 984 540 1009 559C1051 523 1097 542 1120 574C1158 531 1219 544 1240 571C1298 543 1357 588 1390 603V840H690Z"/>
+      <path d="M677 748Q716 677 777 698Q797 643 852 677Q905 627 952 665Q1010 633 1051 679Q1093 650 1145 687Q1211 647 1260 706Q1322 656 1409 727V900H670Z" opacity=".65"/>
+    </g>
+    <g class="ff-wing">
+      <path d="M1358 653L1093 591L947 509L919 485L914 450L928 466L942 489L1112 539L1391 592Z" fill="url(#fcWingEdge)" />
+      <path d="M1379 599L1120 553L945 497L921 474L916 450L928 466L943 488L1137 523L1395 566Z" fill="url(#fcWing)" stroke="#e6ede3" stroke-opacity=".5"/>
+      <path d="M1345 585L1126 548L942 494" fill="none" stroke="#ecf2ec" stroke-opacity=".65" stroke-width="1.2"/>
+      <path d="M1200 534L1184 559M1261 544L1240 570M1325 554L1297 580M1034 505L1026 519M1083 515L1074 534" fill="none" stroke="#3e5b69" stroke-opacity=".45" stroke-width=".8"/>
+      <path d="M943 488L967 516L1120 587L1358 647" fill="none" stroke="#1b3747" stroke-opacity=".7" stroke-width="2"/>
+      <path d="M921 474L916 450L922 453L929 468Z" fill="#3c6a70"/>
+      <circle cx="919" cy="455" r="2" fill="#ffd7b1" class="ff-wing-light"/>
+    </g>
+    <rect x="835" y="155" width="430" height="580" fill="url(#fcGlass)" />
+    <path d="M904 220Q916 190 954 179M1194 600Q1192 668 1150 687" fill="none" stroke="#f7f5da" stroke-opacity=".17" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <path d="M1046 160C930 160 875 224 873 336L868 535C866 657 916 716 1041 720C1162 722 1222 663 1225 544L1228 339C1229 220 1163 160 1046 160Z" fill="none" stroke="#081820" stroke-opacity=".75" stroke-width="4"/>
+  <path d="M902 244Q904 157 1045 145" fill="none" stroke="#eff5e4" stroke-opacity=".18" stroke-width="2"/>
+  <g fill="#e6dec7" opacity=".3" font-family="ui-monospace,monospace" text-anchor="middle"><text x="1046" y="821" font-size="13" letter-spacing="7">WINDOW SEAT</text><text x="1046" y="852" font-size="20" letter-spacing="5">01A</text></g>
+  <rect width="1440" height="900" filter="url(#fcGrain)" fill="transparent" opacity=".55" pointer-events="none"/>
+</svg>
