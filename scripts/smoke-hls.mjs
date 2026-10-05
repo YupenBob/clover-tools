@@ -33,6 +33,7 @@ const audioDuration = (data) => { let p = 0, frames = 0; while (p < data.length)
 writeFileSync(join(audioDirectory, 'index.m3u8'), '#EXTM3U\n' + Array.from({ length: 6 }, (_, i) => `#EXTINF:${audioDuration(readFileSync(join(audioDirectory, `seg${i}.aac`))).toFixed(9)},\nseg${i}.aac`).join('\n') + '\n#EXT-X-ENDLIST');
 let slow = false;
 let recoverSkipped = false;
+let coreLoadGate = null;
 const largePacket = new Uint8Array(188).fill(255); largePacket.set([0x47, 0x1f, 0xff, 0x10]);
 command(ffmpeg, ['-v', 'error', '-y', '-i', join(output, 'ts/seg0.ts'), '-map', '0:v:0', '-c', 'copy', '-muxdelay', '0', '-f', 'mpegts', join(output, 'large-video.ts')]);
 const largeSource = readFileSync(join(output, 'large-video.ts'));
@@ -45,6 +46,12 @@ const mime = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascri
 const server = createServer(async (request, response) => {
   const path = new URL(request.url, 'http://localhost').pathname;
   counts.set(path, (counts.get(path) || 0) + 1);
+  if (coreLoadGate && path === `${HLS_CONFIG.core.publicRoot}/${HLS_CONFIG.core.version}/manifest.json`) {
+    const gate = coreLoadGate;
+    gate.reached();
+    await gate.released;
+    if (response.destroyed) return;
+  }
   if (path.startsWith('/media/')) {
     if (path.startsWith('/media/large/')) {
       if (path.endsWith('index.m3u8')) {
@@ -175,8 +182,26 @@ try {
   await finish();
   for (const index of [0, 2, 4, 5]) assert.equal(counts.get(`/media/ts/seg${index}.ts`), before.get(`/media/ts/seg${index}.ts`));
   console.log('PASS reload restores cached segments without requesting them again');
-  await page.locator('#hlsExport').click(); await page.locator('#hlsCancelExport').click();
-  await page.waitForFunction(() => document.getElementById('hlsExportStatus').textContent.includes('已取消'));
+  // Hold a real worker request so fast CI runners cannot finish before the native click.
+  let releaseCore, requestTimeout;
+  const released = new Promise((resolve) => { releaseCore = resolve; });
+  const requested = new Promise((resolve, reject) => {
+    requestTimeout = setTimeout(() => reject(new Error('Export worker did not request its core manifest')), 15000);
+    coreLoadGate = { released, reached: resolve };
+  });
+  try {
+    await page.locator('#hlsExport').click();
+    await requested;
+    await page.locator('#hlsCancelExport').click();
+    await page.waitForFunction(() => document.getElementById('hlsExportStatus').textContent.includes('已取消'));
+    assert.equal(await page.locator('#hlsDone').textContent(), '4', 'cancelling keeps downloaded segments');
+    assert.equal(await page.locator('#hlsSkipped').textContent(), '2', 'cancelling does not skip cached segments');
+    assert.equal(await page.locator('#hlsExport').isEnabled(), true, 'cancelled exports can be retried');
+  } finally {
+    clearTimeout(requestTimeout);
+    coreLoadGate = null;
+    releaseCore();
+  }
   console.log('PASS export cancellation interrupts worker and keeps cache');
   const mp4 = await exportFile('#hlsMp4', 'missing-ts.mp4');
   assert.equal(await page.locator('#hlsSkipped').textContent(), '3');
