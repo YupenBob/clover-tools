@@ -75,7 +75,7 @@ FPS 启动失败的检查日志记录原生锁定请求、授权/错误与失焦
 
 `npm run build` 包含静态质量检查。GitHub Actions 在 push/PR 上运行完整构建、站点/FPS 浏览器回归和 HLS 实际媒体回归，并使用 `https://quality.example` 验证非生产域名配置。`main` 检查通过后自动在同一提交下以生产域名重新构建，并使用仓库 Cloudflare 凭据直接上传 Pages。部署后的 `scripts/verify-production.mjs` 验证生产提交、正式域名、静态资源与 20 项新工具浏览器场景；结果作为 Actions artifact 保存。发布步骤见 [RELEASE.md](RELEASE.md)。
 
-发布顺序：完成修改 → 完整检查 → 更新 README/相关文档 → 提交 → 推送 → 检查远程工作流与部署状态。`npm run indexnow` 仅在部署确认后手动运行，不能为尚未上线的产物主动推送收录。
+发布顺序：完成修改 → 完整检查 → 更新 README/相关文档 → 提交 → 推送 → 检查远程工作流与部署状态。Bing / Google 提交由独立 Actions 工作流在部署成功后和每日定时执行，只读取已经上线的 sitemap；Google 需先配置 Search Console 服务账号。也可手动运行，设置与边界见 [SEARCH-SUBMISSION.md](SEARCH-SUBMISSION.md)。
 
 ## 三个趣味工具验证（2026-10-04）
 

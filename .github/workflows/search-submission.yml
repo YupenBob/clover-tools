@@ -1,0 +1,94 @@
+name: Search engine submission
+
+on:
+  schedule:
+    # 01:00 UTC = 09:00 Asia/Shanghai. GitHub schedules may be delayed.
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Quality checks']
+    types: [completed]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/search-submission.yml'
+      - 'scripts/ping-indexnow.mjs'
+      - 'scripts/submit-google-sitemap.mjs'
+      - 'scripts/lib/search-submission.mjs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: clovertools-search-submission
+  cancel-in-progress: false
+
+jobs:
+  bing:
+    name: Submit Bing via IndexNow
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_sha == github.sha))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PUBLIC_SITE_URL: https://clovertools.cn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run indexnow
+      - name: Save Bing submission result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bing-submission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/search-submission/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  google:
+    name: Submit Google Search Console sitemap
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_sha == github.sha))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PUBLIC_SITE_URL: https://clovertools.cn
+    steps:
+      - name: Check Google credential configuration
+        id: google
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Google submission is not configured. Add the GOOGLE_SERVICE_ACCOUNT_JSON repository secret and grant its service account Full access in Search Console."
+            printf '### Google Search Console\n\n状态：未配置，未提交。请添加 `GOOGLE_SERVICE_ACCOUNT_JSON` Repository Secret，并在 Search Console 为服务账号授予完全权限。\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.google.outputs.configured == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.google.outputs.configured == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+        if: steps.google.outputs.configured == 'true'
+      - name: Submit live sitemap to Search Console
+        if: steps.google.outputs.configured == 'true'
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ vars.GSC_SITE_URL }}
+        run: node scripts/submit-google-sitemap.mjs
+      - name: Save Google submission result
+        if: always() && steps.google.outputs.configured == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-submission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: output/search-submission/
+          if-no-files-found: ignore
+          retention-days: 7

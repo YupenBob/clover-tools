@@ -18,6 +18,7 @@
 4. 维护文档、提交、推送 GitHub，并确认同一提交的 CI 通过。CI 包含 HLS 媒体回归；运行器安装 native FFmpeg 只用于生成/解码验证样本，站点运行时使用锁定的 WASM 包。
 5. `main` 的检查通过后，部署任务在同一提交下以生产 origin 重新构建，使用 `wrangler pages deploy dist --project-name clovertools --branch main --commit-hash <已推送提交>` 上传。生产部署串行执行；构建与上传前都检查远程 `main`，跳过已被新提交替代的版本。质量任务的 `https://quality.example` 产物不会上传生产。
 6. 部署任务运行 `node scripts/verify-production.mjs`，核实 Cloudflare 部署状态、生产分支与提交哈希；检查正式域名的五语言首页、新工具、同构建脚本/音频/FFmpeg 分片、sitemap、搜索索引和 API，并执行三个新工具的 20 项真实浏览器场景。验收报告、截图和下载样本作为 Actions artifact 保存 7 天。必要时仍可在有凭据的本地环境按上述 Wrangler 命令手动部署。
+7. 部署工作流成功后，独立的 Search engine submission 工作流提交已发布 sitemap；它也每天 UTC 01:00 执行。Bing 使用公开 IndexNow key；Google 服务账号设置与实际提交状态见 [SEARCH-SUBMISSION.md](SEARCH-SUBMISSION.md)，不能将“未配置，未提交”计为 Google 提交成功。
 
 ## 发布产物边界
 

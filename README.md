@@ -149,7 +149,7 @@ FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、
 
 ### Cloudflare Pages
 
-当前 `clovertools` Pages 项目为直接上传模式，绑定 `clovertools.cn`，生产分支为 `main`；推送 GitHub 不会自动部署。发布前运行完整构建、站点/FPS 浏览器回归及 HLS 媒体回归，再使用 `wrangler pages deploy dist --project-name clovertools --branch main --commit-hash <已推送提交>` 发布验证过的同一产物。凭据来自本地环境，不能提交到仓库。流程及验收记录见 [发布说明](docs/RELEASE.md)。
+当前 `clovertools` Pages 项目为直接上传模式，绑定 `clovertools.cn`，生产分支为 `main`。推送 main 后 GitHub Actions 自动完成构建、站点/FPS 浏览器和 HLS 媒体回归，再通过仓库 Cloudflare Secrets 上传生产版本并验收正式域名。也可在有凭据的环境使用 `wrangler pages deploy dist --project-name clovertools --branch main --commit-hash <已推送提交>` 手动发布；凭据不能提交到仓库。流程及验收记录见 [发布说明](docs/RELEASE.md)。
 
 ### Cloudflare R2（媒体存储）
 
@@ -167,7 +167,7 @@ wrangler r2 object put clovertools-media/<key> --file <path>
 ### 搜索收录与监控
 
 1. **Google Search Console / Bing Webmaster**：DNS TXT 验证 `clovertools.cn`，提交 `https://clovertools.cn/sitemap-index.xml`
-2. **主动推送**：部署完成后运行 `npm run indexnow` 推送全站 URL（key 文件 `public/<32位hex>.txt` 已随仓库生成，勿删除）
+2. **主动推送**：GitHub Actions 在部署通过后、每天北京时间 09:00 自动读取线上 sitemap，向 Bing / IndexNow 提交 URL，并在配置 Google 服务账号后提交 Search Console sitemap。支持手动运行，结果保存在 Action Summary 和 artifact；IndexNow key 已随仓库生成。Google 设置与提交边界见 [搜索提交工作流](docs/SEARCH-SUBMISSION.md)。
 3. **百度站长平台**：文件验证后把 `baidu_verify_*.html` 放入 `public/` 并重新部署（参考 `public/baidu-verify.example.html`）
 4. **数据闭环**：以 GSC「曝光 → 点击」排序工具页，Top 20 无收录页逐批排查，每周关注覆盖率与抓取统计
 
