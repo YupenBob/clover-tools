@@ -1037,6 +1037,19 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       );
       await flightControl(page);
       await state(page, "paused");
+      // CSS pauses settle on the next rendered frame after the DOM state changes.
+      await page.waitForFunction(() => {
+        const animations = document
+          .querySelector(".ff-cloud-flow")
+          .getAnimations();
+        return (
+          animations.length > 0 &&
+          animations.every(
+            (animation) =>
+              animation.playState === "paused" && !animation.pending,
+          )
+        );
+      });
       const stopped = await transform();
       await page.waitForTimeout(500);
       assert.equal(await transform(), stopped, "pausing freezes cloud motion");
