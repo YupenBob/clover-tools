@@ -37,6 +37,37 @@ async function flightControl(page) {
   await showControls(page);
   await page.click("#ffControl");
 }
+async function resizeFlightViewport(page, viewport) {
+  await page.setViewportSize(viewport);
+  // Mobile emulation updates innerHeight before svh and the rendered layout.
+  // Drive the mocked frame clock and poll real layout without a fixed delay.
+  const deadline = Date.now() + 5000;
+  let layout;
+  do {
+    await page.clock.runFor(50);
+    layout = await page.evaluate(() => {
+      const scene = document.querySelector("#ffStage").getBoundingClientRect();
+      return {
+        width: innerWidth,
+        height: innerHeight,
+        sceneHeight: scene.height,
+        sceneY: scene.y,
+      };
+    });
+    if (
+      layout.width === viewport.width &&
+      layout.height === viewport.height &&
+      layout.sceneHeight > 0 &&
+      layout.sceneHeight <= viewport.height &&
+      layout.sceneY === 0
+    )
+      return;
+    await page.waitForTimeout(25);
+  } while (Date.now() < deadline);
+  assert.fail(
+    `flight viewport did not settle: ${JSON.stringify({ expected: viewport, actual: layout })}`,
+  );
+}
 export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
   for (const lang of ["zh", "tw", "en", "ko", "ja"]) {
     const t = flightText(lang);
@@ -711,7 +742,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
         await showControls(page);
         assert.equal(await page.locator(".ff-camera-switch").isVisible(), true);
         if (mobile) {
-          await page.setViewportSize({ width: 844, height: 390 });
+          await resizeFlightViewport(page, { width: 844, height: 390 });
           const scene = await page.locator("#ffStage").boundingBox(),
             dock = await page.locator("#ffDock").boundingBox();
           assert.ok(
