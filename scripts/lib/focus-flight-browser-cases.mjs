@@ -29,6 +29,14 @@ async function state(page, value) {
     value,
   );
 }
+async function showControls(page) {
+  if ((await page.locator("#ffRoot").getAttribute("data-idle")) === "true")
+    await page.locator("#ffReveal").click();
+}
+async function flightControl(page) {
+  await showControls(page);
+  await page.click("#ffControl");
+}
 export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
   for (const lang of ["zh", "tw", "en", "ko", "ja"]) {
     const t = flightText(lang);
@@ -69,7 +77,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
         await page.clock.fastForward(20_000);
         assert.equal(await page.textContent("#ffClock"), "00:40");
         const originalArrival = await page.textContent("#ffArrivalTime");
-        await page.click("#ffControl");
+        await flightControl(page);
         await state(page, "paused");
         const plane = await page.locator("#ffPlane").getAttribute("transform");
         await page.clock.fastForward(60_000);
@@ -79,7 +87,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
           plane,
         );
         assert.equal(await page.textContent("#ffArrivalTime"), "—");
-        await page.click("#ffControl");
+        await flightControl(page);
         await state(page, "flying");
         assert.notEqual(
           await page.textContent("#ffArrivalTime"),
@@ -218,7 +226,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       await remember(context, "zh");
       await page.goto(base + "/tools/fun/focus-flight/");
       await board(page);
-      await page.click("#ffControl");
+      await flightControl(page);
       await state(page, "paused");
       const remaining = await page.textContent("#ffClock");
       await page.reload();
@@ -229,7 +237,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       await state(page, "paused");
       assert.equal(await page.textContent("#ffClock"), remaining);
       assert.equal(await page.textContent("#ffStateText"), "Flight paused");
-      await page.click("#ffControl");
+      await flightControl(page);
       await state(page, "flying");
     },
   );
@@ -312,6 +320,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       await board(page);
       await state(other, "flying");
       assert.equal(await other.inputValue("#ffTask"), "Shared task");
+      await showControls(other);
       await other.click("#ffControl");
       await state(page, "paused");
       await page.click("#ffEnd");
@@ -520,6 +529,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
         await page.locator("#ffRoot").getAttribute("data-phase"),
         "cruise",
       );
+      await showControls(page);
       await page.click("button[data-view=map]");
       await page.click("button[data-camera=follow]");
       await page.clock.runFor(500);
@@ -572,11 +582,163 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       );
       await state(page, "landed");
       assert.equal(await page.locator("#ffArrivalPanel").isVisible(), true);
+      assert.equal(await page.locator("#ffClock").isVisible(), false);
+      assert.equal(await page.locator("#ffDock").isVisible(), false);
       await page.click("#ffAgain");
       await state(page, "boarding");
       assert.equal(await page.locator("#ffLogList li").count(), 1);
     },
   );
+  for (const mobile of [false, true]) {
+    await run(
+      `focus flight quiet cruise, controls and settings ${mobile ? "touch" : "keyboard"}`,
+      {
+        viewport: mobile
+          ? { width: 390, height: 844 }
+          : { width: 1440, height: 1000 },
+        isMobile: mobile,
+        hasTouch: mobile,
+        reducedMotion: "reduce",
+      },
+      async (page, context) => {
+        await remember(context, "zh");
+        await page.clock.install({ time: new Date("2026-10-06T09:00:00Z") });
+        await page.clock.pauseAt(new Date("2026-10-06T09:00:01Z"));
+        await page.goto(base + "/tools/fun/focus-flight/");
+        await board(page, true);
+        await page.clock.runFor(5500);
+        assert.equal(
+          await page.locator("#ffRoot").getAttribute("data-idle"),
+          "true",
+        );
+        assert.equal(await page.locator("#ffClock").isVisible(), false);
+        assert.equal(await page.locator("#ffDock").isVisible(), false);
+        assert.equal(await page.locator("#ffPreferences").isVisible(), false);
+        assert.equal(
+          await page.locator("#ffReveal").getAttribute("aria-expanded"),
+          "false",
+        );
+        if (mobile) {
+          await page.touchscreen.tap(195, 400);
+        } else {
+          await page.mouse.move(700, 400);
+          assert.equal(
+            await page.locator("#ffRoot").getAttribute("data-idle"),
+            "true",
+            "a cursor crossing the window does not interrupt cruise",
+          );
+          await page.keyboard.press("Tab");
+          assert.equal(
+            await page
+              .locator("#ffImmersive")
+              .evaluate((el) => el === document.activeElement),
+            true,
+          );
+          await page.clock.runFor(6000);
+          assert.equal(
+            await page.locator("#ffRoot").getAttribute("data-idle"),
+            "false",
+            "keyboard-focused controls do not disappear",
+          );
+        }
+        assert.equal(await page.locator("#ffDock").isVisible(), true);
+        assert.equal(await page.locator("#ffPreferences").isVisible(), false);
+        await page.click("#ffMixer");
+        assert.equal(await page.locator("#ffPreferences").isVisible(), true);
+        await page.click('button[data-mood="night"]');
+        await page.clock.runFor(6000);
+        assert.equal(
+          await page.locator("#ffPreferences").isVisible(),
+          true,
+          "an open settings panel stays available",
+        );
+        assert.equal(
+          await page.locator("#ffRoot").getAttribute("data-mood"),
+          "night",
+        );
+        await page.keyboard.press("Escape");
+        assert.equal(await page.locator("#ffPreferences").isVisible(), false);
+        assert.equal(
+          await page.locator("#ffImmersive").getAttribute("aria-pressed"),
+          "true",
+        );
+        await page.click("#ffMixer");
+        if (mobile) await page.touchscreen.tap(195, 180);
+        else await page.mouse.click(720, 180);
+        assert.equal(
+          await page.locator("#ffPreferences").isVisible(),
+          false,
+          "tapping outside closes settings without leaving the cabin",
+        );
+        await flightControl(page);
+        await state(page, "paused");
+        await page.clock.runFor(7000);
+        assert.equal(await page.locator("#ffDock").isVisible(), true);
+        await flightControl(page);
+        await state(page, "flying");
+        await page.click("#ffReveal");
+        assert.equal(await page.locator("#ffDock").isVisible(), false);
+        await page.click("#ffReveal");
+        assert.equal(
+          await page.locator("#ffDock").isVisible(),
+          true,
+          "the visible affordance restores hidden controls",
+        );
+        await page.clock.runFor(6000);
+        assert.equal(
+          await page.locator("#ffClock").isVisible(),
+          false,
+          "pointer focus does not pin controls after resuming",
+        );
+        await page.screenshot({
+          path: join(
+            artifacts,
+            `focus-flight-quiet-${mobile ? "phone" : "desktop"}.png`,
+          ),
+        });
+        await showControls(page);
+        await page.click("button[data-view=map]");
+        await page.clock.runFor(6000);
+        assert.equal(
+          await page.locator(".ff-camera-switch").isVisible(),
+          false,
+        );
+        assert.equal(
+          await page.locator("#ffPercent").isVisible(),
+          false,
+          "quiet map mode also removes navigation and progress overlays",
+        );
+        await showControls(page);
+        assert.equal(await page.locator(".ff-camera-switch").isVisible(), true);
+        if (mobile) {
+          await page.setViewportSize({ width: 844, height: 390 });
+          const scene = await page.locator("#ffStage").boundingBox(),
+            dock = await page.locator("#ffDock").boundingBox();
+          assert.ok(
+            scene.height <= 390 && scene.y === 0,
+            "the immersive scene fits a short landscape screen",
+          );
+          assert.ok(
+            dock.y >= 0 && dock.y + dock.height <= 390,
+            "landscape controls are reachable without scrolling the cabin",
+          );
+          await page.click("#ffMixer");
+          await page.locator("#ffChime").scrollIntoViewIfNeeded();
+          assert.ok(
+            await page
+              .locator("#ffPreferences")
+              .evaluate((el) => el.scrollTop > 0),
+          );
+          assert.equal(
+            await page.locator("#ffRoot").evaluate((el) => el.scrollTop),
+            0,
+            "scrolling settings does not move the cabin",
+          );
+        }
+        await fits(page);
+      },
+    );
+  }
   await run(
     "focus flight concurrent tab boarding shares one session",
     { reducedMotion: "reduce" },

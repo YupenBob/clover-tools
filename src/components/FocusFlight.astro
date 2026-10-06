@@ -15,7 +15,7 @@ const initial = FLIGHT_ROUTES[0];
 const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
 ---
 <script type="application/json" id="ffData" set:html={payload} />
-<div class="focus-flight" id="ffRoot" data-state="boarding" data-phase="lounge" data-view="map" data-mood="dusk">
+<div class="focus-flight" id="ffRoot" tabindex="-1" role="region" aria-label={j.cabinLabel} data-state="boarding" data-phase="lounge" data-view="map" data-mood="dusk">
   <div class="ff-deck">
     <section class="ff-scene" id="ffStage" aria-labelledby="ffMapTitle">
       <div class="ff-cabin" id="ffCabin" aria-hidden="true">
@@ -23,24 +23,25 @@ const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
       </div>
       <div class="ff-map-window" id="ffMapViewport">
         <FlightMap />
-        <span class="ff-map-credit">{j.ground}</span>
-        <div class="ff-camera-switch" aria-label={j.view}><button type="button" data-camera="route" aria-pressed="true">{j.overview}</button><button type="button" data-camera="follow" aria-pressed="false">{j.follow}</button></div>
+        <span class="ff-map-credit" data-flight-chrome>{j.ground}</span>
+        <div class="ff-camera-switch" data-flight-chrome aria-label={j.view}><button type="button" data-camera="route" aria-pressed="true">{j.overview}</button><button type="button" data-camera="follow" aria-pressed="false">{j.follow}</button></div>
       </div>
-      <header class="ff-scene-head"><h2 id="ffMapTitle"><span class="ff-logo-mark">CLOVER</span><span id="ffSceneTitle">{j.lounge}</span></h2><button type="button" class="ff-icon-button" id="ffImmersive" aria-pressed="false"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>{t.immersive}</span></button></header>
-      <div class="ff-clock-panel"><span class="ff-state"><span></span><b id="ffStateText">{t.boarding}</b></span><p class="ff-clock-caption">{t.remaining}</p><div class="ff-clock mono" id="ffClock" role="timer" aria-live="off">25:00</div><p class="ff-clock-hint" id="ffClockHint">{j.welcome}</p><p class="ff-intention" id="ffActiveTask" hidden></p></div>
-      <div class="ff-scene-bottom">
+      <header class="ff-scene-head" data-flight-chrome><h2 id="ffMapTitle"><span class="ff-logo-mark">CLOVER</span><span id="ffSceneTitle">{j.lounge}</span></h2><button type="button" class="ff-icon-button" id="ffImmersive" aria-pressed="false"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>{t.immersive}</span></button></header>
+      <div class="ff-clock-panel" data-flight-chrome><span class="ff-state"><span></span><b id="ffStateText">{t.boarding}</b></span><p class="ff-clock-caption">{t.remaining}</p><div class="ff-clock mono" id="ffClock" role="timer" aria-label={t.remaining} aria-live="off">25:00</div><p class="ff-clock-hint" id="ffClockHint">{j.welcome}</p><p class="ff-intention" id="ffActiveTask" hidden></p></div>
+      <div class="ff-scene-bottom" data-flight-chrome>
         <div class="ff-route-caption"><div><span>{t.departure}</span><strong id="ffFromCity">{t.cities[0]}</strong><b class="mono" id="ffFromCode">PVG</b></div><div class="ff-route-link"><span></span><i class="bi bi-airplane" aria-hidden="true"></i><span></span></div><div class="ff-arrival-city"><span>{t.arrival}</span><strong id="ffToCity">{t.cities[1]}</strong><b class="mono" id="ffToCode">HND</b></div></div>
         <div class="ff-progress-row"><div class="ff-progress-track" id="ffProgress" role="progressbar" aria-label={t.progress} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="ffProgressFill"></span></div><span class="mono" id="ffPercent">0%</span></div>
         <div class="ff-flight-data"><span><span id="ffArrivalLabel">{t.arrivalTime}</span> <b class="mono" id="ffArrivalTime">—</b></span><span><span id="ffDistanceLabel">{j.distance}</span> <b class="mono" id="ffDistance">{Math.round(flightDistance(initial.origin,initial.destination)).toLocaleString()} km</b></span></div>
       </div>
-      <div class="ff-dock" id="ffDock" aria-label={j.flightControls}>
+      <div class="ff-dock" id="ffDock" data-flight-chrome aria-label={j.flightControls}>
         <div class="ff-view-switch" aria-label={j.view}><button type="button" data-view="window" aria-pressed="false"><i class="bi bi-eye" aria-hidden="true"></i>{j.window}</button><button type="button" data-view="map" aria-pressed="true"><i class="bi bi-map" aria-hidden="true"></i>{j.flightmap}</button></div>
         <button type="button" class="ff-dock-primary" id="ffControl" aria-label={t.pause}><i class="bi bi-pause" aria-hidden="true"></i><span>{t.pause}</span></button>
-        <button type="button" class="ff-dock-icon" id="ffMixer" aria-label={j.soundChoice} aria-expanded="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+        <button type="button" class="ff-dock-icon" id="ffMixer" aria-label={j.cabinSettings} aria-controls="ffPreferences" aria-expanded="false"><i class="bi bi-sliders" aria-hidden="true"></i></button>
         <button type="button" class="ff-dock-icon" id="ffFullscreen" aria-label={j.fullscreen}><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
         <button type="button" class="ff-dock-icon" id="ffEnd" aria-label={t.end}><i class="bi bi-x-lg" aria-hidden="true"></i></button>
       </div>
-      <button type="button" class="ff-skip" id="ffSkip" hidden>{j.skip}<span aria-hidden="true"> →</span></button>
+      <button type="button" class="ff-reveal" id="ffReveal" aria-label={j.hideControls} aria-controls="ffDock" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="ff-reveal-more" fill="currentColor"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></g><path class="ff-reveal-less" d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
+      <button type="button" class="ff-skip" id="ffSkip" data-flight-chrome hidden>{j.skip}<span aria-hidden="true"> →</span></button>
       <div class="ff-arrival-panel" id="ffArrivalPanel" hidden><span class="ff-eyebrow">JOURNEY COMPLETE</span><h2><span>{j.landingTitle}</span> <strong id="ffLandingCity">{t.cities[1]}</strong></h2><p>{j.landingHint}</p><div class="ff-paper-ticket ff-receipt-ticket" id="ffReceipt" data-torn="true" aria-label={j.receipt}></div><span class="mono ff-receipt-date" id="ffStampDate"></span><div class="ff-arrival-actions"><button type="button" class="btn" id="ffSave"><i class="bi bi-download" aria-hidden="true"></i>{t.save}</button><button type="button" class="ff-text-button" id="ffAgain">{t.again} →</button></div></div>
     </section>
     <aside class="ff-setup" id="ffSetup">
@@ -53,14 +54,14 @@ const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
       <p class="ff-local-note" id="ffLocalNote">{t.local}</p>
     </aside>
   </div>
-  <div class="ff-preferences">
+  <div class="ff-preferences" id="ffPreferences" aria-label={j.cabinSettings}>
     <div class="ff-moods" aria-label={j.atmosphere}><span>{j.atmosphere}</span>{(['day','dusk','night'] as const).map(m=><button type="button" data-mood={m} aria-pressed={m==='dusk'?'true':'false'}><span class={'ff-mood-dot '+m} aria-hidden="true"></span>{j[m]}</button>)}</div>
     <section class="ff-sound-panel" id="ffAudioPanel" aria-labelledby="ffSoundTitle"><div class="ff-sound-top"><div><h2 id="ffSoundTitle">{j.soundChoice}</h2><p>{j.ambienceHint}</p></div><button class="ff-switch" type="button" id="ffSound" role="switch" aria-checked="false" aria-labelledby="ffSoundTitle"><span></span></button></div><div class="ff-volume"><label for="ffVolume">{t.volume}</label><input id="ffVolume" type="range" min="0" max="100" value="35" /><output id="ffVolumeValue" class="mono" for="ffVolume">35%</output></div><div class="ff-audio-layers"><label>{j.engine}<input id="ffEngine" type="range" min="0" max="100" value="65" /></label><label>{j.airflow}<input id="ffAirflow" type="range" min="0" max="100" value="40" /></label></div><label class="ff-chime"><input type="checkbox" id="ffChime" />{t.chime}</label></section>
   </div>
   <p class="ff-notice" id="ffNotice" role="status" aria-live="polite"></p>
   <section class="ff-destinations" aria-labelledby="ffRoutesHeading"><div class="ff-section-title"><div><span class="ff-eyebrow">SIX LITTLE ESCAPES</span><h2 id="ffRoutesHeading">{t.routes}</h2></div><p>{t.routeHint}</p></div><div class="ff-routes" id="ffRoutes">{FLIGHT_ROUTES.map((r,i)=><button class="ff-route-choice" type="button" data-route={r.id} aria-pressed={i===0?'true':'false'}><span class="ff-choice-top"><span class="mono">{r.from}<span> → </span>{r.to}</span><span>{r.minutes} {t.minutes}</span></span><strong>{t.cities[ROUTE_CITIES[i][0]]} · {t.cities[ROUTE_CITIES[i][1]]}</strong><span class="ff-choice-mood">{t.moods[i]}</span></button>)}</div></section>
   <section class="ff-log" aria-labelledby="ffLogTitle"><div class="ff-log-header"><div><span class="ff-eyebrow">MY FLIGHT JOURNAL</span><h2 id="ffLogTitle">{t.history}</h2><p>{t.historyHint}</p></div><div class="ff-log-stats"><div><strong class="mono" id="ffToday">0<span>{t.minutes}</span></strong><span>{t.today}</span></div><div><strong class="mono" id="ffLandings">0</strong><span>{t.landings}</span></div></div></div><p class="ff-empty-log" id="ffEmptyLog">{t.empty}</p><ol class="ff-log-list" id="ffLogList"></ol><button type="button" class="ff-text-button" id="ffClear" disabled>{t.clear}</button></section>
-  <p class="ff-bottom-note">{t.note} {j.sceneNote}</p><span id="ffImmersiveHint" class="ff-immersive-hint" hidden>{t.immersiveHint}</span>
+  <p class="ff-bottom-note">{t.note} {j.sceneNote}</p><span id="ffImmersiveHint" class="ff-immersive-hint" data-flight-chrome hidden>{j.controlsHint}</span>
   <dialog class="ff-boarding-dialog" id="ffBoardingDialog" aria-labelledby="ffBoardTitle" aria-describedby="ffBoardHint">
     <header><div><span class="ff-eyebrow">NOW BOARDING · GATE C01</span><h2 id="ffBoardTitle">{j.boardingTitle}</h2><p id="ffBoardHint">{j.boardingHint}</p></div><button type="button" id="ffBoardClose" aria-label={j.boardingClose}>×</button></header>
     <FlightTicket t={t} j={j} /><p class="ff-board-footer">{j.cabinLabel}<span>FIRST CLASS FOCUS</span></p>

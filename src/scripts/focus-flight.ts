@@ -622,8 +622,9 @@ function render(force = false) {
   const phase =
     naturalPhase === "takeoff" && skippedTakeoff ? "cruise" : naturalPhase;
   if (force || lastState !== state || lastPhase !== phase) {
+    const stateChanged = lastState !== state;
     lastState = state;
-    if (state !== "flying") root.dataset.idle = "false";
+    if (stateChanged) wakeControls();
     lastPhase = phase;
     root.dataset.state = state;
     root.dataset.phase = phase;
@@ -650,6 +651,10 @@ function render(force = false) {
     byId<HTMLFieldSetElement>("ffSettings").disabled = !!session;
     byId("ffEnd").hidden = !session || state === "landed";
     byId("ffArrivalPanel").hidden = state !== "landed";
+    if (state === "landed" && immersive) {
+      setMixer(false);
+      byId("ffSave").focus({ preventScroll: true });
+    }
     byId<HTMLButtonElement>("ffSave").disabled = saving;
     byId("ffActiveTask").hidden = !session;
     text("ffActiveTask", session?.task || t.taskDefault);
@@ -697,6 +702,7 @@ function setView(value: "window" | "map") {
   view = value;
   root.dataset.view = value;
   byId("ffMapViewport").setAttribute("aria-hidden", String(value !== "map"));
+  byId<HTMLElement>("ffMapViewport").inert = value !== "map";
   document
     .querySelectorAll<HTMLButtonElement>("button[data-view]")
     .forEach((b) =>
@@ -731,14 +737,12 @@ function immersiveView(enabled: boolean) {
       element = element.parentElement;
       if (element === document.body) break;
     }
-    if (session?.state !== "landed")
-      byId("ffControl").focus({ preventScroll: true });
+    if (session?.state !== "landed") root.focus({ preventScroll: true });
     else byId("ffSave").focus({ preventScroll: true });
   } else {
     for (const [element, inert] of siblings) element.inert = inert;
     siblings.clear();
-    root.dataset.mixer = "false";
-    byId("ffMixer").setAttribute("aria-expanded", "false");
+    setMixer(false);
     if (document.fullscreenElement)
       void document.exitFullscreen().catch(() => {});
     window.scrollTo(0, scrollPosition);
@@ -751,6 +755,7 @@ function immersiveView(enabled: boolean) {
     ? t.exitImmersive
     : t.immersive;
   byId("ffImmersiveHint").hidden = !enabled;
+  wakeControls();
   resizeScene();
 }
 function reset() {
@@ -938,6 +943,10 @@ byId("ffFullscreen").addEventListener("click", () => {
     void root.requestFullscreen?.().catch(() => {});
   }
 });
+function setMixer(open: boolean) {
+  root.dataset.mixer = String(open);
+  byId("ffMixer").setAttribute("aria-expanded", String(open));
+}
 byId("ffMixer").addEventListener("click", () => {
   if (!immersive) {
     byId("ffAudioPanel").scrollIntoView({
@@ -948,14 +957,16 @@ byId("ffMixer").addEventListener("click", () => {
     return;
   }
   const open = root.dataset.mixer !== "true";
-  root.dataset.mixer = String(open);
-  byId("ffMixer").setAttribute("aria-expanded", String(open));
+  setMixer(open);
+  if (open)
+    root
+      .querySelector<HTMLButtonElement>("button[data-mood]")!
+      .focus({ preventScroll: true });
 });
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || document.querySelector("dialog[open]")) return;
   if (root.dataset.mixer === "true") {
-    root.dataset.mixer = "false";
-    byId("ffMixer").setAttribute("aria-expanded", "false");
+    setMixer(false);
     byId("ffMixer").focus();
     event.preventDefault();
   } else if (immersive) immersiveView(false);
@@ -1181,24 +1192,90 @@ function resizeScene() {
   scheduleScene();
 }
 new ResizeObserver(resizeScene).observe(byId("ffStage"));
-let idleTimer = 0;
+let idleTimer = 0,
+  keyboardNavigation = false;
+function setControlsVisible(visible: boolean) {
+  if (!visible) {
+    setMixer(false);
+    if (
+      document.activeElement instanceof HTMLElement &&
+      document.activeElement.closest("[data-flight-chrome], #ffPreferences")
+    )
+      root.focus({ preventScroll: true });
+    clearTimeout(idleTimer);
+  }
+  root.dataset.idle = String(!visible);
+  byId("ffReveal").setAttribute("aria-expanded", String(visible));
+  byId("ffReveal").setAttribute(
+    "aria-label",
+    visible ? j.hideControls : j.flightControls,
+  );
+}
 function wakeControls() {
-  root.dataset.idle = "false";
+  setControlsVisible(true);
   clearTimeout(idleTimer);
   idleTimer = window.setTimeout(() => {
     if (
       immersive &&
       session?.state === "flying" &&
       root.dataset.mixer !== "true" &&
+      !(
+        keyboardNavigation &&
+        document.activeElement instanceof HTMLElement &&
+        document.activeElement.closest("[data-flight-chrome], #ffReveal")
+      ) &&
       !document.querySelector("dialog[open]")
     )
-      root.dataset.idle = "true";
+      setControlsVisible(false);
   }, 4200);
 }
-root.addEventListener("pointermove", wakeControls, { passive: true });
-root.addEventListener("pointerdown", wakeControls, { passive: true });
-root.addEventListener("keydown", wakeControls);
+root.addEventListener(
+  "pointermove",
+  (event) => {
+    // A passing cursor should not interrupt quiet cruising. The bottom edge is
+    // the mouse affordance; a tap anywhere on the scene works on touch screens.
+    const overReveal =
+      event.target instanceof Element && event.target.closest("#ffReveal");
+    if (
+      root.dataset.idle !== "true" ||
+      (!overReveal && event.clientY > innerHeight - 100)
+    )
+      wakeControls();
+  },
+  { passive: true },
+);
+root.addEventListener(
+  "pointerdown",
+  (event) => {
+    keyboardNavigation = false;
+    if (
+      immersive &&
+      root.dataset.mixer === "true" &&
+      event.target instanceof Element &&
+      !event.target.closest("#ffPreferences, #ffMixer")
+    )
+      setMixer(false);
+    wakeControls();
+  },
+  { passive: true },
+);
+root.addEventListener("keydown", () => {
+  keyboardNavigation = true;
+  wakeControls();
+});
 root.addEventListener("focusin", wakeControls);
+root.addEventListener("focusout", wakeControls);
+let revealWasIdle = false;
+byId("ffReveal").addEventListener("pointerdown", (event) => {
+  event.stopPropagation();
+  keyboardNavigation = false;
+  revealWasIdle = root.dataset.idle === "true";
+});
+byId("ffReveal").addEventListener("click", (event) => {
+  if ((event.detail > 0 && revealWasIdle) || root.dataset.idle === "true")
+    wakeControls();
+  else if (session?.state === "flying") setControlsVisible(false);
+});
 window.addEventListener("resize", resizeScene);
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {

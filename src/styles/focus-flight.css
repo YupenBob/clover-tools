@@ -57,15 +57,8 @@
 .ff-immersive .ff-arrival-panel {
   width: 550px;
 }
-.ff-immersive .focus-flight[data-idle="true"] .ff-dock {
-  opacity: 0.28;
-}
-.ff-immersive .ff-dock {
-  transition: opacity 0.7s;
-}
-.ff-immersive .ff-dock:hover,
-.ff-immersive .ff-dock:has(:focus-visible) {
-  opacity: 1 !important;
+.ff-reveal {
+  display: none;
 }
 .focus-flight[data-view="map"] .ff-cabin-art * {
   animation-play-state: paused;
@@ -1493,6 +1486,7 @@ html.ff-immersive {
   width: 100%;
   height: 100svh;
   max-width: none;
+  outline: none;
 }
 .ff-immersive .ff-deck {
   height: 100%;
@@ -1503,6 +1497,7 @@ html.ff-immersive {
 .ff-immersive .ff-scene,
 .ff-immersive .focus-flight:not([data-state="boarding"]) .ff-scene {
   height: 100%;
+  min-height: 0;
 }
 .ff-immersive .ff-setup,
 .ff-immersive .ff-destinations,
@@ -1515,30 +1510,56 @@ html.ff-immersive {
   top: max(32px, env(safe-area-inset-top));
   left: 5vw;
   right: 5vw;
+  justify-content: flex-end;
+}
+.ff-immersive .ff-scene-head h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 .ff-immersive .ff-clock-panel {
-  top: 27%;
-  left: 10vw;
+  top: max(32px, env(safe-area-inset-top));
+  left: 5vw;
+  max-width: 45%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .ff-immersive .ff-clock {
-  font-size: clamp(84px, 9vw, 160px);
-  letter-spacing: -8px;
+  order: -1;
+  font-size: 32px;
+  letter-spacing: -1px;
+  font-weight: 300;
+  color: #e5e9df;
 }
-.ff-immersive .ff-clock-hint {
-  font-size: 13px;
-  max-width: 300px;
+.ff-immersive .ff-state {
+  font-size: 10px;
+  color: #aab9ae;
+}
+.ff-immersive .ff-clock-caption,
+.ff-immersive .ff-clock-hint,
+.ff-immersive .ff-intention {
+  display: none;
 }
 .ff-immersive .ff-scene-bottom {
-  left: 10vw;
-  right: 10vw;
-  bottom: 125px;
-  max-width: 540px;
+  display: none;
+  left: 5vw;
+  right: auto;
+  bottom: 145px;
+  width: min(360px, 90vw);
+}
+.ff-immersive
+  .focus-flight[data-view="map"]:not([data-state="landed"])
+  .ff-scene-bottom {
+  display: block;
 }
 .ff-immersive .ff-dock {
   left: 50%;
   right: auto;
   transform: translateX(-50%);
-  bottom: max(35px, env(safe-area-inset-bottom));
+  bottom: max(70px, calc(env(safe-area-inset-bottom) + 54px));
   width: max-content;
   background: #0b1a20b0;
   border: 1px solid #ffffff19;
@@ -1551,19 +1572,38 @@ html.ff-immersive {
   margin-right: 12px;
 }
 .ff-immersive .ff-preferences {
-  position: absolute;
+  position: fixed;
   z-index: 6;
-  right: 5vw;
-  top: 95px;
+  left: 50%;
+  right: auto;
+  top: auto;
+  bottom: 145px;
+  transform: translateX(-50%);
+  width: min(360px, calc(100% - 32px));
+  max-height: calc(100svh - 245px);
+  overflow-y: auto;
   margin: 0;
+  padding: 20px;
+  display: none;
+  background: #14252ef5;
+  color: #aabdaf;
+  border: 1px solid #d8e9d321;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px #0003;
+}
+.ff-immersive .focus-flight[data-mixer="true"] .ff-preferences {
   display: block;
 }
 .ff-immersive .ff-moods {
-  padding: 0;
-  justify-content: flex-end;
+  padding: 0 0 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #ffffff16;
+  justify-content: flex-start;
 }
 .ff-immersive .ff-moods > span {
-  display: none;
+  flex-basis: 100%;
+  margin: 0 0 5px;
+  color: #c1cdbd;
 }
 .ff-immersive .ff-moods button {
   color: #c1cdbd;
@@ -1576,17 +1616,13 @@ html.ff-immersive {
   border-color: #e1d3ae50;
 }
 .ff-immersive .ff-sound-panel {
-  display: none;
-  position: fixed;
-  right: 5vw;
-  bottom: 110px;
-  background: #14252ef5;
-  color: #aabdaf;
-  border-color: #d8e9d321;
-  box-shadow: 0 10px 40px #0003;
-}
-.ff-immersive .focus-flight[data-mixer="true"] .ff-sound-panel {
   display: block;
+  position: static;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  color: #aabdaf;
+  border: 0;
 }
 .ff-immersive .ff-sound-top h2 {
   color: #e6e6d3;
@@ -1596,9 +1632,11 @@ html.ff-immersive {
 }
 .ff-immersive-hint {
   position: absolute;
-  bottom: 12px;
-  right: 28px;
-  font-size: 8px;
+  bottom: 128px;
+  right: 0;
+  left: 0;
+  text-align: center;
+  font-size: 9px;
   color: #82978c;
   z-index: 2;
 }
@@ -1613,12 +1651,83 @@ html.ff-immersive {
   animation: none;
 }
 .ff-immersive .ff-map-credit {
-  bottom: 125px;
+  bottom: 32px;
   right: 5vw;
 }
 .ff-immersive .ff-camera-switch {
-  top: 150px;
+  top: 95px;
   right: 5vw;
+}
+/* Quiet cruise is the resting state. Only deliberate interaction brings the
+   interface back; fading whole groups also removes their hidden tab stops. */
+.ff-immersive [data-flight-chrome] {
+  transition:
+    opacity 0.3s ease,
+    visibility 0.3s;
+}
+.ff-immersive .focus-flight[data-idle="true"] [data-flight-chrome] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.7s ease,
+    visibility 0.7s;
+}
+.ff-immersive .ff-reveal {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #d2ddd4;
+  opacity: 0.55;
+  font-size: 17px;
+  transition: opacity 0.3s;
+}
+.ff-immersive .ff-reveal svg {
+  width: 20px;
+  height: 20px;
+}
+.ff-immersive .ff-reveal-more,
+.ff-immersive .focus-flight[data-idle="true"] .ff-reveal-less {
+  display: none;
+}
+.ff-immersive .focus-flight[data-idle="true"] .ff-reveal {
+  opacity: 0.25;
+}
+.ff-immersive .focus-flight[data-idle="true"] .ff-reveal-more {
+  display: block;
+}
+.ff-immersive .focus-flight .ff-reveal:hover,
+.ff-immersive .focus-flight .ff-reveal:focus-visible {
+  opacity: 1;
+  background: #ffffff0b;
+}
+.ff-immersive .focus-flight[data-state="paused"] .ff-reveal,
+.ff-immersive .focus-flight[data-state="landed"] .ff-reveal,
+.ff-immersive .focus-flight[data-state="landed"] .ff-clock-panel,
+.ff-immersive .focus-flight[data-state="landed"] .ff-dock,
+.ff-immersive .focus-flight[data-state="landed"] .ff-camera-switch,
+.ff-immersive .focus-flight[data-state="landed"] .ff-map-credit,
+.ff-immersive .focus-flight[data-state="landed"] .ff-immersive-hint {
+  display: none;
+}
+.ff-immersive .ff-scene::after {
+  background: linear-gradient(
+    0deg,
+    #08111850,
+    transparent 22%,
+    transparent 85%,
+    #07101930
+  );
 }
 @keyframes ff-cloud-drift {
   from {
@@ -2063,23 +2172,23 @@ html.ff-immersive {
     top: max(22px, env(safe-area-inset-top));
   }
   .ff-immersive .ff-clock-panel {
-    left: 0;
-    right: 0;
-    top: 115px;
-    max-width: none;
-    text-align: center;
+    left: 26px;
+    right: auto;
+    top: max(26px, env(safe-area-inset-top));
+    max-width: 45%;
+    text-align: left;
     pointer-events: none;
   }
   .ff-immersive .ff-state {
-    justify-content: center;
+    justify-content: flex-start;
   }
   .ff-immersive .ff-clock-caption {
     display: none;
   }
   .ff-immersive .ff-clock {
-    font-size: 72px;
-    letter-spacing: -5px;
-    margin-top: 14px;
+    font-size: 28px;
+    letter-spacing: -1px;
+    margin-top: 0;
   }
   .ff-immersive .ff-clock-hint {
     font-size: 10px;
@@ -2094,62 +2203,61 @@ html.ff-immersive {
     font-size: 11px;
   }
   .ff-immersive .ff-cabin-art {
-    opacity: 0.85;
+    opacity: 1;
   }
   .ff-immersive .ff-scene::after {
     background: linear-gradient(
       0deg,
-      #071117 0%,
-      transparent 35%,
-      #0b151c44 65%,
-      #0a151cc0 100%
+      #07111760,
+      transparent 28%,
+      transparent 85%,
+      #0a151c35
     );
   }
   .ff-immersive .ff-scene-bottom {
     left: 26px;
     right: 26px;
-    bottom: 124px;
+    bottom: 150px;
+    width: auto;
   }
   .ff-immersive .ff-dock {
     width: calc(100% - 32px);
     max-width: 420px;
     gap: 3px;
     padding: 7px;
-    bottom: max(33px, env(safe-area-inset-bottom));
+    bottom: max(70px, calc(env(safe-area-inset-bottom) + 54px));
   }
   .ff-immersive .ff-dock .ff-view-switch {
     margin-right: auto;
   }
   .ff-immersive .ff-preferences {
-    top: 75px;
-    right: 18px;
-    left: 18px;
+    top: auto;
+    right: auto;
+    left: 50%;
   }
   .ff-immersive .ff-moods {
-    justify-content: center;
+    justify-content: flex-start;
   }
   .ff-immersive .ff-moods button {
     font-size: 8px;
     padding: 5px 9px;
   }
   .ff-immersive .ff-sound-panel {
-    right: 16px;
-    bottom: 100px;
-    width: calc(100% - 32px);
-    max-width: 400px;
+    width: 100%;
   }
   .ff-immersive .ff-map-credit {
-    bottom: 210px;
+    bottom: 26px;
     right: 18px;
   }
   .ff-immersive .ff-camera-switch {
-    top: 270px;
+    top: 95px;
     right: 18px;
   }
   .ff-immersive-hint {
-    font-size: 7px;
+    font-size: 8px;
     right: 16px;
-    bottom: 12px;
+    left: 16px;
+    bottom: 128px;
   }
   .ff-immersive .ff-arrival-panel {
     padding: 36px 20px;
@@ -2162,10 +2270,10 @@ html.ff-immersive {
 }
 @media (max-height: 620px) and (min-width: 761px) {
   .ff-immersive .ff-clock-panel {
-    top: 23%;
+    top: 24px;
   }
   .ff-immersive .ff-clock {
-    font-size: 80px;
+    font-size: 28px;
   }
   .ff-immersive .ff-clock-caption {
     margin-top: 15px;
@@ -2177,10 +2285,11 @@ html.ff-immersive {
     padding-top: 8px;
   }
   .ff-immersive .ff-scene-bottom {
-    bottom: 100px;
+    bottom: 140px;
   }
   .ff-immersive .ff-preferences {
-    top: 70px;
+    top: auto;
+    max-height: calc(100svh - 190px);
   }
   .ff-immersive .ff-arrival-panel {
     padding: 25px;
