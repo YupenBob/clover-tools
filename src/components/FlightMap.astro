@@ -2,20 +2,20 @@
 import geography from '../lib/flight-geography.json';
 import { FLIGHT_ROUTES, mapPoint, routeGeometry } from '../lib/focus-flight';
 const g = routeGeometry(FLIGHT_ROUTES[0].id);
-const grid = [90,100,110,120,130,140,150].map(lon=>'M'+mapPoint([lon,55]).join(',')+'L'+mapPoint([lon,-10]).join(',')).join('')+[0,10,20,30,40,50].map(lat=>'M'+mapPoint([85,lat]).join(',')+'L'+mapPoint([155,lat]).join(',')).join('');
+const grid = [80,90,100,110,120,130,140,150,160].map(lon=>'M'+mapPoint([lon,60]).join(',')+'L'+mapPoint([lon,-35]).join(',')).join('')+[-30,-20,-10,0,10,20,30,40,50,60].map(lat=>'M'+mapPoint([80,lat]).join(',')+'L'+mapPoint([160,lat]).join(',')).join('');
 const seas = [{name:'PACIFIC OCEAN',at:[148,27]},{name:'SOUTH CHINA SEA',at:[114,12]},{name:'EAST CHINA SEA',at:[127,28]},{name:'SEA OF JAPAN',at:[135,40]}];
 ---
 <!-- The coastline is composited independently, so moving the plane never repaints it. -->
 <div class="ff-geography" id="ffGeographyLayer" data-width={geography.width} data-height={geography.height} aria-hidden="true">
 <svg id="ffGeographySvg" viewBox="240 230 460 285" preserveAspectRatio="xMidYMid slice">
   <defs>
-    <linearGradient id="fmLand" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#355655"/><stop offset=".5" stop-color="#233f41"/><stop offset="1" stop-color="#162d33"/></linearGradient>
+    <linearGradient id="fmLand" x1="0" y1="0" x2="1" y2="1"><stop class="ff-map-land-top"/><stop offset="1" class="ff-map-land-bottom"/></linearGradient>
     <linearGradient id="fmRelief" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#849b79" stop-opacity=".09"/><stop offset="1" stop-color="#8ba594" stop-opacity=".025"/></linearGradient>
   </defs>
-  <path d={geography.land} fill="url(#fmLand)" fill-rule="evenodd" stroke="#8ab1aa" stroke-opacity=".32" stroke-width=".55"/>
-  <path d={geography.regions} fill="url(#fmRelief)" stroke="#87a39b" stroke-opacity=".09" stroke-width=".6"/>
-  <path d={geography.lakes} fill="#142f3c" fill-rule="evenodd" stroke="#84b9b1" stroke-opacity=".1" stroke-width=".3"/>
-  <path d={grid} fill="none" stroke="#85c0c2" stroke-opacity=".07" stroke-width=".4"/>
+  <path class="ff-map-land" d={geography.land} fill="url(#fmLand)" fill-rule="evenodd" stroke-opacity=".35" stroke-width=".7" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  <path d={geography.regions} fill="url(#fmRelief)" stroke="#87a39b" stroke-opacity=".09" stroke-width=".6" vector-effect="non-scaling-stroke"/>
+  <path class="ff-map-lakes" d={geography.lakes} fill-rule="evenodd" stroke="#84b9b1" stroke-opacity=".1" stroke-width=".3" vector-effect="non-scaling-stroke"/>
+  <path d={grid} fill="none" stroke="#85c0c2" stroke-opacity=".06" stroke-width=".5" vector-effect="non-scaling-stroke"/>
   <g class="ff-sea-labels" fill="#6e939d" font-size="6" letter-spacing="1.7" text-anchor="middle" opacity=".5">{seas.map(s=><text x={mapPoint(s.at)[0]} y={mapPoint(s.at)[1]}>{s.name}</text>)}</g>
 </svg>
 </div>

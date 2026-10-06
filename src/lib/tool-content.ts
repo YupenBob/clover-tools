@@ -30,9 +30,9 @@ export interface ToolContent {
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
   'focus-flight': {
-    usage: '选择航线、任务和 1–180 分钟时长，领取登机牌，撕下副票后登机。进入 SVG 舷窗客舱，经历起飞、巡航和抵达；可切换真实地理航图，选择晴空、日落或夜航，分别调整引擎与气流。支持暂停续航、刷新恢复，抵达后保存盖章 PNG 登机牌。最近 20 次完成航程保存在此浏览器，可随时清空。',
+    usage: '从 38 座机场选择出发与抵达，设定任务和 1–180 分钟时长，选择有声或安静登机。领取登机牌，撕下副票后进入 SVG 舷窗客舱，看远近云层持续掠过。真实地理航图提供全程、跟随与机头朝上的导航视角，可选择晴空、日落或夜航。轻触画面唤回操作，调整引擎与气流，暂停续航；刷新可以恢复计时。抵达后保存盖章 PNG 登机牌，最近 20 次完成航程保存在此浏览器，可随时清空。',
     features: [
-      { icon: 'bi-airplane', text: '真实地理航图、六条航线与撕票登机' },
+      { icon: 'bi-airplane', text: '38 座机场、导航航图与撕票登机' },
       { icon: 'bi-clock', text: '1–180 分钟、暂停续航与刷新恢复' },
       { icon: 'bi-volume-up', text: 'SVG 舷窗、三种光线与分层客舱声场' },
       { icon: 'bi-download', text: '落地纪念卡与本地飞行日志' },

@@ -81,6 +81,11 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
         await page.goto(base + localizedPath("/tools/fun/focus-flight/", lang));
         await fits(page);
         assert.equal(await page.locator("[data-route]").count(), 6);
+        assert.equal(await page.locator("#ffOriginSelect option").count(), 38);
+        assert.equal(
+          await page.locator("#ffDestinationSelect option").count(),
+          38,
+        );
         await page.locator('[data-route="hongkong-singapore"]').click();
         assert.equal(await page.inputValue("#ffMinutes"), "60");
         assert.equal(await page.textContent("#ffToCode"), "SIN");
@@ -536,6 +541,7 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       await page.clock.pauseAt(new Date("2026-10-05T09:00:01Z"));
       await page.goto(base + "/en/tools/fun/focus-flight/");
       await page.fill("#ffMinutes", "1");
+      await page.locator("#ffBoardSound").uncheck();
       assert.equal(
         await page.locator("#ffRouteProgress").getAttribute("d"),
         "",
@@ -548,6 +554,13 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       assert.equal(
         await page.locator("#ffSound").getAttribute("aria-checked"),
         "false",
+      );
+      assert.equal(
+        await page
+          .locator(".ff-cloud-flow")
+          .evaluate((node) => getComputedStyle(node).animationName),
+        "none",
+        "reduced motion disables continuous clouds",
       );
       const deadline = await page.evaluate(
         (key) => JSON.parse(localStorage.getItem(key)).deadline,
@@ -797,6 +810,288 @@ export async function runFocusFlightChecks({ run, remember, base, artifacts }) {
       assert.equal(a.id, b.id);
       assert.equal(await page.locator("#ffLogList li").count(), 0);
       await other.close();
+    },
+  );
+  for (const lang of ["zh", "en"])
+    await run(
+      `focus flight custom airports, swap, restore and arrival ${lang}`,
+      { reducedMotion: "reduce" },
+      async (page, context) => {
+        await remember(context, lang);
+        await page.clock.install({ time: new Date("2026-10-05T09:00:00Z") });
+        await page.clock.pauseAt(new Date("2026-10-05T09:00:01Z"));
+        await page.goto(base + localizedPath("/tools/fun/focus-flight/", lang));
+        await page.selectOption("#ffOriginSelect", "KIX");
+        await page.selectOption("#ffDestinationSelect", "DPS");
+        await page.fill("#ffMinutes", "1");
+        await page.click("#ffSwapAirports");
+        assert.equal(await page.textContent("#ffFromCode"), "DPS");
+        assert.equal(await page.textContent("#ffToCode"), "KIX");
+        assert.equal(
+          await page.inputValue("#ffMinutes"),
+          "1",
+          "airport choices preserve the chosen focus duration",
+        );
+        assert.equal(
+          await page
+            .locator("#ffDestinationSelect option[value=DPS]")
+            .isDisabled(),
+          true,
+        );
+        await page.locator("#ffBoardSound").uncheck();
+        await board(page, true);
+        assert.equal(await page.textContent("#ffPaperFrom"), "DPS");
+        await flightControl(page);
+        await state(page, "paused");
+        await page.reload();
+        await state(page, "paused");
+        assert.equal(await page.inputValue("#ffOriginSelect"), "DPS");
+        assert.equal(await page.inputValue("#ffDestinationSelect"), "KIX");
+        assert.equal(await page.locator("#ffOriginSelect").isDisabled(), true);
+        await flightControl(page);
+        await page.clock.fastForward(60000);
+        await state(page, "landed");
+        assert.equal(await page.locator("#ffLogList li").count(), 1);
+        assert.ok(
+          (await page.textContent("#ffLogList")).includes(
+            lang === "zh" ? "巴厘岛" : "Bali",
+          ),
+        );
+        const pending = page.waitForEvent("download");
+        await page.click("#ffSave");
+        const download = await pending;
+        assert.equal(await download.failure(), null);
+        await download.saveAs(
+          join(artifacts, `focus-flight-custom-${lang}.png`),
+        );
+        await page.reload();
+        await state(page, "landed");
+        assert.equal(await page.locator("#ffLogList li").count(), 1);
+      },
+    );
+  for (const mobile of [false, true])
+    await run(
+      `focus flight heading up geography and upright labels ${mobile ? "phone" : "desktop"}`,
+      {
+        viewport: mobile
+          ? { width: 390, height: 844 }
+          : { width: 1440, height: 1000 },
+        isMobile: mobile,
+        hasTouch: mobile,
+        reducedMotion: "reduce",
+      },
+      async (page, context) => {
+        await remember(context, "en");
+        await page.clock.install({ time: new Date("2026-10-05T09:00:00Z") });
+        await page.clock.pauseAt(new Date("2026-10-05T09:00:01Z"));
+        await page.goto(base + "/en/tools/fun/focus-flight/");
+        await page.selectOption("#ffOriginSelect", "CTS");
+        await page.selectOption("#ffDestinationSelect", "DPS");
+        await page.fill("#ffMinutes", "1");
+        await page.locator("#ffBoardSound").uncheck();
+        await board(page, true);
+        await page.click("button[data-view=map]");
+        await page.click("button[data-camera=navigation]");
+        const deadline = await page.evaluate(
+          (key) => JSON.parse(localStorage.getItem(key)).deadline,
+          FLIGHT_STORAGE.active,
+        );
+        for (const elapsed of [3000, 30000, 55000]) {
+          await page.clock.fastForward(
+            Math.max(
+              0,
+              deadline -
+                60000 +
+                elapsed -
+                (await page.evaluate(() => Date.now())),
+            ),
+          );
+          await page.clock.runFor(100);
+          const pose = await page.evaluate(() => {
+            const plane = document.querySelector("#ffPlane").getScreenCTM();
+            const center = new DOMPoint(0, 0).matrixTransform(plane),
+              nose = new DOMPoint(19, 0).matrixTransform(plane);
+            const ground = document
+                .querySelector("#ffGeographySvg")
+                .getScreenCTM(),
+              overlay = document.querySelector("#ffMapSvg").getScreenCTM();
+            const registration = Math.max(
+              ...["ffOriginDot", "ffDestinationDot"].map((id) => {
+                const dot = document.getElementById(id),
+                  p = new DOMPoint(dot.cx.baseVal.value, dot.cy.baseVal.value),
+                  a = p.matrixTransform(ground),
+                  b = p.matrixTransform(overlay);
+                return Math.hypot(a.x - b.x, a.y - b.y);
+              }),
+            );
+            const labels = ["ffOriginLabel", "ffDestinationLabel"].map((id) => {
+              const m = document.getElementById(id).getScreenCTM();
+              return Math.atan2(m.b, m.a);
+            });
+            return {
+              dx: nose.x - center.x,
+              dy: nose.y - center.y,
+              registration,
+              labels,
+              x: center.x / innerWidth,
+              y: center.y / innerHeight,
+            };
+          });
+          assert.ok(
+            Math.abs(pose.dx) < 0.02 && pose.dy < -1,
+            "aircraft points toward screen top",
+          );
+          assert.ok(
+            pose.registration < 0.05,
+            "rotated terrain remains registered with the airports",
+          );
+          assert.ok(
+            pose.labels.every((a) => Math.abs(a) < 0.001),
+            "airport text stays upright",
+          );
+          assert.ok(
+            Math.abs(pose.x - 0.5) < 0.001 && Math.abs(pose.y - 0.64) < 0.001,
+            "navigation reserves the view ahead of the aircraft",
+          );
+        }
+        await showControls(page);
+        await page.screenshot({
+          path: join(
+            artifacts,
+            `focus-flight-navigation-${mobile ? "phone" : "desktop"}.png`,
+          ),
+        });
+        await page.click("button[data-camera=route]");
+        await page.clock.runFor(150);
+        assert.ok(
+          await page.evaluate(
+            () =>
+              Math.abs(
+                new DOMMatrix(
+                  getComputedStyle(document.querySelector("#ffMapWorld"))
+                    .transform,
+                ).b,
+              ) < 0.001,
+          ),
+          "overview restores north-up orientation",
+        );
+      },
+    );
+  await run(
+    "focus flight audible boarding, continuous clouds, pause and mute",
+    {},
+    async (page, context) => {
+      await remember(context, "zh");
+      await context.addInitScript(() => {
+        const Original = window.AudioContext;
+        window.AudioContext = class extends Original {
+          constructor(...args) {
+            super(...args);
+            window.__flightAudio = this;
+            window.__flightAnalyser = this.createAnalyser();
+            window.__flightAnalyser.connect(this.destination);
+          }
+        };
+        const connect = AudioNode.prototype.connect;
+        AudioNode.prototype.connect = function (destination, ...args) {
+          if (
+            window.__flightAudio &&
+            destination === window.__flightAudio.destination &&
+            this !== window.__flightAnalyser
+          )
+            return connect.call(this, window.__flightAnalyser, ...args);
+          return connect.call(this, destination, ...args);
+        };
+      });
+      await page.goto(base + "/tools/fun/focus-flight/");
+      assert.equal(
+        await page.evaluate(() => !!window.__flightAudio),
+        false,
+        "page load does not start audio",
+      );
+      assert.equal(await page.locator("#ffBoardSound").isChecked(), true);
+      await board(page);
+      await page.waitForFunction(
+        () => window.__flightAudio?.state === "running",
+      );
+      await page.waitForTimeout(1700);
+      const rms = await page.evaluate(() => {
+        const data = new Float32Array(2048);
+        window.__flightAnalyser.getFloatTimeDomainData(data);
+        return Math.sqrt(data.reduce((sum, v) => sum + v * v, 0) / data.length);
+      });
+      assert.ok(
+        rms > 0.008 && rms < 0.25,
+        `audible cabin with bounded level: ${rms}`,
+      );
+      const transform = () =>
+        page
+          .locator(".ff-cloud-flow")
+          .evaluate((node) => getComputedStyle(node).transform);
+      const first = await transform();
+      await page.waitForTimeout(700);
+      assert.notEqual(
+        await transform(),
+        first,
+        "clouds visibly move during the flight",
+      );
+      await flightControl(page);
+      await state(page, "paused");
+      const stopped = await transform();
+      await page.waitForTimeout(500);
+      assert.equal(await transform(), stopped, "pausing freezes cloud motion");
+      await flightControl(page);
+      await page.click("#ffMixer");
+      for (const id of ["ffVolume", "ffEngine", "ffAirflow"])
+        await page.locator("#" + id).fill("100");
+      await page.waitForTimeout(2200);
+      const maximum = await page.evaluate(
+        () =>
+          new Promise((resolve) => {
+            let peak = 0,
+              n = 0;
+            const timer = setInterval(() => {
+              const data = new Float32Array(2048);
+              window.__flightAnalyser.getFloatTimeDomainData(data);
+              peak = Math.max(peak, ...data.map(Math.abs));
+              if (++n === 15) {
+                clearInterval(timer);
+                resolve(peak);
+              }
+            }, 100);
+          }),
+      );
+      assert.ok(
+        maximum > 0.05 && maximum < 0.95,
+        `full-volume engine and airflow stay below clipping: ${maximum}`,
+      );
+      await page.click("#ffSound");
+      assert.equal(
+        await page.locator("#ffSound").getAttribute("aria-checked"),
+        "false",
+      );
+      await page.waitForFunction(() => {
+        const data = new Float32Array(2048);
+        window.__flightAnalyser.getFloatTimeDomainData(data);
+        return Math.max(...data.map(Math.abs)) < 0.0001;
+      });
+      const muted = await page.evaluate(() => {
+        const data = new Float32Array(2048);
+        window.__flightAnalyser.getFloatTimeDomainData(data);
+        return Math.max(...data.map(Math.abs));
+      });
+      assert.ok(muted < 0.0001, "mute silences the actual output");
+      await page.reload();
+      assert.equal(
+        await page.locator("#ffBoardSound").isChecked(),
+        false,
+        "quiet preference persists",
+      );
+      assert.equal(
+        await page.evaluate(() => !!window.__flightAudio),
+        false,
+        "restoring a flight never autoplays",
+      );
     },
   );
   await run(

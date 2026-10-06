@@ -1,6 +1,7 @@
 ---
 import type { Lang } from '../lib/i18n';
 import { FLIGHT_ROUTES, ROUTE_CITIES } from '../lib/focus-flight';
+import { airportChoices } from '../lib/flight-airports';
 import { flightDistance } from '../lib/flight-experience';
 import { flightText } from '../lib/focus-flight-i18n';
 import { journeyText } from '../lib/flight-journey-i18n';
@@ -12,7 +13,8 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = flightText(lang), j = journeyText(lang);
 const initial = FLIGHT_ROUTES[0];
-const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
+const airports = airportChoices(lang);
+const payload = JSON.stringify({lang,copy:t,journey:j,airports}).replace(/</g,'\\u003c');
 ---
 <script type="application/json" id="ffData" set:html={payload} />
 <div class="focus-flight" id="ffRoot" tabindex="-1" role="region" aria-label={j.cabinLabel} data-state="boarding" data-phase="lounge" data-view="map" data-mood="dusk">
@@ -22,9 +24,9 @@ const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
         <FlightCabin />
       </div>
       <div class="ff-map-window" id="ffMapViewport">
-        <FlightMap />
+        <div class="ff-map-world" id="ffMapWorld"><FlightMap /></div>
         <span class="ff-map-credit" data-flight-chrome>{j.ground}</span>
-        <div class="ff-camera-switch" data-flight-chrome aria-label={j.view}><button type="button" data-camera="route" aria-pressed="true">{j.overview}</button><button type="button" data-camera="follow" aria-pressed="false">{j.follow}</button></div>
+        <div class="ff-camera-switch" data-flight-chrome aria-label={j.view}><button type="button" data-camera="route" aria-pressed="true">{j.overview}</button><button type="button" data-camera="follow" aria-pressed="false">{j.follow}</button><button type="button" data-camera="navigation" aria-pressed="false">{j.navigation}</button></div>
       </div>
       <header class="ff-scene-head" data-flight-chrome><h2 id="ffMapTitle"><span class="ff-logo-mark">CLOVER</span><span id="ffSceneTitle">{j.lounge}</span></h2><button type="button" class="ff-icon-button" id="ffImmersive" aria-pressed="false"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span>{t.immersive}</span></button></header>
       <div class="ff-clock-panel" data-flight-chrome><span class="ff-state"><span></span><b id="ffStateText">{t.boarding}</b></span><p class="ff-clock-caption">{t.remaining}</p><div class="ff-clock mono" id="ffClock" role="timer" aria-label={t.remaining} aria-live="off">25:00</div><p class="ff-clock-hint" id="ffClockHint">{j.welcome}</p><p class="ff-intention" id="ffActiveTask" hidden></p></div>
@@ -48,9 +50,10 @@ const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
       <div class="ff-setup-head"><span class="ff-eyebrow">YOUR NEXT DEPARTURE</span><h2>{j.welcome}</h2><span class="ff-seat-tag">{j.cabinLabel}</span></div>
       <form id="ffForm" novalidate><fieldset id="ffSettings">
         <div class="ff-field"><label for="ffRouteSelect">{t.route}</label><select class="select" id="ffRouteSelect">{FLIGHT_ROUTES.map((r,i)=><option value={r.id}>{t.cities[ROUTE_CITIES[i][0]]} → {t.cities[ROUTE_CITIES[i][1]]}</option>)}</select></div>
+        <div class="ff-airports"><div class="ff-field"><label for="ffOriginSelect">{t.departure}</label><select class="select" id="ffOriginSelect">{airports.map(a=><option value={a.code} selected={a.code===initial.from}>{a.code} · {a.label}</option>)}</select></div><button type="button" id="ffSwapAirports" aria-label={j.swapAirports}><i class="bi bi-arrow-left-right" aria-hidden="true"></i></button><div class="ff-field"><label for="ffDestinationSelect">{t.arrival}</label><select class="select" id="ffDestinationSelect">{airports.map(a=><option value={a.code} selected={a.code===initial.to} disabled={a.code===initial.from}>{a.code} · {a.label}</option>)}</select></div></div><p class="ff-helper ff-airport-hint">{j.airports}</p>
         <div class="ff-field"><label for="ffTask">{t.task}</label><input class="input" id="ffTask" type="text" maxlength="80" placeholder={t.taskPlaceholder} autocomplete="off" /></div>
         <div class="ff-field"><label for="ffMinutes">{t.duration}</label><div class="ff-duration-options">{[25,45,60,90].map((m,i)=><button type="button" data-minutes={m} aria-pressed={i===0?'true':'false'}>{m}<span>{t.minutes}</span></button>)}</div><div class="ff-custom-duration"><span>{t.custom}</span><input class="input mono" id="ffMinutes" type="number" value="25" min="1" max="180" step="1" aria-describedby="ffDurationHint ffValidation" /><span>{t.minutes}</span></div><p class="ff-helper" id="ffDurationHint">{t.durationHint}</p><p class="ff-validation" id="ffValidation" role="alert" hidden></p></div>
-      </fieldset><button class="btn ff-prepare" type="submit" id="ffPrimary"><i class="bi bi-ticket-perforated" aria-hidden="true"></i><span>{j.prepare}</span><span aria-hidden="true">↗</span></button></form>
+      </fieldset><label class="ff-board-sound"><input type="checkbox" id="ffBoardSound" checked /><i class="bi bi-soundwave" aria-hidden="true"></i><span>{j.soundOn}</span><small aria-hidden="true">{j.soundOff}</small></label><button class="btn ff-prepare" type="submit" id="ffPrimary"><i class="bi bi-ticket-perforated" aria-hidden="true"></i><span>{j.prepare}</span><span aria-hidden="true">↗</span></button></form>
       <p class="ff-local-note" id="ffLocalNote">{t.local}</p>
     </aside>
   </div>
@@ -59,7 +62,7 @@ const payload = JSON.stringify({lang,copy:t,journey:j}).replace(/</g,'\\u003c');
     <section class="ff-sound-panel" id="ffAudioPanel" aria-labelledby="ffSoundTitle"><div class="ff-sound-top"><div><h2 id="ffSoundTitle">{j.soundChoice}</h2><p>{j.ambienceHint}</p></div><button class="ff-switch" type="button" id="ffSound" role="switch" aria-checked="false" aria-labelledby="ffSoundTitle"><span></span></button></div><div class="ff-volume"><label for="ffVolume">{t.volume}</label><input id="ffVolume" type="range" min="0" max="100" value="35" /><output id="ffVolumeValue" class="mono" for="ffVolume">35%</output></div><div class="ff-audio-layers"><label>{j.engine}<input id="ffEngine" type="range" min="0" max="100" value="65" /></label><label>{j.airflow}<input id="ffAirflow" type="range" min="0" max="100" value="40" /></label></div><label class="ff-chime"><input type="checkbox" id="ffChime" />{t.chime}</label></section>
   </div>
   <p class="ff-notice" id="ffNotice" role="status" aria-live="polite"></p>
-  <section class="ff-destinations" aria-labelledby="ffRoutesHeading"><div class="ff-section-title"><div><span class="ff-eyebrow">SIX LITTLE ESCAPES</span><h2 id="ffRoutesHeading">{t.routes}</h2></div><p>{t.routeHint}</p></div><div class="ff-routes" id="ffRoutes">{FLIGHT_ROUTES.map((r,i)=><button class="ff-route-choice" type="button" data-route={r.id} aria-pressed={i===0?'true':'false'}><span class="ff-choice-top"><span class="mono">{r.from}<span> → </span>{r.to}</span><span>{r.minutes} {t.minutes}</span></span><strong>{t.cities[ROUTE_CITIES[i][0]]} · {t.cities[ROUTE_CITIES[i][1]]}</strong><span class="ff-choice-mood">{t.moods[i]}</span></button>)}</div></section>
+  <section class="ff-destinations" aria-labelledby="ffRoutesHeading"><div class="ff-section-title"><div><span class="ff-eyebrow">A FEW LITTLE ESCAPES</span><h2 id="ffRoutesHeading">{t.routes}</h2></div><p>{t.routeHint}</p></div><div class="ff-routes" id="ffRoutes">{FLIGHT_ROUTES.map((r,i)=><button class="ff-route-choice" type="button" data-route={r.id} aria-pressed={i===0?'true':'false'}><span class="ff-choice-top"><span class="mono">{r.from}<span> → </span>{r.to}</span><span>{r.minutes} {t.minutes}</span></span><strong>{t.cities[ROUTE_CITIES[i][0]]} · {t.cities[ROUTE_CITIES[i][1]]}</strong><span class="ff-choice-mood">{t.moods[i]}</span></button>)}</div></section>
   <section class="ff-log" aria-labelledby="ffLogTitle"><div class="ff-log-header"><div><span class="ff-eyebrow">MY FLIGHT JOURNAL</span><h2 id="ffLogTitle">{t.history}</h2><p>{t.historyHint}</p></div><div class="ff-log-stats"><div><strong class="mono" id="ffToday">0<span>{t.minutes}</span></strong><span>{t.today}</span></div><div><strong class="mono" id="ffLandings">0</strong><span>{t.landings}</span></div></div></div><p class="ff-empty-log" id="ffEmptyLog">{t.empty}</p><ol class="ff-log-list" id="ffLogList"></ol><button type="button" class="ff-text-button" id="ffClear" disabled>{t.clear}</button></section>
   <p class="ff-bottom-note">{t.note} {j.sceneNote}</p><span id="ffImmersiveHint" class="ff-immersive-hint" data-flight-chrome hidden>{j.controlsHint}</span>
   <dialog class="ff-boarding-dialog" id="ffBoardingDialog" aria-labelledby="ffBoardTitle" aria-describedby="ffBoardHint">

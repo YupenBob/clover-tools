@@ -633,7 +633,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       slug: 'focus-flight',
       name: '专注航班',
       oneLiner: '领取登机牌，让一次专注变成一段小小旅程。',
-      description: '免费专注航班计时器，选择亚洲城市航线与 1–180 分钟专注时长，飞机随倒计时前进，支持暂停续航、刷新恢复、机舱白噪音、沉浸模式和落地纪念卡，航程日志保存在当前浏览器。',
+      description: '免费专注航班计时器，从 38 座机场选择出发与抵达，撕票登机，看 SVG 云层掠过，体验机头朝上的真实地理航图与客舱声场。支持 1–180 分钟、暂停续航、刷新恢复和落地纪念卡，航程日志保存在当前浏览器。',
       icon: 'bi-airplane',
       keywords: ['专注航班', '专注计时器', '番茄钟', '专注飞行', 'focus flight', '白噪音'],
       tier: 'P0',

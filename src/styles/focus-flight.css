@@ -191,7 +191,30 @@
   transition: opacity 1.1s ease;
 }
 .ff-map-window {
-  background: linear-gradient(135deg, #132f3a, #081c27);
+  background: var(--ff-map-sea, #142c36);
+}
+.ff-map-world {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.ff-map {
+  overflow: visible;
+}
+.ff-map-land-top {
+  stop-color: var(--ff-map-land-top, #3c5550);
+}
+.ff-map-land-bottom {
+  stop-color: var(--ff-map-land-bottom, #2d4545);
+}
+.ff-map-land {
+  stroke: var(--ff-map-coast, #859c8e);
+}
+.ff-map-lakes {
+  fill: var(--ff-map-sea, #142c36);
+}
+.focus-flight[data-camera="navigation"] .ff-sea-labels {
+  visibility: hidden;
 }
 .ff-geography {
   position: absolute;
@@ -1368,6 +1391,10 @@
   color: #b9c8b6;
 }
 .focus-flight[data-mood="day"] {
+  --ff-map-sea: #b7cacc;
+  --ff-map-land-top: #d5ddcc;
+  --ff-map-land-bottom: #a8bba9;
+  --ff-map-coast: #697f71;
   --ff-sky-top: #2c6696;
   --ff-sky-mid: #a2c9df;
   --ff-sky-bottom: #dbe8e5;
@@ -1378,6 +1405,9 @@
   --ff-glow: #b7d5d7;
 }
 .focus-flight[data-mood="night"] {
+  --ff-map-sea: #0b1d29;
+  --ff-map-land-top: #29434b;
+  --ff-map-land-bottom: #1b323c;
   --ff-sky-top: #050e25;
   --ff-sky-mid: #172b4b;
   --ff-sky-bottom: #506584;
@@ -1386,6 +1416,108 @@
   --ff-sun: #adc6e6;
   --ff-wing: #6e849c;
   --ff-glow: #64809d;
+}
+.focus-flight[data-mood="day"] .ff-route-trail {
+  stroke: #3f665f;
+  opacity: 0.45;
+}
+.focus-flight[data-mood="day"] .ff-route-progress {
+  stroke: #865e42;
+}
+.focus-flight[data-mood="day"] .ff-plane-body {
+  fill: #284b49;
+  stroke: #e8eee0;
+}
+.focus-flight[data-mood="day"] .ff-endpoint {
+  fill: #536e62;
+  stroke: #e8eee0;
+}
+.focus-flight[data-mood="day"] .ff-airport-label {
+  fill: #284b49;
+}
+.focus-flight[data-mood="day"] .ff-airport-city {
+  fill: #3f6159;
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-clock,
+.focus-flight[data-mood="day"][data-view="map"] .ff-clock-caption,
+.focus-flight[data-mood="day"][data-view="map"] .ff-clock-hint,
+.focus-flight[data-mood="day"][data-view="map"] .ff-logo-mark,
+.focus-flight[data-mood="day"][data-view="map"] .ff-scene-head h2,
+.focus-flight[data-mood="day"][data-view="map"] .ff-state,
+.focus-flight[data-mood="day"][data-view="map"] .ff-route-caption strong,
+.focus-flight[data-mood="day"][data-view="map"] .ff-route-caption b,
+.focus-flight[data-mood="day"][data-view="map"] .ff-flight-data b {
+  color: #294b49;
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-route-caption span,
+.focus-flight[data-mood="day"][data-view="map"] .ff-flight-data,
+.focus-flight[data-mood="day"][data-view="map"] .ff-map-credit,
+.focus-flight[data-mood="day"][data-view="map"] #ffPercent,
+.focus-flight[data-mood="day"][data-view="map"] .ff-immersive-hint {
+  color: #3e6059;
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-scene::after {
+  background: linear-gradient(0deg, #071b271a, transparent 25%);
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-progress-track {
+  background: #294b4926;
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-progress-track span {
+  background: #865e42;
+}
+.focus-flight[data-mood="day"][data-view="map"] .ff-camera-switch,
+.focus-flight[data-mood="day"][data-view="map"] .ff-icon-button {
+  background: #102c35d9;
+}
+.ff-airports {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+  align-items: end;
+  gap: 8px;
+  margin-top: 15px;
+}
+.ff-airports .ff-field {
+  margin: 0;
+  min-width: 0;
+}
+.ff-airports .select {
+  font-size: 11px;
+  padding-inline: 8px;
+}
+.ff-airports button {
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ff-airport-hint {
+  margin-top: 8px;
+  font-size: 10px;
+}
+.ff-board-sound {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin: 18px 0 12px;
+  cursor: pointer;
+}
+.ff-board-sound input {
+  accent-color: #46745f;
+  width: 16px;
+  height: 16px;
+}
+.ff-board-sound small {
+  display: none;
+  margin-left: auto;
+  color: var(--text-secondary);
+}
+.ff-board-sound:has(input:not(:checked)) small {
+  display: inline;
+  font-size: 10px;
+  margin-left: auto;
 }
 .fc-sky-top {
   stop-color: var(--ff-sky-top);
@@ -1429,14 +1561,25 @@
   opacity: 0.8;
 }
 .ff-cloud-bank {
-  animation: ff-cloud-drift 55s ease-in-out infinite alternate;
+  transform: translateY(0);
 }
-.ff-distant-clouds {
-  animation: ff-cloud-drift 80s ease-in-out infinite alternate-reverse;
+.ff-cloud-flow {
+  animation: ff-cloud-pass 26s linear infinite;
+}
+.ff-distant-flow {
+  animation: ff-distant-pass 70s linear infinite;
+}
+.ff-near-flow {
+  animation: ff-cloud-pass 17s linear infinite;
+}
+.ff-cloud-flow,
+.ff-distant-flow,
+.ff-near-flow {
+  will-change: transform;
 }
 .ff-wing {
   transform-origin: 1150px 550px;
-  animation: ff-wing-cruise 13s ease-in-out infinite;
+  animation: ff-wing-cruise 9s ease-in-out infinite;
 }
 .focus-flight[data-phase="takeoff"] .ff-wing {
   animation: ff-wing-takeoff 6s ease both;
@@ -1737,13 +1880,29 @@ html.ff-immersive {
     transform: translateX(50px) translateY(-3px);
   }
 }
+@keyframes ff-cloud-pass {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-720px);
+  }
+}
+@keyframes ff-distant-pass {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-900px);
+  }
+}
 @keyframes ff-wing-cruise {
   0%,
   100% {
-    transform: rotate(-0.3deg) translateY(0);
+    transform: rotate(-0.45deg) translateY(0);
   }
   50% {
-    transform: rotate(0.4deg) translateY(2px);
+    transform: rotate(0.55deg) translateY(3px);
   }
 }
 @keyframes ff-wing-takeoff {

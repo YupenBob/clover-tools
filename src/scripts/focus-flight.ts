@@ -1,7 +1,7 @@
 import {
   FLIGHT_ROUTES,
   FLIGHT_STORAGE,
-  ROUTE_CITIES,
+  flightRoute,
   createFlight,
   advanceFlight,
   pauseFlight,
@@ -35,10 +35,12 @@ const {
   lang,
   copy: t,
   journey: j,
+  airports,
 } = JSON.parse(byId("ffData").textContent ?? "{}") as {
   lang: string;
   copy: FlightText;
   journey: JourneyText;
+  airports: { code: string; city: string; label: string }[];
 };
 const locale =
   (
@@ -97,7 +99,9 @@ let historyDay = "",
   immersive = false,
   skippedTakeoff = false;
 let view: "window" | "map" = "map",
-  camera: "route" | "follow" = "route";
+  camera: "route" | "follow" | "navigation" = "route";
+let cameraRotation = 0,
+  targetRotation = 0;
 let cameraBox = [240, 230, 460, 285],
   targetBox = [...cameraBox],
   frame = 0,
@@ -115,11 +119,11 @@ let paintedBox = "",
   paintedRoute = "",
   paintedUnit = -1;
 function routeInfo(id = routeId) {
-  const index = FLIGHT_ROUTES.findIndex((route) => route.id === id);
+  const route = flightRoute(id) ?? FLIGHT_ROUTES[0];
   return {
-    route: FLIGHT_ROUTES[index],
-    from: t.cities[ROUTE_CITIES[index][0]],
-    to: t.cities[ROUTE_CITIES[index][1]],
+    route,
+    from: airports.find((a) => a.code === route.from)!.city,
+    to: airports.find((a) => a.code === route.to)!.city,
   };
 }
 function configuredMinutes(): number | null {
@@ -164,13 +168,34 @@ function fitCamera(progress = 0) {
       Math.abs(g.to[0] - g.from[0]) * 1.8,
       Math.abs(g.to[1] - g.from[1]) * ratio * 1.7,
     );
-  const w = camera === "follow" ? Math.max(160, width * 0.6) : width,
+  const w =
+      camera === "navigation"
+        ? Math.max(65, Math.min(300, 140 * ratio))
+        : camera === "follow"
+          ? Math.max(160, width * 0.6)
+          : width,
     h = w / ratio;
   // Route sits to the right of the clock in a wide scene; centered on phones.
   const wide = ratio > 1.25,
-    centerX = camera === "follow" ? g.x : (g.from[0] + g.to[0]) / 2,
-    centerY = camera === "follow" ? g.y : (g.from[1] + g.to[1]) / 2;
-  targetBox = [centerX - w * (wide ? 0.63 : 0.5), centerY - h * 0.44, w, h];
+    centerX = camera !== "route" ? g.x : (g.from[0] + g.to[0]) / 2,
+    centerY = camera !== "route" ? g.y : (g.from[1] + g.to[1]) / 2;
+  targetBox = [
+    centerX - w * (camera === "navigation" ? 0.5 : wide ? 0.63 : 0.5),
+    centerY - h * (camera === "navigation" ? 0.64 : 0.44),
+    w,
+    h,
+  ];
+  const before = mapPoint(
+    greatCircle(route.origin, route.destination, Math.max(0, progress - 0.001)),
+  );
+  const after = mapPoint(
+    greatCircle(route.origin, route.destination, Math.min(1, progress + 0.001)),
+  );
+  targetRotation =
+    camera === "navigation"
+      ? -90 -
+        (Math.atan2(after[1] - before[1], after[0] - before[0]) * 180) / Math.PI
+      : 0;
 }
 function paintMap(progress: number) {
   const a = mapPoint(
@@ -197,6 +222,21 @@ function paintMap(progress: number) {
   const angle =
     (Math.atan2(b[1] - before[1], b[0] - before[0]) * 180) / Math.PI;
   const unit = cameraBox[2] / sceneWidth;
+  if (reduced.matches) cameraRotation = targetRotation;
+  const world = byId("ffMapWorld");
+  world.style.transformOrigin = `${(a[0] - cameraBox[0]) / unit}px ${(a[1] - cameraBox[1]) / unit}px`;
+  world.style.transform = `rotate(${cameraRotation}deg)`;
+  root.dataset.camera = camera;
+  root.dataset.heading = String((angle + 90 + 360) % 360);
+  for (const [id, point] of [
+    ["ffOriginLabel", mapPoint(routeInfo().route.origin)],
+    ["ffDestinationLabel", mapPoint(routeInfo().route.destination)],
+  ] as const) {
+    byId(id).setAttribute(
+      "transform",
+      `translate(${point.join(" ")}) rotate(${-cameraRotation}) translate(${unit * 10} ${-unit * 12})`,
+    );
+  }
   const plane =
     "translate(" +
     a.map((v) => v.toFixed(3)).join(" ") +
@@ -280,7 +320,20 @@ function paintMap(progress: number) {
 function updateRoute() {
   const { route, from, to } = routeInfo(),
     g = routeGeometry(routeId);
-  byId<HTMLSelectElement>("ffRouteSelect").value = routeId;
+  const selector = byId<HTMLSelectElement>("ffRouteSelect");
+  selector.querySelector("[data-custom-route]")?.remove();
+  if (routeId.startsWith("airport:")) {
+    const custom = new Option(`${from} → ${to}`, routeId);
+    custom.dataset.customRoute = "true";
+    custom.disabled = true;
+    selector.add(custom);
+  }
+  selector.value = routeId;
+  byId<HTMLSelectElement>("ffOriginSelect").value = route.from;
+  byId<HTMLSelectElement>("ffDestinationSelect").value = route.to;
+  byId<HTMLSelectElement>("ffDestinationSelect")
+    .querySelectorAll("option")
+    .forEach((option) => (option.disabled = option.value === route.from));
   text("ffFromCity", from);
   text("ffToCity", to);
   text("ffFromCode", route.from);
@@ -431,6 +484,7 @@ function savePreferences() {
     engine: Number(byId<HTMLInputElement>("ffEngine").value),
     airflow: Number(byId<HTMLInputElement>("ffAirflow").value),
     chime: byId<HTMLInputElement>("ffChime").checked,
+    boardSound: byId<HTMLInputElement>("ffBoardSound").checked,
   });
 }
 function restorePreferences() {
@@ -438,7 +492,9 @@ function restorePreferences() {
     const p = JSON.parse(readStorage(preferencesKey) ?? "{}");
     if (!p || typeof p !== "object") return;
     if (["day", "dusk", "night"].includes(p.mood)) root.dataset.mood = p.mood;
-    if (["route", "follow"].includes(p.camera)) camera = p.camera;
+    if (["route", "follow", "navigation"].includes(p.camera)) camera = p.camera;
+    if (typeof p.boardSound === "boolean")
+      byId<HTMLInputElement>("ffBoardSound").checked = p.boardSound;
     for (const [key, id] of [
       ["volume", "ffVolume"],
       ["engine", "ffEngine"],
@@ -462,7 +518,7 @@ function restorePreferences() {
         b.setAttribute("aria-pressed", String(b.dataset.camera === camera)),
       );
   } catch {
-    /* Invalid local preferences return to the default, silent experience. */
+    /* Loading a preference never starts audio without a user gesture. */
   }
 }
 function updateNoise() {
@@ -470,7 +526,7 @@ function updateNoise() {
     level("ffVolume"),
     level("ffEngine"),
     level("ffAirflow"),
-    wantsSound && session?.state !== "paused" && session?.state !== "landed",
+    wantsSound && session?.state === "flying",
     root.dataset.phase,
   );
 }
@@ -481,7 +537,7 @@ async function startNoise() {
       level("ffVolume"),
       level("ffEngine"),
       level("ffAirflow"),
-      wantsSound && session?.state !== "paused" && session?.state !== "landed",
+      wantsSound && session?.state === "flying",
     );
     if (version === soundRevision) updateNoise();
   } catch {
@@ -649,6 +705,7 @@ function render(force = false) {
     );
     text("ffArrivalLabel", state === "landed" ? t.arrivalDone : t.arrivalTime);
     byId<HTMLFieldSetElement>("ffSettings").disabled = !!session;
+    byId<HTMLInputElement>("ffBoardSound").disabled = !!session;
     byId("ffEnd").hidden = !session || state === "landed";
     byId("ffArrivalPanel").hidden = state !== "landed";
     if (state === "landed" && immersive) {
@@ -686,11 +743,19 @@ function sceneFrame(now: number) {
     cameraBox = cameraBox.map((n, i) =>
       reduced.matches ? targetBox[i] : n + (targetBox[i] - n) * 0.12,
     );
+    const rotationDelta =
+      ((((targetRotation - cameraRotation + 180) % 360) + 360) % 360) - 180;
+    cameraRotation = reduced.matches
+      ? targetRotation
+      : cameraRotation + rotationDelta * 0.12;
     paintMap(progress);
   }
   if (
     session?.state === "flying" ||
-    cameraBox.some((n, i) => Math.abs(n - targetBox[i]) > 0.01)
+    cameraBox.some((n, i) => Math.abs(n - targetBox[i]) > 0.01) ||
+    Math.abs(
+      ((((targetRotation - cameraRotation + 180) % 360) + 360) % 360) - 180,
+    ) > 0.01
   )
     frame = requestAnimationFrame(sceneFrame);
 }
@@ -848,6 +913,9 @@ byId<HTMLFormElement>("ffForm").addEventListener("submit", (event) => {
   );
   boardDialog.showModal();
   byId("ffTear").focus({ preventScroll: true });
+  wantsSound = byId<HTMLInputElement>("ffBoardSound").checked;
+  byId("ffSound").setAttribute("aria-checked", String(wantsSound));
+  savePreferences();
   if (wantsSound) void startNoise();
   else if (byId<HTMLInputElement>("ffChime").checked)
     void audio.ready().catch(() => notice(t.soundError));
@@ -905,6 +973,27 @@ document
 byId<HTMLSelectElement>("ffRouteSelect").addEventListener("change", () =>
   chooseRoute(byId<HTMLSelectElement>("ffRouteSelect").value),
 );
+function chooseAirports() {
+  if (session) return;
+  const origin = byId<HTMLSelectElement>("ffOriginSelect").value;
+  let destination = byId<HTMLSelectElement>("ffDestinationSelect").value;
+  if (origin === destination) destination = routeInfo().route.from;
+  routeId =
+    FLIGHT_ROUTES.find((r) => r.from === origin && r.to === destination)?.id ??
+    `airport:${origin}-${destination}`;
+  if (!flightRoute(routeId)) return;
+  updateRoute();
+  render(true);
+}
+byId("ffOriginSelect").addEventListener("change", chooseAirports);
+byId("ffDestinationSelect").addEventListener("change", chooseAirports);
+byId("ffSwapAirports").addEventListener("click", () => {
+  if (session) return;
+  const { route } = routeInfo();
+  byId<HTMLSelectElement>("ffOriginSelect").value = route.to;
+  byId<HTMLSelectElement>("ffDestinationSelect").value = route.from;
+  chooseAirports();
+});
 document
   .querySelectorAll<HTMLButtonElement>("button[data-view]")
   .forEach((b) =>
@@ -916,11 +1005,17 @@ document
   .querySelectorAll<HTMLButtonElement>("button[data-camera]")
   .forEach((b) =>
     b.addEventListener("click", () => {
-      camera = b.dataset.camera as "route" | "follow";
+      camera = b.dataset.camera as "route" | "follow" | "navigation";
       document
         .querySelectorAll("button[data-camera]")
         .forEach((n) => n.setAttribute("aria-pressed", String(n === b)));
-      fitCamera();
+      fitCamera(
+        session
+          ? 1 -
+              advanceFlight(session, Date.now()).remainingMs /
+                session.durationMs
+          : 0,
+      );
       scheduleScene();
       savePreferences();
     }),
@@ -1005,8 +1100,16 @@ byId("ffClearConfirm").addEventListener("click", () => {
 byId("ffSound").addEventListener("click", () => {
   wantsSound = !wantsSound;
   byId("ffSound").setAttribute("aria-checked", String(wantsSound));
+  byId<HTMLInputElement>("ffBoardSound").checked = wantsSound;
+  savePreferences();
   if (wantsSound) void startNoise();
   else stopNoise();
+});
+byId("ffBoardSound").addEventListener("change", () => {
+  wantsSound = byId<HTMLInputElement>("ffBoardSound").checked;
+  byId("ffSound").setAttribute("aria-checked", String(wantsSound));
+  if (!wantsSound) stopNoise();
+  savePreferences();
 });
 for (const id of ["ffVolume", "ffEngine", "ffAirflow"])
   byId<HTMLInputElement>(id).addEventListener("input", () => {

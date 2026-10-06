@@ -1,14 +1,23 @@
 /** Original locally synthesized sound: two adjustable, gently filtered layers. */
 export class CabinAudio {
   private context: AudioContext | null = null;
+  private output: DynamicsCompressorNode | null = null;
   private sources: AudioBufferSourceNode[] = [];
   private gains: GainNode[] = [];
   private filters: BiquadFilterNode[] = [];
   private revision = 0;
   private lastTear = 0;
   async ready() {
-    if (!this.context || this.context.state === "closed")
+    if (!this.context || this.context.state === "closed") {
       this.context = new AudioContext();
+      this.output = this.context.createDynamicsCompressor();
+      this.output.threshold.value = -16;
+      this.output.knee.value = 6;
+      this.output.ratio.value = 20;
+      this.output.attack.value = 0.003;
+      this.output.release.value = 0.25;
+      this.output.connect(this.context.destination);
+    }
     if (this.context.state === "suspended") await this.context.resume();
     return this.context;
   }
@@ -33,7 +42,7 @@ export class CabinAudio {
           const white = Math.random() * 2 - 1;
           slow = (slow + white * 0.022) / 1.022;
           pink = 0.96 * pink + 0.08 * white;
-          raw[i] = layer ? pink * 0.5 : slow * 1.4;
+          raw[i] = layer ? pink * 0.9 : slow * 3.4;
         }
         samples.set(raw.subarray(0, samples.length));
         // Join the continuous tail to the head, avoiding a click at the loop boundary.
@@ -41,6 +50,13 @@ export class CabinAudio {
           const p = i / blend;
           samples[i] = raw[samples.length + i] * (1 - p) + raw[i] * p;
         }
+        if (!layer)
+          for (let i = 0; i < samples.length; i++) {
+            // Continuous, low engine harmonics give the filtered noise a cabin body.
+            samples[i] +=
+              Math.sin((i * 2 * Math.PI * 88) / ctx.sampleRate) * 0.18 +
+              Math.sin((i * 2 * Math.PI * 132) / ctx.sampleRate) * 0.06;
+          }
         const source = ctx.createBufferSource(),
           filter = ctx.createBiquadFilter(),
           gain = ctx.createGain();
@@ -49,7 +65,7 @@ export class CabinAudio {
         filter.type = "lowpass";
         filter.frequency.value = layer ? 1700 : 210;
         gain.gain.value = 0;
-        source.connect(filter).connect(gain).connect(ctx.destination);
+        source.connect(filter).connect(gain).connect(this.output!);
         source.start();
         this.sources.push(source);
         this.gains.push(gain);
@@ -71,7 +87,7 @@ export class CabinAudio {
       phase === "takeoff" ? 1 : phase === "descent" ? 0.7 : 0.82;
     this.gains.forEach((gain, i) =>
       gain.gain.setTargetAtTime(
-        playing ? volume * (i ? airflow : engine) * 0.9 * intensity : 0,
+        playing ? volume * (i ? airflow : engine) * 1.25 * intensity : 0,
         ctx.currentTime,
         0.8,
       ),
@@ -92,14 +108,21 @@ export class CabinAudio {
   }
   stop() {
     this.revision++;
-    this.sources.forEach((s) => {
-      s.stop();
-      s.disconnect();
+    const now = this.context?.currentTime ?? 0;
+    this.sources.forEach((source, i) => {
+      const gain = this.gains[i],
+        filter = this.filters[i];
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setTargetAtTime(0, now, 0.025);
+      source.stop(now + 0.15);
+      source.onended = () => {
+        source.disconnect();
+        gain.disconnect();
+        filter.disconnect();
+      };
     });
     this.sources = [];
-    this.gains.forEach((g) => g.disconnect());
     this.gains = [];
-    this.filters.forEach((f) => f.disconnect());
     this.filters = [];
   }
   suspend() {
@@ -132,7 +155,7 @@ export class CabinAudio {
     filter.type = "highpass";
     filter.frequency.value = 900;
     gain.gain.value = volume * 0.13;
-    source.connect(filter).connect(gain).connect(ctx.destination);
+    source.connect(filter).connect(gain).connect(this.output!);
     source.start();
     source.onended = () => {
       source.disconnect();
@@ -151,7 +174,7 @@ export class CabinAudio {
       gain.gain.setValueAtTime(0, start);
       gain.gain.linearRampToValueAtTime(volume * 0.2, start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.7);
-      oscillator.connect(gain).connect(ctx.destination);
+      oscillator.connect(gain).connect(this.output!);
       oscillator.start(start);
       oscillator.stop(start + 0.75);
       oscillator.onended = () => {

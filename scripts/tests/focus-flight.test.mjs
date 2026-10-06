@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   createFlight,
   advanceFlight,
@@ -12,6 +13,7 @@ import {
   routeGeometry,
   mapPoint,
   FLIGHT_ROUTES,
+  flightRoute,
   HISTORY_LIMIT,
 } from "../../src/lib/focus-flight.ts";
 import { flightText } from "../../src/lib/focus-flight-i18n.ts";
@@ -22,6 +24,10 @@ import {
   tearProgress,
 } from "../../src/lib/flight-experience.ts";
 import { journeyText } from "../../src/lib/flight-journey-i18n.ts";
+import {
+  FLIGHT_AIRPORTS,
+  airportChoices,
+} from "../../src/lib/flight-airports.ts";
 
 const now = Date.UTC(2026, 9, 5, 3);
 const flight = (minutes = 25) =>
@@ -32,6 +38,67 @@ const flight = (minutes = 25) =>
     minutes,
     now,
   );
+
+test("custom airports validate bounded route IDs and preserve v1 restore and history", () => {
+  assert.equal(FLIGHT_AIRPORTS.length, 38);
+  assert.equal(new Set(FLIGHT_AIRPORTS.map((a) => a.code)).size, 38);
+  for (const id of [
+    "airport:PVG-PVG",
+    "airport:XXX-HND",
+    "airport:pvg-HND",
+    "PVG-HND",
+    "airport:PVG-HND-more",
+  ]) {
+    assert.equal(flightRoute(id), null);
+    assert.throws(() => createFlight("id", id, "", 25, now), RangeError);
+  }
+  const custom = createFlight(
+    "custom-flight",
+    "airport:DPS-CTS",
+    "Read",
+    25,
+    now,
+  );
+  assert.equal(
+    parseFlight(JSON.stringify(custom), now + 60000).routeId,
+    custom.routeId,
+  );
+  const record = flightRecord(advanceFlight(custom, now + 1500000));
+  assert.equal(
+    parseFlightHistory(JSON.stringify([record]))[0].routeId,
+    custom.routeId,
+  );
+  assert.equal(flightRoute("shanghai-tokyo").from, "PVG");
+  for (const a of FLIGHT_AIRPORTS)
+    for (const b of FLIGHT_AIRPORTS) {
+      if (a.code === b.code) continue;
+      const route = flightRoute(`airport:${a.code}-${b.code}`);
+      assert.deepEqual(route.origin, a.at);
+      assert.deepEqual(route.destination, b.at);
+      const point = greatCircle(route.origin, route.destination, 0.5);
+      assert.ok(point.every(Number.isFinite));
+      assert.ok(
+        point[0] >= 85 && point[0] <= 155 && point[1] >= -10 && point[1] <= 55,
+      );
+    }
+});
+test("airport labels are complete and distinguish airports in the same city in five languages", () => {
+  for (const lang of ["zh", "tw", "en", "ko", "ja"]) {
+    const choices = airportChoices(lang);
+    assert.equal(choices.length, 38);
+    assert.ok(
+      choices.every((a) => a.city && a.label && !a.label.includes("undefined")),
+    );
+    assert.notEqual(
+      choices.find((a) => a.code === "PVG").label,
+      choices.find((a) => a.code === "SHA").label,
+    );
+    assert.equal(
+      choices.find((a) => a.code === "PVG").city,
+      choices.find((a) => a.code === "SHA").city,
+    );
+  }
+});
 
 test("flight durations validate whole minutes, valid routes and bounded task text", () => {
   for (const minutes of [0, -1, 181, NaN, Infinity, 2.5])
@@ -188,9 +255,28 @@ test("geographic routes put the plane at the exact endpoints and remain finite t
   assert.throws(() => routeGeometry("unknown"), RangeError);
 });
 test("Mercator uses a uniform scale and agrees with the offline geography bounds", () => {
-  assert.deepEqual(mapPoint([85, 55]), [0, 0]);
-  assert.ok(Math.abs(mapPoint([155, -10])[1] - 870.673464532396) < 1e-9);
-  assert.ok(Math.abs(mapPoint([155, 55])[0] - 800) < 1e-9);
+  const geography = JSON.parse(
+    readFileSync(
+      new URL("../../src/lib/flight-geography.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const [left, bottom, right, top] = geography.bounds;
+  assert.deepEqual(mapPoint([left, top]), [0, 0]);
+  const corner = mapPoint([right, bottom]);
+  assert.ok(
+    Math.abs(corner[0] - geography.width) < 0.001 &&
+      Math.abs(corner[1] - geography.height) < 0.001,
+    "SVG preparation and runtime use identical projection bounds",
+  );
+  assert.deepEqual(mapPoint([80, 60]), [0, 0]);
+  assert.ok(Math.abs(mapPoint([160, 60])[0] - 914.2857142857143) < 1e-9);
+  const expectedHeight =
+    ((Math.log(Math.tan(Math.PI / 4 + Math.PI / 6)) -
+      Math.log(Math.tan(Math.PI / 4 - (35 * Math.PI) / 360))) *
+      800) /
+    ((70 * Math.PI) / 180);
+  assert.ok(Math.abs(mapPoint([160, -35])[1] - expectedHeight) < 1e-9);
   const [x, y] = mapPoint([100, 0]),
     [x2, y2] = mapPoint([100.001, 0.001]);
   assert.ok(Math.abs((x2 - x) / (y - y2) - 1) < 1e-7);
