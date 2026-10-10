@@ -1,0 +1,38 @@
+name: Cloudflare crawler audit
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/crawler-audit.yml'
+      - 'scripts/check-cloudflare-bots.mjs'
+      - 'scripts/lib/cloudflare-bots.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: clovertools-crawler-audit
+  cancel-in-progress: false
+jobs:
+  bots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify Bot Fight Mode is off
+        env:
+          CLOUDFLARE_BOT_API_TOKEN: ${{ secrets.CLOUDFLARE_BOT_API_TOKEN }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_ZONE_NAME: clovertools.cn
+        run: node scripts/check-cloudflare-bots.mjs
+      - name: Save API verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-audit-${{ github.sha }}
+          path: output/crawler-audit/
+          retention-days: 30
