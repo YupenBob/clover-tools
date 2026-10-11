@@ -30,6 +30,12 @@ if (root) {
     const code = error instanceof HlsError ? error.code === 'timeout' ? 'timeoutError' : error.code : 'networkError';
     status(code in copy ? code as keyof HlsCopy : 'networkError', {}, 'error', target);
   };
+  /** Drop a finished message before a new attempt, so the panel never describes the last one. */
+  const clearStatus = (target = 'hlsStatus') => {
+    if (disposed) return;
+    const node = element(target);
+    node.textContent = ''; delete node.dataset.kind; node.hidden = true;
+  };
   const cache = new SegmentCache();
   let task: DownloadTask | undefined, master: Playlist | undefined;
   let busy = false, exporting = false, parsing = false, disposed = false, started = false;
@@ -188,6 +194,9 @@ if (root) {
   /** Compile the remux core while the user is still reading the playlist, not when they click export. */
   function scheduleWarm() {
     if (disposed || remuxer?.usable) return;
+    // Streaming writes through its own worker, so warming the export engine here would only
+    // duplicate a second WASM instance and spend bandwidth the download needs.
+    if (input('hlsStream').checked) return;
     warmTimer = setTimeout(() => {
       warmTimer = undefined;
       if (disposed) return;
@@ -220,6 +229,7 @@ if (root) {
 
   async function download(autoExport = true) {
     if (!task || busy || exporting || parsing) return;
+    clearStatus();
     if (input('hlsStream').checked) { await streamDownload(); return; }
     const current = task;
     Object.assign(current.options, options());
@@ -270,6 +280,9 @@ if (root) {
   async function streamDownload(freshFile = false) {
     if (busy || exporting || parsing) return;
     if (!task || !supportsFileSaving()) { failure(new HlsError('streamUnsupported')); return; }
+    // The picker below is asynchronous, so retract the previous outcome first; otherwise a stale
+    // error keeps describing the last attempt while this one is still asking for a location.
+    clearStatus();
     const current = task;
     // The save picker needs this click's user activation, so it must precede every await.
     // The first probe has not run yet, so the container comes from the playlist itself.
@@ -382,7 +395,9 @@ if (root) {
   button('hlsNext').addEventListener('click', () => { page++; draw(); });
   button('hlsExport').addEventListener('click', () => void exportVideo(element<HTMLSelectElement>('hlsFormat').value as 'mp4' | 'ts'));
   input('hlsStream').addEventListener('change', () => {
-    void streaming?.dispose(); streaming = undefined; handle = undefined; formats(input('hlsStream').checked); draw();
+    void streaming?.dispose(); streaming = undefined; handle = undefined; formats(input('hlsStream').checked);
+    if (task) scheduleWarm();
+    draw();
   });
   element('hlsFormat').addEventListener('change', () => { void streaming?.dispose(); streaming = undefined; handle = undefined; draw(); });
   button('hlsSavePartial').addEventListener('click', async () => {
