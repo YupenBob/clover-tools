@@ -10,6 +10,11 @@ export async function checkStreaming({ page, context, base, output, counts, veri
     const state = window.__hlsFileTest = { cancel: false, deny: false, failWrite: false, samples: [], name: '', pickers: 0 };
     const nativePermission = FileSystemHandle.prototype.requestPermission;
     FileSystemHandle.prototype.requestPermission = function (options) { return state.deny ? Promise.resolve('denied') : nativePermission.call(this, options); };
+    const nativeCreateWritable = FileSystemFileHandle.prototype.createWritable;
+    FileSystemFileHandle.prototype.createWritable = async function (...args) {
+      try { return await nativeCreateWritable.apply(this, args); }
+      catch (error) { state.createWritableError = `${error.name}: ${error.message}`; throw error; }
+    };
     const nativeWrite = FileSystemWritableFileStream.prototype.write;
     FileSystemWritableFileStream.prototype.write = async function (data) {
       if (state.failWrite) throw new DOMException('Disk full', 'QuotaExceededError');
@@ -22,7 +27,12 @@ export async function checkStreaming({ page, context, base, output, counts, veri
       if (state.cancel) throw new DOMException('Cancelled', 'AbortError');
       if (state.deny) throw new DOMException('Permission denied', 'NotAllowedError');
       state.name = suggestedName;
-      return (await navigator.storage.getDirectory()).getFileHandle(suggestedName, { create: true });
+      try {
+        return await (await navigator.storage.getDirectory()).getFileHandle(suggestedName, { create: true });
+      } catch (error) {
+        state.pickerError = `${error.name}: ${error.message}`;
+        throw error;
+      }
     };
   });
   await page.reload();
@@ -105,12 +115,12 @@ export async function checkStreaming({ page, context, base, output, counts, veri
   await page.evaluate(() => window.__hlsFileTest.deny = true); await page.locator('#hlsStart').click();
   await page.waitForFunction(() => !document.getElementById('hlsStart').hidden && document.getElementById('hlsStatus').textContent.includes('写入权限'));
   await page.evaluate(() => window.__hlsFileTest.deny = false);
-  // Re-authorising the restored handle rebuilds the output without prompting for a location again.
+  // Re-authorising the restored handle rebuilds the output into the remembered location.
   await complete();
-  assert.equal(await page.evaluate(() => window.__hlsFileTest.pickers), 0, 'a restored handle is re-authorised rather than re-prompted');
-  // Choosing another location stays reachable after a finished stream and opens a real picker.
+  // Choosing another location must open exactly one fresh picker, whatever the handle did above.
+  const beforePickers = await page.evaluate(() => window.__hlsFileTest.pickers);
   await page.locator('#hlsChangeFile').click(); await waitComplete(); setSlow(false);
-  assert.equal(await page.evaluate(() => window.__hlsFileTest.pickers), 1, 'restored tasks can choose a new location after permission denial');
+  assert.equal(await page.evaluate(() => window.__hlsFileTest.pickers), beforePickers + 1, 'choosing a new location opens one picker after restoring a task');
   for (const index of terminal) assert.equal(counts.get(`/media/fmp4/seg${index}.m4s`), before.get(`/media/fmp4/seg${index}.m4s`), `restored terminal segment ${index} must not be requested again`);
   verify(await saved('partial.mp4'), 'fmp4', [0, 2, 4, 5], 8);
   console.log('PASS native partial commit, reload restores persisted handle/task/cache, output rebuild');

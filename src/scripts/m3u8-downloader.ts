@@ -283,6 +283,9 @@ if (root) {
       handle = target;
     }
     busy = true; started = true; clearPreview(); controls();
+    // Clear any earlier error here and now: the picker above may have been dismissed, and a stale
+    // message would otherwise keep describing the previous attempt while this one is running.
+    status('preparing', { done: 0, total: current.results.length });
     status('preparing', { done: 0, total: current.results.length }, 'info', 'hlsExportStatus');
     try {
       Object.assign(current.options, options());
