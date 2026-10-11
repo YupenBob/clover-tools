@@ -1,7 +1,7 @@
 const zh = {
-  formatLabel: '导出格式', originalFormat: '原格式（自动识别）', exportSelected: '按所选格式导出',
+  formatLabel: '导出格式', originalFormat: '原格式（自动识别）',
   streamMode: '特大视频：边下载边保存', streamNote: '逐片写入磁盘，降低内存占用。保留本地分片用于刷新恢复，需要额外磁盘空间。',
-  streamPrepare: '准备流式保存', streamChoose: '选择文件并开始', streamReady: '已识别 {format}，点击“选择文件并开始”设置保存位置。',
+  streamStartAndSave: '选择文件并开始', streamReady: '已识别 {format}，正在写入保存位置。',
   chooseAnotherFile: '另选保存位置',
   keyRequestError: '无法读取 AES 密钥，任务已暂停。检查密钥链接、登录授权和跨域设置，缓存保留。',
   initError: '初始化片段不可用，任务已暂停。检查来源或登录授权后重试，缓存保留。',
@@ -16,9 +16,9 @@ const zh = {
   cacheBlocked: '缓存升级被另一个页面阻止。关闭其他 CloverTools 下载页面后刷新，原缓存保留。',
 };
 const en: typeof zh = {
-  formatLabel: 'Output format', originalFormat: 'Source format (automatic)', exportSelected: 'Export selected format',
+  formatLabel: 'Output format', originalFormat: 'Source format (automatic)',
   streamMode: 'Large video: save while downloading', streamNote: 'Write one segment at a time to reduce memory use. Local segments remain available for recovery and require extra disk space.',
-  streamPrepare: 'Prepare streaming save', streamChoose: 'Choose file and start', streamReady: 'Detected {format}. Choose a file to start saving.',
+  streamStartAndSave: 'Choose file and start', streamReady: 'Detected {format}; writing to the chosen location.',
   chooseAnotherFile: 'Choose another location',
   keyRequestError: 'The AES key could not be loaded. The task is paused. Check the key URL, authorization and CORS. The cache is retained.',
   initError: 'The initialization segment is unavailable. The task is paused. Check the source or authorization and retry. The cache is retained.',
@@ -33,9 +33,9 @@ const en: typeof zh = {
   cacheBlocked: 'Another page is blocking the cache upgrade. Close other CloverTools downloader pages and reload. Existing data is retained.',
 };
 const ko: typeof zh = {
-  formatLabel: '출력 형식', originalFormat: '원본 형식 (자동 감지)', exportSelected: '선택한 형식으로 저장',
+  formatLabel: '출력 형식', originalFormat: '원본 형식 (자동 감지)',
   streamMode: '대용량 영상: 다운로드하며 저장', streamNote: '세그먼트를 순서대로 디스크에 기록해 메모리 사용을 줄입니다. 복구용 로컬 세그먼트에 추가 디스크 공간이 필요합니다.',
-  streamPrepare: '스트리밍 저장 준비', streamChoose: '파일 선택 후 시작', streamReady: '{format} 형식을 감지했습니다. 파일을 선택하고 저장을 시작하세요.',
+  streamStartAndSave: '파일 선택 후 시작', streamReady: '{format} 형식을 감지했습니다. 선택한 위치에 기록합니다.',
   chooseAnotherFile: '다른 저장 위치 선택',
   keyRequestError: 'AES 키를 읽을 수 없어 일시 중지했습니다. 키 링크, 로그인 권한 및 CORS 설정을 확인하세요. 캐시는 유지됩니다.',
   initError: '초기화 세그먼트를 사용할 수 없어 일시 중지했습니다. 소스 또는 로그인 권한을 확인한 후 재시도하세요. 캐시는 유지됩니다.',
@@ -50,9 +50,9 @@ const ko: typeof zh = {
   cacheBlocked: '다른 페이지가 캐시 업그레이드를 막고 있습니다. 다른 CloverTools 다운로드 페이지를 닫고 새로 고침하세요. 기존 캐시는 유지됩니다.',
 };
 const ja: typeof zh = {
-  formatLabel: '出力形式', originalFormat: '元の形式（自動判別）', exportSelected: '選択した形式で保存',
+  formatLabel: '出力形式', originalFormat: '元の形式（自動判別）',
   streamMode: '大容量動画：ダウンロードしながら保存', streamNote: 'セグメントを順番にディスクへ書き込み、メモリ使用量を抑えます。復元用のローカルデータには追加の空き容量が必要です。',
-  streamPrepare: 'ストリーミング保存を準備', streamChoose: 'ファイルを選んで開始', streamReady: '{format} を検出しました。保存先を選んで開始してください。',
+  streamStartAndSave: 'ファイルを選んで開始', streamReady: '{format} を検出しました。選択した保存先へ書き込みます。',
   chooseAnotherFile: '別の保存先を選択',
   keyRequestError: 'AES キーを取得できないため一時停止しました。キー URL、ログイン権限、CORS 設定を確認してください。キャッシュは保持されます。',
   initError: '初期化セグメントが利用できないため一時停止しました。配信元やログイン権限を確認して再試行してください。キャッシュは保持されます。',

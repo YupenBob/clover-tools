@@ -11,6 +11,7 @@ export class Remuxer {
   private serial = 0;
   private stopped?: Error;
   private loaded = false;
+  private loading?: Promise<void>;
   private pending = new Map<number, { resolve: (value: any) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
   constructor(update: (event: string, progress: number) => void) {
     this.worker.onmessage = ({ data }) => {
@@ -24,7 +25,19 @@ export class Remuxer {
     this.worker.onerror = (event) => { console.error('HLS worker failed:', event.message); this.stop(new HlsError(this.loaded ? 'remuxError' : 'coreLoadError', event.message)); };
   }
   async load(): Promise<void> {
-    if (!this.loaded) { await this.request('load', { base: new URL(hlsCorePath(), location.origin).href }); this.loaded = true; }
+    // Warming and an export can race; both must join one worker request, not load the core twice.
+    if (!this.loaded) {
+      this.loading ??= this.request('load', { base: new URL(hlsCorePath(), location.origin).href })
+        .then(() => { this.loaded = true; });
+      await this.loading;
+    }
+  }
+  /** A worker that has not been terminated can serve another export without recompiling the core. */
+  get usable(): boolean { return !this.stopped; }
+  /** Compile the core ahead of the first export. Failure terminates the worker for a clean retry. */
+  async warm(): Promise<void> {
+    try { await this.load(); }
+    catch (error) { this.stop(error instanceof Error ? error : new HlsError('coreLoadError')); }
   }
   async inspect(bytes: ArrayBuffer): Promise<MediaInfo> { await this.load(); return this.request('inspect', { bytes }, [bytes]); }
   async fragment(bytes: ArrayBuffer, format: StreamFormat): Promise<{ bytes: ArrayBuffer; info: MediaInfo; format: MediaFormat; heapBytes: number }> {

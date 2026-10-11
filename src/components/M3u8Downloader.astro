@@ -16,6 +16,10 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
         <button class="btn btn-primary" id="hlsParse" type="submit"><i class="bi bi-search" aria-hidden="true"></i>{copy.parse}</button>
       </div>
       <p class="hls-note" id="hlsSourceNote">{copy.sourceNote}</p>
+      <div class="hls-export-options">
+        <div class="field"><label class="field-label" for="hlsFormat">{copy.formatLabel}</label><select class="select" id="hlsFormat"><option value="mp4">MP4</option><option value="ts">TS</option></select></div>
+        <div class="hls-stream-option"><label class="hls-checkbox"><input id="hlsStream" type="checkbox" aria-describedby="hlsStreamNote" />{copy.streamMode}</label><p id="hlsStreamNote" class="hls-note">{copy.streamNote}</p></div>
+      </div>
       <details class="hls-settings">
         <summary><i class="bi bi-sliders" aria-hidden="true"></i>{copy.settings}</summary>
         <div class="hls-settings-grid">
@@ -45,7 +49,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
     <div id="hlsTask" hidden>
       <p class="hls-task-meta" id="hlsTaskMeta"></p>
       <div class="hls-toolbar">
-        <button class="btn btn-primary" id="hlsStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>{copy.start}</span></button>
+        <button class="btn btn-primary" id="hlsStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>{copy.downloadAndExport}</span></button>
         <button class="btn btn-secondary" id="hlsPause" type="button" hidden><i class="bi bi-pause-fill" aria-hidden="true"></i>{copy.pause}</button>
         <button class="btn btn-secondary btn-sm" id="hlsSavePartial" type="button" hidden><i class="bi bi-hdd" aria-hidden="true"></i>{copy.savePartial}</button>
         <button class="btn btn-secondary btn-sm" id="hlsChangeFile" type="button" hidden>{copy.chooseAnotherFile}</button>
@@ -69,11 +73,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
 
   <ToolPanel title={copy.exportTitle} icon="bi-camera-video" className="hls-export-panel">
     <p class="hls-export-note">{copy.exportNote}</p>
-    <div class="hls-export-options">
-      <div class="field"><label class="field-label" for="hlsFormat">{copy.formatLabel}</label><select class="select" id="hlsFormat"><option value="mp4">MP4</option><option value="ts">TS</option></select></div>
-      <div class="hls-stream-option"><label class="hls-checkbox"><input id="hlsStream" type="checkbox" aria-describedby="hlsStreamNote" />{copy.streamMode}</label><p id="hlsStreamNote" class="hls-note">{copy.streamNote}</p></div>
-    </div>
-    <div class="hls-toolbar"><button class="btn btn-primary" id="hlsExport" type="button" disabled><i class="bi bi-download" aria-hidden="true"></i>{copy.exportSelected}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
+    <div class="hls-toolbar"><button class="btn btn-secondary" id="hlsExport" type="button" disabled><i class="bi bi-arrow-repeat" aria-hidden="true"></i>{copy.exportAgain}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
     <p id="hlsExportStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
     <div id="hlsPreviewArea" hidden><video id="hlsPreview" controls preload="metadata" aria-label={copy.preview}></video><a class="btn btn-secondary btn-sm" id="hlsSaveAgain">{copy.saveAgain}</a></div>
     <p class="hls-note hls-limitations">{copy.limitations}</p>

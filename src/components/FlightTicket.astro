@@ -1,5 +1,6 @@
 ---
 import FlightPaper from './FlightPaper.astro';
+import CloverMark from './CloverMark.astro';
 import type { FlightText } from '../lib/focus-flight-i18n';
 import type { JourneyText } from '../lib/flight-journey-i18n';
 interface Props { t: FlightText; j: JourneyText; }
@@ -11,7 +12,7 @@ const fibers='M0 0'+Array.from({length:85},(_,i)=>'L'+(i%3===0?8:i%3===1?3:6)+' 
     <FlightPaper />
     <div class="ff-ticket-band"></div>
     <div class="ff-paper-brand">
-      <svg class="ff-clover-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 15C-1 7 9-6 16 7C23-6 33 7 17 16C33 24 23 37 16 24C9 37-1 24 15 17Z" fill="currentColor"/><path d="M17 18Q22 24 20 31" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <CloverMark class="ff-clover-mark" />
       <div><strong>Clover航空</strong><small>CLOVER AIR · BOARDING PASS</small></div>
       <span class="ff-paper-class">PRIORITY<br /><b>FOCUS</b></span>
     </div>

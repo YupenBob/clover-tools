@@ -133,21 +133,31 @@ try {
   }
 
   await run(
-    'home search keeps matching tools ahead of guide discovery',
+    'home search filters tool cards and restores them on clear',
     {},
     async (page, context) => {
       await remember(context, 'zh');
       await page.goto(base + '/?q=json');
       assert.equal(await page.inputValue('#toolSearch'), 'json');
-      assert.equal(await page.locator('.home-guides').isVisible(), false);
       assert.equal(
         await page
           .locator('.tool-card[href="/tools/dev/json-formatter/"]')
           .isVisible(),
         true,
       );
+      assert.equal(
+        await page
+          .locator('.tool-card[href="/tools/dev/base64/"]')
+          .isVisible(),
+        false,
+      );
       await page.click('#searchClear');
-      assert.equal(await page.locator('.home-guides').isVisible(), true);
+      assert.equal(
+        await page
+          .locator('.tool-card[href="/tools/dev/base64/"]')
+          .isVisible(),
+        true,
+      );
     },
   );
 

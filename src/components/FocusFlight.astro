@@ -22,6 +22,10 @@ const payload = JSON.stringify({lang,copy:t,journey:j,airports}).replace(/</g,'\
     <section class="ff-scene" id="ffStage" aria-labelledby="ffMapTitle">
       <div class="ff-cabin" id="ffCabin" aria-hidden="true">
         <FlightCabin />
+        <div class="ff-cabin-clock">
+          <span class="ff-cabin-clock-time mono" id="ffCabinClock">25:00</span>
+          <span class="ff-cabin-clock-track"><i id="ffCabinClockFill"></i></span>
+        </div>
       </div>
       <div class="ff-map-window" id="ffMapViewport">
         <div class="ff-map-world" id="ffMapWorld"><FlightMap /></div>

@@ -32,6 +32,7 @@ export class RangeRenderer {
     private canvas: HTMLCanvasElement,
     private session: TrainingSession,
     onLoss: () => void,
+    coverLabel = '',
   ) {
     const quality = FPS_CONFIG.quality[session.settings.quality as keyof typeof FPS_CONFIG.quality];
     const context = canvas.getContext('webgl2', {
@@ -70,7 +71,7 @@ export class RangeRenderer {
     }
     this.scene.add(key, key.target);
     const models = new RangeModels(quality.sphereSegments);
-    this.scene.add(models.environment(session));
+    this.scene.add(models.environment(session, coverLabel));
     this.drillScene = new DrillScene(session, models);
     this.scene.add(this.drillScene.group);
     for (const target of session.targets) {

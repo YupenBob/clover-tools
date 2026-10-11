@@ -187,7 +187,15 @@ export async function runToolDetailChecks({ run, remember, base, artifacts }) {
             assert.match(output, /\n.*FROM/);
           }
           await page.click(`#${copy}`);
-          assert.equal(await page.evaluate(() => navigator.clipboard.readText()), output);
+          // inputValue() returns a textarea value with line endings normalised, while the
+          // clipboard keeps the bytes the tool copied; a CRLF checkout must not fail the compare.
+          assert.equal(
+            (await page.evaluate(() => navigator.clipboard.readText())).replace(
+              /\r\n/g,
+              '\n',
+            ),
+            output,
+          );
           await panels(page, 'columns');
           await capture(page, artifacts, lang, `${slug}-desktop`);
           // Clear the read-only result to observe a second shortcut execution.

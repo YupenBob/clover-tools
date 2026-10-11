@@ -53,7 +53,7 @@ export class RangeModels {
     mesh.castShadow = true;
     return mesh;
   }
-  environment(session: TrainingSession) {
+  environment(session: TrainingSession, coverLabel = '') {
     const group = new THREE.Group(),
       c = FPS_CONFIG.scene,
       p = c.palette,
@@ -128,22 +128,12 @@ export class RangeModels {
     ring.rotation.x = -Math.PI / 2;
     ring.position.set(0, a.gridElevation * 2, c.spawnZ);
     group.add(ring);
-    const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = labelCanvas.height = a.labelResolution;
-    const ctx = labelCanvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = p.ink;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const font = getComputedStyle(document.documentElement).getPropertyValue('--font-mono');
-      ctx.font = `600 ${a.labelResolution / 4}px ${font || 'monospace'}`;
-      ctx.fillText(`${session.settings.distance} m`, a.labelResolution / 2, a.labelResolution / 2);
-      const texture = new THREE.CanvasTexture(labelCanvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
+    const distanceTexture = this.labelTexture(`${session.settings.distance} m`, 4);
+    if (distanceTexture) {
       const label = new THREE.Mesh(
         new THREE.PlaneGeometry(a.labelSize * 2, a.labelSize),
         new THREE.MeshBasicMaterial({
-          map: texture,
+          map: distanceTexture,
           transparent: true,
           depthWrite: false,
         }),
@@ -163,7 +153,7 @@ export class RangeModels {
         p.vest,
         true,
       );
-      face.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, max.z - a.panelInset / 2);
+      face.position.set((min.x + max.x) / 2, (min.y + max.y) / 2, max.z - a.coverInset);
       group.add(face);
       // Edge inlays are inside the same collision bounds.
       for (const side of [-1, 1]) {
@@ -171,12 +161,48 @@ export class RangeModels {
         trim.position.set(
           side > 0 ? max.x - a.panelInset / 2 : min.x + a.panelInset / 2,
           (max.y + min.y) / 2,
-          max.z - a.panelInset / 2,
+          max.z - a.coverInset,
         );
         group.add(trim);
       }
+      if (coverLabel) {
+        // Painted just clear of the recessed face: guidance without a surface that can z-fight.
+        const texture = this.labelTexture(coverLabel, 5, 700);
+        if (texture) {
+          const plate = new THREE.Mesh(
+            new THREE.PlaneGeometry(
+              (max.x - min.x) * ratio * 0.7,
+              ((max.y - min.y) * ratio * 0.7) / 4,
+            ),
+            new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false }),
+          );
+          plate.position.set(
+            (min.x + max.x) / 2,
+            (min.y + max.y) / 2,
+            max.z - a.coverInset + a.panelInset / 2 + 0.001,
+          );
+          group.add(plate);
+        }
+      }
     }
     return group;
+  }
+  /** Text is rasterised once per label; callers skip the mesh when a canvas is unavailable. */
+  private labelTexture(text: string, sizeRatio: number, weight = 600) {
+    const a = FPS_CONFIG.scene.architecture;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = a.labelResolution;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return undefined;
+    ctx.fillStyle = FPS_CONFIG.scene.palette.ink;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const font = getComputedStyle(document.documentElement).getPropertyValue('--font-mono');
+    ctx.font = `${weight} ${a.labelResolution / sizeRatio}px ${font || 'monospace'}`;
+    ctx.fillText(text, a.labelResolution / 2, a.labelResolution / 2);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
   }
   target(session: TrainingSession) {
     const group = new THREE.Group(),

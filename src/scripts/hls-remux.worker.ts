@@ -12,17 +12,20 @@ async function loadCore(base: string): Promise<void> {
   const response = await fetch(`${base}/manifest.json`);
   if (!response.ok) throw new Error('coreLoadError');
   const manifest = await response.json();
-  const chunks: Uint8Array[] = [];
   let loaded = 0;
-  for (const part of manifest.parts) {
-    const response = await fetch(`${base}/${part.name}`);
-    if (!response.ok) throw new Error('coreLoadError');
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (value) => value.toString(16).padStart(2, '0')).join('');
-    if (bytes.length !== part.size || hash !== part.sha256) throw new Error('coreLoadError');
-    chunks.push(bytes); loaded += bytes.length;
-    scope.postMessage({ event: 'loading', progress: loaded / manifest.bytes });
-  }
+  // The parts are independent, so they download concurrently; assembly still follows manifest order.
+  const chunks = await Promise.all(
+    (manifest.parts as { name: string; size: number; sha256: string }[]).map(async (part) => {
+      const partResponse = await fetch(`${base}/${part.name}`);
+      if (!partResponse.ok) throw new Error('coreLoadError');
+      const bytes = new Uint8Array(await partResponse.arrayBuffer());
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (value) => value.toString(16).padStart(2, '0')).join('');
+      if (bytes.length !== part.size || hash !== part.sha256) throw new Error('coreLoadError');
+      loaded += bytes.length;
+      scope.postMessage({ event: 'loading', progress: Math.min(1, loaded / manifest.bytes) });
+      return bytes;
+    }),
+  );
   const wasmBinary = new Uint8Array(loaded);
   let offset = 0;
   for (const chunk of chunks) { wasmBinary.set(chunk, offset); offset += chunk.length; }

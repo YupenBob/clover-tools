@@ -1,11 +1,11 @@
 import { SegmentCache, type SavedTask } from '../lib/hls/cache';
 import { DownloadTask, loadPlaylist, type DownloadOptions } from '../lib/hls/downloader';
-import { HlsError, httpUrl, playlistId, type Playlist } from '../lib/hls/playlist';
+import { HlsError, httpUrl, originalExtension, playlistId, type Playlist } from '../lib/hls/playlist';
 import { Remuxer } from '../lib/hls/remux';
 import type { HlsCopy } from '../lib/hls/copy';
 import { HLS_CONFIG } from '../../config/hls.mjs';
 import { StreamingTask } from '../lib/hls/stream';
-import { chooseFile, DiskSink, supportsFileSaving, type SaveFileHandle, type StreamFormat } from '../lib/hls/file';
+import { chooseFile, DiskSink, supportsFileSaving, type MediaFormat, type SaveFileHandle, type StreamFormat } from '../lib/hls/file';
 
 const root = document.getElementById('hlsDownloader');
 if (root) {
@@ -35,6 +35,7 @@ if (root) {
   let busy = false, exporting = false, parsing = false, disposed = false, started = false;
   let parseController: AbortController | undefined, remuxer: Remuxer | undefined;
   let outputUrl: string | undefined, page = 0, timer: ReturnType<typeof setTimeout> | undefined;
+  let warmTimer: ReturnType<typeof setTimeout> | undefined;
   let speedTimer: ReturnType<typeof setInterval> | undefined, lastBytes = 0, lastTime = performance.now();
   let originalIndices: number[] = [];
   let streaming: StreamingTask | undefined, handle: SaveFileHandle | undefined, savedTask: SavedTask | undefined;
@@ -60,13 +61,23 @@ if (root) {
     return { done, skipped, bytes, duration, gapDuration, total: task?.results.length || 0 };
   }
 
+  /** One primary action finishes the download and then exports, so the label stays predictable. */
+  function startAllowed() {
+    if (!task || exporting || parsing) return false;
+    // A paused stream keeps its file open and must stay resumable; a finished one has nothing left.
+    if (input('hlsStream').checked && !!streaming?.finished && !streaming.writable) return false;
+    return task.results.some((result) => result.state === 'pending') || totals().done > 0;
+  }
+
   function controls() {
     const streamMode = input('hlsStream').checked, openFile = !!streaming?.writable;
     button('hlsParse').disabled = busy || exporting || parsing || openFile;
     button('hlsLoadVariant').disabled = busy || exporting || parsing || openFile;
     button('hlsStart').hidden = busy;
-    button('hlsStart').disabled = !task || exporting || parsing || (!streamMode && !task.results.some((result) => result.state === 'pending')) || !!(streamMode && (streaming?.finished && !openFile || !task?.results.some((result) => ['done', 'pending'].includes(result.state))));
-    element('hlsStart').querySelector('span')!.textContent = streamMode ? openFile ? copy.resume : streaming?.info ? copy.streamChoose : copy.streamPrepare : started ? copy.resume : copy.start;
+    button('hlsStart').disabled = !startAllowed();
+    element('hlsStart').querySelector('span')!.textContent = streamMode
+      ? started ? copy.resume : copy.streamStartAndSave
+      : started ? copy.resumeAndExport : copy.downloadAndExport;
     button('hlsPause').hidden = !busy;
     button('hlsRetry').disabled = !task || busy || exporting || parsing || !task.playlist.segments.some((segment) => !segment.gap && task!.results[segment.index].state === 'skipped');
     button('hlsClear').disabled = !task || busy || exporting || parsing;
@@ -75,7 +86,7 @@ if (root) {
     button('hlsExport').disabled = !canExport;
     button('hlsSavePartial').hidden = !streamMode || !openFile;
     button('hlsSavePartial').disabled = busy || exporting || parsing || !streaming?.segments;
-    button('hlsChangeFile').hidden = !streamMode || !streaming?.info || streaming.finished || openFile || !handle;
+    button('hlsChangeFile').hidden = !streamMode || !streaming?.info || !handle || openFile || busy || exporting || parsing;
     button('hlsChangeFile').disabled = busy || exporting || parsing;
     input('hlsStream').disabled = busy || exporting || parsing || openFile || !supportsFileSaving();
     element<HTMLSelectElement>('hlsFormat').disabled = busy || exporting || parsing || openFile;
@@ -170,7 +181,29 @@ if (root) {
     clearPreview(); element('hlsEmpty').hidden = true; element('hlsTask').hidden = false;
     element('hlsTaskMeta').textContent = translate('ready', { count: selected.length, duration: seconds(ranged.duration) }) + (playlist.live ? ` · ${copy.liveNote}` : '');
     status(restored ? 'cached' : 'ready', { count: restored || selected.length, duration: seconds(ranged.duration) });
+    scheduleWarm();
     draw();
+  }
+
+  /** Compile the remux core while the user is still reading the playlist, not when they click export. */
+  function scheduleWarm() {
+    if (disposed || remuxer?.usable) return;
+    warmTimer = setTimeout(() => {
+      warmTimer = undefined;
+      if (disposed) return;
+      void ensureRemuxer().warm();
+    }, HLS_CONFIG.ui.coreWarmDelayMs);
+  }
+  /** One worker serves every export until it is cancelled or terminated, so the core compiles once. */
+  function ensureRemuxer(): Remuxer {
+    if (!remuxer?.usable) {
+      remuxer = new Remuxer((event, progress) => {
+        if (!exporting) return;
+        status(event === 'loading' ? 'loadCore' : 'merging',
+          { percent: Math.min(100, Math.max(0, Math.round(progress * 100))) }, 'info', 'hlsExportStatus');
+      });
+    }
+    return remuxer;
   }
 
   async function parse(url: string, variant = false) {
@@ -185,11 +218,12 @@ if (root) {
     finally { parsing = false; draw(); }
   }
 
-  async function download() {
+  async function download(autoExport = true) {
     if (!task || busy || exporting || parsing) return;
     if (input('hlsStream').checked) { await streamDownload(); return; }
-    Object.assign(task.options, options());
-    delete task.options.maxBytes;
+    const current = task;
+    Object.assign(current.options, options());
+    delete current.options.maxBytes;
     clearPreview(); busy = true; started = true; controls(); status('downloading');
     lastBytes = totals().bytes; lastTime = performance.now();
     speedTimer = setInterval(() => {
@@ -198,12 +232,18 @@ if (root) {
       lastBytes = count.bytes; lastTime = now;
     }, HLS_CONFIG.ui.speedRefreshMs);
     try {
-      await task.run();
-      if (task.fatal) failure(task.fatal);
-      else if (task.results.some((result) => result.state === 'pending')) status('paused');
+      await current.run();
+      if (current.fatal) failure(current.fatal);
+      else if (current.results.some((result) => result.state === 'pending')) status('paused');
       else status('complete', totals());
     } catch (error) { failure(error); }
     finally { busy = false; clearInterval(speedTimer); element('hlsSpeed').textContent = ''; draw(); }
+    // A finished download continues straight into export: one click, one file. Pausing, a fatal
+    // error, or an empty result leaves the export to the explicit button in the result panel.
+    if (autoExport && !disposed && current === task && !current.fatal &&
+      !current.results.some((result) => result.state === 'pending') && totals().done > 0) {
+      await exportVideo(element<HTMLSelectElement>('hlsFormat').value as 'mp4' | 'ts');
+    }
   }
 
   function filename(format: string): string {
@@ -230,25 +270,28 @@ if (root) {
   async function streamDownload(freshFile = false) {
     if (busy || exporting || parsing) return;
     if (!task || !supportsFileSaving()) { failure(new HlsError('streamUnsupported')); return; }
+    const current = task;
+    // The save picker needs this click's user activation, so it must precede every await.
+    // The first probe has not run yet, so the container comes from the playlist itself.
+    let target = streaming?.writable ? handle : undefined;
+    if (!target || freshFile) {
+      const requested = element<HTMLSelectElement>('hlsFormat').value as StreamFormat;
+      const guess: MediaFormat = requested === 'original' ? originalExtension(current.playlist) : 'mp4';
+      try {
+        target = await chooseFile(filename(guess), guess, freshFile ? undefined : handle);
+      } catch (error) { failure(error); return; }
+      handle = target;
+    }
     busy = true; started = true; clearPreview(); controls();
+    status('preparing', { done: 0, total: current.results.length }, 'info', 'hlsExportStatus');
     try {
-      Object.assign(task.options, options());
+      Object.assign(current.options, options());
       if (!streaming || !streaming.writable && streaming.finished) { await streaming?.dispose(); streaming = makeStream(); }
-      if (!streaming.info) {
-        status('preparing', { done: 0, total: task.results.length });
-        status('preparing', { done: 0, total: task.results.length }, 'info', 'hlsExportStatus');
-        await remember(); await streaming.prepare();
-        status('streamReady', { format: streaming.output!.toUpperCase() });
-        element('hlsExportStatus').hidden = true;
-        return;
-      }
-      if (!streaming.writable) {
-        // No await precedes this picker / permission request in the button's second click.
-        status('streamReady', { format: streaming.output!.toUpperCase() });
-        handle = await chooseFile(filename(streaming.output!), streaming.output!, freshFile ? undefined : handle);
-        await remember(); streaming.attach(await DiskSink.open(handle));
-      }
-      status('downloading'); await streaming.run();
+      await remember();
+      if (!streaming.info) await streaming.prepare();
+      if (!streaming.writable) streaming.attach(await DiskSink.open(target));
+      status('streamReady', { format: streaming.output!.toUpperCase() });
+      await streaming.run();
       if (streaming.finished) status('streamComplete', { format: streaming.output!.toUpperCase(), size: size(streaming.bytes) });
       else status('streamPaused');
     } catch (error) {
@@ -276,10 +319,9 @@ if (root) {
     if (!task || busy || exporting || parsing) return;
     const skippedBefore = totals().skipped;
     clearPreview(); exporting = true; controls(); draw(); status('loadCore', { percent: 0 }, 'info', 'hlsExportStatus');
-    remuxer = new Remuxer((event, progress) => status(event === 'loading' ? 'loadCore' : 'merging',
-      { percent: Math.min(100, Math.max(0, Math.round(progress * 100))) }, 'info', 'hlsExportStatus'));
+    const engine = ensureRemuxer();
     try {
-      const blob = await remuxer.export(task, format, (done, total) => status('preparing', { done, total }, 'info', 'hlsExportStatus'));
+      const blob = await engine.export(task, format, (done, total) => status('preparing', { done, total }, 'info', 'hlsExportStatus'));
       if (disposed) return;
       outputUrl = save(blob, filename(format));
       const link = element<HTMLAnchorElement>('hlsSaveAgain'); link.href = outputUrl; link.download = filename(format);
@@ -289,7 +331,8 @@ if (root) {
       status('exported', { format: format.toUpperCase(), size: size(blob.size) }, 'info', 'hlsExportStatus');
     } catch (error) { failure(error, 'hlsExportStatus'); }
     finally {
-      remuxer?.stop(); remuxer = undefined; exporting = false;
+      // The worker stays warm for the next export; only cancellation or unload terminates it.
+      exporting = false;
       if (totals().skipped > skippedBefore) status('probeSkipped', { count: totals().skipped - skippedBefore });
       draw();
     }
@@ -309,8 +352,11 @@ if (root) {
     try { await streaming?.dispose(); streaming = undefined; await task.retrySkipped(index); }
     catch (error) { failure(error); }
     finally { parsing = false; draw(); }
-    if (input('hlsStream').checked) status('rebuildNote');
-    await download();
+    if (input('hlsStream').checked) {
+      // Rebuilding needs a fresh save permission, which only a real click can grant.
+      status('rebuildNote'); draw(); return;
+    }
+    await download(false);
   }
   button('hlsRetry').addEventListener('click', () => void retry());
   button('hlsClear').addEventListener('click', async () => {
@@ -389,10 +435,16 @@ if (root) {
     if (event.ctrlKey && event.key === 'Enter' && !button('hlsParse').disabled) element<HTMLFormElement>('hlsForm').requestSubmit();
   });
   window.addEventListener('pagehide', () => {
-    disposed = true; task?.pause(); parseController?.abort(); remuxer?.stop(); void streaming?.dispose(); streaming = undefined;
-    clearInterval(speedTimer); clearTimeout(timer); if (outputUrl) URL.revokeObjectURL(outputUrl);
+    disposed = true; task?.pause(); parseController?.abort(); remuxer?.stop(); remuxer = undefined; void streaming?.dispose(); streaming = undefined;
+    clearInterval(speedTimer); clearTimeout(timer); clearTimeout(warmTimer); if (outputUrl) URL.revokeObjectURL(outputUrl);
   });
-  window.addEventListener('pageshow', (event) => { if (event.persisted) { disposed = false; busy = false; exporting = false; parsing = false; draw(); } });
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      disposed = false; busy = false; exporting = false; parsing = false;
+      if (task?.results.some((result) => result.state === 'pending')) scheduleWarm();
+      draw();
+    }
+  });
   const source = new URLSearchParams(location.search).get('source');
   if (source) { input('hlsUrl').value = source; void parse(source); }
   void cache.active().then((saved) => { if (!disposed && saved) { savedTask = saved; element('hlsRestoreArea').hidden = false; } }).catch((error) => failure(error));

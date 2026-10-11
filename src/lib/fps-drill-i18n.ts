@@ -10,6 +10,7 @@ const zh = {
   drillFire: '首发',
   drillPeek: '探头',
   drillReturn: '回掩体',
+  drillCoverGuide: '掩体 · 回撤点',
   strafeDesc: '左右交替横移，停稳后首发击中头部。',
   peekDesc: '单侧探头、首发打头、回掩体，再换另一侧。',
   strafeGoal: '横移到指示侧 → 松键或反向急停 → 停稳后点射头部。站着连点不会推进回合。',
@@ -51,6 +52,7 @@ const en: Text = {
   drillFire: 'First shot',
   drillPeek: 'Peek',
   drillReturn: 'Return',
+  drillCoverGuide: 'COVER · RETURN',
   strafeDesc: 'Alternate lateral movement, then land a settled first-shot headshot.',
   peekDesc: 'Peek one side, take a first shot, return to cover, then switch sides.',
   strafeGoal:
@@ -93,6 +95,7 @@ const ja: Text = {
   drillFire: '初弾',
   drillPeek: 'ピーク',
   drillReturn: '戻る',
+  drillCoverGuide: '遮蔽物 · 復帰',
   strafeDesc: '左右交互に移動し、停止して初弾を頭に当てます。',
   peekDesc: '片側からピークし、初弾を撃って遮蔽物に戻り、反対側へ。',
   strafeGoal:
@@ -134,6 +137,7 @@ const ko: Text = {
   drillFire: '첫 발',
   drillPeek: '피킹',
   drillReturn: '복귀',
+  drillCoverGuide: '엄폐물 · 복귀',
   strafeDesc: '좌우로 번갈아 이동하고 정지 후 첫 발을 머리에 맞힙니다.',
   peekDesc: '한쪽에서 피킹하고 첫 발을 쏜 뒤 엄폐로 돌아와 반대쪽을 연습합니다.',
   strafeGoal:
