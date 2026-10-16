@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parsePlaylist, sequenceIV, playlistId, concatManifest, remuxArgs } from '../../src/lib/hls/playlist.ts';
+import { parsePlaylist, sequenceIV, playlistId, concatManifest, remuxArgs, originalExtension } from '../../src/lib/hls/playlist.ts';
 import { DownloadTask, requestBytes, validateMedia } from '../../src/lib/hls/downloader.ts';
 
 const source = 'https://media.example/folder/video.m3u8';
@@ -39,6 +39,18 @@ test('fMP4 maps retain their own encryption and explicit IV', () => {
   assert.equal(playlist.segments[0].key.url, 'https://media.example/folder/media.key');
   assert.equal(playlist.segments[0].init.key.iv[15], 1);
   assert.throws(() => media('#EXT-X-KEY:METHOD=AES-128,URI="key"\n#EXT-X-MAP:URI="init"\n#EXTINF:1,\na.m4s'));
+});
+
+test('stream mode infers the container from the playlist before the first probe', () => {
+  // The save picker runs before any download, so the extension cannot wait for ffprobe.
+  assert.equal(originalExtension(media('#EXTINF:1,\nseg0.ts\n#EXTINF:1,\nseg1.ts')), 'ts');
+  assert.equal(originalExtension(media('#EXTINF:1,\nseg0.aac\n#EXTINF:1,\nseg1.aac')), 'aac');
+  assert.equal(originalExtension(media('#EXTINF:1,\nvideo.mp4')), 'mp4');
+  assert.equal(originalExtension(media('#EXTINF:1,\nseg0.m4s')), 'mp4');
+  assert.equal(originalExtension(media('#EXT-X-MAP:URI="init.mp4"\n#EXTINF:1,\nseg0.m4s')), 'mp4');
+  // Query strings and fragments must not defeat the extension match.
+  assert.equal(originalExtension(media('#EXTINF:1,\nseg0.mp4?token=abc#frag')), 'mp4');
+  assert.equal(originalExtension(media('#EXTINF:1,\nseg0')), 'ts');
 });
 
 test('invalid lists, unsafe URLs, unsupported encryption and ambiguous ranges fail clearly', () => {

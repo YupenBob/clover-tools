@@ -10,15 +10,38 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
   <ToolPanel title="反应力测试" icon="bi-lightning-charge">
-    <button class="rt-area" id="rtArea" type="button">
-      <span id="rtText">点击开始，屏幕变绿后尽快点击</span>
-    </button>
-    <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
-    <div class="lc-result mt-4" id="rtResult"></div>
+    <div class="rt-stage" id="rtStage">
+      <div class="rt-toolbar">
+        <button class="btn btn-secondary btn-sm rt-fullscreen" id="rtFullscreen" type="button" aria-pressed="false">
+          <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span id="rtFullscreenText">全屏</span>
+        </button>
+      </div>
+      <button class="rt-area" id="rtArea" type="button">
+        <span id="rtText">点击开始，屏幕变绿后尽快点击</span>
+      </button>
+      <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result mt-4" id="rtResult"></div>
+    </div>
   </ToolPanel>
 </ToolLayout>
 
 <style>
+  .rt-stage {
+    display: grid;
+    gap: 14px;
+  }
+
+  .rt-toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .rt-fullscreen {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+
   .rt-area {
     width: 100%;
     min-height: 260px;
@@ -40,6 +63,23 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   .rt-area.go {
     background: var(--success);
     color: #fff;
+  }
+
+  .rt-stage:fullscreen,
+  .rt-stage:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px;
+    background: var(--bg);
+  }
+
+  .rt-stage:fullscreen .rt-area,
+  .rt-stage:-webkit-full-screen .rt-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: var(--radius-md);
+    font-size: 32px;
   }
 </style>
 
@@ -106,6 +146,28 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       showStatus('rtStatus', 'success', `${ms} ms · ${grade}`);
     }
   });
+
+  const stage = byId<HTMLElement>('rtStage');
+  const fullscreenBtn = byId<HTMLButtonElement>('rtFullscreen');
+  const fullscreenText = byId<HTMLElement>('rtFullscreenText');
+  const fullscreenIcon = fullscreenBtn.querySelector('i');
+
+  function syncFullscreen() {
+    const active = document.fullscreenElement === stage;
+    fullscreenBtn.setAttribute('aria-pressed', String(active));
+    fullscreenText.textContent = active ? '退出全屏' : '全屏';
+    if (fullscreenIcon) {
+      fullscreenIcon.className = active ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+    }
+  }
+
+  fullscreenBtn.addEventListener('click', () => {
+    // 必须在点击的用户激活内发起，前面不能有 await。
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    else void stage.requestFullscreen?.().catch(() => undefined);
+  });
+
+  document.addEventListener('fullscreenchange', syncFullscreen);
 
   renderHistory();
 </script>

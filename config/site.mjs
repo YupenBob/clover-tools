@@ -30,5 +30,3 @@ export const LEGAL = {
   kinds: ['privacy', 'terms', 'contact'],
   updated: '2026-10-16',
 };
-
-export const HOME = { featuredGuideCount: 6 };

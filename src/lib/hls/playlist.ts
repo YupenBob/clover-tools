@@ -1,4 +1,6 @@
 /** HLS parsing is kept independent from the UI and downloader (RFC 8216). */
+import type { MediaFormat } from './file';
+
 export class HlsError extends Error {
   code: string;
   constructor(code: string, detail = '') { super(detail || code); this.code = code; }
@@ -124,6 +126,15 @@ export function parsePlaylist(text: string, source: string): Playlist {
     throw new HlsError('invalidPlaylist');
   for (const variant of variants) variant.externalAudio = !!variant.audioGroup && externalAudio.has(variant.audioGroup);
   return { url, segments, variants, duration, live: !end && !variants.length };
+}
+
+/** Stream mode names the output before the first probe, so the container is inferred from the playlist. */
+export function originalExtension(playlist: Playlist): MediaFormat {
+  if (playlist.segments.some((segment) => segment.init)) return 'mp4';
+  const path = (playlist.segments[0]?.url ?? '').split(/[?#]/)[0].toLowerCase();
+  if (/\.(mp4|m4s|m4a|mov)$/.test(path)) return 'mp4';
+  if (path.endsWith('.aac')) return 'aac';
+  return 'ts';
 }
 
 /** Fingerprint the actual media identity, including rotating keys and initialization data. */

@@ -10,15 +10,38 @@ const related = getRelated(category, 'reaction-test', 'tw', 6);
 
 <ToolLayout category={category} tool={tool} related={related}>
   <ToolPanel title="反應力測試" icon="bi-lightning-charge">
-    <button class="rt-area" id="rtArea" type="button">
-      <span id="rtText">點擊開始，屏幕變綠後盡快點擊</span>
-    </button>
-    <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
-    <div class="lc-result mt-4" id="rtResult"></div>
+    <div class="rt-stage" id="rtStage">
+      <div class="rt-toolbar">
+        <button class="btn btn-secondary btn-sm rt-fullscreen" id="rtFullscreen" type="button" aria-pressed="false">
+          <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span id="rtFullscreenText">全螢幕</span>
+        </button>
+      </div>
+      <button class="rt-area" id="rtArea" type="button">
+        <span id="rtText">點擊開始，屏幕變綠後盡快點擊</span>
+      </button>
+      <div class="status-msg" id="rtStatus" role="status" aria-live="polite"></div>
+      <div class="lc-result mt-4" id="rtResult"></div>
+    </div>
   </ToolPanel>
 </ToolLayout>
 
 <style>
+  .rt-stage {
+    display: grid;
+    gap: 14px;
+  }
+
+  .rt-toolbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .rt-fullscreen {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+
   .rt-area {
     width: 100%;
     min-height: 260px;
@@ -40,6 +63,23 @@ const related = getRelated(category, 'reaction-test', 'tw', 6);
   .rt-area.go {
     background: var(--success);
     color: #fff;
+  }
+
+  .rt-stage:fullscreen,
+  .rt-stage:-webkit-full-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px;
+    background: var(--bg);
+  }
+
+  .rt-stage:fullscreen .rt-area,
+  .rt-stage:-webkit-full-screen .rt-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: var(--radius-md);
+    font-size: 32px;
   }
 </style>
 
@@ -106,6 +146,28 @@ const related = getRelated(category, 'reaction-test', 'tw', 6);
       showStatus('rtStatus', 'success', `${ms} ms · ${grade}`);
     }
   });
+
+  const stage = byId<HTMLElement>('rtStage');
+  const fullscreenBtn = byId<HTMLButtonElement>('rtFullscreen');
+  const fullscreenText = byId<HTMLElement>('rtFullscreenText');
+  const fullscreenIcon = fullscreenBtn.querySelector('i');
+
+  function syncFullscreen() {
+    const active = document.fullscreenElement === stage;
+    fullscreenBtn.setAttribute('aria-pressed', String(active));
+    fullscreenText.textContent = active ? '結束全螢幕' : '全螢幕';
+    if (fullscreenIcon) {
+      fullscreenIcon.className = active ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+    }
+  }
+
+  fullscreenBtn.addEventListener('click', () => {
+    // 必須在點擊的使用者啟用內發起，前面不能有 await。
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+    else void stage.requestFullscreen?.().catch(() => undefined);
+  });
+
+  document.addEventListener('fullscreenchange', syncFullscreen);
 
   renderHistory();
 </script>

@@ -243,7 +243,7 @@ function paintMap(progress: number) {
     ") rotate(" +
     angle.toFixed(3) +
     ") scale(" +
-    (unit * 0.48).toFixed(4) +
+    (unit * 0.72).toFixed(4) +
     ")";
   if (plane !== paintedPlane) {
     byId("ffPlane").setAttribute("transform", plane);
@@ -650,9 +650,11 @@ function render(force = false) {
       ":" +
       String(seconds % 60).padStart(2, "0");
   text("ffClock", clock);
+  text("ffCabinClock", clock);
   const progress = session ? 1 - remaining / session.durationMs : 0,
     percent = Math.min(100, Math.floor(progress * 100));
   byId("ffProgressFill").style.width = progress * 100 + "%";
+  byId("ffCabinClockFill").style.width = progress * 100 + "%";
   byId("ffProgress").setAttribute("aria-valuenow", String(percent));
   text("ffPercent", percent + "%");
   const arrival = session

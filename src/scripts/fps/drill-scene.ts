@@ -38,6 +38,16 @@ export class DrillScene {
       const edge = models.box(c.markerWidth, c.markerHeight, depth, p.hit);
       edge.position.set((side * width) / 2, c.markerHeight, FPS_CONFIG.scene.spawnZ);
       this.group.add(edge);
+      // Corner posts keep the lane readable in peripheral vision, so the eye never drops to the floor.
+      for (const corner of [-1, 1]) {
+        const post = models.box(c.markerWidth, c.markerPostHeight, c.markerWidth, p.hit);
+        post.position.set(
+          (side * width) / 2,
+          c.markerPostHeight / 2,
+          FPS_CONFIG.scene.spawnZ + (corner * depth) / 2,
+        );
+        this.group.add(post);
+      }
     }
   }
   update() {

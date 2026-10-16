@@ -8,7 +8,7 @@ export const HLS_CONFIG = {
   cache: { database: 'clover-hls-v1', version: 2, store: 'chunks', tasks: 'tasks', activeTask: 'active' },
   stream: { segmentBytes: 64 * 1048576, bufferBytes: 128 * 1048576, prefetch: 6, recycleSegments: 128, heapBytes: 384 * 1048576, probePackets: 128,
     defaultFormat: 'original', clockToleranceSeconds: 0.25 },
-  ui: { segmentsPerPage: 160, refreshMs: 100, speedRefreshMs: 1000, reportUrlLifetimeMs: 30000 },
+  ui: { segmentsPerPage: 160, refreshMs: 100, speedRefreshMs: 1000, reportUrlLifetimeMs: 30000, coreWarmDelayMs: 400 },
   formats: { mp4: { mime: 'video/mp4', extension: 'mp4' }, ts: { mime: 'video/mp2t', extension: 'ts' }, aac: { mime: 'audio/aac', extension: 'aac' } },
 };
 

@@ -327,7 +327,7 @@ function initialize(root: HTMLElement) {
       document.body.style.overflow = 'hidden';
       stage.hidden = false;
       stage.dataset.phase = 'paused';
-      renderer = new RangeRenderer(canvas, session, () => pause(text.contextLost));
+      renderer = new RangeRenderer(canvas, session, () => pause(text.contextLost), text.drillCoverGuide);
       $('fpsReport').hidden = true;
       veil.hidden = false;
       $('fpsPauseTitle').textContent = calibration ? text.calibration : text.ready;

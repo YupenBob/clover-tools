@@ -345,6 +345,39 @@
   color: #a9b5ad;
   margin: 18px 0;
 }
+/* The cabin wall carries the same clock at scale, kept quiet so it never competes with the view. */
+.ff-cabin-clock {
+  position: absolute;
+  left: 6%;
+  top: 46%;
+  z-index: 1;
+  display: grid;
+  gap: 22px;
+  width: 46%;
+  max-width: 640px;
+  pointer-events: none;
+}
+.ff-cabin-clock-time {
+  font-size: clamp(56px, 11vw, 150px);
+  font-weight: 200;
+  letter-spacing: -6px;
+  line-height: 0.92;
+  color: #efe8d6;
+  opacity: 0.17;
+}
+.ff-cabin-clock-track {
+  display: block;
+  height: 1px;
+  background: #efe8d6;
+  opacity: 0.16;
+}
+.ff-cabin-clock-track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #e4c894;
+  opacity: 0.75;
+}
 .ff-intention {
   border-top: 1px solid #ffffff16;
   padding-top: 18px;
@@ -489,23 +522,31 @@
   right: 24px;
   top: 90px;
   display: flex;
-  gap: 2px;
+  gap: 3px;
   z-index: 3;
-  padding: 3px;
-  border: 1px solid #ffffff17;
-  background: #102c3580;
-  border-radius: 6px;
+  padding: 4px;
+  border: 1px solid #ffffff42;
+  background: #0b242ee6;
+  border-radius: 9px;
+  box-shadow:
+    0 6px 18px #04121a73,
+    inset 0 0 0 1px #ffffff0d;
+  backdrop-filter: blur(6px);
 }
 .ff-camera-switch button {
   border: 0;
-  padding: 5px 9px;
+  min-height: 32px;
+  padding: 6px 14px;
   background: transparent;
-  color: #9bbaad;
-  font-size: 10px;
+  color: #cfe0d2;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
 }
 .ff-camera-switch button[aria-pressed="true"] {
-  background: #ffffff10;
-  color: #e7dec6;
+  background: #f0e2bd;
+  color: #14303a;
 }
 .ff-dock {
   position: absolute;
@@ -2547,7 +2588,7 @@ html.ff-immersive {
   width: 30px;
   height: 30px;
   flex: none;
-  color: #365b3c;
+  display: block;
 }
 .ff-paper-brand > div {
   display: grid;

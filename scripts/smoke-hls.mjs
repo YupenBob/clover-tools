@@ -151,10 +151,21 @@ try {
   };
   const finish = async () => {
     if (await page.locator('#hlsStart').isDisabled()) return;
+    // One click downloads and then exports; wait for both so later assertions never race the export.
     await page.locator('#hlsStart').click();
     await page.waitForFunction(() => document.getElementById('hlsStatus').textContent.includes('下载结束'));
+    await settle();
   };
+  // The toolbar is idle once the download has stopped and any automatic export has finished.
+  const settle = () => page.waitForFunction(() => {
+    const start = document.getElementById('hlsStart');
+    return !start.hidden
+      && !document.getElementById('hlsExport').disabled
+      && document.getElementById('hlsCancelExport').hidden;
+  }, null, { timeout: 240000 });
   const exportFile = async (id, name) => {
+    // Let the automatic export settle first, so the download event below is unambiguously ours.
+    await settle();
     await page.locator('#hlsFormat').selectOption(name.endsWith('.ts') ? 'ts' : 'mp4');
     const download = page.waitForEvent('download', { timeout: 240000 });
     await page.locator('#hlsExport').click();
@@ -172,13 +183,15 @@ try {
   await page.locator('#hlsQuality').waitFor({ state: 'visible' }); await page.locator('#hlsLoadVariant').click();
   await page.locator('#hlsTask').waitFor({ state: 'visible' });
   await finish();
-  assert.equal(await page.locator('#hlsDone').textContent(), '4');
-  assert.equal(await page.locator('#hlsSkipped').textContent(), '2');
+  // The single click also exports, and the export's probe reclassifies the corrupt seg4 as skipped.
+  assert.equal(await page.locator('#hlsDone').textContent(), '3');
+  assert.equal(await page.locator('#hlsSkipped').textContent(), '3');
   assert.equal(counts.get('/media/ts/seg1.ts'), 1); assert.equal(counts.get('/media/ts/seg3.ts'), 1); assert.equal(counts.get('/media/ts/seg2.ts'), 2);
   console.log('PASS 404 / 410 skipped once; 503 recovers; subsequent media downloads');
   const before = new Map(counts);
   await page.reload(); await parse('/media/ts/index.m3u8');
-  assert.equal(await page.locator('#hlsDone').textContent(), '4');
+  // seg4's skipped state and the removal of its chunk survive the reload.
+  assert.equal(await page.locator('#hlsDone').textContent(), '3');
   await finish();
   for (const index of [0, 2, 4, 5]) assert.equal(counts.get(`/media/ts/seg${index}.ts`), before.get(`/media/ts/seg${index}.ts`));
   console.log('PASS reload restores cached segments without requesting them again');
@@ -190,12 +203,17 @@ try {
     coreLoadGate = { released, reached: resolve };
   });
   try {
-    await page.locator('#hlsExport').click();
+    // Reload so the remux core is cold again: the scheduled warm-up then holds the manifest,
+    // which is what keeps the export cancellable instead of finishing before the click lands.
+    await page.reload();
+    await parse('/media/ts/index.m3u8');
     await requested;
+    await page.locator('#hlsExport').click();
+    await page.waitForFunction(() => !document.getElementById('hlsCancelExport').hidden);
     await page.locator('#hlsCancelExport').click();
     await page.waitForFunction(() => document.getElementById('hlsExportStatus').textContent.includes('已取消'));
-    assert.equal(await page.locator('#hlsDone').textContent(), '4', 'cancelling keeps downloaded segments');
-    assert.equal(await page.locator('#hlsSkipped').textContent(), '2', 'cancelling does not skip cached segments');
+    assert.equal(await page.locator('#hlsDone').textContent(), '3', 'cancelling keeps downloaded segments');
+    assert.equal(await page.locator('#hlsSkipped').textContent(), '3', 'cancelling does not skip cached segments');
     assert.equal(await page.locator('#hlsExport').isEnabled(), true, 'cancelled exports can be retried');
   } finally {
     clearTimeout(requestTimeout);

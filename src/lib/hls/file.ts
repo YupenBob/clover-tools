@@ -20,8 +20,11 @@ export async function chooseFile(name: string, format: MediaFormat, previous?: S
   if (!supportsFileSaving()) throw new HlsError('streamUnsupported');
   try {
     if (previous) {
-      if (await previous.requestPermission({ mode: 'readwrite' }) !== 'granted') throw new HlsError('filePermissionError');
-      return previous;
+      // A remembered handle is only reusable when re-authorising succeeds outright. Chromium
+      // answers 'prompt' once transient activation is gone, so fall through to a fresh picker,
+      // which this same click is still able to open.
+      const granted = await previous.requestPermission({ mode: 'readwrite' }).then((state) => state === 'granted', () => false);
+      if (granted) return previous;
     }
     const type = HLS_CONFIG.formats[format];
     return await (window as PickerWindow).showSaveFilePicker!({ suggestedName: name,
@@ -45,7 +48,7 @@ export class DiskSink implements MediaSink {
   constructor(writer: FileWriter) { this.writer = writer; }
   static async open(handle: SaveFileHandle): Promise<DiskSink> {
     try { return new DiskSink(await handle.createWritable()); }
-    catch { throw new HlsError('filePermissionError'); }
+    catch (error) { throw new HlsError('filePermissionError', `createWritable ${(error as Error)?.name}: ${(error as Error)?.message}`); }
   }
   private async operation(action: () => Promise<void>): Promise<void> {
     if (this.closed) throw new HlsError('fileWriteError');

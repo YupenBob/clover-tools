@@ -3,7 +3,7 @@ import { FPS_SOURCES } from './fps-sources.mjs';
 import { FPS_AUDIO_ASSETS } from './fps-audio.mjs';
 
 export const FPS_CONFIG = {
-  revision: '2026-10-03.1',
+  revision: '2026-10-11.1',
   simulation: {
     step: 1 / 240,
     // Brief render stalls must not eject the player from mouse capture.
@@ -105,15 +105,15 @@ export const FPS_CONFIG = {
       minimumTravel: 0.65,
       minimumSpeedRatio: 0.4,
       targetJitter: 0.3,
-      laneDepth: 0.5,
+      laneDepth: 0.65,
     },
     peek: {
       cover: {
         min: { x: -0.8, y: 0, z: 1.65 },
         max: { x: 0.8, y: 2.35, z: 2.25 },
       },
-      safeHalfWidth: 0.3,
-      laneDepth: 0.45,
+      safeHalfWidth: 0.45,
+      laneDepth: 0.7,
       resetHold: 0.12,
       minimumTravel: 0.55,
       targetAngleMin: 3,
@@ -122,9 +122,10 @@ export const FPS_CONFIG = {
     },
     presentation: {
       feedbackSeconds: 2.2,
-      markerHeight: 0.015,
-      markerWidth: 0.07,
+      markerHeight: 0.02,
+      markerWidth: 0.1,
       markerDepth: 0.85,
+      markerPostHeight: 0.42,
       beaconHeight: 0.65,
       beaconWidth: 0.06,
       coverPanelRatio: 0.8,
@@ -215,6 +216,8 @@ export const FPS_CONFIG = {
       panelSpacing: 6,
       panelWidth: 0.16,
       panelInset: 0.05,
+      // Recessed cover inlays sit this far behind the front plane; coplanar faces z-fight.
+      coverInset: 0.08,
       baseHeight: 0.35,
       lightHeight: 5.6,
       lightThickness: 0.06,
