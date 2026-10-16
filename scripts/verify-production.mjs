@@ -10,7 +10,6 @@ import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
 import { runReviewChecks } from './lib/review-browser-cases.mjs';
 import { getAllTools, getToolHref } from '../src/lib/tools.ts';
-import { USE_CASES } from '../src/lib/use-cases.ts';
 import { ensureBotFightModeOff } from './lib/cloudflare-bots.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { hlsCorePath } from '../config/hls.mjs';
@@ -72,6 +71,7 @@ async function verifyPage(path) {
   await retry(path, async () => {
     const result = await response(path);
     const text = await result.text();
+    assert(!/href=["']\/examples(?:\/|["'])/.test(text), `${path}: retired example entry remains`);
     assert.equal(result.headers.get('content-security-policy'), expectedCsp, `${path}: production CSP`);
     assert.ok(text.includes(`href="${base + path}"`), `${path}: canonical origin`);
     const file = join(dist, path, 'index.html');
@@ -96,10 +96,6 @@ async function files(directory) {
 }
 
 async function verifyAssets() {
-  assets.add('/examples/manifest.json');
-  for (const item of USE_CASES) {
-    for (const [file] of item.downloads) assets.add(`/examples/${file}`);
-  }
   for (const folder of [hlsCorePath(), '/fps/audio', '/focus-flight']) {
     for (const file of await files(join(dist, folder))) assets.add('/' + file.slice(dist.length + 1).replaceAll('\\', '/'));
   }
@@ -118,6 +114,11 @@ async function verifyAssets() {
 }
 
 async function verifyDiscovery() {
+  for (const path of ['/examples/', '/examples/clover-bead-pattern/', '/examples/repeatable-avatar/', '/examples/nested-json-to-csv/']) {
+    const result = await fetch(base + path, { signal: AbortSignal.timeout(30000) });
+    assert.equal(result.status, 404, `${path}: retired example should return 404`);
+    passed(`retired example returns 404 ${path}`);
+  }
   for (const path of ['/robots.txt', '/ads.txt']) {
     const [remote, local] = await Promise.all([response(path), readFile(join(dist, path), 'utf8')]);
     assert.equal(await remote.text(), local, `${path}: production differs from this build`);
@@ -201,8 +202,6 @@ try {
     for (const slug of slugs) await verifyPage(localizedPath(`/tools/fun/${slug}/`, locale));
   }
   await verifyPage('/tools/fun/');
-  await verifyPage('/examples/');
-  for (const item of USE_CASES) await verifyPage(`/examples/${item.slug}/`);
   await verifyDiscovery();
   await verifyAssets();
   await verifyBrowser();

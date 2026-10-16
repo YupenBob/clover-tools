@@ -60,14 +60,14 @@ export const GUIDES: Guide[] = [
     slug: 'json-to-csv-excel',
     title: 'JSON 转 CSV：嵌套字段、缺失值与 Excel 导入的实作检查',
     description:
-      '用可下载的两条订单样例，核对 JSON 对象数组导出 CSV 时的嵌套字段、空单元格、逗号转义与前导零，明确当前工具的实际行为。',
+      '核对 JSON 对象数组导出 CSV 时的嵌套字段、空单元格、逗号转义与 Excel 前导零，明确当前工具的实际行为。',
     category: '开发实用',
     toolSlug: 'json-convert',
     published: '2026-09-30',
     updated: '2026-10-16',
     readingMinutes: 3,
     content: `<p>这篇说明针对 CloverTools 当前的 CSV/TSV 导出器。它接收非空对象数组，不接收单个对象、空数组或混入 null 的数组；输出是文本表格，不是原生 XLSX 文件。</p>
-      <p>先打开<a href="/examples/nested-json-to-csv/">嵌套订单实作案例</a>。里面有两条自建演示记录、原始 JSON 和工具实际导出的 CSV，可以逐行核对，或载入工具重新生成。</p>
+      <p>下面以两条演示记录说明：第一条包含嵌套城市信息，第二条包含带逗号的备注。可在工具中输入自己的对象数组，按相同口径核对导出。</p>
       <h2>一条记录如何变成一行</h2>
       <p>第一条记录有 order、item、quantity、profile；第二条有 order、item、quantity、note。工具按字段第一次出现的顺序合并表头，因此得到五列。每条记录按同一组表头填值，缺失的字段留空。</p>
       <h2>嵌套对象保留在单元格里</h2>

@@ -47,7 +47,6 @@ const related = getRelated(category, 'json-convert', 'ja', 6);
 </ToolLayout>
 
 <script>
-  import { CSV_CASE_INPUT } from '../../../../lib/case-presets';
   import {
     byId, showStatus, hideStatus, setStats, bindCopyBtn, bindSample, bindClear,
   } from '../../../../scripts/toolkit';
@@ -136,8 +135,4 @@ const related = getRelated(category, 'json-convert', 'ja', 6);
   bindCopyBtn('copyBtn', () => output.value);
   input.addEventListener('input', () => setStats('jsonStats', `${input.value.length} 文字`));
   setStats('jsonStats', `${input.value.length} 文字`);
-  if (new URLSearchParams(window.location.search).get('example') === 'nested-orders') {
-    input.value = JSON.stringify(CSV_CASE_INPUT, null, 2);
-    input.dispatchEvent(new Event('input'));
-  }
 </script>
