@@ -2,7 +2,7 @@
 
 站点：https://clovertools.cn · 整改完成日期：2026-10-16
 
-Google 没有提供明确拒绝原因，因此以下是依据代码、页面行为和官方规则完成的整改，不是对内部审核原因的断言。AdSense 复审结果仍由 Google 决定。
+首轮整改时 Google 尚未提供明确拒绝原因，因此以下是依据代码、页面行为和官方规则完成的整改，不是对内部审核原因的断言。后续截图已明确显示“Low value content”；第二轮判断与措施见[内容价值改进记录](ADSENSE-QUALITY-ITERATION.md)。技术验收不代表 AdSense 已通过，复审结果仍由 Google 决定。
 
 ## 已实施
 

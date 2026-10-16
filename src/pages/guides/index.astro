@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { GUIDES } from '../../lib/guides';
 import { getAllTools, getToolHref } from '../../lib/tools';
 import { SITE } from '../../lib/site';
+const latestUpdate = GUIDES.reduce((latest, guide) => guide.updated > latest ? guide.updated : latest, '');
 
 const guideJsonLd = {
   '@context': 'https://schema.org',
@@ -45,7 +46,7 @@ function toolLink(slug: string) {
     <p class="guides-kicker">CloverTools / KNOWLEDGE BASE</p>
     <h1>把工具用明白</h1>
     <p>从一个具体问题出发，解释输入、结果、限制和排错路径。每篇指南都对应一个可以立即使用的工具。</p>
-    <div class="guides-meta"><span>{GUIDES.length} 篇已校对指南</span><span>最后更新 2026-08-27</span></div>
+    <div class="guides-meta"><span>{GUIDES.length} 篇使用与排错说明</span><span>最近内容更新 {latestUpdate}</span><a href="/examples/">查看可下载的实作案例</a></div>
   </header>
 
   <section class="guide-list" aria-label="指南列表">

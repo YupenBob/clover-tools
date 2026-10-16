@@ -5,6 +5,7 @@ import AdUnit from '../components/AdUnit.astro';
 import type { ToolCategory, ToolMeta } from '../lib/tools';
 import { getToolHref } from '../lib/tools';
 import { SITE } from '../lib/site';
+import { caseForTool } from '../lib/use-cases';
 import {
   DICT,
   getCategoryMeta,
@@ -44,6 +45,7 @@ const categoryUrl = SITE.url + pathForLang(`/tools/${category}/`, lang);
 const homeUrl = SITE.url + pathForLang('/', lang);
 const content = getToolContent(tool.slug, lang);
 const detail = content?.detail;
+const workedCase = lang === 'zh' ? caseForTool(tool.slug) : null;
 const guides = getGuidesForTool(tool.slug);
 const inLanguage =
   lang === 'en' ? 'en' : lang === 'tw' ? 'zh-Hant' : lang === 'ko' ? 'ko' : lang === 'ja' ? 'ja' : 'zh-CN';
@@ -149,11 +151,16 @@ const jsonLd: Record<string, unknown>[] = [
     </section>
   )}
 
+  {workedCase && <aside class="worked-case"><p>用一份实际导出结果核对操作</p><a href={`/examples/${workedCase.slug}/`}>{workedCase.title} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a><span>{workedCase.summary}</span></aside>}
   {detail && <ToolGuide detail={detail} guides={guides} toolName={tool.name} lang={lang} />}
  </article>
 </BaseLayout>
 
 <style>
+  .worked-case{display:grid;gap:10px;padding:24px;margin-top:32px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--primary-soft)}
+  .worked-case p{margin:0;font-size:12px;color:var(--text-tertiary)}
+  .worked-case a{color:var(--primary-dark);font-weight:700;font-size:18px;line-height:1.5}
+  .worked-case span{font-size:13px;color:var(--text-secondary)}
   .tool-discovery {
     display: flex;
     flex-direction: column;

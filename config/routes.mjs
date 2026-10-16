@@ -35,7 +35,7 @@ export const LOCALES = {
 export const ROUTE_POLICY = {
   // Retain the existing staged rollout until translated tool UX/content is reviewed.
   toolIndexLanguages: ['zh'],
-  localizedSections: [{ prefix: '/guides', languages: ['zh'] }],
+  localizedSections: [{ prefix: '/guides', languages: ['zh'] }, { prefix: '/examples', languages: ['zh'] }],
   browserFallbackLanguage: 'en',
 };
 

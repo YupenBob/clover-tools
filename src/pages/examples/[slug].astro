@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../lib/site';
+import { USE_CASES } from '../../lib/use-cases';
+import { CSV_CASE_INPUT } from '../../lib/case-presets';
+import manifest from '../../../public/examples/manifest.json';
+export function getStaticPaths(){return USE_CASES.map(item=>({params:{slug:item.slug},props:{item}}));}
+const { item } = Astro.props;
+const isBeads=item.toolSlug==='perler-beads';
+const isAvatar=item.toolSlug==='avatar-generator';
+const date=manifest.capturedAt.slice(0,10);
+const canonical=`${SITE.url}/examples/${item.slug}/`;
+const schema=[{'@context':'https://schema.org','@type':'TechArticle',headline:item.title,description:item.description,url:canonical,datePublished:date,dateModified:date,inLanguage:'zh-CN',author:{'@type':'Organization',name:SITE.name,url:SITE.url}},{'@context':'https://schema.org','@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'首页',item:SITE.url+'/'},{'@type':'ListItem',position:2,name:'实作案例',item:SITE.url+'/examples/'},{'@type':'ListItem',position:3,name:item.title,item:canonical}]}];
+---
+<BaseLayout title={`${item.title} - ${SITE.name}`} description={item.description} canonical={canonical} jsonLd={schema} ads={false}>
+  <nav class="breadcrumb"><a href="/">首页</a><span aria-hidden="true">/</span><a href="/examples/">实作案例</a></nav>
+  <article class="case-page"><header><p class="eyebrow">实作案例 / <time datetime={date}>{date}</time></p><h1>{item.title}</h1><p class="lead">{item.description}</p><a class="btn btn-primary" href={item.toolHref}>{isBeads||isAvatar?'打开工具照着做':'载入示例并打开工具'} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a></header>
+    <section class="case-result"><h2>这次得到的结果</h2><p class="result-summary">{item.summary}</p>{item.image && <img class:list={['result-image',{'avatar-result':isAvatar}]} src={item.image} alt={item.imageAlt} width={isAvatar?512:864} height={isAvatar?512:1152} />}
+      {isBeads && <><p>原始图为 32×32 透明 PNG，共 1024 个位置，其中 512 个位置需要放豆。颜色上限设置为 8 不代表一定会使用 8 色，这张图实际只用到 4 色。</p><table><thead><tr><th>本图编号</th><th>屏幕 HEX</th><th>颗数</th></tr></thead><tbody>{manifest.beads.palette.map((color,index)=><tr><td>{String(index+1).padStart(2,'0')}</td><td><span class="color-dot" style={`background:${color.hex}`}></span><code>{color.hex}</code></td><td>{color.count}</td></tr>)}</tbody><tfoot><tr><th colspan="2">合计</th><td>{manifest.beads.total}</td></tr></tfoot></table></>}
+      {isAvatar && <><dl class="parameters"><div><dt>种子</dt><dd>Clover</dd></div><div><dt>画风 / 外框</dt><dd>机器人 / 圆形</dd></div><div><dt>角色 / 背景</dt><dd>#E6AD62 / #F6EDDD</dd></div><div><dt>PNG / SVG</dt><dd>512×512 像素 / 320×320 viewBox 的矢量图</dd></div></dl><p>PNG 适合直接上传头像；SVG 可在支持矢量格式的软件中缩放。昵称只参与种子运算，不会被直接写成头像上的文字。</p></>}
+      {!isBeads&&!isAvatar && <><h3>输入：两条自建演示记录</h3><pre><code>{JSON.stringify(CSV_CASE_INPUT,null,2)}</code></pre><h3>输出：工具实际生成的 CSV</h3><pre><code>{manifest.csv.text}</code></pre><p>这里的五列是所有记录的键按首次出现顺序合并得到的。profile 留在一个单元格，第二条记录的 note 包含逗号，因此按 CSV 规则加双引号。</p></>}
+    </section>
+    <section><h2>按相同步骤复现</h2><ol>{item.steps.map(step=><li>{step}</li>)}</ol></section>
+    <section class="downloads"><h2>拿走这份样例</h2><p>源素材由本站制作，订单为自建演示数据。可以下载后在工具中验证和修改；实际上传自己的文件前，请确认你拥有处理权限。</p><div>{item.downloads.map(([file,label])=><a class="btn btn-secondary" href={`/examples/${file}`} download>{label}</a>)}</div></section>
+    <section><h2>哪些结果需要你自己判断</h2><ul>{item.limits.map(limit=><li>{limit}</li>)}</ul></section>
+    <footer><p>样例于 {date} 使用本站工具导出。请按上面的参数复现；工具更新后，输出可能调整。遇到差异时，可附上设置与操作步骤反馈。</p><p><a href={item.toolHref}>开始操作</a><span aria-hidden="true"> · </span><a href="/examples/">查看其他案例</a><span aria-hidden="true"> · </span><a href="/contact/">反馈步骤或结果差异</a></p></footer>
+  </article>
+</BaseLayout>
+<style>
+.case-page{max-width:900px;margin:0 auto 64px}.case-page header{padding:36px 0}.eyebrow{font:12px var(--font-mono);color:var(--primary-dark)}h1{max-width:850px;font-size:clamp(28px,5vw,46px);line-height:1.25;letter-spacing:-.03em;margin:18px 0}.lead,p,li{color:var(--text-secondary);line-height:1.85}.lead{font-size:17px;margin-bottom:24px}section{padding:28px 0;border-top:1px solid var(--border)}h2{font-size:24px;margin:0 0 16px}h3{font-size:17px;margin-top:24px}ol,ul{padding-left:24px;display:grid;gap:12px}.result-summary{color:var(--primary-dark);font-weight:700}.result-image{display:block;width:100%;max-height:720px;height:auto;object-fit:contain;background:#fffdf7;border-radius:var(--radius-md)}.avatar-result{max-width:360px;margin:24px auto}.parameters{display:grid;gap:12px}.parameters>div{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}dd{margin:0;overflow-wrap:anywhere}dt{color:var(--text-tertiary)}table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px}td,th{padding:12px;text-align:left;border-bottom:1px solid var(--border)}.color-dot{display:inline-block;width:14px;height:14px;border-radius:50%;margin-right:10px;vertical-align:middle}.downloads>div{display:flex;flex-wrap:wrap;gap:12px}pre{max-width:100%;overflow:auto;padding:20px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-elevated);font:13px/1.8 var(--font-mono)}footer{padding-top:20px;border-top:1px solid var(--border)}footer p{font-size:13px}footer a{color:var(--primary-dark)}@media(max-width:500px){.parameters>div{grid-template-columns:90px minmax(0,1fr)}td,th{padding:10px 6px}.downloads .btn{width:100%;white-space:normal;text-align:center}}
+</style>
