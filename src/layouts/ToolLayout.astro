@@ -9,6 +9,7 @@ import {
   DICT,
   getCategoryMeta,
   getToolContent,
+  getRelated,
   langFromUrl,
   pathForLang,
   type Lang,
@@ -32,9 +33,10 @@ interface Props {
   workspace?: ToolWorkspace;
 }
 
-const { category, tool, related, layout = 'wide', workspace = toolWorkspace(tool.slug) } = Astro.props;
+const { category, tool, layout = 'wide', workspace = toolWorkspace(tool.slug) } = Astro.props;
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
+const related = getRelated(category, tool.slug, lang);
 const categoryMeta = getCategoryMeta(category, lang);
 const categoryName = categoryMeta.name;
 const url = SITE.url + pathForLang(getToolHref(category, tool.slug), lang);
@@ -56,6 +58,7 @@ const jsonLd: Record<string, unknown>[] = [
     operatingSystem: 'Web',
     url,
     inLanguage,
+    dateModified: SITE.updated,
     author: {
       '@type': 'Organization',
       name: SITE.name,

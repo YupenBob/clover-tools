@@ -1,8 +1,7 @@
 ---
 import '../styles/global.css';
 import '../styles/vendor/bootstrap-icons.css';
-import LanguagePreference from '../components/LanguagePreference.astro';
-import { ADSENSE_CLIENT } from '../lib/ads';
+import { ADSENSE_CLIENT, canServeAds } from '../lib/ads';
 import { alternateLanguages, isIndexablePath } from '../../config/routes.mjs';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -49,6 +48,7 @@ const resolvedTitle = title ?? `${SITE.name} - ${site.tagline}`;
 const resolvedDescription = description ?? site.description;
 const canonicalPath = stripLang(new URL(canonical).pathname);
 const canIndex = indexable && isIndexablePath(Astro.url.pathname);
+const serveAds = ads && canServeAds(Astro.url.pathname);
 const alternates = alternateLanguages(Astro.url.pathname).map((locale) => ({
   lang: HTML_LANG[locale as Lang], href: SITE.url + pathForLang(canonicalPath, locale as Lang),
 }));
@@ -70,7 +70,8 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     {alternates.map(({ lang, href }) => <link rel="alternate" hreflang={lang} href={href} />)}
     {defaultAlternate && <link rel="alternate" hreflang="x-default" href={defaultAlternate.href} />}
 
-    {ads && (
+    <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
+    {serveAds && (
       <>
         <!-- Google AdSense -->
         <script
@@ -106,8 +107,6 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     <meta name="twitter:image" content={ogImage} />
 
     <link rel="icon" href="/clover-logo.svg" type="image/svg+xml" />
-
-    <LanguagePreference />
 
     <script is:inline>
       (function () {

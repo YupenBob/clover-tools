@@ -54,19 +54,17 @@ const related = getRelated(category, 'fuel', 'ja', 6);
     const km = Number(byId<HTMLInputElement>('fuelKm').value);
     const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
     const price = Number(byId<HTMLInputElement>('fuelPrice').value);
-    if (km <= 0 || amount <= 0) {
+    if (![km, amount, price].every(Number.isFinite) || km <= 0 || amount <= 0 || price < 0) {
       showStatus('fuelStatus', 'error', '有効な走行距離と給油量を入力してください');
       return;
     }
     const per100 = amount / km * 100;
     const cost = amount * price;
     const perKm = cost / km;
-    const range = amount / per100 * 100;
     byId<HTMLElement>('fuelResult').innerHTML =
       `<div>100kmあたりの燃費：<b>${per100.toFixed(2)}</b> L/100km</div>` +
       `<div>今回の油代：${cost.toFixed(2)} 元</div>` +
-      `<div>1kmあたりのコスト：${perKm.toFixed(3)} 元/km</div>` +
-      `<div>満タン（同量）で約 ${range.toFixed(0)} km 走行可能</div>`;
+      `<div>1kmあたりのコスト：${perKm.toFixed(3)} 元/km</div>`;
     showStatus('fuelStatus', 'success', '計算完了');
   }
 

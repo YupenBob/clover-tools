@@ -12,7 +12,8 @@
 | `src/lib/guides.ts` | 指南内容、关联工具、来源、发布日期、更新日期与阅读时间 |
 | `src/lib/tool-details.ts` | 工具步骤、示例、原理、误区、FAQ 与数据处理边界 |
 | `src/lib/legal.ts` | 五语政策与联系文案；页面组件只负责展示 |
-| `ToolGuide.astro` / `LanguagePreference.astro` | 深度说明展示 / 首次语言选择；不承担工具运算 |
+| `ToolGuide.astro` / `shared.ts` | 深度说明展示 / 手动语言切换；URL 不按浏览器语言自动跳转 |
+| `src/lib/ads.ts` / `scripts/check-publisher.mjs` | 广告默认关闭、站点验证保留、页面排除与内容覆盖检查 |
 | `src/lib/tool-presentation.ts` / `src/styles/tool-workspace.css` | 五语工具布局、视觉层级与响应式表现；见 [工具页设计](TOOL-DESIGN.md) |
 | `scripts/lib/` | 构建环境读取、产物解析与可单独测试的 SEO 审计 |
 
@@ -36,7 +37,7 @@ Astro 配置读取 `.env` 使用 Vite 的 `loadEnv`；页面使用 Astro 注入�
 ```bash
 npm ci
 npm test                 # FPS / HLS / 工具类型检查、纯函数与反例回归，不需要构建产物
-npm run build            # 测试 → 构建 → 内容/链接/SEO/图标检查
+npm run build            # 测试 → 构建 → 内容/链接/SEO/发布商/图标检查
 npm run check            # 对当前 dist 单独复核
 npm run check:all        # 完整构建验收的统一入口
 npm run check:browser    # 自动启动临时预览并检查真实浏览器

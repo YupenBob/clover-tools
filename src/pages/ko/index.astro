@@ -85,7 +85,7 @@ const homeJsonLd = [
         <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
       </div>
       <p class="hero-caption">
-        <span id="builtCount" data-target={builtCount}>0</span>개의 도구 제공 중 · 데이터는 브라우저에만 저장돼요 ·
+        <span id="builtCount" data-target={builtCount}>{builtCount}</span>개의 도구 제공 중 · 대부분의 도구는 로컬 처리 ·
         <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> 둘러보기</button>
       </p>
     </div>
@@ -301,23 +301,7 @@ const homeJsonLd = [
     cardEls.forEach((c) => c.classList.add('revealed'));
   }
 
-  const builtCountEl = document.getElementById('builtCount') as HTMLElement;
-  const countTarget = Number(builtCountEl.dataset.target || '0');
-  function countUp(el: HTMLElement, target: number, dur = 900) {
-    const start = performance.now();
-    function step(t: number) {
-      const p = Math.min(1, (t - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = String(Math.round(target * eased));
-      if (p < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-  if (reduced) {
-    builtCountEl.textContent = String(countTarget);
-  } else {
-    countUp(builtCountEl, countTarget);
-  }
+  // Keep the server-rendered tool count stable for readers and crawlers.
 
   const kbd = document.getElementById('searchKbd') as HTMLElement;
   const PLACEHOLDERS = [

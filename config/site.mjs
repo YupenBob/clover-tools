@@ -6,6 +6,7 @@ export const SITE_DEFAULTS = {
     'CloverTools 精选在线工具，覆盖开发实用、日常实用与趣味工具三类场景，多数工具在浏览器本地处理，联网功能会明确说明，即开即用无需注册。',
   url: 'https://clovertools.cn',
   github: 'https://github.com/YupenBob/clover-tools',
+  updated: '2026-10-16',
 };
 
 export function resolveSiteUrl(value = SITE_DEFAULTS.url) {
@@ -27,7 +28,7 @@ export function resolveSiteUrl(value = SITE_DEFAULTS.url) {
 
 export const LEGAL = {
   kinds: ['privacy', 'terms', 'contact'],
-  updated: '2026-09-30',
+  updated: '2026-10-16',
 };
 
 export const HOME = { featuredGuideCount: 6 };

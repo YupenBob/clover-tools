@@ -4,6 +4,11 @@ import { SITE_DEFAULTS, resolveSiteUrl } from '../../config/site.mjs';
 
 export const root = fileURLToPath(new URL('../../', import.meta.url));
 
+export function buildAdsEnabled() {
+  const env = loadEnv(process.env.NODE_ENV || 'production', root, 'PUBLIC_');
+  return (process.env.PUBLIC_ADS_ENABLED ?? env.PUBLIC_ADS_ENABLED) === 'true';
+}
+
 export function buildSiteUrl() {
   const env = loadEnv(process.env.NODE_ENV || 'production', root, 'PUBLIC_');
   return resolveSiteUrl(

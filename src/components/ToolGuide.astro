@@ -21,7 +21,12 @@ const copy = {
   "faq": "常见问题",
   "reading": "延伸阅读"
 };
-const labels = Object.fromEntries(Object.entries(copy).map(([key, value]) => [key,
+const translated = {
+  en: { eyebrow: 'CloverTools practical guide', title: 'How to use ', suffix: '', badge: 'Tool guide', steps: 'Steps', privacy: 'Privacy', examples: 'Input and output examples', input: 'Input', result: 'Result', principles: 'How it works and limits', pitfalls: 'Common mistakes', faq: 'Frequently asked questions', reading: 'Further reading (Simplified Chinese)' },
+  ko: { eyebrow: 'CloverTools 사용 가이드', title: '', suffix: ' 사용 방법', badge: '도구 가이드', steps: '사용 단계', privacy: '개인정보', examples: '입력 및 출력 예시', input: '입력', result: '결과', principles: '원리와 한계', pitfalls: '흔한 실수', faq: '자주 묻는 질문', reading: '추가 자료 (중국어 간체)' },
+  ja: { eyebrow: 'CloverTools 利用ガイド', title: '', suffix: 'の使い方', badge: 'ツールガイド', steps: '手順', privacy: 'プライバシー', examples: '入力と出力の例', input: '入力', result: '結果', principles: '仕組みと制限', pitfalls: 'よくある間違い', faq: 'よくある質問', reading: '関連資料（簡体中国語）' },
+};
+const labels = (lang === 'en' || lang === 'ko' || lang === 'ja') ? translated[lang] : Object.fromEntries(Object.entries(copy).map(([key, value]) => [key,
   lang === 'tw' ? chineseS2t.s2t(value) : value,
 ])) as typeof copy;
 ---

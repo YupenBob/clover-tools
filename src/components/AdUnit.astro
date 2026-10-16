@@ -1,5 +1,6 @@
 ---
-import { ADSENSE_CLIENT, getAdSlot, type AdSlotKey } from '../lib/ads';
+import { ADSENSE_CLIENT, canServeAds, getAdSlot, type AdSlotKey } from '../lib/ads';
+import { langFromUrl } from '../lib/i18n';
 
 interface Props {
   adSlot: AdSlotKey;
@@ -8,12 +9,14 @@ interface Props {
 }
 
 const { adSlot, format = 'horizontal', className = '' } = Astro.props;
-const slotId = getAdSlot(adSlot);
+const slotId = canServeAds(Astro.url.pathname) ? getAdSlot(adSlot) : null;
+const label = { zh: '广告', tw: '廣告', en: 'Advertisement', ko: '광고', ja: '広告' }[langFromUrl(Astro.url.pathname)];
 const classNames = ['ad-slot', `ad-slot--${format}`, className].filter(Boolean).join(' ');
 ---
 
 {slotId && (
   <div class={classNames}>
+    <span class="ad-label">{label}</span>
     <ins
       class="adsbygoogle"
       style="display:block"
@@ -64,12 +67,12 @@ const classNames = ['ad-slot', `ad-slot--${format}`, className].filter(Boolean).
 <style>
   .ad-slot {
     min-height: 100px;
-    display: flex;
+    display: block;
     align-items: center;
     justify-content: center;
     margin: var(--space-5) 0;
-    overflow: hidden;
   }
+  .ad-label { display: block; text-align: center; color: var(--text-tertiary); font-size: 11px; margin-bottom: 8px; }
 
   .ad-slot ins {
     display: block;

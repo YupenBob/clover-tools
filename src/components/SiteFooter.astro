@@ -9,7 +9,7 @@ const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
 const categories = getCategoryMetas(lang);
 const year = new Date().getFullYear();
-const lastUpdated = new Date().toISOString().slice(0, 10);
+const lastUpdated = SITE.updated;
 ---
 
 <footer class="site-footer">

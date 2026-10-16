@@ -87,9 +87,9 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'json-convert': {
     usage:
-      '把 JSON 数组快速转为 CSV 或 Excel 表格，常用于接口数据导出、报表整理与数据迁移。支持自定义表头与字段顺序，生成结果可直接下载或复制，转换全程在浏览器本地完成。',
+      '粘贴非空对象数组，选择 CSV 或 TSV 与是否包含表头。字段按首次出现顺序合并，嵌套值保存为 JSON 文本；结果可复制或下载为 Excel 可导入的 UTF-8 文件，不生成 XLSX。',
     features: [
-      { icon: 'bi-table', text: 'JSON 数组转 CSV / Excel' },
+      { icon: 'bi-table', text: '对象数组转 CSV / TSV' },
       { icon: 'bi-arrow-down-up', text: '表头与字段顺序可定制' },
       { icon: 'bi-download', text: '结果一键下载' },
       { icon: 'bi-shield-lock', text: '本地转换，数据不出浏览器' },
@@ -117,9 +117,9 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   jsonpath: {
     usage:
-      '在线 JSONPath 表达式测试器：输入 JSON 数据与表达式，实时高亮匹配结果，支持 $、点号、数组下标、通配符与过滤条件等常见语法，是接口调试与数据提取的常用辅助工具。',
+      '在线 JSONPath 表达式测试器：输入 JSON 数据与表达式后点击查询，查看匹配结果，支持 $、点号、数组下标、通配符与过滤条件等常见语法，是接口调试与数据提取的常用辅助工具。',
     features: [
-      { icon: 'bi-search', text: '表达式实时匹配高亮' },
+      { icon: 'bi-search', text: '常用路径与简单比较筛选' },
       { icon: 'bi-collection', text: '支持常见 JSONPath 语法' },
       { icon: 'bi-list-check', text: '匹配数量与结果统计' },
       { icon: 'bi-shield-lock', text: '数据仅在本地解析' },
@@ -187,9 +187,9 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'sql-formatter': {
     usage:
-      'SQL 格式化工具：支持 MySQL、PostgreSQL、SQL Server 等常见方言，把冗长的 SQL 整理成层次清晰的语句，方便阅读、审查与排查问题。',
+      'SQL 通用排版工具：按常见关键字和括号整理缩进或压缩文本，不执行查询，不验证所有数据库方言；使用前请在目标数据库中核对语法。',
     features: [
-      { icon: 'bi-filetype-sql', text: '多数据库方言支持' },
+      { icon: 'bi-filetype-sql', text: '常见关键字与括号排版' },
       { icon: 'bi-database', text: '关键字与子句缩进对齐' },
       { icon: 'bi-list-ol', text: '语句层次一目了然' },
       { icon: 'bi-clipboard-check', text: '一键复制结果' },
@@ -318,11 +318,11 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'rsa-encrypt': {
     usage:
-      'RSA 密钥对生成与加解密工具：支持签名验签与 PEM 格式导入导出，可在浏览器本地生成密钥、加密解密文本，适合理解非对称加密原理与联调验证。',
+      'RSA 密钥对生成与加解密工具：支持 2048 位 RSA-OAEP / SHA-256 与 PEM 密钥，可在浏览器本地生成密钥、加密解密文本，适合理解非对称加密原理与联调验证。',
     features: [
       { icon: 'bi-key-fill', text: '密钥对一键生成' },
       { icon: 'bi-lock-fill', text: '公钥加密 / 私钥解密' },
-      { icon: 'bi-patch-check', text: '签名与验签' },
+      { icon: 'bi-patch-check', text: '短文本加解密，非签名工具' },
       { icon: 'bi-file-earmark-arrow-up', text: 'PEM 格式导入导出' },
     ],
   },
@@ -588,12 +588,12 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   fuel: {
     usage:
-      '车辆油耗计算器：输入加油金额、油价与行驶里程，计算百公里油耗与每公里成本，帮助了解车辆油耗水平与出行成本。',
+      '车辆油耗计算器：输入油量、每升油价与行驶里程，计算百公里油耗与每公里成本，帮助了解车辆油耗水平与出行成本。',
     features: [
       { icon: 'bi-fuel-pump', text: '百公里油耗计算' },
       { icon: 'bi-speedometer2', text: '每公里成本统计' },
-      { icon: 'bi-car-front', text: '多段记录累计' },
-      { icon: 'bi-cash', text: '金额与油量换算' },
+      { icon: 'bi-car-front', text: '单次里程与油量计算' },
+      { icon: 'bi-cash', text: '油量乘单价计算油费' },
     ],
   },
   expiry: {
@@ -601,9 +601,9 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       '保质期计算工具：输入生产日期与保质期天数，自动计算到期日期并给出剩余天数，适合食品、药品与用品效期管理。',
     features: [
       { icon: 'bi-calendar-x', text: '到期日期自动计算' },
-      { icon: 'bi-hourglass-bottom', text: '剩余天数实时提示' },
-      { icon: 'bi-exclamation-triangle', text: '临期自动提醒' },
-      { icon: 'bi-check2-circle', text: '结果即时刷新' },
+      { icon: 'bi-hourglass-bottom', text: '计算时显示剩余天数' },
+      { icon: 'bi-exclamation-triangle', text: '手动查看剩余天数' },
+      { icon: 'bi-check2-circle', text: '点击计算更新结果' },
     ],
   },
   'keyboard-test': {

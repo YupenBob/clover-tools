@@ -14,7 +14,7 @@ const totalTools = (Object.keys({ dev: getTools('dev', lang), daily: getTools('d
 const title = `關於 - ${SITE.name}`;
 const description =
   `了解 ${SITE.name}：涵蓋開發實用、日常實用與趣味工具三大類場景的精選線上工具箱，` +
-  `共 ${totalTools} 個工具，純瀏覽器處理、資料不出本地、即開即用無需註冊。`;
+  `共 ${totalTools} 個工具，多數工具在瀏覽器本地處理，聯網功能會說明、即開即用無需註冊。`;
 const canonical = `${SITE.url}/zh-hant/about/`;
 
 const aboutJsonLd = {
@@ -66,7 +66,7 @@ const aboutJsonLd = {
       </h1>
       <p class="about-lead">
         {site.tagline}。{totalTools} 個手寫工具覆蓋開發實用、日常實用與趣味工具三大場景，
-        所有功能都在瀏覽器本地完成，打開即用、用完即走。
+        多數功能在瀏覽器本地完成，IP 查詢、HTTP 測試與影片下載需聯網，打開即用、用完即走。
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
@@ -81,8 +81,8 @@ const aboutJsonLd = {
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
           <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
-          <span class="about-stat-num">100%</span>
-          <span class="about-stat-label">本地處理</span>
+          <span class="about-stat-num">0</span>
+          <span class="about-stat-label">註冊步驟</span>
         </div>
       </div>
     </div>
@@ -108,7 +108,7 @@ const aboutJsonLd = {
         <div class="feature-card">
           <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
           <h3>隱私優先</h3>
-          <p>純瀏覽器端處理，數據不出本地</p>
+          <p>多數輸入在本地處理，聯網工具會說明請求去向</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">

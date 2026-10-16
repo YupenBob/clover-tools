@@ -11,7 +11,7 @@ const totalTools = (Object.keys(TOOLS) as ToolCategory[]).reduce(
 const title = `关于 - ${SITE.name}`;
 const description =
   `了解 ${SITE.name}：覆盖开发实用、日常实用与趣味工具三大类场景的精选在线工具箱，` +
-  `共 ${totalTools} 个工具，纯浏览器处理、数据不出本地、即开即用无需注册。`;
+  `共 ${totalTools} 个工具，多数工具在浏览器本地处理，联网功能会说明、即开即用无需注册。`;
 const canonical = `${SITE.url}/about/`;
 
 const aboutJsonLd = {
@@ -63,7 +63,7 @@ const aboutJsonLd = {
       </h1>
       <p class="about-lead">
         {SITE.tagline}。{totalTools} 个手写工具覆盖开发实用、日常实用与趣味工具三大场景，
-        所有功能都在浏览器本地完成，打开即用、用完即走。
+        多数功能在浏览器本地完成，IP 查询、HTTP 测试与视频下载需联网，打开即用、用完即走。
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
@@ -78,8 +78,8 @@ const aboutJsonLd = {
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
           <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
-          <span class="about-stat-num">100%</span>
-          <span class="about-stat-label">本地处理</span>
+          <span class="about-stat-num">0</span>
+          <span class="about-stat-label">注册步骤</span>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ const aboutJsonLd = {
         <div class="feature-card">
           <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
           <h3>隐私优先</h3>
-          <p>纯浏览器端处理，数据不出本地</p>
+          <p>多数输入在本地处理，联网工具会说明请求去向</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">

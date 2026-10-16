@@ -19,6 +19,19 @@ async function board(page, clock = false) {
   await page.click("#ffTear");
   if (clock) await page.clock.runFor(1500);
   await state(page, "flying");
+  // navigator.locks can settle after runFor returns. The departure timeout is
+  // scheduled only after that asynchronous commit; drive it if still pending.
+  if (
+    clock &&
+    !(await page
+      .locator("html")
+      .evaluate((el) => el.classList.contains("ff-immersive")))
+  ) {
+    await page
+      .locator('#ffPaperTicket[data-torn="true"]')
+      .waitFor({ state: "attached" });
+    await page.clock.runFor(800);
+  }
   await page.waitForFunction(() =>
     document.documentElement.classList.contains("ff-immersive"),
   );

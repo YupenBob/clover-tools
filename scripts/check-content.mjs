@@ -10,6 +10,9 @@ const slugs = new Set(tools.map((tool) => tool.slug));
 const problems = [];
 if (slugs.size !== tools.length) problems.push('工具 slug 重复');
 const guideSlugs = new Set();
+for (const tool of tools) {
+  if (!TOOL_CONTENT[tool.slug] || !TOOL_DETAILS[tool.slug]) problems.push(`${tool.slug}: 缺少工具说明`);
+}
 for (const guide of GUIDES) {
   if (guideSlugs.has(guide.slug))
     problems.push(`指南 slug 重复：${guide.slug}`);
@@ -51,7 +54,9 @@ for (const [slug, detail] of Object.entries(TOOL_DETAILS)) {
     detail.steps.length < CONTENT_LIMITS.stepsMin ||
     detail.examples.length < CONTENT_LIMITS.examplesMin ||
     detail.faqs.length < CONTENT_LIMITS.faqsMin ||
-    !detail.privacy
+    !detail.privacy || !detail.intro || !detail.principles.length || !detail.pitfalls.length ||
+    detail.examples.some((example) => !example.input || !example.output) ||
+    detail.faqs.some((faq) => !faq.q || !faq.a)
   )
     problems.push(`${slug}: 深度说明不完整`);
 }

@@ -14,6 +14,9 @@ const { copy, labels } = getLegalContent(kind, lang);
 
 const title = `${copy.title} - ${SITE.name}`;
 const canonical = `${SITE.url}${pathForLang(`/${kind}/`, lang)}`;
+const contactEmail = (import.meta.env.PUBLIC_CONTACT_EMAIL || '').trim();
+const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ? contactEmail : null;
+const privateLabel = {zh: '私人联系（请勿发送密码或令牌）', tw: '私人聯絡（請勿傳送密碼或權杖）', en: 'Private contact (do not send passwords or tokens)', ko: '비공개 문의 (비밀번호나 토큰을 보내지 마세요)', ja: '非公開の連絡（パスワードやトークンは送信しないでください）'}[lang];
 ---
 
 <BaseLayout title={title} description={copy.desc} canonical={canonical} ads={false}>
@@ -35,10 +38,18 @@ const canonical = `${SITE.url}${pathForLang(`/${kind}/`, lang)}`;
           <p>{body}</p>
         </section>
       ))}
+      {kind === 'privacy' && (
+        <section>
+          <h2>Google</h2>
+          <p><a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">Google · {copy.title}</a></p>
+          <p><a href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">Google My Ad Center</a></p>
+        </section>
+      )}
       {kind === 'contact' && (
         <section class="legal-contact-card">
           <h2>{labels.contact}</h2>
           <p>{labels.email}</p>
+          {validEmail && <p><a href={`mailto:${validEmail}`}>{privateLabel} · {validEmail}</a></p>}
           <a class="legal-cta" href={`${SITE.github}/issues`} target="_blank" rel="noopener noreferrer">
             <i class="bi bi-github" aria-hidden="true"></i> {labels.github}
           </a>

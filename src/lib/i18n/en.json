@@ -43,9 +43,9 @@
       ]
     },
     "json-convert": {
-      "name": "JSON to CSV/Excel",
-      "oneLiner": "Convert a JSON array to CSV or Excel in one click.",
-      "description": "Free online JSON to CSV/Excel converter. Turn JSON arrays into tables with custom headers. Download instantly, all in your browser.",
+      "name": "JSON to CSV/TSV",
+      "oneLiner": "CSV and TSV export.",
+      "description": "Convert JSON object arrays to CSV or TSV for Excel import. Toggle headers, keep nested values as JSON text, and download locally. No XLSX export.",
       "keywords": [
         "json to csv",
         "json to excel",
@@ -67,8 +67,8 @@
     },
     "json-xml-yaml": {
       "name": "JSON/XML/YAML Converter",
-      "oneLiner": "Lossless conversion between three data formats with structure preserved.",
-      "description": "Free online JSON/XML/YAML converter. Lossless three-way conversion preserving structure, with configurable indentation — runs entirely in your browser.",
+      "oneLiner": "JSON ↔ XML.",
+      "description": "Convert JSON to or from XML and YAML in your browser. Check arrays, attributes and types after conversion; round trips are not guaranteed lossless.",
       "keywords": [
         "json to xml",
         "json to yaml",
@@ -79,8 +79,8 @@
     },
     "jsonpath": {
       "name": "JSONPath Tester",
-      "oneLiner": "Extract data from JSON with JSONPath expressions.",
-      "description": "Online JSONPath query tool with real-time highlighting, supports common syntax and filters for efficient API debugging and data extraction.",
+      "oneLiner": "Common JSONPath paths.",
+      "description": "Query JSON with a supported JSONPath subset: properties, indexes, wildcards, recursion and simple comparisons. Click to run; complex filters are unsupported.",
       "keywords": [
         "jsonpath",
         "jsonpath tester",
@@ -157,8 +157,8 @@
     },
     "sql-formatter": {
       "name": "SQL Formatter",
-      "oneLiner": "Beautify SQL with indentation across multiple dialects.",
-      "description": "Online SQL formatter that beautifies messy queries into clear, structured output. Supports MySQL, PostgreSQL, SQL Server, and other SQL dialects.",
+      "oneLiner": "Common SQL keyword formatting.",
+      "description": "Format or minify SQL using common keyword and bracket rules. Runs locally, does not execute queries or validate every database dialect.",
       "keywords": [
         "sql formatter",
         "sql beautify",
@@ -301,8 +301,8 @@
     },
     "rsa-encrypt": {
       "name": "RSA Encryption",
-      "oneLiner": "Key generation, encryption, decryption and signing in one place.",
-      "description": "Online RSA encrypt/decrypt tool with key generator, signing, verification, and PEM import/export. Runs entirely in your browser.",
+      "oneLiner": "2048-bit RSA-OAEP / SHA-256.",
+      "description": "Generate 2048-bit RSA-OAEP / SHA-256 keys and encrypt or decrypt short text locally. Supports PEM keys; does not provide signing or verification.",
       "keywords": [
         "rsa encrypt",
         "rsa decrypt",
@@ -498,8 +498,8 @@
     },
     "workday": {
       "name": "Workday Calculator",
-      "oneLiner": "Count working days between two dates.",
-      "description": "Online workday calculator excluding weekends and holidays, counting actual business days with makeup workdays for accurate scheduling.",
+      "oneLiner": "Inclusive date range.",
+      "description": "Count inclusive workdays using weekends and available Chinese holiday data. Verify official schedules; missing years fall back to weekday rules.",
       "keywords": [
         "workday calculator",
         "working days calculator",
@@ -542,8 +542,8 @@
     },
     "salary": {
       "name": "Salary & Social Insurance Calculator",
-      "oneLiner": "Detailed before/after-tax salary with social insurance breakdown.",
-      "description": "Online after-tax salary calculator with social insurance and individual tax details, city-based rates, deductions, and pre-tax/post-tax conversion.",
+      "oneLiner": "Monthly pay estimate.",
+      "description": "Estimate take-home pay using simplified personal insurance, housing fund and monthly tax rules. Actual bases, deductions and cumulative tax may differ.",
       "keywords": [
         "salary calculator",
         "after tax salary",
@@ -596,8 +596,8 @@
     },
     "fuel": {
       "name": "Fuel Consumption Calculator",
-      "oneLiner": "Calculate liters per 100 km from distance and fuel cost.",
-      "description": "Free vehicle fuel calculator: input fuel amount, price, and mileage to compute l/100km and cost per km. Compare records for fuel consumption insights.",
+      "oneLiner": "Fuel volume and distance inputs.",
+      "description": "Calculate fuel use per 100 km, fuel cost and cost per km from distance, fuel volume and unit price. One calculation at a time; no record history.",
       "keywords": [
         "fuel calculator",
         "l/100km",
@@ -607,8 +607,8 @@
     },
     "expiry": {
       "name": "Expiry Date Calculator",
-      "oneLiner": "Production date plus shelf life, expiry date at a glance.",
-      "description": "Online shelf life calculator: input production date and shelf life or expiration date, get expiry date, days remaining, and upcoming alerts.",
+      "oneLiner": "Production date plus days.",
+      "description": "Add shelf-life days to a production date and calculate remaining days manually. No background reminders; check packaging and storage conditions.",
       "keywords": [
         "expiry calculator",
         "shelf life calculator",
@@ -708,8 +708,8 @@
     },
     "ball-tracker": {
       "name": "Target Ball Tracking",
-      "oneLiner": "Memorize the marked ball, then track it in a moving crowd.",
-      "description": "Target Tracking Trainer: track targets in motion, mixing, rotation. Accuracy, error, trend reports. Boosts prefrontal inhibition and visual tracking.",
+      "oneLiner": "Moving target tracking.",
+      "description": "Track marked balls as they move among distractors. Compare task accuracy and mistakes across modes; results are game performance, not medical findings.",
       "keywords": [
         "target tracking",
         "visual tracking",
@@ -952,23 +952,19 @@
       ]
     },
     "json-convert": {
-      "usage": "Convert a JSON array to CSV or Excel quickly — handy for exporting API data, organizing reports and migrating data. Customize headers and field order, then download or copy the result. Conversion happens entirely in your browser.",
+      "usage": "Convert JSON object arrays to CSV or TSV for Excel import. Toggle headers, keep nested values as JSON text, and download locally. No XLSX export.",
       "features": [
         {
-          "icon": "bi-table",
-          "text": "JSON array to CSV / Excel"
+          "icon": "bi-check2-circle",
+          "text": "CSV and TSV export"
         },
         {
-          "icon": "bi-arrow-down-up",
-          "text": "Customizable headers and field order"
+          "icon": "bi-list-check",
+          "text": "Optional header row"
         },
         {
-          "icon": "bi-download",
-          "text": "One-click download"
-        },
-        {
-          "icon": "bi-shield-lock",
-          "text": "Local conversion, data stays in browser"
+          "icon": "bi-info-circle",
+          "text": "Nested values as JSON text"
         }
       ]
     },
@@ -994,44 +990,36 @@
       ]
     },
     "json-xml-yaml": {
-      "usage": "Convert between JSON, XML and YAML for API data migration, config conversion and documentation. Structure and nesting are preserved, indentation is configurable, and everything runs locally in your browser.",
+      "usage": "Convert JSON to or from XML and YAML in your browser. Check arrays, attributes and types after conversion; round trips are not guaranteed lossless.",
       "features": [
         {
-          "icon": "bi-arrow-left-right",
-          "text": "JSON / XML / YAML three-way conversion"
+          "icon": "bi-check2-circle",
+          "text": "JSON ↔ XML"
         },
         {
-          "icon": "bi-stack",
-          "text": "Full structure and nesting preserved"
+          "icon": "bi-list-check",
+          "text": "JSON ↔ YAML"
         },
         {
-          "icon": "bi-sliders",
-          "text": "Configurable indentation and format"
-        },
-        {
-          "icon": "bi-shield-lock",
-          "text": "Local conversion, data stays safe"
+          "icon": "bi-info-circle",
+          "text": "Review structure and types"
         }
       ]
     },
     "jsonpath": {
-      "usage": "Online JSONPath tester: enter JSON data and an expression to highlight matches in real time. Supports $, dot notation, array indexes, wildcards and filters — a common helper for API debugging and data extraction.",
+      "usage": "Query JSON with a supported JSONPath subset: properties, indexes, wildcards, recursion and simple comparisons. Click to run; complex filters are unsupported.",
       "features": [
         {
-          "icon": "bi-search",
-          "text": "Real-time expression matching with highlight"
-        },
-        {
-          "icon": "bi-collection",
-          "text": "Common JSONPath syntax supported"
+          "icon": "bi-check2-circle",
+          "text": "Common JSONPath paths"
         },
         {
           "icon": "bi-list-check",
-          "text": "Match count and result statistics"
+          "text": "Simple literal comparisons"
         },
         {
-          "icon": "bi-shield-lock",
-          "text": "Data parsed only in your browser"
+          "icon": "bi-info-circle",
+          "text": "Explicit unsupported syntax errors"
         }
       ]
     },
@@ -1162,23 +1150,19 @@
       ]
     },
     "sql-formatter": {
-      "usage": "SQL formatter supporting MySQL, PostgreSQL, SQL Server and other common dialects. Turn long SQL into clearly indented statements for easier reading, review and troubleshooting.",
+      "usage": "Format or minify SQL using common keyword and bracket rules. Runs locally, does not execute queries or validate every database dialect.",
       "features": [
         {
-          "icon": "bi-filetype-sql",
-          "text": "Multiple database dialects supported"
+          "icon": "bi-check2-circle",
+          "text": "Common SQL keyword formatting"
         },
         {
-          "icon": "bi-database",
-          "text": "Keywords and clauses aligned"
+          "icon": "bi-list-check",
+          "text": "Indentation and minification"
         },
         {
-          "icon": "bi-list-ol",
-          "text": "Statement hierarchy at a glance"
-        },
-        {
-          "icon": "bi-clipboard-check",
-          "text": "Copy result in one click"
+          "icon": "bi-info-circle",
+          "text": "No database connection"
         }
       ]
     },
@@ -1439,23 +1423,19 @@
       ]
     },
     "rsa-encrypt": {
-      "usage": "RSA key pair generation and encryption/decryption with signing/verification and PEM import/export. Generate keys, encrypt and decrypt text in your browser — a practical way to understand asymmetric encryption and validate integrations.",
+      "usage": "Generate 2048-bit RSA-OAEP / SHA-256 keys and encrypt or decrypt short text locally. Supports PEM keys; does not provide signing or verification.",
       "features": [
         {
-          "icon": "bi-key-fill",
-          "text": "One-click key pair generation"
+          "icon": "bi-check2-circle",
+          "text": "2048-bit RSA-OAEP / SHA-256"
         },
         {
-          "icon": "bi-lock-fill",
-          "text": "Public key encrypt / private key decrypt"
+          "icon": "bi-list-check",
+          "text": "PEM key support"
         },
         {
-          "icon": "bi-patch-check",
-          "text": "Sign and verify"
-        },
-        {
-          "icon": "bi-file-earmark-arrow-up",
-          "text": "PEM import and export"
+          "icon": "bi-info-circle",
+          "text": "Short-text encryption and decryption"
         }
       ]
     },
@@ -1817,23 +1797,19 @@
       ]
     },
     "workday": {
-      "usage": "Workday calculator that excludes weekends and public holidays, counts actual working days in a range and handles adjusted make-up workdays. Useful for attendance, scheduling and project timelines.",
+      "usage": "Count inclusive workdays using weekends and available Chinese holiday data. Verify official schedules; missing years fall back to weekday rules.",
       "features": [
         {
-          "icon": "bi-calendar-check",
-          "text": "Public holiday data"
+          "icon": "bi-check2-circle",
+          "text": "Inclusive date range"
         },
         {
-          "icon": "bi-briefcase",
-          "text": "Make-up workday handling"
+          "icon": "bi-list-check",
+          "text": "Weekend and known holiday rules"
         },
         {
-          "icon": "bi-bar-chart",
-          "text": "Workday vs rest day counts"
-        },
-        {
-          "icon": "bi-shield-lock",
-          "text": "Local calculation, instant results"
+          "icon": "bi-info-circle",
+          "text": "Verify the official yearly schedule"
         }
       ]
     },
@@ -1901,23 +1877,19 @@
       ]
     },
     "salary": {
-      "usage": "After-tax salary calculator with social insurance and income tax details, city-based contribution rates and special additional deductions. See your income breakdown clearly — useful for job negotiation and monthly planning.",
+      "usage": "Estimate take-home pay using simplified personal insurance, housing fund and monthly tax rules. Actual bases, deductions and cumulative tax may differ.",
       "features": [
         {
-          "icon": "bi-cash-stack",
-          "text": "Before/after tax two-way calculation"
+          "icon": "bi-check2-circle",
+          "text": "Monthly pay estimate"
         },
         {
-          "icon": "bi-bank",
-          "text": "Social insurance details"
+          "icon": "bi-list-check",
+          "text": "Simplified contribution parameters"
         },
         {
-          "icon": "bi-calculator",
-          "text": "Income tax and deductions"
-        },
-        {
-          "icon": "bi-pie-chart",
-          "text": "Income breakdown visualization"
+          "icon": "bi-info-circle",
+          "text": "Check against your payslip"
         }
       ]
     },
@@ -2006,44 +1978,36 @@
       ]
     },
     "fuel": {
-      "usage": "Vehicle fuel calculator: enter fuel amount, price and distance to get liters per 100 km and cost per km. Multiple records for comparison help you understand efficiency and travel costs.",
+      "usage": "Calculate fuel use per 100 km, fuel cost and cost per km from distance, fuel volume and unit price. One calculation at a time; no record history.",
       "features": [
         {
-          "icon": "bi-fuel-pump",
-          "text": "L/100km calculation"
+          "icon": "bi-check2-circle",
+          "text": "Fuel volume and distance inputs"
         },
         {
-          "icon": "bi-speedometer2",
-          "text": "Cost per km"
+          "icon": "bi-list-check",
+          "text": "Fuel use per 100 km"
         },
         {
-          "icon": "bi-car-front",
-          "text": "Multiple record comparison"
-        },
-        {
-          "icon": "bi-cash",
-          "text": "Amount and volume conversion"
+          "icon": "bi-info-circle",
+          "text": "Cost per kilometre"
         }
       ]
     },
     "expiry": {
-      "usage": "Shelf-life calculator: enter a production date and shelf life in days, or an expiry date, to compute the expiry date and remaining days with near-expiry reminders. Manage food, medicine and supplies easily.",
+      "usage": "Add shelf-life days to a production date and calculate remaining days manually. No background reminders; check packaging and storage conditions.",
       "features": [
         {
-          "icon": "bi-calendar-x",
-          "text": "Automatic expiry date calculation"
-        },
-        {
-          "icon": "bi-hourglass-bottom",
-          "text": "Remaining days in real time"
-        },
-        {
-          "icon": "bi-exclamation-triangle",
-          "text": "Near-expiry reminders"
-        },
-        {
           "icon": "bi-check2-circle",
-          "text": "Instant result updates"
+          "text": "Production date plus days"
+        },
+        {
+          "icon": "bi-list-check",
+          "text": "Manual expiry calculation"
+        },
+        {
+          "icon": "bi-info-circle",
+          "text": "Remaining days at calculation time"
         }
       ]
     },
@@ -2220,23 +2184,19 @@
       ]
     },
     "ball-tracker": {
-      "usage": "Target ball tracking trainer: memorize the gold-marked ball first; once the mark disappears all balls look the same, so keep tracking it in the moving crowd. Count-change mode keeps mixing in new balls to test sustained attention; whole-scene rotation tests spatial orientation. Tracking accuracy, errors and trends are recorded automatically for a training report.",
+      "usage": "Track marked balls as they move among distractors. Compare task accuracy and mistakes across modes; results are game performance, not medical findings.",
       "features": [
         {
-          "icon": "bi-crosshair",
-          "text": "Dynamic target tracking"
+          "icon": "bi-check2-circle",
+          "text": "Moving target tracking"
         },
         {
-          "icon": "bi-plus-circle",
-          "text": "Count-change interference"
+          "icon": "bi-list-check",
+          "text": "Multiple game modes"
         },
         {
-          "icon": "bi-arrow-clockwise",
-          "text": "Whole-scene rotation and spatial orientation"
-        },
-        {
-          "icon": "bi-graph-up",
-          "text": "Accuracy and impulse report"
+          "icon": "bi-info-circle",
+          "text": "Task accuracy and mistake report"
         }
       ]
     },

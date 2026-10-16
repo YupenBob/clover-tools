@@ -390,12 +390,19 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
       'IP 検索と HTTP テストは通信を行います。HTTP テストは指定されたサーバーに URL、ヘッダーと本文を送信し、そのサービスがログを管理します。言語とテーマの設定はブラウザに保存され、サイトデータの削除で消去できます。',
     ],
   };
+  const advertisingCopy = {
+    zh: ['广告、Cookie 与同意', '启用广告时，Google 及其合作伙伴可能使用 Cookie、网络信标、IP 地址和设备信息投放、衡量广告及防止欺诈。广告 Cookie 可用于根据此前访问本站或其他网站的情况提供个性化广告。你可在 Google 广告设置中调整个性化偏好，并在浏览器中管理 Cookie。对于欧洲经济区、英国和瑞士的个性化广告，我们需在启用前配置 Google 认证的同意管理平台，按地区要求展示选择并记录同意；是否同意不影响本地工具功能。广告加载状态以页面实际配置为准。'],
+    tw: ['廣告、Cookie 與同意', '啟用廣告時，Google 與其合作夥伴可能使用 Cookie、網路信標、IP 位址和裝置資訊投放、衡量廣告與防止詐騙。廣告 Cookie 可依此前造訪本站或其他網站的情況提供個人化廣告。你可在 Google 廣告設定和瀏覽器中管理偏好。歐洲經濟區、英國及瑞士的個人化廣告需先配置 Google 認證的同意管理平台，依地區要求提供選擇並記錄同意；選擇不影響本地工具。廣告載入狀態以頁面實際配置為準。'],
+    en: ['Advertising, cookies and consent', 'When advertising is enabled, Google and its partners may use cookies, web beacons, IP addresses and device information to deliver and measure ads and prevent fraud. Advertising cookies may personalize ads based on previous visits to this or other websites. You can adjust personalization in Google ad settings and manage cookies in your browser. Before serving personalized ads in the EEA, UK or Switzerland, we must configure a Google-certified consent management platform, offer the required regional choices and record consent. Your choice does not affect local tools. Ad serving depends on the configuration actually enabled on the page.'],
+    ko: ['광고, 쿠키 및 동의', '광고가 활성화되면 Google과 파트너는 쿠키, 웹 비콘, IP 주소 및 기기 정보를 광고 제공, 측정 및 부정 사용 방지에 사용할 수 있습니다. 이전에 방문한 사이트를 바탕으로 맞춤 광고가 표시될 수 있습니다. Google 광고 설정과 브라우저에서 환경설정 및 쿠키를 관리할 수 있습니다. EEA, 영국 및 스위스에서 맞춤 광고를 제공하기 전에 Google 인증 동의 관리 플랫폼을 구성하고 지역별 선택과 동의 기록을 제공해야 합니다. 동의 여부는 로컬 도구에 영향을 주지 않습니다. 광고 제공 여부는 페이지에 활성화된 설정에 따라 달라집니다.'],
+    ja: ['広告、Cookie と同意', '広告を有効にすると、Google とパートナーは Cookie、ウェブビーコン、IP アドレス、端末情報を広告配信、測定、不正防止に使用する場合があります。以前のサイト訪問に基づいて広告がパーソナライズされることがあります。Google の広告設定とブラウザで設定や Cookie を管理できます。EEA、英国、スイスでパーソナライズ広告を配信する前に、Google 認定の同意管理プラットフォームを設定し、地域に応じた選択肢と同意の記録を提供する必要があります。同意の選択はローカルツールに影響しません。広告配信の有無はページで有効な設定に従います。'],
+  };
   return {
     copy: {
       ...copy,
       sections:
         kind === 'privacy'
-          ? [...copy.sections, networkCopy[lang]]
+          ? [...copy.sections, networkCopy[lang], advertisingCopy[lang]]
           : copy.sections,
     },
     labels,

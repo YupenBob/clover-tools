@@ -1,12 +1,12 @@
 ---
-import { ADSENSE_CLIENT, getAdSlot, type AdSlotKey } from '../lib/ads';
+import { ADSENSE_CLIENT, canServeAds, getAdSlot, type AdSlotKey } from '../lib/ads';
 
 interface Props {
   adSlot: AdSlotKey;
 }
 
 const { adSlot } = Astro.props;
-const slotId = getAdSlot(adSlot);
+const slotId = canServeAds(Astro.url.pathname) ? getAdSlot(adSlot) : null;
 ---
 
 {slotId && (

@@ -69,6 +69,8 @@ const related = getRelated(category, 'json-convert', 'ja', 6);
 
   function convert(): boolean {
     hideStatus('statusMsg');
+    output.value = '';
+    setStats('csvStats', '');
     const text = input.value.trim();
     if (!text) {
       showStatus('statusMsg', 'error', 'JSON 配列を入力してください');
@@ -81,7 +83,7 @@ const related = getRelated(category, 'json-convert', 'ja', 6);
       showStatus('statusMsg', 'error', `JSON 解析に失敗しました：${(e as Error).message}`);
       return false;
     }
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || data[0] === null) {
+    if (!Array.isArray(data) || data.length === 0 || data.some((row) => row === null || typeof row !== 'object' || Array.isArray(row))) {
       showStatus('statusMsg', 'error', '空でないオブジェクト配列を入力してください（例: [{ "a": 1 }]）');
       return false;
     }

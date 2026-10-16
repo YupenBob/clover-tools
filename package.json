@@ -8,7 +8,7 @@
     "dev": "astro dev",
     "build": "npm test && npm run prepare:hls && node scripts/clean-dist.mjs && node scripts/gen-search-index.mjs && astro build && npm run check",
     "preview": "astro preview",
-    "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-emoji.mjs",
+    "check": "node scripts/check-content.mjs && node scripts/check-links.mjs && node scripts/check-seo.mjs && node scripts/check-publisher.mjs && node scripts/check-emoji.mjs",
     "test": "npm run check:fps-types && npm run check:hls-types && npm run check:tool-types && node --test scripts/tests/*.test.mjs",
     "check:all": "npm run build",
     "check:browser": "node scripts/smoke-growth.mjs",

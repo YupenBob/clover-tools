@@ -55,19 +55,17 @@ const related = getRelated(category, 'fuel', 'ko', 6);
     const km = Number(byId<HTMLInputElement>('fuelKm').value);
     const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
     const price = Number(byId<HTMLInputElement>('fuelPrice').value);
-    if (km <= 0 || amount <= 0) {
+    if (![km, amount, price].every(Number.isFinite) || km <= 0 || amount <= 0 || price < 0) {
       showStatus('fuelStatus', 'error', '유효한 주행 거리와 주유량을 입력하세요');
       return;
     }
     const per100 = amount / km * 100;
     const cost = amount * price;
     const perKm = cost / km;
-    const range = amount / per100 * 100;
     byId<HTMLElement>('fuelResult').innerHTML =
       `<div>100km당 연비: <b>${per100.toFixed(2)}</b> L/100km</div>` +
       `<div>이번 주유비: ${cost.toFixed(2)} 원</div>` +
-      `<div>km당 비용: ${perKm.toFixed(3)} 원/km</div>` +
-      `<div>이번 주유량으로 약 ${range.toFixed(0)} km 주행 가능</div>`;
+      `<div>km당 비용: ${perKm.toFixed(3)} 원/km</div>`;
     showStatus('fuelStatus', 'success', '계산 완료');
   }
 

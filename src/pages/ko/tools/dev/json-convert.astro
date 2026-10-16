@@ -69,6 +69,8 @@ const related = getRelated(category, 'json-convert', 'ko', 6);
 
   function convert(): boolean {
     hideStatus('statusMsg');
+    output.value = '';
+    setStats('csvStats', '');
     const text = input.value.trim();
     if (!text) {
       showStatus('statusMsg', 'error', 'JSON 배열을 입력하세요');
@@ -81,7 +83,7 @@ const related = getRelated(category, 'json-convert', 'ko', 6);
       showStatus('statusMsg', 'error', `JSON 파싱 실패: ${(e as Error).message}`);
       return false;
     }
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || data[0] === null) {
+    if (!Array.isArray(data) || data.length === 0 || data.some((row) => row === null || typeof row !== 'object' || Array.isArray(row))) {
       showStatus('statusMsg', 'error', '비어 있지 않은 객체 배열을 입력하세요, 예: [{ "a": 1 }]');
       return false;
     }

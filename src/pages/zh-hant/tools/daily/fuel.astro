@@ -55,19 +55,17 @@ const related = getRelated(category, 'fuel', 'tw', 6);
     const km = Number(byId<HTMLInputElement>('fuelKm').value);
     const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
     const price = Number(byId<HTMLInputElement>('fuelPrice').value);
-    if (km <= 0 || amount <= 0) {
+    if (![km, amount, price].every(Number.isFinite) || km <= 0 || amount <= 0 || price < 0) {
       showStatus('fuelStatus', 'error', '請填寫有效的裏程與加油量');
       return;
     }
     const per100 = amount / km * 100;
     const cost = amount * price;
     const perKm = cost / km;
-    const range = amount / per100 * 100;
     byId<HTMLElement>('fuelResult').innerHTML =
       `<div>百公裏油耗：<b>${per100.toFixed(2)}</b> L/100km</div>` +
       `<div>本次油費：${cost.toFixed(2)} 元</div>` +
-      `<div>每公裏成本：${perKm.toFixed(3)} 元/km</div>` +
-      `<div>滿箱（同量）可行駛約 ${range.toFixed(0)} km</div>`;
+      `<div>每公裏成本：${perKm.toFixed(3)} 元/km</div>`;
     showStatus('fuelStatus', 'success', '計算完成');
   }
 

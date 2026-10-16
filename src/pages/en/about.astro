@@ -14,7 +14,7 @@ const totalTools = (Object.keys({ dev: getTools('dev', lang), daily: getTools('d
 const title = `About - ${SITE.name}`;
 const description =
   `About ${SITE.name}: ${totalTools} free online tools for developers, daily life and fun. ` +
-  `Everything runs in your browser, no sign-up, and data never leaves your device.`;
+  `Most tools run locally; network requests are explained. No sign-up.`;
 const canonical = `${SITE.url}/en/about/`;
 
 const aboutJsonLd = {
@@ -66,7 +66,7 @@ const aboutJsonLd = {
       </h1>
       <p class="about-lead">
         {site.tagline}. {totalTools} handcrafted tools cover development, daily life and fun —
-        everything runs locally in your browser, ready to use in seconds.
+        most tools run locally; IP lookup, HTTP testing and video downloads require network requests.
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
@@ -81,8 +81,8 @@ const aboutJsonLd = {
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
           <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
-          <span class="about-stat-num">100%</span>
-          <span class="about-stat-label">Local processing</span>
+          <span class="about-stat-num">0</span>
+          <span class="about-stat-label">Sign-ups needed</span>
         </div>
       </div>
     </div>
@@ -108,7 +108,7 @@ const aboutJsonLd = {
         <div class="feature-card">
           <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
           <h3>Privacy first</h3>
-          <p>Everything is processed in your browser; data never leaves your device</p>
+          <p>Most input is processed locally; network tools explain their requests</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">

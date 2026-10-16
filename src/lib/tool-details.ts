@@ -1,11 +1,13 @@
 import type { ToolDetail } from './tool-content';
 import { FPS_CONFIG } from '../../config/fps.mjs';
+import { EXTRA_TOOL_DETAILS } from './tool-details-extra.ts';
 
 /**
- * 深度说明只为首批高意图工具提供。内容以问题、示例和限制为中心，
+ * 每个工具都有步骤、示例和限制。内容以问题、示例和限制为中心，
  * 与工具页一起输出到 HTML，避免页面只有一个交互组件。
  */
 export const TOOL_DETAILS: Record<string, ToolDetail> = {
+  ...EXTRA_TOOL_DETAILS,
   'focus-flight': {
     intro: '开始一件事时，最难的往往是把注意力从其他事情上收回来。选择一个目的地，给自己一段明确的时间，用登机和落地作为开始与结束的仪式，让一次阅读、学习或工作变成一段可完成的旅程。',
     steps: ['从 38 座机场选择出发与抵达，或使用推荐航线；填写本次要做的事，选择 1–180 的整数分钟。', '可选择有声或安静登机。领取登机牌，桌面向外、手机向下撕副票；也可单击或用 Enter／Space 登机。完整撕下才开始计时并进入客舱。', '窗外云层持续掠过；航图可选择全程、跟随或机头朝上的导航视角。轻触画面唤回操作、调整光线与声音，暂停后续航；抵达时保存盖章登机牌。'],
@@ -184,22 +186,24 @@ export const TOOL_DETAILS: Record<string, ToolDetail> = {
   },
   'json-convert': {
     intro:
-      'JSON 转表格最容易丢数据的地方是嵌套对象、数组和缺失字段。转换前先确认记录是一组结构相近的对象，再决定哪些字段要展开，导出的 CSV 才适合后续分析。',
+      '本工具将非空对象数组转换为 CSV 或 TSV，可用 Excel 导入，不生成原生 XLSX。列名按各行字段首次出现的顺序合并，嵌套对象与数组作为 JSON 文本保存在单元格内。',
     steps: [
-      '粘贴一个 JSON 数组，或上传本地 JSON 文件。',
-      '检查预览中的表头，调整字段顺序并选择嵌套字段的展开方式。',
-      '确认示例行没有错位后，下载 CSV 或 Excel 文件。',
+      '粘贴非空对象数组，确保每行都为对象。',
+      '选择逗号 CSV 或制表符 TSV，并决定是否包含表头。',
+      '点击转换检查结果，再下载 UTF-8 文件；Excel 可通过导入功能读取。',
     ],
     examples: [
       {
         label: '平面数组',
         input: '[{"name":"Lin","score":91},{"name":"Mo","score":86}]',
         output: 'name,score\nLin,91\nMo,86',
+        outputFormat: 'code',
       },
       {
         label: '嵌套字段',
         input: '[{"id":1,"profile":{"city":"Hangzhou"}}]',
-        output: 'id,profile.city\n1,Hangzhou',
+        output: 'id,profile\n1,"{""city"":""Hangzhou""}"',
+        outputFormat: 'code',
       },
     ],
     principles: [
@@ -222,7 +226,7 @@ export const TOOL_DETAILS: Record<string, ToolDetail> = {
         a: '嵌套数组会被保留为单元格中的序列化文本，若需分析，建议先在源数据中拆成独立明细表。',
       },
     ],
-    privacy: '文件和 JSON 只在当前浏览器内转换，下载前不会上传到 CloverTools。',
+    privacy: 'JSON 在当前浏览器内转换，导出不需要上传输入。CSV 内可能包含公式开头的文本；导入表格软件时应按文本处理不可信内容。',
   },
   base64: {
     intro:
@@ -818,7 +822,7 @@ export const TOOL_DETAILS: Record<string, ToolDetail> = {
     steps: [
       '设置最小值、最大值、数量和是否允许重复。',
       '生成后检查范围、数量和重复规则是否符合目标。',
-      '用于公开活动时记录规则、种子或抽取过程，方便复核。',
+      '用于公开活动时记录名单、规则和抽取过程；本工具不提供可复现种子。',
     ],
     examples: [
       {
@@ -834,7 +838,7 @@ export const TOOL_DETAILS: Record<string, ToolDetail> = {
     ],
     principles: [
       '需要明确区间是否包含边界，以及是否允许重复。',
-      '伪随机足够用于一般测试，但安全场景需要加密安全随机源。',
+      '使用浏览器 crypto 随机源与拒绝采样；范围最多 4294967296 个整数，单次最多 1000 个结果。',
       '随机结果的公平性还取决于参与者、规则和记录方式。',
     ],
     pitfalls: [

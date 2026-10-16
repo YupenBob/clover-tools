@@ -69,6 +69,8 @@ const related = getRelated(category, 'json-convert', 'en', 6);
 
   function convert(): boolean {
     hideStatus('statusMsg');
+    output.value = '';
+    setStats('csvStats', '');
     const text = input.value.trim();
     if (!text) {
       showStatus('statusMsg', 'error', 'Please enter a JSON array');
@@ -81,7 +83,7 @@ const related = getRelated(category, 'json-convert', 'en', 6);
       showStatus('statusMsg', 'error', `JSON parse failed: ${(e as Error).message}`);
       return false;
     }
-    if (!Array.isArray(data) || data.length === 0 || typeof data[0] !== 'object' || data[0] === null) {
+    if (!Array.isArray(data) || data.length === 0 || data.some((row) => row === null || typeof row !== 'object' || Array.isArray(row))) {
       showStatus('statusMsg', 'error', 'Please enter a non-empty array of objects, e.g. [{ "a": 1 }]');
       return false;
     }

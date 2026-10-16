@@ -46,39 +46,20 @@ const related = getRelated(category, 'random-number', 'ko', 6);
 <script>
   import { byId, showStatus, hideStatus, bindCopyBtn } from '../../../../scripts/toolkit';
 
-  function randomInt(min: number, max: number): number {
-    const range = max - min + 1;
-    const buf = new Uint32Array(1);
-    crypto.getRandomValues(buf);
-    return min + (buf[0] % range);
-  }
+  import { generateRandomIntegers } from '../../../../lib/random-integers';
 
   function generate() {
     hideStatus('rnStatus');
-    const min = Math.floor(Number(byId<HTMLInputElement>('rnMin').value));
-    const max = Math.floor(Number(byId<HTMLInputElement>('rnMax').value));
-    const count = Math.floor(Number(byId<HTMLInputElement>('rnCount').value));
+    const min = Number(byId<HTMLInputElement>('rnMin').value);
+    const max = Number(byId<HTMLInputElement>('rnMax').value);
+    const count = Number(byId<HTMLInputElement>('rnCount').value);
     const unique = byId<HTMLInputElement>('rnUnique').checked;
-    if (isNaN(min) || isNaN(max) || min >= max) {
-      showStatus('rnStatus', 'error', '최댓값이 최솟값보다 커야 합니다');
+    let values: number[];
+    try { values = generateRandomIntegers(min, max, count, unique); }
+    catch {
+      byId<HTMLTextAreaElement>('rnOutput').value = '';
+      showStatus('rnStatus', 'error', '안전한 정수를 입력하세요. 범위는 최대 4294967296개, 결과는 1–1000개이며 중복 없는 결과는 범위 이내여야 합니다.');
       return;
-    }
-    if (isNaN(count) || count < 1) {
-      showStatus('rnStatus', 'error', '개수는 최소 1 이상이어야 합니다');
-      return;
-    }
-    if (unique && count > max - min + 1) {
-      showStatus('rnStatus', 'error', `범위에는 ${max - min + 1}개의 숫자만 있으므로 ${count}개의 중복 없는 값을 생성할 수 없습니다`);
-      return;
-    }
-    const values: number[] = [];
-    if (unique) {
-      const pool = new Set<number>();
-      while (pool.size < count) pool.add(randomInt(min, max));
-      values.push(...pool);
-      values.sort((a, b) => a - b);
-    } else {
-      for (let i = 0; i < count; i++) values.push(randomInt(min, max));
     }
     byId<HTMLTextAreaElement>('rnOutput').value = values.join('\n');
     showStatus('rnStatus', 'success', `${count}개의 랜덤 숫자를 생성했습니다`);

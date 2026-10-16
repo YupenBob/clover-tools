@@ -55,19 +55,17 @@ const related = getRelated(category, 'fuel', 'en', 6);
     const km = Number(byId<HTMLInputElement>('fuelKm').value);
     const amount = Number(byId<HTMLInputElement>('fuelAmount').value);
     const price = Number(byId<HTMLInputElement>('fuelPrice').value);
-    if (km <= 0 || amount <= 0) {
+    if (![km, amount, price].every(Number.isFinite) || km <= 0 || amount <= 0 || price < 0) {
       showStatus('fuelStatus', 'error', 'Please enter valid mileage and fuel amount.');
       return;
     }
     const per100 = amount / km * 100;
     const cost = amount * price;
     const perKm = cost / km;
-    const range = amount / per100 * 100;
     byId<HTMLElement>('fuelResult').innerHTML =
       `<div>Fuel consumption per 100 km: <b>${per100.toFixed(2)}</b> L/100km</div>` +
       `<div>Fuel cost for this fill: ${cost.toFixed(2)} CNY</div>` +
-      `<div>Cost per km: ${perKm.toFixed(3)} CNY/km</div>` +
-      `<div>Estimated range with this fill: about ${range.toFixed(0)} km</div>`;
+      `<div>Cost per km: ${perKm.toFixed(3)} CNY/km</div>`;
     showStatus('fuelStatus', 'success', 'Calculation complete.');
   }
 

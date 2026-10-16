@@ -14,7 +14,7 @@ const totalTools = (Object.keys({ dev: getTools('dev', lang), daily: getTools('d
 const title = `${SITE.name} について`;
 const description =
   `${SITE.name} について: 開発者・日常生活・お楽しみ向けの無料オンラインツールを${totalTools}点提供。` +
-  `すべてブラウザ内で動作し、登録不要、データが端末の外に出ることはありません。`;
+  `多くの処理はブラウザ内で完了します。通信するツールは送信先を説明し、登録は不要です。`;
 const canonical = `${SITE.url}/ja/about/`;
 
 const aboutJsonLd = {
@@ -22,7 +22,7 @@ const aboutJsonLd = {
   '@type': 'AboutPage',
   name: `${SITE.name} について`,
   url: canonical,
-  description: `${SITE.name} についてのページ。開発者・日常生活・お楽しみ向けの無料オンラインツールを${totalTools}点提供し、すべてブラウザ内で動作します。登録不要で、データが端末の外に出ることはありません。`,
+  description: `${SITE.name} についてのページ。開発者・日常生活・お楽しみ向けの無料オンラインツールを${totalTools}点提供し、多くの処理はブラウザ内で完了し、通信が必要な機能は個別に説明します。`,
   inLanguage: 'ja',
   mainEntity: {
     '@type': 'Organization',
@@ -65,7 +65,7 @@ const aboutJsonLd = {
         <span class="about-brand">CloverTools</span>
       </h1>
       <p class="about-lead">
-        {totalTools} 点のハンドメイドツールが、開発・日常・お楽しみをカバー。すべてブラウザ内でローカルに動作し、登録不要ですぐに使い始められます。
+        {totalTools} 点のハンドメイドツールが、開発・日常・お楽しみをカバー。多くの処理はブラウザ内で完了し、IP 検索、HTTP テスト、動画ダウンロードは通信します。登録は不要です。
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
@@ -80,8 +80,8 @@ const aboutJsonLd = {
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
           <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
-          <span class="about-stat-num">100%</span>
-          <span class="about-stat-label">ブラウザ内処理</span>
+          <span class="about-stat-num">0</span>
+          <span class="about-stat-label">登録ステップ</span>
         </div>
       </div>
     </div>
@@ -107,7 +107,7 @@ const aboutJsonLd = {
         <div class="feature-card">
           <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
           <h3>プライバシー最優先</h3>
-          <p>すべてブラウザ内で処理され、データが端末の外に出ることはありません</p>
+          <p>多くの入力は端末内で処理され、通信する機能は送信先を説明します</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">

@@ -5,9 +5,12 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright-core';
-import { root } from './lib/build-config.mjs';
+import { root, buildAdsEnabled } from './lib/build-config.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
+import { runReviewChecks } from './lib/review-browser-cases.mjs';
+import { getAllTools, getToolHref } from '../src/lib/tools.ts';
+import { ensureBotFightModeOff } from './lib/cloudflare-bots.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { hlsCorePath } from '../config/hls.mjs';
 
@@ -72,6 +75,10 @@ async function verifyPage(path) {
     assert.ok(text.includes(`href="${base + path}"`), `${path}: canonical origin`);
     const file = join(dist, path, 'index.html');
     const local = await readFile(file, 'utf8');
+    const tool = local.match(/<article[^>]*data-tool="([^"]+)"/);
+    if (tool && !path.match(/^\/(en|ko|ja)\//)) assert(text.includes('<section class="tool-guide"'), `${path}: tool guide missing`);
+    assert(text.includes('name="google-adsense-account" content="ca-pub-2739960879713370"'), `${path}: AdSense ownership missing`);
+    if (!buildAdsEnabled()) assert(!/\bsrc="[^"]*adsbygoogle\.js/.test(text), `${path}: ad serving should be disabled`);
     const localScripts = [...local.matchAll(/(?:src|href)="(\/_astro\/[^"?#]+)"/g)].map(match => match[1]);
     for (const asset of localScripts) assert.ok(text.includes(asset), `${path}: not the uploaded build`);
     for (const match of local.matchAll(/(?:src|href)="(\/[^"?#]+\.(?:js|css|woff2|svg))"/g)) assets.add(match[1]);
@@ -106,6 +113,16 @@ async function verifyAssets() {
 }
 
 async function verifyDiscovery() {
+  for (const path of ['/robots.txt', '/ads.txt']) {
+    const [remote, local] = await Promise.all([response(path), readFile(join(dist, path), 'utf8')]);
+    assert.equal(await remote.text(), local, `${path}: production differs from this build`);
+    passed(`crawler resource ${path}`);
+  }
+  const missing = await fetch(base + '/__release_check_missing_page__/', {signal: AbortSignal.timeout(30000)});
+  assert.equal(missing.status, 404, 'missing URL must return HTTP 404');
+  const errorPage = await missing.text();
+  assert(!errorPage.includes('adsbygoogle.js'), 'error response must not load ads');
+  passed('missing URL returns 404 without ads');
   const localSitemap = await readFile(join(dist, 'sitemap-0.xml'), 'utf8');
   await retry('sitemap', async () => {
     const text = await (await response('/sitemap-0.xml')).text();
@@ -158,6 +175,7 @@ async function verifyBrowser() {
     await context.addInitScript(value => localStorage.setItem('clover-lang', value), lang);
   }
   try {
+    await runReviewChecks({run, base});
     await runFunToolChecks({ run, remember, base, artifacts });
     await runFocusFlightChecks({ run, remember, base, artifacts });
   }
@@ -166,8 +184,15 @@ async function verifyBrowser() {
 
 try {
   await verifyDeployment();
+  report.bots = await ensureBotFightModeOff({token: process.env.CLOUDFLARE_BOT_API_TOKEN || process.env.CLOUDFLARE_API_TOKEN, accountId: process.env.CLOUDFLARE_ACCOUNT_ID, domain: new URL(base).hostname});
+  passed('Cloudflare Bot Fight Mode verified OFF');
+  const pendingPages = getAllTools().map(tool => getToolHref(tool.category, tool.slug));
+  await Promise.all(Array.from({length: 4}, async () => {
+    while (pendingPages.length) await verifyPage(pendingPages.shift());
+  }));
   for (const locale of Object.keys(LOCALES)) {
     await verifyPage(localizedPath('/', locale));
+    for (const kind of ['privacy', 'terms', 'contact', 'about']) await verifyPage(localizedPath(`/${kind}/`, locale));
     for (const slug of slugs) await verifyPage(localizedPath(`/tools/fun/${slug}/`, locale));
   }
   await verifyPage('/tools/fun/');

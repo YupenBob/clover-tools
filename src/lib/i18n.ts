@@ -14,6 +14,7 @@ import {
 } from './tools';
 import { TOOL_CONTENT, type ToolContent } from './tool-content';
 import { TOOL_DETAILS } from './tool-details';
+import { relatedScore } from './related-tools';
 
 export type Lang = 'zh' | 'tw' | 'en' | 'ko' | 'ja';
 export const LANGS = Object.keys(LOCALES) as Lang[];
@@ -170,6 +171,7 @@ export function getTools(category: ToolCategory, lang: Lang): ToolMeta[] {
 export function getRelated(category: ToolCategory, slug: string, lang: Lang, n = 6): ToolMeta[] {
   return getTools(category, lang)
     .filter((t) => t.slug !== slug)
+    .sort((a, b) => relatedScore(slug, b.slug) - relatedScore(slug, a.slug))
     .slice(0, n);
 }
 

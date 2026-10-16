@@ -60,34 +60,42 @@ const related = getRelated(category, 'workday', 'tw', 6);
       showStatus('wdStatus', 'error', '請選擇日期區間');
       return;
     }
-    const start = new Date(s + 'T00:00:00');
-    const end = new Date(e + 'T00:00:00');
+    const start = new Date(s + 'T00:00:00Z');
+    const end = new Date(e + 'T00:00:00Z');
     if (end < start) {
       showStatus('wdStatus', 'error', '結束日期不能早於開始日期');
       return;
+    }
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || (end.getTime() - start.getTime()) / 86400000 > 36600) {
+      showStatus('wdStatus', 'error', '請選擇有效日期區間，跨度不超過 100 年。'); return;
+    }
+    const missingYears: number[] = [];
+    for (let year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year++) {
+      if (!HolidayUtil.getHolidays(year).length) missingYears.push(year);
     }
     let workdays = 0;
     let holidays = 0;
     let makeups = 0;
     const cursor = new Date(start);
     while (cursor <= end) {
-      const ymd = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(cursor.getDate())}`;
+      const ymd = `${cursor.getUTCFullYear()}-${pad(cursor.getUTCMonth() + 1)}-${pad(cursor.getUTCDate())}`;
       const h = HolidayUtil.getHoliday(ymd);
-      const weekend = cursor.getDay() === 0 || cursor.getDay() === 6;
+      const weekend = cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6;
       if (h) {
         if (h.isWork()) { workdays++; makeups++; }
         else { holidays++; }
       } else if (!weekend) {
         workdays++;
-      }
-      cursor.setDate(cursor.getDate() + 1);
+      } else { holidays++; }
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
     const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
     byId<HTMLElement>('wdResult').innerHTML =
       `<div>工作日：<b>${workdays}</b> 天（含調休上班 ${makeups} 天）</div>` +
       `<div>法定節假日（含周末）：${holidays} 天</div>` +
       `<div>區間總天數：${totalDays} 天</div>`;
-    showStatus('wdStatus', 'success', '計算完成');
+    if (missingYears.length) showStatus('wdStatus', 'info', '所選年份缺少節假日資料，僅按普通週末計算，請核對官方安排：' + missingYears.join(', '));
+    else showStatus('wdStatus', 'success', '計算完成');
   }
 
   byId<HTMLButtonElement>('wdBtn').addEventListener('click', calc);

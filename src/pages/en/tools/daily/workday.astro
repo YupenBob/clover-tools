@@ -60,34 +60,42 @@ const related = getRelated(category, 'workday', 'en', 6);
       showStatus('wdStatus', 'error', 'Please select a date range.');
       return;
     }
-    const start = new Date(s + 'T00:00:00');
-    const end = new Date(e + 'T00:00:00');
+    const start = new Date(s + 'T00:00:00Z');
+    const end = new Date(e + 'T00:00:00Z');
     if (end < start) {
       showStatus('wdStatus', 'error', 'End date cannot be earlier than start date.');
       return;
+    }
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || (end.getTime() - start.getTime()) / 86400000 > 36600) {
+      showStatus('wdStatus', 'error', 'Choose a valid range of no more than 100 years.'); return;
+    }
+    const missingYears: number[] = [];
+    for (let year = start.getUTCFullYear(); year <= end.getUTCFullYear(); year++) {
+      if (!HolidayUtil.getHolidays(year).length) missingYears.push(year);
     }
     let workdays = 0;
     let holidays = 0;
     let makeups = 0;
     const cursor = new Date(start);
     while (cursor <= end) {
-      const ymd = `${cursor.getFullYear()}-${pad(cursor.getMonth() + 1)}-${pad(cursor.getDate())}`;
+      const ymd = `${cursor.getUTCFullYear()}-${pad(cursor.getUTCMonth() + 1)}-${pad(cursor.getUTCDate())}`;
       const h = HolidayUtil.getHoliday(ymd);
-      const weekend = cursor.getDay() === 0 || cursor.getDay() === 6;
+      const weekend = cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6;
       if (h) {
         if (h.isWork()) { workdays++; makeups++; }
         else { holidays++; }
       } else if (!weekend) {
         workdays++;
-      }
-      cursor.setDate(cursor.getDate() + 1);
+      } else { holidays++; }
+      cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
     const totalDays = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
     byId<HTMLElement>('wdResult').innerHTML =
       `<div>Workdays: <b>${workdays}</b> days (including ${makeups} makeup workdays)</div>` +
-      `<div>Statutory holidays (including weekends): ${holidays} days</div>` +
+      `<div>Rest days (weekends and known holidays): ${holidays} days</div>` +
       `<div>Total days in range: ${totalDays} days</div>`;
-    showStatus('wdStatus', 'success', 'Calculation complete.');
+    if (missingYears.length) showStatus('wdStatus', 'info', 'Holiday data is missing for these years; only weekday rules apply. Check official schedules: ' + missingYears.join(', '));
+    else showStatus('wdStatus', 'success', 'Calculation complete.');
   }
 
   byId<HTMLButtonElement>('wdBtn').addEventListener('click', calc);

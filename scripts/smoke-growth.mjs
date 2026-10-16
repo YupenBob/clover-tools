@@ -12,6 +12,7 @@ import { LEGAL } from '../config/site.mjs';
 import { runFpsChecks } from './lib/fps-browser-cases.mjs';
 import { runToolWorkspaceChecks } from './lib/tool-workspace-browser-cases.mjs';
 import { runToolDetailChecks } from './lib/tool-detail-browser-cases.mjs';
+import { runReviewChecks } from './lib/review-browser-cases.mjs';
 import { runDailyToolChecks } from './lib/daily-tool-browser-cases.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
@@ -123,11 +124,11 @@ try {
       await page.goto(base + '/?q=json#tools', {
         waitUntil: 'domcontentloaded',
       });
-      await page.waitForURL(base + localizedPath('/', lang) + '?q=json#tools');
+      assert.equal(page.url(), base + '/?q=json#tools');
       await page.locator('h1').waitFor();
       assert.equal(
         await page.locator('html').getAttribute('lang'),
-        LOCALES[lang].htmlLang,
+        LOCALES.zh.htmlLang,
       );
     });
   }
@@ -280,6 +281,7 @@ try {
     );
   }
   await runToolWorkspaceChecks({ run, remember, base, artifacts });
+  await runReviewChecks({ run, base });
   await runToolDetailChecks({ run, remember, base, artifacts });
   await runDailyToolChecks({ run, remember, base, artifacts });
   await runFunToolChecks({ run, remember, base, artifacts });
