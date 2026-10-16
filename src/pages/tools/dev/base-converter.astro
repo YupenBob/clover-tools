@@ -64,7 +64,8 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const raw = byId<HTMLInputElement>('bcValue').value.trim();
     const from = Number(byId<HTMLSelectElement>('bcFrom').value);
     const to = Number(byId<HTMLSelectElement>('bcTo').value);
-    if (!raw) {
+    byId<HTMLTextAreaElement>('bcOutput').value = '';
+    if (!raw || raw === '-') {
       showStatus('bcStatus', 'error', '请输入数值');
       return;
     }

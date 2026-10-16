@@ -63,7 +63,8 @@ const related = getRelated(category, 'base-converter', 'en', 6);
     const raw = byId<HTMLInputElement>('bcValue').value.trim();
     const from = Number(byId<HTMLSelectElement>('bcFrom').value);
     const to = Number(byId<HTMLSelectElement>('bcTo').value);
-    if (!raw) {
+    byId<HTMLTextAreaElement>('bcOutput').value = '';
+    if (!raw || raw === '-') {
       showStatus('bcStatus', 'error', 'Please enter a value.');
       return;
     }

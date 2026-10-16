@@ -1,3 +1,5 @@
+import { EDITORIAL_GUIDES } from './editorial-guides.ts';
+
 export interface GuideFaq {
   q: string;
   a: string;
@@ -15,13 +17,17 @@ export interface Guide {
   content: string;
   faqs: GuideFaq[];
   sources: { title: string; url: string }[];
+  image?: string;
+  focus?: string;
+  notice?: string;
 }
 
 /**
- * 首批人工整理的指南。每篇都对应一个真实工具场景，正文使用可信的本地 HTML
+ * 已校对发布的指南。每篇都对应一个真实工具场景，正文使用可信的本地 HTML
  * 输出到静态页面；新增文章前应先校对示例、来源和适用边界。
  */
 export const GUIDES: Guide[] = [
+  ...EDITORIAL_GUIDES,
   {
     slug: 'json-formatting-validation',
     title: 'JSON 格式化与校验：从报错定位到可读输出',

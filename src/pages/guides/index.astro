@@ -62,22 +62,26 @@ function toolLink(slug: string) {
             <a class="guide-tool" href={toolLink(guide.toolSlug)}>打开工具 <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
           </div>
         </div>
+        {guide.image && <a class="guide-card-image" href={`/guides/${guide.slug}/`} tabindex="-1" aria-hidden="true"><img src={guide.image} alt="" width="240" height="160" loading="lazy" decoding="async" /></a>}
       </article>
     ))}
   </section>
 </BaseLayout>
 
 <style>
-  .guides-hero { position: relative; overflow: hidden; margin: 12px 0 var(--space-7); padding: clamp(28px, 6vw, 58px); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: linear-gradient(115deg, var(--brand-ink), #5e4e2c 54%, var(--primary-dark)); color: #fffaf0; box-shadow: var(--shadow-lg); }
+  .guides-hero { position: relative; overflow: hidden; margin: 12px 0 var(--space-7); padding: clamp(28px, 6vw, 58px); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: linear-gradient(115deg, #29251d, #58482d 54%, #6f633e); color: #fffaf0; box-shadow: var(--shadow-lg); }
   .guides-hero::after { position: absolute; right: -80px; bottom: -120px; width: 320px; height: 320px; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; box-shadow: 0 0 0 34px rgba(255,255,255,.04), 0 0 0 68px rgba(255,255,255,.03); content: ''; }
-  .guides-kicker { position: relative; z-index: 1; margin: 0 0 12px; color: var(--primary-light); font: 11px/1.4 var(--font-mono); letter-spacing: .16em; }
+  .guides-kicker { position: relative; z-index: 1; margin: 0 0 12px; color: #e6c58b; font: 11px/1.4 var(--font-mono); letter-spacing: .16em; }
   .guides-hero h1 { position: relative; z-index: 1; margin: 0 0 14px; font-size: clamp(32px, 7vw, 58px); letter-spacing: -.03em; line-height: 1.08; }
   .guides-hero > p:not(.guides-kicker) { position: relative; z-index: 1; max-width: 620px; margin: 0; color: rgba(255,250,240,.82); font-size: 16px; line-height: 1.85; }
-  .guides-meta { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 18px; margin-top: 28px; color: var(--primary-light); font-size: 12px; }
+  .guides-meta { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 18px; margin-top: 28px; color: #f0d9a5; font-size: 12px; }
   .guide-list { display: grid; gap: 16px; margin-bottom: var(--space-8); }
   .guide-card { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 18px; padding: 22px 24px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-elevated); transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
   .guide-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); transform: translateY(-2px); }
   .guide-card-number { align-self: start; color: var(--primary-dark); font: 700 22px/1 var(--font-mono); }
+  .guide-card:has(.guide-card-image) { grid-template-columns: 62px minmax(0, 1fr) 180px; }
+  .guide-card-image { align-self: center; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  .guide-card-image img { display: block; width: 100%; height: 120px; object-fit: contain; background: var(--bg-secondary); }
   .guide-card-topline { display: flex; flex-wrap: wrap; gap: 12px; color: var(--text-tertiary); font-size: 12px; }
   .guide-card-topline span:first-child { color: var(--primary-dark); font-weight: 700; }
   .guide-card h2 { margin: 9px 0 8px; font-size: 21px; line-height: 1.35; }
@@ -87,5 +91,6 @@ function toolLink(slug: string) {
   .guide-read, .guide-tool { display: inline-flex; align-items: center; gap: 6px; }
   .guide-read { color: var(--primary-dark); font-weight: 700; }
   .guide-tool { color: var(--text-tertiary); }
-  @media (max-width: 560px) { .guide-card { grid-template-columns: 1fr; gap: 8px; padding: 18px; } .guide-card-number { font-size: 16px; } }
+  @media (max-width: 780px) { .guide-card:has(.guide-card-image) { grid-template-columns: 40px minmax(0, 1fr); } .guide-card-image { grid-column: 2; max-width: 240px; } }
+  @media (max-width: 560px) { .guide-card, .guide-card:has(.guide-card-image) { grid-template-columns: 1fr; gap: 8px; padding: 18px; } .guide-card-number { font-size: 16px; } .guide-card-image { grid-column: 1; max-width: none; } .guide-card-image img { height: 160px; } }
 </style>

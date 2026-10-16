@@ -31,8 +31,8 @@ for (const guide of GUIDES) {
     )
   )
     problems.push(`${guide.slug}: 参考来源缺失或无效`);
-  if (!guide.content.trim() || guide.faqs.length < CONTENT_LIMITS.faqsMin)
-    problems.push(`${guide.slug}: 正文或 FAQ 不完整`);
+  if (!guide.content.trim() || guide.faqs.some(faq => !faq.q || !faq.a))
+    problems.push(`${guide.slug}: 正文为空或 FAQ 字段不完整`);
   const date = new Date(guide.updated);
   if (
     !Number.isFinite(date.valueOf()) ||

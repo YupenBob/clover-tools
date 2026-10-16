@@ -5,6 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { EDITORIAL_REDIRECTS } from '../config/editorial-redirects.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = readFileSync(join(root, 'src', 'lib', 'tools.ts'), 'utf8');
@@ -30,8 +31,7 @@ for (const [catKey] of Object.entries(categories)) {
 
 const header = [
   '# CloverTools V3 - 旧路径 301 重定向（由 scripts/gen-redirects.mjs 生成，勿手改）',
-  '# 统一 https + www → 主域',
-  'https://www.clovertools.cn/* https://clovertools.cn/:splat 301',
+  '# 域名级 www / HTTPS 跳转需由 Cloudflare 站点规则配置，Pages 不支持绝对来源地址',
   '',
   '# 旧站根页面与已下线栏目 → 首页',
   '/home-new.html / 301',
@@ -54,15 +54,15 @@ const header = [
   '/ko /ko/ 301',
   '/ja /ja/ 301',
   '',
-  '# 已剥离内容（博客 / fix hub / 分类 / 插件）兜底跳首页，精确规则优先',
-  '/blog/* / 301',
-  '/fix/* / 301',
-  '/category/* / 301',
-  '/plugins/* / 301',
+  '# 已重写的文章：旧地址与历史 .html / 斜杠别名 → 等价指南',
+  ...EDITORIAL_REDIRECTS.flatMap(({ legacy, guide }) =>
+    ['', '.html', '/'].map(suffix => `${legacy}${suffix} /guides/${guide}/ 301`)),
+  '',
+  '# 未恢复的旧博客由静态站正常返回 404；不再把无关文章统一跳到首页',
 ];
 writeFileSync(
   join(root, 'public', '_redirects'),
-  [...header, '', ...entries.sort()].join('\n') + '\n',
+  [...header, '', ...entries.sort(), '', '# 其余历史栏目保留原规则；通配规则放在精确路径之后，后续逐项审查', '/fix/* / 301', '/category/* / 301', '/plugins/* / 301'].join('\n') + '\n',
   'utf8',
 );
 console.log(`已生成 ${entries.length} 条重定向`);

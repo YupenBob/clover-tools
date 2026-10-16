@@ -9,6 +9,9 @@ import { root, buildAdsEnabled } from './lib/build-config.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
 import { runReviewChecks } from './lib/review-browser-cases.mjs';
+import { runEditorialChecks } from './lib/editorial-browser-cases.mjs';
+import { GUIDES } from '../src/lib/guides.ts';
+import { EDITORIAL_REDIRECTS } from '../config/editorial-redirects.mjs';
 import { getAllTools, getToolHref } from '../src/lib/tools.ts';
 import { ensureBotFightModeOff } from './lib/cloudflare-bots.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
@@ -82,7 +85,7 @@ async function verifyPage(path) {
     if (!buildAdsEnabled()) assert(!/\bsrc="[^"]*adsbygoogle\.js/.test(text), `${path}: ad serving should be disabled`);
     const localScripts = [...local.matchAll(/(?:src|href)="(\/_astro\/[^"?#]+)"/g)].map(match => match[1]);
     for (const asset of localScripts) assert.ok(text.includes(asset), `${path}: not the uploaded build`);
-    for (const match of local.matchAll(/(?:src|href)="(\/[^"?#]+\.(?:js|css|woff2|svg))"/g)) assets.add(match[1]);
+    for (const match of local.matchAll(/(?:src|href)="(\/[^"?#]+\.(?:js|mjs|css|woff2|svg|png|jpg|jpeg|csv|md|m3u8|ts))"/g)) assets.add(match[1]);
   });
   passed(`custom-domain page ${path}`);
 }
@@ -96,7 +99,7 @@ async function files(directory) {
 }
 
 async function verifyAssets() {
-  for (const folder of [hlsCorePath(), '/fps/audio', '/focus-flight']) {
+  for (const folder of [hlsCorePath(), '/fps/audio', '/focus-flight', '/article-assets', '/article-images']) {
     for (const file of await files(join(dist, folder))) assets.add('/' + file.slice(dist.length + 1).replaceAll('\\', '/'));
   }
   const pending = [...assets];
@@ -114,6 +117,18 @@ async function verifyAssets() {
 }
 
 async function verifyDiscovery() {
+  for (const { legacy, guide } of EDITORIAL_REDIRECTS) {
+    for (const suffix of ['', '.html', '/']) {
+      const path = legacy + suffix;
+      const result = await fetch(base + path, { redirect: 'manual', signal: AbortSignal.timeout(30000) });
+      assert.equal(result.status, 301, `${path}: reviewed legacy article must redirect permanently`);
+      assert.equal(new URL(result.headers.get('location'), base).href, `${base}/guides/${guide}/`, `${path}: equivalent article destination`);
+      passed(`reviewed legacy redirect ${path}`);
+    }
+  }
+  const oldBlog = await fetch(base + '/blog/__unrestored_legacy_article__/', { signal: AbortSignal.timeout(30000) });
+  assert.equal(oldBlog.status, 404, 'unrestored blog URLs must not redirect to the home page');
+  passed('unrestored blog URL returns 404');
   for (const path of ['/examples/', '/examples/clover-bead-pattern/', '/examples/repeatable-avatar/', '/examples/nested-json-to-csv/']) {
     const result = await fetch(base + path, { signal: AbortSignal.timeout(30000) });
     assert.equal(result.status, 404, `${path}: retired example should return 404`);
@@ -182,6 +197,7 @@ async function verifyBrowser() {
   }
   try {
     await runReviewChecks({run, base});
+    await runEditorialChecks({run, base});
     await runFunToolChecks({ run, remember, base, artifacts });
     await runFocusFlightChecks({ run, remember, base, artifacts });
   }
@@ -202,6 +218,8 @@ try {
     for (const slug of slugs) await verifyPage(localizedPath(`/tools/fun/${slug}/`, locale));
   }
   await verifyPage('/tools/fun/');
+  await verifyPage('/guides/');
+  for (const guide of GUIDES) await verifyPage(`/guides/${guide.slug}/`);
   await verifyDiscovery();
   await verifyAssets();
   await verifyBrowser();

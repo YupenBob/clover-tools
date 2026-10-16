@@ -15,6 +15,12 @@ const toolEntry = getAllTools().find((tool) => tool.slug === guide.toolSlug);
 if (!toolEntry) throw new Error(`Guide tool not found: ${guide.toolSlug}`);
 const toolHref = getToolHref(toolEntry.category, toolEntry.slug);
 const canonical = `${SITE.url}/guides/${guide.slug}/`;
+const headings: { id: string; label: string }[] = [];
+const content = guide.content.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, label: string) => {
+  const id = `section-${headings.length + 1}`;
+  headings.push({ id, label });
+  return `<h2 id="${id}">${label}</h2>`;
+});
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -27,6 +33,7 @@ const jsonLd = [
     publisher: { '@type': 'Organization', name: SITE.name, url: SITE.url },
     mainEntityOfPage: canonical,
     inLanguage: 'zh-CN',
+    ...(guide.image ? { image: `${SITE.url}${guide.image}` } : {}),
   },
   {
     '@context': 'https://schema.org',
@@ -40,7 +47,7 @@ const jsonLd = [
 ];
 ---
 
-<BaseLayout title={`${guide.title} - ${SITE.name}`} description={guide.description} keywords={[guide.title, guide.category, 'CloverTools']} canonical={canonical} jsonLd={jsonLd}>
+<BaseLayout title={`${guide.title} - ${SITE.name}`} description={guide.description} keywords={[guide.title, guide.category, 'CloverTools']} canonical={canonical} ogImage={guide.image ? `${SITE.url}${guide.image}` : undefined} jsonLd={jsonLd}>
   <nav class="breadcrumb" aria-label="面包屑">
     <a href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
     <i class="bi bi-chevron-right" aria-hidden="true"></i>
@@ -58,20 +65,21 @@ const jsonLd = [
     </header>
 
     <div class="article-layout">
-      <div class="article-content" set:html={guide.content}></div>
+      <div class="article-content" set:html={content}></div>
       <aside class="article-aside">
+        {headings.length > 0 && <nav class="aside-card article-toc" aria-label="文章目录"><p class="aside-label">文章目录</p><ol>{headings.map(heading => <li><a href={`#${heading.id}`} set:html={heading.label}></a></li>)}</ol></nav>}
         <div class="aside-card">
           <p class="aside-label">本页重点</p>
-          <p>先看示例，再把步骤带回工具。结果用于生产系统前，请结合项目文档和测试环境复核。</p>
+          <p>{guide.focus ?? '先看示例，再把步骤带回工具。结果用于生产系统前，请结合项目文档和测试环境复核。'}</p>
         </div>
         <div class="aside-card aside-local">
           <i class="bi bi-shield-lock" aria-hidden="true"></i>
-          <p>输入内容在浏览器本地处理。请勿把真实密码、令牌或个人敏感信息当作示例提交。</p>
+          <p>{guide.notice ?? '输入内容在浏览器本地处理。请勿把真实密码、令牌或个人敏感信息当作示例提交。'}</p>
         </div>
       </aside>
     </div>
 
-    <section class="article-faq" aria-labelledby="faq-heading">
+    {guide.faqs.length > 0 && <section class="article-faq" aria-labelledby="faq-heading">
       <h2 id="faq-heading">常见问题</h2>
       {guide.faqs.map((faq) => (
         <details>
@@ -79,7 +87,7 @@ const jsonLd = [
           <p>{faq.a}</p>
         </details>
       ))}
-    </section>
+    </section>}
 
     <section class="article-sources" aria-labelledby="sources-heading">
       <h2 id="sources-heading">参考来源</h2>
@@ -112,14 +120,32 @@ const jsonLd = [
   .article-layout { display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 36px; margin-top: 42px; }
   .article-content { min-width: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.9; }
   .article-content :global(h2) { margin: 34px 0 10px; color: var(--text); font-size: 22px; line-height: 1.35; }
+  .article-content :global(h2) { scroll-margin-top: 100px; }
+  .article-content :global(p), .article-content :global(li), .article-hero h1 { overflow-wrap: anywhere; }
   .article-content :global(p) { margin: 0 0 16px; }
   .article-content :global(ol), .article-content :global(ul) { display: grid; gap: 8px; margin: 0 0 18px; padding-left: 24px; }
   .article-content :global(li)::marker { color: var(--primary-dark); font-weight: 700; }
   .article-content :global(code) { padding: 2px 5px; border-radius: 5px; background: var(--bg-secondary); color: var(--brand-ink); font: 0.9em var(--font-mono); }
+  .article-content :global(h3) { margin: 26px 0 8px; color: var(--text); font-size: 18px; line-height: 1.5; }
+  .article-content :global(a) { color: var(--primary-dark); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+  .article-content :global(pre) { max-width: 100%; overflow-x: auto; padding: 18px; margin: 20px 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); line-height: 1.65; tab-size: 2; }
+  .article-content :global(pre code) { padding: 0; border-radius: 0; background: none; }
+  .article-content :global(figure) { margin: 28px 0; }
+  .article-content :global(figure a) { display: block; }
+  .article-content :global(figure img) { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); }
+  .article-content :global(figure figcaption) { margin-top: 9px; color: var(--text-tertiary); font-size: 12px; line-height: 1.75; }
+  .article-content :global(.article-table) { max-width: 100%; overflow-x: auto; margin: 22px 0; }
+  .article-content :global(table) { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.7; }
+  .article-content :global(th), .article-content :global(td) { min-width: 100px; padding: 10px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+  .article-content :global(th) { color: var(--text); background: var(--bg-secondary); }
+  .article-content :global(.article-callout) { padding: 16px 18px; border-left: 3px solid var(--primary); background: var(--primary-soft); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
   .article-aside { display: grid; align-content: start; gap: 14px; }
   .aside-card { padding: 17px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-elevated); }
   .aside-card p { margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.7; }
   .aside-card .aside-label { margin-bottom: 8px; color: var(--text); font-weight: 700; }
+  .article-toc ol { display: grid; gap: 9px; margin: 0; padding-left: 17px; font-size: 12px; line-height: 1.65; }
+  .article-toc a { color: var(--text-secondary); }
+  .article-toc a:hover { color: var(--primary-dark); text-decoration: underline; }
   .aside-local { display: flex; gap: 9px; background: var(--bg-secondary); }
   .aside-local i { flex-shrink: 0; color: var(--primary-dark); }
   .article-faq { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--border-strong); }
@@ -129,6 +155,6 @@ const jsonLd = [
   .article-faq details p { margin: 10px 0 0; color: var(--text-secondary); font-size: 14px; line-height: 1.75; }
   .article-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px dashed var(--border-strong); font-size: 13px; }
   .article-footer a { color: var(--primary-dark); }
-  @media (max-width: 780px) { .article-layout { grid-template-columns: 1fr; gap: 18px; margin-top: 30px; } .article-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 520px) { .article-aside { grid-template-columns: 1fr; } .article-footer { flex-direction: column; } }
+  @media (max-width: 780px) { .article-layout { display: flex; flex-direction: column; gap: 18px; margin-top: 30px; } .article-aside { display: contents; } .article-toc { order: -1; } .article-toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 25px; } }
+  @media (max-width: 520px) { .article-toc ol { grid-template-columns: 1fr; } .article-footer { flex-direction: column; } .breadcrumb { flex-wrap: wrap; row-gap: 6px; } .breadcrumb > a { white-space: nowrap; flex-shrink: 0; } .breadcrumb > span { flex-basis: 100%; } .breadcrumb > i:last-of-type { display: none; } }
 </style>

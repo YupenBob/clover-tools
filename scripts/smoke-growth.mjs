@@ -16,6 +16,7 @@ import { runReviewChecks } from './lib/review-browser-cases.mjs';
 import { runDailyToolChecks } from './lib/daily-tool-browser-cases.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
+import { runEditorialChecks } from './lib/editorial-browser-cases.mjs';
 
 let server;
 let browser;
@@ -292,6 +293,7 @@ try {
   }
   await runToolWorkspaceChecks({ run, remember, base, artifacts });
   await runReviewChecks({ run, base });
+  await runEditorialChecks({ run, base });
   await runToolDetailChecks({ run, remember, base, artifacts });
   await runDailyToolChecks({ run, remember, base, artifacts });
   await runFunToolChecks({ run, remember, base, artifacts });

@@ -57,9 +57,11 @@ const related = getRelated(category, 'keyboard-test', 'tw', 6);
     gap: 4px;
   }
 
-  .kt-row {
+  :global(.kt-row) {
     display: flex;
     justify-content: space-between;
+    gap: 12px;
+    overflow-wrap: anywhere;
     padding: 5px 8px;
     border-radius: 6px;
     background: var(--bg-secondary);
@@ -89,9 +91,9 @@ const related = getRelated(category, 'keyboard-test', 'tw', 6);
   }
 
   window.addEventListener('keydown', (e) => {
-    const tag = (e.target as HTMLElement).tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-    e.preventDefault();
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, select, button, a, [contenteditable="true"]')) return;
+    if (e.key !== 'Tab') e.preventDefault();
     const name = displayName(e);
     keyEl.textContent = name;
     const mods = [
@@ -103,7 +105,11 @@ const related = getRelated(category, 'keyboard-test', 'tw', 6);
     codeEl.textContent = `code: ${e.code}${mods ? ' · ' + mods : ''}`;
     const row = document.createElement('div');
     row.className = 'kt-row';
-    row.innerHTML = `<span>${name}</span><span>${e.code}${mods ? ' · ' + mods : ''}</span>`;
+    const nameCell = document.createElement('span');
+    const codeCell = document.createElement('span');
+    nameCell.textContent = name;
+    codeCell.textContent = `${e.code}${mods ? ' · ' + mods : ''}`;
+    row.append(nameCell, codeCell);
     history.prepend(row);
     while (history.children.length > 20) history.lastElementChild?.remove();
   });
