@@ -8,6 +8,7 @@ import {
   isIndexablePath,
 } from '../../config/routes.mjs';
 import { SEO_LIMITS } from '../../config/quality.mjs';
+import { structuredData, auditBreadcrumbs, hasType } from './structured-data.mjs';
 import {
   attributes,
   decodeEntities,
@@ -95,18 +96,10 @@ export function auditSeoPage(content, file, siteUrl) {
     }
   }
 
-  const blocks = [...content.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
-    .filter((m) => attributes(m[1]).type === 'application/ld+json')
-    .flatMap((m) => {
-      try {
-        const parsed = JSON.parse(m[2]);
-        return Array.isArray(parsed) ? parsed : [parsed];
-      } catch {
-        problems.push('JSON-LD 解析失败');
-        return [];
-      }
-    });
-  const types = blocks.map((block) => block?.['@type']);
+  const data = structuredData(content);
+  const blocks = data.nodes;
+  problems.push(...data.problems, ...auditBreadcrumbs(blocks, canonical, siteUrl));
+  const types = blocks.flatMap((block) => Array.isArray(block?.['@type']) ? block['@type'] : [block?.['@type']]);
   const base = stripLanguage(path);
   if (/^\/tools\/[^/]+\/[^/]+\/$/.test(base)) {
     for (const type of ['SoftwareApplication', 'BreadcrumbList']) {
@@ -121,20 +114,20 @@ export function auditSeoPage(content, file, siteUrl) {
     if (!content.includes('class="tool-about"'))
       problems.push('缺少「使用说明」区块');
   } else if (/^\/tools\/[^/]+\/$/.test(base)) {
-    const list = blocks.find((block) => block?.['@type'] === 'ItemList');
+    const list = blocks.find((block) => hasType(block, 'ItemList'));
     const count = (content.match(/class="tool-card"/g) ?? []).length;
     if (!list || list.numberOfItems !== count)
       problems.push('ItemList 工具数量与卡片不一致');
   } else if (base === '/') {
     for (const type of ['WebSite', 'Organization'])
       if (!types.includes(type)) problems.push(`缺少 ${type} JSON-LD`);
-    const website = blocks.find((block) => block?.['@type'] === 'WebSite');
+    const website = blocks.find((block) => hasType(block, 'WebSite'));
     if (website?.potentialAction?.['@type'] !== 'SearchAction')
       problems.push('WebSite 缺少 SearchAction');
   } else if (/^\/guides\/[^/]+\/$/.test(base)) {
     if (!types.includes('Article') || !types.includes('BreadcrumbList'))
       problems.push('指南缺少 Article / BreadcrumbList JSON-LD');
-    const article = blocks.find((block) => block?.['@type'] === 'Article');
+    const article = blocks.find((block) => hasType(block, 'Article'));
     if (
       !/^\d{4}-\d{2}-\d{2}$/.test(article?.dateModified ?? '') ||
       article?.mainEntityOfPage !== canonical

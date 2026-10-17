@@ -29,7 +29,7 @@ function toolPage(lang = 'zh') {
       )
       .join('')}
     <link rel="alternate" hreflang="x-default" href="${origin}/tools/dev/json-formatter/">
-    <script type="application/ld+json">[{"@type":"SoftwareApplication"},{"@type":"BreadcrumbList"}]</script>
+    <script type="application/ld+json">[{"@type":"SoftwareApplication"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${origin + localizedPath('/', lang)}"},{"@type":"ListItem","position":2,"name":"Tools","item":"${origin + localizedPath('/tools/dev/', lang)}"},{"@type":"ListItem","position":3,"name":"JSON formatter","item":"${origin + path}"}]}]</script>
     </head><body><h1>JSON formatter</h1><section class="tool-about"><ul class="usage-features"><li>Format</li><li>Validate</li><li>Copy</li></ul></section></body></html>`;
 }
 

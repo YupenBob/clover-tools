@@ -1,12 +1,10 @@
 name: Cloudflare crawler audit
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: ['Quality checks']
+    types: [completed]
     branches: [main]
-    paths:
-      - '.github/workflows/crawler-audit.yml'
-      - 'scripts/check-cloudflare-bots.mjs'
-      - 'scripts/lib/cloudflare-bots.mjs'
 permissions:
   contents: read
 concurrency:
@@ -14,8 +12,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   bots:
+    if: github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_sha == github.sha))
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,6 +28,11 @@ jobs:
           CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
           CLOUDFLARE_ZONE_NAME: clovertools.cn
         run: node scripts/check-cloudflare-bots.mjs
+      - name: Audit published sitemap, index directives and canonical redirects
+        if: always()
+        env:
+          PUBLIC_SITE_URL: https://clovertools.cn
+        run: node scripts/audit-crawlability.mjs
       - name: Save API verification evidence
         if: always()
         uses: actions/upload-artifact@v4

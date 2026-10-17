@@ -23,6 +23,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check:all
+      - name: Save site indexing policy inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: indexing-policy-${{ github.sha }}
+          path: output/seo/
+          retention-days: 30
       - run: node node_modules/playwright-core/cli.js install --with-deps chromium
       - run: npm run check:browser
       - name: Install native media validation tools
@@ -92,6 +98,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: production-verification-${{ github.sha }}
-          path: output/production-verification/
+          path: |
+            output/production-verification/
+            output/seo/
           if-no-files-found: ignore
           retention-days: 7

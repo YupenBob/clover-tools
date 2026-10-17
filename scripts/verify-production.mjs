@@ -16,6 +16,7 @@ import { getAllTools, getToolHref } from '../src/lib/tools.ts';
 import { ensureBotFightModeOff } from './lib/cloudflare-bots.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { hlsCorePath } from '../config/hls.mjs';
+import { auditSeoPage } from './lib/seo-audit.mjs';
 
 const base = new URL(process.env.PUBLIC_SITE_URL || 'https://clovertools.cn').origin;
 const dist = join(root, 'dist');
@@ -79,6 +80,7 @@ async function verifyPage(path) {
     assert.ok(text.includes(`href="${base + path}"`), `${path}: canonical origin`);
     const file = join(dist, path, 'index.html');
     const local = await readFile(file, 'utf8');
+    assert.deepEqual(auditSeoPage(text, path.slice(1) + 'index.html', base), [], `${path}: live SEO / breadcrumb validation`);
     const tool = local.match(/<article[^>]*data-tool="([^"]+)"/);
     if (tool && !path.match(/^\/(en|ko|ja)\//)) assert(text.includes('<section class="tool-guide"'), `${path}: tool guide missing`);
     assert(text.includes('name="google-adsense-account" content="ca-pub-2739960879713370"'), `${path}: AdSense ownership missing`);
@@ -117,6 +119,17 @@ async function verifyAssets() {
 }
 
 async function verifyDiscovery() {
+  const legacyRoutes = getAllTools().flatMap(tool => [tool.legacyPath, ...(tool.legacyAliases || [])].filter(Boolean).map(source => ({ source, target: getToolHref(tool.category, tool.slug) })));
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    while (legacyRoutes.length) {
+      const { source, target } = legacyRoutes.shift();
+      const result = await fetch(base + source, { redirect: 'manual', signal: AbortSignal.timeout(30000) });
+      assert.equal(result.status, 301, `${source}: legacy tool must redirect permanently`);
+      assert.equal(new URL(result.headers.get('location'), base).href, base + target, `${source}: equivalent canonical tool`);
+      await result.body?.cancel();
+      passed(`legacy tool redirect ${source}`);
+    }
+  }));
   for (const { legacy, guide } of EDITORIAL_REDIRECTS) {
     for (const suffix of ['', '.html', '/']) {
       const path = legacy + suffix;

@@ -47,6 +47,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   dev: [
     {
       slug: 'json-formatter',
+      legacyAliases: ['/tools/json/formatter.html'],
       name: 'JSON 格式化与校验',
       oneLiner: '格式化、压缩、校验 JSON，实时定位语法错误。',
       description: '在线 JSON 格式化与校验工具，粘贴自动美化或压缩，语法错误实时定位行号，支持缩进自定义，纯浏览器处理数据不出本地。',
@@ -77,6 +78,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'json-xml-yaml',
+      legacyAliases: ['/tools/json/yaml.html'],
       name: 'JSON/XML/YAML 互转',
       oneLiner: 'JSON 与 XML、YAML 转换，检查类型与结构差异。',
       description: '在线 JSON、XML、YAML 转换工具，提供 JSON 与 XML、JSON 与 YAML 四种方向；转换后需检查数组、属性和类型差异，不保证往返无损。',
@@ -97,6 +99,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'diff',
+      legacyAliases: ['/tools/code/diff.html'],
       name: '文本差异对比',
       oneLiner: '逐行对比两段文本，差异高亮一目了然。',
       description: '在线文本差异对比工具，两段文本逐行比较，行内高亮增删改并统计数量，适合配置、代码与 JSON 内容快速比对。',
@@ -107,6 +110,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'base64',
+      legacyAliases: ['/tools/encrypt/base64.html'],
       name: 'Base64 编解码',
       oneLiner: '文本与 Base64 互转，支持图片数据转码。',
       description: '在线 Base64 编解码工具，支持 UTF-8 中文、URL 安全模式与图片转 Base64，编码解码在浏览器本地完成，数据不泄露。',
@@ -117,6 +121,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'url-encode',
+      legacyAliases: ['/tools/encrypt/url.html', '/tools/network/url-encode.html'],
       name: 'URL 编解码',
       oneLiner: 'URL 编码、解码与参数还原，中文不乱码。',
       description: '在线 URL 编解码工具，正确处理中文与特殊字符，支持完整组件与查询参数两种模式，接口调用与前端调试更方便。',
@@ -147,6 +152,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'js-formatter',
+      legacyAliases: ['/tools/code/js-formatter.html'],
       name: 'JavaScript 格式化',
       oneLiner: 'JS 代码美化与压缩，兼容现代语法。',
       description: '在线 JavaScript 格式化工具，支持 ES 现代语法与常用配置项，粘贴即可整理缩进与分号，代码更清晰易读。',
@@ -157,6 +163,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'sql-formatter',
+      legacyAliases: ['/tools/data/sql-formatter.html'],
       name: 'SQL 格式化',
       oneLiner: 'SQL 通用排版、缩进与压缩，不执行查询。',
       description: '在线 SQL 格式化工具，按常见关键字与括号整理 SQL 文本，提供缩进和压缩；不执行查询，也不验证所有数据库方言。',
@@ -167,6 +174,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'xml-formatter',
+      legacyAliases: ['/tools/code/xml-formatter.html'],
       name: 'XML 格式化与压缩',
       oneLiner: 'XML 美化、压缩与合法性校验。',
       description: '在线 XML 格式化与压缩工具，附带结构校验与错误提示，适合接口报文与配置文件处理，快速定位标签问题。',
@@ -177,6 +185,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'markdown',
+      legacyAliases: ['/tools/text/md-preview.html'],
       name: 'Markdown 在线编辑器',
       oneLiner: '工具栏、快捷键、实时预览，写作排版所见即所得。',
       description: '在线 Markdown 编辑器，工具栏快捷语法、分屏实时预览、目录大纲、复制富文本，草稿自动保存，支持导出 Markdown/HTML。',
@@ -257,6 +266,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'unicode-converter',
+      legacyAliases: ['/tools/encrypt/unicode.html'],
       name: 'Unicode/ASCII 转换',
       oneLiner: '字符与 \\uXXXX 转义互转，ASCII 码表速查。',
       description: '在线 Unicode/ASCII 转换工具，中文转 \\u 编码、ASCII 码表查询与字符互转，适合 JSON 转义与编码调试。',
@@ -267,6 +277,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'hash',
+      legacyAliases: ['/tools/encrypt/sha.html', '/tools/encrypt/md5.html'],
       name: 'Hash 生成器',
       oneLiner: 'MD5、SHA 系列、Keccak 与文件哈希计算。',
       description: '在线 Hash 计算工具，支持 MD5、SHA-1、SHA-256、SHA-512、Keccak 与文件哈希，全部浏览器本地完成，文件不上传。',
@@ -307,6 +318,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'jwt-decoder',
+      legacyAliases: ['/tools/encrypt/jwt-decoder.html'],
       name: 'JWT 解码器',
       oneLiner: '解析 JWT 三段结构，Payload 一目了然。',
       description: '在线 JWT 解码工具，解析 Header 与 Payload 并美化展示，支持 HS256 签名验签，调试登录态与接口鉴权更方便。',
@@ -337,6 +349,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'uuid-generator',
+      legacyAliases: ['/tools/other/uuid.html'],
       name: 'UUID/NanoID 生成',
       oneLiner: '批量生成 UUID v4/v7 与 NanoID。',
       description: '在线 UUID/NanoID 生成工具，UUID v4、v7 与 NanoID 批量生成，支持数量、大小写与分隔符设置，即开即用。',
@@ -347,6 +360,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'qrcode',
+      legacyAliases: ['/tools/code/qrcode.html'],
       name: '二维码/条形码生成',
       oneLiner: '文本转二维码或条形码，支持配色下载。',
       description: '在线二维码/条形码生成器，支持容错级别、颜色定制与 PNG 下载，生成链接、文本、WiFi 等二维码，浏览器本地生成。',
@@ -357,6 +371,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'http-tester',
+      legacyAliases: ['/tools/code/http-test.html'],
       name: 'HTTP 接口测试',
       oneLiner: '构造请求调试接口，查看响应与耗时。',
       description: '在线 HTTP 接口测试工具，支持常用方法、请求头与 Body 配置，实时展示状态码、响应头与耗时，免安装调试接口。',
@@ -388,6 +403,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'url-parse',
+      legacyAliases: ['/tools/code/url-parse.html'],
       name: 'URL 参数解析',
       oneLiner: '拆分 URL 各组件，参数表格化展示。',
       description: '在线 URL 参数解析工具，拆分协议、域名、路径、查询参数与锚点，参数表格化展示，前端调试与抓包分析更顺手。',
@@ -420,6 +436,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   daily: [
     {
       slug: 'm3u8-downloader',
+      legacyAliases: ['/tools/network/m3u8-downloader.html'],
       name: 'M3U8 视频下载器',
       oneLiner: '跳过缺失分片，支持格式选择与大视频流式保存。',
       description: '在线 M3U8 视频下载器，支持缺失分片跳过、重试、暂停与缓存续传。普通模式导出 MP4 或 TS，特大视频可按原格式或 MP4 边下载边保存，接续保留分片的时间轴，降低内存占用。',
@@ -469,6 +486,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
     },
     {
       slug: 'timestamp',
+      legacyAliases: ['/tools/time/unix-timestamp.html'],
       name: '时间戳转换',
       oneLiner: '秒/毫秒时间戳与日期实时互转。',
       description: '在线时间戳转换工具，Unix 时间戳与日期时间互转，自动识别秒与毫秒，支持实时时钟与批量转换，联调排查更方便。',
