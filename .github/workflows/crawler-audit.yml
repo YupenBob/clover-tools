@@ -1,6 +1,11 @@
 name: Cloudflare crawler audit
 on:
   workflow_dispatch:
+    inputs:
+      configure_www:
+        description: 'Configure missing www (requires DNS Edit and Dynamic Redirect Edit)'
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths: ['.github/workflows/crawler-audit.yml']
@@ -35,6 +40,7 @@ jobs:
           CLOUDFLARE_ZONE_NAME: clovertools.cn
         run: node scripts/check-cloudflare-bots.mjs
       - name: Configure missing www canonical entry without replacing existing records
+        if: github.event_name == 'workflow_dispatch' && inputs.configure_www
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
