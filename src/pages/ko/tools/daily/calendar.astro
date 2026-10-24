@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
@@ -15,9 +16,9 @@ const related = getRelated(category, 'calendar', 'ko', 6);
           <div class="cal-lunar-year" id="calLunarYear"></div>
         </div>
         <div class="cal-nav">
-          <button class="icon-btn" id="calPrev" type="button" aria-label="이전 달"><i class="bi bi-chevron-left"></i></button>
-          <button class="btn btn-ghost btn-sm" id="calToday" type="button"><i class="bi bi-calendar-check"></i> 오늘</button>
-          <button class="icon-btn" id="calNext" type="button" aria-label="다음 달"><i class="bi bi-chevron-right"></i></button>
+          <button class="icon-btn" id="calPrev" type="button" aria-label="이전 달"><Icon name="chevron-left" /></button>
+          <button class="btn btn-ghost btn-sm" id="calToday" type="button"><Icon name="calendar-check" /> 오늘</button>
+          <button class="icon-btn" id="calNext" type="button" aria-label="다음 달"><Icon name="chevron-right" /></button>
         </div>
       </div>
 
@@ -28,7 +29,7 @@ const related = getRelated(category, 'calendar', 'ko', 6);
       <div class="cal-grid" id="calGrid"></div>
 
       <div class="cal-terms">
-        <span class="cal-terms-label"><i class="bi bi-cloud-sun" aria-hidden="true"></i> 이달의 절기</span>
+        <span class="cal-terms-label"><Icon name="cloud-sun" /> 이달의 절기</span>
         <span class="cal-terms-list" id="calTerms"></span>
       </div>
     </section>
@@ -45,11 +46,11 @@ const related = getRelated(category, 'calendar', 'ko', 6);
 
       <div class="almanac-yiji">
         <div class="yiji-block yi">
-          <div class="yiji-title"><i class="bi bi-check2-circle" aria-hidden="true"></i> 좋은 일</div>
+          <div class="yiji-title"><Icon name="check2-circle" /> 좋은 일</div>
           <div class="yiji-cloud" id="alYi"></div>
         </div>
         <div class="yiji-block ji">
-          <div class="yiji-title"><i class="bi bi-x-circle" aria-hidden="true"></i> 피할 일</div>
+          <div class="yiji-title"><Icon name="x-circle" /> 피할 일</div>
           <div class="yiji-cloud" id="alJi"></div>
         </div>
       </div>
@@ -239,7 +240,7 @@ const related = getRelated(category, 'calendar', 'ko', 6);
     font-weight: 600;
   }
 
-  .cal-terms-label i {
+  .cal-terms-label .icon {
     color: var(--primary-dark);
   }
 

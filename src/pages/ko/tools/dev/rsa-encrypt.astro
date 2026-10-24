@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'rsa-encrypt', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="키와 작업" icon="bi-key">
+  <ToolPanel title="키와 작업" icon="key">
     <div class="btn-row">
-      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> 키 쌍 생성 (2048)</button>
+      <button class="btn btn-primary" id="rsaGen" type="button"><Icon name="key" /> 키 쌍 생성 (2048)</button>
     </div>
     <div class="field mt-3">
       <label class="field-label" for="rsaPub">공개키 (PEM)</label>
@@ -26,16 +27,16 @@ const related = getRelated(category, 'rsa-encrypt', 'ko', 6);
       <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="암호화할 평문 또는 복호화할 Base64 암호문 입력"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> 암호화</button>
-      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> 복호화</button>
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><Icon name="lock" /> 암호화</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><Icon name="unlock" /> 복호화</button>
     </div>
     <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Web Crypto API(RSA-OAEP / SHA-256) 기반, 키는 브라우저를 벗어나지 않습니다. 한 번에 암호화할 수 있는 콘텐츠 길이는 키 길이에 따라 제한됩니다.</p>
   </ToolPanel>
 
-  <ToolPanel title="결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
   </ToolPanel>

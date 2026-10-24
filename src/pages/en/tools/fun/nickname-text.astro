@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,24 +10,24 @@ const related = getRelated(category, 'nickname-text', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Enter Text" icon="bi-input-cursor">
+  <ToolPanel title="Enter Text" icon="input-cursor">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><i class="bi bi-magic"></i> Example</button>
-      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><Icon name="magic" /> Example</button>
+      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="Enter a nickname or any text, e.g. Clover 幸运草"></textarea>
     <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">All styles update instantly as you type. Supports Chinese, English, and numbers; Chinese is kept as-is. Click any result to copy it.</p>
   </ToolPanel>
 
-  <ToolPanel title="All Styles Preview" icon="bi-grid">
+  <ToolPanel title="All Styles Preview" icon="grid">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><i class="bi bi-clipboard"></i> Copy All</button>
+      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><Icon name="clipboard" /> Copy All</button>
     </div>
     <div class="nn-grid" id="nnGrid"></div>
   </ToolPanel>
 
-  <ToolPanel title="Style Notes" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="Style Notes" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       This tool covers 20+ Unicode text styles: bold, italic, bold italic, script, bold script, Fraktur,
       bold Fraktur, double-struck, sans-serif, sans-serif bold, sans-serif italic, sans-serif bold italic, monospace,
@@ -69,7 +70,7 @@ const related = getRelated(category, 'nickname-text', 'en', 6);
     font-weight: 600;
   }
 
-  .nn-card .name i {
+  .nn-card .name .icon {
     color: var(--primary-dark);
   }
 
@@ -87,6 +88,8 @@ const related = getRelated(category, 'nickname-text', 'en', 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('nnInput');
@@ -186,13 +189,13 @@ const related = getRelated(category, 'nickname-text', 'en', 6);
     const text = input.value;
     if (!text.trim()) {
       grid.innerHTML = STYLES.map((s) =>
-        `<div class="nn-card"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value empty">Enter text to generate</div></div>`,
+        `<div class="nn-card"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value empty">Enter text to generate</div></div>`,
       ).join('');
       return;
     }
     grid.innerHTML = STYLES.map((s) => {
       const value = s.fn(text);
-      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value">${value}</div></div>`;
+      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value">${value}</div></div>`;
     }).join('');
     showStatus('nnStatus', 'success', `Generated ${STYLES.length} styles; click a card to copy`);
   }

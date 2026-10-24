@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
@@ -9,13 +10,13 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title" id="json-input-heading"><i class="bi bi-input-cursor" aria-hidden="true"></i> Input JSON</h2>
+      <h2 class="panel-title" id="json-input-heading"><Icon name="input-cursor" /> Input JSON</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="fillSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> Sample
+          <Icon name="magic" /> Sample
         </button>
         <button class="btn btn-ghost btn-sm" id="clearInput" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
+          <Icon name="x-circle" /> Clear
         </button>
       </div>
     </div>
@@ -40,13 +41,13 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
 
     <div class="btn-row">
       <button class="btn btn-primary" id="formatBtn" type="button">
-        <i class="bi bi-braces-asterisk" aria-hidden="true"></i> Format
+        <Icon name="braces-asterisk" /> Format
       </button>
       <button class="btn btn-secondary" id="minifyBtn" type="button">
-        <i class="bi bi-arrows-collapse" aria-hidden="true"></i> Minify
+        <Icon name="arrows-collapse" /> Minify
       </button>
       <button class="btn btn-ghost" id="validateBtn" type="button">
-        <i class="bi bi-check2-circle" aria-hidden="true"></i> Validate only
+        <Icon name="check2-circle" /> Validate only
       </button>
     </div>
 
@@ -55,10 +56,10 @@ const related = getRelated(category, 'json-formatter', 'en', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title" id="json-output-heading"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> Output</h2>
+      <h2 class="panel-title" id="json-output-heading"><Icon name="box-arrow-in-down" /> Output</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyOutput" type="button">
-          <i class="bi bi-clipboard" aria-hidden="true"></i> Copy
+          <Icon name="clipboard" /> Copy
         </button>
       </div>
     </div>

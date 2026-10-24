@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,9 +9,9 @@ const tool = getToolMeta(category, 'sensitive-check', 'en')!;
 const related = getRelated(category, 'sensitive-check', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Text to Check" icon="bi-shield">
+  <ToolPanel title="Text to Check" icon="shield">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="scSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="scSample" type="button"><Icon name="magic" /> Sample</button>
     </div>
     <textarea class="textarea" id="scInput" spellcheck="false" placeholder="Enter text to check"></textarea>
     <div class="field mt-3">
@@ -18,12 +19,12 @@ const related = getRelated(category, 'sensitive-check', 'en', 6);
       <textarea class="textarea" id="scCustom" spellcheck="false" placeholder="Add custom words"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="scBtn" type="button"><i class="bi bi-shield-check"></i> Check</button>
+      <button class="btn btn-primary" id="scBtn" type="button"><Icon name="shield-check" /> Check</button>
     </div>
     <div class="status-msg" id="scStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Check Results" icon="bi-list-check">
+  <ToolPanel title="Check Results" icon="list-check">
     <div class="regex-view" id="scView"></div>
     <div class="lc-result mt-3" id="scResult"></div>
   </ToolPanel>

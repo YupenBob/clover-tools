@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,13 +10,13 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="My IP" icon="bi-globe2">
+  <ToolPanel title="My IP" icon="globe2">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="ipSelfCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> Copy
+        <Icon name="clipboard" /> Copy
       </button>
       <button class="btn btn-ghost btn-sm" id="ipSelfRefresh" type="button">
-        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Refresh
+        <Icon name="arrow-clockwise" /> Refresh
       </button>
     </div>
     <div class="ip-hero">
@@ -26,7 +27,7 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="IP Address Lookup" icon="bi-hash">
+  <ToolPanel title="IP Address Lookup" icon="hash">
     <div class="row">
       <div class="field field-grow">
         <label class="field-label" for="ipInput">IP address or domain</label>
@@ -35,16 +36,16 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="ipQuery" type="button">
-        <i class="bi bi-search" aria-hidden="true"></i> Resolve and Lookup
+        <Icon name="search" /> Resolve and Lookup
       </button>
       <button class="btn btn-ghost" id="ipPaste" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> Paste
+        <Icon name="clipboard" /> Paste
       </button>
       <button class="btn btn-ghost" id="ipSample" type="button">
-        <i class="bi bi-magic" aria-hidden="true"></i> Sample
+        <Icon name="magic" /> Sample
       </button>
       <button class="btn btn-ghost" id="ipClear" type="button">
-        <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
+        <Icon name="x-circle" /> Clear
       </button>
     </div>
     <p class="field-hint">Address resolution is done entirely in your browser. After you enter a valid address, geolocation is looked up automatically, or you can click the button anytime.</p>
@@ -68,14 +69,14 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="Geolocation Info" icon="bi-globe-americas">
+  <ToolPanel title="Geolocation Info" icon="globe-americas">
     <div class="status-msg" id="ipGeoStatus" role="status" aria-live="polite"></div>
     <div class="ip-empty" id="ipGeoEmpty">After lookup, country, ISP, coordinates and other geolocation details are shown (online lookup)</div>
     <div id="ipGeoWrap" hidden>
       <div class="ip-kv" id="ipGeoTable"></div>
       <div class="ip-geo-foot">
         <a class="link-btn" id="ipMapLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-          <i class="bi bi-link-45deg" aria-hidden="true"></i> View on map
+          <Icon name="link-45deg" /> View on map
         </a>
         <span class="field-hint" id="ipGeoSource"></span>
       </div>
@@ -358,6 +359,8 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   /* ═══════════ IP 解析引擎（纯本地） ═══════════ */
@@ -772,7 +775,7 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
 
   function kvRow(label: string, value: string, copyText?: string): string {
     const copy = copyText
-      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="Copy"><i class="bi bi-clipboard" aria-hidden="true"></i></button>`
+      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="Copy">${renderIconSvg(Clipboard)}</button>`
       : '';
     return `<div class="ip-row"><span class="ip-k">${esc(label)}</span><span class="ip-v">${value}${copy}</span></div>`;
   }

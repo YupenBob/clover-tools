@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import ToolPanel from './ToolPanel.astro';
 import { hlsCopy } from '../lib/hls/copy';
 import { langFromUrl } from '../lib/i18n';
@@ -7,13 +8,13 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
 ---
 
 <div id="hlsDownloader" data-copy={JSON.stringify(copy)}>
-  <ToolPanel title={copy.source} icon="bi-link-45deg">
-    <span slot="actions" class="hls-badge"><i class="bi bi-skip-forward" aria-hidden="true"></i>{copy.skipBadge}</span>
+  <ToolPanel title={copy.source} icon="link-45deg">
+    <span slot="actions" class="hls-badge"><Icon name="skip-forward" />{copy.skipBadge}</span>
     <form id="hlsForm">
       <label class="field-label" for="hlsUrl">{copy.url}</label>
       <div class="hls-source-row">
         <input class="input mono" id="hlsUrl" type="url" required placeholder={copy.urlPlaceholder} autocomplete="off" spellcheck="false" aria-describedby="hlsSourceNote" />
-        <button class="btn btn-primary" id="hlsParse" type="submit"><i class="bi bi-search" aria-hidden="true"></i>{copy.parse}</button>
+        <button class="btn btn-primary" id="hlsParse" type="submit"><Icon name="search" />{copy.parse}</button>
       </div>
       <p class="hls-note" id="hlsSourceNote">{copy.sourceNote}</p>
       <div class="hls-export-options">
@@ -21,7 +22,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
         <div class="hls-stream-option"><label class="hls-checkbox"><input id="hlsStream" type="checkbox" aria-describedby="hlsStreamNote" />{copy.streamMode}</label><p id="hlsStreamNote" class="hls-note">{copy.streamNote}</p></div>
       </div>
       <details class="hls-settings">
-        <summary><i class="bi bi-sliders" aria-hidden="true"></i>{copy.settings}</summary>
+        <summary><Icon name="sliders" />{copy.settings}</summary>
         <div class="hls-settings-grid">
           <div class="field"><label class="field-label" for="hlsConcurrency">{copy.concurrency}</label><input class="input" id="hlsConcurrency" type="number" min={HLS_CONFIG.limits.concurrency[0]} max={HLS_CONFIG.limits.concurrency[1]} value={HLS_CONFIG.defaults.concurrency} required /></div>
           <div class="field"><label class="field-label" for="hlsRetries">{copy.retries}</label><input class="input" id="hlsRetries" type="number" min={HLS_CONFIG.limits.retries[0]} max={HLS_CONFIG.limits.retries[1]} value={HLS_CONFIG.defaults.retries} required /></div>
@@ -41,7 +42,7 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
     <p id="hlsStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
   </ToolPanel>
 
-  <ToolPanel title={copy.workspace} icon="bi-download" className="hls-task-panel">
+  <ToolPanel title={copy.workspace} icon="download" className="hls-task-panel">
     <div id="hlsEmpty" class="hls-empty">
       <div class="hls-film" aria-hidden="true"><span></span><span></span><span class="hls-film-gap"></span><span></span><span></span></div>
       <h3>{copy.empty}</h3><p>{copy.emptyNote}</p>
@@ -49,12 +50,12 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
     <div id="hlsTask" hidden>
       <p class="hls-task-meta" id="hlsTaskMeta"></p>
       <div class="hls-toolbar">
-        <button class="btn btn-primary" id="hlsStart" type="button"><i class="bi bi-play-fill" aria-hidden="true"></i><span>{copy.downloadAndExport}</span></button>
-        <button class="btn btn-secondary" id="hlsPause" type="button" hidden><i class="bi bi-pause-fill" aria-hidden="true"></i>{copy.pause}</button>
-        <button class="btn btn-secondary btn-sm" id="hlsSavePartial" type="button" hidden><i class="bi bi-hdd" aria-hidden="true"></i>{copy.savePartial}</button>
+        <button class="btn btn-primary" id="hlsStart" type="button"><Icon name="play-fill" /><span>{copy.downloadAndExport}</span></button>
+        <button class="btn btn-secondary" id="hlsPause" type="button" hidden><Icon name="pause-fill" />{copy.pause}</button>
+        <button class="btn btn-secondary btn-sm" id="hlsSavePartial" type="button" hidden><Icon name="hdd" />{copy.savePartial}</button>
         <button class="btn btn-secondary btn-sm" id="hlsChangeFile" type="button" hidden>{copy.chooseAnotherFile}</button>
-        <button class="btn btn-secondary btn-sm" id="hlsRetry" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i>{copy.retry}</button>
-        <button class="btn btn-ghost btn-sm" id="hlsClear" type="button"><i class="bi bi-trash3" aria-hidden="true"></i>{copy.clear}</button>
+        <button class="btn btn-secondary btn-sm" id="hlsRetry" type="button"><Icon name="arrow-repeat" />{copy.retry}</button>
+        <button class="btn btn-ghost btn-sm" id="hlsClear" type="button"><Icon name="trash3" />{copy.clear}</button>
       </div>
       <div class="hls-progress-head"><span id="hlsProgressLabel">0 / 0</span><span class="mono" id="hlsSpeed"></span></div>
       <div class="hls-progress" id="hlsProgress" role="progressbar" aria-label={copy.workspace} aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="hlsProgressDone"></span><span id="hlsProgressSkipped"></span></div>
@@ -67,13 +68,13 @@ const copy = hlsCopy(langFromUrl(Astro.url.pathname));
       <div id="hlsSegmentGrid" class="hls-segment-grid"></div>
       <div class="hls-pagination" id="hlsPagination" hidden><button id="hlsPrevious" class="btn btn-ghost btn-sm" type="button">{copy.previous}</button><span id="hlsPageLabel"></span><button id="hlsNext" class="btn btn-ghost btn-sm" type="button">{copy.next}</button></div>
       <p id="hlsGapNote" class="hls-gap-note" hidden></p>
-      <p class="hls-note"><i class="bi bi-hdd" aria-hidden="true"></i>{copy.storageNote}</p>
+      <p class="hls-note"><Icon name="hdd" />{copy.storageNote}</p>
     </div>
   </ToolPanel>
 
-  <ToolPanel title={copy.exportTitle} icon="bi-camera-video" className="hls-export-panel">
+  <ToolPanel title={copy.exportTitle} icon="camera-video" className="hls-export-panel">
     <p class="hls-export-note">{copy.exportNote}</p>
-    <div class="hls-toolbar"><button class="btn btn-secondary" id="hlsExport" type="button" disabled><i class="bi bi-arrow-repeat" aria-hidden="true"></i>{copy.exportAgain}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><i class="bi bi-file-earmark-text" aria-hidden="true"></i>{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
+    <div class="hls-toolbar"><button class="btn btn-secondary" id="hlsExport" type="button" disabled><Icon name="arrow-repeat" />{copy.exportAgain}</button><button class="btn btn-ghost btn-sm" id="hlsReport" type="button" disabled><Icon name="file-earmark-text" />{copy.report}</button><button class="btn btn-secondary" id="hlsCancelExport" type="button" hidden>{copy.cancelExport}</button></div>
     <p id="hlsExportStatus" class="hls-status" role="status" aria-live="polite" hidden></p>
     <div id="hlsPreviewArea" hidden><video id="hlsPreview" controls preload="metadata" aria-label={copy.preview}></video><a class="btn btn-secondary btn-sm" id="hlsSaveAgain">{copy.saveAgain}</a></div>
     <p class="hls-note hls-limitations">{copy.limitations}</p>

@@ -77,3 +77,44 @@ export function escapeHtml(value: string): string {
 }
 
 window.CT = { showToast, copy, escapeHtml };
+
+/* ── Progressive enhancement: card reveal watchdog + pointer spotlight ── */
+const cardGrids = Array.from(document.querySelectorAll<HTMLElement>('.tool-grid'));
+if (cardGrids.length) {
+  const hiddenCards = document.querySelectorAll<HTMLElement>('.tool-card:not(.revealed)');
+  const revealAll = () => hiddenCards.forEach((card) => card.classList.add('revealed'));
+  // Never leave cards invisible if the observer never fires (JS error, print,
+  // full-page screenshots, very short viewports).
+  window.setTimeout(revealAll, 1200);
+  window.addEventListener('load', () => window.setTimeout(revealAll, 300));
+
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (finePointer && !reduceMotion) {
+    for (const grid of cardGrids) {
+      let frame = 0;
+      let active: HTMLElement | null = null;
+      let lastX = 0;
+      let lastY = 0;
+      grid.addEventListener('pointermove', (event) => {
+        const target = (event.target as Element | null)?.closest<HTMLElement>('.tool-card');
+        if (!target) return;
+        active = target;
+        lastX = event.clientX;
+        lastY = event.clientY;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          if (!active) return;
+          const rect = active.getBoundingClientRect();
+          active.style.setProperty('--mx', `${lastX - rect.left}px`);
+          active.style.setProperty('--my', `${lastY - rect.top}px`);
+        });
+      });
+      grid.addEventListener('pointerleave', () => {
+        active = null;
+      });
+    }
+  }
+}
+

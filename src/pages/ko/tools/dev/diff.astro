@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -10,29 +11,29 @@ const related = getRelated(category, 'diff', 'ko', 6);
 
 <ToolLayout category={category} tool={tool} related={related}>
   <div class="diff-inputs">
-    <ToolPanel title="원본 텍스트 (A)" icon="bi-file-text" headingId="diff-heading-1">
+    <ToolPanel title="원본 텍스트 (A)" icon="file-text" headingId="diff-heading-1">
       <div slot="actions">
-        <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><i class="bi bi-magic"></i> 예시</button>
+        <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><Icon name="magic" /> 예시</button>
       </div>
       <textarea class="textarea" id="diffA" spellcheck="false" placeholder="첫 번째 텍스트" aria-labelledby="diff-heading-1"></textarea>
     </ToolPanel>
-    <ToolPanel title="비교 텍스트 (B)" icon="bi-file-text" headingId="diff-heading-2">
+    <ToolPanel title="비교 텍스트 (B)" icon="file-text" headingId="diff-heading-2">
       <div slot="actions">
-        <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><i class="bi bi-magic"></i> 예시</button>
+        <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><Icon name="magic" /> 예시</button>
       </div>
       <textarea class="textarea" id="diffB" spellcheck="false" placeholder="두 번째 텍스트" aria-labelledby="diff-heading-2"></textarea>
     </ToolPanel>
   </div>
 
   <div class="btn-row diff-actions">
-    <button class="btn btn-primary" id="diffBtn" type="button"><i class="bi bi-file-diff"></i> 비교</button>
-    <button class="btn btn-ghost" id="diffSwap" type="button"><i class="bi bi-arrow-left-right"></i> A/B 교환</button>
+    <button class="btn btn-primary" id="diffBtn" type="button"><Icon name="file-diff" /> 비교</button>
+    <button class="btn btn-ghost" id="diffSwap" type="button"><Icon name="arrow-left-right" /> A/B 교환</button>
   </div>
   <div class="status-msg" id="diffStatus" role="status" aria-live="polite"></div>
 
-  <ToolPanel title="차이 결과" icon="bi-box-arrow-in-down" headingId="diff-heading-3">
+  <ToolPanel title="차이 결과" icon="box-arrow-in-down" headingId="diff-heading-3">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea diff-output" id="diffOut" readonly spellcheck="false" placeholder="차이 결과가 여기에 표시됩니다" aria-labelledby="diff-heading-3"></textarea>
     <div class="input-stats"><span id="diffStats">0줄</span></div>

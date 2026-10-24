@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,12 +10,12 @@ const related = getRelated(category, 'markdown', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Markdown 在線編輯器" icon="bi-markdown">
+  <ToolPanel title="Markdown 在線編輯器" icon="markdown">
     <div slot="actions">
       <div class="md-views" role="group" aria-label="視圖切換">
-        <button class="md-view active" data-view="split" type="button" title="分屏"><i class="bi bi-columns-gap"></i> 分屏</button>
-        <button class="md-view" data-view="edit" type="button" title="編輯"><i class="bi bi-pencil-square"></i> 編輯</button>
-        <button class="md-view" data-view="preview" type="button" title="預覽"><i class="bi bi-eye"></i> 預覽</button>
+        <button class="md-view active" data-view="split" type="button" title="分屏"><Icon name="columns-gap" /> 分屏</button>
+        <button class="md-view" data-view="edit" type="button" title="編輯"><Icon name="pencil-square" /> 編輯</button>
+        <button class="md-view" data-view="preview" type="button" title="預覽"><Icon name="eye" /> 預覽</button>
       </div>
     </div>
 
@@ -23,45 +24,45 @@ const related = getRelated(category, 'markdown', 'tw', 6);
       <button class="md-tbtn" data-cmd="h2" type="button" title="二級標題">H2</button>
       <button class="md-tbtn" data-cmd="h3" type="button" title="三級標題">H3</button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="bold" type="button" title="加粗 (Ctrl+B)"><i class="bi bi-type-bold"></i></button>
-      <button class="md-tbtn" data-cmd="italic" type="button" title="斜體 (Ctrl+I)"><i class="bi bi-type-italic"></i></button>
-      <button class="md-tbtn" data-cmd="strike" type="button" title="刪除線 (Ctrl+U)"><i class="bi bi-type-strikethrough"></i></button>
+      <button class="md-tbtn" data-cmd="bold" type="button" title="加粗 (Ctrl+B)"><Icon name="type-bold" /></button>
+      <button class="md-tbtn" data-cmd="italic" type="button" title="斜體 (Ctrl+I)"><Icon name="type-italic" /></button>
+      <button class="md-tbtn" data-cmd="strike" type="button" title="刪除線 (Ctrl+U)"><Icon name="type-strikethrough" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="code" type="button" title="行內代碼 (Ctrl+Shift+C)"><i class="bi bi-code-slash"></i></button>
-      <button class="md-tbtn" data-cmd="codeblock" type="button" title="代碼塊 (Ctrl+Shift+K)"><i class="bi bi-code-square"></i></button>
-      <button class="md-tbtn" data-cmd="quote" type="button" title="引用 (Ctrl+Shift+Q)"><i class="bi bi-quote"></i></button>
+      <button class="md-tbtn" data-cmd="code" type="button" title="行內代碼 (Ctrl+Shift+C)"><Icon name="code-slash" /></button>
+      <button class="md-tbtn" data-cmd="codeblock" type="button" title="代碼塊 (Ctrl+Shift+K)"><Icon name="code-square" /></button>
+      <button class="md-tbtn" data-cmd="quote" type="button" title="引用 (Ctrl+Shift+Q)"><Icon name="quote" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="ul" type="button" title="無序列表"><i class="bi bi-list-ul"></i></button>
-      <button class="md-tbtn" data-cmd="ol" type="button" title="有序列表"><i class="bi bi-list-ol"></i></button>
-      <button class="md-tbtn" data-cmd="task" type="button" title="任務列表"><i class="bi bi-check2-square"></i></button>
+      <button class="md-tbtn" data-cmd="ul" type="button" title="無序列表"><Icon name="list-ul" /></button>
+      <button class="md-tbtn" data-cmd="ol" type="button" title="有序列表"><Icon name="list-ol" /></button>
+      <button class="md-tbtn" data-cmd="task" type="button" title="任務列表"><Icon name="check2-square" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="link" type="button" title="鏈接 (Ctrl+K)"><i class="bi bi-link-45deg"></i></button>
-      <button class="md-tbtn" data-cmd="image" type="button" title="圖片"><i class="bi bi-image"></i></button>
-      <button class="md-tbtn" data-cmd="table" type="button" title="表格"><i class="bi bi-table"></i></button>
-      <button class="md-tbtn" data-cmd="hr" type="button" title="分隔線"><i class="bi bi-hr"></i></button>
+      <button class="md-tbtn" data-cmd="link" type="button" title="鏈接 (Ctrl+K)"><Icon name="link-45deg" /></button>
+      <button class="md-tbtn" data-cmd="image" type="button" title="圖片"><Icon name="image" /></button>
+      <button class="md-tbtn" data-cmd="table" type="button" title="表格"><Icon name="table" /></button>
+      <button class="md-tbtn" data-cmd="hr" type="button" title="分隔線"><Icon name="hr" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="toc" type="button" title="目錄大綱"><i class="bi bi-list-check"></i></button>
+      <button class="md-tbtn" data-cmd="toc" type="button" title="目錄大綱"><Icon name="list-check" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="undo" type="button" title="撤銷 (Ctrl+Z)"><i class="bi bi-arrow-counterclockwise"></i></button>
-      <button class="md-tbtn" data-cmd="redo" type="button" title="重做 (Ctrl+Y / Ctrl+Shift+Z)"><i class="bi bi-arrow-clockwise"></i></button>
+      <button class="md-tbtn" data-cmd="undo" type="button" title="撤銷 (Ctrl+Z)"><Icon name="arrow-counterclockwise" /></button>
+      <button class="md-tbtn" data-cmd="redo" type="button" title="重做 (Ctrl+Y / Ctrl+Shift+Z)"><Icon name="arrow-clockwise" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="fullscreen" type="button" title="全屏"><i class="bi bi-arrows-fullscreen"></i></button>
-      <button class="md-tbtn" data-cmd="help" type="button" title="幫助"><i class="bi bi-question-circle"></i></button>
-      <button class="md-tbtn" data-cmd="draft" type="button" title="清空草稿 (Ctrl+Shift+Del)"><i class="bi bi-eraser"></i></button>
+      <button class="md-tbtn" data-cmd="fullscreen" type="button" title="全屏"><Icon name="arrows-fullscreen" /></button>
+      <button class="md-tbtn" data-cmd="help" type="button" title="幫助"><Icon name="question-circle" /></button>
+      <button class="md-tbtn" data-cmd="draft" type="button" title="清空草稿 (Ctrl+Shift+Del)"><Icon name="eraser" /></button>
     </div>
 
     <nav class="md-toc" id="mdToc" hidden aria-label="目錄大綱"></nav>
 
     <div class="md-findbar" id="mdFindBar" hidden>
       <input class="input md-find-input" id="mdFind" type="text" placeholder="查找……" autocomplete="off" />
-      <button class="md-tbtn" id="mdFindPrev" type="button" title="上一個 (Shift+Enter)"><i class="bi bi-arrow-up"></i></button>
-      <button class="md-tbtn" id="mdFindNext" type="button" title="下一個 (Enter)"><i class="bi bi-arrow-down"></i></button>
+      <button class="md-tbtn" id="mdFindPrev" type="button" title="上一個 (Shift+Enter)"><Icon name="arrow-up" /></button>
+      <button class="md-tbtn" id="mdFindNext" type="button" title="下一個 (Enter)"><Icon name="arrow-down" /></button>
       <span class="md-find-count" id="mdFindCount">0 個匹配</span>
       <input class="input md-find-input" id="mdReplace" type="text" placeholder="替換為……" autocomplete="off" />
-      <button class="md-tbtn" id="mdReplaceOne" type="button" title="替換 (Ctrl+Enter)"><i class="bi bi-arrow-repeat"></i></button>
-      <button class="md-tbtn" id="mdReplaceAll" type="button" title="全部替換"><i class="bi bi-list-check"></i></button>
-      <button class="md-tbtn" id="mdFindCase" type="button" title="區分大小寫"><i class="bi bi-fonts"></i></button>
-      <button class="md-tbtn" id="mdFindClose" type="button" title="關閉 (Esc)"><i class="bi bi-x-lg"></i></button>
+      <button class="md-tbtn" id="mdReplaceOne" type="button" title="替換 (Ctrl+Enter)"><Icon name="arrow-repeat" /></button>
+      <button class="md-tbtn" id="mdReplaceAll" type="button" title="全部替換"><Icon name="list-check" /></button>
+      <button class="md-tbtn" id="mdFindCase" type="button" title="區分大小寫"><Icon name="fonts" /></button>
+      <button class="md-tbtn" id="mdFindClose" type="button" title="關閉 (Esc)"><Icon name="x-lg" /></button>
     </div>
 
     <div class="md-body split" id="mdBody">
@@ -83,12 +84,12 @@ const related = getRelated(category, 'markdown', 'tw', 6);
     </div>
 
     <div class="md-export">
-      <button class="btn btn-ghost btn-sm" id="mdOpen" type="button"><i class="bi bi-folder2-open"></i> 打開 .md</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyMd" type="button"><i class="bi bi-clipboard"></i> 復制源碼</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyHtml" type="button"><i class="bi bi-clipboard-check"></i> 復制 HTML</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyRich" type="button"><i class="bi bi-fonts"></i> 復制富文本</button>
-      <button class="btn btn-ghost btn-sm" id="mdDownloadMd" type="button"><i class="bi bi-filetype-md"></i> 下載 .md</button>
-      <button class="btn btn-ghost btn-sm" id="mdDownloadHtml" type="button"><i class="bi bi-filetype-html"></i> 下載 .html</button>
+      <button class="btn btn-ghost btn-sm" id="mdOpen" type="button"><Icon name="folder2-open" /> 打開 .md</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyMd" type="button"><Icon name="clipboard" /> 復制源碼</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyHtml" type="button"><Icon name="clipboard-check" /> 復制 HTML</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyRich" type="button"><Icon name="fonts" /> 復制富文本</button>
+      <button class="btn btn-ghost btn-sm" id="mdDownloadMd" type="button"><Icon name="filetype-md" /> 下載 .md</button>
+      <button class="btn btn-ghost btn-sm" id="mdDownloadHtml" type="button"><Icon name="filetype-html" /> 下載 .html</button>
       <input type="file" id="mdOpenFile" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
     </div>
 
@@ -98,8 +99,8 @@ const related = getRelated(category, 'markdown', 'tw', 6);
   <div class="md-modal" id="mdModal" hidden>
     <div class="md-modal-card">
       <div class="md-modal-head">
-        <h3><i class="bi bi-question-circle" aria-hidden="true"></i> Markdown 速查</h3>
-        <button class="icon-btn" id="mdModalClose" type="button" aria-label="關閉"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        <h3><Icon name="question-circle" /> Markdown 速查</h3>
+        <button class="icon-btn" id="mdModalClose" type="button" aria-label="關閉"><Icon name="x-lg" /></button>
       </div>
       <div class="md-modal-body">
         <h4>常用語法</h4>
@@ -503,7 +504,7 @@ const related = getRelated(category, 'markdown', 'tw', 6);
     gap: 8px;
   }
 
-  .md-modal-head h3 i {
+  .md-modal-head h3 .icon {
     color: var(--primary-dark);
   }
 

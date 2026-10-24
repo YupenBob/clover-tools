@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'hash', 'en')!;
 const related = getRelated(category, 'hash', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input" icon="bi-fingerprint">
+  <ToolPanel title="Input" icon="fingerprint">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="hashInput" spellcheck="false" placeholder="Type text to hash, or choose a file"></textarea>
     <div class="row mt-3">
@@ -32,14 +33,14 @@ const related = getRelated(category, 'hash', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="hashBtn" type="button"><i class="bi bi-fingerprint"></i> Calculate Hash</button>
+      <button class="btn btn-primary" id="hashBtn" type="button"><Icon name="fingerprint" /> Calculate Hash</button>
     </div>
     <div class="status-msg" id="hashStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Hash Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Hash Result" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="hashOutput" readonly spellcheck="false" placeholder="Hash value will appear here"></textarea>
   </ToolPanel>

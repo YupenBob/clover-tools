@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'base-converter', 'en')!;
 const related = getRelated(category, 'base-converter', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Number Conversion" icon="bi-123">
+  <ToolPanel title="Number Conversion" icon="123">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="bcSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="bcClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="bcSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="bcClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <div class="row">
       <div class="field">
@@ -40,14 +41,14 @@ const related = getRelated(category, 'base-converter', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="bcBtn" type="button"><i class="bi bi-arrow-repeat"></i> Convert</button>
+      <button class="btn btn-primary" id="bcBtn" type="button"><Icon name="arrow-repeat" /> Convert</button>
     </div>
     <div class="status-msg" id="bcStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Conversion Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Conversion Result" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="bcOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
   </ToolPanel>

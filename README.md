@@ -48,7 +48,7 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 - **隐私说明**：多数工具本地处理，网络工具说明发送对象，五语隐私/条款/联系页公开可查
 - **精品手写**：每个工具页逐一手写，内置输入校验、错误提示、复制 / 清空 / 示例与 Ctrl+Enter 快捷执行，拒绝模板化
 - **三分类目录**：开发实用 / 日常实用 / 趣味工具，首页搜索直达
-- **设计与体验**：金色主题 + 深色模式、移动端适配、全站图标统一 iconfont（禁止 emoji 字符）
+- **设计与体验**：金色主题 + 深色模式、移动端适配、全站内联 SVG 图标（Lucide + Morphicons 状态形变，禁止 emoji 字符）
 - **发布检查**：Astro 5 静态构建、SEO meta + JSON-LD + sitemap 自动生成；build 自动检查内容关联、链接、SEO、收录一致性与图标，CI 补充浏览器回归
 - **全球加速**：Cloudflare Pages + CDN 托管，R2 存储大文件 / 媒体，Pages Functions 提供工具 API
 
@@ -104,7 +104,7 @@ public/
   _headers  _redirects               # Pages 配置
   clover-logo.svg  og-image.jpg      # 品牌资产
 legacy/                              # 旧版 CloverTools 代码归档（仅参考）
-scripts/                             # 质检与生成脚本（链接、SEO、emoji、sitemap、CSDN）
+scripts/                             # 质检与生成脚本（链接、SEO、emoji、图标、sitemap、CSDN）
 config/                              # 站点、语言路由/收录策略、内容质量阈值
 .github/workflows/quality.yml        # 构建与浏览器回归
 data/                                # 内容数据（articles.json / keywords.json）
@@ -139,10 +139,10 @@ npm run check:browser # 临时预览与真实浏览器回归
 
 FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练、环形 Bot 靶场和小球点击，支持可调浏览器转向倍率、灵敏度校准与本地成绩。急停采用左右交替的横移、停稳、首发回合；预瞄要求探头首发后回到中央安全区再换边，配有步骤指引、方向标线、失败原因和回合复盘。回掩体提示显示剩余距离及当前视角下的按键方向；慢走和蹲伏保持各自速度上限，CS2 蹲行可以实际完成返回。靶场使用分区 HUD、独立步枪造型与击发/换弹动作；小球也保留步枪与枪声。CC0 实录枪声和机械音在进入训练或试听时加载，主音量、枪声、命中音可分别调节；音效失败仍可训练。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。画面准备完成后需点击开始才锁定鼠标；Esc 或切出页面会释放，返回后需主动恢复。配置、参数和素材来源、近似模型边界与验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
 
-1. 在 `src/lib/tools.ts` 的对应分类数组里登记工具元信息（slug、名称、一句话描述、iconfont 图标类、关键词、tier）
+1. 在 `src/lib/tools.ts` 的对应分类数组里登记工具元信息（slug、名称、一句话描述、icon 语义键、关键词、tier）
 2. 手写页面 `src/pages/tools/{cat}/{slug}.astro`，使用 `ToolLayout`
 3. 页面必须包含：输入校验与错误提示、复制 / 清空 / 示例、Ctrl+Enter 快捷执行、移动端适配、SEO meta（布局已内置 JSON-LD）
-4. 图标一律 `bi bi-*` iconfont 类名，禁止 emoji 字符
+4. 图标使用 `<Icon name="…" />`（语义键见 `src/lib/icons/registry.ts`），禁止 emoji 字符
 5. 需要服务端能力的工具，在 `functions/api/` 增加 Pages Function，前端 `fetch('/api/...')`
 6. 若保留旧版同名工具，在 `public/_redirects` 中补充旧路径 301 到新路径
 7. 提交前运行 `npm run check` 全部通过

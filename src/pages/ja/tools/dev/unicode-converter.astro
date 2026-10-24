@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,23 +9,23 @@ const tool = getToolMeta(category, 'unicode-converter', 'ja')!;
 const related = getRelated(category, 'unicode-converter', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="入力内容" icon="bi-fonts" headingId="tool-input-heading">
+  <ToolPanel title="入力内容" icon="fonts" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder={"テキストまたは \\uXXXX エスケープを入力"} aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> Unicode に変換</button>
-      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> テキストに戻す</button>
-      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> 文字ごとに解析</button>
+      <button class="btn btn-primary" id="uc2Enc" type="button"><Icon name="code-slash" /> Unicode に変換</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><Icon name="code-slash" /> テキストに戻す</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><Icon name="info-circle" /> 文字ごとに解析</button>
     </div>
     <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="結果がここに表示されます" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

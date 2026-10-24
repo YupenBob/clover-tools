@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,10 +10,10 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="JWT Token" icon="bi-file-lock">
+  <ToolPanel title="JWT Token" icon="file-lock">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="jwtInput" spellcheck="false" placeholder="粘贴 JWT（header.payload.signature）"></textarea>
     <div class="field mt-3">
@@ -20,15 +21,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <input class="input mono" id="jwtSecret" type="text" placeholder="仅本地校验，不离开浏览器" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jwtBtn" type="button"><i class="bi bi-file-lock"></i> 解码</button>
-      <button class="btn btn-secondary" id="jwtVerify" type="button"><i class="bi bi-shield-check"></i> 校验 HS256 签名</button>
+      <button class="btn btn-primary" id="jwtBtn" type="button"><Icon name="file-lock" /> 解码</button>
+      <button class="btn btn-secondary" id="jwtVerify" type="button"><Icon name="shield-check" /> 校验 HS256 签名</button>
     </div>
     <div class="status-msg" id="jwtStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="解码结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="解码结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="jwtOutput" readonly spellcheck="false" placeholder="Header 与 Payload 将显示在这里"></textarea>
   </ToolPanel>

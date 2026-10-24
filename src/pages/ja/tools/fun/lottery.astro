@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'lottery', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="抽選設定" icon="bi-gift">
+  <ToolPanel title="抽選設定" icon="gift">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><i class="bi bi-magic"></i> サンプル名簿</button>
+      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><Icon name="magic" /> サンプル名簿</button>
     </div>
     <div class="field">
       <label class="field-label" for="lotNames">参加者リスト（1行に1名）</label>
@@ -32,13 +33,13 @@ const related = getRelated(category, 'lottery', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> 抽選開始</button>
+      <button class="btn btn-primary" id="lotBtn" type="button"><Icon name="ticket-perforated" /> 抽選開始</button>
     </div>
     <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 </ToolLayout>
 
-<p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> 効果音提供：Mixkit（無料ライセンス）</p>
+<p class="muted sfx-note"><Icon name="music-note-beamed" /> 効果音提供：Mixkit（無料ライセンス）</p>
 
 <!-- ═══ 没入型スロット ═══ -->
 <div class="lottery-overlay" id="lotteryOverlay" role="dialog" aria-modal="true" aria-label="没入型抽選スロット" aria-hidden="true">
@@ -46,13 +47,13 @@ const related = getRelated(category, 'lottery', 'ja', 6);
   <div class="lot-spotlight" aria-hidden="true"></div>
   <header class="lot-top">
     <div>
-      <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> ラッキータイム</div>
+      <div class="lot-title"><Icon name="stars" /> ラッキータイム</div>
       <div class="lot-sub" id="lotSub">心の準備はいいですか？</div>
     </div>
     <div class="lot-top-actions">
-      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="効果音の切り替え"><i class="bi bi-volume-up-fill"></i></button>
-      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="ブラウザ全画面"><i class="bi bi-arrows-fullscreen"></i></button>
-      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="閉じる"><i class="bi bi-x-lg"></i></button>
+      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="効果音の切り替え"><Icon name="volume-up-fill" /></button>
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="ブラウザ全画面"><Icon name="arrows-fullscreen" /></button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="閉じる"><Icon name="x-lg" /></button>
     </div>
   </header>
   <div class="reels" id="reels">
@@ -65,9 +66,9 @@ const related = getRelated(category, 'lottery', 'ja', 6);
   <div class="lot-status" id="lotStatusMsg" role="status" aria-live="polite">回転中…</div>
   <div class="lot-winners" id="lotWinners"></div>
   <div class="lot-actions">
-    <button class="btn btn-primary" id="lotCopy" type="button" hidden><i class="bi bi-clipboard"></i> 結果をコピー</button>
-    <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> もう一度抽選</button>
-    <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 完了</button>
+    <button class="btn btn-primary" id="lotCopy" type="button" hidden><Icon name="clipboard" /> 結果をコピー</button>
+    <button class="btn btn-primary" id="lotAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> もう一度抽選</button>
+    <button class="btn btn-ghost" id="lotDone" type="button" hidden><Icon name="check2" /> 完了</button>
   </div>
 </div>
 
@@ -99,10 +100,10 @@ const related = getRelated(category, 'lottery', 'ja', 6);
       <div class="slot-winners" id="cWinners"></div>
     </div>
     <div class="slot-actions">
-      <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> 効果音</button>
-      <button class="slot-btn" id="classicAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> もう一度回す</button>
-      <button class="slot-btn" id="classicCopy" type="button"><i class="bi bi-clipboard"></i> 結果をコピー</button>
-      <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 終了</button>
+      <button class="slot-btn" id="classicSfx" type="button"><Icon name="volume-up-fill" /> 効果音</button>
+      <button class="slot-btn" id="classicAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> もう一度回す</button>
+      <button class="slot-btn" id="classicCopy" type="button"><Icon name="clipboard" /> 結果をコピー</button>
+      <button class="slot-btn" id="classicExit" type="button"><Icon name="x-lg" /> 終了</button>
     </div>
   </div>
 </div>
@@ -380,6 +381,8 @@ const related = getRelated(category, 'lottery', 'ja', 6);
   }
 </style>
 <script>
+import { Trophy, Volume2, VolumeX } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
   import { planReel, reelSample, modSet } from '../../../../lib/reel-motion.mjs';
 
@@ -474,9 +477,8 @@ const related = getRelated(category, 'lottery', 'ja', 6);
   }
 
   function syncSfxIcons() {
-    const icon = sfxOn ? 'bi-volume-up-fill' : 'bi-volume-mute-fill';
-    byId<HTMLButtonElement>('lotSfx').innerHTML = `<i class="bi ${icon}"></i>`;
-    byId<HTMLButtonElement>('classicSfx').innerHTML = `<i class="bi ${icon}"></i> サウンド`;
+        byId<HTMLButtonElement>('lotSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)}`;
+    byId<HTMLButtonElement>('classicSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)} サウンド`;
     byId<HTMLButtonElement>('lotSfx').setAttribute('aria-pressed', String(sfxOn));
     byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
   }
@@ -749,7 +751,7 @@ const related = getRelated(category, 'lottery', 'ja', 6);
   function addWinnerChip(container: HTMLElement, i: number, name: string) {
     const chip = document.createElement('span');
     chip.className = 'winner-chip';
-    chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${name}`;
+    chip.innerHTML = `${renderIconSvg(Trophy)} ${i + 1}. ${name}`;
     container.appendChild(chip);
   }
 

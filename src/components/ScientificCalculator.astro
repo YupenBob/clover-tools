@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import DailyToolData from './DailyToolData.astro';
 import { dailyText } from '../lib/daily-tool-i18n';
 import type { Lang } from '../lib/i18n';
@@ -17,7 +18,7 @@ const keys = [
 <DailyToolData lang={lang} />
 <div class="calc-composition">
   <section class="daily-surface calc-machine" aria-labelledby="calcHeading">
-    <div class="daily-section-head"><h2 class="daily-eyebrow" id="calcHeading">{t.calcResult}</h2><button class="btn btn-ghost" id="calcCopy" type="button"><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copy}</button></div>
+    <div class="daily-section-head"><h2 class="daily-eyebrow" id="calcHeading">{t.calcResult}</h2><button class="btn btn-ghost" id="calcCopy" type="button"><Icon name="clipboard" /> {t.copy}</button></div>
     <div class="calc-display">
       <label class="sr-only" for="calcExpr">{t.calcExpression}</label>
       <input class="calc-expression" id="calcExpr" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="0" maxlength="2000" />
@@ -41,7 +42,7 @@ const keys = [
   <section class="calc-tape" aria-labelledby="calcHistoryHeading">
     <div class="daily-section-head"><h2 id="calcHistoryHeading">{t.calcHistory}</h2><button class="btn btn-ghost" type="button" id="calcHistoryClear" disabled>{t.calcClear}</button></div>
     <p class="daily-note">{t.calcHistoryHint}</p>
-    <div class="calc-history-empty" id="calcHistoryEmpty"><i class="bi bi-clock-history" aria-hidden="true"></i><p>{t.calcEmpty}</p></div>
+    <div class="calc-history-empty" id="calcHistoryEmpty"><Icon name="clock-history" /><p>{t.calcEmpty}</p></div>
     <ol class="calc-history" id="calcHistory"></ol>
   </section>
 </div>

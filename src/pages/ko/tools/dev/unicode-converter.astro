@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'unicode-converter', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="입력 내용" icon="bi-fonts" headingId="tool-input-heading">
+  <ToolPanel title="입력 내용" icon="fonts" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> 샘플</button>
-      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><Icon name="magic" /> 샘플</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder={"텍스트 또는 \\uXXXX 이스케이프 내용 입력"} aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> Unicode로 변환</button>
-      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> 텍스트 복원</button>
-      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> 문자별 분석</button>
+      <button class="btn btn-primary" id="uc2Enc" type="button"><Icon name="code-slash" /> Unicode로 변환</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><Icon name="code-slash" /> 텍스트 복원</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><Icon name="info-circle" /> 문자별 분석</button>
     </div>
     <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="결과" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

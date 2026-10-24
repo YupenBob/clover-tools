@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'morse', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="モールス符号変換" icon="bi-broadcast">
+  <ToolPanel title="モールス符号変換" icon="broadcast">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="moSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="moClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="moSample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="moClear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <div class="row">
       <div class="field">
@@ -25,19 +26,19 @@ const related = getRelated(category, 'morse', 'ja', 6);
     </div>
     <textarea class="textarea" id="moInput" spellcheck="false" placeholder="文字またはモールス符号を入力（文字間はスペース、単語間は / で区切る）"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="moBtn" type="button"><i class="bi bi-broadcast"></i> 変換</button>
+      <button class="btn btn-primary" id="moBtn" type="button"><Icon name="broadcast" /> 変換</button>
     </div>
     <div class="status-msg" id="moStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="変換結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="変換結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="moCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="moCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="moOutput" readonly spellcheck="false" placeholder="変換結果がここに表示されます"></textarea>
   </ToolPanel>
 
-  <ToolPanel title="モールス符号表" icon="bi-table" className="mt-4">
+  <ToolPanel title="モールス符号表" icon="table" className="mt-4">
     <div class="mo-table" id="moTable"></div>
   </ToolPanel>
 </ToolLayout>

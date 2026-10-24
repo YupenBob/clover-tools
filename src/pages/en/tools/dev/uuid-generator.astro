@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,7 +9,7 @@ const tool = getToolMeta(category, 'uuid-generator', 'en')!;
 const related = getRelated(category, 'uuid-generator', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Generation Settings" icon="bi-hash">
+  <ToolPanel title="Generation Settings" icon="hash">
     <div class="row">
       <div class="field">
         <label class="field-label" for="uuidType">Type</label>
@@ -37,14 +38,14 @@ const related = getRelated(category, 'uuid-generator', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uuidBtn" type="button"><i class="bi bi-hash"></i> Generate</button>
+      <button class="btn btn-primary" id="uuidBtn" type="button"><Icon name="hash" /> Generate</button>
     </div>
     <div class="status-msg" id="uuidStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Generated Results" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Generated Results" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uuidCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="uuidCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="uuidOutput" readonly spellcheck="false" placeholder="Click Generate to see results"></textarea>
   </ToolPanel>

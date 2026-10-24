@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'jsonpath', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="JSON データ" icon="bi-braces">
+  <ToolPanel title="JSON データ" icon="braces">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><Icon name="magic" /> サンプル</button>
     </div>
     <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="JSON データを貼り付け"></textarea>
     <div class="field mt-3">
@@ -19,15 +20,15 @@ const related = getRelated(category, 'jsonpath', 'ja', 6);
       <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> 検索</button>
+      <button class="btn btn-primary" id="jpBtn" type="button"><Icon name="signpost-split" /> 検索</button>
     </div>
     <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">対応構文: $.key、['key']、[0]、[*]、..再帰、[?(@.key == value)] フィルター。</p>
   </ToolPanel>
 
-  <ToolPanel title="検索結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="検索結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="マッチした結果はここに表示されます"></textarea>
   </ToolPanel>

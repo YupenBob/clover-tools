@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'text-transform', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="텍스트 입력" icon="bi-textarea-t">
+  <ToolPanel title="텍스트 입력" icon="textarea-t">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><i class="bi bi-x-circle"></i> 비우기</button>
+      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><Icon name="x-circle" /> 비우기</button>
     </div>
     <textarea class="textarea" id="ttInput" spellcheck="false" placeholder="변환할 텍스트를 입력하세요"></textarea>
     <div class="row mt-3">
@@ -34,14 +35,14 @@ const related = getRelated(category, 'text-transform', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="ttBtn" type="button"><i class="bi bi-arrow-repeat"></i> 변환</button>
+      <button class="btn btn-primary" id="ttBtn" type="button"><Icon name="arrow-repeat" /> 변환</button>
     </div>
     <div class="status-msg" id="ttStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="변환 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="ttOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
   </ToolPanel>

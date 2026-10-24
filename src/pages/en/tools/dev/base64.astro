@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,24 +10,24 @@ const related = getRelated(category, 'base64', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input" icon="bi-input-cursor" headingId="tool-input-heading">
+  <ToolPanel title="Input" icon="input-cursor" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="b64Sample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="b64Clear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="b64Sample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="b64Clear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="b64Input" spellcheck="false" placeholder="Enter text to encode/decode" aria-labelledby="tool-input-heading"></textarea>
     <div class="input-stats"><span id="b64InStats">0 chars</span></div>
     <label class="field-label" for="urlSafe"><input type="checkbox" id="urlSafe" /> URL-safe mode (+/ replaced with -_)</label>
     <div class="btn-row">
-      <button class="btn btn-primary" id="encodeBtn" type="button"><i class="bi bi-lock"></i> Encode</button>
-      <button class="btn btn-secondary" id="decodeBtn" type="button"><i class="bi bi-unlock"></i> Decode</button>
+      <button class="btn btn-primary" id="encodeBtn" type="button"><Icon name="lock" /> Encode</button>
+      <button class="btn btn-secondary" id="decodeBtn" type="button"><Icon name="unlock" /> Decode</button>
     </div>
     <div class="status-msg" id="b64Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="Output" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="b64Copy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="b64Copy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="b64Output" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="b64OutStats">0 chars</span></div>

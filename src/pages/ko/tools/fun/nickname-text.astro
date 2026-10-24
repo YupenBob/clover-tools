@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,24 +10,24 @@ const related = getRelated(category, 'nickname-text', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="텍스트 입력" icon="bi-input-cursor">
+  <ToolPanel title="텍스트 입력" icon="input-cursor">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="닉네임이나 아무 문자나 입력하세요. 예: Clover 클로버"></textarea>
     <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">입력하면 즉시 모든 스타일이 생성됩니다. 영문·숫자·한글을 지원하며, 중국어 등 다른 문자는 그대로 유지됩니다. 결과를 클릭하면 복사됩니다.</p>
   </ToolPanel>
 
-  <ToolPanel title="전체 스타일 미리보기" icon="bi-grid">
+  <ToolPanel title="전체 스타일 미리보기" icon="grid">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><i class="bi bi-clipboard"></i> 전체 복사</button>
+      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><Icon name="clipboard" /> 전체 복사</button>
     </div>
     <div class="nn-grid" id="nnGrid"></div>
   </ToolPanel>
 
-  <ToolPanel title="스타일 설명" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="스타일 설명" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       이 도구는 20여 가지 유니코드 텍스트 스타일을 지원합니다: 굵게, 기울임, 굵은 기울임, 필기체(Script), 굵은 필기체,
       프락투어(Fraktur), 굵은 프락투어, 이중선(Double-Struck), 산세리프, 굵은 산세리프, 기울인 산세리프,
@@ -69,7 +70,7 @@ const related = getRelated(category, 'nickname-text', 'ko', 6);
     font-weight: 600;
   }
 
-  .nn-card .name i {
+  .nn-card .name .icon {
     color: var(--primary-dark);
   }
 
@@ -87,6 +88,8 @@ const related = getRelated(category, 'nickname-text', 'ko', 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('nnInput');
@@ -186,13 +189,13 @@ const related = getRelated(category, 'nickname-text', 'ko', 6);
     const text = input.value;
     if (!text.trim()) {
       grid.innerHTML = STYLES.map((s) =>
-        `<div class="nn-card"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value empty">텍스트를 입력하면 생성됩니다</div></div>`,
+        `<div class="nn-card"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value empty">텍스트를 입력하면 생성됩니다</div></div>`,
       ).join('');
       return;
     }
     grid.innerHTML = STYLES.map((s) => {
       const value = s.fn(text);
-      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value">${value}</div></div>`;
+      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value">${value}</div></div>`;
     }).join('');
     showStatus('nnStatus', 'success', `${STYLES.length}가지 스타일이 생성되었습니다. 카드를 클릭하여 복사하세요`);
   }

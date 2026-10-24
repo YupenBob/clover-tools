@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,9 +10,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="JSON 数据" icon="bi-braces">
+  <ToolPanel title="JSON 数据" icon="braces">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><Icon name="magic" /> 示例</button>
     </div>
     <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="粘贴 JSON 数据"></textarea>
     <div class="field mt-3">
@@ -19,15 +20,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> 查询</button>
+      <button class="btn btn-primary" id="jpBtn" type="button"><Icon name="signpost-split" /> 查询</button>
     </div>
     <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">支持 $.key、['key']、[0]、[*]、..递归、[?(@.key == value)] 过滤。</p>
   </ToolPanel>
 
-  <ToolPanel title="查询结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="查询结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="匹配结果将显示在这里"></textarea>
   </ToolPanel>

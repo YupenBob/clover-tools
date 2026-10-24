@@ -1,0 +1,26 @@
+/* Inline SVG icon system (Lucide data + optional Morphicons animation).
+   Sizes intentionally follow the local font-size so existing icon containers
+   (42px tiles, 17px panel titles, 13px hints) keep their metrics. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  vertical-align: -0.125em;
+  color: currentColor;
+}
+
+/* Morphicons custom element: layout-neutral wrapper. */
+morph-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Icon-only buttons: keep the SVG from shrinking and keep touch targets. */
+.icon-btn .icon,
+.btn .icon {
+  pointer-events: none;
+}

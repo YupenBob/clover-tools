@@ -1,0 +1,28 @@
+---
+import { ICONS, type IconName } from '../lib/icons/registry';
+import { renderIconSvg } from '../lib/icons/svg';
+
+interface Props {
+  name: IconName | string;
+  /** Defaults to 1em so existing font-size rules on the parent keep sizing icons. */
+  size?: number | string;
+  strokeWidth?: number | string;
+  class?: string;
+  /** Accessible name; omit for decorative icons (aria-hidden). */
+  label?: string;
+  [attr: string]: unknown;
+}
+
+const { name, size = '1em', strokeWidth = 2, class: className = '', label, ...rest } = Astro.props;
+
+// Tolerate legacy/translated content that may not carry an icon key yet: fall
+// back to a neutral glyph instead of failing the whole static build.
+const fallback = ICONS['sparkles'] ?? ICONS['tools'];
+const icon = ICONS[name as IconName] ?? fallback;
+const svg = renderIconSvg(icon, { size, strokeWidth, className, label });
+const extraAttrs = Object.entries(rest)
+  .map(([key, value]) => `${key}="${String(value)}"`)
+  .join(' ');
+---
+
+<Fragment set:html={svg.replace('<svg ', `<svg ${extraAttrs} `)} />

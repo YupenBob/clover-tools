@@ -1,4 +1,5 @@
 ---
+import Icon from '../components/Icon.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE } from '../lib/site';
 import { CATEGORIES, TOOLS, type ToolCategory } from '../lib/tools';
@@ -67,17 +68,17 @@ const aboutJsonLd = {
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
-          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <Icon name="tools" class="about-stat-icon" />
           <span class="about-stat-num">{totalTools}</span>
           <span class="about-stat-label">在线工具</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 120ms">
-          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="about-stat-icon" />
           <span class="about-stat-num">{CATEGORIES.length}</span>
           <span class="about-stat-label">工具分类</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
-          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <Icon name="shield-check" class="about-stat-icon" />
           <span class="about-stat-num">0</span>
           <span class="about-stat-label">注册步骤</span>
         </div>
@@ -87,7 +88,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="features-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="stars" /></span>
       <div>
         <h2 class="category-title" id="features-heading">特色亮点</h2>
         <p class="category-blurb">为什么选择 CloverTools</p>
@@ -96,42 +97,42 @@ const aboutJsonLd = {
     <div class="feature-grid">
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <Icon name="lightning-charge" class="feature-icon" />
           <h3>即开即用</h3>
           <p>无需注册、无需安装，打开页面即可使用</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <Icon name="shield-lock" class="feature-icon" />
           <h3>隐私优先</h3>
           <p>多数输入在本地处理，联网工具会说明请求去向</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <Icon name="pencil-square" class="feature-icon" />
           <h3>精品手写</h3>
           <p>每个工具逐一编写，内置输入校验与示例</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="feature-icon" />
           <h3>分类清晰</h3>
           <p>开发实用、日常实用、趣味工具三大场景</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <Icon name="moon-stars" class="feature-icon" />
           <h3>多端适配</h3>
           <p>移动端自适应，支持深色模式</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <Icon name="github" class="feature-icon" />
           <h3>开源免费</h3>
           <p>源码托管于 GitHub，欢迎贡献与反馈</p>
         </div>
@@ -141,7 +142,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="links-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="link-45deg" /></span>
       <div>
         <h2 class="category-title" id="links-heading">了解更多</h2>
         <p class="category-blurb">访问资源与参与贡献</p>
@@ -149,16 +150,16 @@ const aboutJsonLd = {
     </header>
     <div class="about-links-panel about-reveal">
       <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i>
+        <Icon name="github" />
         GitHub 仓库
-        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+        <Icon name="box-arrow-up-right" class="link-out" />
       </a>
       <a class="btn btn-secondary" href="/sitemap-index.xml">
-        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <Icon name="diagram-3" />
         站点地图
       </a>
       <a class="btn btn-ghost" href="/">
-        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <Icon name="house-door" />
         返回首页
       </a>
     </div>

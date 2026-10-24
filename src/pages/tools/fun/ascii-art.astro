@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import { TOOLS } from '../../../lib/tools';
 
@@ -10,7 +11,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> 输入内容</h2>
+      <h2 class="panel-title"><Icon name="input-cursor" /> 输入内容</h2>
     </div>
 
     <div class="seg" id="asciiMode" role="tablist" aria-label="生成方式">
@@ -50,10 +51,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <p class="field-hint" id="figletFontHint"></p>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="figletSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+          <Icon name="magic" /> 示例
         </button>
         <button class="btn btn-ghost btn-sm" id="figletClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+          <Icon name="x-circle" /> 清空
         </button>
       </div>
     </div>
@@ -94,17 +95,17 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </label>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="cjkSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+          <Icon name="magic" /> 示例
         </button>
         <button class="btn btn-ghost btn-sm" id="cjkClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+          <Icon name="x-circle" /> 清空
         </button>
       </div>
     </div>
 
     <div class="mode-panel" id="panelImage" data-mode-panel="image" hidden>
       <div class="dropzone" id="imgDrop" role="button" tabindex="0" aria-label="选择图片">
-        <i class="bi bi-image" aria-hidden="true"></i>
+        <Icon name="image" />
         <p>点击选择或拖拽图片到此处</p>
         <span class="field-hint">支持 PNG / JPG / GIF / WebP，图片仅在浏览器本地处理</span>
         <input type="file" id="imgFile" accept="image/*" hidden>
@@ -153,13 +154,13 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
     <div class="btn-row">
       <button class="btn btn-primary" id="asciiRender" type="button">
-        <i class="bi bi-stars" aria-hidden="true"></i> 生成字符画
+        <Icon name="stars" /> 生成字符画
       </button>
       <button class="btn btn-ghost" id="asciiCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 复制结果
+        <Icon name="clipboard" /> 复制结果
       </button>
       <button class="btn btn-ghost" id="asciiDownload" type="button">
-        <i class="bi bi-download" aria-hidden="true"></i> 下载 .txt
+        <Icon name="download" /> 下载 .txt
       </button>
     </div>
     <div class="status-msg" id="asciiStatus" role="status" aria-live="polite"></div>
@@ -167,7 +168,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-terminal" aria-hidden="true"></i> 终端输出</h2>
+      <h2 class="panel-title"><Icon name="terminal" /> 终端输出</h2>
       <div class="panel-actions">
         <label class="check check-sm" id="ansiWrap" title="开启后下方终端预览同步着色；复制到剪贴板的文本会嵌入 ANSI 转义码，粘贴到终端可显示彩色（图片模式为逐像素真彩色）">
           <input type="checkbox" id="ansiColor"> ANSI 彩色（终端预览 + 复制）
@@ -296,7 +297,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     box-shadow: var(--ring);
   }
 
-  .dropzone i {
+  .dropzone .icon {
     font-size: 30px;
     color: var(--primary-dark);
   }

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'rsa-encrypt', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Key & Operations" icon="bi-key">
+  <ToolPanel title="Key & Operations" icon="key">
     <div class="btn-row">
-      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> Generate Key Pair (2048)</button>
+      <button class="btn btn-primary" id="rsaGen" type="button"><Icon name="key" /> Generate Key Pair (2048)</button>
     </div>
     <div class="field mt-3">
       <label class="field-label" for="rsaPub">Public Key (PEM)</label>
@@ -26,16 +27,16 @@ const related = getRelated(category, 'rsa-encrypt', 'en', 6);
       <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="Enter plaintext to encrypt, or Base64 ciphertext to decrypt"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> Encrypt</button>
-      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> Decrypt</button>
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><Icon name="lock" /> Encrypt</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><Icon name="unlock" /> Decrypt</button>
     </div>
     <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Based on the Web Crypto API (RSA-OAEP / SHA-256). Keys never leave the browser. The length of a single encrypted message is limited by the key size.</p>
   </ToolPanel>
 
-  <ToolPanel title="Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Result" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="Result will appear here"></textarea>
   </ToolPanel>

@@ -7,6 +7,7 @@
   /* ── Brand ── */
   --primary: #c9a96e;
   --primary-dark: #a98a4f;
+  --link: #8a6d35;
   --primary-light: #e6d6ae;
   --primary-soft: rgba(201, 169, 110, 0.12);
   --primary-rgb: 201, 169, 110;
@@ -29,7 +30,7 @@
   --bg-tertiary: #ece8dd;
   --text: #232019;
   --text-secondary: #66604f;
-  --text-tertiary: #9b937e;
+  --text-tertiary: #7a7362;
   --border: #e5dfd2;
   --border-strong: #d4ccb9;
 
@@ -90,7 +91,7 @@
   --bg-tertiary: #2e291d;
   --text: #eee8d8;
   --text-secondary: #b3ab96;
-  --text-tertiary: #7d765f;
+  --text-tertiary: #8f8871;
   --border: #383222;
   --border-strong: #4a4330;
 
@@ -590,7 +591,7 @@ button {
 }
 
 .home-tab.active {
-  color: #fff;
+  color: #3a301f;
 }
 
 .tab-indicator {
@@ -840,15 +841,15 @@ html.js .tool-card:not(.revealed) {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: #fff;
+  background: linear-gradient(135deg, #d3b57c, #b6955a);
+  color: #3a301f;
   box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.04);
   box-shadow: var(--shadow-md);
-  color: #fff;
+  color: #3a301f;
 }
 
 .btn-secondary {
@@ -1252,6 +1253,59 @@ html.js .tool-card:not(.revealed) {
   .site-footer .footer-inner {
     flex-direction: column;
     text-align: center;
+  }
+
+  /* Category header: two clean rows on phones (title + count, then blurb + link). */
+  .category-head {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icon title more'
+      'icon blurb blurb';
+    align-items: center;
+    gap: 2px var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .category-icon {
+    grid-area: icon;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+
+  .category-head > div {
+    display: contents;
+  }
+
+  .category-title {
+    grid-area: title;
+    font-size: 19px;
+    line-height: 1.3;
+  }
+
+  .category-title::before {
+    display: none;
+  }
+
+  .category-blurb {
+    grid-area: blurb;
+    margin-top: 2px;
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .category-count {
+    display: none;
+  }
+
+  .category-more {
+    grid-area: more;
+    align-self: start;
+    margin: 0;
+    font-size: 12px;
+    white-space: nowrap;
   }
 }
 

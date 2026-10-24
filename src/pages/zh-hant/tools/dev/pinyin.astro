@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'pinyin', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入中文" icon="bi-translate">
+  <ToolPanel title="輸入中文" icon="translate">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="pySample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="pyClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="pySample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="pyClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="pyInput" spellcheck="false" placeholder="輸入中文，如：開發者工具箱"></textarea>
     <div class="row mt-3">
@@ -35,14 +36,14 @@ const related = getRelated(category, 'pinyin', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="pyBtn" type="button"><i class="bi bi-translate"></i> 轉換</button>
+      <button class="btn btn-primary" id="pyBtn" type="button"><Icon name="translate" /> 轉換</button>
     </div>
     <div class="status-msg" id="pyStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="轉換結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="pyCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="pyCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="pyOutput" readonly spellcheck="false" placeholder="拼音結果將顯示在這裏"></textarea>
   </ToolPanel>

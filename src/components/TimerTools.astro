@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import DailyToolData from './DailyToolData.astro';
 import { dailyText, interpolate } from '../lib/daily-tool-i18n';
 import type { Lang } from '../lib/i18n';
@@ -9,7 +10,7 @@ const t = dailyText(lang);
 <DailyToolData lang={lang} />
 <div class="timer-composition">
   <section class="daily-surface countdown-panel" aria-labelledby="cdHeading">
-    <div class="daily-section-head"><h2 id="cdHeading"><i class="bi bi-hourglass-split" aria-hidden="true"></i> {t.countdown}</h2><span class="timer-state" id="cdState" data-state="ready">{t.ready}</span></div>
+    <div class="daily-section-head"><h2 id="cdHeading"><Icon name="hourglass-split" /> {t.countdown}</h2><span class="timer-state" id="cdState" data-state="ready">{t.ready}</span></div>
     <div class="countdown-dial" id="cdDial" data-state="ready">
       <svg viewBox="0 0 240 240" aria-hidden="true"><circle class="dial-track" cx="120" cy="120" r="106" /><circle class="dial-progress" id="cdProgress" cx="120" cy="120" r="106" pathLength="1" /></svg>
       <output class="timer-digits" id="cdDisplay" role="timer" aria-live="off" aria-label={t.countdown}>05:00</output>
@@ -25,7 +26,7 @@ const t = dailyText(lang);
     <p class="daily-note">{t.timerHint}</p>
   </section>
   <section class="daily-surface stopwatch-panel" aria-labelledby="swHeading">
-    <div class="daily-section-head"><h2 id="swHeading"><i class="bi bi-stopwatch" aria-hidden="true"></i> {t.stopwatch}</h2><span class="timer-state" id="swState" data-state="ready">{t.ready}</span></div>
+    <div class="daily-section-head"><h2 id="swHeading"><Icon name="stopwatch" /> {t.stopwatch}</h2><span class="timer-state" id="swState" data-state="ready">{t.ready}</span></div>
     <div class="stopwatch-readout"><output class="timer-digits" id="swDisplay" role="timer" aria-live="off" aria-label={t.stopwatch}>00:00.0</output></div>
     <div class="btn-row timer-controls"><button class="btn btn-primary" id="swStart" type="button">{t.start}</button><button class="btn btn-secondary" id="swPause" type="button" disabled>{t.pause}</button><button class="btn btn-secondary" id="swLap" type="button" disabled>{t.lap}</button><button class="btn btn-ghost" id="swReset" type="button">{t.reset}</button></div>
     <div class="stopwatch-laps">

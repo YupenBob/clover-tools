@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'salary', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="税引き前給与" icon="bi-cash-stack">
+  <ToolPanel title="税引き前給与" icon="cash-stack">
     <div class="row">
       <div class="field">
         <label class="field-label" for="salGross">税引き前月収（元）</label>
@@ -39,13 +40,13 @@ const related = getRelated(category, 'salary', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="salBtn" type="button"><i class="bi bi-calculator"></i> 税引き後給与を計算する</button>
+      <button class="btn btn-primary" id="salBtn" type="button"><Icon name="calculator" /> 税引き後給与を計算する</button>
     </div>
     <div class="status-msg" id="salStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">毎月の給与所得の源泉徴収税率に基づいて計算しています。社会保険と住宅公積金の割合は一般的な簡易パラメータ（年金保険8%、医療保険2%、失業保険0.5%）を使用しています。参考値としてご利用ください。</p>
   </ToolPanel>
 
-  <ToolPanel title="明細結果" icon="bi-clipboard-data">
+  <ToolPanel title="明細結果" icon="clipboard-data">
     <table class="sal-table" id="salTable"></table>
     <div class="sal-net" id="salNet"></div>
   </ToolPanel>

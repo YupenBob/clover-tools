@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,9 +10,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
-  <ToolPanel title="抽奖配置" icon="bi-gift">
+  <ToolPanel title="抽奖配置" icon="gift">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><i class="bi bi-magic"></i> 示例名单</button>
+      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><Icon name="magic" /> 示例名单</button>
     </div>
     <div class="field">
       <label class="field-label" for="lotNames">名单（每行一个）</label>
@@ -32,13 +33,13 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> 开始抽奖</button>
+      <button class="btn btn-primary" id="lotBtn" type="button"><Icon name="ticket-perforated" /> 开始抽奖</button>
     </div>
     <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 </ToolLayout>
 
-<p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> 音效来源：Mixkit（免费授权）</p>
+<p class="muted sfx-note"><Icon name="music-note-beamed" /> 音效来源：Mixkit（免费授权）</p>
 
 <!-- ═══ 沉浸式老虎机 ═══ -->
 <div class="lottery-overlay" id="lotteryOverlay" role="dialog" aria-modal="true" aria-label="沉浸式抽奖老虎机" aria-hidden="true">
@@ -46,13 +47,13 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   <div class="lot-spotlight" aria-hidden="true"></div>
   <header class="lot-top">
     <div>
-      <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> 幸运时刻</div>
+      <div class="lot-title"><Icon name="stars" /> 幸运时刻</div>
       <div class="lot-sub" id="lotSub">准备好你的心跳了吗</div>
     </div>
     <div class="lot-top-actions">
-      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="音效开关"><i class="bi bi-volume-up-fill"></i></button>
-      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏"><i class="bi bi-arrows-fullscreen"></i></button>
-      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出"><i class="bi bi-x-lg"></i></button>
+      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="音效开关"><Icon name="volume-up-fill" /></button>
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="浏览器全屏"><Icon name="arrows-fullscreen" /></button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="退出"><Icon name="x-lg" /></button>
     </div>
   </header>
   <div class="reels" id="reels">
@@ -65,9 +66,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   <div class="lot-status" id="lotStatusMsg" role="status" aria-live="polite">转动中…</div>
   <div class="lot-winners" id="lotWinners"></div>
   <div class="lot-actions">
-    <button class="btn btn-primary" id="lotCopy" type="button" hidden><i class="bi bi-clipboard"></i> 复制结果</button>
-    <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再抽一次</button>
-    <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> 完成</button>
+    <button class="btn btn-primary" id="lotCopy" type="button" hidden><Icon name="clipboard" /> 复制结果</button>
+    <button class="btn btn-primary" id="lotAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> 再抽一次</button>
+    <button class="btn btn-ghost" id="lotDone" type="button" hidden><Icon name="check2" /> 完成</button>
   </div>
 </div>
 
@@ -99,10 +100,10 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="slot-winners" id="cWinners"></div>
     </div>
     <div class="slot-actions">
-      <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> 音效</button>
-      <button class="slot-btn" id="classicAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> 再来一轮</button>
-      <button class="slot-btn" id="classicCopy" type="button"><i class="bi bi-clipboard"></i> 复制结果</button>
-      <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> 退出</button>
+      <button class="slot-btn" id="classicSfx" type="button"><Icon name="volume-up-fill" /> 音效</button>
+      <button class="slot-btn" id="classicAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> 再来一轮</button>
+      <button class="slot-btn" id="classicCopy" type="button"><Icon name="clipboard" /> 复制结果</button>
+      <button class="slot-btn" id="classicExit" type="button"><Icon name="x-lg" /> 退出</button>
     </div>
   </div>
 </div>
@@ -381,6 +382,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 </style>
 
 <script>
+import { Trophy, Volume2, VolumeX } from '../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
   import { planReel, reelSample, modSet } from '../../../lib/reel-motion.mjs';
 
@@ -475,9 +478,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   }
 
   function syncSfxIcons() {
-    const icon = sfxOn ? 'bi-volume-up-fill' : 'bi-volume-mute-fill';
-    byId<HTMLButtonElement>('lotSfx').innerHTML = `<i class="bi ${icon}"></i>`;
-    byId<HTMLButtonElement>('classicSfx').innerHTML = `<i class="bi ${icon}"></i> 音效`;
+        byId<HTMLButtonElement>('lotSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)}`;
+    byId<HTMLButtonElement>('classicSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)} 音效`;
     byId<HTMLButtonElement>('lotSfx').setAttribute('aria-pressed', String(sfxOn));
     byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
   }
@@ -750,7 +752,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   function addWinnerChip(container: HTMLElement, i: number, name: string) {
     const chip = document.createElement('span');
     chip.className = 'winner-chip';
-    chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${name}`;
+    chip.innerHTML = `${renderIconSvg(Trophy)} ${i + 1}. ${name}`;
     container.appendChild(chip);
   }
 

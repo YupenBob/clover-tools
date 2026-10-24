@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,9 +10,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="请求配置" icon="bi-send">
+  <ToolPanel title="请求配置" icon="send">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="httpSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="httpSample" type="button"><Icon name="magic" /> 示例</button>
     </div>
     <div class="row">
       <div class="field">
@@ -48,15 +49,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <textarea class="textarea" id="httpBody" spellcheck="false" placeholder='{"key": "value"}'></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="httpSend" type="button"><i class="bi bi-send"></i> 发送请求</button>
+      <button class="btn btn-primary" id="httpSend" type="button"><Icon name="send" /> 发送请求</button>
     </div>
     <div class="status-msg" id="httpStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">提示：浏览器同源策略要求目标接口允许跨域（CORS），否则请求会被浏览器拦截。</p>
   </ToolPanel>
 
-  <ToolPanel title="响应结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="响应结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="httpCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="httpCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <div class="http-meta" id="httpMeta">尚未发送请求</div>
     <textarea class="textarea" id="httpOutput" readonly spellcheck="false" placeholder="响应内容将显示在这里"></textarea>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'cron', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Cron Expression" icon="bi-calendar2-week">
+  <ToolPanel title="Cron Expression" icon="calendar2-week">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><Icon name="magic" /> Sample</button>
     </div>
     <div class="row">
       <div class="field" style="flex: 2">
@@ -28,15 +29,15 @@ const related = getRelated(category, 'cron', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="cronBtn" type="button"><i class="bi bi-calendar-event"></i> Preview Execution Times</button>
+      <button class="btn btn-primary" id="cronBtn" type="button"><Icon name="calendar-event" /> Preview Execution Times</button>
     </div>
     <div class="status-msg" id="cronStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Supports 5-field (minute hour day month weekday), 6-field (second minute hour day month weekday) and 7-field (second minute hour day month weekday year) formats.</p>
   </ToolPanel>
 
-  <ToolPanel title="Upcoming Executions" icon="bi-list-ol">
+  <ToolPanel title="Upcoming Executions" icon="list-ol">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="cronOutput" readonly spellcheck="false" placeholder="Execution times will appear here after previewing"></textarea>
   </ToolPanel>

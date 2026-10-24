@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 import { getCategoryMetas, getTools, siteForLang, type ToolCategory } from '../../lib/i18n';
@@ -70,17 +71,17 @@ const aboutJsonLd = {
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
-          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <Icon name="tools" class="about-stat-icon" />
           <span class="about-stat-num">{totalTools}</span>
           <span class="about-stat-label">Online tools</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 120ms">
-          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="about-stat-icon" />
           <span class="about-stat-num">{CATEGORIES.length}</span>
           <span class="about-stat-label">Categories</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
-          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <Icon name="shield-check" class="about-stat-icon" />
           <span class="about-stat-num">0</span>
           <span class="about-stat-label">Sign-ups needed</span>
         </div>
@@ -90,7 +91,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="features-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="stars" /></span>
       <div>
         <h2 class="category-title" id="features-heading">Highlights</h2>
         <p class="category-blurb">Why choose CloverTools</p>
@@ -99,42 +100,42 @@ const aboutJsonLd = {
     <div class="feature-grid">
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <Icon name="lightning-charge" class="feature-icon" />
           <h3>Ready instantly</h3>
           <p>No sign-up, no installation — open the page and start using it</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <Icon name="shield-lock" class="feature-icon" />
           <h3>Privacy first</h3>
           <p>Most input is processed locally; network tools explain their requests</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <Icon name="pencil-square" class="feature-icon" />
           <h3>Handcrafted quality</h3>
           <p>Every tool is built individually, with input validation and examples built in</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="feature-icon" />
           <h3>Clear categories</h3>
           <p>Developer, daily and fun tools — three well-organized collections</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <Icon name="moon-stars" class="feature-icon" />
           <h3>Works everywhere</h3>
           <p>Responsive on mobile, with dark mode support</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <Icon name="github" class="feature-icon" />
           <h3>Open source</h3>
           <p>Source code is on GitHub — contributions and feedback are welcome</p>
         </div>
@@ -144,7 +145,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="links-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="link-45deg" /></span>
       <div>
         <h2 class="category-title" id="links-heading">Learn more</h2>
         <p class="category-blurb">Resources and contributing</p>
@@ -152,16 +153,16 @@ const aboutJsonLd = {
     </header>
     <div class="about-links-panel about-reveal">
       <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i>
+        <Icon name="github" />
         GitHub repository
-        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+        <Icon name="box-arrow-up-right" class="link-out" />
       </a>
       <a class="btn btn-secondary" href="/sitemap-index.xml">
-        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <Icon name="diagram-3" />
         Sitemap
       </a>
       <a class="btn btn-ghost" href="/en/">
-        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <Icon name="house-door" />
         Back to home
       </a>
     </div>

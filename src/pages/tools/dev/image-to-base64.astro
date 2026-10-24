@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,7 +10,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="选择图片" icon="bi-image">
+  <ToolPanel title="选择图片" icon="image">
     <div class="field">
       <input class="input" id="i2bFile" type="file" accept="image/*" />
     </div>
@@ -32,15 +33,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="i2bBtn" type="button"><i class="bi bi-arrow-repeat"></i> 转换为 Base64</button>
-      <button class="btn btn-ghost" id="i2bDownload" type="button"><i class="bi bi-download"></i> 下载转换结果</button>
+      <button class="btn btn-primary" id="i2bBtn" type="button"><Icon name="arrow-repeat" /> 转换为 Base64</button>
+      <button class="btn btn-ghost" id="i2bDownload" type="button"><Icon name="download" /> 下载转换结果</button>
     </div>
     <div class="status-msg" id="i2bStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Base64 结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Base64 结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="i2bOutput" readonly spellcheck="false" placeholder="Base64 数据将显示在这里"></textarea>
     <div class="input-stats"><span id="i2bStats"></span></div>

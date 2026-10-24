@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'rsa-encrypt', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="鍵と操作" icon="bi-key">
+  <ToolPanel title="鍵と操作" icon="key">
     <div class="btn-row">
-      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> 鍵ペア生成（2048）</button>
+      <button class="btn btn-primary" id="rsaGen" type="button"><Icon name="key" /> 鍵ペア生成（2048）</button>
     </div>
     <div class="field mt-3">
       <label class="field-label" for="rsaPub">公開鍵（PEM）</label>
@@ -26,16 +27,16 @@ const related = getRelated(category, 'rsa-encrypt', 'ja', 6);
       <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="暗号化する平文、または復号する Base64 暗号文を入力"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> 暗号化</button>
-      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> 復号</button>
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><Icon name="lock" /> 暗号化</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><Icon name="unlock" /> 復号</button>
     </div>
     <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Web Crypto API（RSA-OAEP / SHA-256）に基づき、鍵はブラウザの外には出ません。一度の暗号化で扱える長さは鍵長に制限されます。</p>
   </ToolPanel>
 
-  <ToolPanel title="結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
   </ToolPanel>

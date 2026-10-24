@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,24 +10,24 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
-  <ToolPanel title="输入文字" icon="bi-input-cursor">
+  <ToolPanel title="输入文字" icon="input-cursor">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="输入昵称或任意文字，如：Clover 幸运草"></textarea>
     <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">输入后即时生成全部风格；支持中英文与数字，中文保持原样。点击任一结果即可复制。</p>
   </ToolPanel>
 
-  <ToolPanel title="全风格预览" icon="bi-grid">
+  <ToolPanel title="全风格预览" icon="grid">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><i class="bi bi-clipboard"></i> 复制全部</button>
+      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><Icon name="clipboard" /> 复制全部</button>
     </div>
     <div class="nn-grid" id="nnGrid"></div>
   </ToolPanel>
 
-  <ToolPanel title="风格说明" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="风格说明" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       本工具覆盖 20 余种 Unicode 文字风格：粗体、斜体、粗斜体、花体（Script）、粗花体、德文花体（Fraktur）、
       粗德文花体、空心体（Double-Struck）、无衬线、无衬线粗体、无衬线斜体、无衬线粗斜体、等宽（Monospace）、
@@ -68,7 +69,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     font-weight: 600;
   }
 
-  .nn-card .name i {
+  .nn-card .name .icon {
     color: var(--primary-dark);
   }
 
@@ -86,6 +87,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('nnInput');
@@ -185,13 +188,13 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     const text = input.value;
     if (!text.trim()) {
       grid.innerHTML = STYLES.map((s) =>
-        `<div class="nn-card"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value empty">输入文字后生成</div></div>`,
+        `<div class="nn-card"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value empty">输入文字后生成</div></div>`,
       ).join('');
       return;
     }
     grid.innerHTML = STYLES.map((s) => {
       const value = s.fn(text);
-      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value">${value}</div></div>`;
+      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value">${value}</div></div>`;
     }).join('');
     showStatus('nnStatus', 'success', `已生成 ${STYLES.length} 种风格，点击卡片复制`);
   }

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'symmetric-encrypt', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="暗号化・復号設定" icon="bi-lock">
+  <ToolPanel title="暗号化・復号設定" icon="lock">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><Icon name="magic" /> サンプル</button>
     </div>
     <div class="row">
       <div class="field">
@@ -54,15 +55,15 @@ const related = getRelated(category, 'symmetric-encrypt', 'ja', 6);
       <textarea class="textarea" id="encInput" spellcheck="false" placeholder="平文を入力して暗号化、または暗号文を入力して復号"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> 暗号化</button>
-      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> 復号</button>
+      <button class="btn btn-primary" id="encBtn" type="button"><Icon name="lock" /> 暗号化</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><Icon name="unlock" /> 復号</button>
     </div>
     <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="出力結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="出力結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="結果がここに表示されます"></textarea>
   </ToolPanel>

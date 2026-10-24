@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'salary', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="세전 급여" icon="bi-cash-stack">
+  <ToolPanel title="세전 급여" icon="cash-stack">
     <div class="row">
       <div class="field">
         <label class="field-label" for="salGross">세전 월급 (위안)</label>
@@ -39,13 +40,13 @@ const related = getRelated(category, 'salary', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="salBtn" type="button"><i class="bi bi-calculator"></i> 세후 급여 계산</button>
+      <button class="btn btn-primary" id="salBtn" type="button"><Icon name="calculator" /> 세후 급여 계산</button>
     </div>
     <div class="status-msg" id="salStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">매월 급여 소득 원천징수 세율 기준으로 계산하며, 사회보험·주택공적금 비율은 일반적인 단순화 파라미터를 적용했습니다(연금 8%, 의료 2%, 실업 0.5%). 참고용입니다.</p>
   </ToolPanel>
 
-  <ToolPanel title="상세 내역" icon="bi-clipboard-data">
+  <ToolPanel title="상세 내역" icon="clipboard-data">
     <table class="sal-table" id="salTable"></table>
     <div class="sal-net" id="salNet"></div>
   </ToolPanel>

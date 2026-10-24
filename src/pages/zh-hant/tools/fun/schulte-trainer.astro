@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="舒爾特訓練" icon="bi-bullseye">
+  <ToolPanel title="舒爾特訓練" icon="bullseye">
     <div class="st-panel">
       <!-- 面板背景光暈 -->
       <div class="st-bg" aria-hidden="true">
@@ -21,7 +22,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
     <!-- 第一幕：開始 -->
     <section id="actStart" class="st-act">
       <header class="st-hero">
-        <span class="st-hero-badge"><i class="bi bi-bullseye" aria-hidden="true"></i></span>
+        <span class="st-hero-badge"><Icon name="bullseye" /></span>
         <div class="st-hero-title">舒爾特訓練</div>
         <p class="st-lead">
           從 1 開始，按順序點擊目標。每一次點擊都是一次注意力的錨定，
@@ -78,14 +79,14 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
           連續挑戰 <span class="muted">完成後休息 5 秒自動下一輪</span>
         </label>
         <div class="st-option-btns">
-          <button class="st-icon-btn" id="stFull" type="button" title="專注模式（全屏）"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
-          <button class="st-icon-btn" id="stMute" type="button" title="音效開關" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
-          <button class="st-icon-btn" id="stClearHistory" type="button" title="清空歷史記錄"><i class="bi bi-trash" aria-hidden="true"></i></button>
+          <button class="st-icon-btn" id="stFull" type="button" title="專注模式（全屏）"><Icon name="arrows-fullscreen" /></button>
+          <button class="st-icon-btn" id="stMute" type="button" title="音效開關" aria-pressed="false"><Icon name="volume-up" /></button>
+          <button class="st-icon-btn" id="stClearHistory" type="button" title="清空歷史記錄"><Icon name="trash" /></button>
         </div>
       </div>
 
       <button class="st-start-btn" id="stStart" type="button">
-        <i class="bi bi-play-fill" aria-hidden="true"></i> 開始訓練
+        <Icon name="play-fill" /> 開始訓練
       </button>
       <div class="status-msg" id="stStartStatus" role="status" aria-live="polite"></div>
     </section>
@@ -109,7 +110,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
         </div>
       </div>
       <div class="st-train-head st-glass">
-        <button class="st-exit" id="stExit" type="button" title="退出訓練"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        <button class="st-exit" id="stExit" type="button" title="退出訓練"><Icon name="x-lg" /></button>
         <div class="st-train-meta">
           <span class="st-train-mode" id="stModeLabel">經典方格</span>
           <span class="st-train-size" id="stSizeLabel2">N=5</span>
@@ -164,8 +165,8 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
         <div class="st-result-note" id="stNote"></div>
         <div class="st-result-trend" id="stTrend" aria-label="歷史用時趨勢"></div>
         <div class="st-result-actions">
-          <button class="btn btn-primary" id="stAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> 再來一組</button>
-          <button class="btn" id="stBack" type="button"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> 返回選擇</button>
+          <button class="btn btn-primary" id="stAgain" type="button"><Icon name="arrow-repeat" /> 再來一組</button>
+          <button class="btn" id="stBack" type="button"><Icon name="grid-3x3-gap" /> 返回選擇</button>
         </div>
       </div>
     </section>
@@ -178,7 +179,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="訓練目的：修復前額葉，對抗注意力碎片化" icon="bi-bullseye">
+  <ToolPanel title="訓練目的：修復前額葉，對抗注意力碎片化" icon="bullseye">
     <div class="st-purpose">
       <p>
         舒爾特訓練通過<b>主動、持續的目標導向搜索</b>，反復激活<b>背外側前額葉</b>——大腦負責注意分配、
@@ -188,22 +189,22 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
       </p>
       <div class="st-purpose-grid">
         <div class="st-purpose-item">
-          <i class="bi bi-eye" aria-hidden="true"></i>
+          <Icon name="eye" />
           <b>訓練視覺搜索</b>
           <span>擴大視野利用範圍，練習一眼掃過整片區域找到目標，而非逐格死盯。</span>
         </div>
         <div class="st-purpose-item">
-          <i class="bi bi-bullseye" aria-hidden="true"></i>
+          <Icon name="bullseye" />
           <b>強化前額葉抑制</b>
           <span>錯點與幹擾項都在訓練忍住不點錯的沖動控制，這正是前額葉的核心功能。</span>
         </div>
         <div class="st-purpose-item">
-          <i class="bi bi-shuffle" aria-hidden="true"></i>
+          <Icon name="shuffle" />
           <b>對抗信息碎片化</b>
           <span>長期訓練可提升專注時長與抗幹擾能力，緩解短視頻帶來的注意渙散。</span>
         </div>
         <div class="st-purpose-item">
-          <i class="bi bi-clock-history" aria-hidden="true"></i>
+          <Icon name="clock-history" />
           <b>動態追蹤進階</b>
           <span>變換與旋轉模式讓目標持續移動，進一步鍛煉動態視覺與手眼協調。</span>
         </div>
@@ -245,7 +246,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
         </table>
       </div>
       <p class="muted st-tip">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <Icon name="info-circle" />
         建議每天 3–5 組、每組間休息 30 秒；圓盤、記憶與雙任務模式適合已能穩定完成經典方格的進階者。
         訓練效果看長期趨勢而非單次成績，堅持兩周以上更明顯。
       </p>
@@ -1095,7 +1096,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
     background: var(--bg-secondary);
   }
 
-  .st-purpose-item i {
+  .st-purpose-item .icon {
     font-size: 20px;
     color: var(--primary-dark);
     margin-bottom: 2px;
@@ -1144,7 +1145,7 @@ const related = getRelated(category, 'schulte-trainer', 'tw', 6);
     line-height: 1.7;
   }
 
-  .st-tip i {
+  .st-tip .icon {
     margin-top: 2px;
     color: var(--primary-dark);
   }

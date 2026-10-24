@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'random-number', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="隨機數配置" icon="bi-shuffle">
+  <ToolPanel title="隨機數配置" icon="shuffle">
     <div class="row">
       <div class="field">
         <label class="field-label" for="rnMin">最小值</label>
@@ -30,14 +31,14 @@ const related = getRelated(category, 'random-number', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="rnBtn" type="button"><i class="bi bi-shuffle"></i> 生成隨機數</button>
+      <button class="btn btn-primary" id="rnBtn" type="button"><Icon name="shuffle" /> 生成隨機數</button>
     </div>
     <div class="status-msg" id="rnStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="生成結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="生成結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rnCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="rnCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="rnOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
   </ToolPanel>

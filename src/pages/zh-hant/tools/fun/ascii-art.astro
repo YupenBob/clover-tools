@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -11,7 +12,7 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> 輸入內容</h2>
+      <h2 class="panel-title"><Icon name="input-cursor" /> 輸入內容</h2>
     </div>
 
     <div class="seg" id="asciiMode" role="tablist" aria-label="生成方式">
@@ -51,10 +52,10 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
       <p class="field-hint" id="figletFontHint"></p>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="figletSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+          <Icon name="magic" /> 示例
         </button>
         <button class="btn btn-ghost btn-sm" id="figletClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+          <Icon name="x-circle" /> 清空
         </button>
       </div>
     </div>
@@ -95,17 +96,17 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
       </label>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="cjkSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> 示例
+          <Icon name="magic" /> 示例
         </button>
         <button class="btn btn-ghost btn-sm" id="cjkClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+          <Icon name="x-circle" /> 清空
         </button>
       </div>
     </div>
 
     <div class="mode-panel" id="panelImage" data-mode-panel="image" hidden>
       <div class="dropzone" id="imgDrop" role="button" tabindex="0" aria-label="選擇圖片">
-        <i class="bi bi-image" aria-hidden="true"></i>
+        <Icon name="image" />
         <p>點擊選擇或拖拽圖片到此處</p>
         <span class="field-hint">支持 PNG / JPG / GIF / WebP，圖片僅在瀏覽器本地處理</span>
         <input type="file" id="imgFile" accept="image/*" hidden>
@@ -154,13 +155,13 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
 
     <div class="btn-row">
       <button class="btn btn-primary" id="asciiRender" type="button">
-        <i class="bi bi-stars" aria-hidden="true"></i> 生成字符畫
+        <Icon name="stars" /> 生成字符畫
       </button>
       <button class="btn btn-ghost" id="asciiCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 復制結果
+        <Icon name="clipboard" /> 復制結果
       </button>
       <button class="btn btn-ghost" id="asciiDownload" type="button">
-        <i class="bi bi-download" aria-hidden="true"></i> 下載 .txt
+        <Icon name="download" /> 下載 .txt
       </button>
     </div>
     <div class="status-msg" id="asciiStatus" role="status" aria-live="polite"></div>
@@ -168,7 +169,7 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-terminal" aria-hidden="true"></i> 終端輸出</h2>
+      <h2 class="panel-title"><Icon name="terminal" /> 終端輸出</h2>
       <div class="panel-actions">
         <label class="check check-sm" id="ansiWrap" title="開啟後下方終端預覽同步著色；復制到剪貼板的文本會嵌入 ANSI 轉義碼，粘貼到終端可顯示彩色（圖片模式為逐像素真彩色）">
           <input type="checkbox" id="ansiColor"> ANSI 彩色（終端預覽 + 復制）
@@ -297,7 +298,7 @@ const related = getRelated(category, 'ascii-art', 'tw', 6);
     box-shadow: var(--ring);
   }
 
-  .dropzone i {
+  .dropzone .icon {
     font-size: 30px;
     color: var(--primary-dark);
   }

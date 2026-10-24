@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'jwt-decoder', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="JWT Token" icon="bi-file-lock">
+  <ToolPanel title="JWT Token" icon="file-lock">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="jwtSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="jwtClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="jwtInput" spellcheck="false" placeholder="Paste JWT (header.payload.signature)"></textarea>
     <div class="field mt-3">
@@ -20,15 +21,15 @@ const related = getRelated(category, 'jwt-decoder', 'en', 6);
       <input class="input mono" id="jwtSecret" type="text" placeholder="Verified locally only, never leaves your browser" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jwtBtn" type="button"><i class="bi bi-file-lock"></i> Decode</button>
-      <button class="btn btn-secondary" id="jwtVerify" type="button"><i class="bi bi-shield-check"></i> Verify HS256 signature</button>
+      <button class="btn btn-primary" id="jwtBtn" type="button"><Icon name="file-lock" /> Decode</button>
+      <button class="btn btn-secondary" id="jwtVerify" type="button"><Icon name="shield-check" /> Verify HS256 signature</button>
     </div>
     <div class="status-msg" id="jwtStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Decoded Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Decoded Result" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="jwtCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="jwtOutput" readonly spellcheck="false" placeholder="Header and Payload will be shown here"></textarea>
   </ToolPanel>

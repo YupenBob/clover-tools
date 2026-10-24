@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,13 +10,13 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="本機 IP" icon="bi-globe2">
+  <ToolPanel title="本機 IP" icon="globe2">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="ipSelfCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 復制
+        <Icon name="clipboard" /> 復制
       </button>
       <button class="btn btn-ghost btn-sm" id="ipSelfRefresh" type="button">
-        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> 刷新
+        <Icon name="arrow-clockwise" /> 刷新
       </button>
     </div>
     <div class="ip-hero">
@@ -26,7 +27,7 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
     <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="IP 地址解析" icon="bi-hash">
+  <ToolPanel title="IP 地址解析" icon="hash">
     <div class="row">
       <div class="field field-grow">
         <label class="field-label" for="ipInput">IP 地址或域名</label>
@@ -35,16 +36,16 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="ipQuery" type="button">
-        <i class="bi bi-search" aria-hidden="true"></i> 解析並查詢
+        <Icon name="search" /> 解析並查詢
       </button>
       <button class="btn btn-ghost" id="ipPaste" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 粘貼
+        <Icon name="clipboard" /> 粘貼
       </button>
       <button class="btn btn-ghost" id="ipSample" type="button">
-        <i class="bi bi-magic" aria-hidden="true"></i> 示例
+        <Icon name="magic" /> 示例
       </button>
       <button class="btn btn-ghost" id="ipClear" type="button">
-        <i class="bi bi-x-circle" aria-hidden="true"></i> 清空
+        <Icon name="x-circle" /> 清空
       </button>
     </div>
     <p class="field-hint">地址解析完全在瀏覽器本地完成；輸入有效地址後稍候會自動查詢歸屬地，也可隨時點擊按鈕。</p>
@@ -68,14 +69,14 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="歸屬地信息" icon="bi-globe-americas">
+  <ToolPanel title="歸屬地信息" icon="globe-americas">
     <div class="status-msg" id="ipGeoStatus" role="status" aria-live="polite"></div>
     <div class="ip-empty" id="ipGeoEmpty">查詢後顯示國家、運營商、經緯度等歸屬地信息（在線查詢）</div>
     <div id="ipGeoWrap" hidden>
       <div class="ip-kv" id="ipGeoTable"></div>
       <div class="ip-geo-foot">
         <a class="link-btn" id="ipMapLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-          <i class="bi bi-link-45deg" aria-hidden="true"></i> 在地圖中查看
+          <Icon name="link-45deg" /> 在地圖中查看
         </a>
         <span class="field-hint" id="ipGeoSource"></span>
       </div>
@@ -359,6 +360,8 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   /* ═══════════ IP 解析引擎（純本地） ═══════════ */
@@ -773,7 +776,7 @@ const related = getRelated(category, 'ip-lookup', 'tw', 6);
 
   function kvRow(label: string, value: string, copyText?: string): string {
     const copy = copyText
-      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="復制"><i class="bi bi-clipboard" aria-hidden="true"></i></button>`
+      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="復制">${renderIconSvg(Clipboard)}</button>`
       : '';
     return `<div class="ip-row"><span class="ip-k">${esc(label)}</span><span class="ip-v">${value}${copy}</span></div>`;
   }

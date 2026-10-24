@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'sensitive-check', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="待檢測文本" icon="bi-shield">
+  <ToolPanel title="待檢測文本" icon="shield">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="scSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="scSample" type="button"><Icon name="magic" /> 示例</button>
     </div>
     <textarea class="textarea" id="scInput" spellcheck="false" placeholder="輸入要檢測的文本"></textarea>
     <div class="field mt-3">
@@ -19,12 +20,12 @@ const related = getRelated(category, 'sensitive-check', 'tw', 6);
       <textarea class="textarea" id="scCustom" spellcheck="false" placeholder="補充自定義詞庫"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="scBtn" type="button"><i class="bi bi-shield-check"></i> 檢測</button>
+      <button class="btn btn-primary" id="scBtn" type="button"><Icon name="shield-check" /> 檢測</button>
     </div>
     <div class="status-msg" id="scStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="檢測結果" icon="bi-list-check">
+  <ToolPanel title="檢測結果" icon="list-check">
     <div class="regex-view" id="scView"></div>
     <div class="lc-result mt-3" id="scResult"></div>
   </ToolPanel>

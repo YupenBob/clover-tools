@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,18 +10,18 @@ const related = getRelated(category, 'keyboard-test', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="按鍵測試" icon="bi-keyboard">
+  <ToolPanel title="按鍵測試" icon="keyboard">
     <div class="kt-box" id="ktBox">
       <div class="kt-key" id="ktKey">請按下任意鍵</div>
       <div class="kt-code" id="ktCode"></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-ghost" id="ktClear" type="button"><i class="bi bi-trash"></i> 清空記錄</button>
+      <button class="btn btn-ghost" id="ktClear" type="button"><Icon name="trash" /> 清空記錄</button>
     </div>
     <div class="status-msg" id="ktStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="最近按鍵記錄" icon="bi-list-ol">
+  <ToolPanel title="最近按鍵記錄" icon="list-ol">
     <div class="kt-history" id="ktHistory"></div>
   </ToolPanel>
 </ToolLayout>

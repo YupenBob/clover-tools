@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { GUIDES } from '../../lib/guides';
 import { getAllTools, getToolHref } from '../../lib/tools';
@@ -49,10 +50,10 @@ const jsonLd = [
 
 <BaseLayout title={`${guide.title} - ${SITE.name}`} description={guide.description} keywords={[guide.title, guide.category, 'CloverTools']} canonical={canonical} ogImage={guide.image ? `${SITE.url}${guide.image}` : undefined} jsonLd={jsonLd}>
   <nav class="breadcrumb" aria-label="面包屑">
-    <a href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <a href="/"><Icon name="house-door" /> 首页</a>
+    <Icon name="chevron-right" />
     <a href="/guides/">实用指南</a>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <Icon name="chevron-right" />
     <span>{guide.title}</span>
   </nav>
 
@@ -61,7 +62,7 @@ const jsonLd = [
       <div class="article-meta"><span>{guide.category}</span><span>{guide.readingMinutes} 分钟阅读</span><time datetime={guide.updated}>更新于 {guide.updated}</time></div>
       <h1>{guide.title}</h1>
       <p>{guide.description}</p>
-      <a class="article-tool-link" href={toolHref}><i class="bi bi-play-circle" aria-hidden="true"></i> 立即打开 {toolEntry.name} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+      <a class="article-tool-link" href={toolHref}><Icon name="play-circle" /> 立即打开 {toolEntry.name} <Icon name="arrow-up-right" /></a>
     </header>
 
     <div class="article-layout">
@@ -73,7 +74,7 @@ const jsonLd = [
           <p>{guide.focus ?? '先看示例，再把步骤带回工具。结果用于生产系统前，请结合项目文档和测试环境复核。'}</p>
         </div>
         <div class="aside-card aside-local">
-          <i class="bi bi-shield-lock" aria-hidden="true"></i>
+          <Icon name="shield-lock" />
           <p>{guide.notice ?? '输入内容在浏览器本地处理。请勿把真实密码、令牌或个人敏感信息当作示例提交。'}</p>
         </div>
       </aside>
@@ -99,8 +100,8 @@ const jsonLd = [
     </section>
 
     <footer class="article-footer">
-      <a href={toolHref}><i class="bi bi-arrow-left" aria-hidden="true"></i> 返回工具</a>
-      <a href="/guides/">浏览全部指南 <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+      <a href={toolHref}><Icon name="arrow-left" /> 返回工具</a>
+      <a href="/guides/">浏览全部指南 <Icon name="arrow-right" /></a>
     </footer>
   </article>
 </BaseLayout>
@@ -147,7 +148,7 @@ const jsonLd = [
   .article-toc a { color: var(--text-secondary); }
   .article-toc a:hover { color: var(--primary-dark); text-decoration: underline; }
   .aside-local { display: flex; gap: 9px; background: var(--bg-secondary); }
-  .aside-local i { flex-shrink: 0; color: var(--primary-dark); }
+  .aside-local .icon { flex-shrink: 0; color: var(--primary-dark); }
   .article-faq { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--border-strong); }
   .article-faq h2 { margin: 0 0 14px; font-size: 22px; }
   .article-faq details { padding: 14px 16px; border-bottom: 1px solid var(--border); }
@@ -156,5 +157,5 @@ const jsonLd = [
   .article-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; padding-top: 20px; border-top: 1px dashed var(--border-strong); font-size: 13px; }
   .article-footer a { color: var(--primary-dark); }
   @media (max-width: 780px) { .article-layout { display: flex; flex-direction: column; gap: 18px; margin-top: 30px; } .article-aside { display: contents; } .article-toc { order: -1; } .article-toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 25px; } }
-  @media (max-width: 520px) { .article-toc ol { grid-template-columns: 1fr; } .article-footer { flex-direction: column; } .breadcrumb { flex-wrap: wrap; row-gap: 6px; } .breadcrumb > a { white-space: nowrap; flex-shrink: 0; } .breadcrumb > span { flex-basis: 100%; } .breadcrumb > i:last-of-type { display: none; } }
+  @media (max-width: 520px) { .article-toc ol { grid-template-columns: 1fr; } .article-footer { flex-direction: column; } .breadcrumb { flex-wrap: wrap; row-gap: 6px; } .breadcrumb > a { white-space: nowrap; flex-shrink: 0; } .breadcrumb > span { flex-basis: 100%; } .breadcrumb > .icon:last-of-type { display: none; } }
 </style>

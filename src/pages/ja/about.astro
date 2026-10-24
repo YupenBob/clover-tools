@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 import { getCategoryMetas, getTools, siteForLang, type ToolCategory } from '../../lib/i18n';
@@ -69,17 +70,17 @@ const aboutJsonLd = {
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
-          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <Icon name="tools" class="about-stat-icon" />
           <span class="about-stat-num">{totalTools}</span>
           <span class="about-stat-label">オンラインツール</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 120ms">
-          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="about-stat-icon" />
           <span class="about-stat-num">{CATEGORIES.length}</span>
           <span class="about-stat-label">カテゴリー</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
-          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <Icon name="shield-check" class="about-stat-icon" />
           <span class="about-stat-num">0</span>
           <span class="about-stat-label">登録ステップ</span>
         </div>
@@ -89,7 +90,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="features-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="stars" /></span>
       <div>
         <h2 class="category-title" id="features-heading">主な特長</h2>
         <p class="category-blurb">CloverTools を選ぶ理由</p>
@@ -98,42 +99,42 @@ const aboutJsonLd = {
     <div class="feature-grid">
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <Icon name="lightning-charge" class="feature-icon" />
           <h3>すぐに使える</h3>
           <p>登録もインストールも不要 — ページを開いたらすぐ利用できます</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <Icon name="shield-lock" class="feature-icon" />
           <h3>プライバシー最優先</h3>
           <p>多くの入力は端末内で処理され、通信する機能は送信先を説明します</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <Icon name="pencil-square" class="feature-icon" />
           <h3>手作りの品質</h3>
           <p>各ツールは個別に作られ、入力チェックと使用例が組み込まれています</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="feature-icon" />
           <h3>わかりやすいカテゴリー</h3>
           <p>開発・日常・お楽しみの3つのコレクションに整理されています</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <Icon name="moon-stars" class="feature-icon" />
           <h3>どこでも使える</h3>
           <p>モバイル対応のレスポンシブデザインとダークモード対応</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <Icon name="github" class="feature-icon" />
           <h3>オープンソース</h3>
           <p>ソースコードは GitHub で公開中 — コントリビューションとフィードバックを歓迎します</p>
         </div>
@@ -143,7 +144,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="links-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="link-45deg" /></span>
       <div>
         <h2 class="category-title" id="links-heading">さらに詳しく</h2>
         <p class="category-blurb">リソースとコントリビューション</p>
@@ -151,16 +152,16 @@ const aboutJsonLd = {
     </header>
     <div class="about-links-panel about-reveal">
       <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i>
+        <Icon name="github" />
         GitHub リポジトリ
-        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+        <Icon name="box-arrow-up-right" class="link-out" />
       </a>
       <a class="btn btn-secondary" href="/sitemap-index.xml">
-        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <Icon name="diagram-3" />
         サイトマップ
       </a>
       <a class="btn btn-ghost" href="/ja/">
-        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <Icon name="house-door" />
         ホームに戻る
       </a>
     </div>

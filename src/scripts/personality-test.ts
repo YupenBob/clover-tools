@@ -1,3 +1,5 @@
+import { ArrowRight } from '../lib/icons/client-data';
+import { renderIconSvg } from '../lib/icons/svg';
 import {
   QUESTION_RULES,
   scorePersonality,
@@ -57,8 +59,8 @@ function question(focus = true): void {
   next.replaceChildren(
     document.createTextNode(index === answers.length - 1 ? t.finish : t.next),
   );
-  const icon = document.createElement("i");
-  icon.className = "bi bi-arrow-right";
+  const icon = document.createElement("span");
+  icon.innerHTML = renderIconSvg(ArrowRight);
   icon.setAttribute("aria-hidden", "true");
   next.append(icon);
   progress();

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'morse', 'ko')!;
 const related = getRelated(category, 'morse', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="모스 부호 변환" icon="bi-broadcast">
+  <ToolPanel title="모스 부호 변환" icon="broadcast">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="moSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="moClear" type="button"><i class="bi bi-x-circle"></i> 비우기</button>
+      <button class="btn btn-ghost btn-sm" id="moSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="moClear" type="button"><Icon name="x-circle" /> 비우기</button>
     </div>
     <div class="row">
       <div class="field">
@@ -24,19 +25,19 @@ const related = getRelated(category, 'morse', 'ko', 6);
     </div>
     <textarea class="textarea" id="moInput" spellcheck="false" placeholder="텍스트 또는 모스 부호 입력 (문자 사이는 공백, 단어 사이는 /로 구분)"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="moBtn" type="button"><i class="bi bi-broadcast"></i> 변환</button>
+      <button class="btn btn-primary" id="moBtn" type="button"><Icon name="broadcast" /> 변환</button>
     </div>
     <div class="status-msg" id="moStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="변환 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="moCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="moCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="moOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
   </ToolPanel>
 
-  <ToolPanel title="모스 부호표" icon="bi-table" className="mt-4">
+  <ToolPanel title="모스 부호표" icon="table" className="mt-4">
     <div class="mo-table" id="moTable"></div>
   </ToolPanel>
 </ToolLayout>

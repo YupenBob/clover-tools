@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'bcrypt', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Bcrypt ハッシュを生成" icon="bi-shield-check">
+  <ToolPanel title="Bcrypt ハッシュを生成" icon="shield-check">
     <div class="field">
       <label class="field-label" for="bcPwd">パスワード</label>
       <input class="input" id="bcPwd" type="password" placeholder="ハッシュ化するパスワードを入力" autocomplete="off" />
@@ -25,18 +26,18 @@ const related = getRelated(category, 'bcrypt', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="bcGen" type="button"><i class="bi bi-shield-check"></i> ハッシュを生成</button>
+      <button class="btn btn-primary" id="bcGen" type="button"><Icon name="shield-check" /> ハッシュを生成</button>
     </div>
     <div class="status-msg" id="bcGenStatus" role="status" aria-live="polite"></div>
     <div class="output-area mt-3">
       <textarea class="textarea" id="bcHash" readonly spellcheck="false" placeholder="生成されたハッシュがここに表示されます"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> ハッシュをコピー</button>
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><Icon name="clipboard" /> ハッシュをコピー</button>
     </div>
   </ToolPanel>
 
-  <ToolPanel title="パスワードの検証" icon="bi-shield-lock">
+  <ToolPanel title="パスワードの検証" icon="shield-lock">
     <div class="field">
       <label class="field-label" for="bcCheckPwd">検証するパスワード</label>
       <input class="input" id="bcCheckPwd" type="password" placeholder="パスワードを入力" autocomplete="off" />
@@ -46,12 +47,12 @@ const related = getRelated(category, 'bcrypt', 'ja', 6);
       <textarea class="textarea" id="bcCheckHash" spellcheck="false" placeholder="$2a$ / $2b$ / $2y$ で始まる Bcrypt ハッシュを貼り付け"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="bcVerify" type="button"><i class="bi bi-shield-lock"></i> 検証</button>
+      <button class="btn btn-primary" id="bcVerify" type="button"><Icon name="shield-lock" /> 検証</button>
     </div>
     <div class="status-msg" id="bcVerifyStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="説明" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="説明" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       Bcrypt はソルト付きハッシュアルゴリズムで、ハッシュ内にランダムソルトとコスト係数が含まれています。同じパスワードでも生成のたびに結果が異なります（$2b$10$... の 10 がコスト係数です）。
       検証時には生成時に使ったハッシュを使用する必要があります。コスト係数が高いほど計算が遅くなり、総当たり攻撃への耐性が高まるため、10〜12 を推奨します。処理はすべてブラウザ内でローカルに行われるため、パスワードがデバイスから送信されることはありません。

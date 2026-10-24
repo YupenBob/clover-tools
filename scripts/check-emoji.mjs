@@ -1,6 +1,6 @@
 /**
  * 图标规范扫描：构建产物中出现 emoji 字形即失败。
- * 全站图标必须使用 iconfont（bootstrap-icons），禁用 emoji。
+ * 全站图标使用内联 SVG 图标系统（Lucide + Morphicons），禁用 emoji。
  * 用法：node scripts/check-emoji.mjs
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';

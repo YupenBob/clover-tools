@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
@@ -10,7 +11,7 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-input-cursor" aria-hidden="true"></i> Input Content</h2>
+      <h2 class="panel-title"><Icon name="input-cursor" /> Input Content</h2>
     </div>
 
     <div class="seg" id="asciiMode" role="tablist" aria-label="Generation Mode">
@@ -50,10 +51,10 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
       <p class="field-hint" id="figletFontHint"></p>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="figletSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> Sample
+          <Icon name="magic" /> Sample
         </button>
         <button class="btn btn-ghost btn-sm" id="figletClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
+          <Icon name="x-circle" /> Clear
         </button>
       </div>
     </div>
@@ -94,17 +95,17 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
       </label>
       <div class="btn-row">
         <button class="btn btn-ghost btn-sm" id="cjkSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> Sample
+          <Icon name="magic" /> Sample
         </button>
         <button class="btn btn-ghost btn-sm" id="cjkClear" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> Clear
+          <Icon name="x-circle" /> Clear
         </button>
       </div>
     </div>
 
     <div class="mode-panel" id="panelImage" data-mode-panel="image" hidden>
       <div class="dropzone" id="imgDrop" role="button" tabindex="0" aria-label="Select image">
-        <i class="bi bi-image" aria-hidden="true"></i>
+        <Icon name="image" />
         <p>Click to select or drag an image here</p>
         <span class="field-hint">Supports PNG / JPG / GIF / WebP. Images are processed locally in your browser.</span>
         <input type="file" id="imgFile" accept="image/*" hidden>
@@ -153,13 +154,13 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
 
     <div class="btn-row">
       <button class="btn btn-primary" id="asciiRender" type="button">
-        <i class="bi bi-stars" aria-hidden="true"></i> Generate ASCII Art
+        <Icon name="stars" /> Generate ASCII Art
       </button>
       <button class="btn btn-ghost" id="asciiCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> Copy Result
+        <Icon name="clipboard" /> Copy Result
       </button>
       <button class="btn btn-ghost" id="asciiDownload" type="button">
-        <i class="bi bi-download" aria-hidden="true"></i> Download .txt
+        <Icon name="download" /> Download .txt
       </button>
     </div>
     <div class="status-msg" id="asciiStatus" role="status" aria-live="polite"></div>
@@ -167,7 +168,7 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-terminal" aria-hidden="true"></i> Terminal Output</h2>
+      <h2 class="panel-title"><Icon name="terminal" /> Terminal Output</h2>
       <div class="panel-actions">
         <label class="check check-sm" id="ansiWrap" title="When enabled, the terminal preview below is colorized; copied text embeds ANSI escape codes that display colors in a terminal (image mode uses true per-pixel color).">
           <input type="checkbox" id="ansiColor"> ANSI color (terminal preview + copy)
@@ -296,7 +297,7 @@ const related = getRelated(category, 'ascii-art', 'en', 6);
     box-shadow: var(--ring);
   }
 
-  .dropzone i {
+  .dropzone .icon {
     font-size: 30px;
     color: var(--primary-dark);
   }

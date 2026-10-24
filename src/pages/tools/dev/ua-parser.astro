@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,18 +10,18 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="User-Agent" icon="bi-pc-display">
+  <ToolPanel title="User-Agent" icon="pc-display">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uaSelf" type="button"><i class="bi bi-crosshair"></i> 使用本机 UA</button>
+      <button class="btn btn-ghost btn-sm" id="uaSelf" type="button"><Icon name="crosshair" /> 使用本机 UA</button>
     </div>
     <textarea class="textarea" id="uaInput" spellcheck="false" placeholder="粘贴 User-Agent 字符串"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uaBtn" type="button"><i class="bi bi-pc-display"></i> 解析</button>
+      <button class="btn btn-primary" id="uaBtn" type="button"><Icon name="pc-display" /> 解析</button>
     </div>
     <div class="status-msg" id="uaStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="解析结果" icon="bi-table">
+  <ToolPanel title="解析结果" icon="table">
     <table class="ip-table" id="uaTable"></table>
   </ToolPanel>
 </ToolLayout>

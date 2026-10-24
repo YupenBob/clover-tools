@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'hash', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入內容" icon="bi-fingerprint">
+  <ToolPanel title="輸入內容" icon="fingerprint">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="hashInput" spellcheck="false" placeholder="輸入要計算哈希的文本，或選擇文件"></textarea>
     <div class="row mt-3">
@@ -33,14 +34,14 @@ const related = getRelated(category, 'hash', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="hashBtn" type="button"><i class="bi bi-fingerprint"></i> 計算哈希</button>
+      <button class="btn btn-primary" id="hashBtn" type="button"><Icon name="fingerprint" /> 計算哈希</button>
     </div>
     <div class="status-msg" id="hashStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="哈希結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="哈希結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="hashOutput" readonly spellcheck="false" placeholder="哈希值將顯示在這裏"></textarea>
   </ToolPanel>

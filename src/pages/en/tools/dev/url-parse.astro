@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'url-parse', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Enter URL" icon="bi-diagram-3">
+  <ToolPanel title="Enter URL" icon="diagram-3">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <input class="input mono" id="upInput" type="text" placeholder="https://user:pass@example.com:8080/path?q=1&lang=zh#section" spellcheck="false" />
     <div class="btn-row">
-      <button class="btn btn-primary" id="upBtn" type="button"><i class="bi bi-diagram-3"></i> Parse</button>
+      <button class="btn btn-primary" id="upBtn" type="button"><Icon name="diagram-3" /> Parse</button>
     </div>
     <div class="status-msg" id="upStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="URL Structure" icon="bi-list-ol">
+  <ToolPanel title="URL Structure" icon="list-ol">
     <table class="up-table" id="upTable"></table>
   </ToolPanel>
 
-  <ToolPanel title="Query Parameters" icon="bi-key" className="mt-4">
+  <ToolPanel title="Query Parameters" icon="key" className="mt-4">
     <table class="up-table" id="upParams"></table>
   </ToolPanel>
 </ToolLayout>

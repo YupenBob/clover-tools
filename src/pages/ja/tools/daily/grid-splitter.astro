@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,19 +10,19 @@ const related = getRelated(category, 'grid-splitter', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="画像をアップロード" icon="bi-image">
+  <ToolPanel title="画像をアップロード" icon="image">
     <div class="field">
       <input class="input" id="gsFile" type="file" accept="image/*" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="gsBtn" type="button"><i class="bi bi-grid-3x3-gap"></i> 9分割する</button>
-      <button class="btn btn-ghost" id="gsDownload" type="button"><i class="bi bi-download"></i> すべてダウンロード</button>
+      <button class="btn btn-primary" id="gsBtn" type="button"><Icon name="grid-3x3-gap" /> 9分割する</button>
+      <button class="btn btn-ghost" id="gsDownload" type="button"><Icon name="download" /> すべてダウンロード</button>
     </div>
     <div class="status-msg" id="gsStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">正方形の画像が最適です。画像は端末内でのみ処理され、アップロードされることはありません。</p>
   </ToolPanel>
 
-  <ToolPanel title="分割プレビュー" icon="bi-grid-3x3-gap">
+  <ToolPanel title="分割プレビュー" icon="grid-3x3-gap">
     <div class="gs-grid" id="gsGrid"></div>
   </ToolPanel>
 </ToolLayout>

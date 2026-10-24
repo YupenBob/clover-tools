@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import ToolPanel from './ToolPanel.astro';
 import { FPS_CONFIG, GAME_PROFILES, WEAPON_PROFILES, TRAINING_MODES } from '../../config/fps.mjs';
 import { fpsText, type FpsText } from '../lib/fps-i18n';
@@ -15,14 +16,14 @@ const palette = FPS_CONFIG.scene.palette;
 const reticle = FPS_CONFIG.feedback.crosshair;
 const rangeStyle = `--fps-room:${palette.background};--fps-ink:${palette.ink};--fps-ball:${palette.ball};--fps-hit:${palette.hit};--fps-head:${palette.head};--fps-light:${palette.light};--fps-hud:${palette.ink}e6;--fps-reticle:${reticle.color};--fps-outline:${reticle.outline};--fps-reticle-size:${reticle.size}px;--fps-reticle-gap:${reticle.gap}px;--fps-reticle-stroke:${reticle.stroke}px;--fps-marker-size:${FPS_CONFIG.feedback.hitMarkerSize}px;`;
 ---
-<ToolPanel title={t.title} icon="bi-crosshair">
+<ToolPanel title={t.title} icon="crosshair">
   <div class="fps" id="fpsTrainer" data-lang={lang} style={rangeStyle}>
     <script type="application/json" id="fpsText" set:html={serialized} />
     <section id="fpsSetup">
       <div class="fps-intro"><div><span class="fps-tag">CS2 / VALORANT</span><h3>{t.lead}</h3><p>{t.rangeIntro}</p></div><svg class="fps-range-sketch" viewBox="0 0 280 150" aria-hidden="true"><path d="M18 120H262M48 142L116 72M232 142L164 72M80 105H200" /><circle cx="82" cy="68" r="17" /><circle cx="168" cy="36" r="12" /><circle cx="228" cy="77" r="15" /><path class="fps-sketch-aim" d="M132 62V72M132 86V96M115 79H125M139 79H149" /></svg></div>
       <form id="fpsSettings">
         <fieldset class="fps-quick"><legend>{t.quickStart}</legend><div class="fps-preset-row">{Object.entries(FPS_CONFIG.presets).map(([id, preset]) => <button type="button" class="btn btn-secondary fps-preset" data-fps-preset={id}><strong>{label(id)}</strong><small>{label(preset.mode + 'Desc')}</small></button>)}</div></fieldset>
-        <div class="fps-start-row"><button type="submit" class="btn btn-primary" id="fpsStart"><i class="bi bi-crosshair" aria-hidden="true"></i>{t.start}</button><p class="fps-small">{t.controls}<br />{t.adsHint}</p></div>
+        <div class="fps-start-row"><button type="submit" class="btn btn-primary" id="fpsStart"><Icon name="crosshair" />{t.start}</button><p class="fps-small">{t.controls}<br />{t.adsHint}</p></div>
         <div class="fps-workbench"><div class="fps-training-column">
         <div class="fps-row">
           <label>{t.game}<select name="game" id="fpsGame">{Object.entries(GAME_PROFILES).map(([id, game]) => <option value={id}>{game.name}</option>)}</select></label>

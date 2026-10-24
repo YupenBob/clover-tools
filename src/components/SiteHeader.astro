@@ -1,4 +1,6 @@
 ---
+import Icon from './Icon.astro';
+import MorphIcon from './MorphIcon.astro';
 import { SITE } from '../lib/site';
 import { DICT, LANGS, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
 import { switchLanguagePath } from '../../config/routes.mjs';
@@ -34,8 +36,8 @@ const LANG_LABELS: Record<Lang, string> = {
           </option>
         ))}
       </select>
-      <button class="icon-btn" id="themeToggle" type="button" aria-label={dict.switchTheme} title={dict.themeTitle}>
-        <i class="bi bi-moon-stars" id="themeIcon" aria-hidden="true"></i>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label={dict.switchTheme} title={dict.themeTitle} aria-pressed="false">
+        <MorphIcon id="themeIcon" name="moon-stars" size={20} />
       </button>
     </div>
   </div>
@@ -81,21 +83,36 @@ const LANG_LABELS: Record<Lang, string> = {
 </script>
 
 <script>
-  const btn = document.getElementById('themeToggle') as HTMLButtonElement;
-  const icon = document.getElementById('themeIcon') as HTMLElement;
+  import { MoonStar, Sun } from '../lib/icons/client-data';
 
-  function applyTheme(theme: 'light' | 'dark') {
-    document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('clover-theme', theme); } catch { /* Keep theme switching available without storage. */ }
-    icon.className = theme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+  type MorphHandle = HTMLElement & {
+    set: (icon: unknown) => void;
+    morphTo: (icon: unknown) => void;
+  };
+
+  const btn = document.getElementById('themeToggle') as HTMLButtonElement;
+  const icon = document.getElementById('themeIcon') as unknown as MorphHandle;
+
+  function currentTheme(): 'light' | 'dark' {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   }
 
-  const current = document.documentElement.getAttribute('data-theme');
-  applyTheme(current === 'dark' ? 'dark' : 'light');
+  function syncPressed() {
+    btn.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+  }
+
+  function applyTheme(theme: 'light' | 'dark', animate: boolean) {
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem('clover-theme', theme); } catch { /* Keep theme switching available without storage. */ }
+    const nextIcon = theme === 'dark' ? Sun : MoonStar;
+    if (animate) icon.morphTo(nextIcon);
+    else icon.set(nextIcon);
+    syncPressed();
+  }
+
+  applyTheme(currentTheme(), false);
 
   btn.addEventListener('click', () => {
-    const next =
-      document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
+    applyTheme(currentTheme() === 'dark' ? 'light' : 'dark', true);
   });
 </script>

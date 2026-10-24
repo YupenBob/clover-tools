@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Target Ball Tracking Training" icon="bi-crosshair">
+  <ToolPanel title="Target Ball Tracking Training" icon="crosshair">
     <div class="bt-panel">
       <!-- Panel background glow -->
       <div class="bt-bg" aria-hidden="true">
@@ -21,7 +22,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
       <!-- Act 1: Start -->
       <section id="btStart" class="bt-act">
         <header class="bt-hero">
-          <span class="bt-hero-badge"><i class="bi bi-crosshair" aria-hidden="true"></i></span>
+          <span class="bt-hero-badge"><Icon name="crosshair" /></span>
           <div class="bt-hero-title">Target Ball Tracking</div>
           <p class="bt-lead">Remember the marked balls and compare tracking performance under the same settings.</p>
         </header>
@@ -78,13 +79,13 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
         <div class="bt-options">
           <span class="bt-hint muted">Changing the ball count keeps mixing in new balls; whole-field rotation tests spatial orientation.</span>
           <div class="bt-option-btns">
-            <button class="bt-icon-btn" id="btFull" type="button" title="Focus Mode (Fullscreen)"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
-            <button class="bt-icon-btn" id="btMute" type="button" title="Toggle Sound" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+            <button class="bt-icon-btn" id="btFull" type="button" title="Focus Mode (Fullscreen)"><Icon name="arrows-fullscreen" /></button>
+            <button class="bt-icon-btn" id="btMute" type="button" title="Toggle Sound" aria-pressed="false"><Icon name="volume-up" /></button>
           </div>
         </div>
 
         <button class="bt-start-btn" id="btStartBtn" type="button">
-          <i class="bi bi-play-fill" aria-hidden="true"></i> Start Training
+          <Icon name="play-fill" /> Start Training
         </button>
       </section>
 
@@ -102,7 +103,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
           </div>
         </div>
         <div class="bt-train-head bt-glass">
-          <button class="bt-exit" id="btExit" type="button" title="Exit Training"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          <button class="bt-exit" id="btExit" type="button" title="Exit Training"><Icon name="x-lg" /></button>
           <div class="bt-train-meta">
             <span class="bt-train-mode" id="btModeLabel">Target Tracking</span>
             <span class="bt-train-phase" id="btPhaseText"></span>
@@ -132,8 +133,8 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
           <div class="bt-result-note" id="btNote"></div>
           <div class="bt-result-trend" id="btTrend" aria-label="Historical accuracy trend"></div>
           <div class="bt-result-actions">
-            <button class="btn btn-primary" id="btAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Another Round</button>
-            <button class="btn" id="btBack" type="button"><i class="bi bi-crosshair" aria-hidden="true"></i> Back to Selection</button>
+            <button class="btn btn-primary" id="btAgain" type="button"><Icon name="arrow-repeat" /> Another Round</button>
+            <button class="btn" id="btBack" type="button"><Icon name="crosshair" /> Back to Selection</button>
           </div>
         </div>
       </section>
@@ -145,27 +146,27 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="Target tracking game" icon="bi-crosshair">
+  <ToolPanel title="Target tracking game" icon="crosshair">
     <div class="bt-purpose">
       <p>This game asks you to follow moving targets among distractors and adapt to rotation. Scores describe correct choices and mistakes in this task. They do not prove changes in a particular brain region or provide medical diagnosis or treatment.</p>
       <div class="bt-purpose-grid">
         <div class="bt-purpose-item">
-          <i class="bi bi-crosshair" aria-hidden="true"></i>
+          <Icon name="crosshair" />
           <b>Dynamic Visual Tracking</b>
           <span>Follow the marked targets among identical-looking balls.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-shield-x" aria-hidden="true"></i>
+          <Icon name="shield-x" />
           <b>Temptation and Distraction Resistance</b>
           <span>Distinguish targets from distractors and choose according to the rules.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <Icon name="arrow-clockwise" />
           <b>Spatial Orientation and Rotation Tracking</b>
           <span>Observe target positions as the scene rotates.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <Icon name="graph-up" />
           <b>Quantified Progress</b>
           <span>Compare task accuracy, mistakes and trends under the same settings.</span>
         </div>
@@ -185,7 +186,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
         </table>
       </div>
       <p class="muted bt-tip">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <Icon name="info-circle" />
         We recommend 3–5 rounds per day. Aim to keep the target locked even after the marker disappears. Watch the trend rather than any single score — improvements become more noticeable after two weeks.
       </p>
     </div>
@@ -952,7 +953,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
     background: var(--bg-secondary);
   }
 
-  .bt-purpose-item i {
+  .bt-purpose-item .icon {
     font-size: 20px;
     color: var(--primary-dark);
     margin-bottom: 2px;
@@ -1001,7 +1002,7 @@ const related = getRelated(category, 'ball-tracker', 'en', 6);
     line-height: 1.7;
   }
 
-  .bt-tip i {
+  .bt-tip .icon {
     margin-top: 2px;
     color: var(--primary-dark);
   }

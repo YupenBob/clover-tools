@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'fuel', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="加油記錄" icon="bi-fuel-pump">
+  <ToolPanel title="加油記錄" icon="fuel-pump">
     <div class="row">
       <div class="field">
         <label class="field-label" for="fuelKm">行駛裏程（km）</label>
@@ -25,12 +26,12 @@ const related = getRelated(category, 'fuel', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="fuelBtn" type="button"><i class="bi bi-fuel-pump"></i> 計算油耗</button>
+      <button class="btn btn-primary" id="fuelBtn" type="button"><Icon name="fuel-pump" /> 計算油耗</button>
     </div>
     <div class="status-msg" id="fuelStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+  <ToolPanel title="計算結果" icon="clipboard-data">
     <div class="lc-result" id="fuelResult"></div>
   </ToolPanel>
 </ToolLayout>

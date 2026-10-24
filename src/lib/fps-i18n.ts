@@ -593,12 +593,12 @@ export function fpsContent(lang: Lang) {
     usage: `${t.rangeIntro} ${t.turnHint} ${t.audioHint} ${t.captureHint} ${t.fidelity} ${t.privacy}`,
     features: [
       {
-        icon: 'bi-crosshair',
+        icon: 'crosshair',
         text: `${t.botWarmup} / ${t.dots} / ${t.strafe}`,
       },
-      { icon: 'bi-bullseye', text: `${t.spray} / ${t.track} / ${t.switch}` },
-      { icon: 'bi-sliders', text: `${t.sensitivity} / ${t.calibration}` },
-      { icon: 'bi-bar-chart', text: `${t.report} / ${t.history}` },
+      { icon: 'bullseye', text: `${t.spray} / ${t.track} / ${t.switch}` },
+      { icon: 'sliders', text: `${t.sensitivity} / ${t.calibration}` },
+      { icon: 'bar-chart', text: `${t.report} / ${t.history}` },
     ],
   };
 }

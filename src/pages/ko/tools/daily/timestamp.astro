@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
@@ -10,10 +11,10 @@ const related = getRelated(category, 'timestamp', 'ko', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> 현재 시간</h2>
+      <h2 class="panel-title"><Icon name="clock" /> 현재 시간</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
-          <i class="bi bi-clipboard" aria-hidden="true"></i> 타임스탬프 복사
+          <Icon name="clipboard" /> 타임스탬프 복사
         </button>
       </div>
     </div>
@@ -35,7 +36,7 @@ const related = getRelated(category, 'timestamp', 'ko', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> 타임스탬프 → 날짜</h2>
+      <h2 class="panel-title"><Icon name="arrow-down-circle" /> 타임스탬프 → 날짜</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -45,10 +46,10 @@ const related = getRelated(category, 'timestamp', 'ko', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="tsToDateBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 변환
+        <Icon name="arrow-repeat" /> 변환
       </button>
       <button class="btn btn-ghost" id="tsUseNow" type="button">
-        <i class="bi bi-clock-history" aria-hidden="true"></i> 현재 타임스탬프 사용
+        <Icon name="clock-history" /> 현재 타임스탬프 사용
       </button>
     </div>
     <div class="output-area">
@@ -59,7 +60,7 @@ const related = getRelated(category, 'timestamp', 'ko', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> 날짜 → 타임스탬프</h2>
+      <h2 class="panel-title"><Icon name="arrow-up-circle" /> 날짜 → 타임스탬프</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -69,13 +70,13 @@ const related = getRelated(category, 'timestamp', 'ko', 6);
       <div class="field">
         <span class="field-label" aria-hidden="true">&nbsp;</span>
         <button class="btn btn-ghost" id="dateNowBtn" type="button">
-          <i class="bi bi-clock" aria-hidden="true"></i> 현재 시간 가져오기
+          <Icon name="clock" /> 현재 시간 가져오기
         </button>
       </div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="dateToTsBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 변환
+        <Icon name="arrow-repeat" /> 변환
       </button>
     </div>
     <div class="output-area">

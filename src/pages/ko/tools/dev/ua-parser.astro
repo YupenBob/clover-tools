@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,18 +10,18 @@ const related = getRelated(category, 'ua-parser', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="User-Agent" icon="bi-pc-display">
+  <ToolPanel title="User-Agent" icon="pc-display">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uaSelf" type="button"><i class="bi bi-crosshair"></i> 내 UA 사용</button>
+      <button class="btn btn-ghost btn-sm" id="uaSelf" type="button"><Icon name="crosshair" /> 내 UA 사용</button>
     </div>
     <textarea class="textarea" id="uaInput" spellcheck="false" placeholder="User-Agent 문자열 붙여넣기"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uaBtn" type="button"><i class="bi bi-pc-display"></i> 분석</button>
+      <button class="btn btn-primary" id="uaBtn" type="button"><Icon name="pc-display" /> 분석</button>
     </div>
     <div class="status-msg" id="uaStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="분석 결과" icon="bi-table">
+  <ToolPanel title="분석 결과" icon="table">
     <table class="ip-table" id="uaTable"></table>
   </ToolPanel>
 </ToolLayout>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
 
@@ -10,13 +11,13 @@ const related = getRelated(category, 'json-formatter', 'ko', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title" id="json-input-heading"><i class="bi bi-input-cursor" aria-hidden="true"></i> JSON 입력</h2>
+      <h2 class="panel-title" id="json-input-heading"><Icon name="input-cursor" /> JSON 입력</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="fillSample" type="button">
-          <i class="bi bi-magic" aria-hidden="true"></i> 예시
+          <Icon name="magic" /> 예시
         </button>
         <button class="btn btn-ghost btn-sm" id="clearInput" type="button">
-          <i class="bi bi-x-circle" aria-hidden="true"></i> 비우기
+          <Icon name="x-circle" /> 비우기
         </button>
       </div>
     </div>
@@ -41,13 +42,13 @@ const related = getRelated(category, 'json-formatter', 'ko', 6);
 
     <div class="btn-row">
       <button class="btn btn-primary" id="formatBtn" type="button">
-        <i class="bi bi-braces-asterisk" aria-hidden="true"></i> 포맷
+        <Icon name="braces-asterisk" /> 포맷
       </button>
       <button class="btn btn-secondary" id="minifyBtn" type="button">
-        <i class="bi bi-arrows-collapse" aria-hidden="true"></i> 압축
+        <Icon name="arrows-collapse" /> 압축
       </button>
       <button class="btn btn-ghost" id="validateBtn" type="button">
-        <i class="bi bi-check2-circle" aria-hidden="true"></i> 검증만
+        <Icon name="check2-circle" /> 검증만
       </button>
     </div>
 
@@ -56,10 +57,10 @@ const related = getRelated(category, 'json-formatter', 'ko', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title" id="json-output-heading"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> 출력 결과</h2>
+      <h2 class="panel-title" id="json-output-heading"><Icon name="box-arrow-in-down" /> 출력 결과</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyOutput" type="button">
-          <i class="bi bi-clipboard" aria-hidden="true"></i> 복사
+          <Icon name="clipboard" /> 복사
         </button>
       </div>
     </div>

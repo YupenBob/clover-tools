@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,36 +10,36 @@ const related = getRelated(category, 'browser-info', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Browser & Device Info" icon="bi-browser-chrome">
+  <ToolPanel title="Browser & Device Info" icon="browser-chrome">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="biRefresh" type="button"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+      <button class="btn btn-ghost btn-sm" id="biRefresh" type="button"><Icon name="arrow-clockwise" /> Refresh</button>
     </div>
-    <table class="bi-table" id="biTable"></table>
+    <table class="browser-table" id="biTable"></table>
   </ToolPanel>
 </ToolLayout>
 
 <style is:global>
-  .bi-table {
+  .browser-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
   }
 
-  .bi-table th,
-  .bi-table td {
+  .browser-table th,
+  .browser-table td {
     padding: 9px 12px;
     border-bottom: 1px solid var(--border);
     text-align: left;
     word-break: break-all;
   }
 
-  .bi-table th {
+  .browser-table th {
     width: 180px;
     color: var(--text-tertiary);
     font-weight: 500;
   }
 
-  .bi-table td {
+  .browser-table td {
     font-family: var(--font-mono);
     font-size: 13px;
   }

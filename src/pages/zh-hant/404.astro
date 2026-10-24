@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 ---
@@ -14,8 +15,8 @@ import { SITE } from '../../lib/site';
     <h1 class="nf-title">頁面不存在</h1>
     <p class="nf-desc" id="nfDesc">這個鏈接可能已失效，或者頁面還在建設中。</p>
     <div class="nf-actions">
-      <a class="btn btn-primary" href="/zh-hant/"><i class="bi bi-house-door" aria-hidden="true"></i> 返回首頁</a>
-      <a class="btn btn-secondary" href="/zh-hant/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> 打開在線萬年歷</a>
+      <a class="btn btn-primary" href="/zh-hant/"><Icon name="house-door" /> 返回首頁</a>
+      <a class="btn btn-secondary" href="/zh-hant/tools/daily/calendar/" id="nfGo"><Icon name="calendar3" /> 打開在線萬年歷</a>
     </div>
     <div class="nf-quick">
       <span class="nf-quick-label">常用工具</span>

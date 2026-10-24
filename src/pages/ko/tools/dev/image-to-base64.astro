@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,7 +9,7 @@ const tool = getToolMeta(category, 'image-to-base64', 'ko')!;
 const related = getRelated(category, 'image-to-base64', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="이미지 선택" icon="bi-image">
+  <ToolPanel title="이미지 선택" icon="image">
     <div class="field">
       <input class="input" id="i2bFile" type="file" accept="image/*" />
     </div>
@@ -31,15 +32,15 @@ const related = getRelated(category, 'image-to-base64', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="i2bBtn" type="button"><i class="bi bi-arrow-repeat"></i> Base64로 변환</button>
-      <button class="btn btn-ghost" id="i2bDownload" type="button"><i class="bi bi-download"></i> 변환 결과 다운로드</button>
+      <button class="btn btn-primary" id="i2bBtn" type="button"><Icon name="arrow-repeat" /> Base64로 변환</button>
+      <button class="btn btn-ghost" id="i2bDownload" type="button"><Icon name="download" /> 변환 결과 다운로드</button>
     </div>
     <div class="status-msg" id="i2bStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Base64 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Base64 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="i2bOutput" readonly spellcheck="false" placeholder="Base64 데이터가 여기에 표시됩니다"></textarea>
     <div class="input-stats"><span id="i2bStats"></span></div>

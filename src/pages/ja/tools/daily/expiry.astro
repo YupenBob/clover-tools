@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'expiry', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="賞味期限情報" icon="bi-calendar-x">
+  <ToolPanel title="賞味期限情報" icon="calendar-x">
     <div class="row">
       <div class="field">
         <label class="field-label" for="expDate">製造日</label>
@@ -21,12 +22,12 @@ const related = getRelated(category, 'expiry', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="expBtn" type="button"><i class="bi bi-calendar-x"></i> 期限日を計算</button>
+      <button class="btn btn-primary" id="expBtn" type="button"><Icon name="calendar-x" /> 期限日を計算</button>
     </div>
     <div class="status-msg" id="expStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="計算結果" icon="bi-clipboard-data">
+  <ToolPanel title="計算結果" icon="clipboard-data">
     <div class="lc-result" id="expResult"></div>
   </ToolPanel>
 </ToolLayout>

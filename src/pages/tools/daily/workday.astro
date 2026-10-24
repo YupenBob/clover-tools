@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,7 +10,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
-  <ToolPanel title="日期区间" icon="bi-briefcase">
+  <ToolPanel title="日期区间" icon="briefcase">
     <div class="row">
       <div class="field">
         <label class="field-label" for="wdStart">开始日期</label>
@@ -21,13 +22,13 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="wdBtn" type="button"><i class="bi bi-briefcase"></i> 计算工作日</button>
+      <button class="btn btn-primary" id="wdBtn" type="button"><Icon name="briefcase" /> 计算工作日</button>
     </div>
     <div class="status-msg" id="wdStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">自动排除周末，并依据国务院节假日安排识别调休（假日上班计入工作日）。</p>
   </ToolPanel>
 
-  <ToolPanel title="计算结果" icon="bi-clipboard-data">
+  <ToolPanel title="计算结果" icon="clipboard-data">
     <div class="lc-result" id="wdResult"></div>
   </ToolPanel>
 </ToolLayout>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -10,29 +11,29 @@ const related = getRelated(category, 'diff', 'ja', 6);
 
 <ToolLayout category={category} tool={tool} related={related}>
   <div class="diff-inputs">
-    <ToolPanel title="元のテキスト（A）" icon="bi-file-text" headingId="diff-heading-1">
+    <ToolPanel title="元のテキスト（A）" icon="file-text" headingId="diff-heading-1">
       <div slot="actions">
-        <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><i class="bi bi-magic"></i> サンプル</button>
+        <button class="btn btn-ghost btn-sm" id="diffSampleA" type="button"><Icon name="magic" /> サンプル</button>
       </div>
       <textarea class="textarea" id="diffA" spellcheck="false" placeholder="1 番目のテキスト" aria-labelledby="diff-heading-1"></textarea>
     </ToolPanel>
-    <ToolPanel title="比較テキスト（B）" icon="bi-file-text" headingId="diff-heading-2">
+    <ToolPanel title="比較テキスト（B）" icon="file-text" headingId="diff-heading-2">
       <div slot="actions">
-        <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><i class="bi bi-magic"></i> サンプル</button>
+        <button class="btn btn-ghost btn-sm" id="diffSampleB" type="button"><Icon name="magic" /> サンプル</button>
       </div>
       <textarea class="textarea" id="diffB" spellcheck="false" placeholder="2 番目のテキスト" aria-labelledby="diff-heading-2"></textarea>
     </ToolPanel>
   </div>
 
   <div class="btn-row diff-actions">
-    <button class="btn btn-primary" id="diffBtn" type="button"><i class="bi bi-file-diff"></i> 比較</button>
-    <button class="btn btn-ghost" id="diffSwap" type="button"><i class="bi bi-arrow-left-right"></i> A/B を入れ替え</button>
+    <button class="btn btn-primary" id="diffBtn" type="button"><Icon name="file-diff" /> 比較</button>
+    <button class="btn btn-ghost" id="diffSwap" type="button"><Icon name="arrow-left-right" /> A/B を入れ替え</button>
   </div>
   <div class="status-msg" id="diffStatus" role="status" aria-live="polite"></div>
 
-  <ToolPanel title="差分結果" icon="bi-box-arrow-in-down" headingId="diff-heading-3">
+  <ToolPanel title="差分結果" icon="box-arrow-in-down" headingId="diff-heading-3">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="diffCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea diff-output" id="diffOut" readonly spellcheck="false" placeholder="差分結果がここに表示されます" aria-labelledby="diff-heading-3"></textarea>
     <div class="input-stats"><span id="diffStats">0 行</span></div>

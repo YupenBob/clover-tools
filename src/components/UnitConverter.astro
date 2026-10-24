@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import ToolPanel from './ToolPanel.astro';
 import type { Lang } from '../lib/i18n';
 import { UNIT_DATA, type UnitCategory } from '../lib/unit-data';
@@ -9,7 +10,7 @@ const t = unitText(lang);
 const categories = Object.keys(UNIT_DATA[lang]) as UnitCategory[];
 const payload = JSON.stringify({ units: UNIT_DATA[lang], copy: t }).replace(/</g, '\\u003c');
 ---
-<ToolPanel title={t.settings} icon="bi-rulers" description={t.hint}>
+<ToolPanel title={t.settings} icon="rulers" description={t.hint}>
   <script type="application/json" id="unitData" set:html={payload} />
   <div class="field"><label class="field-label" for="ucCat">{t.category}</label><select class="select" id="ucCat">{categories.map((category) => <option value={category}>{t[category]}</option>)}</select></div>
   <div class="row unit-directions">
@@ -17,12 +18,12 @@ const payload = JSON.stringify({ units: UNIT_DATA[lang], copy: t }).replace(/</g
     <div class="field"><label class="field-label" for="ucTo">{t.to}</label><select class="select" id="ucTo"></select></div>
   </div>
   <div class="field mt-5"><label class="field-label" for="ucValue">{t.value}</label><input class="input mono unit-input" id="ucValue" type="number" value="1" step="any" /></div>
-  <div class="btn-row"><button class="btn btn-primary" id="ucBtn" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> {t.convert}</button><button class="btn btn-ghost" id="ucSwap" type="button"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {t.swap}</button></div>
+  <div class="btn-row"><button class="btn btn-primary" id="ucBtn" type="button"><Icon name="arrow-repeat" /> {t.convert}</button><button class="btn btn-ghost" id="ucSwap" type="button"><Icon name="arrow-left-right" /> {t.swap}</button></div>
   <div class="status-msg" id="ucStatus" role="status" aria-live="polite"></div>
 </ToolPanel>
-<ToolPanel title={t.result} icon="bi-arrow-left-right" surface="plain">
+<ToolPanel title={t.result} icon="arrow-left-right" surface="plain">
   <div class="unit-result" id="ucResult" role="status" aria-live="polite" aria-atomic="true"><span class="unit-source" id="ucSource"></span><strong class="unit-number" id="ucNumber">—</strong><span class="unit-name" id="ucUnit"></span></div>
-  <div slot="footer"><button class="btn btn-secondary" id="ucCopy" type="button"><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copy}</button></div>
+  <div slot="footer"><button class="btn btn-secondary" id="ucCopy" type="button"><Icon name="clipboard" /> {t.copy}</button></div>
 </ToolPanel>
 <script>
   import '../scripts/unit-converter';

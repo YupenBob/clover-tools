@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'workday', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="날짜 구간" icon="bi-briefcase">
+  <ToolPanel title="날짜 구간" icon="briefcase">
     <div class="row">
       <div class="field">
         <label class="field-label" for="wdStart">시작 날짜</label>
@@ -21,13 +22,13 @@ const related = getRelated(category, 'workday', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="wdBtn" type="button"><i class="bi bi-briefcase"></i> 근무일 계산</button>
+      <button class="btn btn-primary" id="wdBtn" type="button"><Icon name="briefcase" /> 근무일 계산</button>
     </div>
     <div class="status-msg" id="wdStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">주말을 자동으로 제외하고, 국무원 공휴일 일정에 따라 대체 근무일을 인식합니다（공휴일 근무는 근무일로 계산）.</p>
   </ToolPanel>
 
-  <ToolPanel title="계산 결과" icon="bi-clipboard-data">
+  <ToolPanel title="계산 결과" icon="clipboard-data">
     <div class="lc-result" id="wdResult"></div>
   </ToolPanel>
 </ToolLayout>

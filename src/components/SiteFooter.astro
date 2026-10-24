@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { SITE } from '../lib/site';
 import { DICT, getCategoryMetas, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
 
@@ -16,7 +17,7 @@ const lastUpdated = SITE.updated;
   <div class:list={['container', 'footer-inner', containerClass]}>
     <span>© {year} {SITE.name} · {dict.footerTagline}</span>
     <div class="footer-links">
-      <span class="footer-updated"><i class="bi bi-calendar-check" aria-hidden="true"></i> {dict.updated} {lastUpdated}</span>
+      <span class="footer-updated"><Icon name="calendar-check" /> {dict.updated} {lastUpdated}</span>
       {categories.map((cat) => (
         <a href={pathForLang(`/tools/${cat.id}/`, lang)}>{cat.name}</a>
       ))}
@@ -27,7 +28,7 @@ const lastUpdated = SITE.updated;
       <a href={pathForLang('/contact/', lang)}>{dict.contact}</a>
       <a href="/sitemap-index.xml">{dict.sitemap}</a>
       <a href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i> GitHub
+        <Icon name="github" /> GitHub
       </a>
     </div>
   </div>

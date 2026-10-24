@@ -1,0 +1,58 @@
+---
+import MorphIcon from 'morphicons/astro';
+import { ICONS, type IconName } from '../lib/icons/registry';
+import type { IconNode } from '../lib/icons/types';
+
+interface Props {
+  /** Rest icon (uncontrolled mode). */
+  name?: IconName;
+  /** Controlled mode endpoints. */
+  from?: IconName;
+  to?: IconName;
+  progress?: number;
+  /** Spring preset ("snappy" | "smooth" | "bouncy") or custom spring object. */
+  spring?: string | Record<string, number>;
+  /** "never" (default) | "user" (follow OS) | "always". */
+  reducedMotion?: 'never' | 'user' | 'always';
+  size?: number | string;
+  strokeWidth?: number | string;
+  /** Accessible name; omit for decorative icons. */
+  label?: string;
+  class?: string;
+  id?: string;
+}
+
+const {
+  name,
+  from,
+  to,
+  progress,
+  spring,
+  reducedMotion = 'user',
+  size = '1em',
+  strokeWidth = 2,
+  label,
+  ...rest
+} = Astro.props;
+
+const icon = name ? ICONS[name] : undefined;
+const fromIcon = from ? ICONS[from] : undefined;
+const toIcon = to ? ICONS[to] : undefined;
+
+// IconNode pairs are server-only in morphicons' Astro shell; string pairs ride
+// attributes. Passing data here keeps the SSR initial paint exact.
+const resolve = (value: IconNode | undefined) => value;
+---
+
+<MorphIcon
+  icon={resolve(icon)}
+  from={resolve(fromIcon)}
+  to={resolve(toIcon)}
+  progress={progress}
+  spring={spring as never}
+  reducedMotion={reducedMotion}
+  size={size}
+  strokeWidth={strokeWidth}
+  label={label}
+  {...rest}
+/>

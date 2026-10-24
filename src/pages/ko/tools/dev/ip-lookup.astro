@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,13 +10,13 @@ const related = getRelated(category, 'ip-lookup', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="내 IP" icon="bi-globe2">
+  <ToolPanel title="내 IP" icon="globe2">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="ipSelfCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 복사
+        <Icon name="clipboard" /> 복사
       </button>
       <button class="btn btn-ghost btn-sm" id="ipSelfRefresh" type="button">
-        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> 새로고침
+        <Icon name="arrow-clockwise" /> 새로고침
       </button>
     </div>
     <div class="ip-hero">
@@ -26,7 +27,7 @@ const related = getRelated(category, 'ip-lookup', 'ko', 6);
     <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="IP 주소 분석" icon="bi-hash">
+  <ToolPanel title="IP 주소 분석" icon="hash">
     <div class="row">
       <div class="field field-grow">
         <label class="field-label" for="ipInput">IP 주소 또는 도메인</label>
@@ -35,16 +36,16 @@ const related = getRelated(category, 'ip-lookup', 'ko', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="ipQuery" type="button">
-        <i class="bi bi-search" aria-hidden="true"></i> 분석 및 조회
+        <Icon name="search" /> 분석 및 조회
       </button>
       <button class="btn btn-ghost" id="ipPaste" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 붙여넣기
+        <Icon name="clipboard" /> 붙여넣기
       </button>
       <button class="btn btn-ghost" id="ipSample" type="button">
-        <i class="bi bi-magic" aria-hidden="true"></i> 예시
+        <Icon name="magic" /> 예시
       </button>
       <button class="btn btn-ghost" id="ipClear" type="button">
-        <i class="bi bi-x-circle" aria-hidden="true"></i> 지우기
+        <Icon name="x-circle" /> 지우기
       </button>
     </div>
     <p class="field-hint">주소 분석은 전적으로 브라우저 로컬에서 이루어집니다. 유효한 주소를 입력하면 잠시 후 자동으로 위치 정보를 조회하며, 언제든지 버튼을 클릭할 수 있습니다.</p>
@@ -68,14 +69,14 @@ const related = getRelated(category, 'ip-lookup', 'ko', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="위치 정보" icon="bi-globe-americas">
+  <ToolPanel title="위치 정보" icon="globe-americas">
     <div class="status-msg" id="ipGeoStatus" role="status" aria-live="polite"></div>
     <div class="ip-empty" id="ipGeoEmpty">조회 후 국가, 통신사, 위경도 등 위치 정보를 표시합니다 (온라인 조회)</div>
     <div id="ipGeoWrap" hidden>
       <div class="ip-kv" id="ipGeoTable"></div>
       <div class="ip-geo-foot">
         <a class="link-btn" id="ipMapLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-          <i class="bi bi-link-45deg" aria-hidden="true"></i> 지도에서 보기
+          <Icon name="link-45deg" /> 지도에서 보기
         </a>
         <span class="field-hint" id="ipGeoSource"></span>
       </div>

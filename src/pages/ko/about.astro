@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 import { getCategoryMetas, getTools, siteForLang, type ToolCategory } from '../../lib/i18n';
@@ -70,17 +71,17 @@ const aboutJsonLd = {
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
-          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <Icon name="tools" class="about-stat-icon" />
           <span class="about-stat-num">{totalTools}</span>
           <span class="about-stat-label">온라인 도구</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 120ms">
-          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="about-stat-icon" />
           <span class="about-stat-num">{CATEGORIES.length}</span>
           <span class="about-stat-label">카테고리</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
-          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <Icon name="shield-check" class="about-stat-icon" />
           <span class="about-stat-num">0</span>
           <span class="about-stat-label">가입 단계</span>
         </div>
@@ -90,7 +91,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="features-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="stars" /></span>
       <div>
         <h2 class="category-title" id="features-heading">주요 기능</h2>
         <p class="category-blurb">왜 CloverTools인가요?</p>
@@ -99,42 +100,42 @@ const aboutJsonLd = {
     <div class="feature-grid">
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <Icon name="lightning-charge" class="feature-icon" />
           <h3>즉시 사용 가능</h3>
           <p>회원가입도 설치도 없이 — 페이지를 열고 바로 사용하세요</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <Icon name="shield-lock" class="feature-icon" />
           <h3>개인정보 보호 우선</h3>
           <p>대부분의 입력은 로컬 처리되며 네트워크 도구는 전송 대상을 설명합니다</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <Icon name="pencil-square" class="feature-icon" />
           <h3>정성껏 만든 품질</h3>
           <p>모든 도구는 개별적으로 제작되며 입력 검증과 예시가 내장되어 있습니다</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="feature-icon" />
           <h3>명확한 카테고리</h3>
           <p>개발자, 일상, 재미 도구 — 체계적으로 정리된 세 가지 컬렉션</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <Icon name="moon-stars" class="feature-icon" />
           <h3>어디서나 작동</h3>
           <p>모바일 반응형 지원 및 다크 모드 지원</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <Icon name="github" class="feature-icon" />
           <h3>오픈 소스</h3>
           <p>소스 코드는 GitHub에 있습니다 — 기여와 피드백을 환영합니다</p>
         </div>
@@ -144,7 +145,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="links-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="link-45deg" /></span>
       <div>
         <h2 class="category-title" id="links-heading">더 알아보기</h2>
         <p class="category-blurb">리소스 및 기여</p>
@@ -152,16 +153,16 @@ const aboutJsonLd = {
     </header>
     <div class="about-links-panel about-reveal">
       <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i>
+        <Icon name="github" />
         GitHub 저장소
-        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+        <Icon name="box-arrow-up-right" class="link-out" />
       </a>
       <a class="btn btn-secondary" href="/sitemap-index.xml">
-        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <Icon name="diagram-3" />
         사이트맵
       </a>
       <a class="btn btn-ghost" href="/ko/">
-        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <Icon name="house-door" />
         홈으로 돌아가기
       </a>
     </div>

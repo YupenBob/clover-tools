@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ToolCard from '../../components/ToolCard.astro';
 import AdUnit from '../../components/AdUnit.astro';
@@ -70,7 +71,7 @@ const homeJsonLd = [
       <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
       <p class="hero-sub">{site.tagline}. {total} tools, ready to use instantly.</p>
       <div class="search-box">
-        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <Icon name="search" class="search-icon" />
         <input
           class="search-input"
           id="toolSearch"
@@ -80,13 +81,13 @@ const homeJsonLd = [
           aria-label="Search tools"
         />
         <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" hidden>
-          <i class="bi bi-x-lg" aria-hidden="true"></i>
+          <Icon name="x-lg" />
         </button>
         <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
       </div>
       <p class="hero-caption">
         <span id="builtCount" data-target={builtCount}>{builtCount}</span> tools live · Most tools process input locally ·
-        <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> Explore</button>
+        <button class="link-btn" id="randomBtn" type="button"><Icon name="shuffle" /> Explore</button>
       </p>
     </div>
   </section>
@@ -105,13 +106,13 @@ const homeJsonLd = [
   {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
       <div class="category-head">
-        <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
+        <span class="category-icon"><Icon name={cat.icon} /></span>
         <div>
           <h2 class="category-title">{cat.name}</h2>
           <p class="category-blurb">{cat.blurb}</p>
         </div>
         <span class="category-count">{TOOLS[cat.id].length} tools</span>
-        <a class="category-more" href={`/en/tools/${cat.id}/`} aria-label={`View all ${cat.name} tools`}>View all <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="category-more" href={`/en/tools/${cat.id}/`} aria-label={`View all ${cat.name} tools`}>View all <Icon name="arrow-right" /></a>
       </div>
       <div class="tool-grid">
         {TOOLS[cat.id].map((tool, ti) => (
@@ -128,7 +129,7 @@ const homeJsonLd = [
   ))}
 
   <div class="empty-state" id="searchEmpty">
-    <i class="bi bi-emoji-neutral" aria-hidden="true"></i>
+    <Icon name="emoji-neutral" />
     <p>No matching tools found</p>
     <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">Clear search &amp; filters</button>
   </div>

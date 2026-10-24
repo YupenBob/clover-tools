@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import ToolCard from '../../../components/ToolCard.astro';
 import AdUnit from '../../../components/AdUnit.astro';
@@ -45,8 +46,8 @@ const jsonLd = {
   jsonLd={jsonLd}
 >
   <nav class="breadcrumb" aria-label="面包屑">
-    <a href="/"><i class="bi bi-house-door" aria-hidden="true"></i> 首页</a>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <a href="/"><Icon name="house-door" /> 首页</a>
+    <Icon name="chevron-right" />
     <span>{cat.name}工具</span>
   </nav>
 
@@ -68,7 +69,7 @@ const jsonLd = {
     <span class="other-cats-label">更多分类</span>
     {others.map((c) => (
       <a class="other-cat-link" href={`/tools/${c.id}/`}>
-        <i class={`bi ${c.icon}`} aria-hidden="true"></i>
+        <Icon name={c.icon} />
         {c.name}
       </a>
     ))}

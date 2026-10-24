@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'url-encode', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入 URL 或文本" icon="bi-link-45deg" headingId="tool-input-heading">
+  <ToolPanel title="輸入 URL 或文本" icon="link-45deg" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="例如 https://example.com/搜索?q=中文 內容" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
@@ -27,14 +28,14 @@ const related = getRelated(category, 'url-encode', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> 轉換</button>
+      <button class="btn btn-primary" id="urlBtn" type="button"><Icon name="arrow-repeat" /> 轉換</button>
     </div>
     <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="轉換結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

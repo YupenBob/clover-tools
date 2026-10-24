@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import { TOOLS } from '../../../lib/tools';
 
@@ -10,10 +11,10 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 <ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> 当前时间</h2>
+      <h2 class="panel-title"><Icon name="clock" /> 当前时间</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
-          <i class="bi bi-clipboard" aria-hidden="true"></i> 复制时间戳
+          <Icon name="clipboard" /> 复制时间戳
         </button>
       </div>
     </div>
@@ -35,7 +36,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> 时间戳转日期</h2>
+      <h2 class="panel-title"><Icon name="arrow-down-circle" /> 时间戳转日期</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -45,10 +46,10 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="tsToDateBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 转换
+        <Icon name="arrow-repeat" /> 转换
       </button>
       <button class="btn btn-ghost" id="tsUseNow" type="button">
-        <i class="bi bi-clock-history" aria-hidden="true"></i> 用当前时间戳
+        <Icon name="clock-history" /> 用当前时间戳
       </button>
     </div>
     <div class="output-area">
@@ -59,7 +60,7 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> 日期转时间戳</h2>
+      <h2 class="panel-title"><Icon name="arrow-up-circle" /> 日期转时间戳</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -69,13 +70,13 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <div class="field">
         <span class="field-label" aria-hidden="true">&nbsp;</span>
         <button class="btn btn-ghost" id="dateNowBtn" type="button">
-          <i class="bi bi-clock" aria-hidden="true"></i> 取当前时间
+          <Icon name="clock" /> 取当前时间
         </button>
       </div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="dateToTsBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 转换
+        <Icon name="arrow-repeat" /> 转换
       </button>
     </div>
     <div class="output-area">

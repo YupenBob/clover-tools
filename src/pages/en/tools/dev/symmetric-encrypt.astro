@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'symmetric-encrypt', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Encryption / Decryption Config" icon="bi-lock">
+  <ToolPanel title="Encryption / Decryption Config" icon="lock">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><Icon name="magic" /> Sample</button>
     </div>
     <div class="row">
       <div class="field">
@@ -54,15 +55,15 @@ const related = getRelated(category, 'symmetric-encrypt', 'en', 6);
       <textarea class="textarea" id="encInput" spellcheck="false" placeholder="Enter plaintext to encrypt, or ciphertext to decrypt"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> Encrypt</button>
-      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> Decrypt</button>
+      <button class="btn btn-primary" id="encBtn" type="button"><Icon name="lock" /> Encrypt</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><Icon name="unlock" /> Decrypt</button>
     </div>
     <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output Result" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Output Result" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="Result will be displayed here"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,11 +9,11 @@ const tool = getToolMeta(category, 'reaction-test', 'ko')!;
 const related = getRelated(category, 'reaction-test', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="반응 속도 테스트" icon="bi-lightning-charge">
+  <ToolPanel title="반응 속도 테스트" icon="lightning-charge">
     <div class="rt-stage" id="rtStage">
       <div class="rt-toolbar">
         <button class="btn btn-secondary btn-sm rt-fullscreen" id="rtFullscreen" type="button" aria-pressed="false">
-          <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i><span id="rtFullscreenText">전체 화면</span>
+          <Icon name="arrows-fullscreen" /><span id="rtFullscreenText">전체 화면</span>
         </button>
       </div>
       <button class="rt-area" id="rtArea" type="button">
@@ -83,6 +84,8 @@ const related = getRelated(category, 'reaction-test', 'ko', 6);
 </style>
 
 <script>
+import { Maximize2, Minimize } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const area = byId<HTMLButtonElement>('rtArea');
@@ -149,14 +152,14 @@ const related = getRelated(category, 'reaction-test', 'ko', 6);
   const stage = byId<HTMLElement>('rtStage');
   const fullscreenBtn = byId<HTMLButtonElement>('rtFullscreen');
   const fullscreenText = byId<HTMLElement>('rtFullscreenText');
-  const fullscreenIcon = fullscreenBtn.querySelector('i');
+  const fullscreenIcon = fullscreenBtn.querySelector('.icon');
 
   function syncFullscreen() {
     const active = document.fullscreenElement === stage;
     fullscreenBtn.setAttribute('aria-pressed', String(active));
     fullscreenText.textContent = active ? '전체 화면 종료' : '전체 화면';
     if (fullscreenIcon) {
-      fullscreenIcon.className = active ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+      if (fullscreenIcon) fullscreenIcon.outerHTML = renderIconSvg(active ? Minimize : Maximize2);
     }
   }
 

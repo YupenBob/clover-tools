@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'text-transform', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入文本" icon="bi-textarea-t">
+  <ToolPanel title="輸入文本" icon="textarea-t">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="ttInput" spellcheck="false" placeholder="輸入要轉換的文本"></textarea>
     <div class="row mt-3">
@@ -34,14 +35,14 @@ const related = getRelated(category, 'text-transform', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="ttBtn" type="button"><i class="bi bi-arrow-repeat"></i> 轉換</button>
+      <button class="btn btn-primary" id="ttBtn" type="button"><Icon name="arrow-repeat" /> 轉換</button>
     </div>
     <div class="status-msg" id="ttStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="轉換結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="ttOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'bcrypt', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="生成 Bcrypt 哈希" icon="bi-shield-check">
+  <ToolPanel title="生成 Bcrypt 哈希" icon="shield-check">
     <div class="field">
       <label class="field-label" for="bcPwd">密碼</label>
       <input class="input" id="bcPwd" type="password" placeholder="輸入要哈希的密碼" autocomplete="off" />
@@ -25,18 +26,18 @@ const related = getRelated(category, 'bcrypt', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="bcGen" type="button"><i class="bi bi-shield-check"></i> 生成哈希</button>
+      <button class="btn btn-primary" id="bcGen" type="button"><Icon name="shield-check" /> 生成哈希</button>
     </div>
     <div class="status-msg" id="bcGenStatus" role="status" aria-live="polite"></div>
     <div class="output-area mt-3">
       <textarea class="textarea" id="bcHash" readonly spellcheck="false" placeholder="生成的哈希將顯示在這裏"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><i class="bi bi-clipboard"></i> 復制哈希</button>
+      <button class="btn btn-ghost btn-sm" id="bcCopy" type="button"><Icon name="clipboard" /> 復制哈希</button>
     </div>
   </ToolPanel>
 
-  <ToolPanel title="校驗密碼" icon="bi-shield-lock">
+  <ToolPanel title="校驗密碼" icon="shield-lock">
     <div class="field">
       <label class="field-label" for="bcCheckPwd">待校驗密碼</label>
       <input class="input" id="bcCheckPwd" type="password" placeholder="輸入密碼" autocomplete="off" />
@@ -46,12 +47,12 @@ const related = getRelated(category, 'bcrypt', 'tw', 6);
       <textarea class="textarea" id="bcCheckHash" spellcheck="false" placeholder="粘貼 $2a$ / $2b$ / $2y$ 開頭的 Bcrypt 哈希"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="bcVerify" type="button"><i class="bi bi-shield-lock"></i> 校驗</button>
+      <button class="btn btn-primary" id="bcVerify" type="button"><Icon name="shield-lock" /> 校驗</button>
     </div>
     <div class="status-msg" id="bcVerifyStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="說明" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="說明" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       Bcrypt 是加鹽哈希算法，哈希中自帶隨機鹽與成本因子，相同密碼每次生成的結果都不同（$2b$10$... 中的 10 即成本因子）。
       校驗時必須使用生成時的哈希，成本因子越高計算越慢、越抗暴力破解，推薦 10-12。全程在瀏覽器本地計算，密碼不會離開設備。

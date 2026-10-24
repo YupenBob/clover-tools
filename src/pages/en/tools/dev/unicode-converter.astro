@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'unicode-converter', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input Content" icon="bi-fonts" headingId="tool-input-heading">
+  <ToolPanel title="Input Content" icon="fonts" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder={"Enter text or \\uXXXX escape sequences"} aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> To Unicode</button>
-      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> Restore Text</button>
-      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> Analyze Characters</button>
+      <button class="btn btn-primary" id="uc2Enc" type="button"><Icon name="code-slash" /> To Unicode</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><Icon name="code-slash" /> Restore Text</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><Icon name="info-circle" /> Analyze Characters</button>
     </div>
     <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Result" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="Result" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

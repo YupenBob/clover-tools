@@ -4,6 +4,8 @@
  * Canvas 渲染与碰撞由 ball-engine 负责。
  */
 
+import { Crosshair, CirclePlus, RotateCw, Volume2, VolumeX } from '../lib/icons/client-data';
+import { renderIconSvg } from '../lib/icons/svg';
 import { byId } from './toolkit';
 import { BallEngine, makeBall, type Ball, type BallKind } from './ball-engine';
 
@@ -18,9 +20,9 @@ interface ModeMeta {
 }
 
 const MODES: Record<ModeId, ModeMeta> = {
-  track: { id: 'track', name: '目标追踪', icon: 'bi-crosshair', desc: '记住目标球，移动后找出' },
-  flux: { id: 'flux', name: '数量增减', icon: 'bi-plus-circle', desc: '追踪中不断混入新球' },
-  rotate: { id: 'rotate', name: '整体旋转', icon: 'bi-arrow-clockwise', desc: '场景旋转中锁定目标' },
+  track: { id: 'track', name: '目标追踪', icon: 'crosshair', desc: '记住目标球，移动后找出' },
+  flux: { id: 'flux', name: '数量增减', icon: 'plus-circle', desc: '追踪中不断混入新球' },
+  rotate: { id: 'rotate', name: '整体旋转', icon: 'arrow-clockwise', desc: '场景旋转中锁定目标' },
 };
 
 const MODE_ORDER: ModeId[] = ['track', 'flux', 'rotate'];
@@ -247,7 +249,7 @@ function buildModeTabs() {
     btn.className = 'bt-mode';
     btn.dataset.mode = id;
     btn.innerHTML =
-      `<span class="bt-mode-ico"><i class="bi ${m.icon}" aria-hidden="true"></i></span>` +
+      `<span class="bt-mode-ico">${renderIconSvg({ crosshair: Crosshair, 'plus-circle': CirclePlus, 'arrow-clockwise': RotateCw }[m.icon] ?? Crosshair)}</span>` +
       `<span>${m.name}</span>` +
       `<span class="bt-mode-desc">${m.desc}</span>`;
     btn.addEventListener('click', () => setMode(id));
@@ -581,7 +583,7 @@ backBtn.addEventListener('click', exitTraining);
 muteBtn.addEventListener('click', () => {
   muted = !muted;
   muteBtn.setAttribute('aria-pressed', String(muted));
-  muteBtn.innerHTML = muted ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>' : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+  muteBtn.innerHTML = renderIconSvg(muted ? VolumeX : Volume2);
   savePrefs();
 });
 canvas.addEventListener('click', onCanvasClick);
@@ -616,7 +618,7 @@ if (typeof prefs.rotateSpeed === 'number' && prefs.rotateSpeed >= ROTATE_MIN && 
 if (typeof prefs.muted === 'boolean') {
   muted = prefs.muted;
   muteBtn.setAttribute('aria-pressed', String(muted));
-  muteBtn.innerHTML = muted ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>' : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+  muteBtn.innerHTML = renderIconSvg(muted ? VolumeX : Volume2);
 }
 sizeInput.value = String(size);
 targetsInput.value = String(targets);

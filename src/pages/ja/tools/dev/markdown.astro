@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,12 +10,12 @@ const related = getRelated(category, 'markdown', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Markdown オンラインエディター" icon="bi-markdown">
+  <ToolPanel title="Markdown オンラインエディター" icon="markdown">
     <div slot="actions">
       <div class="md-views" role="group" aria-label="表示切り替え">
-        <button class="md-view active" data-view="split" type="button" title="分割表示"><i class="bi bi-columns-gap"></i> 分割表示</button>
-        <button class="md-view" data-view="edit" type="button" title="編集"><i class="bi bi-pencil-square"></i> 編集</button>
-        <button class="md-view" data-view="preview" type="button" title="プレビュー"><i class="bi bi-eye"></i> プレビュー</button>
+        <button class="md-view active" data-view="split" type="button" title="分割表示"><Icon name="columns-gap" /> 分割表示</button>
+        <button class="md-view" data-view="edit" type="button" title="編集"><Icon name="pencil-square" /> 編集</button>
+        <button class="md-view" data-view="preview" type="button" title="プレビュー"><Icon name="eye" /> プレビュー</button>
       </div>
     </div>
 
@@ -23,45 +24,45 @@ const related = getRelated(category, 'markdown', 'ja', 6);
       <button class="md-tbtn" data-cmd="h2" type="button" title="見出し2">H2</button>
       <button class="md-tbtn" data-cmd="h3" type="button" title="見出し3">H3</button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="bold" type="button" title="太字 (Ctrl+B)"><i class="bi bi-type-bold"></i></button>
-      <button class="md-tbtn" data-cmd="italic" type="button" title="斜体 (Ctrl+I)"><i class="bi bi-type-italic"></i></button>
-      <button class="md-tbtn" data-cmd="strike" type="button" title="取り消し線 (Ctrl+U)"><i class="bi bi-type-strikethrough"></i></button>
+      <button class="md-tbtn" data-cmd="bold" type="button" title="太字 (Ctrl+B)"><Icon name="type-bold" /></button>
+      <button class="md-tbtn" data-cmd="italic" type="button" title="斜体 (Ctrl+I)"><Icon name="type-italic" /></button>
+      <button class="md-tbtn" data-cmd="strike" type="button" title="取り消し線 (Ctrl+U)"><Icon name="type-strikethrough" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="code" type="button" title="インラインコード (Ctrl+Shift+C)"><i class="bi bi-code-slash"></i></button>
-      <button class="md-tbtn" data-cmd="codeblock" type="button" title="コードブロック (Ctrl+Shift+K)"><i class="bi bi-code-square"></i></button>
-      <button class="md-tbtn" data-cmd="quote" type="button" title="引用 (Ctrl+Shift+Q)"><i class="bi bi-quote"></i></button>
+      <button class="md-tbtn" data-cmd="code" type="button" title="インラインコード (Ctrl+Shift+C)"><Icon name="code-slash" /></button>
+      <button class="md-tbtn" data-cmd="codeblock" type="button" title="コードブロック (Ctrl+Shift+K)"><Icon name="code-square" /></button>
+      <button class="md-tbtn" data-cmd="quote" type="button" title="引用 (Ctrl+Shift+Q)"><Icon name="quote" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="ul" type="button" title="番号なしリスト"><i class="bi bi-list-ul"></i></button>
-      <button class="md-tbtn" data-cmd="ol" type="button" title="番号付きリスト"><i class="bi bi-list-ol"></i></button>
-      <button class="md-tbtn" data-cmd="task" type="button" title="タスクリスト"><i class="bi bi-check2-square"></i></button>
+      <button class="md-tbtn" data-cmd="ul" type="button" title="番号なしリスト"><Icon name="list-ul" /></button>
+      <button class="md-tbtn" data-cmd="ol" type="button" title="番号付きリスト"><Icon name="list-ol" /></button>
+      <button class="md-tbtn" data-cmd="task" type="button" title="タスクリスト"><Icon name="check2-square" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="link" type="button" title="リンク (Ctrl+K)"><i class="bi bi-link-45deg"></i></button>
-      <button class="md-tbtn" data-cmd="image" type="button" title="画像"><i class="bi bi-image"></i></button>
-      <button class="md-tbtn" data-cmd="table" type="button" title="テーブル"><i class="bi bi-table"></i></button>
-      <button class="md-tbtn" data-cmd="hr" type="button" title="区切り線"><i class="bi bi-hr"></i></button>
+      <button class="md-tbtn" data-cmd="link" type="button" title="リンク (Ctrl+K)"><Icon name="link-45deg" /></button>
+      <button class="md-tbtn" data-cmd="image" type="button" title="画像"><Icon name="image" /></button>
+      <button class="md-tbtn" data-cmd="table" type="button" title="テーブル"><Icon name="table" /></button>
+      <button class="md-tbtn" data-cmd="hr" type="button" title="区切り線"><Icon name="hr" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="toc" type="button" title="目次"><i class="bi bi-list-check"></i></button>
+      <button class="md-tbtn" data-cmd="toc" type="button" title="目次"><Icon name="list-check" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="undo" type="button" title="元に戻す (Ctrl+Z)"><i class="bi bi-arrow-counterclockwise"></i></button>
-      <button class="md-tbtn" data-cmd="redo" type="button" title="やり直す (Ctrl+Y / Ctrl+Shift+Z)"><i class="bi bi-arrow-clockwise"></i></button>
+      <button class="md-tbtn" data-cmd="undo" type="button" title="元に戻す (Ctrl+Z)"><Icon name="arrow-counterclockwise" /></button>
+      <button class="md-tbtn" data-cmd="redo" type="button" title="やり直す (Ctrl+Y / Ctrl+Shift+Z)"><Icon name="arrow-clockwise" /></button>
       <span class="md-sep"></span>
-      <button class="md-tbtn" data-cmd="fullscreen" type="button" title="全画面表示"><i class="bi bi-arrows-fullscreen"></i></button>
-      <button class="md-tbtn" data-cmd="help" type="button" title="ヘルプ"><i class="bi bi-question-circle"></i></button>
-      <button class="md-tbtn" data-cmd="draft" type="button" title="下書きをクリア (Ctrl+Shift+Del)"><i class="bi bi-eraser"></i></button>
+      <button class="md-tbtn" data-cmd="fullscreen" type="button" title="全画面表示"><Icon name="arrows-fullscreen" /></button>
+      <button class="md-tbtn" data-cmd="help" type="button" title="ヘルプ"><Icon name="question-circle" /></button>
+      <button class="md-tbtn" data-cmd="draft" type="button" title="下書きをクリア (Ctrl+Shift+Del)"><Icon name="eraser" /></button>
     </div>
 
     <nav class="md-toc" id="mdToc" hidden aria-label="目次"></nav>
 
     <div class="md-findbar" id="mdFindBar" hidden>
       <input class="input md-find-input" id="mdFind" type="text" placeholder="検索…" autocomplete="off" />
-      <button class="md-tbtn" id="mdFindPrev" type="button" title="前へ (Shift+Enter)"><i class="bi bi-arrow-up"></i></button>
-      <button class="md-tbtn" id="mdFindNext" type="button" title="次へ (Enter)"><i class="bi bi-arrow-down"></i></button>
+      <button class="md-tbtn" id="mdFindPrev" type="button" title="前へ (Shift+Enter)"><Icon name="arrow-up" /></button>
+      <button class="md-tbtn" id="mdFindNext" type="button" title="次へ (Enter)"><Icon name="arrow-down" /></button>
       <span class="md-find-count" id="mdFindCount">0 件一致</span>
       <input class="input md-find-input" id="mdReplace" type="text" placeholder="置換…" autocomplete="off" />
-      <button class="md-tbtn" id="mdReplaceOne" type="button" title="置換 (Ctrl+Enter)"><i class="bi bi-arrow-repeat"></i></button>
-      <button class="md-tbtn" id="mdReplaceAll" type="button" title="すべて置換"><i class="bi bi-list-check"></i></button>
-      <button class="md-tbtn" id="mdFindCase" type="button" title="大文字と小文字を区別"><i class="bi bi-fonts"></i></button>
-      <button class="md-tbtn" id="mdFindClose" type="button" title="閉じる (Esc)"><i class="bi bi-x-lg"></i></button>
+      <button class="md-tbtn" id="mdReplaceOne" type="button" title="置換 (Ctrl+Enter)"><Icon name="arrow-repeat" /></button>
+      <button class="md-tbtn" id="mdReplaceAll" type="button" title="すべて置換"><Icon name="list-check" /></button>
+      <button class="md-tbtn" id="mdFindCase" type="button" title="大文字と小文字を区別"><Icon name="fonts" /></button>
+      <button class="md-tbtn" id="mdFindClose" type="button" title="閉じる (Esc)"><Icon name="x-lg" /></button>
     </div>
 
     <div class="md-body split" id="mdBody">
@@ -83,12 +84,12 @@ const related = getRelated(category, 'markdown', 'ja', 6);
     </div>
 
     <div class="md-export">
-      <button class="btn btn-ghost btn-sm" id="mdOpen" type="button"><i class="bi bi-folder2-open"></i> .md を開く</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyMd" type="button"><i class="bi bi-clipboard"></i> ソースをコピー</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyHtml" type="button"><i class="bi bi-clipboard-check"></i> HTML をコピー</button>
-      <button class="btn btn-ghost btn-sm" id="mdCopyRich" type="button"><i class="bi bi-fonts"></i> リッチテキストをコピー</button>
-      <button class="btn btn-ghost btn-sm" id="mdDownloadMd" type="button"><i class="bi bi-filetype-md"></i> .md をダウンロード</button>
-      <button class="btn btn-ghost btn-sm" id="mdDownloadHtml" type="button"><i class="bi bi-filetype-html"></i> .html をダウンロード</button>
+      <button class="btn btn-ghost btn-sm" id="mdOpen" type="button"><Icon name="folder2-open" /> .md を開く</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyMd" type="button"><Icon name="clipboard" /> ソースをコピー</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyHtml" type="button"><Icon name="clipboard-check" /> HTML をコピー</button>
+      <button class="btn btn-ghost btn-sm" id="mdCopyRich" type="button"><Icon name="fonts" /> リッチテキストをコピー</button>
+      <button class="btn btn-ghost btn-sm" id="mdDownloadMd" type="button"><Icon name="filetype-md" /> .md をダウンロード</button>
+      <button class="btn btn-ghost btn-sm" id="mdDownloadHtml" type="button"><Icon name="filetype-html" /> .html をダウンロード</button>
       <input type="file" id="mdOpenFile" accept=".md,.markdown,.txt,text/markdown,text/plain" hidden />
     </div>
 
@@ -98,8 +99,8 @@ const related = getRelated(category, 'markdown', 'ja', 6);
   <div class="md-modal" id="mdModal" hidden>
     <div class="md-modal-card">
       <div class="md-modal-head">
-        <h3><i class="bi bi-question-circle" aria-hidden="true"></i> Markdown チートシート</h3>
-        <button class="icon-btn" id="mdModalClose" type="button" aria-label="閉じる"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        <h3><Icon name="question-circle" /> Markdown チートシート</h3>
+        <button class="icon-btn" id="mdModalClose" type="button" aria-label="閉じる"><Icon name="x-lg" /></button>
       </div>
       <div class="md-modal-body">
         <h4>基本構文</h4>
@@ -503,7 +504,7 @@ const related = getRelated(category, 'markdown', 'ja', 6);
     gap: 8px;
   }
 
-  .md-modal-head h3 i {
+  .md-modal-head h3 .icon {
     color: var(--primary-dark);
   }
 

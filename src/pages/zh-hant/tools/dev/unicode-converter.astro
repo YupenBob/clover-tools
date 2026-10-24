@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'unicode-converter', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入內容" icon="bi-fonts" headingId="tool-input-heading">
+  <ToolPanel title="輸入內容" icon="fonts" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Sample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Clear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="uc2Input" spellcheck="false" placeholder={"輸入文本或 \\uXXXX 轉義內容"} aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uc2Enc" type="button"><i class="bi bi-code-slash"></i> 轉 Unicode</button>
-      <button class="btn btn-secondary" id="uc2Dec" type="button"><i class="bi bi-code-slash"></i> 還原文本</button>
-      <button class="btn btn-ghost" id="uc2Char" type="button"><i class="bi bi-info-circle"></i> 逐字分析</button>
+      <button class="btn btn-primary" id="uc2Enc" type="button"><Icon name="code-slash" /> 轉 Unicode</button>
+      <button class="btn btn-secondary" id="uc2Dec" type="button"><Icon name="code-slash" /> 還原文本</button>
+      <button class="btn btn-ghost" id="uc2Char" type="button"><Icon name="info-circle" /> 逐字分析</button>
     </div>
     <div class="status-msg" id="uc2Status" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="uc2Copy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="uc2Output" readonly spellcheck="false" placeholder="結果將顯示在這裏" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

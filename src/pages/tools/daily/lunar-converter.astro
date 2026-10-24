@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -10,20 +11,20 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
   <div class="tool-layout">
-    <ToolPanel title="公历 → 农历" icon="bi-arrow-down">
+    <ToolPanel title="公历 → 农历" icon="arrow-down">
       <div class="field">
         <label class="field-label" for="lcSolar">公历日期</label>
         <input class="input" id="lcSolar" type="date" />
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" id="lcToLunar" type="button"><i class="bi bi-moon-stars"></i> 转农历</button>
-        <button class="btn btn-ghost" id="lcSolarToday" type="button"><i class="bi bi-calendar-check"></i> 今天</button>
+        <button class="btn btn-primary" id="lcToLunar" type="button"><Icon name="moon-stars" /> 转农历</button>
+        <button class="btn btn-ghost" id="lcSolarToday" type="button"><Icon name="calendar-check" /> 今天</button>
       </div>
       <div class="status-msg" id="lcLunarStatus" role="status" aria-live="polite"></div>
       <div class="lc-result" id="lcLunarResult"></div>
     </ToolPanel>
 
-    <ToolPanel title="农历 → 公历" icon="bi-arrow-up">
+    <ToolPanel title="农历 → 公历" icon="arrow-up">
       <div class="row">
         <div class="field">
           <label class="field-label" for="lcYear">农历年</label>
@@ -44,8 +45,8 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-primary" id="lcToSolar" type="button"><i class="bi bi-sun"></i> 转公历</button>
-        <button class="btn btn-ghost" id="lcTodayLunar" type="button"><i class="bi bi-calendar-check"></i> 今天</button>
+        <button class="btn btn-primary" id="lcToSolar" type="button"><Icon name="sun" /> 转公历</button>
+        <button class="btn btn-ghost" id="lcTodayLunar" type="button"><Icon name="calendar-check" /> 今天</button>
       </div>
       <div class="status-msg" id="lcSolarStatus" role="status" aria-live="polite"></div>
       <div class="lc-result" id="lcSolarResult"></div>

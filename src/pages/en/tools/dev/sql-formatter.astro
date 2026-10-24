@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,22 +10,22 @@ const related = getRelated(category, 'sql-formatter', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input SQL" icon="bi-database" headingId="tool-input-heading">
+  <ToolPanel title="Input SQL" icon="database" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="Paste SQL statement" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="sqfBtn" type="button"><i class="bi bi-braces"></i> Format</button>
-      <button class="btn btn-secondary" id="sqfMin" type="button"><i class="bi bi-arrows-collapse"></i> Minify</button>
+      <button class="btn btn-primary" id="sqfBtn" type="button"><Icon name="braces" /> Format</button>
+      <button class="btn btn-secondary" id="sqfMin" type="button"><Icon name="arrows-collapse" /> Minify</button>
     </div>
     <div class="status-msg" id="sqfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Formatted Result" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="Formatted Result" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

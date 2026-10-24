@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ToolCard from '../../components/ToolCard.astro';
 import AdUnit from '../../components/AdUnit.astro';
@@ -70,7 +71,7 @@ const homeJsonLd = [
       <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
       <p class="hero-sub">{site.tagline}. {total}개의 도구를 즉시 사용할 수 있어요.</p>
       <div class="search-box">
-        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <Icon name="search" class="search-icon" />
         <input
           class="search-input"
           id="toolSearch"
@@ -80,13 +81,13 @@ const homeJsonLd = [
           aria-label="도구 검색"
         />
         <button class="search-clear" id="searchClear" type="button" aria-label="검색어 지우기" hidden>
-          <i class="bi bi-x-lg" aria-hidden="true"></i>
+          <Icon name="x-lg" />
         </button>
         <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
       </div>
       <p class="hero-caption">
         <span id="builtCount" data-target={builtCount}>{builtCount}</span>개의 도구 제공 중 · 대부분의 도구는 로컬 처리 ·
-        <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> 둘러보기</button>
+        <button class="link-btn" id="randomBtn" type="button"><Icon name="shuffle" /> 둘러보기</button>
       </p>
     </div>
   </section>
@@ -105,13 +106,13 @@ const homeJsonLd = [
   {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
       <div class="category-head">
-        <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
+        <span class="category-icon"><Icon name={cat.icon} /></span>
         <div>
           <h2 class="category-title">{cat.name}</h2>
           <p class="category-blurb">{cat.blurb}</p>
         </div>
         <span class="category-count">{TOOLS[cat.id].length}개 도구</span>
-        <a class="category-more" href={`/ko/tools/${cat.id}/`} aria-label={`${cat.name} 도구 전체 보기`}>전체 보기 <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="category-more" href={`/ko/tools/${cat.id}/`} aria-label={`${cat.name} 도구 전체 보기`}>전체 보기 <Icon name="arrow-right" /></a>
       </div>
       <div class="tool-grid">
         {TOOLS[cat.id].map((tool, ti) => (
@@ -128,7 +129,7 @@ const homeJsonLd = [
   ))}
 
   <div class="empty-state" id="searchEmpty">
-    <i class="bi bi-emoji-neutral" aria-hidden="true"></i>
+    <Icon name="emoji-neutral" />
     <p>일치하는 도구가 없습니다</p>
     <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">검색어 및 필터 지우기</button>
   </div>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'image-filter', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="画像とフィルター" icon="bi-brush">
+  <ToolPanel title="画像とフィルター" icon="brush">
     <div class="field">
       <input class="input" id="flFile" type="file" accept="image/*" />
     </div>
@@ -29,13 +30,13 @@ const related = getRelated(category, 'image-filter', 'ja', 6);
       </select>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> フィルターを適用</button>
-      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> PNGをダウンロード</button>
+      <button class="btn btn-primary" id="flBtn" type="button"><Icon name="brush" /> フィルターを適用</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><Icon name="download" /> PNGをダウンロード</button>
     </div>
     <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="プレビュー" icon="bi-eye">
+  <ToolPanel title="プレビュー" icon="eye">
     <div class="fl-preview" id="flPreview"></div>
   </ToolPanel>
 </ToolLayout>

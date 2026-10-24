@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
-import '../styles/vendor/bootstrap-icons.css';
+import '../styles/icons.css';
+import '../styles/cards.css';
 import { ADSENSE_CLIENT, canServeAds } from '../lib/ads';
 import { alternateLanguages, isIndexablePath } from '../../config/routes.mjs';
 import SiteHeader from '../components/SiteHeader.astro';
@@ -84,13 +85,6 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     )}
 
     <link rel="preload" as="image" href="/clover-logo.svg" />
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      crossorigin
-      href="/fonts/bootstrap-icons.woff2?e34853135f9e39acf64315236852cd5a"
-    />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE.name} />
@@ -132,13 +126,13 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     </script>
   </head>
   <body>
-    <SiteHeader containerClass={contentClass} />
+    <SiteHeader />
     <main class="page-body">
       <div class:list={['container', contentClass]}>
         <slot />
       </div>
     </main>
-    <SiteFooter containerClass={contentClass} />
+    <SiteFooter />
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

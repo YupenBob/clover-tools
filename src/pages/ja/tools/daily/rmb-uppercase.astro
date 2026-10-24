@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'rmb-uppercase', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="金額" icon="bi-currency-yen">
+  <ToolPanel title="金額" icon="currency-yen">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rmbSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="rmbSample" type="button"><Icon name="magic" /> サンプル</button>
     </div>
     <div class="field">
       <label class="field-label" for="rmbInput">数字金額（元）</label>
       <input class="input" id="rmbInput" type="number" value="123456.78" step="0.01" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="rmbBtn" type="button"><i class="bi bi-currency-yen"></i> 大字に変換</button>
+      <button class="btn btn-primary" id="rmbBtn" type="button"><Icon name="currency-yen" /> 大字に変換</button>
     </div>
     <div class="status-msg" id="rmbStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="中国語の大字" icon="bi-box-arrow-in-down">
+  <ToolPanel title="中国語の大字" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rmbCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="rmbCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <div class="lc-result rmb-result" id="rmbOutput">--</div>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,24 +9,24 @@ const tool = getToolMeta(category, 'html-formatter', 'ko')!;
 const related = getRelated(category, 'html-formatter', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="HTML 입력" icon="bi-filetype-html" headingId="tool-input-heading">
+  <ToolPanel title="HTML 입력" icon="filetype-html" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="HTML 코드를 붙여넣으세요" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="htmlFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
-      <button class="btn btn-secondary" id="htmlMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
-      <button class="btn btn-ghost" id="htmlEnc" type="button"><i class="bi bi-code-slash"></i> 엔터티 인코딩</button>
-      <button class="btn btn-ghost" id="htmlDec" type="button"><i class="bi bi-code-slash"></i> 엔터티 디코딩</button>
+      <button class="btn btn-primary" id="htmlFmt" type="button"><Icon name="braces" /> 포맷</button>
+      <button class="btn btn-secondary" id="htmlMin" type="button"><Icon name="arrows-collapse" /> 압축</button>
+      <button class="btn btn-ghost" id="htmlEnc" type="button"><Icon name="code-slash" /> 엔터티 인코딩</button>
+      <button class="btn btn-ghost" id="htmlDec" type="button"><Icon name="code-slash" /> 엔터티 디코딩</button>
     </div>
     <div class="status-msg" id="htmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="출력 결과" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="htmlStats">0자</span></div>

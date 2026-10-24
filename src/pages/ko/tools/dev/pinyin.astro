@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'pinyin', 'ko')!;
 const related = getRelated(category, 'pinyin', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="중국어 입력" icon="bi-translate">
+  <ToolPanel title="중국어 입력" icon="translate">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="pySample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="pyClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="pySample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="pyClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="pyInput" spellcheck="false" placeholder="중국어 입력(예: 开发者工具箱)"></textarea>
     <div class="row mt-3">
@@ -34,14 +35,14 @@ const related = getRelated(category, 'pinyin', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="pyBtn" type="button"><i class="bi bi-translate"></i> 변환</button>
+      <button class="btn btn-primary" id="pyBtn" type="button"><Icon name="translate" /> 변환</button>
     </div>
     <div class="status-msg" id="pyStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="변환 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="변환 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="pyCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="pyCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="pyOutput" readonly spellcheck="false" placeholder="병음 결과가 여기에 표시됩니다"></textarea>
   </ToolPanel>

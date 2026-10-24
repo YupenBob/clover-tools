@@ -1,0 +1,507 @@
+/* ── Tool cards: Icon Spotlight (A) + featured (C) + mobile compact rows ── */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.tool-card {
+  --ct-radius: 16px;
+  --ct-hairline: #e9e2d4;
+  --ct-hairline-hover: rgba(201, 169, 110, 0.62);
+  --ct-tile-size: 46px;
+  --ct-tile-radius: 12px;
+  --ct-icon: #9a7b40;
+  --ct-icon-hover: #2b2415;
+  --ct-ink: #2b2415;
+  --ct-arrow: #8b8471;
+  --ct-arrow-border: #e5dfd2;
+  --ct-spot: rgba(201, 169, 110, 0.13);
+  --ct-shadow: 0 1px 2px rgba(60, 50, 20, 0.04), 0 8px 20px -12px rgba(60, 50, 20, 0.1);
+  --ct-shadow-hover: 0 2px 6px rgba(60, 50, 20, 0.05), 0 18px 34px -16px rgba(60, 50, 20, 0.22);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--ct-hairline);
+  border-radius: var(--ct-radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--ct-shadow);
+  overflow: hidden;
+  transition: transform 0.18s var(--ease-out, ease), box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+/* pointer-follow spotlight (pure CSS; --mx/--my set by one delegated listener) */
+.tool-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(
+    200px circle at var(--mx, 80%) var(--my, 0%),
+    var(--ct-spot),
+    transparent 66%
+  );
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tool-card.revealed {
+  animation: card-in 0.4s var(--ease-out, ease) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.tool-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tool-card-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tool-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ct-tile-size);
+  height: var(--ct-tile-size);
+  flex-shrink: 0;
+  border: 1px solid rgba(201, 169, 110, 0.24);
+  border-radius: var(--ct-tile-radius);
+  background: linear-gradient(180deg, rgba(201, 169, 110, 0.16), rgba(201, 169, 110, 0.06));
+  color: var(--ct-icon);
+  font-size: 24px;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.tool-card-icon .icon {
+  stroke-width: 1.75;
+}
+
+.tool-card-title {
+  margin: 0;
+  min-width: 0;
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.tool-card-badge {
+  margin-left: auto;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border: 1px solid rgba(201, 169, 110, 0.3);
+  border-radius: var(--radius-full);
+  background: rgba(201, 169, 110, 0.12);
+  color: #7d6129;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.tool-card-desc {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 3.1em;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.tool-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  min-width: 0;
+}
+
+.tool-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tool-card-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.65;
+  white-space: nowrap;
+}
+
+.tool-card-link {
+  display: none;
+}
+
+.tool-card-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border: 1px solid var(--ct-arrow-border);
+  border-radius: 50%;
+  color: var(--ct-arrow);
+  font-size: 15px;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.tool-card-arrow .icon {
+  transition: transform 0.18s ease;
+}
+
+/* ── Hover / focus (pointer devices only) ── */
+@media (hover: hover) and (pointer: fine) {
+  .tool-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--ct-hairline-hover);
+    box-shadow: var(--ct-shadow-hover);
+  }
+
+  .tool-card:hover::after {
+    opacity: 1;
+  }
+
+  .tool-card:hover .tool-card-icon {
+    border-color: transparent;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--ct-icon-hover);
+  }
+
+  .tool-card:hover .tool-card-arrow {
+    border-color: transparent;
+    background: rgba(201, 169, 110, 0.14);
+    color: #7d6129;
+  }
+
+  .tool-card:hover .tool-card-arrow .icon {
+    transform: translateX(2px);
+  }
+
+  .tool-card[data-featured]:hover .tool-card-media img {
+    transform: scale(1.03);
+  }
+}
+
+.tool-card:focus-visible {
+  outline: none;
+  border-color: rgba(201, 169, 110, 0.8);
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.28), var(--ct-shadow-hover);
+}
+
+.tool-card:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+/* ── Featured card (C): spans two columns, content + 16:9 preview ── */
+.tool-card[data-featured] {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.tool-card-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tool-card[data-featured] .tool-card-head {
+  flex-wrap: wrap;
+}
+
+.tool-card[data-featured] .tool-card-icon {
+  --ct-tile-size: 52px;
+  --ct-tile-radius: 14px;
+  font-size: 26px;
+}
+
+.tool-card[data-featured] .tool-card-title {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.tool-card[data-featured] .tool-card-desc {
+  -webkit-line-clamp: 3;
+  min-height: 4.65em;
+}
+
+.tool-card[data-featured] .tool-card-media {
+  display: block;
+  align-self: center;
+  width: min(44%, 300px);
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+  border: 1px solid var(--ct-hairline);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.tool-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.tool-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 32px;
+  margin-top: 2px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #d3b57c, #b6955a);
+  color: var(--ct-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.tool-card-cta .icon {
+  font-size: 14px;
+}
+
+/* ── Dark theme ── */
+[data-theme='dark'] .tool-card {
+  --ct-hairline: #383222;
+  --ct-hairline-hover: rgba(212, 184, 126, 0.55);
+  --ct-icon: #d4b87e;
+  --ct-icon-hover: #2b2415;
+  --ct-arrow: #8f8770;
+  --ct-arrow-border: #3d3626;
+  --ct-spot: rgba(212, 184, 126, 0.12);
+  --ct-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px -12px rgba(0, 0, 0, 0.55);
+  --ct-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.4), 0 18px 36px -16px rgba(0, 0, 0, 0.75);
+}
+
+[data-theme='dark'] .tool-card-badge {
+  border-color: rgba(212, 184, 126, 0.34);
+  background: rgba(212, 184, 126, 0.14);
+  color: #dcc68f;
+}
+
+[data-theme='dark'] .tool-card:hover .tool-card-arrow {
+  color: #dcc68f;
+}
+
+/* ── Mobile: compact rows inside one list surface ── */
+@media (max-width: 640px) {
+  .tool-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid #e9e2d4;
+    border-radius: 16px;
+    background: var(--bg-elevated);
+    box-shadow: 0 1px 2px rgba(60, 50, 20, 0.04), 0 8px 20px -12px rgba(60, 50, 20, 0.1);
+    overflow: hidden;
+  }
+
+  [data-theme='dark'] .tool-grid {
+    border-color: #383222;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  .tool-card {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 20px;
+    grid-template-rows: auto auto;
+    column-gap: 12px;
+    row-gap: 2px;
+    align-items: center;
+    padding: 12px 16px;
+    border: 0;
+    border-top: 1px solid var(--ct-hairline);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tool-card-main {
+    display: contents;
+  }
+
+  .tool-card:first-child {
+    border-top: 0;
+  }
+
+  .tool-card-head {
+    display: contents;
+  }
+
+  .tool-card-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 21px;
+  }
+
+  .tool-card-title {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 15.5px;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tool-card-badge {
+    display: none;
+  }
+
+  .tool-card-desc {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    -webkit-line-clamp: 1;
+    font-size: 12.5px;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .tool-card-foot {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    margin: 0;
+    justify-content: flex-end;
+  }
+
+  .tool-card-tags {
+    display: none;
+  }
+
+  .tool-card-arrow {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    background: none;
+    font-size: 16px;
+  }
+
+  .tool-card:hover,
+  .tool-card:active {
+    transform: none;
+  }
+
+  .tool-card::after {
+    display: none;
+  }
+
+  /* featured rows keep the list rhythm: thumbnail + copy */
+  .tool-card[data-featured] {
+    grid-column: auto;
+    grid-template-columns: 56px minmax(0, 1fr) 20px;
+    gap: 2px 12px;
+    padding: 12px 16px;
+  }
+
+  .tool-card[data-featured] .tool-card-main {
+    display: contents;
+  }
+
+  .tool-card[data-featured] .tool-card-head {
+    display: contents;
+  }
+
+  .tool-card[data-featured] .tool-card-title {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 15.5px;
+  }
+
+  .tool-card[data-featured] .tool-card-desc {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    -webkit-line-clamp: 1;
+    font-size: 12.5px;
+  }
+
+  .tool-card[data-featured] .tool-card-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    font-size: 24px;
+  }
+
+  .tool-card[data-featured] .tool-card-media {
+    display: none;
+  }
+
+  .tool-card-cta {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-card,
+  .tool-card::after,
+  .tool-card-icon,
+  .tool-card-arrow .icon,
+  .tool-card-media img {
+    animation: none;
+    transition: none;
+  }
+
+  .tool-card:hover {
+    transform: none;
+  }
+
+  .tool-card::after {
+    display: none;
+  }
+
+  html.js .tool-card:not(.revealed) {
+    opacity: 1;
+    transform: none;
+  }
+}

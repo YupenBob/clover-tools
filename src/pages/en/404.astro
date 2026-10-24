@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 ---
@@ -14,8 +15,8 @@ import { SITE } from '../../lib/site';
     <h1 class="nf-title">Page not found</h1>
     <p class="nf-desc" id="nfDesc">This link may be outdated, or the page is still under construction.</p>
     <div class="nf-actions">
-      <a class="btn btn-primary" href="/en/"><i class="bi bi-house-door" aria-hidden="true"></i> Back to home</a>
-      <a class="btn btn-secondary" href="/en/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> Open the calendar tool</a>
+      <a class="btn btn-primary" href="/en/"><Icon name="house-door" /> Back to home</a>
+      <a class="btn btn-secondary" href="/en/tools/daily/calendar/" id="nfGo"><Icon name="calendar3" /> Open the calendar tool</a>
     </div>
     <div class="nf-quick">
       <span class="nf-quick-label">POPULAR TOOLS</span>

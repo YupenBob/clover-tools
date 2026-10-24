@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="목표 공 추적 훈련" icon="bi-crosshair">
+  <ToolPanel title="목표 공 추적 훈련" icon="crosshair">
     <div class="bt-panel">
       <!-- 패널 배경 광휘 -->
       <div class="bt-bg" aria-hidden="true">
@@ -21,7 +22,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
       <!-- 제1막: 시작 -->
       <section id="btStart" class="bt-act">
         <header class="bt-hero">
-          <span class="bt-hero-badge"><i class="bi bi-crosshair" aria-hidden="true"></i></span>
+          <span class="bt-hero-badge"><Icon name="crosshair" /></span>
           <div class="bt-hero-title">목표 공 추적</div>
           <p class="bt-lead">표시된 공을 기억하고 같은 설정에서 추적 결과를 비교하세요.</p>
         </header>
@@ -78,13 +79,13 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
         <div class="bt-options">
           <span class="bt-hint muted">개수 증감은 계속 새 공을 섞어 넣고, 전체 회전은 공간 지향력을 시험합니다</span>
           <div class="bt-option-btns">
-            <button class="bt-icon-btn" id="btFull" type="button" title="집중 모드(전체 화면)"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
-            <button class="bt-icon-btn" id="btMute" type="button" title="효과음 켜기/끄기" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+            <button class="bt-icon-btn" id="btFull" type="button" title="집중 모드(전체 화면)"><Icon name="arrows-fullscreen" /></button>
+            <button class="bt-icon-btn" id="btMute" type="button" title="효과음 켜기/끄기" aria-pressed="false"><Icon name="volume-up" /></button>
           </div>
         </div>
 
         <button class="bt-start-btn" id="btStartBtn" type="button">
-          <i class="bi bi-play-fill" aria-hidden="true"></i> 훈련 시작
+          <Icon name="play-fill" /> 훈련 시작
         </button>
       </section>
 
@@ -102,7 +103,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
           </div>
         </div>
         <div class="bt-train-head bt-glass">
-          <button class="bt-exit" id="btExit" type="button" title="훈련 종료"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          <button class="bt-exit" id="btExit" type="button" title="훈련 종료"><Icon name="x-lg" /></button>
           <div class="bt-train-meta">
             <span class="bt-train-mode" id="btModeLabel">목표 공 추적</span>
             <span class="bt-train-phase" id="btPhaseText"></span>
@@ -132,8 +133,8 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
           <div class="bt-result-note" id="btNote"></div>
           <div class="bt-result-trend" id="btTrend" aria-label="역대 정확도 추이"></div>
           <div class="bt-result-actions">
-            <button class="btn btn-primary" id="btAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> 다시 한 세트</button>
-            <button class="btn" id="btBack" type="button"><i class="bi bi-crosshair" aria-hidden="true"></i> 모드 선택으로</button>
+            <button class="btn btn-primary" id="btAgain" type="button"><Icon name="arrow-repeat" /> 다시 한 세트</button>
+            <button class="btn" id="btBack" type="button"><Icon name="crosshair" /> 모드 선택으로</button>
           </div>
         </div>
       </section>
@@ -145,27 +146,27 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="목표 추적 게임" icon="bi-crosshair">
+  <ToolPanel title="목표 추적 게임" icon="crosshair">
     <div class="bt-purpose">
       <p>이 게임에서는 방해 요소 사이의 움직이는 목표를 추적하고 회전에 적응합니다. 점수는 해당 과제의 정답과 실수를 기록하며 특정 뇌 영역의 변화나 의학적 진단 및 치료 효과를 증명하지 않습니다.</p>
       <div class="bt-purpose-grid">
         <div class="bt-purpose-item">
-          <i class="bi bi-crosshair" aria-hidden="true"></i>
+          <Icon name="crosshair" />
           <b>동적 시각 추적</b>
           <span>같은 모양의 공 사이에서 표시된 목표를 추적합니다.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-shield-x" aria-hidden="true"></i>
+          <Icon name="shield-x" />
           <b>유혹과 방해에 저항</b>
           <span>목표와 방해 요소를 구별하여 규칙에 맞게 선택합니다.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <Icon name="arrow-clockwise" />
           <b>공간 지향과 회전 추적</b>
           <span>장면이 회전할 때 목표 위치를 관찰합니다.</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <Icon name="graph-up" />
           <b>정량적 성장 확인</b>
           <span>동일한 설정에서 정확도, 실수와 추세를 비교합니다.</span>
         </div>
@@ -185,7 +186,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
         </table>
       </div>
       <p class="muted bt-tip">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <Icon name="info-circle" />
         매일 3–5세트를 권장합니다. 목표는 표시가 사라진 뒤에도 목표를 계속 추적하는 것이며,
         1회 성적보다 추이를 관찰하는 것이 중요합니다. 2주 이상 꾸준히 하면 더 확실한 변화를 볼 수 있습니다.
       </p>
@@ -953,7 +954,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
     background: var(--bg-secondary);
   }
 
-  .bt-purpose-item i {
+  .bt-purpose-item .icon {
     font-size: 20px;
     color: var(--primary-dark);
     margin-bottom: 2px;
@@ -1002,7 +1003,7 @@ const related = getRelated(category, 'ball-tracker', 'ko', 6);
     line-height: 1.7;
   }
 
-  .bt-tip i {
+  .bt-tip .icon {
     margin-top: 2px;
     color: var(--primary-dark);
   }

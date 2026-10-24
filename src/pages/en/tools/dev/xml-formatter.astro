@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'xml-formatter', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input XML" icon="bi-filetype-xml" headingId="tool-input-heading">
+  <ToolPanel title="Input XML" icon="filetype-xml" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="xmlSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="xmlClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="xmlInput" spellcheck="false" placeholder="Paste XML data" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="xmlFmt" type="button"><i class="bi bi-braces"></i> Format</button>
-      <button class="btn btn-secondary" id="xmlMin" type="button"><i class="bi bi-arrows-collapse"></i> Minify</button>
-      <button class="btn btn-ghost" id="xmlCheck" type="button"><i class="bi bi-check2-circle"></i> Validate</button>
+      <button class="btn btn-primary" id="xmlFmt" type="button"><Icon name="braces" /> Format</button>
+      <button class="btn btn-secondary" id="xmlMin" type="button"><Icon name="arrows-collapse" /> Minify</button>
+      <button class="btn btn-ghost" id="xmlCheck" type="button"><Icon name="check2-circle" /> Validate</button>
     </div>
     <div class="status-msg" id="xmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="Output" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="xmlCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="xmlOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="xmlStats">0 characters</span></div>

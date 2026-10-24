@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,7 +9,7 @@ const tool = getToolMeta(category, 'image-filter', 'en')!;
 const related = getRelated(category, 'image-filter', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Image Filter" icon="bi-brush">
+  <ToolPanel title="Image Filter" icon="brush">
     <div class="field">
       <input class="input" id="flFile" type="file" accept="image/*" />
     </div>
@@ -28,13 +29,13 @@ const related = getRelated(category, 'image-filter', 'en', 6);
       </select>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> Apply Filter</button>
-      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> Download PNG</button>
+      <button class="btn btn-primary" id="flBtn" type="button"><Icon name="brush" /> Apply Filter</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><Icon name="download" /> Download PNG</button>
     </div>
     <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Preview" icon="bi-eye">
+  <ToolPanel title="Preview" icon="eye">
     <div class="fl-preview" id="flPreview"></div>
   </ToolPanel>
 </ToolLayout>

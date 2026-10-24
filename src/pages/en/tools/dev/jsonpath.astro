@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'jsonpath', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="JSON Data" icon="bi-braces">
+  <ToolPanel title="JSON Data" icon="braces">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><Icon name="magic" /> Sample</button>
     </div>
     <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="Paste JSON data"></textarea>
     <div class="field mt-3">
@@ -19,15 +20,15 @@ const related = getRelated(category, 'jsonpath', 'en', 6);
       <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> Query</button>
+      <button class="btn btn-primary" id="jpBtn" type="button"><Icon name="signpost-split" /> Query</button>
     </div>
     <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Supports $.key, ['key'], [0], [*], .. recursive descent, and [?(@.key == value)] filtering.</p>
   </ToolPanel>
 
-  <ToolPanel title="Query Results" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Query Results" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="Matching results will appear here"></textarea>
   </ToolPanel>

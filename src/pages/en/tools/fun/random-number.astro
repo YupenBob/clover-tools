@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'random-number', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Random Number Settings" icon="bi-shuffle">
+  <ToolPanel title="Random Number Settings" icon="shuffle">
     <div class="row">
       <div class="field">
         <label class="field-label" for="rnMin">Minimum</label>
@@ -30,14 +31,14 @@ const related = getRelated(category, 'random-number', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="rnBtn" type="button"><i class="bi bi-shuffle"></i> Generate Random Numbers</button>
+      <button class="btn btn-primary" id="rnBtn" type="button"><Icon name="shuffle" /> Generate Random Numbers</button>
     </div>
     <div class="status-msg" id="rnStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Results" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Results" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rnCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="rnCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="rnOutput" readonly spellcheck="false" placeholder="Results will appear here"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../components/Icon.astro';
 import BaseLayout from './BaseLayout.astro';
 import ToolGuide from '../components/ToolGuide.astro';
 import AdUnit from '../components/AdUnit.astro';
@@ -90,17 +91,17 @@ const jsonLd: Record<string, unknown>[] = [
  <article class="tool-page" data-tool={tool.slug} data-category={category} data-layout={layout} data-workspace={workspace}>
   <nav class="breadcrumb" aria-label={dict.breadcrumb}>
     <a href={pathForLang('/', lang)}>
-      <i class="bi bi-house-door" aria-hidden="true"></i> {dict.home}
+      <Icon name="house-door" /> {dict.home}
     </a>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <Icon name="chevron-right" />
     <a href={pathForLang(`/tools/${category}/`, lang)}>{categoryName}</a>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    <Icon name="chevron-right" />
     <span>{tool.name}</span>
   </nav>
 
   <slot name="hero">
     <header class="tool-hero">
-      <div class="tool-emblem" aria-hidden="true"><i class={`bi ${tool.icon}`}></i></div>
+      <div class="tool-emblem" aria-hidden="true"><Icon name={tool.icon} /></div>
       <div class="tool-heading">
         <p class="tool-eyebrow">{categoryName}<span aria-hidden="true">/</span>CloverTools</p>
         <h1>{tool.name}</h1>
@@ -115,11 +116,11 @@ const jsonLd: Record<string, unknown>[] = [
     </div>
     <div class="tool-discovery">
       <aside class="related-panel">
-        <h2 class="panel-title"><i class="bi bi-collection" aria-hidden="true"></i> {dict.related}</h2>
+        <h2 class="panel-title"><Icon name="collection" /> {dict.related}</h2>
         <div class="related-list">
           {related.map((item) => (
             <a class="related-item" href={pathForLang(getToolHref(category, item.slug), lang)}>
-              <i class={`bi ${item.icon}`} aria-hidden="true"></i>
+              <Icon name={item.icon} />
               <span>{item.name}</span>
             </a>
           ))}
@@ -135,13 +136,13 @@ const jsonLd: Record<string, unknown>[] = [
   {content && (
     <section class="tool-about" aria-labelledby="usage-heading">
       <h2 id="usage-heading" class="usage-title">
-        <i class="bi bi-info-circle" aria-hidden="true"></i> {dict.usageTitle}
+        <Icon name="info-circle" /> {dict.usageTitle}
       </h2>
       <p class="usage-intro">{content.usage}</p>
       <ul class="usage-features">
         {content.features.map((f) => (
           <li>
-            <i class={`bi ${f.icon}`} aria-hidden="true"></i>
+            <Icon name={f.icon} />
             <span>{f.text}</span>
           </li>
         ))}
@@ -174,7 +175,7 @@ const jsonLd: Record<string, unknown>[] = [
     font-weight: 700;
   }
 
-  .usage-title i {
+  .usage-title .icon {
     color: var(--primary-dark);
     font-size: 19px;
   }
@@ -204,7 +205,7 @@ const jsonLd: Record<string, unknown>[] = [
     color: var(--text-secondary);
   }
 
-  .usage-features i {
+  .usage-features .icon {
     flex-shrink: 0;
     margin-top: 2px;
     color: var(--primary-dark);

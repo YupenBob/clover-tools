@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="目標球追蹤訓練" icon="bi-crosshair">
+  <ToolPanel title="目標球追蹤訓練" icon="crosshair">
     <div class="bt-panel">
       <!-- 面板背景光暈 -->
       <div class="bt-bg" aria-hidden="true">
@@ -21,7 +22,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
       <!-- 第一幕：開始 -->
       <section id="btStart" class="bt-act">
         <header class="bt-hero">
-          <span class="bt-hero-badge"><i class="bi bi-crosshair" aria-hidden="true"></i></span>
+          <span class="bt-hero-badge"><Icon name="crosshair" /></span>
           <div class="bt-hero-title">目標球追蹤</div>
           <p class="bt-lead">記住標記球並觀察移動軌跡，比較相同設定下的追蹤表現。</p>
         </header>
@@ -78,13 +79,13 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
         <div class="bt-options">
           <span class="bt-hint muted">數量增減會不斷混入新球，整體旋轉考驗空間定向</span>
           <div class="bt-option-btns">
-            <button class="bt-icon-btn" id="btFull" type="button" title="專注模式（全屏）"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
-            <button class="bt-icon-btn" id="btMute" type="button" title="音效開關" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+            <button class="bt-icon-btn" id="btFull" type="button" title="專注模式（全屏）"><Icon name="arrows-fullscreen" /></button>
+            <button class="bt-icon-btn" id="btMute" type="button" title="音效開關" aria-pressed="false"><Icon name="volume-up" /></button>
           </div>
         </div>
 
         <button class="bt-start-btn" id="btStartBtn" type="button">
-          <i class="bi bi-play-fill" aria-hidden="true"></i> 開始訓練
+          <Icon name="play-fill" /> 開始訓練
         </button>
       </section>
 
@@ -102,7 +103,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
           </div>
         </div>
         <div class="bt-train-head bt-glass">
-          <button class="bt-exit" id="btExit" type="button" title="退出訓練"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          <button class="bt-exit" id="btExit" type="button" title="退出訓練"><Icon name="x-lg" /></button>
           <div class="bt-train-meta">
             <span class="bt-train-mode" id="btModeLabel">目標追蹤</span>
             <span class="bt-train-phase" id="btPhaseText"></span>
@@ -132,8 +133,8 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
           <div class="bt-result-note" id="btNote"></div>
           <div class="bt-result-trend" id="btTrend" aria-label="歷史準確率趨勢"></div>
           <div class="bt-result-actions">
-            <button class="btn btn-primary" id="btAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> 再來一組</button>
-            <button class="btn" id="btBack" type="button"><i class="bi bi-crosshair" aria-hidden="true"></i> 返回選擇</button>
+            <button class="btn btn-primary" id="btAgain" type="button"><Icon name="arrow-repeat" /> 再來一組</button>
+            <button class="btn" id="btBack" type="button"><Icon name="crosshair" /> 返回選擇</button>
           </div>
         </div>
       </section>
@@ -145,27 +146,27 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="目標追蹤遊戲" icon="bi-crosshair">
+  <ToolPanel title="目標追蹤遊戲" icon="crosshair">
     <div class="bt-purpose">
       <p>本遊戲練習在干擾球之間尋找目標、記住運動軌跡和適應整體旋轉。成績記錄本次任務中的正確選擇與誤觸，不證明特定腦區得到訓練，也不提供醫學診斷或治療效果。</p>
       <div class="bt-purpose-grid">
         <div class="bt-purpose-item">
-          <i class="bi bi-crosshair" aria-hidden="true"></i>
+          <Icon name="crosshair" />
           <b>動態視覺追蹤</b>
           <span>在外觀相同的球群中，持續觀察已標記目標。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-shield-x" aria-hidden="true"></i>
+          <Icon name="shield-x" />
           <b>抗誘惑與幹擾</b>
           <span>區分目標球與干擾球，按規則選擇。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <Icon name="arrow-clockwise" />
           <b>空間定向與旋轉追蹤</b>
           <span>在整體旋轉時觀察目標位置變化。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <Icon name="graph-up" />
           <b>量化進步</b>
           <span>查看準確率、錯點與趨勢，僅比較相同設定。</span>
         </div>
@@ -185,7 +186,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
         </table>
       </div>
       <p class="muted bt-tip">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <Icon name="info-circle" />
         建議每天 3–5 組；目標是標記消失後仍能鎖定目標，重點是觀察趨勢而非單次成績，堅持兩周以上更明顯。
       </p>
     </div>
@@ -952,7 +953,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
     background: var(--bg-secondary);
   }
 
-  .bt-purpose-item i {
+  .bt-purpose-item .icon {
     font-size: 20px;
     color: var(--primary-dark);
     margin-bottom: 2px;
@@ -1001,7 +1002,7 @@ const related = getRelated(category, 'ball-tracker', 'tw', 6);
     line-height: 1.7;
   }
 
-  .bt-tip i {
+  .bt-tip .icon {
     margin-top: 2px;
     color: var(--primary-dark);
   }

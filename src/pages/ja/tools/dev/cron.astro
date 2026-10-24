@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,9 +9,9 @@ const tool = getToolMeta(category, 'cron', 'ja')!;
 const related = getRelated(category, 'cron', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Cron 式" icon="bi-calendar2-week">
+  <ToolPanel title="Cron 式" icon="calendar2-week">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="cronSample" type="button"><Icon name="magic" /> サンプル</button>
     </div>
     <div class="row">
       <div class="field" style="flex: 2">
@@ -27,15 +28,15 @@ const related = getRelated(category, 'cron', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="cronBtn" type="button"><i class="bi bi-calendar-event"></i> 実行時刻を表示</button>
+      <button class="btn btn-primary" id="cronBtn" type="button"><Icon name="calendar-event" /> 実行時刻を表示</button>
     </div>
     <div class="status-msg" id="cronStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">5 フィールド（分・時・日・月・曜日）、6 フィールド（秒・分・時・日・月・曜日）、7 フィールド（秒・分・時・日・月・曜日・年）に対応しています。</p>
   </ToolPanel>
 
-  <ToolPanel title="今後の実行時刻" icon="bi-list-ol">
+  <ToolPanel title="今後の実行時刻" icon="list-ol">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="cronCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="cronOutput" readonly spellcheck="false" placeholder="実行時刻を表示すると結果がここに表示されます"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'hash', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="입력 내용" icon="bi-fingerprint">
+  <ToolPanel title="입력 내용" icon="fingerprint">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><i class="bi bi-magic"></i> 샘플</button>
-      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="hashSample" type="button"><Icon name="magic" /> 샘플</button>
+      <button class="btn btn-ghost btn-sm" id="hashClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="hashInput" spellcheck="false" placeholder="해시를 계산할 텍스트를 입력하거나 파일을 선택하세요"></textarea>
     <div class="row mt-3">
@@ -33,14 +34,14 @@ const related = getRelated(category, 'hash', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="hashBtn" type="button"><i class="bi bi-fingerprint"></i> 해시 계산</button>
+      <button class="btn btn-primary" id="hashBtn" type="button"><Icon name="fingerprint" /> 해시 계산</button>
     </div>
     <div class="status-msg" id="hashStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="해시 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="해시 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="hashCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="hashOutput" readonly spellcheck="false" placeholder="해시 값이 여기에 표시됩니다"></textarea>
   </ToolPanel>

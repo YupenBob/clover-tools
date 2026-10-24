@@ -1,3 +1,6 @@
+import { Braces, CircleDot, Disc, Grid, Repeat, Shuffle, Timer, Volume2, VolumeX } from '../lib/icons/client-data';
+import { renderIconSvg } from '../lib/icons/svg';
+
   import { byId } from './toolkit';
 
   type ModeId = 'classic' | 'interval' | 'disc' | 'dual' | 'memory' | 'countdown' | 'dual-task';
@@ -11,13 +14,13 @@
   }
 
   const MODES: Record<ModeId, ModeMeta> = {
-    classic: { id: 'classic', name: '经典方格', icon: 'bi-grid-3x3', desc: '从 1 按序点击', grid: true },
-    interval: { id: 'interval', name: '间隔变换', icon: 'bi-arrow-repeat', desc: '数字定时随机换位', grid: true },
-    disc: { id: 'disc', name: '旋转圆盘', icon: 'bi-disc', desc: '多环旋转动态追踪', grid: false },
-    dual: { id: 'dual', name: '双圆盘', icon: 'bi-record-circle', desc: '双盘独立旋转扫描', grid: false },
-    memory: { id: 'memory', name: '记忆方格', icon: 'bi-braces', desc: '先记后找，隐藏作答', grid: true },
-    countdown: { id: 'countdown', name: '倒计时挑战', icon: 'bi-stopwatch', desc: '限时冲刺，多点多分', grid: true },
-    'dual-task': { id: 'dual-task', name: '双任务干扰', icon: 'bi-shuffle', desc: '间隔弹出色词干扰题', grid: true },
+    classic: { id: 'classic', name: '经典方格', icon: 'grid-3x3', desc: '从 1 按序点击', grid: true },
+    interval: { id: 'interval', name: '间隔变换', icon: 'arrow-repeat', desc: '数字定时随机换位', grid: true },
+    disc: { id: 'disc', name: '旋转圆盘', icon: 'disc', desc: '多环旋转动态追踪', grid: false },
+    dual: { id: 'dual', name: '双圆盘', icon: 'record-circle', desc: '双盘独立旋转扫描', grid: false },
+    memory: { id: 'memory', name: '记忆方格', icon: 'braces', desc: '先记后找，隐藏作答', grid: true },
+    countdown: { id: 'countdown', name: '倒计时挑战', icon: 'stopwatch', desc: '限时冲刺，多点多分', grid: true },
+    'dual-task': { id: 'dual-task', name: '双任务干扰', icon: 'shuffle', desc: '间隔弹出色词干扰题', grid: true },
   };
 
   const MODE_ORDER: ModeId[] = ['classic', 'interval', 'disc', 'dual', 'memory', 'countdown', 'dual-task'];
@@ -289,7 +292,7 @@
       btn.setAttribute('role', 'tab');
       btn.setAttribute('aria-selected', String(id === mode));
       btn.innerHTML =
-        `<span class="st-mode-ico"><i class="bi ${m.icon}" aria-hidden="true"></i></span>` +
+        `<span class="st-mode-ico">${renderIconSvg({ 'grid-3x3': Grid, 'arrow-repeat': Repeat, disc: Disc, 'record-circle': CircleDot, braces: Braces, stopwatch: Timer, shuffle: Shuffle }[m.icon] ?? Grid)}</span>` +
         `<span>${m.name}</span>` +
         `<span class="st-mode-desc">${m.desc}</span>`;
       btn.addEventListener('click', () => setMode(id));
@@ -897,8 +900,8 @@
     muted = !muted;
     muteBtn.setAttribute('aria-pressed', String(muted));
     muteBtn.innerHTML = muted
-      ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>'
-      : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+      ? renderIconSvg(VolumeX)
+      : renderIconSvg(Volume2);
     savePrefs();
   });
   clearHistoryBtn.addEventListener('click', () => {
@@ -926,7 +929,7 @@
   if (typeof prefs.muted === 'boolean') {
     muted = prefs.muted;
     muteBtn.setAttribute('aria-pressed', String(muted));
-    muteBtn.innerHTML = muted ? '<i class="bi bi-volume-mute" aria-hidden="true"></i>' : '<i class="bi bi-volume-up" aria-hidden="true"></i>';
+    muteBtn.innerHTML = muted ? renderIconSvg(VolumeX) : renderIconSvg(Volume2);
   }
   sizeInput.value = String(size);
   sizeLabel.textContent = String(size);

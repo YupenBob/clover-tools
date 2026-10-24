@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'url-encode', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="URL またはテキストを入力" icon="bi-link-45deg" headingId="tool-input-heading">
+  <ToolPanel title="URL またはテキストを入力" icon="link-45deg" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="urlSample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="urlClear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <textarea class="textarea" id="urlInput" spellcheck="false" placeholder="例: https://example.com/検索?q=日本語 のテキスト" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
@@ -27,14 +28,14 @@ const related = getRelated(category, 'url-encode', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="urlBtn" type="button"><i class="bi bi-arrow-repeat"></i> 変換</button>
+      <button class="btn btn-primary" id="urlBtn" type="button"><Icon name="arrow-repeat" /> 変換</button>
     </div>
     <div class="status-msg" id="urlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="変換結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="変換結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="urlCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="urlOutput" readonly spellcheck="false" placeholder="結果がここに表示されます" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

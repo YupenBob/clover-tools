@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'text-toolbox', 'ko')!;
 const related = getRelated(category, 'text-toolbox', 'ko', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="텍스트 입력" icon="bi-list-check">
+  <ToolPanel title="텍스트 입력" icon="list-check">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttbSample" type="button"><i class="bi bi-magic"></i> 샘플</button>
-      <button class="btn btn-ghost btn-sm" id="ttbClear" type="button"><i class="bi bi-x-circle"></i> 비우기</button>
+      <button class="btn btn-ghost btn-sm" id="ttbSample" type="button"><Icon name="magic" /> 샘플</button>
+      <button class="btn btn-ghost btn-sm" id="ttbClear" type="button"><Icon name="x-circle" /> 비우기</button>
     </div>
     <textarea class="textarea" id="ttbInput" spellcheck="false" placeholder="한 줄에 하나의 데이터를 입력하세요. 중복 제거, 정렬, 뒤집기 등을 지원합니다."></textarea>
     <div class="row mt-3">
@@ -29,14 +30,14 @@ const related = getRelated(category, 'text-toolbox', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="ttbBtn" type="button"><i class="bi bi-wrench"></i> 처리</button>
+      <button class="btn btn-primary" id="ttbBtn" type="button"><Icon name="wrench" /> 처리</button>
     </div>
     <div class="status-msg" id="ttbStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="처리 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="처리 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttbCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="ttbCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="ttbOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다"></textarea>
     <div class="input-stats"><span id="ttbStats">0줄</span></div>

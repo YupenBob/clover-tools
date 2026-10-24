@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,19 +10,19 @@ const related = getRelated(category, 'grid-splitter', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="上傳圖片" icon="bi-image">
+  <ToolPanel title="上傳圖片" icon="image">
     <div class="field">
       <input class="input" id="gsFile" type="file" accept="image/*" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="gsBtn" type="button"><i class="bi bi-grid-3x3-gap"></i> 切分為九宮格</button>
-      <button class="btn btn-ghost" id="gsDownload" type="button"><i class="bi bi-download"></i> 下載全部</button>
+      <button class="btn btn-primary" id="gsBtn" type="button"><Icon name="grid-3x3-gap" /> 切分為九宮格</button>
+      <button class="btn btn-ghost" id="gsDownload" type="button"><Icon name="download" /> 下載全部</button>
     </div>
     <div class="status-msg" id="gsStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">上傳正方形圖片效果最佳；圖片僅在本機處理，不會上傳。</p>
   </ToolPanel>
 
-  <ToolPanel title="切分預覽" icon="bi-grid-3x3-gap">
+  <ToolPanel title="切分預覽" icon="grid-3x3-gap">
     <div class="gs-grid" id="gsGrid"></div>
   </ToolPanel>
 </ToolLayout>

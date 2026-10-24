@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,24 +10,24 @@ const related = getRelated(category, 'nickname-text', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="文字入力" icon="bi-input-cursor">
+  <ToolPanel title="文字入力" icon="input-cursor">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="nnSample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="nnClear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <textarea class="textarea" id="nnInput" spellcheck="false" placeholder="ニックネームや任意の文字を入力（例：Clover クローバー）"></textarea>
     <div class="status-msg" id="nnStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">入力後すぐに全スタイルを生成します。英語・数字・日本語に対応し、日本語の文字はそのまま保持されます。結果をクリックするだけでコピーできます。</p>
   </ToolPanel>
 
-  <ToolPanel title="全スタイルプレビュー" icon="bi-grid">
+  <ToolPanel title="全スタイルプレビュー" icon="grid">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><i class="bi bi-clipboard"></i> すべてコピー</button>
+      <button class="btn btn-ghost btn-sm" id="nnCopyAll" type="button"><Icon name="clipboard" /> すべてコピー</button>
     </div>
     <div class="nn-grid" id="nnGrid"></div>
   </ToolPanel>
 
-  <ToolPanel title="スタイル説明" icon="bi-info-circle" className="mt-4">
+  <ToolPanel title="スタイル説明" icon="info-circle" className="mt-4">
     <p class="field-hint" style="line-height:1.9">
       このツールは20種類以上のUnicode文字スタイルに対応しています：太字、斜体、太字斜体、筆記体（Script）、太字筆記体、フラクトゥール（Fraktur）、太字フラクトゥール、中抜き文字（Double-Struck）、サンセリフ、サンセリフ太字、サンセリフ斜体、サンセリフ太字斜体、等幅（Monospace）、全角、囲み文字、括弧囲み、四角囲み、白抜き丸囲み、上付き文字、下付き文字、火星文字、鏡文字。ゲームのニックネーム、カップル向けハンドルネーム、QQ・WeChatのニックネーム、個性的なプロフィール文など、様々なクリエイティブな文字生成に最適です。すべてブラウザ内で完結し、データがアップロードされることはありません。
     </p>
@@ -65,7 +66,7 @@ const related = getRelated(category, 'nickname-text', 'ja', 6);
     font-weight: 600;
   }
 
-  .nn-card .name i {
+  .nn-card .name .icon {
     color: var(--primary-dark);
   }
 
@@ -83,6 +84,8 @@ const related = getRelated(category, 'nickname-text', 'ja', 6);
 </style>
 
 <script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const input = byId<HTMLTextAreaElement>('nnInput');
@@ -182,13 +185,13 @@ const related = getRelated(category, 'nickname-text', 'ja', 6);
     const text = input.value;
     if (!text.trim()) {
       grid.innerHTML = STYLES.map((s) =>
-        `<div class="nn-card"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value empty">文字を入力してください</div></div>`,
+        `<div class="nn-card"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value empty">文字を入力してください</div></div>`,
       ).join('');
       return;
     }
     grid.innerHTML = STYLES.map((s) => {
       const value = s.fn(text);
-      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span><i class="bi bi-clipboard"></i></div><div class="value">${value}</div></div>`;
+      return `<div class="nn-card" data-style="${s.name}"><div class="name"><span>${s.name}</span>${renderIconSvg(Clipboard)}</div><div class="value">${value}</div></div>`;
     }).join('');
     showStatus('nnStatus', 'success', `全部で ${STYLES.length} 種類のスタイルを生成しました。カードをクリックしてコピー`);
   }

@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import DailyToolData from './DailyToolData.astro';
 import { dailyText } from '../lib/daily-tool-i18n';
 import type { Lang } from '../lib/i18n';
@@ -28,7 +29,7 @@ const standard = lang === 'zh' || lang === 'tw' ? 'cn' : 'who';
     <div class="bmi-scale-key">{t.bmiCategories.map((category, i) => <span><i data-category={i} aria-hidden="true"></i>{category}</span>)}</div>
     <div class="daily-fact bmi-weight-reference"><span id="bmiReferenceLabel">{t.bmiReferenceWeight}</span><strong id="bmiReference">—</strong></div>
     <p class="daily-note">{t.bmiReferenceHint}</p>
-    <div class="daily-result-actions"><button class="btn btn-secondary" type="button" id="bmiCopy" disabled><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copy}</button></div>
+    <div class="daily-result-actions"><button class="btn btn-secondary" type="button" id="bmiCopy" disabled><Icon name="clipboard" /> {t.copy}</button></div>
   </section>
 </div>
 <script>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'workday', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Date Range" icon="bi-briefcase">
+  <ToolPanel title="Date Range" icon="briefcase">
     <div class="row">
       <div class="field">
         <label class="field-label" for="wdStart">Start Date</label>
@@ -21,13 +22,13 @@ const related = getRelated(category, 'workday', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="wdBtn" type="button"><i class="bi bi-briefcase"></i> Calculate Workdays</button>
+      <button class="btn btn-primary" id="wdBtn" type="button"><Icon name="briefcase" /> Calculate Workdays</button>
     </div>
     <div class="status-msg" id="wdStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Automatically excludes weekends and identifies makeup workdays based on State Council holiday arrangements (working on holidays counts as workdays).</p>
   </ToolPanel>
 
-  <ToolPanel title="Result" icon="bi-clipboard-data">
+  <ToolPanel title="Result" icon="clipboard-data">
     <div class="lc-result" id="wdResult"></div>
   </ToolPanel>
 </ToolLayout>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,9 +10,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="正则表达式" icon="bi-asterisk" headingId="regex-heading-1">
+  <ToolPanel title="正则表达式" icon="asterisk" headingId="regex-heading-1">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="reSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="reSample" type="button"><Icon name="magic" /> 示例</button>
     </div>
     <div class="field">
       <input class="input mono" id="rePattern" aria-labelledby="regex-heading-1" type="text" placeholder={"例如 \\b\\w+@\\w+\\.\\w+\\b"} spellcheck="false" />
@@ -30,13 +31,13 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
     <div class="status-msg" id="reStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="匹配高亮" icon="bi-eye" headingId="regex-heading-2">
+  <ToolPanel title="匹配高亮" icon="eye" headingId="regex-heading-2">
     <div class="regex-view" id="reView" role="region" aria-labelledby="regex-heading-2"></div>
   </ToolPanel>
 
-  <ToolPanel title="匹配结果" icon="bi-list-ol" className="mt-4" headingId="regex-heading-3">
+  <ToolPanel title="匹配结果" icon="list-ol" className="mt-4" headingId="regex-heading-3">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="reCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="reCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="reOutput" aria-labelledby="regex-heading-3" readonly spellcheck="false" placeholder="匹配项与捕获组将显示在这里"></textarea>
   </ToolPanel>

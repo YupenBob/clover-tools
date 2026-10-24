@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,7 +10,7 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="生成配置" icon="bi-hash">
+  <ToolPanel title="生成配置" icon="hash">
     <div class="row">
       <div class="field">
         <label class="field-label" for="uuidType">类型</label>
@@ -38,14 +39,14 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="uuidBtn" type="button"><i class="bi bi-hash"></i> 生成</button>
+      <button class="btn btn-primary" id="uuidBtn" type="button"><Icon name="hash" /> 生成</button>
     </div>
     <div class="status-msg" id="uuidStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="生成结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="生成结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="uuidCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="uuidCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="uuidOutput" readonly spellcheck="false" placeholder="点击生成后显示结果"></textarea>
   </ToolPanel>

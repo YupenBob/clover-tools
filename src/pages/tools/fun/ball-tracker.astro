@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,7 +10,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
-  <ToolPanel title="目标球追踪训练" icon="bi-crosshair">
+  <ToolPanel title="目标球追踪训练" icon="crosshair">
     <div class="bt-panel">
       <!-- 面板背景光晕 -->
       <div class="bt-bg" aria-hidden="true">
@@ -21,7 +22,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <!-- 第一幕：开始 -->
       <section id="btStart" class="bt-act">
         <header class="bt-hero">
-          <span class="bt-hero-badge"><i class="bi bi-crosshair" aria-hidden="true"></i></span>
+          <span class="bt-hero-badge"><Icon name="crosshair" /></span>
           <div class="bt-hero-title">目标球追踪</div>
           <p class="bt-lead">记住标记球并观察移动轨迹，比较同一设置下的追踪表现。</p>
         </header>
@@ -78,13 +79,13 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         <div class="bt-options">
           <span class="bt-hint muted">数量增减会不断混入新球，整体旋转考验空间定向</span>
           <div class="bt-option-btns">
-            <button class="bt-icon-btn" id="btFull" type="button" title="专注模式（全屏）"><i class="bi bi-arrows-fullscreen" aria-hidden="true"></i></button>
-            <button class="bt-icon-btn" id="btMute" type="button" title="音效开关" aria-pressed="false"><i class="bi bi-volume-up" aria-hidden="true"></i></button>
+            <button class="bt-icon-btn" id="btFull" type="button" title="专注模式（全屏）"><Icon name="arrows-fullscreen" /></button>
+            <button class="bt-icon-btn" id="btMute" type="button" title="音效开关" aria-pressed="false"><Icon name="volume-up" /></button>
           </div>
         </div>
 
         <button class="bt-start-btn" id="btStartBtn" type="button">
-          <i class="bi bi-play-fill" aria-hidden="true"></i> 开始训练
+          <Icon name="play-fill" /> 开始训练
         </button>
       </section>
 
@@ -102,7 +103,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
           </div>
         </div>
         <div class="bt-train-head bt-glass">
-          <button class="bt-exit" id="btExit" type="button" title="退出训练"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          <button class="bt-exit" id="btExit" type="button" title="退出训练"><Icon name="x-lg" /></button>
           <div class="bt-train-meta">
             <span class="bt-train-mode" id="btModeLabel">目标追踪</span>
             <span class="bt-train-phase" id="btPhaseText"></span>
@@ -132,8 +133,8 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
           <div class="bt-result-note" id="btNote"></div>
           <div class="bt-result-trend" id="btTrend" aria-label="历史准确率趋势"></div>
           <div class="bt-result-actions">
-            <button class="btn btn-primary" id="btAgain" type="button"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> 再来一组</button>
-            <button class="btn" id="btBack" type="button"><i class="bi bi-crosshair" aria-hidden="true"></i> 返回选择</button>
+            <button class="btn btn-primary" id="btAgain" type="button"><Icon name="arrow-repeat" /> 再来一组</button>
+            <button class="btn" id="btBack" type="button"><Icon name="crosshair" /> 返回选择</button>
           </div>
         </div>
       </section>
@@ -145,27 +146,27 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="目标追踪游戏" icon="bi-crosshair">
+  <ToolPanel title="目标追踪游戏" icon="crosshair">
     <div class="bt-purpose">
       <p>本游戏练习在干扰球之间寻找目标、记住运动轨迹和适应整体旋转。成绩记录本次任务中的正确选择与误触，不证明特定脑区得到训练，也不提供医学诊断或治疗效果。</p>
       <div class="bt-purpose-grid">
         <div class="bt-purpose-item">
-          <i class="bi bi-crosshair" aria-hidden="true"></i>
+          <Icon name="crosshair" />
           <b>动态视觉追踪</b>
           <span>在外观相同的球群中，持续观察已标记目标。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-shield-x" aria-hidden="true"></i>
+          <Icon name="shield-x" />
           <b>抗诱惑与干扰</b>
           <span>区分目标球与干扰球，按规则选择。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+          <Icon name="arrow-clockwise" />
           <b>空间定向与旋转追踪</b>
           <span>在整体旋转时观察目标位置变化。</span>
         </div>
         <div class="bt-purpose-item">
-          <i class="bi bi-graph-up" aria-hidden="true"></i>
+          <Icon name="graph-up" />
           <b>量化进步</b>
           <span>查看准确率、错点与趋势，仅比较相同设置。</span>
         </div>
@@ -185,7 +186,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
         </table>
       </div>
       <p class="muted bt-tip">
-        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <Icon name="info-circle" />
         建议每天 3–5 组；目标是标记消失后仍能锁定目标，重点是观察趋势而非单次成绩，坚持两周以上更明显。
       </p>
     </div>
@@ -952,7 +953,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     background: var(--bg-secondary);
   }
 
-  .bt-purpose-item i {
+  .bt-purpose-item .icon {
     font-size: 20px;
     color: var(--primary-dark);
     margin-bottom: 2px;
@@ -1001,7 +1002,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     line-height: 1.7;
   }
 
-  .bt-tip i {
+  .bt-tip .icon {
     margin-top: 2px;
     color: var(--primary-dark);
   }

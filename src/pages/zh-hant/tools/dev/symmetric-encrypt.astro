@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'symmetric-encrypt', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="加解密配置" icon="bi-lock">
+  <ToolPanel title="加解密配置" icon="lock">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><i class="bi bi-magic"></i> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="encSample" type="button"><Icon name="magic" /> 示例</button>
     </div>
     <div class="row">
       <div class="field">
@@ -54,15 +55,15 @@ const related = getRelated(category, 'symmetric-encrypt', 'tw', 6);
       <textarea class="textarea" id="encInput" spellcheck="false" placeholder="輸入明文進行加密，或輸入密文進行解密"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="encBtn" type="button"><i class="bi bi-lock"></i> 加密</button>
-      <button class="btn btn-secondary" id="decBtn" type="button"><i class="bi bi-unlock"></i> 解密</button>
+      <button class="btn btn-primary" id="encBtn" type="button"><Icon name="lock" /> 加密</button>
+      <button class="btn btn-secondary" id="decBtn" type="button"><Icon name="unlock" /> 解密</button>
     </div>
     <div class="status-msg" id="encStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="輸出結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="輸出結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="encCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="encOutput" readonly spellcheck="false" placeholder="結果將顯示在這裏"></textarea>
   </ToolPanel>

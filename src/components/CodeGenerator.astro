@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import ToolPanel from './ToolPanel.astro';
 import { qrText } from '../lib/visual-tool-i18n';
 import type { Lang } from '../lib/i18n';
@@ -6,8 +7,8 @@ interface Props { lang: Lang; }
 const { lang } = Astro.props;
 const t = qrText(lang);
 ---
-<ToolPanel title={t.settings} icon="bi-qr-code" headingId="qr-settings-heading">
-  <div slot="actions"><button class="btn btn-ghost btn-sm" id="qrSample" type="button"><i class="bi bi-magic" aria-hidden="true"></i> {t.sample}</button></div>
+<ToolPanel title={t.settings} icon="qr-code" headingId="qr-settings-heading">
+  <div slot="actions"><button class="btn btn-ghost btn-sm" id="qrSample" type="button"><Icon name="magic" /> {t.sample}</button></div>
   <script type="application/json" id="qrTextLabels" set:html={JSON.stringify(t).replace(/</g, '\\u003c')} />
   <div class="row code-settings">
     <div class="field"><label class="field-label" for="qrType">{t.type}</label><select class="select" id="qrType"><option value="qrcode">{t.qr}</option><option value="barcode">{t.barcode}</option></select></div>
@@ -15,15 +16,15 @@ const t = qrText(lang);
     <div class="field" id="qrLevelField"><label class="field-label" for="qrLevel">{t.level}</label><select class="select" id="qrLevel"><option value="L">L (7%)</option><option value="M" selected>M (15%)</option><option value="Q">Q (25%)</option><option value="H">H (30%)</option></select></div>
   </div>
   <div class="field mt-5"><label class="field-label" for="qrText">{t.content}</label><textarea class="textarea" id="qrText" spellcheck="false" placeholder={t.placeholder}></textarea></div>
-  <div class="btn-row"><button class="btn btn-primary" id="qrBtn" type="button"><i class="bi bi-qr-code" aria-hidden="true"></i> {t.generate}</button></div>
+  <div class="btn-row"><button class="btn btn-primary" id="qrBtn" type="button"><Icon name="qr-code" /> {t.generate}</button></div>
   <div class="status-msg" id="qrStatus" role="status" aria-live="polite"></div>
 </ToolPanel>
-<ToolPanel title={t.preview} icon="bi-eye" surface="plain" headingId="qr-preview-heading">
+<ToolPanel title={t.preview} icon="eye" surface="plain" headingId="qr-preview-heading">
   <div class="code-stage" id="qrPreview" data-ready="false" role="region" aria-labelledby="qr-preview-heading">
-    <div class="code-empty" id="qrEmpty"><i class="bi bi-qr-code" aria-hidden="true"></i><strong>{t.empty}</strong><p>{t.hint}</p></div>
+    <div class="code-empty" id="qrEmpty"><Icon name="qr-code" /><strong>{t.empty}</strong><p>{t.hint}</p></div>
     <canvas id="qrCanvas" role="img" aria-label={t.qr} hidden></canvas><svg id="barcodeSvg" role="img" aria-label={t.barcode} hidden></svg>
   </div>
-  <div slot="footer" class="code-export"><p>{t.exportHint}</p><button class="btn btn-secondary" id="qrDownload" type="button" disabled><i class="bi bi-download" aria-hidden="true"></i> {t.download}</button></div>
+  <div slot="footer" class="code-export"><p>{t.exportHint}</p><button class="btn btn-secondary" id="qrDownload" type="button" disabled><Icon name="download" /> {t.download}</button></div>
 </ToolPanel>
 <script>
   import '../scripts/code-generator';

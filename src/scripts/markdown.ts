@@ -1,3 +1,6 @@
+import { Clipboard } from '../lib/icons/client-data';
+import { renderIconSvg } from '../lib/icons/svg';
+
   import { byId, showStatus, hideStatus } from './toolkit';
   import { marked } from 'marked';
   import DOMPurify from 'dompurify';
@@ -164,7 +167,7 @@
       btn.type = 'button';
       btn.className = 'code-copy-btn';
       btn.title = '复制代码';
-      btn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i>';
+      btn.innerHTML = renderIconSvg(Clipboard);
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         window.CT.copy(pre.querySelector('code')?.textContent || '', btn);

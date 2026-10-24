@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'image-filter', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="圖片與濾鏡" icon="bi-brush">
+  <ToolPanel title="圖片與濾鏡" icon="brush">
     <div class="field">
       <input class="input" id="flFile" type="file" accept="image/*" />
     </div>
@@ -29,13 +30,13 @@ const related = getRelated(category, 'image-filter', 'tw', 6);
       </select>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="flBtn" type="button"><i class="bi bi-brush"></i> 應用濾鏡</button>
-      <button class="btn btn-ghost" id="flDownload" type="button"><i class="bi bi-download"></i> 下載 PNG</button>
+      <button class="btn btn-primary" id="flBtn" type="button"><Icon name="brush" /> 應用濾鏡</button>
+      <button class="btn btn-ghost" id="flDownload" type="button"><Icon name="download" /> 下載 PNG</button>
     </div>
     <div class="status-msg" id="flStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="效果預覽" icon="bi-eye">
+  <ToolPanel title="效果預覽" icon="eye">
     <div class="fl-preview" id="flPreview"></div>
   </ToolPanel>
 </ToolLayout>

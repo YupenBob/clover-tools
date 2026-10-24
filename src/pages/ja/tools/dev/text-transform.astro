@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,10 +9,10 @@ const tool = getToolMeta(category, 'text-transform', 'ja')!;
 const related = getRelated(category, 'text-transform', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="入力テキスト" icon="bi-textarea-t">
+  <ToolPanel title="入力テキスト" icon="textarea-t">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="ttSample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="ttClear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <textarea class="textarea" id="ttInput" spellcheck="false" placeholder="変換するテキストを入力"></textarea>
     <div class="row mt-3">
@@ -33,14 +34,14 @@ const related = getRelated(category, 'text-transform', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="ttBtn" type="button"><i class="bi bi-arrow-repeat"></i> 変換</button>
+      <button class="btn btn-primary" id="ttBtn" type="button"><Icon name="arrow-repeat" /> 変換</button>
     </div>
     <div class="status-msg" id="ttStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="変換結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="変換結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="ttCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="ttOutput" readonly spellcheck="false" placeholder="結果はここに表示されます"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,18 +10,18 @@ const related = TOOLS.daily.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="日常实用">
-  <ToolPanel title="出生日期" icon="bi-star">
+  <ToolPanel title="出生日期" icon="star">
     <div class="field">
       <label class="field-label" for="zdDate">日期</label>
       <input class="input" id="zdDate" type="date" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="zdBtn" type="button"><i class="bi bi-star"></i> 查询</button>
+      <button class="btn btn-primary" id="zdBtn" type="button"><Icon name="star" /> 查询</button>
     </div>
     <div class="status-msg" id="zdStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="查询结果" icon="bi-clipboard-data">
+  <ToolPanel title="查询结果" icon="clipboard-data">
     <div class="zd-grid" id="zdGrid"></div>
   </ToolPanel>
 </ToolLayout>

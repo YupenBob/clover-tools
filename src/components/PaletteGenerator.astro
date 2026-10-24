@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import ToolPanel from './ToolPanel.astro';
 import type { Lang } from '../lib/i18n';
 
@@ -40,11 +41,11 @@ const t = copy[lang];
 const schemes = ['complementary', 'analogous', 'triadic', 'tetradic', 'mono'] as const;
 ---
 
-<ToolPanel title={t.palette} icon="bi-grid" surface="plain" description={t.hint}>
+<ToolPanel title={t.palette} icon="grid" surface="plain" description={t.hint}>
   <div class="pg-palette" id="pgPalette" data-copy-label={t.copyColor}></div>
 </ToolPanel>
 
-<ToolPanel title={t.config} icon="bi-palette2">
+<ToolPanel title={t.config} icon="palette2">
   <div class="row">
     <div class="field">
       <label class="field-label" for="pgHue">{t.hue}: <span id="pgHueLabel">38</span>°</label>
@@ -58,8 +59,8 @@ const schemes = ['complementary', 'analogous', 'triadic', 'tetradic', 'mono'] as
     </div>
   </div>
   <div class="btn-row">
-    <button class="btn btn-primary" id="pgBtn" type="button"><i class="bi bi-palette2" aria-hidden="true"></i> {t.generate}</button>
-    <button class="btn btn-ghost" id="pgCopyAll" type="button"><i class="bi bi-clipboard" aria-hidden="true"></i> {t.copyAll}</button>
+    <button class="btn btn-primary" id="pgBtn" type="button"><Icon name="palette2" /> {t.generate}</button>
+    <button class="btn btn-ghost" id="pgCopyAll" type="button"><Icon name="clipboard" /> {t.copyAll}</button>
   </div>
   <div class="status-msg" id="pgStatus" role="status" aria-live="polite" data-message={t.generated}></div>
 </ToolPanel>

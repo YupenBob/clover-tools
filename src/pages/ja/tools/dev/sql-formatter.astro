@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,22 +9,22 @@ const tool = getToolMeta(category, 'sql-formatter', 'ja')!;
 const related = getRelated(category, 'sql-formatter', 'ja', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="SQL 入力" icon="bi-database" headingId="tool-input-heading">
+  <ToolPanel title="SQL 入力" icon="database" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><i class="bi bi-magic"></i> サンプル</button>
-      <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><i class="bi bi-x-circle"></i> クリア</button>
+      <button class="btn btn-ghost btn-sm" id="sqfSample" type="button"><Icon name="magic" /> サンプル</button>
+      <button class="btn btn-ghost btn-sm" id="sqfClear" type="button"><Icon name="x-circle" /> クリア</button>
     </div>
     <textarea class="textarea" id="sqfInput" spellcheck="false" placeholder="SQL 文を貼り付け" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="sqfBtn" type="button"><i class="bi bi-braces"></i> フォーマット</button>
-      <button class="btn btn-secondary" id="sqfMin" type="button"><i class="bi bi-arrows-collapse"></i> 圧縮</button>
+      <button class="btn btn-primary" id="sqfBtn" type="button"><Icon name="braces" /> フォーマット</button>
+      <button class="btn btn-secondary" id="sqfMin" type="button"><Icon name="arrows-collapse" /> 圧縮</button>
     </div>
     <div class="status-msg" id="sqfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="フォーマット結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="フォーマット結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="sqfCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="sqfOutput" readonly spellcheck="false" placeholder="結果はここに表示されます" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

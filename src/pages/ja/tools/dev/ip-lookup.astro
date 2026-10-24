@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,13 +10,13 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="マイIP" icon="bi-globe2">
+  <ToolPanel title="マイIP" icon="globe2">
     <div slot="actions">
       <button class="btn btn-ghost btn-sm" id="ipSelfCopy" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> コピー
+        <Icon name="clipboard" /> コピー
       </button>
       <button class="btn btn-ghost btn-sm" id="ipSelfRefresh" type="button">
-        <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> 更新
+        <Icon name="arrow-clockwise" /> 更新
       </button>
     </div>
     <div class="ip-hero">
@@ -26,7 +27,7 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     <div class="status-msg" id="ipSelfStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="IPアドレス検索" icon="bi-hash">
+  <ToolPanel title="IPアドレス検索" icon="hash">
     <div class="row">
       <div class="field field-grow">
         <label class="field-label" for="ipInput">IPアドレスまたはドメイン</label>
@@ -35,16 +36,16 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="ipQuery" type="button">
-        <i class="bi bi-search" aria-hidden="true"></i> 解決して検索
+        <Icon name="search" /> 解決して検索
       </button>
       <button class="btn btn-ghost" id="ipPaste" type="button">
-        <i class="bi bi-clipboard" aria-hidden="true"></i> 貼り付け
+        <Icon name="clipboard" /> 貼り付け
       </button>
       <button class="btn btn-ghost" id="ipSample" type="button">
-        <i class="bi bi-magic" aria-hidden="true"></i> サンプル
+        <Icon name="magic" /> サンプル
       </button>
       <button class="btn btn-ghost" id="ipClear" type="button">
-        <i class="bi bi-x-circle" aria-hidden="true"></i> クリア
+        <Icon name="x-circle" /> クリア
       </button>
     </div>
     <p class="field-hint">アドレス解決はすべてブラウザ内で行われます。有効なアドレスを入力すると、地理位置情報が自動的に検索されるか、いつでもボタンをクリックできます。</p>
@@ -68,14 +69,14 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
     </div>
   </ToolPanel>
 
-  <ToolPanel title="地理位置情報" icon="bi-globe-americas">
+  <ToolPanel title="地理位置情報" icon="globe-americas">
     <div class="status-msg" id="ipGeoStatus" role="status" aria-live="polite"></div>
     <div class="ip-empty" id="ipGeoEmpty">検索後、国、ISP、座標、その他の地理位置情報の詳細が表示されます（オンライン検索）</div>
     <div id="ipGeoWrap" hidden>
       <div class="ip-kv" id="ipGeoTable"></div>
       <div class="ip-geo-foot">
         <a class="link-btn" id="ipMapLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
-          <i class="bi bi-link-45deg" aria-hidden="true"></i> 地図で表示
+          <Icon name="link-45deg" /> 地図で表示
         </a>
         <span class="field-hint" id="ipGeoSource"></span>
       </div>
@@ -357,7 +358,10 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
   }
 </style>
 
-<script>import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
+<script>
+import { Clipboard } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
+import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   /* ═══════════ IP 解析引擎（纯本地） ═══════════ */
 
@@ -771,7 +775,7 @@ const related = getRelated(category, 'ip-lookup', 'en', 6);
 
   function kvRow(label: string, value: string, copyText?: string): string {
     const copy = copyText
-      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="コピー"><i class="bi bi-clipboard" aria-hidden="true"></i></button>`
+      ? `<button class="ip-copy" type="button" data-copy="${esc(copyText)}" title="コピー">${renderIconSvg(Clipboard)}</button>`
       : '';
     return `<div class="ip-row"><span class="ip-k">${esc(label)}</span><span class="ip-v">${value}${copy}</span></div>`;
   }

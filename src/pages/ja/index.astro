@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ToolCard from '../../components/ToolCard.astro';
 import AdUnit from '../../components/AdUnit.astro';
@@ -70,7 +71,7 @@ const homeJsonLd = [
       <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
       <p class="hero-sub">{site.tagline}。{total} 個のツール、すぐに使えます。</p>
       <div class="search-box">
-        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <Icon name="search" class="search-icon" />
         <input
           class="search-input"
           id="toolSearch"
@@ -80,13 +81,13 @@ const homeJsonLd = [
           aria-label="ツールを検索"
         />
         <button class="search-clear" id="searchClear" type="button" aria-label="検索をクリア" hidden>
-          <i class="bi bi-x-lg" aria-hidden="true"></i>
+          <Icon name="x-lg" />
         </button>
         <kbd class="search-kbd" id="searchKbd" aria-hidden="true">/</kbd>
       </div>
       <p class="hero-caption">
         <span id="builtCount" data-target={builtCount}>{builtCount}</span> 個のツールが利用可能 · 多くの処理はブラウザ内で完了 ·
-        <button class="link-btn" id="randomBtn" type="button"><i class="bi bi-shuffle" aria-hidden="true"></i> ランダム表示</button>
+        <button class="link-btn" id="randomBtn" type="button"><Icon name="shuffle" /> ランダム表示</button>
       </p>
     </div>
   </section>
@@ -105,13 +106,13 @@ const homeJsonLd = [
   {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
       <div class="category-head">
-        <span class="category-icon"><i class={`bi ${cat.icon}`} aria-hidden="true"></i></span>
+        <span class="category-icon"><Icon name={cat.icon} /></span>
         <div>
           <h2 class="category-title">{cat.name}</h2>
           <p class="category-blurb">{cat.blurb}</p>
         </div>
         <span class="category-count">{TOOLS[cat.id].length} 個のツール</span>
-        <a class="category-more" href={`/ja/tools/${cat.id}/`} aria-label={`${cat.name} のツールをすべて表示`}>すべて表示 <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a class="category-more" href={`/ja/tools/${cat.id}/`} aria-label={`${cat.name} のツールをすべて表示`}>すべて表示 <Icon name="arrow-right" /></a>
       </div>
       <div class="tool-grid">
         {TOOLS[cat.id].map((tool, ti) => (
@@ -128,7 +129,7 @@ const homeJsonLd = [
   ))}
 
   <div class="empty-state" id="searchEmpty">
-    <i class="bi bi-emoji-neutral" aria-hidden="true"></i>
+    <Icon name="emoji-neutral" />
     <p>一致するツールが見つかりません</p>
     <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">検索とフィルターをクリア</button>
   </div>

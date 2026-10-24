@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,7 +10,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="趣味工具">
-  <ToolPanel title="10 秒手速挑战" icon="bi-cursor">
+  <ToolPanel title="10 秒手速挑战" icon="cursor">
     <div class="cs-head">
       <div class="cs-count" id="csCount">0</div>
       <div class="cs-meta">
@@ -20,7 +21,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
     </div>
 
     <button class="cs-btn" id="csBtn" type="button">
-      <span class="cs-btn-label" id="csBtnLabel"><i class="bi bi-cursor"></i> 点击开始</span>
+      <span class="cs-btn-label" id="csBtnLabel"><Icon name="cursor" /> 点击开始</span>
       <span class="cs-countdown" id="csCountdown"></span>
     </button>
     <p class="field-hint" id="csHint">点击开始后进入 3-2-1 倒计时，然后以最快速度点击按钮</p>
@@ -238,6 +239,9 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
 </style>
 
 <script>
+import { Trophy } from '../../../lib/icons/client-data';
+import { MousePointer2, RotateCcw } from '../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../scripts/toolkit';
 
   const DURATION = 10000;
@@ -264,7 +268,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
   const best = Number(localStorage.getItem(BEST_KEY) || 0);
   if (best > 0) {
     hint.insertAdjacentHTML('afterend',
-      `<div class="cs-best"><i class="bi bi-trophy"></i> 历史最佳 ${best.toFixed(1)} 次/秒</div>`);
+      `<div class="cs-best">${renderIconSvg(Trophy)} 历史最佳 ${best.toFixed(1)} 次/秒</div>`);
   }
 
   function fmtCps(): string {
@@ -300,7 +304,7 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       countdownEl.classList.remove('show');
       countdownEl.textContent = '';
       btn.disabled = false;
-      btnLabel.innerHTML = '<i class="bi bi-cursor"></i> 疯狂点击！';
+      btnLabel.innerHTML = renderIconSvg(MousePointer2) + ' 疯狂点击！';
       state = 'running';
       count = 0;
       countEl.textContent = '0';
@@ -334,14 +338,14 @@ const related = TOOLS.fun.filter((t) => t.slug !== tool.slug).slice(0, 6);
       `<div class="cs-result-item"><span class="v">${count}</span><span class="k">总点击数</span></div>` +
       `<div class="cs-result-item"><span class="v">${cps.toFixed(1)}</span><span class="k">次/秒</span></div>` +
       `<div class="cs-result-item"><span class="v">${grade}</span><span class="k">评价</span></div>` +
-      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)"><i class="bi bi-trophy"></i></span><span class="k">新纪录！</span></div>` : '') +
+      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)">${renderIconSvg(Trophy)}</span><span class="k">新纪录！</span></div>` : '') +
       `</div>` +
       (best > 0 && !isBest ? `<p class="muted">历史最佳 ${best.toFixed(1)} 次/秒</p>` : '');
     result.hidden = false;
     showStatus('csStatus', 'success', '时间到！成绩已生成');
     setTimeout(() => {
       if (state === 'done') {
-        btnLabel.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> 再来一次';
+        btnLabel.innerHTML = renderIconSvg(RotateCcw) + ' 再来一次';
       }
     }, LOCK_MS);
   }

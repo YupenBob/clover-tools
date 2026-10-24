@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'expiry', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Shelf Life Information" icon="bi-calendar-x">
+  <ToolPanel title="Shelf Life Information" icon="calendar-x">
     <div class="row">
       <div class="field">
         <label class="field-label" for="expDate">Production Date</label>
@@ -21,12 +22,12 @@ const related = getRelated(category, 'expiry', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="expBtn" type="button"><i class="bi bi-calendar-x"></i> Calculate Expiry Date</button>
+      <button class="btn btn-primary" id="expBtn" type="button"><Icon name="calendar-x" /> Calculate Expiry Date</button>
     </div>
     <div class="status-msg" id="expStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Calculation Results" icon="bi-clipboard-data">
+  <ToolPanel title="Calculation Results" icon="clipboard-data">
     <div class="lc-result" id="expResult"></div>
   </ToolPanel>
 </ToolLayout>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'click-speed', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="10-Second Click Speed Challenge" icon="bi-cursor">
+  <ToolPanel title="10-Second Click Speed Challenge" icon="cursor">
     <div class="cs-head">
       <div class="cs-count" id="csCount">0</div>
       <div class="cs-meta">
@@ -20,7 +21,7 @@ const related = getRelated(category, 'click-speed', 'en', 6);
     </div>
 
     <button class="cs-btn" id="csBtn" type="button">
-      <span class="cs-btn-label" id="csBtnLabel"><i class="bi bi-cursor"></i> Click to start</span>
+      <span class="cs-btn-label" id="csBtnLabel"><Icon name="cursor" /> Click to start</span>
       <span class="cs-countdown" id="csCountdown"></span>
     </button>
     <p class="field-hint" id="csHint">Click to start a 3-2-1 countdown, then click the button as fast as you can</p>
@@ -238,6 +239,9 @@ const related = getRelated(category, 'click-speed', 'en', 6);
 </style>
 
 <script>
+import { Trophy } from '../../../../lib/icons/client-data';
+import { MousePointer2, RotateCcw } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const DURATION = 10000;
@@ -264,7 +268,7 @@ const related = getRelated(category, 'click-speed', 'en', 6);
   const best = Number(localStorage.getItem(BEST_KEY) || 0);
   if (best > 0) {
     hint.insertAdjacentHTML('afterend',
-      `<div class="cs-best"><i class="bi bi-trophy"></i> Personal best ${best.toFixed(1)} clicks/s</div>`);
+      `<div class="cs-best">${renderIconSvg(Trophy)} Personal best ${best.toFixed(1)} clicks/s</div>`);
   }
 
   function fmtCps(): string {
@@ -300,7 +304,7 @@ const related = getRelated(category, 'click-speed', 'en', 6);
       countdownEl.classList.remove('show');
       countdownEl.textContent = '';
       btn.disabled = false;
-      btnLabel.innerHTML = '<i class="bi bi-cursor"></i> Click like crazy!';
+      btnLabel.innerHTML = renderIconSvg(MousePointer2) + ' Click like crazy!';
       state = 'running';
       count = 0;
       countEl.textContent = '0';
@@ -334,14 +338,14 @@ const related = getRelated(category, 'click-speed', 'en', 6);
       `<div class="cs-result-item"><span class="v">${count}</span><span class="k">Total clicks</span></div>` +
       `<div class="cs-result-item"><span class="v">${cps.toFixed(1)}</span><span class="k">clicks/s</span></div>` +
       `<div class="cs-result-item"><span class="v">${grade}</span><span class="k">Rating</span></div>` +
-      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)"><i class="bi bi-trophy"></i></span><span class="k">New record!</span></div>` : '') +
+      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)">${renderIconSvg(Trophy)}</span><span class="k">New record!</span></div>` : '') +
       `</div>` +
       (best > 0 && !isBest ? `<p class="muted">Personal best ${best.toFixed(1)} clicks/s</p>` : '');
     result.hidden = false;
     showStatus('csStatus', 'success', "Time's up! Your score is ready");
     setTimeout(() => {
       if (state === 'done') {
-        btnLabel.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> Try again';
+        btnLabel.innerHTML = renderIconSvg(RotateCcw) + ' Try again';
       }
     }, LOCK_MS);
   }

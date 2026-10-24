@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,23 +10,23 @@ const related = getRelated(category, 'url-parse', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="URL 입력" icon="bi-diagram-3">
+  <ToolPanel title="URL 입력" icon="diagram-3">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="upSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="upClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <input class="input mono" id="upInput" type="text" placeholder="https://user:pass@example.com:8080/path?q=1&lang=zh#section" spellcheck="false" />
     <div class="btn-row">
-      <button class="btn btn-primary" id="upBtn" type="button"><i class="bi bi-diagram-3"></i> 파싱</button>
+      <button class="btn btn-primary" id="upBtn" type="button"><Icon name="diagram-3" /> 파싱</button>
     </div>
     <div class="status-msg" id="upStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="URL 구조" icon="bi-list-ol">
+  <ToolPanel title="URL 구조" icon="list-ol">
     <table class="up-table" id="upTable"></table>
   </ToolPanel>
 
-  <ToolPanel title="쿼리 매개변수" icon="bi-key" className="mt-4">
+  <ToolPanel title="쿼리 매개변수" icon="key" className="mt-4">
     <table class="up-table" id="upParams"></table>
   </ToolPanel>
 </ToolLayout>

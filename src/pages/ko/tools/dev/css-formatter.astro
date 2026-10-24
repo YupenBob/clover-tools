@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'css-formatter', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="CSS 입력" icon="bi-filetype-css" headingId="tool-input-heading">
+  <ToolPanel title="CSS 입력" icon="filetype-css" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cssSample" type="button"><i class="bi bi-magic"></i> 예시</button>
-      <button class="btn btn-ghost btn-sm" id="cssClear" type="button"><i class="bi bi-x-circle"></i> 지우기</button>
+      <button class="btn btn-ghost btn-sm" id="cssSample" type="button"><Icon name="magic" /> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="cssClear" type="button"><Icon name="x-circle" /> 지우기</button>
     </div>
     <textarea class="textarea" id="cssInput" spellcheck="false" placeholder="CSS 코드 붙여넣기" aria-labelledby="tool-input-heading"></textarea>
     <div class="row">
@@ -28,15 +29,15 @@ const related = getRelated(category, 'css-formatter', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="cssFmt" type="button"><i class="bi bi-braces"></i> 포맷</button>
-      <button class="btn btn-secondary" id="cssMin" type="button"><i class="bi bi-arrows-collapse"></i> 압축</button>
+      <button class="btn btn-primary" id="cssFmt" type="button"><Icon name="braces" /> 포맷</button>
+      <button class="btn btn-secondary" id="cssMin" type="button"><Icon name="arrows-collapse" /> 압축</button>
     </div>
     <div class="status-msg" id="cssStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="출력 결과" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="출력 결과" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="cssCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="cssCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="cssOutput" readonly spellcheck="false" placeholder="결과가 여기에 표시됩니다" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="cssStats">0자</span></div>

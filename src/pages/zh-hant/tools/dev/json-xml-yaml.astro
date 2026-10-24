@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,10 +10,10 @@ const related = getRelated(category, 'json-xml-yaml', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="輸入源數據" icon="bi-input-cursor" headingId="tool-input-heading">
+  <ToolPanel title="輸入源數據" icon="input-cursor" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="fmtSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="fmtClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="fmtSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="fmtClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="srcInput" spellcheck="false" placeholder="粘貼 JSON / XML / YAML 數據" aria-labelledby="tool-input-heading"></textarea>
     <div class="row mt-3">
@@ -27,14 +28,14 @@ const related = getRelated(category, 'json-xml-yaml', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="fmtBtn" type="button"><i class="bi bi-arrow-repeat"></i> 轉換</button>
+      <button class="btn btn-primary" id="fmtBtn" type="button"><Icon name="arrow-repeat" /> 轉換</button>
     </div>
     <div class="status-msg" id="fmtStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="轉換結果" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="轉換結果" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="fmtCopy" type="button"><i class="bi bi-clipboard"></i> 復制</button>
+      <button class="btn btn-ghost btn-sm" id="fmtCopy" type="button"><Icon name="clipboard" /> 復制</button>
     </div>
     <textarea class="textarea" id="outOutput" readonly spellcheck="false" placeholder="轉換結果將顯示在這裏" aria-labelledby="tool-output-heading"></textarea>
   </ToolPanel>

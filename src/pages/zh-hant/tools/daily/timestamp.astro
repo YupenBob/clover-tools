@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -11,10 +12,10 @@ const related = getRelated(category, 'timestamp', 'tw', 6);
 <ToolLayout category={category} tool={tool} related={related}>
   <section class="tool-card-panel">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-clock" aria-hidden="true"></i> 當前時間</h2>
+      <h2 class="panel-title"><Icon name="clock" /> 當前時間</h2>
       <div class="panel-actions">
         <button class="btn btn-ghost btn-sm" id="copyNow" type="button">
-          <i class="bi bi-clipboard" aria-hidden="true"></i> 復制時間戳
+          <Icon name="clipboard" /> 復制時間戳
         </button>
       </div>
     </div>
@@ -36,7 +37,7 @@ const related = getRelated(category, 'timestamp', 'tw', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i> 時間戳轉日期</h2>
+      <h2 class="panel-title"><Icon name="arrow-down-circle" /> 時間戳轉日期</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -46,10 +47,10 @@ const related = getRelated(category, 'timestamp', 'tw', 6);
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="tsToDateBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 轉換
+        <Icon name="arrow-repeat" /> 轉換
       </button>
       <button class="btn btn-ghost" id="tsUseNow" type="button">
-        <i class="bi bi-clock-history" aria-hidden="true"></i> 用當前時間戳
+        <Icon name="clock-history" /> 用當前時間戳
       </button>
     </div>
     <div class="output-area">
@@ -60,7 +61,7 @@ const related = getRelated(category, 'timestamp', 'tw', 6);
 
   <section class="tool-card-panel mt-4">
     <div class="panel-head">
-      <h2 class="panel-title"><i class="bi bi-arrow-up-circle" aria-hidden="true"></i> 日期轉時間戳</h2>
+      <h2 class="panel-title"><Icon name="arrow-up-circle" /> 日期轉時間戳</h2>
     </div>
     <div class="row">
       <div class="field">
@@ -70,13 +71,13 @@ const related = getRelated(category, 'timestamp', 'tw', 6);
       <div class="field">
         <span class="field-label" aria-hidden="true">&nbsp;</span>
         <button class="btn btn-ghost" id="dateNowBtn" type="button">
-          <i class="bi bi-clock" aria-hidden="true"></i> 取當前時間
+          <Icon name="clock" /> 取當前時間
         </button>
       </div>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="dateToTsBtn" type="button">
-        <i class="bi bi-arrow-repeat" aria-hidden="true"></i> 轉換
+        <Icon name="arrow-repeat" /> 轉換
       </button>
     </div>
     <div class="output-area">

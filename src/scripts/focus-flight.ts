@@ -1,3 +1,5 @@
+import { Pause, Play } from '../lib/icons/client-data';
+import { renderIconSvg } from '../lib/icons/svg';
 import {
   FLIGHT_ROUTES,
   FLIGHT_STORAGE,
@@ -722,8 +724,8 @@ function render(force = false) {
     control.querySelector("span")!.textContent =
       state === "paused" ? t.resume : t.pause;
     control.setAttribute("aria-label", state === "paused" ? t.resume : t.pause);
-    control.querySelector("i")!.className =
-      "bi " + (state === "paused" ? "bi-play" : "bi-pause");
+    const controlIcon = control.querySelector('.icon');
+    if (controlIcon) controlIcon.outerHTML = renderIconSvg(state === "paused" ? Play : Pause);
     updateNoise();
     void updateWakeLock();
   }

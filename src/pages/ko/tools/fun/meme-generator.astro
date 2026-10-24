@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'meme-generator', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="이미지와 텍스트" icon="bi-image-alt">
+  <ToolPanel title="이미지와 텍스트" icon="image-alt">
     <div class="field">
       <input class="input" id="mgFile" type="file" accept="image/*" />
     </div>
@@ -32,13 +33,13 @@ const related = getRelated(category, 'meme-generator', 'ko', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="mgBtn" type="button"><i class="bi bi-image-alt"></i> 밈 생성</button>
-      <button class="btn btn-ghost" id="mgDownload" type="button"><i class="bi bi-download"></i> PNG 다운로드</button>
+      <button class="btn btn-primary" id="mgBtn" type="button"><Icon name="image-alt" /> 밈 생성</button>
+      <button class="btn btn-ghost" id="mgDownload" type="button"><Icon name="download" /> PNG 다운로드</button>
     </div>
     <div class="status-msg" id="mgStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="미리보기" icon="bi-eye">
+  <ToolPanel title="미리보기" icon="eye">
     <div class="mg-preview" id="mgPreview"></div>
   </ToolPanel>
 </ToolLayout>

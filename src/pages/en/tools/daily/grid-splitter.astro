@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,19 +10,19 @@ const related = getRelated(category, 'grid-splitter', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Upload Image" icon="bi-image">
+  <ToolPanel title="Upload Image" icon="image">
     <div class="field">
       <input class="input" id="gsFile" type="file" accept="image/*" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="gsBtn" type="button"><i class="bi bi-grid-3x3-gap"></i> Split into 3×3 Grid</button>
-      <button class="btn btn-ghost" id="gsDownload" type="button"><i class="bi bi-download"></i> Download All</button>
+      <button class="btn btn-primary" id="gsBtn" type="button"><Icon name="grid-3x3-gap" /> Split into 3×3 Grid</button>
+      <button class="btn btn-ghost" id="gsDownload" type="button"><Icon name="download" /> Download All</button>
     </div>
     <div class="status-msg" id="gsStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">Square images work best; images are processed locally and never uploaded.</p>
   </ToolPanel>
 
-  <ToolPanel title="Split Preview" icon="bi-grid-3x3-gap">
+  <ToolPanel title="Split Preview" icon="grid-3x3-gap">
     <div class="gs-grid" id="gsGrid"></div>
   </ToolPanel>
 </ToolLayout>

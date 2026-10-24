@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="10秒クリックスピードチャレンジ" icon="bi-cursor">
+  <ToolPanel title="10秒クリックスピードチャレンジ" icon="cursor">
     <div class="cs-head">
       <div class="cs-count" id="csCount">0</div>
       <div class="cs-meta">
@@ -20,7 +21,7 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
     </div>
 
     <button class="cs-btn" id="csBtn" type="button">
-      <span class="cs-btn-label" id="csBtnLabel"><i class="bi bi-cursor"></i> クリックして開始</span>
+      <span class="cs-btn-label" id="csBtnLabel"><Icon name="cursor" /> クリックして開始</span>
       <span class="cs-countdown" id="csCountdown"></span>
     </button>
     <p class="field-hint" id="csHint">クリックして開始すると 3-2-1 のカウントダウンが始まり、その後最速でボタンをクリックしてください</p>
@@ -238,6 +239,9 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
 </style>
 
 <script>
+import { Trophy } from '../../../../lib/icons/client-data';
+import { MousePointer2, RotateCcw } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
 
   const DURATION = 10000;
@@ -264,7 +268,7 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
   const best = Number(localStorage.getItem(BEST_KEY) || 0);
   if (best > 0) {
     hint.insertAdjacentHTML('afterend',
-      `<div class="cs-best"><i class="bi bi-trophy"></i> 過去最高 ${best.toFixed(1)} 回/秒</div>`);
+      `<div class="cs-best">${renderIconSvg(Trophy)} 過去最高 ${best.toFixed(1)} 回/秒</div>`);
   }
 
   function fmtCps(): string {
@@ -300,7 +304,7 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
       countdownEl.classList.remove('show');
       countdownEl.textContent = '';
       btn.disabled = false;
-      btnLabel.innerHTML = '<i class="bi bi-cursor"></i> 連打しまくれ！';
+      btnLabel.innerHTML = renderIconSvg(MousePointer2) + ' 連打しまくれ！';
       state = 'running';
       count = 0;
       countEl.textContent = '0';
@@ -334,14 +338,14 @@ const related = getRelated(category, 'click-speed', 'ja', 6);
       `<div class="cs-result-item"><span class="v">${count}</span><span class="k">総クリック数</span></div>` +
       `<div class="cs-result-item"><span class="v">${cps.toFixed(1)}</span><span class="k">回/秒</span></div>` +
       `<div class="cs-result-item"><span class="v">${grade}</span><span class="k">評価</span></div>` +
-      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)"><i class="bi bi-trophy"></i></span><span class="k">新記録！</span></div>` : '') +
+      (isBest ? `<div class="cs-result-item"><span class="v" style="color:var(--warning)">${renderIconSvg(Trophy)}</span><span class="k">新記録！</span></div>` : '') +
       `</div>` +
       (best > 0 && !isBest ? `<p class="muted">過去最高 ${best.toFixed(1)} 回/秒</p>` : '');
     result.hidden = false;
     showStatus('csStatus', 'success', '時間です！成績が生成されました');
     setTimeout(() => {
       if (state === 'done') {
-        btnLabel.innerHTML = '<i class="bi bi-arrow-counterclockwise"></i> もう一度';
+        btnLabel.innerHTML = renderIconSvg(RotateCcw) + ' もう一度';
       }
     }, LOCK_MS);
   }

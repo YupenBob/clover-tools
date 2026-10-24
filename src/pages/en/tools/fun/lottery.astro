@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'lottery', 'en', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Lottery Settings" icon="bi-gift">
+  <ToolPanel title="Lottery Settings" icon="gift">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><i class="bi bi-magic"></i> Sample list</button>
+      <button class="btn btn-ghost btn-sm" id="lotSample" type="button"><Icon name="magic" /> Sample list</button>
     </div>
     <div class="field">
       <label class="field-label" for="lotNames">Names (one per line)</label>
@@ -32,13 +33,13 @@ const related = getRelated(category, 'lottery', 'en', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="lotBtn" type="button"><i class="bi bi-ticket-perforated"></i> Start draw</button>
+      <button class="btn btn-primary" id="lotBtn" type="button"><Icon name="ticket-perforated" /> Start draw</button>
     </div>
     <div class="status-msg" id="lotStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 </ToolLayout>
 
-<p class="muted sfx-note"><i class="bi bi-music-note-beamed" aria-hidden="true"></i> Sound effects: Mixkit (free license)</p>
+<p class="muted sfx-note"><Icon name="music-note-beamed" /> Sound effects: Mixkit (free license)</p>
 
 <!-- ═══ Immersive slots ═══ -->
 <div class="lottery-overlay" id="lotteryOverlay" role="dialog" aria-modal="true" aria-label="Immersive lottery slots" aria-hidden="true">
@@ -46,13 +47,13 @@ const related = getRelated(category, 'lottery', 'en', 6);
   <div class="lot-spotlight" aria-hidden="true"></div>
   <header class="lot-top">
     <div>
-      <div class="lot-title"><i class="bi bi-stars" aria-hidden="true"></i> Lucky Moment</div>
+      <div class="lot-title"><Icon name="stars" /> Lucky Moment</div>
       <div class="lot-sub" id="lotSub">Ready for the thrill?</div>
     </div>
     <div class="lot-top-actions">
-      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="Toggle sound"><i class="bi bi-volume-up-fill"></i></button>
-      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="Toggle fullscreen"><i class="bi bi-arrows-fullscreen"></i></button>
-      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+      <button class="lot-icon-btn" id="lotSfx" type="button" aria-label="Toggle sound"><Icon name="volume-up-fill" /></button>
+      <button class="lot-icon-btn" id="lotFullscreen" type="button" aria-label="Toggle fullscreen"><Icon name="arrows-fullscreen" /></button>
+      <button class="lot-icon-btn" id="lotClose" type="button" aria-label="Close"><Icon name="x-lg" /></button>
     </div>
   </header>
   <div class="reels" id="reels">
@@ -65,9 +66,9 @@ const related = getRelated(category, 'lottery', 'en', 6);
   <div class="lot-status" id="lotStatusMsg" role="status" aria-live="polite">Spinning…</div>
   <div class="lot-winners" id="lotWinners"></div>
   <div class="lot-actions">
-    <button class="btn btn-primary" id="lotCopy" type="button" hidden><i class="bi bi-clipboard"></i> Copy results</button>
-    <button class="btn btn-primary" id="lotAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> Draw again</button>
-    <button class="btn btn-ghost" id="lotDone" type="button" hidden><i class="bi bi-check2"></i> Done</button>
+    <button class="btn btn-primary" id="lotCopy" type="button" hidden><Icon name="clipboard" /> Copy results</button>
+    <button class="btn btn-primary" id="lotAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> Draw again</button>
+    <button class="btn btn-ghost" id="lotDone" type="button" hidden><Icon name="check2" /> Done</button>
   </div>
 </div>
 
@@ -99,10 +100,10 @@ const related = getRelated(category, 'lottery', 'en', 6);
       <div class="slot-winners" id="cWinners"></div>
     </div>
     <div class="slot-actions">
-      <button class="slot-btn" id="classicSfx" type="button"><i class="bi bi-volume-up-fill"></i> Sound</button>
-      <button class="slot-btn" id="classicAgain" type="button" hidden><i class="bi bi-arrow-counterclockwise"></i> Spin again</button>
-      <button class="slot-btn" id="classicCopy" type="button"><i class="bi bi-clipboard"></i> Copy results</button>
-      <button class="slot-btn" id="classicExit" type="button"><i class="bi bi-x-lg"></i> Exit</button>
+      <button class="slot-btn" id="classicSfx" type="button"><Icon name="volume-up-fill" /> Sound</button>
+      <button class="slot-btn" id="classicAgain" type="button" hidden><Icon name="arrow-counterclockwise" /> Spin again</button>
+      <button class="slot-btn" id="classicCopy" type="button"><Icon name="clipboard" /> Copy results</button>
+      <button class="slot-btn" id="classicExit" type="button"><Icon name="x-lg" /> Exit</button>
     </div>
   </div>
 </div>
@@ -380,6 +381,8 @@ const related = getRelated(category, 'lottery', 'en', 6);
   }
 </style>
 <script>
+import { Trophy, Volume2, VolumeX } from '../../../../lib/icons/client-data';
+import { renderIconSvg } from '../../../../lib/icons/svg';
   import { byId, showStatus, hideStatus } from '../../../../scripts/toolkit';
   import { planReel, reelSample, modSet } from '../../../../lib/reel-motion.mjs';
 
@@ -474,9 +477,8 @@ const related = getRelated(category, 'lottery', 'en', 6);
   }
 
   function syncSfxIcons() {
-    const icon = sfxOn ? 'bi-volume-up-fill' : 'bi-volume-mute-fill';
-    byId<HTMLButtonElement>('lotSfx').innerHTML = `<i class="bi ${icon}"></i>`;
-    byId<HTMLButtonElement>('classicSfx').innerHTML = `<i class="bi ${icon}"></i> Sound`;
+        byId<HTMLButtonElement>('lotSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)}`;
+    byId<HTMLButtonElement>('classicSfx').innerHTML = `${renderIconSvg(sfxOn ? Volume2 : VolumeX)} Sound`;
     byId<HTMLButtonElement>('lotSfx').setAttribute('aria-pressed', String(sfxOn));
     byId<HTMLButtonElement>('classicSfx').setAttribute('aria-pressed', String(sfxOn));
   }
@@ -749,7 +751,7 @@ const related = getRelated(category, 'lottery', 'en', 6);
   function addWinnerChip(container: HTMLElement, i: number, name: string) {
     const chip = document.createElement('span');
     chip.className = 'winner-chip';
-    chip.innerHTML = `<i class="bi bi-trophy" aria-hidden="true"></i> ${i + 1}. ${name}`;
+    chip.innerHTML = `${renderIconSvg(Trophy)} ${i + 1}. ${name}`;
     container.appendChild(chip);
   }
 

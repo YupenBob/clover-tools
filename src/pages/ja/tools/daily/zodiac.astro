@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,18 +10,18 @@ const related = getRelated(category, 'zodiac', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="生年月日" icon="bi-star">
+  <ToolPanel title="生年月日" icon="star">
     <div class="field">
       <label class="field-label" for="zdDate">日付</label>
       <input class="input" id="zdDate" type="date" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="zdBtn" type="button"><i class="bi bi-star"></i> 照会</button>
+      <button class="btn btn-primary" id="zdBtn" type="button"><Icon name="star" /> 照会</button>
     </div>
     <div class="status-msg" id="zdStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="照会結果" icon="bi-clipboard-data">
+  <ToolPanel title="照会結果" icon="clipboard-data">
     <div class="zd-grid" id="zdGrid"></div>
   </ToolPanel>
 </ToolLayout>

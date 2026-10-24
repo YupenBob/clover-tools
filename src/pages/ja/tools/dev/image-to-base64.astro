@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'image-to-base64', 'ja', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="画像を選択" icon="bi-image">
+  <ToolPanel title="画像を選択" icon="image">
     <div class="field">
       <input class="input" id="i2bFile" type="file" accept="image/*" />
     </div>
@@ -32,15 +33,15 @@ const related = getRelated(category, 'image-to-base64', 'ja', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="i2bBtn" type="button"><i class="bi bi-arrow-repeat"></i> Base64 に変換</button>
-      <button class="btn btn-ghost" id="i2bDownload" type="button"><i class="bi bi-download"></i> 変換結果をダウンロード</button>
+      <button class="btn btn-primary" id="i2bBtn" type="button"><Icon name="arrow-repeat" /> Base64 に変換</button>
+      <button class="btn btn-ghost" id="i2bDownload" type="button"><Icon name="download" /> 変換結果をダウンロード</button>
     </div>
     <div class="status-msg" id="i2bStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Base64 結果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="Base64 結果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><i class="bi bi-clipboard"></i> コピー</button>
+      <button class="btn btn-ghost btn-sm" id="i2bCopy" type="button"><Icon name="clipboard" /> コピー</button>
     </div>
     <textarea class="textarea" id="i2bOutput" readonly spellcheck="false" placeholder="Base64 データがここに表示されます"></textarea>
     <div class="input-stats"><span id="i2bStats"></span></div>

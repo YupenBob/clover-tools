@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,9 +10,9 @@ const related = getRelated(category, 'jsonpath', 'ko', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="JSON 데이터" icon="bi-braces">
+  <ToolPanel title="JSON 데이터" icon="braces">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><i class="bi bi-magic"></i> 예시</button>
+      <button class="btn btn-ghost btn-sm" id="jpSample" type="button"><Icon name="magic" /> 예시</button>
     </div>
     <textarea class="textarea" id="jpJson" spellcheck="false" placeholder="JSON 데이터 붙여넣기"></textarea>
     <div class="field mt-3">
@@ -19,15 +20,15 @@ const related = getRelated(category, 'jsonpath', 'ko', 6);
       <input class="input mono" id="jpExpr" type="text" value="$..title" spellcheck="false" />
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="jpBtn" type="button"><i class="bi bi-signpost-split"></i> 조회</button>
+      <button class="btn btn-primary" id="jpBtn" type="button"><Icon name="signpost-split" /> 조회</button>
     </div>
     <div class="status-msg" id="jpStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">$.key, ['key'], [0], [*], .. 재귀, [?(@.key == value)] 필터를 지원합니다.</p>
   </ToolPanel>
 
-  <ToolPanel title="조회 결과" icon="bi-box-arrow-in-down">
+  <ToolPanel title="조회 결과" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><i class="bi bi-clipboard"></i> 복사</button>
+      <button class="btn btn-ghost btn-sm" id="jpCopy" type="button"><Icon name="clipboard" /> 복사</button>
     </div>
     <textarea class="textarea" id="jpOutput" readonly spellcheck="false" placeholder="일치 결과가 여기에 표시됩니다"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 import { getCategoryMetas, getTools, siteForLang, type ToolCategory } from '../../lib/i18n';
@@ -70,17 +71,17 @@ const aboutJsonLd = {
       </p>
       <div class="about-stats">
         <div class="about-stat about-reveal" style="--delay: 40ms">
-          <i class="bi bi-tools about-stat-icon" aria-hidden="true"></i>
+          <Icon name="tools" class="about-stat-icon" />
           <span class="about-stat-num">{totalTools}</span>
           <span class="about-stat-label">在線工具</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 120ms">
-          <i class="bi bi-collection about-stat-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="about-stat-icon" />
           <span class="about-stat-num">{CATEGORIES.length}</span>
           <span class="about-stat-label">工具分類</span>
         </div>
         <div class="about-stat about-reveal" style="--delay: 200ms">
-          <i class="bi bi-shield-check about-stat-icon" aria-hidden="true"></i>
+          <Icon name="shield-check" class="about-stat-icon" />
           <span class="about-stat-num">0</span>
           <span class="about-stat-label">註冊步驟</span>
         </div>
@@ -90,7 +91,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="features-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-stars" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="stars" /></span>
       <div>
         <h2 class="category-title" id="features-heading">特色亮點</h2>
         <p class="category-blurb">為什麽選擇 CloverTools</p>
@@ -99,42 +100,42 @@ const aboutJsonLd = {
     <div class="feature-grid">
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-lightning-charge feature-icon" aria-hidden="true"></i>
+          <Icon name="lightning-charge" class="feature-icon" />
           <h3>即開即用</h3>
           <p>無需注冊、無需安裝，打開頁面即可使用</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-shield-lock feature-icon" aria-hidden="true"></i>
+          <Icon name="shield-lock" class="feature-icon" />
           <h3>隱私優先</h3>
           <p>多數輸入在本地處理，聯網工具會說明請求去向</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-pencil-square feature-icon" aria-hidden="true"></i>
+          <Icon name="pencil-square" class="feature-icon" />
           <h3>精品手寫</h3>
           <p>每個工具逐一編寫，內置輸入校驗與示例</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 40ms">
         <div class="feature-card">
-          <i class="bi bi-collection feature-icon" aria-hidden="true"></i>
+          <Icon name="collection" class="feature-icon" />
           <h3>分類清晰</h3>
           <p>開發實用、日常實用、趣味工具三大場景</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 90ms">
         <div class="feature-card">
-          <i class="bi bi-moon-stars feature-icon" aria-hidden="true"></i>
+          <Icon name="moon-stars" class="feature-icon" />
           <h3>多端適配</h3>
           <p>移動端自適應，支持深色模式</p>
         </div>
       </div>
       <div class="feature-col about-reveal" style="--delay: 140ms">
         <div class="feature-card">
-          <i class="bi bi-github feature-icon" aria-hidden="true"></i>
+          <Icon name="github" class="feature-icon" />
           <h3>開源免費</h3>
           <p>源碼托管於 GitHub，歡迎貢獻與反饋</p>
         </div>
@@ -144,7 +145,7 @@ const aboutJsonLd = {
 
   <section class="about-section" aria-labelledby="links-heading">
     <header class="category-head about-reveal">
-      <span class="category-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+      <span class="category-icon"><Icon name="link-45deg" /></span>
       <div>
         <h2 class="category-title" id="links-heading">了解更多</h2>
         <p class="category-blurb">訪問資源與參與貢獻</p>
@@ -152,16 +153,16 @@ const aboutJsonLd = {
     </header>
     <div class="about-links-panel about-reveal">
       <a class="btn btn-primary" href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <i class="bi bi-github" aria-hidden="true"></i>
+        <Icon name="github" />
         GitHub 倉庫
-        <i class="bi bi-box-arrow-up-right link-out" aria-hidden="true"></i>
+        <Icon name="box-arrow-up-right" class="link-out" />
       </a>
       <a class="btn btn-secondary" href="/sitemap-index.xml">
-        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <Icon name="diagram-3" />
         站點地圖
       </a>
       <a class="btn btn-ghost" href="/zh-hant/">
-        <i class="bi bi-house-door" aria-hidden="true"></i>
+        <Icon name="house-door" />
         返回首頁
       </a>
     </div>

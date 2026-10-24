@@ -32,749 +32,749 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   'focus-flight': {
     usage: '从 38 座机场选择出发与抵达，设定任务和 1–180 分钟时长，选择有声或安静登机。领取登机牌，撕下副票后进入 SVG 舷窗客舱，看远近云层持续掠过。真实地理航图提供全程、跟随与机头朝上的导航视角，可选择晴空、日落或夜航。轻触画面唤回操作，调整引擎与气流，暂停续航；刷新可以恢复计时。抵达后保存盖章 PNG 登机牌，最近 20 次完成航程保存在此浏览器，可随时清空。',
     features: [
-      { icon: 'bi-airplane', text: '38 座机场、导航航图与撕票登机' },
-      { icon: 'bi-clock', text: '1–180 分钟、暂停续航与刷新恢复' },
-      { icon: 'bi-volume-up', text: 'SVG 舷窗、三种光线与分层客舱声场' },
-      { icon: 'bi-download', text: '落地纪念卡与本地飞行日志' },
+      { icon: 'airplane', text: '38 座机场、导航航图与撕票登机' },
+      { icon: 'clock', text: '1–180 分钟、暂停续航与刷新恢复' },
+      { icon: 'volume-up', text: 'SVG 舷窗、三种光线与分层客舱声场' },
+      { icon: 'download', text: '落地纪念卡与本地飞行日志' },
     ],
   },
   'perler-beads': {
     usage: '上传 PNG、JPG 或 WebP，设置最长边豆数和颜色数量，或填写手头豆子的 HEX 色值。预览中可放大查看，透明格子不计入用量；下载带坐标与编号的 PNG 图纸，复制或导出逐色用量清单。编号是本图内部编号，请自行核对实际豆色。',
     features: [
-      { icon: 'bi-grid', text: '16–96 豆的网格与编号图纸' },
-      { icon: 'bi-palette', text: '自动取色或自定义 HEX 色板' },
-      { icon: 'bi-list-ol', text: '逐色用量与 CSV 清单' },
-      { icon: 'bi-shield-check', text: '图片在浏览器本地处理' },
+      { icon: 'grid', text: '16–96 豆的网格与编号图纸' },
+      { icon: 'palette', text: '自动取色或自定义 HEX 色板' },
+      { icon: 'list-ol', text: '逐色用量与 CSV 清单' },
+      { icon: 'shield-check', text: '图片在浏览器本地处理' },
     ],
   },
   'personality-test': {
     usage: '按平时的行为回答 24 道原创情境题，每题选择一个符合程度，可返回修改。完成后查看四个偏好维度、复制结果或下载分享卡片。持平维度用 X 标记，百分比描述答题倾向；本工具供娱乐与自我观察，并非官方 MBTI 测评。',
     features: [
-      { icon: 'bi-pencil', text: '24 道原创情境题，支持回看修改' },
-      { icon: 'bi-bar-chart', text: '四维偏好与持平结果展示' },
-      { icon: 'bi-download', text: '生成可分享的 PNG 地图卡片' },
-      { icon: 'bi-shield-check', text: '答案只保留在本次访问' },
+      { icon: 'pencil', text: '24 道原创情境题，支持回看修改' },
+      { icon: 'bar-chart', text: '四维偏好与持平结果展示' },
+      { icon: 'download', text: '生成可分享的 PNG 地图卡片' },
+      { icon: 'shield-check', text: '答案只保留在本次访问' },
     ],
   },
   'avatar-generator': {
     usage: '输入昵称或种子，选择机器人、像素或几何画风，调整角色颜色、背景、外框和透明效果。相同种子与设置会生成同一个原创头像，也可随机生成或从示例开始。支持 256、512、1024 像素 PNG 与矢量 SVG 下载。',
     features: [
-      { icon: 'bi-robot', text: '机器人、像素与几何三种原创画风' },
-      { icon: 'bi-palette', text: '自定义配色、外框和透明背景' },
-      { icon: 'bi-arrow-repeat', text: '种子可复现，支持复制设置' },
-      { icon: 'bi-download', text: 'PNG 与 SVG 本地导出' },
+      { icon: 'robot', text: '机器人、像素与几何三种原创画风' },
+      { icon: 'palette', text: '自定义配色、外框和透明背景' },
+      { icon: 'arrow-repeat', text: '种子可复现，支持复制设置' },
+      { icon: 'download', text: 'PNG 与 SVG 本地导出' },
     ],
   },
   'fps-aim-trainer': fpsContent('zh'),
   'm3u8-downloader': {
     usage: '粘贴 M3U8 地址，解析后选择清晰度并开始下载。缺失分片自动跳过，其他失败先重试。普通模式可导出 MP4 / TS；支持原生文件写入的 Chrome / Edge 可开启特大模式，选择原格式或 MP4，准备后选择文件，边下载边保存以降低内存占用。可暂停、保存当前部分，刷新后恢复任务并授权文件，从缓存重建后继续。目标站点需要允许跨域访问。',
     features: [
-      { icon: 'bi-skip-forward', text: '缺失分片自动跳过，后续分片继续下载' },
-      { icon: 'bi-arrow-repeat', text: '暂停、部分保存、刷新恢复与缓存续传' },
-      { icon: 'bi-camera-video', text: '选择格式，特大视频边下载边保存' },
-      { icon: 'bi-shield-lock', text: '分片缓存与合并均在本地，视频不上传' },
+      { icon: 'skip-forward', text: '缺失分片自动跳过，后续分片继续下载' },
+      { icon: 'arrow-repeat', text: '暂停、部分保存、刷新恢复与缓存续传' },
+      { icon: 'camera-video', text: '选择格式，特大视频边下载边保存' },
+      { icon: 'shield-lock', text: '分片缓存与合并均在本地，视频不上传' },
     ],
   },
   'json-formatter': {
     usage:
       '在线 JSON 格式化与校验工具：粘贴 JSON 后自动美化排版，支持压缩输出与缩进自定义；语法错误会定位到具体行号，方便快速排查接口返回与配置文件问题。所有处理都在浏览器本地完成，数据不会上传。',
     features: [
-      { icon: 'bi-braces', text: '一键格式化与压缩' },
-      { icon: 'bi-bug', text: '语法错误定位到行号' },
-      { icon: 'bi-sliders', text: '缩进宽度自定义' },
-      { icon: 'bi-shield-lock', text: '纯浏览器处理，不泄露数据' },
+      { icon: 'braces', text: '一键格式化与压缩' },
+      { icon: 'bug', text: '语法错误定位到行号' },
+      { icon: 'sliders', text: '缩进宽度自定义' },
+      { icon: 'shield-lock', text: '纯浏览器处理，不泄露数据' },
     ],
   },
   'json-convert': {
     usage:
       '粘贴非空对象数组，选择 CSV 或 TSV 与是否包含表头。字段按首次出现顺序合并，嵌套值保存为 JSON 文本；结果可复制或下载为 Excel 可导入的 UTF-8 文件，不生成 XLSX。',
     features: [
-      { icon: 'bi-table', text: '对象数组转 CSV / TSV' },
-      { icon: 'bi-arrow-down-up', text: '表头与字段顺序可定制' },
-      { icon: 'bi-download', text: '结果一键下载' },
-      { icon: 'bi-shield-lock', text: '本地转换，数据不出浏览器' },
+      { icon: 'table', text: '对象数组转 CSV / TSV' },
+      { icon: 'arrow-down-up', text: '表头与字段顺序可定制' },
+      { icon: 'download', text: '结果一键下载' },
+      { icon: 'shield-lock', text: '本地转换，数据不出浏览器' },
     ],
   },
   'json-codegen': {
     usage:
       '根据一段 JSON 示例数据自动生成 TypeScript 接口、Go Struct、Java 实体类与 C# 模型，减少手写类型定义的工作量，适合前后端联调时快速对齐数据结构。',
     features: [
-      { icon: 'bi-file-code', text: '支持 TS / Go / Java / C#' },
-      { icon: 'bi-diagram-3', text: '嵌套对象自动递归生成' },
-      { icon: 'bi-type', text: '字段命名风格可配置' },
-      { icon: 'bi-clipboard-check', text: '一键复制生成结果' },
+      { icon: 'file-code', text: '支持 TS / Go / Java / C#' },
+      { icon: 'diagram-3', text: '嵌套对象自动递归生成' },
+      { icon: 'type', text: '字段命名风格可配置' },
+      { icon: 'clipboard-check', text: '一键复制生成结果' },
     ],
   },
   'json-xml-yaml': {
     usage:
       'JSON、XML、YAML 三种数据格式相互转换，适合接口数据迁移、配置文件转换与文档整理。转换保留原有结构与层次，支持缩进自定义，全部在浏览器本地完成。',
     features: [
-      { icon: 'bi-arrow-left-right', text: 'JSON / XML / YAML 三向互转' },
-      { icon: 'bi-stack', text: '结构层次完整保留' },
-      { icon: 'bi-sliders', text: '缩进与格式可配置' },
-      { icon: 'bi-shield-lock', text: '本地转换，数据安全' },
+      { icon: 'arrow-left-right', text: 'JSON / XML / YAML 三向互转' },
+      { icon: 'stack', text: '结构层次完整保留' },
+      { icon: 'sliders', text: '缩进与格式可配置' },
+      { icon: 'shield-lock', text: '本地转换，数据安全' },
     ],
   },
   jsonpath: {
     usage:
       '在线 JSONPath 表达式测试器：输入 JSON 数据与表达式后点击查询，查看匹配结果，支持 $、点号、数组下标、通配符与过滤条件等常见语法，是接口调试与数据提取的常用辅助工具。',
     features: [
-      { icon: 'bi-search', text: '常用路径与简单比较筛选' },
-      { icon: 'bi-collection', text: '支持常见 JSONPath 语法' },
-      { icon: 'bi-list-check', text: '匹配数量与结果统计' },
-      { icon: 'bi-shield-lock', text: '数据仅在本地解析' },
+      { icon: 'search', text: '常用路径与简单比较筛选' },
+      { icon: 'collection', text: '支持常见 JSONPath 语法' },
+      { icon: 'list-check', text: '匹配数量与结果统计' },
+      { icon: 'shield-lock', text: '数据仅在本地解析' },
     ],
   },
   diff: {
     usage:
       '两段文本逐行差异对比工具，适合配置、代码与 JSON 内容比对。差异以行内高亮展示，并统计增删改数量，帮助在合并冲突或内容审查时快速定位变化。',
     features: [
-      { icon: 'bi-file-diff', text: '逐行差异对比' },
-      { icon: 'bi-highlighter', text: '行内级别高亮' },
-      { icon: 'bi-bar-chart', text: '增删改数量统计' },
-      { icon: 'bi-shield-lock', text: '本地对比，内容不上传' },
+      { icon: 'file-diff', text: '逐行差异对比' },
+      { icon: 'highlighter', text: '行内级别高亮' },
+      { icon: 'bar-chart', text: '增删改数量统计' },
+      { icon: 'shield-lock', text: '本地对比，内容不上传' },
     ],
   },
   base64: {
     usage:
       'Base64 编码与解码工具：正确处理 UTF-8 中文，支持 URL 安全模式与图片转 Base64 数据。适合处理接口 token、图片嵌入与简单文本转换，编解码全程在浏览器本地完成。',
     features: [
-      { icon: 'bi-arrow-repeat', text: '编码与解码双向转换' },
-      { icon: 'bi-globe2', text: 'UTF-8 中文与 URL 安全模式' },
-      { icon: 'bi-image', text: '图片转 Base64 数据' },
-      { icon: 'bi-shield-lock', text: '本地处理，不上传内容' },
+      { icon: 'arrow-repeat', text: '编码与解码双向转换' },
+      { icon: 'globe2', text: 'UTF-8 中文与 URL 安全模式' },
+      { icon: 'image', text: '图片转 Base64 数据' },
+      { icon: 'shield-lock', text: '本地处理，不上传内容' },
     ],
   },
   'url-encode': {
     usage:
       'URL 编码与解码工具：正确处理中文与特殊字符，避免中文链接在请求中乱码。支持完整组件与查询参数两种模式，适合接口调用、前端开发与参数调试。',
     features: [
-      { icon: 'bi-link-45deg', text: 'URL 编码与解码' },
-      { icon: 'bi-globe2', text: '中文与特殊字符正确处理' },
-      { icon: 'bi-input-cursor', text: '完整组件 / 查询参数双模式' },
-      { icon: 'bi-arrow-repeat', text: '实时双向转换' },
+      { icon: 'link-45deg', text: 'URL 编码与解码' },
+      { icon: 'globe2', text: '中文与特殊字符正确处理' },
+      { icon: 'input-cursor', text: '完整组件 / 查询参数双模式' },
+      { icon: 'arrow-repeat', text: '实时双向转换' },
     ],
   },
   'html-formatter': {
     usage:
       'HTML 格式化与压缩工具，附带 HTML 实体编码解码，适合邮件模板、富文本内容与页面源码的处理。粘贴源码即可一键整理缩进或压缩体积。',
     features: [
-      { icon: 'bi-code-slash', text: '格式化与压缩切换' },
-      { icon: 'bi-filetype-html', text: 'HTML 实体编码解码' },
-      { icon: 'bi-arrows-collapse', text: '压缩体积便于传输' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'code-slash', text: '格式化与压缩切换' },
+      { icon: 'filetype-html', text: 'HTML 实体编码解码' },
+      { icon: 'arrows-collapse', text: '压缩体积便于传输' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'css-formatter': {
     usage:
       'CSS 格式化与压缩工具，附带 px、rem、em、vw 等常用单位换算，前端开发时调整样式、适配移动端或压缩样式文件更方便。',
     features: [
-      { icon: 'bi-brush', text: '格式化与压缩' },
-      { icon: 'bi-filetype-css', text: 'CSS 语法友好' },
-      { icon: 'bi-rulers', text: 'px / rem / em / vw 换算' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'brush', text: '格式化与压缩' },
+      { icon: 'filetype-css', text: 'CSS 语法友好' },
+      { icon: 'rulers', text: 'px / rem / em / vw 换算' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'js-formatter': {
     usage:
       'JavaScript 代码格式化与压缩工具：支持 ES 现代语法与常用配置项，粘贴即可整理缩进、统一分号，快速得到可读性更好的代码。',
     features: [
-      { icon: 'bi-filetype-js', text: '格式化与压缩' },
-      { icon: 'bi-braces', text: '支持 ES 现代语法' },
-      { icon: 'bi-gear', text: '常用配置项可调' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'filetype-js', text: '格式化与压缩' },
+      { icon: 'braces', text: '支持 ES 现代语法' },
+      { icon: 'gear', text: '常用配置项可调' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'sql-formatter': {
     usage:
       'SQL 通用排版工具：按常见关键字和括号整理缩进或压缩文本，不执行查询，不验证所有数据库方言；使用前请在目标数据库中核对语法。',
     features: [
-      { icon: 'bi-filetype-sql', text: '常见关键字与括号排版' },
-      { icon: 'bi-database', text: '关键字与子句缩进对齐' },
-      { icon: 'bi-list-ol', text: '语句层次一目了然' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'filetype-sql', text: '常见关键字与括号排版' },
+      { icon: 'database', text: '关键字与子句缩进对齐' },
+      { icon: 'list-ol', text: '语句层次一目了然' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'xml-formatter': {
     usage:
       'XML 格式化、压缩与校验工具：错误提示清晰，适合接口报文与配置文件的处理，帮助快速定位标签结构与转义问题。',
     features: [
-      { icon: 'bi-filetype-xml', text: '格式化与压缩' },
-      { icon: 'bi-check2-circle', text: '结构完整性校验' },
-      { icon: 'bi-bug', text: '错误位置提示' },
-      { icon: 'bi-shield-lock', text: '本地处理，内容安全' },
+      { icon: 'filetype-xml', text: '格式化与压缩' },
+      { icon: 'check2-circle', text: '结构完整性校验' },
+      { icon: 'bug', text: '错误位置提示' },
+      { icon: 'shield-lock', text: '本地处理，内容安全' },
     ],
   },
   markdown: {
     usage:
       '成熟的 Markdown 在线编辑器：工具栏一键插入常用语法，分屏实时预览渲染效果，支持目录大纲、复制富文本与导出 Markdown/HTML，草稿自动保存在浏览器本地，刷新不丢失。',
     features: [
-      { icon: 'bi-markdown', text: '工具栏快捷语法' },
-      { icon: 'bi-layout-text-window', text: '分屏实时预览' },
-      { icon: 'bi-card-list', text: '目录大纲导航' },
-      { icon: 'bi-clipboard2-heart', text: '复制富文本到文档' },
-      { icon: 'bi-save', text: '草稿自动本地保存' },
+      { icon: 'markdown', text: '工具栏快捷语法' },
+      { icon: 'layout-text-window', text: '分屏实时预览' },
+      { icon: 'card-list', text: '目录大纲导航' },
+      { icon: 'clipboard2-heart', text: '复制富文本到文档' },
+      { icon: 'save', text: '草稿自动本地保存' },
     ],
   },
   'regex-tester': {
     usage:
       '正则表达式在线测试器：输入表达式与待匹配文本，实时高亮所有匹配结果并展示捕获组，内置常用正则示例库，调试复杂表达式更直观。',
     features: [
-      { icon: 'bi-search', text: '匹配结果实时高亮' },
-      { icon: 'bi-collection', text: '捕获组完整展示' },
-      { icon: 'bi-lightning-charge', text: '内置常用示例库' },
-      { icon: 'bi-shield-lock', text: '文本仅在本地处理' },
+      { icon: 'search', text: '匹配结果实时高亮' },
+      { icon: 'collection', text: '捕获组完整展示' },
+      { icon: 'lightning-charge', text: '内置常用示例库' },
+      { icon: 'shield-lock', text: '文本仅在本地处理' },
     ],
   },
   'text-transform': {
     usage:
       '文本转换工具：大小写转换、驼峰与下划线互转、全角半角转换等，支持批量处理，粘贴即用，适合变量命名、文案整理与代码片段处理。',
     features: [
-      { icon: 'bi-text-left', text: '大小写一键转换' },
-      { icon: 'bi-arrow-repeat', text: '驼峰 / 下划线 / 连字符互转' },
-      { icon: 'bi-fonts', text: '全角半角转换' },
-      { icon: 'bi-magic', text: '批量处理粘贴即用' },
+      { icon: 'text-left', text: '大小写一键转换' },
+      { icon: 'arrow-repeat', text: '驼峰 / 下划线 / 连字符互转' },
+      { icon: 'fonts', text: '全角半角转换' },
+      { icon: 'magic', text: '批量处理粘贴即用' },
     ],
   },
   'text-toolbox': {
     usage:
       '文本批量处理工具箱：去重、排序、反转、去除空行、统计行数等常用操作，适合日志、名单与列表数据的快速清洗整理，全部在浏览器本地完成。',
     features: [
-      { icon: 'bi-list-check', text: '按行去重与排序' },
-      { icon: 'bi-trash', text: '去除空行与空白' },
-      { icon: 'bi-bar-chart', text: '行数与字符统计' },
-      { icon: 'bi-shield-lock', text: '本地处理，不上传内容' },
+      { icon: 'list-check', text: '按行去重与排序' },
+      { icon: 'trash', text: '去除空行与空白' },
+      { icon: 'bar-chart', text: '行数与字符统计' },
+      { icon: 'shield-lock', text: '本地处理，不上传内容' },
     ],
   },
   jianfan: {
     usage:
       '简体中文与繁体中文互转工具：轻量级转换引擎，支持简繁双向一键互转，转换在浏览器本地即时完成，无需联网等待，适合文档转换与繁体阅读场景。',
     features: [
-      { icon: 'bi-arrow-left-right', text: '简繁双向互转' },
-      { icon: 'bi-lightning-charge', text: '轻量引擎即时转换' },
-      { icon: 'bi-text-left', text: '整段文本批量转换' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'arrow-left-right', text: '简繁双向互转' },
+      { icon: 'lightning-charge', text: '轻量引擎即时转换' },
+      { icon: 'text-left', text: '整段文本批量转换' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   pinyin: {
     usage:
       '汉字转拼音工具：支持全拼、声调、首字母等多种输出模式，可用于搜索索引、URL 生成与姓名拼音转换，转换在浏览器本地完成。',
     features: [
-      { icon: 'bi-type', text: '全拼 / 声调 / 首字母输出' },
-      { icon: 'bi-keyboard', text: '多音字按语境选音' },
-      { icon: 'bi-list-ol', text: '分隔符与大小写可配' },
-      { icon: 'bi-shield-lock', text: '本地转换，数据安全' },
+      { icon: 'type', text: '全拼 / 声调 / 首字母输出' },
+      { icon: 'keyboard', text: '多音字按语境选音' },
+      { icon: 'list-ol', text: '分隔符与大小写可配' },
+      { icon: 'shield-lock', text: '本地转换，数据安全' },
     ],
   },
   cron: {
     usage:
       'Cron 表达式解析与生成工具：实时展示下一次执行时间与调度日历，支持 5/6/7 段格式与常见特殊符号，是定时任务配置与调试的辅助工具。',
     features: [
-      { icon: 'bi-clock-history', text: '解析并展示最近执行时间' },
-      { icon: 'bi-calendar-week', text: '调度日历可视化' },
-      { icon: 'bi-arrow-repeat', text: '5 / 6 / 7 段格式支持' },
-      { icon: 'bi-terminal', text: '常用特殊符号提示' },
+      { icon: 'clock-history', text: '解析并展示最近执行时间' },
+      { icon: 'calendar-week', text: '调度日历可视化' },
+      { icon: 'arrow-repeat', text: '5 / 6 / 7 段格式支持' },
+      { icon: 'terminal', text: '常用特殊符号提示' },
     ],
   },
   'base-converter': {
     usage:
       '数字进制互转工具：支持二进制、八进制、十进制、十六进制与补码表示，输入即时换算，附带常用进制对照，适合编程与网络学习场景。',
     features: [
-      { icon: 'bi-calculator', text: '二 / 八 / 十 / 十六进制互转' },
-      { icon: 'bi-grid', text: '补码与有符号表示' },
-      { icon: 'bi-arrow-left-right', text: '输入即时换算' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'calculator', text: '二 / 八 / 十 / 十六进制互转' },
+      { icon: 'grid', text: '补码与有符号表示' },
+      { icon: 'arrow-left-right', text: '输入即时换算' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'unicode-converter': {
     usage:
       'Unicode 与 ASCII 转换工具：中文转 \\u 编码、ASCII 码表查询与字符互转，适合 JSON 转义、字符编码调试与国际化开发。',
     features: [
-      { icon: 'bi-arrow-repeat', text: '中文与 \\u 编码互转' },
-      { icon: 'bi-list-ol', text: 'ASCII 码表查询' },
-      { icon: 'bi-keyboard', text: '字符与编码双向转换' },
-      { icon: 'bi-shield-lock', text: '本地处理，内容安全' },
+      { icon: 'arrow-repeat', text: '中文与 \\u 编码互转' },
+      { icon: 'list-ol', text: 'ASCII 码表查询' },
+      { icon: 'keyboard', text: '字符与编码双向转换' },
+      { icon: 'shield-lock', text: '本地处理，内容安全' },
     ],
   },
   hash: {
     usage:
       '在线 Hash 计算工具：支持 MD5、SHA-1、SHA-256、SHA-512、Keccak 以及文件哈希，全部在浏览器本地完成，文件内容不会上传到任何服务器。',
     features: [
-      { icon: 'bi-hash', text: 'MD5 / SHA 系列 / Keccak' },
-      { icon: 'bi-file-earmark', text: '文本与文件哈希' },
-      { icon: 'bi-lightning-charge', text: '结果实时计算' },
-      { icon: 'bi-shield-lock', text: '文件不出本地' },
+      { icon: 'hash', text: 'MD5 / SHA 系列 / Keccak' },
+      { icon: 'file-earmark', text: '文本与文件哈希' },
+      { icon: 'lightning-charge', text: '结果实时计算' },
+      { icon: 'shield-lock', text: '文件不出本地' },
     ],
   },
   'symmetric-encrypt': {
     usage:
       'AES、DES、RC4、Rabbit 等对称加密算法的加解密工具：支持多种填充模式与输出格式，适合本地验证加解密流程与调试接口数据，密钥与内容均在浏览器处理。',
     features: [
-      { icon: 'bi-lock', text: 'AES / DES / RC4 / Rabbit' },
-      { icon: 'bi-key', text: '密钥与 IV 可配置' },
-      { icon: 'bi-sliders', text: '填充模式与输出格式可选' },
-      { icon: 'bi-shield-check', text: '加解密均在本地' },
+      { icon: 'lock', text: 'AES / DES / RC4 / Rabbit' },
+      { icon: 'key', text: '密钥与 IV 可配置' },
+      { icon: 'sliders', text: '填充模式与输出格式可选' },
+      { icon: 'shield-check', text: '加解密均在本地' },
     ],
   },
   'rsa-encrypt': {
     usage:
       'RSA 密钥对生成与加解密工具：支持 2048 位 RSA-OAEP / SHA-256 与 PEM 密钥，可在浏览器本地生成密钥、加密解密文本，适合理解非对称加密原理与联调验证。',
     features: [
-      { icon: 'bi-key-fill', text: '密钥对一键生成' },
-      { icon: 'bi-lock-fill', text: '公钥加密 / 私钥解密' },
-      { icon: 'bi-patch-check', text: '短文本加解密，非签名工具' },
-      { icon: 'bi-file-earmark-arrow-up', text: 'PEM 格式导入导出' },
+      { icon: 'key-fill', text: '密钥对一键生成' },
+      { icon: 'lock-fill', text: '公钥加密 / 私钥解密' },
+      { icon: 'patch-check', text: '短文本加解密，非签名工具' },
+      { icon: 'file-earmark-arrow-up', text: 'PEM 格式导入导出' },
     ],
   },
   bcrypt: {
     usage:
       'Bcrypt 密码哈希生成与校验工具：支持自定义轮数（cost factor），常用于后端密码存储与登录校验的联调验证，全部在浏览器本地计算，密码不会上传。',
     features: [
-      { icon: 'bi-shield-lock', text: '密码哈希生成' },
-      { icon: 'bi-check2-circle', text: '哈希与明文校验' },
-      { icon: 'bi-sliders', text: 'cost 轮数可调' },
-      { icon: 'bi-shield-check', text: '本地计算，密码安全' },
+      { icon: 'shield-lock', text: '密码哈希生成' },
+      { icon: 'check2-circle', text: '哈希与明文校验' },
+      { icon: 'sliders', text: 'cost 轮数可调' },
+      { icon: 'shield-check', text: '本地计算，密码安全' },
     ],
   },
   'jwt-decoder': {
     usage:
       'JWT 在线解码工具：解析 Header 与 Payload 并美化展示，支持 HS256 签名验签，适合调试登录态、接口鉴权与排查 token 问题。',
     features: [
-      { icon: 'bi-window-stack', text: 'Header / Payload 分区解析' },
-      { icon: 'bi-shield-check', text: 'HS256 签名验签' },
-      { icon: 'bi-clock', text: '过期时间与签发时间提示' },
-      { icon: 'bi-shield-lock', text: '本地解析，token 不泄露' },
+      { icon: 'window-stack', text: 'Header / Payload 分区解析' },
+      { icon: 'shield-check', text: 'HS256 签名验签' },
+      { icon: 'clock', text: '过期时间与签发时间提示' },
+      { icon: 'shield-lock', text: '本地解析，token 不泄露' },
     ],
   },
   'password-strength': {
     usage:
       '密码强度检测工具：从长度、字符组合、常见密码库等多维度评分，并给出改进建议，帮助设置更安全的密码，检测在浏览器本地完成。',
     features: [
-      { icon: 'bi-shield-exclamation', text: '多维度强度评分' },
-      { icon: 'bi-bar-chart', text: '常见弱密码库比对' },
-      { icon: 'bi-lightbulb', text: '针对性改进建议' },
-      { icon: 'bi-shield-lock', text: '本地检测，密码不上传' },
+      { icon: 'shield-exclamation', text: '多维度强度评分' },
+      { icon: 'bar-chart', text: '常见弱密码库比对' },
+      { icon: 'lightbulb', text: '针对性改进建议' },
+      { icon: 'shield-lock', text: '本地检测，密码不上传' },
     ],
   },
   'password-generator': {
     usage:
       '随机密码生成器：可配置长度与字符集，基于密码学安全随机源生成强密码，支持排除易混淆字符，一键复制使用。',
     features: [
-      { icon: 'bi-key', text: '长度与字符集可配置' },
-      { icon: 'bi-dice-5', text: '密码学安全随机源' },
-      { icon: 'bi-shuffle', text: '排除易混淆字符' },
-      { icon: 'bi-clipboard-check', text: '一键复制' },
+      { icon: 'key', text: '长度与字符集可配置' },
+      { icon: 'dice-5', text: '密码学安全随机源' },
+      { icon: 'shuffle', text: '排除易混淆字符' },
+      { icon: 'clipboard-check', text: '一键复制' },
     ],
   },
   'uuid-generator': {
     usage:
       'UUID v4、v7 与 NanoID 批量生成工具：支持数量、大小写与分隔符设置，适合生成数据库主键、请求 ID 与唯一标识。',
     features: [
-      { icon: 'bi-hash', text: 'UUID v4 / v7 / NanoID' },
-      { icon: 'bi-collection', text: '批量生成多条' },
-      { icon: 'bi-arrow-repeat', text: '大小写与分隔符设置' },
-      { icon: 'bi-clipboard-check', text: '一键复制全部' },
+      { icon: 'hash', text: 'UUID v4 / v7 / NanoID' },
+      { icon: 'collection', text: '批量生成多条' },
+      { icon: 'arrow-repeat', text: '大小写与分隔符设置' },
+      { icon: 'clipboard-check', text: '一键复制全部' },
     ],
   },
   qrcode: {
     usage:
       '在线二维码与条形码生成器：支持容错级别、颜色定制与 PNG 下载，可生成链接、文本、WiFi 信息等二维码，全部在浏览器本地生成。',
     features: [
-      { icon: 'bi-qr-code', text: '二维码与条形码生成' },
-      { icon: 'bi-sliders', text: '容错级别可调' },
-      { icon: 'bi-palette', text: '颜色与尺寸定制' },
-      { icon: 'bi-download', text: 'PNG 图片下载' },
+      { icon: 'qr-code', text: '二维码与条形码生成' },
+      { icon: 'sliders', text: '容错级别可调' },
+      { icon: 'palette', text: '颜色与尺寸定制' },
+      { icon: 'download', text: 'PNG 图片下载' },
     ],
   },
   'http-tester': {
     usage:
       'HTTP 接口测试工具：支持常用请求方法、请求头与 Body 配置，实时展示状态码、响应头与耗时，无需安装客户端即可调试接口。',
     features: [
-      { icon: 'bi-send', text: 'GET / POST 等常用方法' },
-      { icon: 'bi-arrow-left-right', text: '请求头与 Body 配置' },
-      { icon: 'bi-activity', text: '状态码与耗时展示' },
-      { icon: 'bi-speedometer2', text: '响应结果格式化' },
+      { icon: 'send', text: 'GET / POST 等常用方法' },
+      { icon: 'arrow-left-right', text: '请求头与 Body 配置' },
+      { icon: 'activity', text: '状态码与耗时展示' },
+      { icon: 'speedometer2', text: '响应结果格式化' },
     ],
   },
   'ip-lookup': {
     usage:
       'IP 地址查询与解析工具：本机 IP 使用 Cloudflare 边缘信息实时获取；输入任意 IPv4/IPv6 可在线查询国家、运营商与经纬度，同时在本地计算地址分类、二进制/十六进制与 CIDR 网段。',
     features: [
-      { icon: 'bi-globe2', text: '本机 IP 与任意 IP 查询' },
-      { icon: 'bi-diagram-3', text: 'IPv4 / IPv6 统一解析' },
-      { icon: 'bi-geo-alt', text: '属地、运营商与经纬度' },
-      { icon: 'bi-rulers', text: 'CIDR 网段与进制计算' },
+      { icon: 'globe2', text: '本机 IP 与任意 IP 查询' },
+      { icon: 'diagram-3', text: 'IPv4 / IPv6 统一解析' },
+      { icon: 'geo-alt', text: '属地、运营商与经纬度' },
+      { icon: 'rulers', text: 'CIDR 网段与进制计算' },
     ],
   },
   'ua-parser': {
     usage:
       'User-Agent 解析工具：从 UA 字符串中识别浏览器、操作系统与设备类型，适合排查访问日志、判断客户端环境与开发调试。',
     features: [
-      { icon: 'bi-browser-chrome', text: '浏览器与版本识别' },
-      { icon: 'bi-display', text: '操作系统识别' },
-      { icon: 'bi-phone', text: '桌面 / 移动设备判断' },
-      { icon: 'bi-shield-lock', text: '本地解析，无需上传' },
+      { icon: 'browser-chrome', text: '浏览器与版本识别' },
+      { icon: 'display', text: '操作系统识别' },
+      { icon: 'phone', text: '桌面 / 移动设备判断' },
+      { icon: 'shield-lock', text: '本地解析，无需上传' },
     ],
   },
   'url-parse': {
     usage:
       'URL 结构解析工具：拆分协议、域名、路径、查询参数与锚点，参数以表格清晰展示，适合前端调试、抓包分析与参数处理。',
     features: [
-      { icon: 'bi-link-45deg', text: 'URL 各结构自动拆分' },
-      { icon: 'bi-table', text: '查询参数表格化展示' },
-      { icon: 'bi-arrow-left-right', text: '参数编码解码辅助' },
-      { icon: 'bi-braces', text: '可生成查询字符串' },
+      { icon: 'link-45deg', text: 'URL 各结构自动拆分' },
+      { icon: 'table', text: '查询参数表格化展示' },
+      { icon: 'arrow-left-right', text: '参数编码解码辅助' },
+      { icon: 'braces', text: '可生成查询字符串' },
     ],
   },
   'color-convert': {
     usage:
       '颜色格式转换工具：支持 HEX、RGB、HSL 互转与屏幕取色，实时预览色值与对比度，设计稿还原与前端开发配色更顺手。',
     features: [
-      { icon: 'bi-eyedropper', text: 'HEX / RGB / HSL 互转' },
-      { icon: 'bi-palette', text: '色值与预览实时同步' },
-      { icon: 'bi-circle-half', text: '文本对比度参考' },
-      { icon: 'bi-clipboard-check', text: '一键复制任意格式' },
+      { icon: 'eyedropper', text: 'HEX / RGB / HSL 互转' },
+      { icon: 'palette', text: '色值与预览实时同步' },
+      { icon: 'circle-half', text: '文本对比度参考' },
+      { icon: 'clipboard-check', text: '一键复制任意格式' },
     ],
   },
   'image-to-base64': {
     usage:
       '本地图片转 Base64 数据工具：支持压缩选项与多种输出格式，方便把图片嵌入代码、邮件与接口报文，图片全程在浏览器本地处理，不会上传。',
     features: [
-      { icon: 'bi-image', text: '本地图片直接转换' },
-      { icon: 'bi-sliders', text: '压缩质量可调' },
-      { icon: 'bi-file-earmark-code', text: '多种输出格式' },
-      { icon: 'bi-shield-lock', text: '图片不出本地' },
+      { icon: 'image', text: '本地图片直接转换' },
+      { icon: 'sliders', text: '压缩质量可调' },
+      { icon: 'file-earmark-code', text: '多种输出格式' },
+      { icon: 'shield-lock', text: '图片不出本地' },
     ],
   },
   calendar: {
     usage:
       '在线万年历：公历农历对照展示，支持二十四节气、法定节假日与黄历信息查询，点击任意日期可查看当日宜忌、生肖、星座与五行，适合日常择日与时间规划。',
     features: [
-      { icon: 'bi-calendar3', text: '公历农历对照日历' },
-      { icon: 'bi-cloud-sun', text: '二十四节气与节假日' },
-      { icon: 'bi-star', text: '黄历宜忌查询' },
-      { icon: 'bi-keyboard', text: '方向键快捷翻月' },
+      { icon: 'calendar3', text: '公历农历对照日历' },
+      { icon: 'cloud-sun', text: '二十四节气与节假日' },
+      { icon: 'star', text: '黄历宜忌查询' },
+      { icon: 'keyboard', text: '方向键快捷翻月' },
     ],
   },
   'lunar-converter': {
     usage:
       '公历农历日期互转工具：支持农历闰月，可快速换算生日、纪念日与节假日对应的农历日期，转换在浏览器本地即时完成。',
     features: [
-      { icon: 'bi-moon-stars', text: '公历转农历' },
-      { icon: 'bi-sun', text: '农历转公历' },
-      { icon: 'bi-calendar-event', text: '闰月正确换算' },
-      { icon: 'bi-arrow-left-right', text: '双向即时转换' },
+      { icon: 'moon-stars', text: '公历转农历' },
+      { icon: 'sun', text: '农历转公历' },
+      { icon: 'calendar-event', text: '闰月正确换算' },
+      { icon: 'arrow-left-right', text: '双向即时转换' },
     ],
   },
   'world-clock': {
     usage:
       '世界时钟与时区转换工具：多城市时间对照、任意时区换算，出差协作、跨国会议与远程办公排期更清晰。',
     features: [
-      { icon: 'bi-globe2', text: '多城市时间对照' },
-      { icon: 'bi-clock', text: '任意时区换算' },
-      { icon: 'bi-hourglass-split', text: '时差一键计算' },
-      { icon: 'bi-shield-lock', text: '本地时间，隐私安全' },
+      { icon: 'globe2', text: '多城市时间对照' },
+      { icon: 'clock', text: '任意时区换算' },
+      { icon: 'hourglass-split', text: '时差一键计算' },
+      { icon: 'shield-lock', text: '本地时间，隐私安全' },
     ],
   },
   'date-diff': {
     usage:
       '日期间隔计算工具：计算两个日期相差的天数、周数与月数，支持日期加减指定天数，适合合同期限、项目排期与倒计时规划。',
     features: [
-      { icon: 'bi-calendar-range', text: '天数 / 周数 / 月数统计' },
-      { icon: 'bi-arrow-left-right', text: '日期加减天数' },
-      { icon: 'bi-check2-circle', text: '结果即时计算' },
-      { icon: 'bi-shield-lock', text: '本地处理，无网络依赖' },
+      { icon: 'calendar-range', text: '天数 / 周数 / 月数统计' },
+      { icon: 'arrow-left-right', text: '日期加减天数' },
+      { icon: 'check2-circle', text: '结果即时计算' },
+      { icon: 'shield-lock', text: '本地处理，无网络依赖' },
     ],
   },
   timestamp: {
     usage:
       'Unix 时间戳与日期时间互转工具：自动识别秒与毫秒，支持实时时钟与批量转换，是后端联调、日志排查与时间计算的常用工具。',
     features: [
-      { icon: 'bi-clock-history', text: '时间戳与日期双向互转' },
-      { icon: 'bi-stopwatch', text: '秒 / 毫秒自动识别' },
-      { icon: 'bi-collection', text: '批量时间戳转换' },
-      { icon: 'bi-arrow-left-right', text: '实时时钟对照' },
+      { icon: 'clock-history', text: '时间戳与日期双向互转' },
+      { icon: 'stopwatch', text: '秒 / 毫秒自动识别' },
+      { icon: 'collection', text: '批量时间戳转换' },
+      { icon: 'arrow-left-right', text: '实时时钟对照' },
     ],
   },
   workday: {
     usage:
       '工作日计算器：排除周末与法定节假日，统计两个日期之间的实际工作日，附带调休安排，适合考勤、排班与项目工期计算。',
     features: [
-      { icon: 'bi-calendar-check', text: '法定节假日数据' },
-      { icon: 'bi-briefcase', text: '调休安排处理' },
-      { icon: 'bi-bar-chart', text: '工作日与休息日统计' },
-      { icon: 'bi-shield-lock', text: '本地计算，即时结果' },
+      { icon: 'calendar-check', text: '法定节假日数据' },
+      { icon: 'briefcase', text: '调休安排处理' },
+      { icon: 'bar-chart', text: '工作日与休息日统计' },
+      { icon: 'shield-lock', text: '本地计算，即时结果' },
     ],
   },
   'age-calculator': {
     usage:
       '年龄计算器：选择出生日期与截至日期，实时查看周岁、日历年龄、已出生天数和下一次生日；按年份计龄采用截至年份减出生年份加一。',
     features: [
-      { icon: 'bi-person', text: '周岁与日历年龄' },
-      { icon: 'bi-calendar-event', text: '出生天数统计' },
-      { icon: 'bi-hourglass', text: '距离生日的天数提示' },
-      { icon: 'bi-check2-circle', text: '自定义截至日期' },
+      { icon: 'person', text: '周岁与日历年龄' },
+      { icon: 'calendar-event', text: '出生天数统计' },
+      { icon: 'hourglass', text: '距离生日的天数提示' },
+      { icon: 'check2-circle', text: '自定义截至日期' },
     ],
   },
   timer: {
     usage:
       '在线倒计时与秒表工具：支持自定义时长、计时结束提醒与开始暂停，适合专注工作、运动训练与活动倒计时。',
     features: [
-      { icon: 'bi-stopwatch', text: '倒计时与秒表切换' },
-      { icon: 'bi-hourglass-split', text: '自定义时长' },
-      { icon: 'bi-bell', text: '结束提醒' },
-      { icon: 'bi-play-circle', text: '开始 / 暂停 / 重置' },
+      { icon: 'stopwatch', text: '倒计时与秒表切换' },
+      { icon: 'hourglass-split', text: '自定义时长' },
+      { icon: 'bell', text: '结束提醒' },
+      { icon: 'play-circle', text: '开始 / 暂停 / 重置' },
     ],
   },
   bmi: {
     usage:
       'BMI 体重指数计算器：支持公英制单位、中国与 WHO 成人参考标准，身高体重改变时更新指数与连续刻度，并显示参考区间对应的体重范围。',
     features: [
-      { icon: 'bi-heart-pulse', text: 'BMI 指数计算' },
-      { icon: 'bi-graph-up', text: '可选成人参考标准' },
-      { icon: 'bi-rulers', text: '公英制单位切换' },
-      { icon: 'bi-check2-circle', text: '对应体重范围' },
+      { icon: 'heart-pulse', text: 'BMI 指数计算' },
+      { icon: 'graph-up', text: '可选成人参考标准' },
+      { icon: 'rulers', text: '公英制单位切换' },
+      { icon: 'check2-circle', text: '对应体重范围' },
     ],
   },
   salary: {
     usage:
       '税后工资计算器：包含五险一金、个税明细，按城市比例配置，收入构成一目了然，适合求职谈薪与月度收入规划。',
     features: [
-      { icon: 'bi-cash-stack', text: '税前税后双向计算' },
-      { icon: 'bi-bank', text: '五险一金明细' },
-      { icon: 'bi-calculator', text: '个税与专项附加' },
-      { icon: 'bi-pie-chart', text: '收入构成可视化' },
+      { icon: 'cash-stack', text: '税前税后双向计算' },
+      { icon: 'bank', text: '五险一金明细' },
+      { icon: 'calculator', text: '个税与专项附加' },
+      { icon: 'pie-chart', text: '收入构成可视化' },
     ],
   },
   finance: {
     usage:
       '理财计算器：支持贷款月供、复利收益与百分比计算，输入参数即可得到参考结果，适合购房贷款与理财收益的粗略测算。',
     features: [
-      { icon: 'bi-graph-up', text: '贷款月供测算' },
-      { icon: 'bi-piggy-bank', text: '复利收益计算' },
-      { icon: 'bi-percent', text: '百分比与增长计算' },
-      { icon: 'bi-bank', text: '利率与期限可配' },
+      { icon: 'graph-up', text: '贷款月供测算' },
+      { icon: 'piggy-bank', text: '复利收益计算' },
+      { icon: 'percent', text: '百分比与增长计算' },
+      { icon: 'bank', text: '利率与期限可配' },
     ],
   },
   calculator: {
     usage:
       '多功能计算器：支持四则运算、括号、幂、开方、阶乘与百分比，可输入表达式、复制结果，并从本次访问的记录中再次使用计算。',
     features: [
-      { icon: 'bi-calculator', text: '四则混合运算' },
-      { icon: 'bi-123', text: '幂、开方与阶乘' },
-      { icon: 'bi-clock-history', text: '计算记录与结果复制' },
-      { icon: 'bi-keyboard', text: '键盘输入支持' },
+      { icon: 'calculator', text: '四则混合运算' },
+      { icon: '123', text: '幂、开方与阶乘' },
+      { icon: 'clock-history', text: '计算记录与结果复制' },
+      { icon: 'keyboard', text: '键盘输入支持' },
     ],
   },
   'unit-converter': {
     usage:
       '单位换算工具：覆盖长度、重量、温度、数据存储与时间等常用单位，转换精确即时，适合学习、设计与数据处理。',
     features: [
-      { icon: 'bi-rulers', text: '长度 / 重量 / 温度' },
-      { icon: 'bi-hdd', text: '数据存储单位' },
-      { icon: 'bi-clock', text: '时间单位换算' },
-      { icon: 'bi-arrow-left-right', text: '输入即时换算' },
+      { icon: 'rulers', text: '长度 / 重量 / 温度' },
+      { icon: 'hdd', text: '数据存储单位' },
+      { icon: 'clock', text: '时间单位换算' },
+      { icon: 'arrow-left-right', text: '输入即时换算' },
     ],
   },
   'rmb-uppercase': {
     usage:
       '人民币金额大写转换工具：数字金额转换为中文大写，支持角分与负数处理，适合财务单据、合同与报销凭证填写。',
     features: [
-      { icon: 'bi-currency-yen', text: '数字转中文大写' },
-      { icon: 'bi-cash-coin', text: '角分正确处理' },
-      { icon: 'bi-check2-circle', text: '负数与大写校验' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'currency-yen', text: '数字转中文大写' },
+      { icon: 'cash-coin', text: '角分正确处理' },
+      { icon: 'check2-circle', text: '负数与大写校验' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   fuel: {
     usage:
       '车辆油耗计算器：输入油量、每升油价与行驶里程，计算百公里油耗与每公里成本，帮助了解车辆油耗水平与出行成本。',
     features: [
-      { icon: 'bi-fuel-pump', text: '百公里油耗计算' },
-      { icon: 'bi-speedometer2', text: '每公里成本统计' },
-      { icon: 'bi-car-front', text: '单次里程与油量计算' },
-      { icon: 'bi-cash', text: '油量乘单价计算油费' },
+      { icon: 'fuel-pump', text: '百公里油耗计算' },
+      { icon: 'speedometer2', text: '每公里成本统计' },
+      { icon: 'car-front', text: '单次里程与油量计算' },
+      { icon: 'cash', text: '油量乘单价计算油费' },
     ],
   },
   expiry: {
     usage:
       '保质期计算工具：输入生产日期与保质期天数，自动计算到期日期并给出剩余天数，适合食品、药品与用品效期管理。',
     features: [
-      { icon: 'bi-calendar-x', text: '到期日期自动计算' },
-      { icon: 'bi-hourglass-bottom', text: '计算时显示剩余天数' },
-      { icon: 'bi-exclamation-triangle', text: '手动查看剩余天数' },
-      { icon: 'bi-check2-circle', text: '点击计算更新结果' },
+      { icon: 'calendar-x', text: '到期日期自动计算' },
+      { icon: 'hourglass-bottom', text: '计算时显示剩余天数' },
+      { icon: 'exclamation-triangle', text: '手动查看剩余天数' },
+      { icon: 'check2-circle', text: '点击计算更新结果' },
     ],
   },
   'keyboard-test': {
     usage:
       '键盘按键测试工具：实时显示按键名称与编码，支持组合键检测，可快速排查键盘故障与按键冲突问题。',
     features: [
-      { icon: 'bi-keyboard', text: '按键实时高亮' },
-      { icon: 'bi-keyboard', text: '键名与编码显示' },
-      { icon: 'bi-mouse', text: '组合键检测' },
-      { icon: 'bi-exclamation-circle', text: '故障排查辅助' },
+      { icon: 'keyboard', text: '按键实时高亮' },
+      { icon: 'keyboard', text: '键名与编码显示' },
+      { icon: 'mouse', text: '组合键检测' },
+      { icon: 'exclamation-circle', text: '故障排查辅助' },
     ],
   },
   'grid-splitter': {
     usage:
       '九宫格切图工具：把一张图片按 3x3 网格切分并导出，适合朋友圈九宫格、社交媒体排版与素材切分，图片全程在浏览器本地处理。',
     features: [
-      { icon: 'bi-grid-3x3', text: '3x3 九宫格切分' },
-      { icon: 'bi-images', text: '单张与全部导出' },
-      { icon: 'bi-scissors', text: '边缘裁剪微调' },
-      { icon: 'bi-shield-lock', text: '图片不出本地' },
+      { icon: 'grid-3x3', text: '3x3 九宫格切分' },
+      { icon: 'images', text: '单张与全部导出' },
+      { icon: 'scissors', text: '边缘裁剪微调' },
+      { icon: 'shield-lock', text: '图片不出本地' },
     ],
   },
   'sensitive-check': {
     usage:
       '敏感词检测工具：内置常用词库并支持自定义添加，命中位置高亮显示，适合内容发布前的自查与文本审核辅助，检测在浏览器本地完成。',
     features: [
-      { icon: 'bi-shield-check', text: '内置常用词库' },
-      { icon: 'bi-plus-lg', text: '自定义词库扩展' },
-      { icon: 'bi-highlighter', text: '命中位置高亮' },
-      { icon: 'bi-shield-lock', text: '本地检测，内容安全' },
+      { icon: 'shield-check', text: '内置常用词库' },
+      { icon: 'plus-lg', text: '自定义词库扩展' },
+      { icon: 'highlighter', text: '命中位置高亮' },
+      { icon: 'shield-lock', text: '本地检测，内容安全' },
     ],
   },
   zodiac: {
     usage:
       '生肖星座查询工具：输入出生日期查询生肖、星座、五行与守护信息，附带年份对照，适合趣味查询与个人资料填写。',
     features: [
-      { icon: 'bi-stars', text: '生肖查询' },
-      { icon: 'bi-moon', text: '星座查询' },
-      { icon: 'bi-gem', text: '五行与守护信息' },
-      { icon: 'bi-calendar3', text: '年份对照表' },
+      { icon: 'stars', text: '生肖查询' },
+      { icon: 'moon', text: '星座查询' },
+      { icon: 'gem', text: '五行与守护信息' },
+      { icon: 'calendar3', text: '年份对照表' },
     ],
   },
   'ascii-art': {
     usage:
       'ASCII 艺术字生成器：三种生成方式——21 种 FIGlet 英文字体生成大字 Banner、中文与任意字符逐字采样生成像素画、上传图片转为字符画，支持 ANSI 终端彩色输出，全部在浏览器本地处理。',
     features: [
-      { icon: 'bi-fonts', text: '21 种 FIGlet 英文字体' },
-      { icon: 'bi-grid-3x3', text: '中文与任意字符像素画' },
-      { icon: 'bi-image', text: '图片转字符画' },
-      { icon: 'bi-terminal', text: 'ANSI 终端彩色输出' },
-      { icon: 'bi-shield-lock', text: '全程本地处理' },
+      { icon: 'fonts', text: '21 种 FIGlet 英文字体' },
+      { icon: 'grid-3x3', text: '中文与任意字符像素画' },
+      { icon: 'image', text: '图片转字符画' },
+      { icon: 'terminal', text: 'ANSI 终端彩色输出' },
+      { icon: 'shield-lock', text: '全程本地处理' },
     ],
   },
   'click-speed': {
     usage:
       '点击速度测试工具：10 秒手速挑战，实时统计点击次数与 APM，结束后给出评级反馈，适合趣味比拼与鼠标手感测试。',
     features: [
-      { icon: 'bi-cursor', text: '10 秒点击挑战' },
-      { icon: 'bi-mouse', text: '次数与 APM 实时统计' },
-      { icon: 'bi-trophy', text: '结束评级反馈' },
-      { icon: 'bi-lightning-charge', text: '重试一键再来' },
+      { icon: 'cursor', text: '10 秒点击挑战' },
+      { icon: 'mouse', text: '次数与 APM 实时统计' },
+      { icon: 'trophy', text: '结束评级反馈' },
+      { icon: 'lightning-charge', text: '重试一键再来' },
     ],
   },
   'reaction-test': {
     usage:
       '反应力测试工具：等待颜色变化后尽快点击，测量反应时间毫秒值，支持多次测试取平均成绩，适合趣味自测与反应训练。',
     features: [
-      { icon: 'bi-lightning-charge', text: '反应时间毫秒计时' },
-      { icon: 'bi-stopwatch', text: '多次测试记录' },
-      { icon: 'bi-graph-up', text: '平均成绩统计' },
-      { icon: 'bi-trophy', text: '成绩评级' },
+      { icon: 'lightning-charge', text: '反应时间毫秒计时' },
+      { icon: 'stopwatch', text: '多次测试记录' },
+      { icon: 'graph-up', text: '平均成绩统计' },
+      { icon: 'trophy', text: '成绩评级' },
     ],
   },
   'schulte-trainer': {
     usage:
       '舒尔特训练专区：按 1 到 N 的顺序依次点击目标，数字越大难度越高。经典方格适合入门，间隔随机变换与双任务干扰锻炼抗干扰能力，旋转圆盘与双圆盘训练动态视觉追踪，记忆方格强化工作记忆，倒计时挑战提升抗压专注。完成后自动记录用时、错点与历史趋势，生成个人训练分析报告。',
     features: [
-      { icon: 'bi-grid-3x3', text: '经典方格与间隔变换' },
-      { icon: 'bi-disc', text: '旋转多环 / 双圆盘模式' },
-      { icon: 'bi-braces', text: '记忆方格与双任务干扰' },
-      { icon: 'bi-graph-up', text: '用时、错点与趋势报告' },
+      { icon: 'grid-3x3', text: '经典方格与间隔变换' },
+      { icon: 'disc', text: '旋转多环 / 双圆盘模式' },
+      { icon: 'braces', text: '记忆方格与双任务干扰' },
+      { icon: 'graph-up', text: '用时、错点与趋势报告' },
     ],
   },
   'ball-tracker': {
     usage:
       '目标球追踪训练专区：先记住金色标记的目标球，标记消失后所有球变为同一样式，需要在移动球群中持续锁定目标；数量增减模式会在追踪中不断混入新球，考验注意维持；整体旋转模式让整个场景旋转，考验空间定向。完成后自动记录追踪准确率、错点与历史趋势，生成训练分析报告。',
     features: [
-      { icon: 'bi-crosshair', text: '动态目标追踪' },
-      { icon: 'bi-plus-circle', text: '数量增减抗干扰' },
-      { icon: 'bi-arrow-clockwise', text: '整体旋转空间定向' },
-      { icon: 'bi-graph-up', text: '准确率与冲动报告' },
+      { icon: 'crosshair', text: '动态目标追踪' },
+      { icon: 'plus-circle', text: '数量增减抗干扰' },
+      { icon: 'arrow-clockwise', text: '整体旋转空间定向' },
+      { icon: 'graph-up', text: '准确率与冲动报告' },
     ],
   },
   lottery: {
     usage:
       '年会抽奖转盘工具：支持导入名单、设置奖项数量与滚动抽奖，转轮运动经过精确规划，停点公平随机，适合年会、活动与课堂随机点名。',
     features: [
-      { icon: 'bi-people', text: '名单批量导入' },
-      { icon: 'bi-trophy', text: '奖项与数量设置' },
-      { icon: 'bi-shuffle', text: '滚动抽奖动效' },
-      { icon: 'bi-dice-5', text: '停点公平随机' },
+      { icon: 'people', text: '名单批量导入' },
+      { icon: 'trophy', text: '奖项与数量设置' },
+      { icon: 'shuffle', text: '滚动抽奖动效' },
+      { icon: 'dice-5', text: '停点公平随机' },
     ],
   },
   'meme-generator': {
     usage:
       '表情包生成器：上传本地图片添加上下文字，支持字体与颜色调整后下载，图片全程本地处理，可快速制作分享用的表情包。',
     features: [
-      { icon: 'bi-image', text: '本地图片上传' },
-      { icon: 'bi-type', text: '上下文字添加' },
-      { icon: 'bi-palette', text: '字体与颜色调整' },
-      { icon: 'bi-download', text: '一键下载图片' },
+      { icon: 'image', text: '本地图片上传' },
+      { icon: 'type', text: '上下文字添加' },
+      { icon: 'palette', text: '字体与颜色调整' },
+      { icon: 'download', text: '一键下载图片' },
     ],
   },
   'nickname-text': {
     usage:
       '个性昵称创意文字生成器：火星文、花体、斜体、粗体、空心体、德文花体、圈字、方块圈、上下标、镜像等 20 余种 Unicode 风格一键转换，适合游戏昵称、情侣网名与个性签名，纯浏览器本地生成。',
     features: [
-      { icon: 'bi-stars', text: '20+ 种 Unicode 风格' },
-      { icon: 'bi-type', text: '实时预览效果' },
-      { icon: 'bi-magic', text: '一键复制转换' },
-      { icon: 'bi-shield-lock', text: '本地生成，隐私安全' },
+      { icon: 'stars', text: '20+ 种 Unicode 风格' },
+      { icon: 'type', text: '实时预览效果' },
+      { icon: 'magic', text: '一键复制转换' },
+      { icon: 'shield-lock', text: '本地生成，隐私安全' },
     ],
   },
   'random-number': {
     usage:
       '随机数生成工具：自定义最小值、最大值与数量，支持去重抽取，适合抽签、分组、游戏与测试数据生成，结果在浏览器本地随机生成。',
     features: [
-      { icon: 'bi-shuffle', text: '范围与数量自定义' },
-      { icon: 'bi-dice-6', text: '去重抽取' },
-      { icon: 'bi-list-ol', text: '结果排序输出' },
-      { icon: 'bi-clipboard-check', text: '一键复制结果' },
+      { icon: 'shuffle', text: '范围与数量自定义' },
+      { icon: 'dice-6', text: '去重抽取' },
+      { icon: 'list-ol', text: '结果排序输出' },
+      { icon: 'clipboard-check', text: '一键复制结果' },
     ],
   },
   'palette-generator': {
     usage:
       '色板生成器：基于色彩理论自动生成和谐配色方案，支持复制色值与导出，适合设计选色、PPT 与界面配色参考。',
     features: [
-      { icon: 'bi-palette', text: '自动生成和谐配色' },
-      { icon: 'bi-eyedropper', text: '色值一键复制' },
-      { icon: 'bi-grid', text: '多套方案切换' },
-      { icon: 'bi-download', text: '导出色板' },
+      { icon: 'palette', text: '自动生成和谐配色' },
+      { icon: 'eyedropper', text: '色值一键复制' },
+      { icon: 'grid', text: '多套方案切换' },
+      { icon: 'download', text: '导出色板' },
     ],
   },
   'browser-info': {
     usage:
       '浏览器信息检测工具：展示浏览器版本、操作系统、屏幕分辨率与设备信息，用于兼容性排查、数据上报与前端调试。',
     features: [
-      { icon: 'bi-browser-chrome', text: '浏览器与版本识别' },
-      { icon: 'bi-display', text: '操作系统信息' },
-      { icon: 'bi-phone', text: '屏幕分辨率与设备' },
-      { icon: 'bi-info-circle', text: '本地获取即时展示' },
+      { icon: 'browser-chrome', text: '浏览器与版本识别' },
+      { icon: 'display', text: '操作系统信息' },
+      { icon: 'phone', text: '屏幕分辨率与设备' },
+      { icon: 'info-circle', text: '本地获取即时展示' },
     ],
   },
   'image-filter': {
     usage:
       '图片滤镜工具：上传图片应用灰度、模糊、复古、色相旋转等滤镜效果并下载，图片全程本地处理，适合快速处理分享图片。',
     features: [
-      { icon: 'bi-brush', text: '多种滤镜效果' },
-      { icon: 'bi-image', text: '实时预览对比' },
-      { icon: 'bi-sliders', text: '强度参数可调' },
-      { icon: 'bi-download', text: '一键下载成品' },
+      { icon: 'brush', text: '多种滤镜效果' },
+      { icon: 'image', text: '实时预览对比' },
+      { icon: 'sliders', text: '强度参数可调' },
+      { icon: 'download', text: '一键下载成品' },
     ],
   },
   morse: {
     usage:
       '摩斯密码编解码工具：支持中英文与数字，实时翻译并附摩斯电码表，适合学习摩斯电码、趣味密文交流与通信原理演示。',
     features: [
-      { icon: 'bi-broadcast', text: '文字与摩斯互转' },
-      { icon: 'bi-keyboard', text: '中英文与数字支持' },
-      { icon: 'bi-soundwave', text: '实时翻译预览' },
-      { icon: 'bi-lightbulb', text: '摩斯电码表参考' },
+      { icon: 'broadcast', text: '文字与摩斯互转' },
+      { icon: 'keyboard', text: '中英文与数字支持' },
+      { icon: 'soundwave', text: '实时翻译预览' },
+      { icon: 'lightbulb', text: '摩斯电码表参考' },
     ],
   },
 };

@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import type { ToolCategory, ToolMeta } from '../lib/tools';
 import { getToolHref } from '../lib/tools';
 import { DICT, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
@@ -15,20 +16,40 @@ const lang: Lang = langFromUrl(Astro.url.pathname);
 const href = pathForLang(getToolHref(category, tool.slug), lang);
 const tags = tool.keywords.slice(0, 2);
 const dict = DICT[lang];
+const badgeLabel = { zh: '新', tw: '新', en: 'New', ko: '신규', ja: '新着' }[lang];
+const featured = Boolean(tool.featured);
 ---
 
-<a class="tool-card" href={href} data-search={searchText} data-slug={tool.slug} style={`--delay:${delay}ms`}>
-  <div class="tool-card-head">
-    <span class="tool-card-icon"><i class={`bi ${tool.icon}`} aria-hidden="true"></i></span>
-    <h3 class="tool-card-title">{tool.name}</h3>
+<a
+  class="tool-card"
+  href={href}
+  data-search={searchText}
+  data-slug={tool.slug}
+  data-featured={featured ? '' : undefined}
+  style={`--delay:${delay}ms`}
+>
+  <div class="tool-card-main">
+    <div class="tool-card-head">
+      <span class="tool-card-icon"><Icon name={tool.icon} size={featured ? 26 : 24} strokeWidth={1.75} /></span>
+      <h3 class="tool-card-title">{tool.name}</h3>
+      {tool.badge === 'new' && <span class="tool-card-badge">{badgeLabel}</span>}
+    </div>
+    <p class="tool-card-desc">{featured ? tool.description : tool.oneLiner}</p>
+    <div class="tool-card-foot">
+      <span class="tool-card-tags">
+        {tags.map((tag) => <span class="tool-card-tag">{tag}</span>)}
+      </span>
+      <span class="tool-card-arrow"><Icon name="arrow-right" size={15} /></span>
+    </div>
+    {featured && (
+      <span class="tool-card-cta">
+        {dict.useNow} <Icon name="arrow-right" size={14} />
+      </span>
+    )}
   </div>
-  <p class="tool-card-desc">{tool.oneLiner}</p>
-  <div class="tool-card-foot">
-    <span class="tool-card-tags">
-      {tags.map((tag) => <span class="tool-card-tag">{tag}</span>)}
+  {featured && tool.preview && (
+    <span class="tool-card-media">
+      <img src={tool.preview} alt={tool.name} width="300" height="169" loading="lazy" decoding="async" />
     </span>
-    <span class="tool-card-link">
-      {dict.useNow} <i class="bi bi-arrow-right" aria-hidden="true"></i>
-    </span>
-  </div>
+  )}
 </a>

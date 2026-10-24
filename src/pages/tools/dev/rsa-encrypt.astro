@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,9 +10,9 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="密钥与操作" icon="bi-key">
+  <ToolPanel title="密钥与操作" icon="key">
     <div class="btn-row">
-      <button class="btn btn-primary" id="rsaGen" type="button"><i class="bi bi-key"></i> 生成密钥对（2048）</button>
+      <button class="btn btn-primary" id="rsaGen" type="button"><Icon name="key" /> 生成密钥对（2048）</button>
     </div>
     <div class="field mt-3">
       <label class="field-label" for="rsaPub">公钥（PEM）</label>
@@ -26,16 +27,16 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       <textarea class="textarea" id="rsaInput" spellcheck="false" placeholder="输入要加密的明文，或要解密的 Base64 密文"></textarea>
     </div>
     <div class="btn-row">
-      <button class="btn btn-secondary" id="rsaEnc" type="button"><i class="bi bi-lock"></i> 加密</button>
-      <button class="btn btn-secondary" id="rsaDec" type="button"><i class="bi bi-unlock"></i> 解密</button>
+      <button class="btn btn-secondary" id="rsaEnc" type="button"><Icon name="lock" /> 加密</button>
+      <button class="btn btn-secondary" id="rsaDec" type="button"><Icon name="unlock" /> 解密</button>
     </div>
     <div class="status-msg" id="rsaStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">基于 Web Crypto API（RSA-OAEP / SHA-256），密钥不出浏览器。单次加密内容长度受限于密钥长度。</p>
   </ToolPanel>
 
-  <ToolPanel title="结果" icon="bi-box-arrow-in-down">
+  <ToolPanel title="结果" icon="box-arrow-in-down">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="rsaCopy" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="rsaOutput" readonly spellcheck="false" placeholder="结果将显示在这里"></textarea>
   </ToolPanel>

@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { SITE } from '../../lib/site';
 ---
@@ -14,8 +15,8 @@ import { SITE } from '../../lib/site';
     <h1 class="nf-title">페이지를 찾을 수 없습니다</h1>
     <p class="nf-desc" id="nfDesc">이 링크는 오래되었거나 페이지가 아직 준비 중일 수 있습니다.</p>
     <div class="nf-actions">
-      <a class="btn btn-primary" href="/ko/"><i class="bi bi-house-door" aria-hidden="true"></i> 홈으로 돌아가기</a>
-      <a class="btn btn-secondary" href="/ko/tools/daily/calendar/" id="nfGo"><i class="bi bi-calendar3" aria-hidden="true"></i> 달력 도구 열기</a>
+      <a class="btn btn-primary" href="/ko/"><Icon name="house-door" /> 홈으로 돌아가기</a>
+      <a class="btn btn-secondary" href="/ko/tools/daily/calendar/" id="nfGo"><Icon name="calendar3" /> 달력 도구 열기</a>
     </div>
     <div class="nf-quick">
       <span class="nf-quick-label">인기 도구</span>

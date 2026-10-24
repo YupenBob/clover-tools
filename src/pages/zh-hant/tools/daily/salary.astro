@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -9,7 +10,7 @@ const related = getRelated(category, 'salary', 'tw', 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="稅前工資" icon="bi-cash-stack">
+  <ToolPanel title="稅前工資" icon="cash-stack">
     <div class="row">
       <div class="field">
         <label class="field-label" for="salGross">稅前月薪（元）</label>
@@ -39,13 +40,13 @@ const related = getRelated(category, 'salary', 'tw', 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="salBtn" type="button"><i class="bi bi-calculator"></i> 計算稅後工資</button>
+      <button class="btn btn-primary" id="salBtn" type="button"><Icon name="calculator" /> 計算稅後工資</button>
     </div>
     <div class="status-msg" id="salStatus" role="status" aria-live="polite"></div>
     <p class="field-hint">按每月工資薪金所得預扣率計算，五險一金比例采用常見簡化參數（養老 8%、醫療 2%、失業 0.5%），僅供參考。</p>
   </ToolPanel>
 
-  <ToolPanel title="明細結果" icon="bi-clipboard-data">
+  <ToolPanel title="明細結果" icon="clipboard-data">
     <table class="sal-table" id="salTable"></table>
     <div class="sal-net" id="salNet"></div>
   </ToolPanel>

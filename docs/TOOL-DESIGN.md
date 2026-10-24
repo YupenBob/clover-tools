@@ -33,6 +33,10 @@
 
 金色保留在品牌、图标、选中和焦点上。工具主按钮使用高对比文字与背景；标题、描述、结果、说明有不同层级。输入框、复制和错误提示继续遵循全站交互约定。样式位于 `src/styles/tool-workspace.css` 和 `src/styles/daily-workspaces.css`，以 `.tool-page` 为边界；日常工具样式仅由使用它的页面加载。
 
+## 图标
+
+全站图标使用内联 SVG：静态图标走 `src/components/Icon.astro`（服务端渲染、零 JS），有状态切换的交互图标走 `src/components/MorphIcon.astro`（Morphicons，SSR 首帧 + 自定义元素形变）。图标名取自 `src/lib/icons/registry.ts` 的语义键（历史 `bi-*` 名称去掉前缀），数据由 Lucide（ISC）提供；客户端动态 HTML 用 `renderIconSvg()` 注入，避免把整个注册表打进浏览器。禁止 emoji，新增图标必须先登记注册表并通过 `node scripts/check-icons.mjs`。
+
 ## 日常工具的独立布局
 
 计算器、计时器、BMI、理财、日期间隔和年龄计算使用 `flow`，由各自组件组织画面，不增加新的公共布局枚举，也不强制使用 `ToolPanel`。五语路由共用对应组件、`daily-tool-i18n.ts` 文案和计算内核。

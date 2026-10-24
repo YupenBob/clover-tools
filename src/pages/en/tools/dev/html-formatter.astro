@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../../components/Icon.astro';
 import ToolLayout from '../../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../../components/ToolPanel.astro';
 import { getToolMeta, getRelated } from '../../../../lib/i18n';
@@ -8,24 +9,24 @@ const tool = getToolMeta(category, 'html-formatter', 'en')!;
 const related = getRelated(category, 'html-formatter', 'en', 6);
 ---
 <ToolLayout category={category} tool={tool} related={related}>
-  <ToolPanel title="Input HTML" icon="bi-filetype-html" headingId="tool-input-heading">
+  <ToolPanel title="Input HTML" icon="filetype-html" headingId="tool-input-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><i class="bi bi-magic"></i> Sample</button>
-      <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><i class="bi bi-x-circle"></i> Clear</button>
+      <button class="btn btn-ghost btn-sm" id="htmlSample" type="button"><Icon name="magic" /> Sample</button>
+      <button class="btn btn-ghost btn-sm" id="htmlClear" type="button"><Icon name="x-circle" /> Clear</button>
     </div>
     <textarea class="textarea" id="htmlInput" spellcheck="false" placeholder="Paste HTML code" aria-labelledby="tool-input-heading"></textarea>
     <div class="btn-row">
-      <button class="btn btn-primary" id="htmlFmt" type="button"><i class="bi bi-braces"></i> Format</button>
-      <button class="btn btn-secondary" id="htmlMin" type="button"><i class="bi bi-arrows-collapse"></i> Minify</button>
-      <button class="btn btn-ghost" id="htmlEnc" type="button"><i class="bi bi-code-slash"></i> Encode Entities</button>
-      <button class="btn btn-ghost" id="htmlDec" type="button"><i class="bi bi-code-slash"></i> Decode Entities</button>
+      <button class="btn btn-primary" id="htmlFmt" type="button"><Icon name="braces" /> Format</button>
+      <button class="btn btn-secondary" id="htmlMin" type="button"><Icon name="arrows-collapse" /> Minify</button>
+      <button class="btn btn-ghost" id="htmlEnc" type="button"><Icon name="code-slash" /> Encode Entities</button>
+      <button class="btn btn-ghost" id="htmlDec" type="button"><Icon name="code-slash" /> Decode Entities</button>
     </div>
     <div class="status-msg" id="htmlStatus" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="Output" icon="bi-box-arrow-in-down" headingId="tool-output-heading">
+  <ToolPanel title="Output" icon="box-arrow-in-down" headingId="tool-output-heading">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><i class="bi bi-clipboard"></i> Copy</button>
+      <button class="btn btn-ghost btn-sm" id="htmlCopy" type="button"><Icon name="clipboard" /> Copy</button>
     </div>
     <textarea class="textarea" id="htmlOutput" readonly spellcheck="false" placeholder="Result will appear here" aria-labelledby="tool-output-heading"></textarea>
     <div class="input-stats"><span id="htmlStats">0 characters</span></div>

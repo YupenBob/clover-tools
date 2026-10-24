@@ -1,4 +1,5 @@
 ---
+import Icon from '../../../components/Icon.astro';
 import ToolLayout from '../../../layouts/ToolLayout.astro';
 import ToolPanel from '../../../components/ToolPanel.astro';
 import { TOOLS } from '../../../lib/tools';
@@ -9,10 +10,10 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
 ---
 
 <ToolLayout category={category} tool={tool} related={related} categoryName="开发实用">
-  <ToolPanel title="输入 JSON 数组" icon="bi-braces">
+  <ToolPanel title="输入 JSON 数组" icon="braces">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="jsonSample" type="button"><i class="bi bi-magic"></i> 示例</button>
-      <button class="btn btn-ghost btn-sm" id="jsonClear" type="button"><i class="bi bi-x-circle"></i> 清空</button>
+      <button class="btn btn-ghost btn-sm" id="jsonSample" type="button"><Icon name="magic" /> 示例</button>
+      <button class="btn btn-ghost btn-sm" id="jsonClear" type="button"><Icon name="x-circle" /> 清空</button>
     </div>
     <textarea class="textarea" id="jsonInput" spellcheck="false" placeholder='粘贴 JSON 数组，例如 [{"name":"Clover","version":"3.0"}]'></textarea>
     <div class="input-stats"><span id="jsonStats">0 字符</span></div>
@@ -31,15 +32,15 @@ const related = TOOLS.dev.filter((t) => t.slug !== tool.slug).slice(0, 6);
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="convertBtn" type="button"><i class="bi bi-table"></i> 生成表格</button>
-      <button class="btn btn-secondary" id="downloadBtn" type="button"><i class="bi bi-download"></i> 下载文件</button>
+      <button class="btn btn-primary" id="convertBtn" type="button"><Icon name="table" /> 生成表格</button>
+      <button class="btn btn-secondary" id="downloadBtn" type="button"><Icon name="download" /> 下载文件</button>
     </div>
     <div class="status-msg" id="statusMsg" role="status" aria-live="polite"></div>
   </ToolPanel>
 
-  <ToolPanel title="表格结果" icon="bi-box-arrow-in-down" className="mt-4">
+  <ToolPanel title="表格结果" icon="box-arrow-in-down" className="mt-4">
     <div slot="actions">
-      <button class="btn btn-ghost btn-sm" id="copyBtn" type="button"><i class="bi bi-clipboard"></i> 复制</button>
+      <button class="btn btn-ghost btn-sm" id="copyBtn" type="button"><Icon name="clipboard" /> 复制</button>
     </div>
     <textarea class="textarea" id="csvOutput" readonly spellcheck="false" placeholder="表格结果将显示在这里"></textarea>
     <div class="input-stats"><span id="csvStats">0 字符</span></div>
