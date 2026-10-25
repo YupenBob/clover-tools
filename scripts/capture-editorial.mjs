@@ -16,9 +16,9 @@ const output = 'output/editorial';
 await mkdir(images, { recursive: true });
 await mkdir(output, { recursive: true });
 const evidence = JSON.parse(await readFile(join(output, 'evidence.json'), 'utf8').catch(() => '{}'));
-const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-swiftshader'] });
 const context = await browser.newContext({ viewport: { width: 1280, height: 1000 }, locale: 'zh-CN', colorScheme: 'light', acceptDownloads: true });
-await context.addInitScript(() => { localStorage.setItem('clover-lang', 'zh'); localStorage.setItem('clover-theme', 'light'); });
+await context.addInitScript(() => { localStorage.setItem('clover-lang', 'zh'); localStorage.setItem('clover-theme', 'light'); localStorage.setItem('ct-sfx', 'off'); });
 const page = await context.newPage();
 page.setDefaultTimeout(30000);
 const records = [];
@@ -194,6 +194,152 @@ try {
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => document.querySelector('#fpsStage').dataset.phase === 'paused');
     await done('fps', { pointerLock: true, escapedToPause: true, measuredSkillImprovement: false });
+  }
+  if (selected('quiz')) {
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.goto(base + '/tools/fun/personality-test/');
+    await page.click('#pqStart');
+    await page.locator('#pqQuestionCard').waitFor();
+    for (let i = 0; i < 4; i++) {
+      await page.locator('.quiz-choice').nth(i < 12 ? 0 : 2).click();
+      await page.click('#pqNext');
+    }
+    await shot(page.locator('#pqQuestionCard'), 'quiz-question.jpg', '/tools/fun/personality-test/', '第 5 题的作答界面，进度 04/24 与返回按钮为真实状态');
+    for (let i = 4; i < 24; i++) {
+      await page.locator('.quiz-choice').nth(i < 12 ? 0 : 2).click();
+      await page.click('#pqNext');
+    }
+    await page.locator('#pqResult').waitFor();
+    const quizCode = (await page.textContent('#pqCode')).trim();
+    assert.match(quizCode, /^[EISNTFJP]{4}$/);
+    assert.equal(quizCode, 'ENFJ');
+    assert.equal(await page.locator('.quiz-axis').count(), 4);
+    await page.waitForFunction(() => !document.querySelector('#pqSave').disabled);
+    await shot(page.locator('#pqResult'), 'quiz-result.jpg', '/tools/fun/personality-test/', '24 题全部选择第一项后的真实四轴结果页');
+    await done('quiz', { code: quizCode, axes: 4, questions: 24 });
+  }
+  if (selected('filter')) {
+    await page.setViewportSize({ width: 1280, height: 1200 });
+    await page.goto(base + '/tools/fun/image-filter/');
+    await page.setInputFiles('#flFile', 'public/og-image.jpg');
+    await page.selectOption('#flType', 'sepia');
+    await page.click('#flBtn');
+    await page.waitForFunction(() => { const img = document.querySelector('#flPreview img'); return img && img.complete && img.naturalWidth > 0; });
+    const previewWidth = await page.locator('#flPreview img').evaluate(img => img.naturalWidth);
+    assert.equal(previewWidth, 1200);
+    await shot(page.locator('.tool-card-panel').first(), 'filter-settings.jpg', '/tools/fun/image-filter/', '上传 1200×630 示例图并选择复古棕褐滤镜的实际设置区');
+    await shot(page.locator('#flPreview'), 'filter-sepia.jpg', '/tools/fun/image-filter/', '复古棕褐滤镜的实际 canvas 输出预览，尺寸与原图一致');
+    await done('filter', { source: 'public/og-image.jpg', filter: 'sepia', outputWidth: previewWidth, outputFormat: 'PNG' });
+  }
+  if (selected('lottery')) {
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.goto(base + '/tools/fun/lottery/');
+    await page.fill('#lotNames', '张三\n李四\n王五\n赵六\n钱七\n孙八');
+    await page.fill('#lotCount', '2');
+    assert.match(await page.textContent('#lotMeta'), /共 6 人/);
+    await shot(page.locator('.tool-card-panel').first(), 'lottery-setup.jpg', '/tools/fun/lottery/', '六人名单、抽取两位，重复检查提示为实际状态');
+    await page.click('#lotBtn');
+    await page.waitForSelector('#lotteryOverlay.open');
+    await page.waitForFunction(() => document.querySelectorAll('#lotWinners .winner-chip').length === 2, null, { timeout: 90000 });
+    const winnerCount = await page.locator('#lotWinners .winner-chip').count();
+    assert.equal(winnerCount, 2);
+    const winnerText = (await page.locator('#lotWinners').innerText()).replace(/\s+/g, ' ').trim();
+    await shot(page.locator('#lotteryOverlay'), 'lottery-winners.jpg', '/tools/fun/lottery/', '真实老虎机抽奖结束状态，两位中奖者由 Math.random 抽出');
+    await done('lottery', { participants: 6, count: 2, winners: winnerText, cryptoRandom: false });
+  }
+  if (selected('bigjson')) {
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.goto(base + '/tools/dev/json-formatter/');
+    const big = await page.evaluate(() => JSON.stringify({
+      generatedAt: '2026-10-25',
+      items: Array.from({ length: 4000 }, (_, i) => ({ id: i, name: `item-${i}`, tags: ['alpha', 'beta'], nested: { ok: i % 2 === 0, index: i } })),
+    }));
+    const bytes = Buffer.byteLength(big);
+    assert.ok(bytes > 300_000);
+    const started = Date.now();
+    await page.fill('#jsonInput', big);
+    await page.click('#formatBtn', { timeout: 90000 });
+    await page.locator('#statusMsg.show.success').waitFor({ timeout: 90000 });
+    const elapsed = Date.now() - started;
+    const formatted = await page.inputValue('#jsonOutput');
+    assert.ok(formatted.length > big.length);
+    await shot(page.locator('.tool-card-panel').first(), 'json-large-input.jpg', '/tools/dev/json-formatter/', '约 35 万字符的 JSON 实际粘贴并格式化后的字符统计与状态');
+    await page.fill('#jsonInput', '{"name":"Clover","tools":99,}');
+    await page.click('#formatBtn');
+    const jsonError = await page.textContent('#statusMsg');
+    assert.match(jsonError, /第 1 行/);
+    await shot(page.locator('.tool-card-panel').first(), 'json-error-location.jpg', '/tools/dev/json-formatter/', '尾部逗号导致的实际报错定位，包含行号与列号');
+    await done('bigjson', { inputBytes: bytes, formattedChars: formatted.length, elapsedMs: elapsed, error: jsonError.trim() });
+  }
+  if (selected('sql')) {
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await page.goto(base + '/tools/dev/sql-formatter/');
+    const sql = "select u.id, u.name, count(o.id) as orders from users u left join orders o on u.id = o.user_id where u.status = 'active' and u.name like 'A%' group by u.id, u.name having count(o.id) > 2 order by orders desc limit 10";
+    await page.fill('#sqfInput', sql);
+    await shot(page.locator('.tool-card-panel').first(), 'sql-before.jpg', '/tools/dev/sql-formatter/', '单行表单的实际 SQL 输入，含字符串字面量与聚合');
+    await page.click('#sqfBtn');
+    const formattedSql = await page.inputValue('#sqfOutput');
+    assert.match(formattedSql, /^SELECT/);
+    assert.match(formattedSql, /'active'/);
+    await shot(page.locator('.tool-card-panel').nth(1), 'sql-after.jpg', '/tools/dev/sql-formatter/', '同一语句格式化后的实际输出，关键字大写、字符串未被改写');
+    await done('sql', { inputChars: sql.length, outputChars: formattedSql.length, stringPreserved: formattedSql.includes("'active'") });
+  }
+  if (selected('jsonpath')) {
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await page.goto(base + '/tools/dev/jsonpath/');
+    await page.click('#jpSample');
+    await page.fill('#jpExpr', '$.store.book[?(@.price < 10)].title');
+    await page.click('#jpBtn');
+    await page.waitForFunction(() => document.querySelector('#jpOutput').value.length > 0);
+    const titles = await page.inputValue('#jpOutput');
+    assert.match(titles, /Sayings|Moby Dick/);
+    await shot(page.locator('.tool-card-panel').first(), 'jsonpath-query.jpg', '/tools/dev/jsonpath/', '价格过滤表达式在示例数据上的实际结果');
+    await page.fill('#jpExpr', 'book[0]');
+    await page.click('#jpBtn');
+    const jsonpathError = await page.textContent('#jpStatus');
+    assert.match(jsonpathError, /\$/);
+    await shot(page.locator('.tool-card-panel').first(), 'jsonpath-error.jpg', '/tools/dev/jsonpath/', '缺少根符号 $ 时的实际错误提示');
+    await done('jsonpath', { expression: '$.store.book[?(@.price < 10)].title', result: titles.trim(), error: jsonpathError.trim() });
+  }
+  if (selected('salary')) {
+    await page.setViewportSize({ width: 1280, height: 1100 });
+    await page.goto(base + '/tools/daily/salary/');
+    await page.fill('#salGross', '15000');
+    await page.selectOption('#salFund', '0.07');
+    await page.click('#salBtn');
+    assert.match(await page.textContent('#salNet'), /11847\.50/);
+    await shot(page.locator('.tool-card-panel').first(), 'salary-form.jpg', '/tools/daily/salary/', '税前 15000、公积金 7% 的实际输入');
+    await shot(page.locator('.tool-card-panel').nth(1), 'salary-result.jpg', '/tools/daily/salary/', '五险一金与个税明细，税后 11847.50 元');
+    await done('salary', { gross: 15000, housingFundRate: '7%', net: '11847.50', specialDeductions: false, cityAffectsResult: false });
+  }
+  if (selected('expiry')) {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(base + '/tools/daily/expiry/');
+    await page.fill('#expDate', '2026-09-25');
+    await page.fill('#expDays', '45');
+    await page.click('#expBtn');
+    const expiryText = (await page.textContent('#expResult')).replace(/\s+/g, ' ').trim();
+    assert.match(expiryText, /2026-11-09/);
+    assert.match(expiryText, /即将到期/);
+    await shot(page.locator('.tool-card-panel').first(), 'expiry-form.jpg', '/tools/daily/expiry/', '生产日期 2026-09-25、保质期 45 天的实际输入');
+    await shot(page.locator('.tool-card-panel').nth(1), 'expiry-result.jpg', '/tools/daily/expiry/', '到期日 2026-11-09 与剩余 15 天的实际结果');
+    await done('expiry', { productionDate: '2026-09-25', days: 45, result: expiryText });
+  }
+  if (selected('grid')) {
+    await page.setViewportSize({ width: 700, height: 1400 });
+    await page.goto(base + '/tools/daily/grid-splitter/');
+    await page.setInputFiles('#gsFile', 'public/og-image.jpg');
+    await page.click('#gsBtn');
+    await page.waitForFunction(() => document.querySelectorAll('.gs-cell').length === 9);
+    const cellWidth = await page.locator('.gs-cell canvas').first().evaluate(canvas => canvas.width);
+    assert.equal(cellWidth, 210);
+    const gridStatus = await page.textContent('#gsStatus');
+    assert.match(gridStatus, /630×630/);
+    await shot(page.locator('#gsGrid'), 'grid-preview.jpg', '/tools/daily/grid-splitter/', '1200×630 原图取中心 630×630 后的九格预览，编号为实际顺序');
+    await page.click('#gsDownload');
+    await page.waitForFunction(() => document.querySelector('#gsStatus').textContent.includes('9 张'));
+    await shot(page.locator('.tool-card-panel').first(), 'grid-download.jpg', '/tools/daily/grid-splitter/', '点击下载全部后的实际状态提示');
+    await done('grid', { source: 'public/og-image.jpg', center: '630×630', cell: cellWidth, downloads: 9, status: gridStatus.trim() });
   }
 } finally {
   await repro?.close();

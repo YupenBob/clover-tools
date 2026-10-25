@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="500" viewBox="0 0 720 500" role="img" aria-labelledby="ft fd">
+  <title id="ft">JSONPath 的查询与排查流程</title>
+  <desc id="fd">从 $ 开始，选择属性或递归、数组下标和过滤条件；结果为空时回到类型、路径和过滤器支持的语法逐项检查。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#B8935A"/></marker>
+  </defs>
+  <style>
+    text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; fill: #232019; }
+    .title { font-size: 21px; font-weight: 600; text-anchor: middle; }
+    .sub { font-size: 16px; font-weight: 400; fill: #6F6656; text-anchor: middle; }
+    .note { font-size: 15px; fill: #6F6656; text-anchor: middle; }
+    .box { fill: #FFFDF7; stroke: #D8C39A; stroke-width: 1.6; }
+    .accent { fill: #F8ECD2; stroke: #B8935A; stroke-width: 1.8; }
+    .flow { stroke: #B8935A; stroke-width: 2; fill: none; }
+    .back { stroke: #B8935A; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  </style>
+  <rect class="box" x="200" y="30" width="320" height="56" rx="14"/>
+  <text class="title" x="360.0" y="58.0" dominant-baseline="middle">确认从 $ 开始</text>
+  <line class="flow" x1="360" y1="86" x2="360" y2="104" marker-end="url(#arrow)"/>
+  <rect class="box" x="200" y="104" width="320" height="56" rx="14"/>
+  <text class="title" x="360.0" y="132.0" dominant-baseline="middle">选属性：.key 或 ..key</text>
+  <line class="flow" x1="360" y1="160" x2="360" y2="178" marker-end="url(#arrow)"/>
+  <rect class="box" x="200" y="178" width="320" height="56" rx="14"/>
+  <text class="title" x="360.0" y="206.0" dominant-baseline="middle">数组：下标 / [*] / 过滤</text>
+  <line class="flow" x1="360" y1="234" x2="360" y2="252" marker-end="url(#arrow)"/>
+  <polygon class="accent" points="360,254.0 480.0,300 360,346.0 240.0,300"/><text class="title" x="360" y="300" dominant-baseline="middle">结果为空？</text>
+  <path class="flow" d="M 240 300 L 160 300 L 160 380" marker-end="url(#arrow)"/><text class="sub" x="190" y="288">否</text>
+  <path class="flow" d="M 480 300 L 560 300 L 560 380" marker-end="url(#arrow)"/><text class="sub" x="520" y="288">是</text>
+  <rect class="accent" x="45" y="380" width="230" height="60" rx="14"/>
+  <text class="title" x="160.0" y="410.0" dominant-baseline="middle">取值 / 复制结果</text>
+  <rect class="box" x="445" y="380" width="230" height="60" rx="14"/>
+  <text class="title" x="560.0" y="410.0" dominant-baseline="middle">检查类型与路径</text>
+  <path class="back" d="M 675 410 L 700 410 L 700 132 L 520 132" marker-end="url(#arrow)"/>
+  <text class="note" x="360" y="476" dominant-baseline="middle">过滤器只支持 @.key 与数字、布尔、字符串的简单比较。</text>
+</svg>

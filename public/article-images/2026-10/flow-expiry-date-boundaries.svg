@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="500" viewBox="0 0 720 500" role="img" aria-labelledby="ft fd">
+  <title id="ft">保质期计算的判断流程</title>
+  <desc id="fd">生产日期加上保质期天数得到到期日，再与今天比较：超过 30 天为充足，1 到 30 天为即将到期，0 天及以下为已过期。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#B8935A"/></marker>
+  </defs>
+  <style>
+    text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; fill: #232019; }
+    .title { font-size: 21px; font-weight: 600; text-anchor: middle; }
+    .sub { font-size: 16px; font-weight: 400; fill: #6F6656; text-anchor: middle; }
+    .note { font-size: 15px; fill: #6F6656; text-anchor: middle; }
+    .box { fill: #FFFDF7; stroke: #D8C39A; stroke-width: 1.6; }
+    .accent { fill: #F8ECD2; stroke: #B8935A; stroke-width: 1.8; }
+    .flow { stroke: #B8935A; stroke-width: 2; fill: none; }
+    .back { stroke: #B8935A; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  </style>
+  <rect class="box" x="210" y="30" width="300" height="56" rx="14"/>
+  <text class="title" x="360.0" y="58.0" dominant-baseline="middle">生产日期</text>
+  <line class="flow" x1="360" y1="86" x2="360" y2="104" marker-end="url(#arrow)"/>
+  <rect class="box" x="210" y="104" width="300" height="56" rx="14"/>
+  <text class="title" x="360.0" y="132.0" dominant-baseline="middle">+ 保质期天数</text>
+  <line class="flow" x1="360" y1="160" x2="360" y2="178" marker-end="url(#arrow)"/>
+  <rect class="box" x="210" y="178" width="300" height="56" rx="14"/>
+  <text class="title" x="360.0" y="206.0" dominant-baseline="middle">到期日</text>
+  <line class="flow" x1="360" y1="234" x2="360" y2="252" marker-end="url(#arrow)"/>
+  <polygon class="accent" points="360,254.0 480.0,300 360,346.0 240.0,300"/><text class="title" x="360" y="300" dominant-baseline="middle">距今天数</text>
+  <path class="flow" d="M 240 300 L 160 300 L 160 360" marker-end="url(#arrow)"/><text class="sub" x="186" y="288">&gt; 30</text>
+  <line class="flow" x1="360" y1="346" x2="360" y2="360" marker-end="url(#arrow)"/>
+  <path class="flow" d="M 480 300 L 560 300 L 560 360" marker-end="url(#arrow)"/><text class="sub" x="520" y="288">≤ 0</text>
+  <rect class="box" x="25" y="360" width="210" height="66" rx="14"/>
+  <text class="title" x="130.0" y="393.0" dominant-baseline="middle">状态：充足</text>
+  <rect class="accent" x="255" y="360" width="210" height="66" rx="14"/>
+  <text class="title" x="360.0" y="393.0" dominant-baseline="middle">状态：即将到期</text>
+  <rect class="box" x="485" y="360" width="210" height="66" rx="14"/>
+  <text class="title" x="590.0" y="393.0" dominant-baseline="middle">状态：已过期</text>
+  <text class="note" x="360" y="470" dominant-baseline="middle">剩余 0 天会显示已过期；1–30 天才算即将到期。</text>
+</svg>

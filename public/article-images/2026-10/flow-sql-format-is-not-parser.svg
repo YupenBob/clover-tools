@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="500" viewBox="0 0 720 500" role="img" aria-labelledby="ft fd">
+  <title id="ft">SQL 格式化的处理流程</title>
+  <desc id="fd">原始 SQL 先备份，再格式化；格式化只调整空白和关键字大小写，执行前要人工对比注释、方言和函数，最后在测试库确认。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#B8935A"/></marker>
+  </defs>
+  <style>
+    text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; fill: #232019; }
+    .title { font-size: 21px; font-weight: 600; text-anchor: middle; }
+    .sub { font-size: 16px; font-weight: 400; fill: #6F6656; text-anchor: middle; }
+    .note { font-size: 15px; fill: #6F6656; text-anchor: middle; }
+    .box { fill: #FFFDF7; stroke: #D8C39A; stroke-width: 1.6; }
+    .accent { fill: #F8ECD2; stroke: #B8935A; stroke-width: 1.8; }
+    .flow { stroke: #B8935A; stroke-width: 2; fill: none; }
+    .back { stroke: #B8935A; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  </style>
+  <rect class="box" x="170" y="36" width="380" height="60" rx="14"/>
+  <text class="title" x="360.0" y="66.0" dominant-baseline="middle">原始 SQL（含字符串与注释）</text>
+  <line class="flow" x1="360" y1="96" x2="360" y2="124" marker-end="url(#arrow)"/>
+  <rect class="box" x="170" y="124" width="380" height="60" rx="14"/>
+  <text class="title" x="360.0" y="154.0" dominant-baseline="middle">先备份，再格式化</text>
+  <line class="flow" x1="360" y1="184" x2="360" y2="212" marker-end="url(#arrow)"/>
+  <rect class="box" x="170" y="212" width="380" height="60" rx="14"/>
+  <text class="title" x="360.0" y="242.0" dominant-baseline="middle">只重排空白与关键字大小写</text>
+  <line class="flow" x1="360" y1="272" x2="360" y2="300" marker-end="url(#arrow)"/>
+  <rect class="box" x="170" y="300" width="380" height="60" rx="14"/>
+  <text class="title" x="360.0" y="330.0" dominant-baseline="middle">对比差异：注释 / 方言 / 函数</text>
+  <line class="flow" x1="360" y1="360" x2="360" y2="388" marker-end="url(#arrow)"/>
+  <rect class="box" x="170" y="388" width="380" height="60" rx="14"/>
+  <text class="title" x="360.0" y="418.0" dominant-baseline="middle">在测试库执行确认</text>
+  <text class="note" x="360" y="476" dominant-baseline="middle">格式化器不是 SQL 解析器：它不会校验语法，也不会改方言。</text>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="260" viewBox="0 0 720 260" role="img" aria-labelledby="ft fd">
+  <title id="ft">图片滤镜的处理流程</title>
+  <desc id="fd">选择本地图片，选一种滤镜，在 Canvas 上按原图尺寸处理，预览后下载 PNG；图片不离开浏览器，导出不保留 EXIF。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#B8935A"/></marker>
+  </defs>
+  <style>
+    text { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; fill: #232019; }
+    .title { font-size: 21px; font-weight: 600; text-anchor: middle; }
+    .sub { font-size: 16px; font-weight: 400; fill: #6F6656; text-anchor: middle; }
+    .note { font-size: 15px; fill: #6F6656; text-anchor: middle; }
+    .box { fill: #FFFDF7; stroke: #D8C39A; stroke-width: 1.6; }
+    .accent { fill: #F8ECD2; stroke: #B8935A; stroke-width: 1.8; }
+    .flow { stroke: #B8935A; stroke-width: 2; fill: none; }
+    .back { stroke: #B8935A; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+  </style>
+  <rect class="box" x="10" y="92" width="118" height="84" rx="14"/>
+  <text class="title" x="69.0" y="122.0" dominant-baseline="middle">选择图片</text>
+  <text class="sub" x="69.0" y="148.0" dominant-baseline="middle">本地读取</text>
+  <line class="flow" x1="128" y1="134" x2="155" y2="134" marker-end="url(#arrow)"/>
+  <rect class="box" x="155" y="92" width="118" height="84" rx="14"/>
+  <text class="title" x="214.0" y="122.0" dominant-baseline="middle">选择滤镜</text>
+  <text class="sub" x="214.0" y="148.0" dominant-baseline="middle">9 种效果</text>
+  <line class="flow" x1="273" y1="134" x2="300" y2="134" marker-end="url(#arrow)"/>
+  <rect class="box" x="300" y="92" width="118" height="84" rx="14"/>
+  <text class="title" x="359.0" y="122.0" dominant-baseline="middle">应用滤镜</text>
+  <text class="sub" x="359.0" y="148.0" dominant-baseline="middle">原图尺寸</text>
+  <line class="flow" x1="418" y1="134" x2="445" y2="134" marker-end="url(#arrow)"/>
+  <rect class="box" x="445" y="92" width="118" height="84" rx="14"/>
+  <text class="title" x="504.0" y="122.0" dominant-baseline="middle">预览对比</text>
+  <text class="sub" x="504.0" y="148.0" dominant-baseline="middle">即时</text>
+  <line class="flow" x1="563" y1="134" x2="590" y2="134" marker-end="url(#arrow)"/>
+  <rect class="box" x="590" y="92" width="118" height="84" rx="14"/>
+  <text class="title" x="649.0" y="122.0" dominant-baseline="middle">下载 PNG</text>
+  <text class="sub" x="649.0" y="148.0" dominant-baseline="middle">不保留 EXIF</text>
+  <text class="note" x="360" y="228" dominant-baseline="middle">处理在浏览器内完成，图片不上传；导出会丢掉拍摄信息。</text>
+</svg>

@@ -1,5 +1,6 @@
 import type { Guide } from './guides.ts';
 import captures from '../../public/article-images/2026-10/captures.json' with { type: 'json' };
+import diagrams from '../../public/article-images/2026-10/diagrams.json' with { type: 'json' };
 
 const imageRoot = '/article-images/2026-10/';
 const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -9,9 +10,16 @@ function figure(file: string, alt: string, caption: string) {
   if (!capture || !('width' in capture) || !('height' in capture)) throw new Error(`Missing verified article image: ${file}`);
   return `<figure><a href="${imageRoot}${file}" target="_blank" rel="noopener" aria-label="查看大图：${alt}"><img src="${imageRoot}${file}" alt="${alt}" width="${capture.width}" height="${capture.height}" loading="lazy" decoding="async"></a><figcaption>${caption} 点击图片可查看原图。</figcaption></figure>`;
 }
+function diagram(file: string, alt: string, caption: string) {
+  const item = diagrams.find(entry => entry.file === file);
+  if (!item) throw new Error(`Missing verified diagram: ${file}`);
+  return `<figure class="article-diagram"><a href="${imageRoot}${file}" target="_blank" rel="noopener" aria-label="查看大图：${alt}"><img src="${imageRoot}${file}" alt="${alt}" width="${item.width}" height="${item.height}" loading="lazy" decoding="async"></a><figcaption>${caption} 点击图片可查看原图。</figcaption></figure>`;
+}
 const table = (head: string[], rows: string[][]) => `<div class="article-table"><table><thead><tr>${head.map(cell => `<th scope="col">${cell}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 const reproduction = `<p>想在自己的电脑上核对？下载<a href="/article-assets/http-repro.mjs" download>本地 HTTP 复现脚本</a>，安装 Node.js 后运行 <code>node http-repro.mjs</code>，再打开 <code>http://127.0.0.1:8765</code>。脚本只监听本机的 8765、8766 两个端口，无须密钥；用完在终端按 Ctrl+C 关闭。</p>`;
-function article(value: Omit<Guide, 'published' | 'updated' | 'faqs'>): Guide {
+function article(
+  value: Omit<Guide, 'published' | 'updated' | 'faqs'> & Partial<Pick<Guide, 'published' | 'updated' | 'faqs'>>,
+): Guide {
   return { published: '2026-10-16', updated: '2026-10-16', faqs: [], ...value };
 }
 
@@ -442,4 +450,317 @@ const data = await readJson(response);`)}
       { title: 'RFC 9110 §9.2.2：幂等方法与自动重试', url: 'https://www.rfc-editor.org/rfc/rfc9110#section-9.2.2' },
     ],
   }),
+  article({
+    slug: 'personality-test-four-axes',
+    title: '24 道题之后：人格风格测试的四个维度怎么读',
+    description: '24 道原创情境题怎么变成四个字母和四条百分比，X 代表什么，结果能保存成什么，以及它不能回答的问题。',
+    category: '趣味工具', toolSlug: 'personality-test', readingMinutes: 6,
+    image: imageRoot + 'quiz-result.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先看四条轴的百分比，再看字母。58/42 与 92/8 的差别，比字母本身更能说明这次作答。',
+    notice: '答案只保留在当前页面，刷新即丢；结果用于娱乐与自我观察，不是官方 MBTI 测评，也不适合作为招聘或临床依据。',
+    content: `<p>做完 24 道题，结果页先给出四个字母，下面还有四条轴。这次演示的作答落在 ENFJ：社交能量 E 58%、信息关注 N 58%、决定侧重 F 58%、生活节奏 J 58%。四个数字都只比一半多一点，字母是组合结果，不是四个标签的叠加。</p>
+    <h2>24 道题怎么变成四个字母</h2>
+    <p>题库固定 24 题，社交能量、信息关注、决定侧重、生活节奏各 6 题。每题五档，分别记 2、1、0、−1、−2 分，其中一半题目是反向计分。某个维度先累加 6 题得分，再换算成左右两侧的百分比：得分大于 0 取左侧字母，小于 0 取右侧字母，正好为 0 记 X。</p>
+    ${table(['维度', '左侧', '右侧', '题目数'], [['社交能量', 'E 向外', 'I 向内', '6'], ['信息关注', 'S 具体', 'N 可能', '6'], ['决定侧重', 'T 逻辑', 'F 感受', '6'], ['生活节奏', 'J 计划', 'P 灵活', '6']])}
+    <p>所以百分比描述的是这 6 道题里的作答倾向，不是能力评分。58% 只说明这次略微偏左；换一组情境，完全可能反过来。</p>
+    <h2>全部选同一档，为什么得到 XXXX</h2>
+    <p>每个维度的 6 道题里，正向和反向各 3 道。从头到尾都选“非常符合”，或者都选“很不符合”，正负正好抵消，四个维度都停在 0，结果就是 XXXX。这不是页面坏了，也不是“没有性格”，而是这套题在极端一致的作答下没有拉开差距。</p>
+    <h2>结果页上的四条轴</h2>
+    <p>每条轴左边是左侧百分比，右边是右侧百分比，两边相加为 100，中间有一条 50% 的竖线。字母下方的 X 表示该维度持平，描述区会换用另一段文字，而不是硬塞一个字母。百分比接近中间时，别急着把它读成“偏向”，先看差了多少。</p>
+    <h2>保存与重测</h2>
+    <p>“保存分享卡片”生成一张 1000×1340 的 PNG；“复制偏好地图”把结果码和四条百分比复制成文字；“回看我的答案”会带着已选项从第一题重走，“重新探索”会清空答案。答案只存在当前页面的内存里，刷新或关闭后不会恢复，换设备也不会同步。</p>
+    <h2>它不做什么</h2>
+    <p>这不是官方 MBTI 测评，没有常模、信效度报告或临床解释。四个字母不能说明岗位匹配、学习能力或关系质量；同一分数在不同情境下的行为也可能不同。把它当成一次可复盘的自我描述，比当成结论更合适。</p>
+    ${figure('quiz-question.jpg', '第 5 题的作答界面，顶部显示 05 / 24、已回答 4 / 24，五个选项和上一题按钮都是真实状态', '2026-10-25 实际操作截图：按顺序作答到第 5 题。')}
+    ${figure('quiz-result.jpg', '结果页显示 ENFJ、四条轴的百分比、维度描述和保存按钮', '同一次作答的结果页。百分比来自 24 道题的累加，不是随机数。')}
+    ${diagram('flow-personality-test-four-axes.svg', '人格测试的作答、计分、结果与保存流程', '作答流程：24 题五档计分，四个维度分别累加，最后得到字母与百分比。')}
+    <p>想换一种轻量的自我记录，可以打开<a href="/tools/fun/personality-test/">人格风格测试</a>；如果只想生成一张可复现的分享图，<a href="/guides/avatar-seed-transparent-export/">头像生成器</a>的种子机制更直接。</p>`,
+    faqs: [
+      { q: '为什么四个维度都是 X？', a: '每个维度有 3 道正向题和 3 道反向题。同一档从头选到尾会正负抵消，四个维度都停在 0，结果就是 XXXX。' },
+      { q: '刷新页面后答案还在吗？', a: '不在。答案只保留在当前页面内存里，没有本地存储或账号同步。' },
+      { q: '百分比越高，代表这方面能力越强吗？', a: '不。百分比只表示这次作答偏向左侧或右侧的程度，不是能力、熟练度或准确率。' },
+    ],
+    sources: [
+      { title: 'American Psychological Association：Personality', url: 'https://www.apa.org/topics/personality' },
+      { title: 'Wikipedia：Myers–Briggs Type Indicator', url: 'https://en.wikipedia.org/wiki/Myers%E2%80%93Briggs_Type_Indicator' },
+    ],
+  }),
+  article({
+    slug: 'image-filter-local-canvas',
+    title: '图片滤镜在本地做了什么：9 种效果、PNG 导出与画质',
+    description: '九个滤镜选项分别对应什么参数，Canvas 为什么要画两遍，导出 PNG 会丢掉什么，以及大图处理的内存边界。',
+    category: '手作与图像', toolSlug: 'image-filter', readingMinutes: 5,
+    image: imageRoot + 'filter-sepia.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '预览和下载都来自同一块与原图等大的 canvas，所以看到的效果和保存的文件一致。',
+    notice: '图片只在浏览器里解码、处理和编码，不会上传；导出 PNG 不保留拍摄信息。',
+    content: `<p>把一张 1200×630 的示例图放进去，选“复古棕褐”，点“应用滤镜”，预览仍是 1200×630；再点“下载 PNG”，文件也是这个尺寸。整个过程中没有网络请求把图片发出去，处理发生在 canvas 上。</p>
+    <h2>九个选项对应什么参数</h2>
+    <p>滤镜值直接写进 canvas 上下文的 <code>filter</code> 属性，不是预渲染的 LUT，也没有强度滑杆。实际参数如下：</p>
+    ${table(['选项', '实际参数'], [['灰度', 'grayscale(1)'], ['复古棕褐', 'sepia(0.85)'], ['反色', 'invert(1)'], ['模糊', 'blur(6px)'], ['提亮', 'brightness(1.35)'], ['压暗', 'brightness(0.65)'], ['高对比', 'contrast(1.5)'], ['色相旋转', 'hue-rotate(120deg)'], ['高饱和', 'saturate(2.2)']])}
+    <p>“原图”选项跳过第二次绘制，直接把原图放在 canvas 上。其余选项的模糊半径、色相角度都是固定值，不能在这里调。</p>
+    <h2>Canvas 上画了两遍</h2>
+    <p>代码按原图的自然宽高创建 canvas，先把原图画一遍，再把 <code>ctx.filter</code> 设成对应值画第二遍。预览用 <code>toDataURL()</code> 生成 PNG，下载复用的也是这个结果。预览容器只有 480px 宽，但 canvas 没有被缩小，下载的仍然是原尺寸。</p>
+    <h2>导出的 PNG 丢了什么</h2>
+    <p>浏览器解码原图后重新编码为 PNG，拍摄时间、相机型号、GPS 等 EXIF 不会写回；如果原图是 JPEG，导出文件可能更大，因为 PNG 是无损格式。带透明背景的 PNG 会保留 alpha 通道，除非滤镜本身改变了像素。色彩配置也可能被重新解释，重要图片请先备份原文件。</p>
+    <h2>大图的内存账</h2>
+    <p>canvas 每个像素占 4 字节。1200×630 约 3 MB，4000×3000 约 48 MB，手机浏览器还要留出解码和合成的空间。处理超大图时页面卡住，通常不是滤镜算法慢，而是内存和主线程被占满；必要时先在其他工具里缩小图片。</p>
+    <h2>它不做什么</h2>
+    <p>不做裁剪、旋转、批量处理，也不提供强度滑杆；HEIC、RAW 是否可读取决于浏览器解码能力；处理完不会自动下载，需要再点一次按钮。</p>
+    ${figure('filter-settings.jpg', '上传示例图并选择复古棕褐后的实际设置区，状态显示滤镜已应用', '2026-10-25 实际操作截图：选择复古棕褐并应用。')}
+    ${figure('filter-sepia.jpg', '复古棕褐滤镜在 1200×630 示例图上的实际预览', '同一张图的滤镜预览。预览与原图同尺寸，没有二次缩放。')}
+    ${diagram('flow-image-filter-local-canvas.svg', '选择图片、选择滤镜、Canvas 处理、预览与下载的流程', '处理流程：选图、选滤镜、在 Canvas 上按原图尺寸应用、预览后下载 PNG。')}
+    <p>如果要做的是裁切和拼图，<a href="/guides/grid-splitter-center-crop/">九宫格切图</a>处理的是另一类需求；需要可复现的图片生成，可以看<a href="/tools/fun/avatar-generator/">头像生成器</a>。</p>`,
+    faqs: [
+      { q: '为什么导出的 PNG 比原 JPEG 还大？', a: 'PNG 是无损编码，照片类画面通常比 JPEG 大。需要更小的文件时，先用其他工具转成 JPEG。' },
+      { q: '透明背景会保留吗？', a: '源 PNG 的 alpha 通道会保留，滤镜只改变颜色或模糊；但二次编码后边缘像素可能有细微变化。' },
+      { q: '为什么预览容器只有 480px 宽？', a: '只是页面展示宽度，canvas 仍按原图自然尺寸创建，下载的图不会被缩到 480px。' },
+    ],
+    sources: [
+      { title: 'MDN：CanvasRenderingContext2D.filter', url: 'https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/filter' },
+      { title: 'Wikipedia：Exif', url: 'https://en.wikipedia.org/wiki/Exif' },
+    ],
+  }),
+  article({
+    slug: 'lottery-draw-without-repeat',
+    title: '抽奖不重复：名单、中奖人数和浏览器随机的边界',
+    description: '六人名单抽两位的实际过程，重复姓名为什么不会被自动合并，Math.random 能保证什么，以及结果怎么留存。',
+    category: '趣味工具', toolSlug: 'lottery', readingMinutes: 5,
+    image: imageRoot + 'lottery-winners.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先清理名单里的重复姓名，再设置中奖人数；工具只按位置抽取，不替你去重。',
+    notice: '随机数来自浏览器的 Math.random，不提供可审计的随机源；需要对外证明公平的抽奖不要只用这个页面。',
+    content: `<p>六个人的名单，抽两位，老虎机停下后出现“1. 李四 2. 张三”。名单里如果重复写了同一个名字，页面只会提示“重复”，不会替你去重；两个位置都可能被抽中。</p>
+    <h2>先看名单和人数</h2>
+    <p>名单每行一个姓名，最多 200 行；中奖人数 1–50，且不能超过名单人数。名单下方的统计会显示总人数；出现重复时会标出“张三×2”这样的提示，但不会删除任何一行。人数超过上限时只取前 200 行。</p>
+    <h2>抽取过程</h2>
+    <p>点击开始后，脚本把名单复制成一个池子，每次用 <code>Math.random()</code> 取一个下标，抽中后从池子里删掉，再抽下一位。位置不会重复，但姓名可以重复——如果“张三”在名单里出现两次，这两行都可能被抽中。</p>
+    <h2>两种展示</h2>
+    <p>沉浸式老虎机和拟物拉杆两种模式，音效可以关闭，也支持浏览器全屏。结果在覆盖层里逐个揭晓，结束后可以复制“幸运儿（2 人）：1. 李四 2. 张三”这样的文本，或再抽一次。名单、人数和模式会保存在本机 localStorage，中奖结果不会。</p>
+    <h2>能不能当公证抽奖</h2>
+    <p>不能。<code>Math.random()</code> 不承诺密码学强度，也没有可复现的种子或审计记录；同一份名单再抽一次会得到不同结果。需要对外证明公平的场合，应使用可验证的随机源、现场录像或第三方公证流程，并把名单和抽奖规则提前固定下来。</p>
+    <h2>它不做什么</h2>
+    <p>不合并重复姓名、不导入 Excel、不设置权重、不记录历史中奖、不生成海报。结果只存在于当前页面，关闭后需要重新抽；要留存请先复制文本或截图。</p>
+    ${figure('lottery-setup.jpg', '六人名单、抽取两位的设置区，人数统计显示共 6 人', '2026-10-25 实际操作截图：输入六人名单并设置抽两位。')}
+    ${figure('lottery-winners.jpg', '老虎机揭晓两位中奖者的实际结果页，下方有复制结果和再抽一次', '同一次抽奖的结果。中奖者由 Math.random 逐个抽出，位置不重复。')}
+    ${diagram('flow-lottery-draw-without-repeat.svg', '名单检查、随机抽取、揭晓与复制的流程', '抽取流程：检查人数与重复，按位置逐个抽取，揭晓后复制结果。')}
+    <p>名单需要先生成或清洗，可以用<a href="/tools/dev/text-toolbox/">文本处理工具</a>去空行和重复；如果只是抽一个随机数，<a href="/guides/random-number-fairness/">随机数生成器</a>的边界更简单。</p>`,
+    faqs: [
+      { q: '中奖者会重复吗？', a: '位置不会重复，但姓名可能重复。名单里同一个名字出现两次，两行都可能被抽中，先清理名单再抽。' },
+      { q: '刷新后名单还在吗？', a: '名单、人数和模式保存在本机 localStorage；中奖结果不保存，刷新后需要重新抽。' },
+      { q: '能一次抽 100 人吗？', a: '中奖人数上限是 50，且不能超过名单人数；名单最多 200 行。' },
+    ],
+    sources: [
+      { title: 'MDN：Math.random()', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random' },
+      { title: 'MDN：Crypto.getRandomValues()', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues' },
+    ],
+  }),
+
+  article({
+    slug: 'large-json-in-browser',
+    title: '大 JSON 粘进浏览器就卡：先校验，再分段',
+    description: '一份 35 万字符的 JSON 实际格式化用了多久，语法错误怎么定位到行列，为什么体积翻倍后等待时间不是翻倍。',
+    category: '接口排错', toolSlug: 'json-formatter', readingMinutes: 6,
+    image: imageRoot + 'json-large-input.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先点“仅校验”看行列号，再决定要不要格式化；几十万字符的文本不要连续点按钮。',
+    notice: '解析和格式化都在浏览器主线程完成，数据不上传；超大文件请优先用命令行工具处理。',
+    content: `<p>这次粘贴的 JSON 有 354,708 个字符。从粘贴到点“格式化”、状态栏出现完成，整段约 3.8 秒，输出变成 1,034,726 个字符。测试环境是无头 Chromium，换一台电脑数字会不同，但变化趋势一样：输入越大，等待越不像线性增长。</p>
+    <h2>先看字符数</h2>
+    <p>输入框右下角实时显示字符数。超过十万字符时，先想清楚这次要解决的是语法还是排版：只是确认能不能解析，点“仅校验”就够了；已经确定合法，再格式化或压缩。</p>
+    <h2>语法错误先定位</h2>
+    <p>下面这段多了一个尾部逗号：</p>
+    ${pre(`{"name":"Clover","tools":99,}`)}
+    <p>点“格式化”后状态栏给出“第 1 行，第 29 列：Expected double-quoted property name in JSON at position 28 (line 1 column 29)”。行列号来自 <code>JSON.parse</code> 报错里的 position，前面的文本按换行切分后换算得到，能直接跳到大致的出错位置。真实文件里先看报错位置前一个字段，通常是逗号、引号或括号没闭合。</p>
+    <h2>为什么越大越慢</h2>
+    <p>格式化在主线程上做三件事：<code>JSON.parse</code> 解析、<code>JSON.stringify</code> 重新序列化、把结果写回 textarea。体积翻倍时，字符串分配、垃圾回收和文本控件的排版都会一起变重，耗时不是简单的两倍。同一环境下把同样结构加到 71 万字符，点击后等了约 15 秒，期间页面无法响应。</p>
+    <h2>大文件怎么处理</h2>
+    <ol><li>能拿到原始文件就用 <code>jq</code> 或 Node 处理，不要先粘进浏览器。</li><li>只有一段文本时，按数组元素或顶层 key 切成小块，分别校验，别反复整段重试。</li><li>确认语法后再格式化；需要保留原文时先复制一份，避免输出覆盖工作区。</li><li>移动端内存更紧，超过几 MB 就不要在手机上试。</li></ol>
+    <h2>它不做什么</h2>
+    <p>不做流式解析，不校验 JSON Schema，不自动修复，也不会替你判断字段的业务含义。勾选“按键排序”会按字典序重排对象键，数组顺序不变；缩进只影响输出排版，不改变数据。</p>
+    ${figure('json-large-input.jpg', '35 万字符的 JSON 粘贴后显示字符统计，状态栏为格式化完成', '2026-10-25 实际操作截图：输入 354,708 字符，格式化后 1,034,726 字符。')}
+    ${figure('json-error-location.jpg', '尾部逗号导致的报错，状态栏显示第 1 行第 29 列和原始错误', '同一次操作中的错误定位。行列号由 JSON.parse 的 position 换算。')}
+    ${diagram('flow-large-json-in-browser.svg', '大 JSON 的解析判断、错误定位、修复与格式化流程', '处理流程：先判断能否一次解析，失败按行列号定位并分段修复，成功后再格式化或压缩。')}
+    <p>如果报错是从接口拿到的 HTML 而不是 JSON，先看<a href="/guides/json-unexpected-token-html/">Unexpected token 的排查步骤</a>；日常格式化与字段检查见<a href="/guides/json-formatting-validation/">JSON 格式化与校验</a>。</p>`,
+    faqs: [
+      { q: '能处理 10 MB 的 JSON 吗？', a: '不建议在浏览器里直接试。解析和序列化会长时间占住主线程，页面可能卡死；用 jq 或 Node 更稳。' },
+      { q: '数据会上传到服务器吗？', a: '不会。解析、格式化和复制都在当前页面完成，没有网络请求。' },
+      { q: '“按键排序”会改变数组顺序吗？', a: '不会。对象键按字典序重排，数组元素保持原顺序。' },
+    ],
+    sources: [
+      { title: 'MDN：JSON.parse()', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse' },
+      { title: 'RFC 8259：The JavaScript Object Notation Data Interchange Format', url: 'https://www.rfc-editor.org/rfc/rfc8259' },
+    ],
+  }),
+  article({
+    slug: 'sql-format-is-not-parser',
+    title: 'SQL 格式化只改排版：注释、字符串和方言它不会替你修',
+    description: '一条单行 SQL 格式化前后的实际差异，注释里出现关键字会发生什么，以及执行前必须自己做的三项检查。',
+    category: '开发实用', toolSlug: 'sql-formatter', readingMinutes: 6,
+    image: imageRoot + 'sql-after.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '格式化只调整空白和关键字大小写，不改语义；含注释的语句先备份再试。',
+    notice: '格式化成功不等于 SQL 能执行。方言、函数、注释和权限都要在测试库另行确认。',
+    content: `<p>一条 216 字符的单行 SQL：<code>select u.id, u.name, count(o.id) as orders from users u left join orders o on u.id = o.user_id where u.status = 'active' and u.name like 'A%' group by u.id, u.name having count(o.id) &gt; 2 order by orders desc limit 10</code>。格式化后 230 字符，SELECT、FROM、WHERE 各占一行，字符串 <code>'active'</code> 没有被改写。</p>
+    <h2>它只做三件事</h2>
+    <p>先按引号、括号、逗号和空白切成 token；把能识别的单个关键字转成大写；在 SELECT、FROM、WHERE、HAVING、LIMIT 等单个关键字前换行，并按括号层级缩进。逗号在 SELECT 列表中换行，在别处保留空格。</p>
+    <p>多词关键字不在识别范围：GROUP BY、ORDER BY、LEFT JOIN、UNION ALL 会被当成几个普通单词，保留原来的大小写和位置。括号也会被拆开：左括号前加一个空格，右括号另起一行。下面的实际输出里能看到这两点，所以格式化完仍要人工通读。</p>
+    <h2>注释的边界</h2>
+    <p>格式化器不识别注释。下面这条语句的行注释里出现了 <code>from</code>：</p>
+    ${pre(`select id, name from users -- fallback from cache
+where status = 'from-active' and id > 10`)}
+    <p>输出会把注释里的 <code>from</code> 当成子句关键字换行，<code>cache</code> 落到注释外，语句结构被改掉。含行注释的 SQL 先备份，或者先把注释移到单独的块注释/去掉，再格式化。这不是格式化器该猜的地方，它只是一个 token 重排工具。</p>
+    <h2>字符串与方言</h2>
+    <p>单引号、双引号和反引号里的内容会作为整体保留，不会被大写，也不会被拆开。它不理解 MySQL、PostgreSQL 或 SQL Server 的方言差异，不校验函数名、类型转换、CTE 和存储过程；格式化成功只说明文本被重排了，不说明数据库能执行。</p>
+    <h2>执行前的三个检查</h2>
+    <ol><li>把原文和结果做一次 diff，重点看注释、字符串和跨行位置。</li><li>在测试库执行，确认权限、方言和函数都可用。</li><li>保留原始版本或提交记录，出问题能回滚，不要只留格式化后的文本。</li></ol>
+    <h2>它不做什么</h2>
+    <p>不解析语法、不识别多词关键字、不检查表名和字段、不按列宽折行、不格式化注释、不处理 <code>DELIMITER</code> 与存储过程。需要真正的 SQL 解析时，用数据库自带的客户端或格式化插件。</p>
+    ${figure('sql-before.jpg', '单行 SQL 的实际输入，包含字符串、JOIN、聚合和 LIMIT', '2026-10-25 实际操作截图：216 字符的单行语句。')}
+    ${figure('sql-after.jpg', '同一语句格式化后的输出，关键字大写、子句换行、字符串保持原样', '格式化结果 230 字符。只调整了空白和关键字大小写。')}
+    ${diagram('flow-sql-format-is-not-parser.svg', 'SQL 备份、格式化、差异对比与执行确认的流程', '处理流程：先备份，再格式化，对比注释与方言差异，最后在测试库执行。')}
+    <p>如果语句本身报错，先把原始错误和数据库版本记下来；接口返回的错误正文可以配合<a href="/guides/http-429-retry-after/">HTTP 状态排查</a>一起看。</p>`,
+    faqs: [
+      { q: '格式化后为什么不能直接执行？', a: '它只重排空白和关键字大小写，不解析注释和方言。含行注释或特殊语法的语句可能被改结构，执行前要对比并在测试库确认。' },
+      { q: '会改变关键字大小写吗？', a: '未加引号的关键字会转成大写，引号里的字符串和标识符保持原样。' },
+      { q: '支持存储过程吗？', a: '不支持。它没有 SQL 解析器，只按 token 重排，存储过程和 DELIMITER 不在处理范围内。' },
+    ],
+    sources: [
+      { title: 'PostgreSQL：Lexical Structure（注释与字符串）', url: 'https://www.postgresql.org/docs/current/sql-syntax-lexical.html' },
+      { title: 'MySQL 8.4 Reference Manual：Comments', url: 'https://dev.mysql.com/doc/refman/8.4/en/comments.html' },
+    ],
+  }),
+  article({
+    slug: 'jsonpath-supported-subset',
+    title: 'JSONPath 取不到值：先看根、递归和过滤写法',
+    description: 'JSONPath 支持的路径与过滤子集，结果为空的三类原因，以及和 JSON Pointer 的区别。',
+    category: '开发实用', toolSlug: 'jsonpath', readingMinutes: 5,
+    image: imageRoot + 'jsonpath-query.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先确认表达式从 $ 开始，再逐段加路径；过滤器只支持 @.key 与简单比较。',
+    notice: '查询结果只读，不修改原 JSON；过滤器不会执行任意代码，也不支持函数和嵌套路径。',
+    content: `<p>用示例数据执行 <code>$.store.book[?(@.price &lt; 10)].title</code>，结果区返回两行：<code>"Sayings"</code> 和 <code>"Moby Dick"</code>。把表达式改成 <code>book[0]</code>，状态栏直接报 <code>JSONPath must start with $</code>——根符号不是可选项。</p>
+    <h2>它支持的写法</h2>
+    ${table(['写法', '含义'], [['$', '根节点'], ['.key', '取子属性'], ["['key']", '带引号的键'], ['..key', '递归查找所有同名属性'], ['..*', '递归展开所有节点'], ['[*]', '数组或对象的所有成员'], ['[0]', '数组下标'], ['[?(@.price &lt; 10)]', '过滤数组元素']])}
+    <p>属性名允许字母、数字、下划线和短横线；带空格或特殊字符的键用 <code>['key']</code>。递归下降 <code>..</code> 会同时尝试当前节点和所有后代，结果里可能出现重复。</p>
+    <h2>过滤器的边界</h2>
+    <p>过滤器只作用在数组上，条件只支持 <code>@.key</code> 与数字、布尔、null、引号字符串的简单比较，运算符是 <code>==</code>、<code>!=</code>、<code>&lt;</code>、<code>&gt;</code>、<code>&lt;=</code>、<code>&gt;=</code>。不支持 <code>@.a.b</code> 这样的嵌套路径，不支持函数、算术、正则，也不支持拿另一个路径当比较值。写 <code>$..book[?(@.price &lt; $.expensive)]</code> 会直接报不支持，而不是返回空数组。</p>
+    <h2>结果为空，先查三件事</h2>
+    <ol><li>根和拼写：表达式是否从 <code>$</code> 开始，属性名大小写是否一致。</li><li>节点类型：<code>[*]</code> 和过滤器只对相应结构生效，对象上写数组下标不会命中。</li><li>过滤条件：比较值类型是否一致，比如价格是数字，条件里却写了带引号的 <code>"10"</code>。</li></ol>
+    <h2>输出与复制</h2>
+    <p>结果区不是 JSON 数组：每个匹配单独做 <code>JSON.stringify</code>，多个匹配之间用一行 <code>---</code> 分隔；字符串结果会带引号。复制按钮复制整段文本，查询只读，不会修改原 JSON，也没有保存查询历史。</p>
+    <h2>它不做什么</h2>
+    <p>不支持 JSON Pointer、脚本表达式、自定义函数和路径联合（<code>[0,1]</code>）；不能修改值，也不能生成新对象。复杂提取请把结果复制到脚本里继续处理。</p>
+    ${figure('jsonpath-query.jpg', '价格过滤表达式在示例数据上的实际结果，返回两个书名', '2026-10-25 实际操作截图：过滤条件与结果。')}
+    ${figure('jsonpath-error.jpg', '表达式缺少根符号时的实际错误提示', '同一次操作中的错误状态：JSONPath 必须以 $ 开始。')}
+    ${diagram('flow-jsonpath-supported-subset.svg', 'JSONPath 的根、路径、数组、过滤与空结果排查流程', '查询流程：确认根，逐段加路径，结果为空时回到类型、路径和过滤语法检查。')}
+    <p>只想展开和校验 JSON 结构，用<a href="/guides/json-formatting-validation/">JSON 格式化与校验</a>；需要把结果转成表格，可以接着看<a href="/tools/dev/json-convert/">JSON 转 CSV</a>。</p>`,
+    faqs: [
+      { q: '支持 $..* 吗？', a: '支持。它会递归展开所有节点，结果可能很多，也可能包含重复节点。' },
+      { q: '能用另一个路径做过滤比较吗？', a: '不能。过滤器右侧只接受数字、布尔、null 或引号字符串，不支持 $.expensive 这类路径。' },
+      { q: '可以修改 JSON 的值吗？', a: '不可以。这里只做查询和复制，修改要在编辑器或代码里完成。' },
+    ],
+    sources: [
+      { title: 'RFC 9535：JSONPath', url: 'https://www.rfc-editor.org/rfc/rfc9535' },
+      { title: 'Wikipedia：JSONPath', url: 'https://en.wikipedia.org/wiki/JSONPath' },
+    ],
+  }),
+
+  article({
+    slug: 'salary-simplified-model',
+    title: '税前工资到手多少：这个计算器算了什么，没算什么',
+    description: '用税前 15000、公积金 7% 走一遍五险一金和个税的计算，说明固定比例、起征点、预扣率，以及它没有覆盖的项目。',
+    category: '日常实用', toolSlug: 'salary', readingMinutes: 6,
+    image: imageRoot + 'salary-result.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先分清“估算”和“工资条”：这里的比例和起征点是固定的，专项附加扣除和城市差异都不在计算里。',
+    notice: '结果是简化估算，不构成税务或劳动合同依据；实际缴纳以当地社保基数和单位申报为准。',
+    content: `<p>输入税前 15000，公积金选 7%，结果页给出：养老 1200、医疗 300、失业 75、公积金 1050、五险一金合计 2625、应纳税所得额 7375、个税 527.50、税后 11847.50。数字是按固定公式算出来的，不涉及账号或工资条上传。</p>
+    <h2>计算顺序</h2>
+    <p>五险一金 = 15000×8% + 15000×2% + 15000×0.5% + 15000×7% = 2625。应纳税所得额 = 15000 − 5000 − 2625 = 7375。按 10% 档减去速算扣除数 210，个税 = 7375×10% − 210 = 527.50。税后 = 15000 − 2625 − 527.50 = 11847.50。</p>
+    <h2>比例是固定的</h2>
+    <p>养老 8%、医疗 2%、失业 0.5% 写死在计算里；公积金可以在 5%、7%、12% 三档中选择。没有社保缴费基数的上下限，也没有单位缴纳部分，所以结果只覆盖个人到手的一侧。</p>
+    <h2>个税按月度预扣率</h2>
+    <p>使用工资薪金所得预扣率表：不超过 3000 元的部分 3%；3000–12000 元 10%，速算扣除 210；12000–25000 元 20%，扣除 1410；再往上还有 25%、30%、35%、45% 四档。这里算的是单月预扣，不是年度汇算清缴，也不会自动累计前几个月的收入。</p>
+    <h2>它没算什么</h2>
+    <ul><li>城市差异：城市下拉当前不参与计算，比例以你选的公积金档位为准。</li><li>社保基数上下限、补充公积金、企业年金。</li><li>专项附加扣除：子女教育、房贷利息、赡养老人等都没有输入项。</li><li>年终奖、股权、劳务报酬、经营所得和跨地区缴纳。</li></ul>
+    <p>所以工资条可能比这个结果更高，也可能更低：专项附加扣除会减少个税，基数上限会减少社保扣款，而单位代扣的其他项目又会增加扣除。这个页面适合做量级估算，不适合核对工资条。</p>
+    <h2>怎么用这个数</h2>
+    <p>比较两个 offer 的税后差距、做月度预算、判断公积金档位的影响，都是合理用法。谈薪时把税前、公积金比例和城市一起写清楚，比只报一个“到手”数字更不容易误解。</p>
+    ${figure('salary-form.jpg', '税前 15000、公积金 7% 的实际输入区，按钮和提示为真实状态', '2026-10-25 实际操作截图：输入税前工资并选择公积金档位。')}
+    ${figure('salary-result.jpg', '五险一金、应纳税所得额、个税和税后到手的实际明细', '同一次计算的结果：税后 11847.50 元/月。')}
+    ${diagram('flow-salary-simplified-model.svg', '税前工资、五险一金、起征点、预扣率与税后到手的流程', '估算流程：先扣五险一金，再减 5000 起征点，按预扣率表算个税，最后得到税后金额。')}
+    <p>金额需要写成中文大写报销时，用<a href="/tools/daily/rmb-uppercase/">人民币大写转换</a>；日期相关的计算见<a href="/guides/date-difference-rules/">日期差规则</a>。</p>`,
+    faqs: [
+      { q: '为什么和工资条对不上？', a: '这里使用固定比例和单月预扣，不含社保基数上下限、专项附加扣除、年终奖和单位代扣项目。工资条以单位申报和当地基数为准。' },
+      { q: '切换城市为什么结果不变？', a: '当前版本的城市选项不参与计算，比例以公积金档位为准；不同城市的社保基数需要另行核算。' },
+      { q: '能算年终奖的税吗？', a: '不能。页面只处理工资薪金的月度估算，年终奖、股权和劳务报酬都不在范围内。' },
+    ],
+    sources: [
+      { title: '国家税务总局：个人所得税扣缴申报管理办法（试行）', url: 'https://shanghai.chinatax.gov.cn/zcfw/zcfgk/grsds/201812/t443216.html' },
+      { title: '中华人民共和国个人所得税法（2018 修正）', url: 'https://guangxi.chinatax.gov.cn/xxgk/zfxxgk_22500/fdzdgknr/zcfg_22514/zcwj_22515/201809/t20180914_295115.html' },
+    ],
+  }),
+  article({
+    slug: 'expiry-date-boundaries',
+    title: '保质期到底算到哪天：加天数、剩余天数和 0 天的边界',
+    description: '生产日期加 45 天得到什么，剩余天数怎么取整，30 天和 0 天两个阈值分别意味着什么。',
+    category: '日常排查', toolSlug: 'expiry', readingMinutes: 5,
+    image: imageRoot + 'expiry-result.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先确认包装上写的是“保质期几天”还是“保质期至某日”，两种写法的算法不一样。',
+    notice: '结果只做日期推算，不判断食品是否变质；实际能不能用请以包装说明和储存条件为准。',
+    content: `<p>生产日期填 2026-09-25，保质期 45 天，页面给出到期日 2026-11-09、剩余 15 天，状态“即将到期，请尽快食用/使用”。这个结果由日期加天数直接得到，不是按“一个半月”估算。</p>
+    <h2>加的是天数</h2>
+    <p>脚本把生产日期解析成本地零点，再用 <code>setDate(date + 45)</code> 往后推。跨月、跨年、闰年都由 Date 处理：2026-09-25 加 45 天会经过 10 月 31 天，落在 2026-11-09。如果你习惯按“几个月”记，先把月数换算成天数，或者直接看包装上的“保质期至”。</p>
+    <h2>三个状态</h2>
+    ${table(['剩余天数', '状态'], [['大于 30 天', '充足'], ['1–30 天', '即将到期'], ['0 天及以下', '已过期']])}
+    <p>剩余 0 天显示“已过期”。如果包装写的是“保质期至 2026-11-09”，当天用这个工具会得到 0 天和已过期；这是两种写法的边界差异，不是日期算错。需要当天仍视为可用的场景，请以包装或监管说明为准。</p>
+    <h2>剩余天数怎么算</h2>
+    <p>到期日减今天，按毫秒差除以 86400000 后四舍五入。今天也取本地零点，所以白天打开和晚上打开结果一致。中国时区没有夏令时；换到有夏令时的时区，切换日可能出现 23 或 25 小时的一天，剩余天数可能差一天。</p>
+    <h2>它不做什么</h2>
+    <p>只接受天数，不解析“12 个月”“180 天”这类文本；不区分未开封和已开封；不做提醒；不判断食品是否安全。保质期是厂家的品质承诺，不是打开后的无菌保证。</p>
+    <h2>实际用法</h2>
+    <p>把家里一批食品、药品或护肤品的生产日期和天数逐个算一遍，记下最近到期的那几个，截图放在冰箱或药盒旁边。批量登记可以用表格，算完再回填，不必每次重算。</p>
+    ${figure('expiry-form.jpg', '生产日期 2026-09-25、保质期 45 天的实际输入区', '2026-10-25 实际操作截图：输入生产日期与天数。')}
+    ${figure('expiry-result.jpg', '到期日 2026-11-09、剩余 15 天、状态即将到期的实际结果', '同一次计算的结果。剩余 0 天会显示已过期。')}
+    ${diagram('flow-expiry-date-boundaries.svg', '生产日期、加天数、距今天数与三个状态的判断流程', '判断流程：生产日期加保质期天数得到到期日，再与今天比较，分出充足、即将到期和已过期。')}
+    <p>需要算两个日期之间差多少天，用<a href="/guides/date-difference-rules/">日期差规则</a>；按工作日排期，用<a href="/tools/daily/workday/">工作日计算器</a>。</p>`,
+    faqs: [
+      { q: '保质期 12 个月怎么填？', a: '这个工具只接受天数。可以按包装上的“保质期至”直接对照，或把月数换算成天数后填写；换算可能因月份长短差一两天。' },
+      { q: '到期当天算过期吗？', a: '工具的剩余 0 天显示“已过期”。包装写“保质期至某日”时，当天是否可用请以包装说明和储存条件为准。' },
+      { q: '为什么和包装上的日期差一天？', a: '常见原因是把“保质期几个月”按 30 天估算、时区差异，或把生产日当天算作第 1 天。这里按日期加天数计算，不从生产日当天计数。' },
+    ],
+    sources: [
+      { title: 'Wikipedia：Shelf life', url: 'https://en.wikipedia.org/wiki/Shelf_life' },
+      { title: 'MDN：Date', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date' },
+    ],
+  }),
+  article({
+    slug: 'grid-splitter-center-crop',
+    title: '九宫格切图：为什么先裁中心正方形，九张图怎么排',
+    description: '1200×630 的图片怎么变成九张 210×210，编号顺序、下载方式和画质边界分别是什么。',
+    category: '手作与图像', toolSlug: 'grid-splitter', readingMinutes: 5,
+    image: imageRoot + 'grid-preview.jpg', published: '2026-10-25', updated: '2026-10-25',
+    focus: '先看预览里被裁掉的部分，再决定要不要换一张更接近正方形的原图。',
+    notice: '图片只在浏览器本地切分和编码，不上传；九张图是独立 PNG，不是压缩包。',
+    content: `<p>1200×630 的原图放进去，状态栏显示“取中心 630×630”，预览是九张 210×210 的小图，编号 1–9 从左到右、从上到下。横图两侧各被裁掉 285px，这是为了得到九个正方形。</p>
+    <h2>为什么先裁正方形</h2>
+    <p>3×3 等分要保证每一格都是正方形，只能以短边为准，从中心裁出一个正方形再切。横图裁掉左右，竖图裁掉上下；裁掉的部分不会出现在任何一格，也拼不回原图。预览里能直接看到哪些内容被舍弃，选图时优先用主体居中的正方形图。</p>
+    <h2>九张图的顺序</h2>
+    <p>按行优先编号：第一行 1、2、3，第二行 4、5、6，第三行 7、8、9。预览每格左上角有编号，下载文件名是 九宫格_1.png 到 九宫格_9.png。发九宫格时按这个顺序上传，画面才连贯。</p>
+    <h2>下载</h2>
+    <p>点“下载全部”会触发九次独立下载，不是 zip 包。部分浏览器会询问是否允许一次下载多个文件；手机浏览器可能只保存其中几张，建议分次保存或换桌面浏览器。切分完成但还没点下载时，结果只在内存里。</p>
+    <h2>画质</h2>
+    <p>每张图由 canvas 重新编码为 PNG，边长是中心正方形边长的三分之一。1200×630 得到 210×210，放大到朋友圈尺寸会糊；想要更清晰，先用更大的正方形原图。PNG 是无损编码，但源图若是 JPEG，细节已经被压缩过一次，切分不会恢复。EXIF 不会保留。</p>
+    <h2>它不做什么</h2>
+    <p>固定 3×3，不能切成 2×2 或 4×4；没有间距、描边、圆角和背景色选项；动图只取第一帧；不提供九宫格预览拼接图。</p>
+    ${figure('grid-preview.jpg', '1200×630 原图取中心 630×630 后的九格预览，每格带编号', '2026-10-25 实际操作截图：中心裁切后的九格与编号。')}
+    ${figure('grid-download.jpg', '上传图片并切分后点击下载全部的实际状态提示', '同一次操作：九张 PNG 分别触发下载，不是压缩包。')}
+    ${diagram('flow-grid-splitter-center-crop.svg', '上传、中心裁切、3×3 切分、编号与导出的流程', '处理流程：按短边取中心正方形，等分九格，按行列编号后逐张下载。')}
+    <p>如果只想调整颜色而不是裁切，用<a href="/guides/image-filter-local-canvas/">图片滤镜</a>；需要可复现的头像或图标，可以看<a href="/tools/fun/avatar-generator/">头像生成器</a>。</p>`,
+    faqs: [
+      { q: '为什么切出来都是正方形？', a: '3×3 等分需要每格等宽等高，工具按短边从中心裁出正方形后再切；横图或竖图多出来的部分会被裁掉。' },
+      { q: '能一次下载成 zip 吗？', a: '不能。当前实现是九次独立 PNG 下载，部分浏览器会要求允许一次下载多个文件。' },
+      { q: '动图会怎样？', a: '只取第一帧切分，动画不会保留。' },
+    ],
+    sources: [
+      { title: 'MDN：Using images（Canvas）', url: 'https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Using_images' },
+      { title: 'MDN：HTMLCanvasElement.toDataURL()', url: 'https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL' },
+    ],
+  }),
+
 ];
