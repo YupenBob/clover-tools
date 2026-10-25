@@ -1,6 +1,7 @@
 import { root, buildSiteUrl } from './lib/build-config.mjs';
 import { liveSitemap, submitGoogle, writeReport } from './lib/search-submission.mjs';
 
+// Requires the GOOGLE_SERVICE_ACCOUNT_JSON Actions secret; URL-prefix properties also need GSC_SITE_URL.
 try {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_JSON) throw new Error('Configure the GOOGLE_SERVICE_ACCOUNT_JSON Actions secret first');
   let credentials;
