@@ -17,7 +17,7 @@ v2 原则：**保留现版的浅金色调、无衬线字体、页面骨架与 he
 
 1. 全站图标从 Bootstrap Icons 字体迁移到 **Lucide 24×24 描边 SVG**，用 **Morphicons** 做状态形变动画；
 2. 工具卡升级为「Icon Spotlight」并加入 3 张精选卡（A + C）；
-3. 品牌四叶草标记重绘（几何、可小尺寸）；
+3. ~~品牌四叶草标记重绘（几何、可小尺寸）~~（2026-10-25 已回滚，见第 3 节）；
 4. 修复客观缺陷：对比度、移动端分类头破版、指南索引 H1 不可见、reveal 白屏、页头/页脚跨页横移。
 
 ## 1. 图标系统
@@ -54,10 +54,10 @@ v2 原则：**保留现版的浅金色调、无衬线字体、页面骨架与 he
 
 ## 3. 品牌标记
 
-- 新 `public/clover-logo.svg`：32×32 网格、四片 90° 对称心形叶、深 V 负空间、双色金渐变 `#E3C68D → #B8935A`，无高光/描边/滤镜；16/28/96px 均可读；
-- 新 `public/clover-logo-mono.svg`（currentColor）；
-- `src/components/CloverMark.astro` 内联同一路径，供专注航班使用；
-- 证明页与旧版对比：`output/ui-beautify/brand/`。
+- 沿用原 `public/clover-logo.svg`（512×512 金色四叶草，径向渐变 + 叶茎），全站 header / hero / 404 / about / favicon / JSON-LD 共用；
+- `src/components/CloverMark.astro` 内联同一套图形，供专注航班登机牌使用；
+- 2026-10-25 已回滚 v2 初版的几何 32×32 重绘（原稿曾新增 `public/clover-logo-mono.svg`，现一并删除）；
+- 几何稿与旧版对比保留在 `output/ui-beautify/brand/`，仅作历史记录。
 
 ## 4. 客观缺陷修复
 
