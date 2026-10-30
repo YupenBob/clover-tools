@@ -1,6 +1,8 @@
 # 背单词速刷
 
-在线地址：`/tools/daily/vocab-flash/`（繁体：`/zh-hant/tools/daily/vocab-flash/`）
+生产地址：https://clovertools.cn/tools/daily/vocab-flash/
+
+站内路径：`/tools/daily/vocab-flash/`（繁体：`/zh-hant/tools/daily/vocab-flash/`）
 
 一个克制的翻卡背单词工具。目标是减少一轮复习的开始和结束成本：选书、定词数、看词、判断，结束后只把没认出来的词留下。
 
