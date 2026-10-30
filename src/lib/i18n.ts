@@ -165,7 +165,12 @@ export function getToolMeta(category: ToolCategory, slug: string, lang: Lang): T
 }
 
 export function getTools(category: ToolCategory, lang: Lang): ToolMeta[] {
-  return TOOLS[category].map((t) => getToolMeta(category, t.slug, lang));
+  // Translated tool routes are generated separately. Do not surface a new tool
+  // on a localized listing until its metadata and page exist for that language.
+  const dictionary = lang === 'en' ? EN : lang === 'ko' ? KO : lang === 'ja' ? JA : null;
+  return TOOLS[category]
+    .filter((tool) => !dictionary || Boolean(dictionary.tools[tool.slug]))
+    .map((tool) => getToolMeta(category, tool.slug, lang));
 }
 
 export function getRelated(category: ToolCategory, slug: string, lang: Lang, n = 6): ToolMeta[] {

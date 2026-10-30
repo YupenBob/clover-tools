@@ -29,6 +29,16 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  'vocab-flash': {
+    usage:
+      '先选词书和本轮词数，开始后点卡片查看释义。认识就划到下一词；不认识会先展示释义与例句，再进入下一词。结束后查看正确率、用时和本轮生词，可只刷错词。掌握进度按词书记录在当前浏览器，六本词书共 360 个精选核心词。',
+    features: [
+      { icon: 'book-open', text: '中考、高考、四级、六级、托福、雅思六本词书' },
+      { icon: 'arrow-repeat', text: '翻卡速刷、键盘操作与错词再练' },
+      { icon: 'keyboard', text: '空格看释义，方向键快速判断' },
+      { icon: 'shield-check', text: '进度保存在本机，发音由浏览器合成' },
+    ],
+  },
   'focus-flight': {
     usage: '从 38 座机场选择出发与抵达，设定任务和 1–180 分钟时长，选择有声或安静登机。领取登机牌，撕下副票后进入 SVG 舷窗客舱，看远近云层持续掠过。真实地理航图提供全程、跟随与机头朝上的导航视角，可选择晴空、日落或夜航。轻触画面唤回操作，调整引擎与气流，暂停续航；刷新可以恢复计时。抵达后保存盖章 PNG 登机牌，最近 20 次完成航程保存在此浏览器，可随时清空。',
     features: [

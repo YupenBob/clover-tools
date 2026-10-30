@@ -5,7 +5,7 @@
 <h1 align="center">CloverTools</h1>
 
 <p align="center">
-  精选在线工具箱 · 76 个手写工具 · 即开即用 · 无需注册
+  精选在线工具箱 · 77 个手写工具 · 即开即用 · 无需注册
 </p>
 
 <p align="center">
@@ -19,10 +19,12 @@
   <a href="https://github.com/YupenBob/clover-tools"><img src="https://img.shields.io/github/last-commit/YupenBob/clover-tools?label=last%20commit&color=gold&style=flat-square" alt="Last commit"></a>
   <a href="https://astro.build"><img src="https://img.shields.io/badge/Astro-5-gold?style=flat-square&logo=astro&logoColor=white" alt="Astro 5"></a>
   <a href="https://pages.cloudflare.com"><img src="https://img.shields.io/badge/Cloudflare%20Pages-deployed-gold?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages"></a>
-  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-76-gold?style=flat-square" alt="76 tools"></a>
+  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-77-gold?style=flat-square" alt="77 tools"></a>
 </p>
 
-CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 76 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 77 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+
+新增「背单词速刷」：中考、高考、四级、六级、托福、雅思六本核心词书，共 360 个精选词。翻卡速刷，空格看释义、方向键快速判断，自动回收错词并保存本机进度；界面提供暖白与深色两套克制的阅读表面。词库整理方式、交互与边界见 [背单词速刷说明](docs/VOCAB-FLASH.md)。
 
 新增 M3U8 视频下载器：自动跳过缺失分片，可选 MP4 / TS 普通导出，支持特大视频原格式 / MP4 边下载边保存、部分保存与刷新后缓存续传。实现、测试与限制见 [下载器说明](docs/M3U8-DOWNLOADER.md)。
 
@@ -36,9 +38,9 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 
 | 指标 | 数值 |
 | --- | --- |
-| 工具总数 | 76（开发实用 37 · 日常实用 21 · 趣味工具 18） |
+| 工具总数 | 77（开发实用 37 · 日常实用 22 · 趣味工具 18） |
 | 工具 API | 1 个 Pages Function |
-| 内容生态 | 36 篇站内指南、76 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
+| 内容生态 | 36 篇站内指南、77 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
 | 数据处理 | 多数工具本地处理；网络工具明确说明请求边界 |
 | 使用门槛 | 零注册、零安装、即开即用 |
 
@@ -58,7 +60,7 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 flowchart LR
   U[用户浏览器] --> CF[Cloudflare 全球 CDN]
   CF --> P[Cloudflare Pages 静态站点]
-  P --> T[76 个手写工具页]
+  P --> T[77 个手写工具页]
   T --> F[Pages Functions 工具 API]
   F --> R2[(Cloudflare R2 媒体存储)]
 ```
@@ -74,7 +76,7 @@ flowchart LR
 - 页头语言切换器按当前路径保持页面位置（404 页切换时回到对应语言首页）
 - 页面输出语言专属 canonical 与 `og:locale`；`hreflang` 只指向真实存在且允许收录的版本。工具/分类页当前沿用简体优先收录，其他语言仍可访问，审核后通过 `config/routes.mjs` 开放
 - 指南当前仅简体：首次访问不会跳转到不存在的翻译，手动切换到其他语言会进入该语言首页；繁体政策页统一使用 `/zh-hant/`
-- 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、76 个工具的名称/描述/关键词与「使用说明」
+- 英文文案集中在 `src/lib/i18n/en.json`：站点文案、分类、76 个已翻译工具的名称/描述/关键词与「使用说明」
 - 韩语/日语文案集中在 `src/lib/i18n/ko.json`、`ja.json`（由 `scripts/gen-ko-ja-data.mjs` 基于英文数据翻译生成）
 - 繁体页面由 `scripts/gen-zhhant.mjs` 基于简体页用 `chinese-s2t` 自动生成；标记 `@shared-tool-ui` 的 FPS 等共享界面维护薄路由，批量页面翻译会跳过，文案仍共用词典
 - 五语言搜索索引：`public/search-index.json`（简体）、`public/zh-hant/search-index.json`（繁体）、`public/en/search-index.json`（英文）、`public/ko/search-index.json`（韩语）与 `public/ja/search-index.json`（日语）
@@ -132,7 +134,7 @@ npm run check:browser # 临时预览与真实浏览器回归
 | 分类 | 定位 | 代表工具 |
 | --- | --- | --- |
 | 开发实用（37） | 编码、格式化、加解密与调试，开发日常高频刚需 | JSON 格式化与校验、JSON/XML/YAML 互转、正则测试、Base64、哈希与加解密、JWT 解码、二维码、HTTP 测试、IP 查询 |
-| 日常实用（21） | 日期、理财、换算与效率小工具，生活工作两相宜 | 在线万年历、公历农历互转、世界时钟、时间戳转换、年龄计算、单位换算、人民币大写、键盘测试 |
+| 日常实用（22） | 日期、理财、换算与效率小工具，生活工作两相宜 | 背单词速刷、在线万年历、公历农历互转、世界时钟、时间戳转换、年龄计算、单位换算、人民币大写、键盘测试 |
 | 趣味工具（18） | 减压、娱乐与创意小玩意，给忙碌的日常加点乐趣 | 专注航班、拼豆图纸、人格风格测试、创意头像、FPS练枪、ASCII 艺术字、点击速度测试、反应力测试、舒尔特训练、目标球追踪、抽奖、摩斯密码 |
 
 ## 添加工具（精品制作规范）

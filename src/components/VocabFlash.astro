@@ -1,0 +1,329 @@
+---
+import Icon from './Icon.astro';
+// @ts-ignore chinese-s2t 为 CJS 模块，默认导出 { s2t, t2s }
+import chineseS2t from 'chinese-s2t';
+import { VOCAB_BOOKS, type VocabBook } from '../lib/vocab-books';
+import '../styles/vocab-flash.css';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { s2t } = chineseS2t as { s2t: (text: string) => string };
+
+const localizeBook = (book: VocabBook): VocabBook =>
+  lang === 'tw'
+    ? {
+        ...book,
+        name: s2t(book.name),
+        mark: s2t(book.mark),
+        stage: s2t(book.stage),
+        blurb: s2t(book.blurb),
+        words: book.words.map((word) => ({
+          ...word,
+          cn: s2t(word.cn),
+          exCn: s2t(word.exCn),
+        })),
+      }
+    : book;
+
+const books = VOCAB_BOOKS.map(localizeBook);
+const first = books[0];
+
+const COPY = {
+  zh: {
+    setupTitle: '选一本，开始速刷。',
+    setupLede: '先看单词，再决定认不认识。认识的词快速划过，不认识的词会在结束后单独收好。',
+    glance: '学习记录',
+    chooseBook: '选择词书',
+    knownTotal: '已掌握',
+    todayTotal: '今日',
+    selected: '当前词书',
+    mastered: '已掌握',
+    round: '本轮',
+    all: '全部',
+    start: '开始速刷',
+    startHint: '约 2–5 分钟 · 进度自动保存在本机',
+    keyboardHint: '空格看释义 · ← 不认识 · → 认识',
+    localHint: '进度只保存在此浏览器',
+    coverKicker: 'CLOVER · VOCAB',
+    modeNormal: '速刷',
+    modeWrong: '错词复习',
+    studyLabel: '速刷进行中',
+    noscript: '请启用 JavaScript 后开始速刷。',
+    back: '返回词书选择',
+    revealHint: '轻点卡片，查看释义',
+    revealedHint: '选择你的判断',
+    unknown: '不认识',
+    known: '认识',
+    next: '下一个',
+    sound: '播放发音',
+    cardLabel: '单词卡片，轻点查看释义',
+    studyHint: '别停留太久，第一反应更接近真实掌握。',
+    resultKicker: 'SESSION COMPLETE',
+    resultTitle: '这一轮，收好了。',
+    resultKnown: '认识',
+    resultWrong: '待复习',
+    resultMastered: '本书已掌握',
+    resultWrongTitle: '这一轮的生词',
+    resultEmpty: '这一轮全部认识，很稳。',
+    againWrong: '再刷错词',
+    again: '再来一轮',
+    change: '换一本',
+    wordsUnit: '个词',
+    timeLabel: '用时',
+    minutes: '分',
+    seconds: '秒',
+    wrongUnit: '个错词',
+  },
+  tw: {
+    setupTitle: '選一本，開始速刷。',
+    setupLede: '先看單詞，再決定認不認識。認識的詞快速劃過，不認識的詞會在結束後單獨收好。',
+    glance: '學習紀錄',
+    chooseBook: '選擇詞書',
+    knownTotal: '已掌握',
+    todayTotal: '今日',
+    selected: '目前詞書',
+    mastered: '已掌握',
+    round: '本輪',
+    all: '全部',
+    start: '開始速刷',
+    startHint: '約 2–5 分鐘 · 進度自動儲存在本機',
+    keyboardHint: '空格看釋義 · ← 不認識 · → 認識',
+    localHint: '進度只儲存在此瀏覽器',
+    coverKicker: 'CLOVER · VOCAB',
+    modeNormal: '速刷',
+    modeWrong: '錯詞複習',
+    studyLabel: '速刷進行中',
+    noscript: '請啟用 JavaScript 後開始速刷。',
+    back: '返回詞書選擇',
+    revealHint: '輕點卡片，查看釋義',
+    revealedHint: '選擇你的判斷',
+    unknown: '不認識',
+    known: '認識',
+    next: '下一個',
+    sound: '播放發音',
+    cardLabel: '單詞卡片，輕點查看釋義',
+    studyHint: '別停留太久，第一反應更接近真實掌握。',
+    resultKicker: 'SESSION COMPLETE',
+    resultTitle: '這一輪，收好了。',
+    resultKnown: '認識',
+    resultWrong: '待複習',
+    resultMastered: '本書已掌握',
+    resultWrongTitle: '這一輪的生詞',
+    resultEmpty: '這一輪全部認識，很穩。',
+    againWrong: '再刷錯詞',
+    again: '再來一輪',
+    change: '換一本',
+    wordsUnit: '個詞',
+    timeLabel: '用時',
+    minutes: '分',
+    seconds: '秒',
+    wrongUnit: '個錯詞',
+  },
+} as const;
+
+const copy = COPY[lang === 'tw' ? 'tw' : 'zh'];
+const booksJson = JSON.stringify(books).replace(/</g, '\\u003c');
+const copyJson = JSON.stringify(copy).replace(/</g, '\\u003c');
+---
+
+<div class="vb" id="vbApp" data-state="setup">
+  <section class="vb-view vb-setup" data-view="setup" aria-labelledby="vbSetupTitle">
+    <div class="vb-setup-head">
+      <div>
+        <p class="vb-kicker">VOCAB SPRINT</p>
+        <h2 id="vbSetupTitle">{copy.setupTitle}</h2>
+        <p class="vb-lede">{copy.setupLede}</p>
+      </div>
+      <div class="vb-glance" aria-label={copy.glance}>
+        <div class="vb-glance-item">
+          <span>{copy.knownTotal}</span>
+          <strong data-known-total>0</strong>
+        </div>
+        <div class="vb-glance-item">
+          <span>{copy.todayTotal}</span>
+          <strong data-today-total>0</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-book-row" role="group" aria-label={copy.chooseBook}>
+      {books.map((book, index) => (
+        <button
+          class:list={['vb-book', { 'is-active': index === 0 }]}
+          type="button"
+          aria-pressed={index === 0 ? 'true' : 'false'}
+          data-book={book.id}
+          style={`--book-accent:${book.accent}`}
+        >
+          <span class="vb-book-chip" aria-hidden="true"></span>
+          <span class="vb-book-text">
+            <span class="vb-book-name">{book.name}</span>
+            <span class="vb-book-meta">{book.stage} · {book.words.length} {copy.wordsUnit}</span>
+            <span class="vb-book-meter" aria-hidden="true"><i data-book-bar={book.id}></i></span>
+          </span>
+          <span class="vb-book-check" aria-hidden="true"><Icon name="check2" /></span>
+        </button>
+      ))}
+    </div>
+
+    <div class="vb-desk">
+      <div class="vb-cover-wrap" aria-hidden="true">
+        <div class="vb-cover">
+          <span class="vb-cover-spine"></span>
+          <span class="vb-cover-kicker">{copy.coverKicker}</span>
+          <span class="vb-cover-mark" data-cover-mark>{first.mark}</span>
+          <span class="vb-cover-name" data-cover-name>{first.name}</span>
+          <span class="vb-cover-foot"><span data-cover-count>{first.words.length}</span> WORDS</span>
+        </div>
+      </div>
+
+      <div class="vb-config">
+        <div class="vb-config-head">
+          <div class="vb-config-copy">
+            <p class="vb-label">{copy.selected}</p>
+            <h3 class="vb-book-title" data-config-name>{first.name}</h3>
+            <p class="vb-book-blurb" data-config-blurb>{first.blurb}</p>
+          </div>
+          <div class="vb-mastery">
+            <p><strong data-config-known>0</strong><span> / <span data-config-total>{first.words.length}</span></span></p>
+            <span class="vb-mastery-label">{copy.mastered}</span>
+          </div>
+        </div>
+
+        <div class="vb-meter" aria-hidden="true"><i id="vbKnownMeter"></i></div>
+
+        <div class="vb-config-row">
+          <div class="vb-size-wrap">
+            <span class="vb-label" id="vbSizeLabel">{copy.round}</span>
+            <div class="vb-segment" role="group" aria-labelledby="vbSizeLabel">
+              <button type="button" data-size="20" aria-pressed="true">20</button>
+              <button type="button" data-size="40" aria-pressed="false">40</button>
+              <button type="button" data-size="0" aria-pressed="false">{copy.all} <span data-all-total>{first.words.length}</span></button>
+            </div>
+          </div>
+          <button class="vb-start" id="vbStart" type="button">
+            <span>{copy.start}</span>
+            <span class="vb-start-icon" aria-hidden="true"><Icon name="arrow-right" /></span>
+          </button>
+        </div>
+        <p class="vb-start-hint">{copy.startHint}</p>
+      </div>
+    </div>
+
+    <div class="vb-meta-row">
+      <span><Icon name="keyboard" /> {copy.keyboardHint}</span>
+      <span><Icon name="shield-check" /> {copy.localHint}</span>
+    </div>
+  </section>
+
+  <section class="vb-view vb-study" data-view="study" aria-label={copy.studyLabel} hidden>
+    <header class="vb-study-head">
+      <button class="vb-icon-btn" id="vbBack" type="button" aria-label={copy.back}>
+        <Icon name="arrow-left" />
+      </button>
+      <div class="vb-study-meta">
+        <span class="vb-label" data-study-mode>{copy.modeNormal}</span>
+        <span class="vb-study-book" data-study-book>{first.name}</span>
+      </div>
+      <div class="vb-count"><span data-current>1</span><span class="vb-count-divider">/</span><span data-total>20</span></div>
+    </header>
+
+    <div class="vb-rail" aria-hidden="true"><i id="vbRail"></i></div>
+
+    <div class="vb-stage">
+      <div class="vb-card" id="vbCard">
+        <div class="vb-card-head">
+          <span class="vb-pos" data-pos>n.</span>
+          <button class="vb-sound" id="vbSound" type="button" aria-label={copy.sound}>
+            <Icon name="volume-up" />
+          </button>
+        </div>
+        <div class="vb-word-block">
+          <div class="vb-word" id="vbWord" lang="en">ability</div>
+          <div class="vb-ipa" id="vbIpa">/əˈbɪləti/</div>
+        </div>
+        <div class="vb-reveal" id="vbReveal" aria-live="polite" hidden>
+          <span class="vb-rule" aria-hidden="true"></span>
+          <p class="vb-meaning" id="vbMeaning">能力；才能</p>
+          <p class="vb-example" id="vbExample" lang="en">She has the ability to solve hard problems.</p>
+          <p class="vb-example-cn" id="vbExampleCn">她有能力解决难题。</p>
+        </div>
+        <div class="vb-card-foot">
+          <button class="vb-prompt" id="vbPrompt" type="button"><Icon name="eye" /> {copy.revealHint}</button>
+          <span class="vb-prompt-text" id="vbPromptText" hidden>{copy.revealedHint}</span>
+          <span class="vb-card-index" id="vbCardIndex">01</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vb-actions" id="vbActions">
+      <button class="vb-action vb-unknown" id="vbUnknown" type="button">
+        <span>{copy.unknown}</span><kbd>←</kbd>
+      </button>
+      <button class="vb-action vb-known" id="vbKnown" type="button">
+        <span>{copy.known}</span><kbd>→</kbd>
+      </button>
+    </div>
+
+    <div class="vb-next-row" id="vbNextRow" hidden>
+      <button class="vb-next" id="vbNext" type="button">
+        <span>{copy.next}</span><kbd>Enter</kbd><Icon name="arrow-right" />
+      </button>
+    </div>
+
+    <p class="vb-study-hint">{copy.studyHint}</p>
+    <p class="vb-sr-only" id="vbAnnounce" aria-live="polite"></p>
+  </section>
+
+  <section class="vb-view vb-result" data-view="result" aria-labelledby="vbResultTitle" hidden>
+    <div class="vb-result-head">
+      <div class="vb-ring" id="vbRing" style="--p:0">
+        <svg viewBox="0 0 132 132" aria-hidden="true">
+          <circle class="vb-ring-track" cx="66" cy="66" r="58" pathLength="100" />
+          <circle class="vb-ring-fill" cx="66" cy="66" r="58" pathLength="100" />
+        </svg>
+        <span><strong data-accuracy>0</strong><small>%</small></span>
+      </div>
+      <div>
+        <p class="vb-kicker">{copy.resultKicker}</p>
+        <h2 id="vbResultTitle" tabindex="-1">{copy.resultTitle}</h2>
+        <p class="vb-result-meta" data-result-meta></p>
+      </div>
+    </div>
+
+    <div class="vb-metrics">
+      <div><span>{copy.resultKnown}</span><strong data-result-known>0</strong></div>
+      <div><span>{copy.resultWrong}</span><strong data-result-wrong>0</strong></div>
+      <div><span>{copy.resultMastered}</span><strong data-result-mastered>0 / 0</strong></div>
+    </div>
+
+    <div class="vb-wrong-card">
+      <div class="vb-wrong-head">
+        <h3>{copy.resultWrongTitle}</h3>
+        <span data-wrong-badge>0</span>
+      </div>
+      <div class="vb-wrong-list" id="vbWrongList"></div>
+      <p class="vb-wrong-empty" id="vbWrongEmpty" hidden>{copy.resultEmpty}</p>
+    </div>
+
+    <div class="vb-result-actions">
+      <button class="vb-primary" id="vbWrongAgain" type="button">
+        <span>{copy.againWrong}</span><span class="vb-count-badge" data-wrong-again-count>0</span>
+      </button>
+      <button class="vb-secondary" id="vbAgain" type="button">{copy.again}</button>
+      <button class="vb-text" id="vbChange" type="button">{copy.change}</button>
+    </div>
+  </section>
+
+  <noscript><p class="vb-noscript">{copy.noscript}</p></noscript>
+</div>
+
+<script type="application/json" id="vbBooks" set:html={booksJson}></script>
+<script type="application/json" id="vbCopy" set:html={copyJson}></script>
+<script>
+  import '../scripts/vocab-flash';
+</script>

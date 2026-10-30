@@ -443,6 +443,16 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   ],
   daily: [
     {
+      slug: 'vocab-flash',
+      name: '背单词速刷',
+      oneLiner: '六本核心词书，翻卡速刷，错词自动收好。',
+      description: '在线背单词速刷工具，可选中考、高考、四级、六级、托福、雅思六本核心词书，翻卡速记、标记认识与不认识，自动收集错词并保存掌握进度，支持键盘操作与本地发音，无需注册。',
+      icon: 'book-open',
+      keywords: ['背单词', '单词速刷', '中考单词', '高考单词', '四级单词', '六级单词', '四六级', '46级', '托福单词', '雅思单词'],
+      tier: 'P0',
+      badge: 'new',
+    },
+    {
       slug: 'm3u8-downloader',
       legacyAliases: ['/tools/network/m3u8-downloader.html'],
       name: 'M3U8 视频下载器',

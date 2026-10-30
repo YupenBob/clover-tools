@@ -1,0 +1,26 @@
+---
+// @shared-tool-ui: the study surface is shared across localized routes.
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import VocabFlash from '../../../components/VocabFlash.astro';
+import { VOCAB_TOTAL } from '../../../lib/vocab-books';
+import { getToolMeta, getRelated } from '../../../lib/i18n';
+
+const lang = 'zh' as const;
+const category = 'daily' as const;
+const tool = getToolMeta(category, 'vocab-flash', lang);
+const related = getRelated(category, tool.slug, lang, 6);
+---
+<ToolLayout category={category} tool={tool} related={related}>
+  <header slot="hero" class="tool-hero vb-hero">
+    <div class="vb-hero-copy">
+      <p class="vb-hero-kicker">VOCABULARY SPRINT</p>
+      <h1>{tool.name}</h1>
+      <p class="tool-hero-desc">六本核心词书，翻卡速刷。认识就过，不认识就收进错词，进度自动保存在本机。</p>
+    </div>
+    <div class="vb-hero-badge" aria-hidden="true">
+      <strong>{VOCAB_TOTAL}</strong>
+      <span>核心词 · 6 本词书</span>
+    </div>
+  </header>
+  <VocabFlash lang={lang} />
+</ToolLayout>
