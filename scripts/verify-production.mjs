@@ -149,7 +149,15 @@ async function verifyDiscovery() {
   }
   for (const path of ['/robots.txt', '/ads.txt']) {
     const [remote, local] = await Promise.all([response(path), readFile(join(dist, path), 'utf8')]);
-    assert.equal(await remote.text(), local, `${path}: production differs from this build`);
+    const remoteText = await remote.text();
+    if (path === '/robots.txt') {
+      // Cloudflare may prepend its managed content-signal block to robots.txt.
+      // Keep validating every rule and the sitemap emitted by this build.
+      assert.ok(remoteText.includes(local.trim()), 'robots.txt: build rules are missing from production');
+      assert.ok(remoteText.includes(`Sitemap: ${base}/sitemap-index.xml`), 'robots.txt: sitemap origin mismatch');
+    } else {
+      assert.equal(remoteText, local, `${path}: production differs from this build`);
+    }
     passed(`crawler resource ${path}`);
   }
   const missing = await fetch(base + '/__release_check_missing_page__/', {signal: AbortSignal.timeout(30000)});
