@@ -52,8 +52,10 @@ export async function loadSiteCorpus(root) {
 /** 既有（非自动、非本次升级目标）指南的分类集合与 slug 集合。 */
 export async function loadExistingCategories(root) {
   const corpus = await loadSiteCorpus(root);
-  const categories = [...new Set(corpus.filter((entry) => !entry.auto).map((entry) => entry.category))];
-  return categories;
+  const { DEFAULT_CONFIG } = await import('./config.mjs');
+  const categories = new Set(DEFAULT_CONFIG.contentCategories);
+  for (const entry of corpus) if (entry.category) categories.add(entry.category);
+  return [...categories];
 }
 
 /** CSDN 语料（data/articles.json 的正文 HTML）。 */

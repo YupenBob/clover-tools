@@ -71,6 +71,19 @@ export const DEFAULT_CONFIG = {
 
   /** 任务配比：每 3 篇≈2 新 + 1 升级 */
   taskMix: { 'new-guide': 2, 'upgrade-guide': 1 },
+
+  /** 允许的新文章分类（与现有指南分类一致；不在列表内会被门禁拒绝） */
+  contentCategories: [
+    '开发实用',
+    '日常实用',
+    '趣味工具',
+    '接口排错',
+    '手作与图像',
+    '日常排查',
+    '专注与练习',
+    '媒体处理',
+    '写作与文档',
+  ],
 };
 
 function deepMerge(base, patch) {

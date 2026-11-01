@@ -95,9 +95,10 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 1. **准备**：`node scripts/editorial/tick-prepare.mjs --slot auto`。返回 `proceed:false` 时按 `reason` 结束
    （`paused / daily-limit-reached / safety-blocked / worktree-dirty / unsafe-pending-commits / slot-already-run / queue-empty`）。
    成功则拿到 `runKey/date/slot/item/draftDir`，并已原子占用槽位锁、把队列项置为 `in_progress`。
-2. **续传**：若 `git log origin/main..main` 还有本流水线的未推送提交 → 校验作者与路径后先推送；若有待验证部署
+2. **续传**：若 `git log origin/main..main` 还有本流水线的未推送提交 → `node scripts/editorial/push-main.mjs`
+   校验作者/允许路径（初始化提交还需 `approve-commit.mjs --sha` 人工批准）后推送；若有待验证部署
    （`runs/<runKey>.json` 的 `deploy.status === 'pending'`）→ 先跑 `deploy-verify.mjs --run <runKey>`，失败则回滚并结束。
-3. **写作**：`spawn_teammate` 不可用，使用 `subagent`（fresh）执行"Writer 任务书"。它只允许写
+3. **写作**：使用 `subagent`（fresh）执行"Writer 任务书"（本会话由 Lead 编排，子代理不持有日程工具）。它只允许写
    `.editorial/drafts/<slug>/` 与 `scripts/editorial/cases/<slug>.mjs`，不得改仓库其他文件、不得运行构建。
 4. **来源核验**：`node scripts/editorial/verify-sources.mjs --slug <slug> --run <runKey>`（Lead 自己抓取，不信任 Writer 的抓取结果）。
 5. **图片（可选）**：`node scripts/editorial/capture-tool.mjs --slug <slug>` 产生截图与 captures.json；
@@ -112,9 +113,10 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 10. **提交**：只 `git add` 允许路径（`data/editorial-guides/`、`src/lib/guides-auto.ts`、`public/article-images/`、
     `public/article-assets/`、`scripts/editorial/cases/`），提交信息：
     `content: add guide "<标题>"` / `content: upgrade guide "<标题>"`；作者 `CloverTools Content Bot <content-bot@clovertools.cn>`。
-11. **推送**：校验 `origin/main..main` 的提交全部由本流水线产生且只改允许路径，然后带 PAT 推送 `main`。
+11. **推送**：`node scripts/editorial/push-main.mjs`（校验作者/允许路径/人工批准列表后带 PAT 推送 `main`）。
     保护分支/权限失败 → 推 `editorial/auto/<date>-<slug>` 分支并用 API 开 PR（降级人工合并）。
-12. **记录与摘要**：写 `.editorial/runs/<runKey>.json`（状态、指标、证据、workflow/生产 URL、耗时）；对话输出 ≤10 行摘要。
+12. **记录与摘要**：`node scripts/editorial/finish-run.mjs --run <runKey> --status <published|local-commit|failed|reverted> ...`
+    写 `.editorial/runs/<runKey>.json`（状态、指标、证据、workflow/生产 URL），同步更新队列与安全计数，并输出对话摘要。
     推送成功后 `deploy.status=pending`，由**下一次 tick 的步骤 2** 轮询 GitHub Actions 与生产页面完成验证；
     失败自动 `rollback.mjs`（revert + push）并暂停。
 
