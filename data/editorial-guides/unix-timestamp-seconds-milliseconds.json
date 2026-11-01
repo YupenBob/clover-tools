@@ -1,0 +1,33 @@
+{
+  "slug": "unix-timestamp-seconds-milliseconds",
+  "title": "Unix 时间戳 10 位和 13 位：先确认单位再排查时区",
+  "description": "理解秒级与毫秒级时间戳、UTC 与本地时间的关系，避免接口时间错位。附单位辨别方法和接口调试检查步骤。",
+  "category": "日常实用",
+  "toolSlug": "timestamp",
+  "published": "2026-09-30",
+  "updated": "2026-09-30",
+  "readingMinutes": 2,
+  "content": "<p>Unix 时间戳表示从 1970-01-01 UTC 起经过的时间数量。它本身不包含时区；只有转换成人类可读时间时，才会选择 UTC 或某个本地时区。接口问题中最常见的错误是秒和毫秒相差三位。</p>\n      <h2>如何快速判断单位</h2>\n      <p>当前日期附近的秒级时间戳通常是 10 位左右，毫秒级通常是 13 位左右，但位数不能代替接口文档。2038 年问题、负数时间和更高精度时间都可能打破简单的位数猜测。</p>\n      <h2>排查步骤</h2>\n      <ol><li>记录原始数值和接口字段名，不要只记录格式化后的日期。</li><li>确认语言运行时的时间 API 使用秒还是毫秒。</li><li>同时查看 UTC 和业务时区结果，检查是否只是展示偏移。</li><li>对边界日期、夏令时和闰年做测试。</li></ol>\n      <h2>接口设计建议</h2>\n      <p>在文档中明确单位、精度和时区。跨系统传递具体时间时优先使用带时区的 ISO 8601 字符串，或者在字段名中写清楚 <code>_seconds</code> / <code>_ms</code>。</p>",
+  "faqs": [
+    {
+      "q": "为什么同一时间在两台电脑显示不同？",
+      "a": "时间戳代表同一瞬间，但两台设备使用了不同的本地时区进行展示。"
+    },
+    {
+      "q": "能不能只按 10 位/13 位判断？",
+      "a": "只能作为线索，不能作为协议。请以接口文档和实际日期范围为准。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：JavaScript Date 与时间戳",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date"
+    }
+  ],
+  "_meta": {
+    "auto": false,
+    "source": "legacy-migration",
+    "migratedAt": "2026-11-01",
+    "originalPublished": "2026-09-30"
+  }
+}

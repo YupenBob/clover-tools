@@ -1,0 +1,137 @@
+---
+import Icon from '../components/Icon.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../lib/site';
+import { GUIDES } from '../lib/guides';
+
+const title = `编辑与验证流程 - ${SITE.name}`;
+const description =
+  'CloverTools 指南的选题依据、AI 辅助写作、独立复核、自动化质量检查、来源与纠错方式，以及我们不做的事。';
+const canonical = `${SITE.url}/editorial/`;
+const guideCount = GUIDES.length;
+
+const pageJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: `编辑与验证流程 - ${SITE.name}`,
+  url: canonical,
+  description,
+  inLanguage: 'zh-CN',
+  isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.url },
+  about: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+};
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  keywords={['编辑流程', '内容质量', 'AI 辅助写作', 'CloverTools']}
+  canonical={canonical}
+  ads={false}
+  jsonLd={pageJsonLd}
+>
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/"><Icon name="house-door" /> 首页</a>
+    <Icon name="chevron-right" />
+    <span>编辑与验证流程</span>
+  </nav>
+
+  <article class="editorial-page">
+    <header class="editorial-hero">
+      <p class="editorial-kicker">CloverTools / EDITORIAL</p>
+      <h1>我们怎样写一篇指南</h1>
+      <p>
+        站内现有 {guideCount} 篇使用与排错指南。每篇都对应一个真实工具场景，说明输入、输出、限制和排错路径。
+        这份页面公开我们的选题、写作、复核与验证方式，方便你判断内容是否可信，也方便指出错误。
+      </p>
+    </header>
+
+    <section aria-labelledby="process-heading">
+      <h2 id="process-heading">从选题到发布的四道检查</h2>
+      <ol class="editorial-steps">
+        <li>
+          <strong>选题来自真实需求。</strong>
+          优先处理 Search Console 里已有曝光但点击不足的页面，以及还没有指南覆盖的工具场景；
+          不为凑数量给同一个关键词反复造页。
+        </li>
+        <li>
+          <strong>写作以可核对的事实为中心。</strong>
+          正文围绕具体操作、示例输入输出与适用边界展开；每个具体说法都要能回查到官方文档、仓库代码或可复现的运行结果。
+          写不出证据的说法会被删除，而不是润色。
+        </li>
+        <li>
+          <strong>独立复核与自动化门禁。</strong>
+          草稿会经过一次独立的事实核对（不复用写作上下文），再由脚本检查篇幅、结构、来源、内链、去重、日期与图片尺寸/哈希；
+          任何一项不通过都不会发布。
+        </li>
+        <li>
+          <strong>发布后继续验证。</strong>
+          推送后由持续集成重新构建并检查，再核对线上页面；失败会自动回滚。真实日期独立维护：只有内容变化才更新"更新于"。
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="ai-heading">
+      <h2 id="ai-heading">AI 辅助，人工负责</h2>
+      <p>
+        我们使用大语言模型辅助整理资料和起草，但不会让模型凭空生成"亲测经历"、作者身份或数据。
+        页面作者保持为站点组织（CloverTools），不虚构个人作者；示例与截图来自真实工具运行，图片记录宽高、字节数与哈希。
+      </p>
+      <p>
+        模型生成的内容必须经过独立复核和自动化检查才会上线，这与 Google 对
+        <a href="https://developers.google.com/search/docs/fundamentals/using-gen-ai-content" target="_blank" rel="noopener noreferrer">生成式 AI 内容</a>
+        的要求一致：内容的质量由是否真正帮助读者决定，而不是由是否使用 AI 决定。
+      </p>
+    </section>
+
+    <section aria-labelledby="sources-heading">
+      <h2 id="sources-heading">来源与验证证据</h2>
+      <ul>
+        <li>每篇指南列出参考来源，优先使用 MDN、RFC、W3C、Node.js、Chrome 等官方文档；不以本站内容作为来源。</li>
+        <li>发布前会实际抓取每条来源，确认可访问并记录状态与文本哈希，避免引用失效链接或臆造出处。</li>
+        <li>工具行为的描述与仓库实现、实际运行结果对照；涉及示例输出时保留可复现的命令或浏览器操作步骤。</li>
+        <li>截图来自真实浏览器操作，并登记宽高、字节数与 SHA-256；不使用生成图片冒充工具截图。</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="boundaries-heading">
+      <h2 id="boundaries-heading">我们不做什么</h2>
+      <ul>
+        <li>不为单一关键词批量生成内容，也不发布未经审核的翻译版本。</li>
+        <li>不伪造作者、评测经历、用户评价或合作伙伴。</li>
+        <li>不提供医疗、投资、法律等专业结论；相关工具页只给参考范围，并明确不构成建议。</li>
+        <li>不承诺"绝对安全""永久免费"或任何收益；工具的限制写在具体步骤里。</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="feedback-heading">
+      <h2 id="feedback-heading">发现错误怎么办</h2>
+      <p>
+        欢迎指出事实错误、过时说明或失效来源。你可以在<a href="/contact/">联系页</a>说明页面地址与具体问题；
+        确认后我们会修改正文并更新"更新于"日期。与工具有关的问题，请附上输入内容（不要包含密码、令牌或个人信息）和实际结果。
+      </p>
+    </section>
+
+    <footer class="editorial-footer">
+      <a href="/guides/"><Icon name="arrow-left" /> 浏览全部指南</a>
+      <a href="/about/">关于 CloverTools <Icon name="arrow-right" /></a>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .editorial-page { max-width: 860px; margin: 0 auto var(--space-8); }
+  .editorial-hero { padding: clamp(28px, 6vw, 52px); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--primary-soft), transparent 55%), var(--bg-elevated); }
+  .editorial-kicker { margin: 0 0 14px; color: var(--primary-dark); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .editorial-hero h1 { margin: 0 0 16px; font-size: clamp(30px, 5vw, 44px); letter-spacing: -.025em; line-height: 1.15; }
+  .editorial-hero > p { margin: 0; color: var(--text-secondary); font-size: 16px; line-height: 1.85; }
+  .editorial-page section { margin-top: 38px; }
+  .editorial-page h2 { margin: 0 0 14px; font-size: clamp(21px, 3vw, 26px); letter-spacing: -.01em; }
+  .editorial-page p, .editorial-page li { color: var(--text-secondary); font-size: 15px; line-height: 1.9; }
+  .editorial-page a { color: var(--primary-dark); }
+  .editorial-page ul { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+  .editorial-steps { margin: 0; padding-left: 22px; display: grid; gap: 14px; }
+  .editorial-steps strong { color: var(--text); }
+  .editorial-footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 36px; padding-top: 20px; border-top: 1px dashed var(--border-strong); font-size: 13px; }
+  @media (max-width: 520px) { .editorial-footer { flex-direction: column; } }
+</style>

@@ -33,5 +33,11 @@ output/
 # i18n 翻译脚本运行产物
 scripts/.i18n-done*.txt
 
+# 自动化内容流水线的本地状态（队列/草稿/运行记录/GSC 导出/密钥），不进仓库
+.editorial/
+
+# Playwright 浏览器二进制（能力探针与文章截图使用）
+.playwright-browsers/
+
 # Reproducible local FFmpeg assets, generated from the pinned npm package
 public/vendor/ffmpeg/*.*.*/

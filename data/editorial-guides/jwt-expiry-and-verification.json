@@ -1,0 +1,33 @@
+{
+  "slug": "jwt-expiry-and-verification",
+  "title": "JWT 过期怎么看：解码、验签与授权不能混为一谈",
+  "description": "从 exp、iat、iss、aud 等声明判断令牌结构，并说明为什么客户端解码不等于服务端验签。",
+  "category": "开发实用",
+  "toolSlug": "jwt-decoder",
+  "published": "2026-09-30",
+  "updated": "2026-09-30",
+  "readingMinutes": 2,
+  "content": "<p>JWT 通常由 Header、Payload 和 Signature 三段组成。前两段默认只是 Base64URL 编码，任何持有令牌的人都可以读取。在线解码适合排查结构和时间字段，但不能证明令牌来自可信签发者。</p>\n      <h2>检查过期时间</h2>\n      <p><code>exp</code> 和 <code>iat</code> 通常使用 Unix 秒级时间戳。查看时要确认单位和时区，并结合服务端当前时间判断是否过期。令牌没有 <code>exp</code> 不代表永不过期，服务端仍应有明确的会话策略。</p>\n      <h2>服务端必须做什么</h2>\n      <ul><li>使用固定的算法白名单和受保护的密钥验签。</li><li>检查签发者 <code>iss</code>、受众 <code>aud</code>、过期时间和必要的权限声明。</li><li>对撤销、登出、密钥轮换和重放风险制定策略。</li></ul>\n      <h2>安全使用建议</h2>\n      <p>不要把生产令牌粘贴到公共工具或截图中。Payload 里不要放密码、长期秘密或不应被客户端读取的个人信息。</p>",
+  "faqs": [
+    {
+      "q": "JWT 解码成功就说明令牌有效吗？",
+      "a": "不说明。解码没有验签，也没有确认签发者、受众、过期和撤销状态。"
+    },
+    {
+      "q": "exp 是秒还是毫秒？",
+      "a": "JWT 标准注册声明通常使用 NumericDate，即秒级时间；仍应以你的服务端实现和接口文档为准。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 7519：JSON Web Token",
+      "url": "https://www.rfc-editor.org/rfc/rfc7519"
+    }
+  ],
+  "_meta": {
+    "auto": false,
+    "source": "legacy-migration",
+    "migratedAt": "2026-11-01",
+    "originalPublished": "2026-09-30"
+  }
+}

@@ -59,7 +59,7 @@ const jsonLd = [
 
   <article class="guide-article">
     <header class="article-hero">
-      <div class="article-meta"><span>{guide.category}</span><span>{guide.readingMinutes} 分钟阅读</span><time datetime={guide.updated}>更新于 {guide.updated}</time></div>
+      <div class="article-meta"><span>{guide.category}</span><span>{guide.readingMinutes} 分钟阅读</span><time datetime={guide.published}>发布于 {guide.published}</time>{guide.updated !== guide.published && <time datetime={guide.updated}>更新于 {guide.updated}</time>}</div>
       <h1>{guide.title}</h1>
       <p>{guide.description}</p>
       <a class="article-tool-link" href={toolHref}><Icon name="play-circle" /> 立即打开 {toolEntry.name} <Icon name="arrow-up-right" /></a>
@@ -72,6 +72,10 @@ const jsonLd = [
         <div class="aside-card">
           <p class="aside-label">本页重点</p>
           <p>{guide.focus ?? '先看示例，再把步骤带回工具。结果用于生产系统前，请结合项目文档和测试环境复核。'}</p>
+        </div>
+        <div class="aside-card aside-verify">
+          <p class="aside-label">内容与验证</p>
+          <p>本文按<a href="/editorial/">编辑与验证流程</a>维护：AI 辅助起草，经独立复核与自动化检查后发布；来源 {guide.sources.length} 条，最后验证日期 {guide.updated}。发现错误可在联系页反馈。</p>
         </div>
         <div class="aside-card aside-local">
           <Icon name="shield-lock" />
@@ -149,6 +153,7 @@ const jsonLd = [
   .article-toc a:hover { color: var(--primary-dark); text-decoration: underline; }
   .aside-local { display: flex; gap: 9px; background: var(--bg-secondary); }
   .aside-local .icon { flex-shrink: 0; color: var(--primary-dark); }
+  .aside-verify a { color: var(--primary-dark); }
   .article-faq { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--border-strong); }
   .article-faq h2 { margin: 0 0 14px; font-size: 22px; }
   .article-faq details { padding: 14px 16px; border-bottom: 1px solid var(--border); }

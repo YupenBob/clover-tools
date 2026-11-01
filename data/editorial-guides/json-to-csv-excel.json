@@ -1,0 +1,33 @@
+{
+  "slug": "json-to-csv-excel",
+  "title": "JSON 转 CSV：嵌套字段、缺失值与 Excel 导入的实作检查",
+  "description": "核对 JSON 对象数组导出 CSV 时的嵌套字段、空单元格、逗号转义与 Excel 前导零，明确当前工具的实际行为。",
+  "category": "开发实用",
+  "toolSlug": "json-convert",
+  "published": "2026-09-30",
+  "updated": "2026-10-16",
+  "readingMinutes": 3,
+  "content": "<p>这篇说明针对 CloverTools 当前的 CSV/TSV 导出器。它接收非空对象数组，不接收单个对象、空数组或混入 null 的数组；输出是文本表格，不是原生 XLSX 文件。</p>\n      <p>下面以两条演示记录说明：第一条包含嵌套城市信息，第二条包含带逗号的备注。可在工具中输入自己的对象数组，按相同口径核对导出。</p>\n      <h2>一条记录如何变成一行</h2>\n      <p>第一条记录有 order、item、quantity、profile；第二条有 order、item、quantity、note。工具按字段第一次出现的顺序合并表头，因此得到五列。每条记录按同一组表头填值，缺失的字段留空。</p>\n      <h2>嵌套对象保留在单元格里</h2>\n      <p>本工具不会把 profile.city 自动拆成新列。<code>{\"city\":\"杭州\"}</code> 会序列化为 JSON 文本，并依据 CSV 规则转义双引号，放在 profile 对应的单元格中。嵌套数组也会保留为序列化文本；需要分析数组明细时，请先在源数据中整理成独立记录。</p>\n      <h2>含逗号和换行的值</h2>\n      <p>演示记录中的 note 为“请勿折叠, 谢谢”。它应被双引号包裹，不能因为其中一个逗号多出一列。单元格中的双引号会写成两个双引号，换行仍属于同一个单元格；不要用简单的按逗号切分来读取 CSV。</p>\n      <h2>在 Excel 中导入时保住编号</h2>\n      <p>导出的文件带 UTF-8 BOM，帮助表格软件识别中文，但 BOM 不会强制列类型。使用“从文本/CSV”导入，确认 UTF-8 编码，并把 order 列设成文本，再核对 000123 的前导零。CSV 不是 Excel 工作簿，不能携带完整的单元格格式和类型约束。</p>\n      <h2>交付前的核对清单</h2>\n      <ol><li>确认两条数据记录、五列表头，且字段顺序与源数据一致。</li><li>第一行 note 应为空；第二行 profile 应为空。</li><li>profile 中的城市信息应保留，没有被静默展开或丢弃。</li><li>note 内的逗号不能分裂成新列，中文与订单编号显示应正确。</li><li>遇到不可信来源的数据，检查以 =、+、-、@ 等开头的文本；CSV 转义不能替代表格软件的公式防护。</li></ol>",
+  "faqs": [
+    {
+      "q": "为什么没有 profile.city 这一列？",
+      "a": "当前工具不自动展开嵌套对象。需要拆列时，先将源数据整理为平面字段，再重新导出。"
+    },
+    {
+      "q": "下载后能直接当作 XLSX 吗？",
+      "a": "不能。文件是 CSV 或 TSV，可由 Excel 导入，但不包含工作簿、样式与固定列类型。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 4180：CSV 文件格式",
+      "url": "https://www.rfc-editor.org/rfc/rfc4180"
+    }
+  ],
+  "_meta": {
+    "auto": false,
+    "source": "legacy-migration",
+    "migratedAt": "2026-11-01",
+    "originalPublished": "2026-09-30"
+  }
+}

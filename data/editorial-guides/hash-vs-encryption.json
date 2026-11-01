@@ -1,0 +1,33 @@
+{
+  "slug": "hash-vs-encryption",
+  "title": "哈希和加密有什么区别：文件校验与密码存储别用错",
+  "description": "区分哈希、加密和编码，选择 SHA-256、bcrypt 或 Argon2 时明确安全用途。",
+  "category": "开发实用",
+  "toolSlug": "hash",
+  "published": "2026-09-30",
+  "updated": "2026-09-30",
+  "readingMinutes": 2,
+  "content": "<p>哈希、加密和编码解决的是三类不同问题。编码为了传输兼容，加密为了在密钥控制下恢复明文，哈希为了生成固定长度的不可逆摘要。把它们互相替代，常常会留下严重的安全缺口。</p>\n      <h2>文件完整性校验</h2>\n      <p>下载文件时，可以用 SHA-256 计算摘要并与可信发布方提供的值比较。比较前要确保下载的是同一字节内容；文本的换行、编码和 BOM 变化都会改变摘要。</p>\n      <h2>密码存储</h2>\n      <p>密码不能用快速 SHA-256 直接保存。密码哈希应使用 bcrypt、scrypt 或 Argon2，配合每条记录独立盐值、可调工作因子和安全验证 API。即使工具能计算摘要，也不应输入真实密码。</p>\n      <h2>选择算法时问三个问题</h2>\n      <ul><li>我要验证文件是否被改变，还是要在密钥下恢复数据？</li><li>攻击者拿到结果后，是否能快速离线猜测输入？</li><li>对方协议是否指定算法、编码和输出格式？</li></ul>",
+  "faqs": [
+    {
+      "q": "SHA-256 能解密吗？",
+      "a": "不能。它是单向摘要；弱输入可能被猜中，但不存在通用解密过程。"
+    },
+    {
+      "q": "为什么同一文件哈希不同？",
+      "a": "检查文件是否真的相同、下载是否完整，以及文本工具是否改变了换行或编码。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "OWASP：密码存储建议",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+    }
+  ],
+  "_meta": {
+    "auto": false,
+    "source": "legacy-migration",
+    "migratedAt": "2026-11-01",
+    "originalPublished": "2026-09-30"
+  }
+}

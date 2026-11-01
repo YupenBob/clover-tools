@@ -1,0 +1,33 @@
+{
+  "slug": "base64-not-encryption",
+  "title": "Base64 不是加密：编码、压缩和 Data URL 的正确用法",
+  "description": "理解 Base64 的体积开销、URL-safe 变体和图片 Data URL，避免把编码误当作安全保护。",
+  "category": "开发实用",
+  "toolSlug": "base64",
+  "published": "2026-09-30",
+  "updated": "2026-09-30",
+  "readingMinutes": 2,
+  "content": "<p>Base64 的作用是把二进制字节表示成可传输的 ASCII 字符。它没有密钥，也没有隐藏内容的能力。任何拿到字符串的人都能解码，因此不要把 Base64 当作密码、令牌或个人信息的保护措施。</p>\n      <h2>为什么编码后会变大</h2>\n      <p>Base64 每 3 个字节通常编码成 4 个字符，体积增加约三分之一，还可能因为 JSON 或 URL 转义进一步变大。若目标是减少传输体积，应先用 gzip 或 Brotli 压缩，再按接口要求编码。</p>\n      <h2>图片 Data URL 的组成</h2>\n      <p>图片嵌入网页时常见的形式是 <code>data:image/png;base64,...</code>。前缀告诉浏览器媒体类型，逗号后才是 Base64 正文。正文被截断、MIME 类型错误或复制了不可见空格，都会导致图片无法显示。</p>\n      <h2>选择合适的方案</h2>\n      <ul><li>小图标或极小资源可考虑 Data URL，以减少请求数量。</li><li>较大图片应使用独立文件和 CDN，便于缓存和压缩。</li><li>认证信息应使用 HTTPS、短期令牌和权限控制，而不是 Base64。</li></ul>",
+  "faqs": [
+    {
+      "q": "Base64 能防止别人看到内容吗？",
+      "a": "不能。它是可逆编码，不提供保密性。"
+    },
+    {
+      "q": "URL-safe Base64 和普通 Base64 有什么区别？",
+      "a": "URL-safe 版本通常用连字符和下划线替换加号和斜杠，适合放在 URL 或 Cookie 中，具体填充规则由协议决定。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 4648：Base64 与 Base64URL",
+      "url": "https://www.rfc-editor.org/rfc/rfc4648"
+    }
+  ],
+  "_meta": {
+    "auto": false,
+    "source": "legacy-migration",
+    "migratedAt": "2026-11-01",
+    "originalPublished": "2026-09-30"
+  }
+}
