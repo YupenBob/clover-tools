@@ -67,7 +67,11 @@ function main() {
     push: options.pushOk || options['push-error'] || options['push-sha']
       ? { ok: Boolean(options.pushOk), sha: options['push-sha'] ?? options.commit ?? null, error: options['push-error'] ?? null }
       : null,
-    deploy: options['deploy-status'] ? { status: options['deploy-status'] } : verify?.ok ? { status: 'pending' } : null,
+    deploy: options['deploy-status']
+      ? { status: options['deploy-status'] }
+      : options.status === 'published'
+        ? { status: 'pending' }
+        : null,
     reviewer: review ? { verdict: review.verdict, confidence: review.confidence, blocking: review.blockingIssues ?? [] } : null,
     errors: options.errors,
     warnings: options.warnings,
