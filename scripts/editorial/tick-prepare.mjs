@@ -24,7 +24,7 @@ import {
   zonedNow,
 } from './lib/state.mjs';
 import { ensureDefaultConfig, loadConfig } from './lib/config.mjs';
-import { fetchOrigin, pendingCommitsSafe } from './lib/git.mjs';
+import { fetchOrigin, pendingCommitsSafe, readToken } from './lib/git.mjs';
 import { statusPorcelain } from './lib/git.mjs';
 
 function parseArgs(argv) {
@@ -80,7 +80,8 @@ function main() {
 
   fetchOrigin(config.git.remote);
   const pending = pendingCommitsSafe(config);
-  if (!pending.safe) skip('unsafe-pending-commits', { pending });
+  const canPush = config.publishMode === 'push-main' && Boolean(readToken());
+  if (canPush && !pending.safe) skip('unsafe-pending-commits', { pending });
 
   const lock = acquireSlotLock(runKey);
   if (!lock.ok) skip(lock.reason, { runKey, lockPath: lock.path });

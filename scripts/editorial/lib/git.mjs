@@ -75,15 +75,17 @@ export function commitsAhead(cwd, remote = 'origin', branch = 'main') {
   });
 }
 
-/** 待推送提交是否全部由流水线产生且只改允许路径。 */
+/** 待推送提交是否全部由流水线产生且只改允许路径（或已被人工批准）。 */
 export function pendingCommitsSafe(config, cwd) {
   const allowed = config.git.allowedPaths;
+  const approved = new Set(config.git.approvedCommits ?? []);
   const commits = commitsAhead(cwd, config.git.remote, config.git.branch);
   const offenders = commits.filter((commit) => {
     if (commit.authorEmail !== config.git.authorEmail) return true;
+    if (approved.has(commit.sha)) return false;
     return commit.paths.some((path) => !pathAllowed(path, allowed));
   });
-  return { safe: offenders.length === 0, total: commits.length, offenders };
+  return { safe: offenders.length === 0, total: commits.length, offenders, commits };
 }
 
 export function pushMain(token, config, cwd) {

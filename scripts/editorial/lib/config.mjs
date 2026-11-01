@@ -56,6 +56,8 @@ export const DEFAULT_CONFIG = {
       'public/article-assets/',
       'scripts/editorial/cases/',
     ],
+    /** 人工复核后可随流水线一起推送的引导提交（sha 列表，通常用于初始化） */
+    approvedCommits: [],
   },
 
   capture: {

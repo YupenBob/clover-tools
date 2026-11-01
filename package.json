@@ -22,7 +22,13 @@
     "check:tool-types": "tsc --project tsconfig.tools.json",
     "prepare:hls": "node scripts/prepare-hls-core.mjs",
     "predev": "npm run prepare:hls",
-    "check:hls-browser": "node scripts/smoke-hls.mjs"
+    "check:hls-browser": "node scripts/smoke-hls.mjs",
+    "editorial:report": "node scripts/editorial/queue-report.mjs",
+    "editorial:gsc": "node scripts/editorial/import-gsc.mjs",
+    "editorial:seed": "node scripts/editorial/seed-queue.mjs",
+    "editorial:probe": "node scripts/editorial/capture-tool.mjs --probe",
+    "editorial:rollback": "node scripts/editorial/rollback.mjs",
+    "editorial:push": "node scripts/editorial/push-main.mjs"
   },
   "engines": {
     "node": ">=22.18.0",
