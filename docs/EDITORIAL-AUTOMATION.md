@@ -105,7 +105,8 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
    然后 `node scripts/editorial/inject-images.mjs --slug <slug>` 把 `[[figure:name|caption]]` 占位符变成真实 `<figure>`。
    浏览器不可用时 Writer 必须改写为表格/SVG 方案并删掉占位符。
 6. **独立复核**：`subagent`（fresh）执行"Reviewer 任务书"，把结果写到 `.editorial/runs/<runKey>/review.json`。
-   不通过 → 队列置 `failed`、清理草稿、写运行记录、结束。
+   不通过 → **允许 1 轮修复**：Writer 仅修补 blocking 问题与必要的 non-blocking 表述，然后换一个 fresh Reviewer 复审一次；
+   复审仍不通过才置 `failed`、清理草稿、写运行记录并结束（防止无限循环）。
 7. **落盘与静态门禁**：`node scripts/editorial/apply-draft.mjs --slug <slug> --run <runKey>`。
    它复制图片、登记 captures.json、写 JSON、重建 barrel，并在失败时按快照精确回滚。
 8. **综合门禁**：`node scripts/editorial/verify-article.mjs --slug <slug> --run <runKey>`（静态规则 + 证据 + 来源覆盖 + 复核 + 图片哈希 + barrel + 允许路径）。
@@ -124,7 +125,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 
 | 场景 | 处理 |
 | --- | --- |
-| Writer/Reviewer 失败、超时或不合规 | 队列 `failed` + `attempts+1`；连续 2 次失败 → 写 PAUSED 并通知 |
+| Writer/Reviewer 失败、超时或不合规 | 先走 1 轮修复 + 复审；仍失败则队列 `failed` + `attempts+1`；连续 2 次失败 → 写 PAUSED 并通知 |
 | 门禁/构建失败 | 按 `.editorial/runs/<runKey>/apply.json` 快照回滚；main 保持干净；记录日志 |
 | 推送失败（网络/鉴权） | 保留本地提交，下一次 tick 续传；连续 2 次 → 暂停 |
 | Actions 质量检查失败 | 自动 revert + push；暂停并通知 |
