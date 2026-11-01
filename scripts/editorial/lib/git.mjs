@@ -10,17 +10,18 @@ export function git(args, opts = {}) {
     maxBuffer: 20 * 1024 * 1024,
     env: { ...process.env, GIT_TERMINAL_PROMPT: '0', ...(opts.env ?? {}) },
   });
-  const stdout = (result.stdout ?? '').trim();
+  const rawStdout = result.stdout ?? '';
+  const stdout = rawStdout.trim();
   const stderr = (result.stderr ?? '').trim();
   if (result.status !== 0 && !opts.allowFailure) {
     throw new Error(`git ${args.join(' ')} 失败（exit ${result.status}）：${stderr || stdout}`);
   }
-  return { status: result.status ?? 1, stdout, stderr };
+  return { status: result.status ?? 1, stdout, stderr, rawStdout };
 }
 
 export function statusPorcelain(cwd) {
-  const { stdout } = git(['status', '--porcelain'], { cwd });
-  return stdout ? stdout.split('\n').filter(Boolean) : [];
+  const { rawStdout } = git(['status', '--porcelain'], { cwd });
+  return rawStdout ? rawStdout.split(/\r?\n/).filter(Boolean) : [];
 }
 
 export function assertClean(cwd) {
