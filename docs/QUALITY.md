@@ -30,6 +30,9 @@ Astro 配置读取 `.env` 使用 Vite 的 `loadEnv`；页面使用 Astro 注入�
 4. `published` 记录真实首次发布时间，`updated` 仅在内容修改时变更；构建时间不冒充内容更新时间。
 5. 指南正文是可信本地 HTML，仅维护者可修改；不能将外部或用户输入直接写入 `set:html`。
 6. 网络工具需要说明发送对象与数据；一般工具的本地处理说明不能覆盖 HTTP/IP 等例外。
+7. 自动化产出的文章（`data/editorial-guides/` 中带 `_meta.auto` 的文件）必须通过
+   [自动化内容流水线](EDITORIAL-AUTOMATION.md)的硬门禁；`scripts/check-guides-quality.mjs` 已接入
+   `npm run check` 做持久校验。人工新增指南仍按本节原有规则执行。
 
 ## 验证命令
 

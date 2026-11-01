@@ -106,7 +106,8 @@ public/
   _headers  _redirects               # Pages 配置
   clover-logo.svg  og-image.jpg      # 品牌资产
 legacy/                              # 旧版 CloverTools 代码归档（仅参考）
-scripts/                             # 质检与生成脚本（链接、SEO、emoji、图标、sitemap、CSDN）
+scripts/                             # 质检与生成脚本（链接、SEO、emoji、图标、sitemap、CSDN、内容流水线）
+scripts/editorial/                   # 定时内容流水线：选题队列、写作门禁、截图、发布与回滚
 config/                              # 站点、语言路由/收录策略、内容质量阈值
 .github/workflows/quality.yml        # 构建与浏览器回归
 data/                                # 内容数据（articles.json / keywords.json）
@@ -178,6 +179,8 @@ wrangler r2 object put clovertools-media/<key> --file <path>
 ## 内容生态（CSDN）
 
 CSDN 发布包独立维护；运行 `npm run csdn:build` 生成到 `csdn/`（137 篇文章 + 品牌文 + 发布排期表，详见 `csdn/README.md`）。站内另维护 36 篇场景指南，与工具相互链接并展示参考来源；其中 20 篇配有实拍截图与流程图。
+自动内容流水线的选题、质量门禁与发布流程见 [编辑与验证流程](https://clovertools.cn/editorial/) 与
+[自动化内容流水线](docs/EDITORIAL-AUTOMATION.md)。
 
 ## 约定
 
