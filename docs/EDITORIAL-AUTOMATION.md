@@ -169,6 +169,17 @@ node scripts/editorial/deploy-verify.mjs --run <runKey> # 补验部署
 node scripts/check-guides-quality.mjs                   # CI 门禁（手工复核）
 ```
 
+## 七·五、首次演练记录（2026-11-01）
+
+- 演练模式：`manual` 槽位、`local-commit`（不推送），用于验证全链路与门禁。
+- 选题：`uuid-generator`（零指南工具，priority 90）。
+- 结果：**1 篇**，正文 2489 汉字、9 个 H2、1 个表格、5 条来源（4 条一手）、3 个工具内链、39 条证据；
+  `npm run check:all` 全绿（467 页、144 条可收录 URL、37 篇指南）；站内/CSDN 8-gram 相似度 0.0006/0.0042。
+- 复核过程：第一轮 Reviewer 判 **fail**（4 个 blocking：Node 示例版本矛盾、回环 http 安全上下文、v4 大写变体、证据行号错），
+  Writer 修复后第二轮 Reviewer 判 **pass**（confidence 0.84）。这验证了"独立复核 + 一轮修复"的门禁确实能拦住事实错误。
+- 已知非阻塞遗留：v7 rand_a 句略含糊、部分证据行号精度、Hash 生成器构造 v3/v5 的说明可更充分，留待后续编辑优化。
+- 截图：演练跳过（通过表格满足视觉证据要求）；浏览器探针已通过，后续正式运行按需启用。
+
 ## 八、Writer 任务书模板
 
 ```
