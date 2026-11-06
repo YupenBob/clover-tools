@@ -29,6 +29,10 @@ interface Props {
   indexable?: boolean;
   /** Opt-in content width for tool workspaces; other pages keep the site width. */
   contentClass?: string;
+  /** Explicit hreflang entries (absolute hrefs) for pages that only exist in some languages. */
+  alternates?: { locale: Lang; href: string }[];
+  /** Optional language-switcher entries for the header (relative hrefs). */
+  languageLinks?: { locale: Lang; href: string }[];
 }
 
 const {
@@ -41,6 +45,8 @@ const {
   ads = true,
   indexable = true,
   contentClass = '',
+  alternates: explicitAlternates,
+  languageLinks,
 } = Astro.props;
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
@@ -50,10 +56,14 @@ const resolvedDescription = description ?? site.description;
 const canonicalPath = stripLang(new URL(canonical).pathname);
 const canIndex = indexable && isIndexablePath(Astro.url.pathname);
 const serveAds = ads && canServeAds(Astro.url.pathname);
-const alternates = alternateLanguages(Astro.url.pathname).map((locale) => ({
-  lang: HTML_LANG[locale as Lang], href: SITE.url + pathForLang(canonicalPath, locale as Lang),
-}));
-const defaultAlternate = alternates.find((entry) => entry.lang === HTML_LANG.zh) ?? alternates[0];
+const headAlternates = (
+  explicitAlternates ??
+  alternateLanguages(Astro.url.pathname).map((locale) => ({
+    locale: locale as Lang,
+    href: SITE.url + pathForLang(canonicalPath, locale as Lang),
+  }))
+).map(({ locale, href }) => ({ lang: HTML_LANG[locale], href }));
+const defaultAlternate = headAlternates.find((entry) => entry.lang === HTML_LANG.zh) ?? headAlternates[0];
 const cfToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN as string | undefined;
 const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 ---
@@ -68,7 +78,7 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     {keywords && <meta name="keywords" content={keywords.join(',')} />}
     {!canIndex && <meta name="robots" content="noindex,follow" />}
     <link rel="canonical" href={canonical} />
-    {alternates.map(({ lang, href }) => <link rel="alternate" hreflang={lang} href={href} />)}
+    {headAlternates.map(({ lang, href }) => <link rel="alternate" hreflang={lang} href={href} />)}
     {defaultAlternate && <link rel="alternate" hreflang="x-default" href={defaultAlternate.href} />}
 
     <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
@@ -126,7 +136,7 @@ const safeJsonLd = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : nu
     </script>
   </head>
   <body>
-    <SiteHeader />
+    <SiteHeader languageLinks={languageLinks} />
     <main class="page-body">
       <div class:list={['container', contentClass]}>
         <slot />

@@ -134,6 +134,7 @@ function main() {
       publishMode: config.publishMode,
       quality: config.quality,
       caps: config.caps,
+      translation: config.translation,
       baseUrl: config.capture.baseUrl,
       devServerPort: config.capture.devServerPort,
     },

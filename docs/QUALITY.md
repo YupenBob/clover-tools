@@ -6,7 +6,7 @@
 | --- | --- |
 | `config/site.mjs` | 品牌与默认域名、首页指南数量、政策类型与真实更新日期 |
 | `.env` 的 `PUBLIC_SITE_URL` | 覆盖站点 origin；构建、页面、robots、检查与 IndexNow 共用 |
-| `config/routes.mjs` | 语言前缀、浏览器识别、内容语言范围、收录语言与切换回退 |
+| `config/routes.mjs` | 语言前缀、浏览器识别、内容语言范围、收录语言与切换回退（2026-11-06 起五语言全部允许收录） |
 | `config/quality.mjs` | 元信息长度与内容完整性阈值；阈值是项目约定 |
 | `config/fps.mjs` / `config/fps-audio.mjs` / `docs/FPS-AIM-TRAINER.md` | FPS 参数、画面与音频预设、录音来源、训练策略、存储容量与模型验收 |
 | `src/lib/guides.ts` | 指南内容、关联工具、来源、发布日期、更新日期与阅读时间 |

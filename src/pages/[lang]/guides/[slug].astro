@@ -1,0 +1,43 @@
+---
+import GuideArticle from '../../../components/GuideArticle.astro';
+import { GUIDE_LABELS } from '../../../lib/guide-labels';
+import {
+  GUIDE_LANGS,
+  GUIDE_LANG_PREFIX,
+  getGuidesForLang,
+  guideLanguageLinks,
+  type GuideLang,
+} from '../../../lib/guides-i18n';
+import type { Guide } from '../../../lib/guides';
+import { getToolMeta, type Lang } from '../../../lib/i18n';
+import { getAllTools } from '../../../lib/tools';
+
+export function getStaticPaths() {
+  return GUIDE_LANGS.filter((guideLang) => guideLang !== 'zh').flatMap((guideLang) =>
+    getGuidesForLang(guideLang).map((guide) => ({
+      params: { lang: GUIDE_LANG_PREFIX[guideLang].slice(1), slug: guide.slug },
+      props: { guide, guideLang },
+    })),
+  );
+}
+
+const { guide, guideLang } = Astro.props as { guide: Guide; guideLang: GuideLang };
+const lang = guideLang as Lang;
+const labels = GUIDE_LABELS[lang];
+
+const toolEntry = getAllTools().find((tool) => tool.slug === guide.toolSlug);
+if (!toolEntry) throw new Error(`Guide tool not found: ${guide.toolSlug}`);
+const toolHref = `${GUIDE_LANG_PREFIX[guideLang]}/tools/${toolEntry.category}/${toolEntry.slug}/`;
+const toolName = getToolMeta(toolEntry.category, toolEntry.slug, lang).name;
+const languageLinks = guideLanguageLinks(guide.slug);
+---
+
+<GuideArticle
+  guide={guide}
+  lang={lang}
+  toolHref={toolHref}
+  toolName={toolName}
+  labels={labels}
+  languageLinks={languageLinks}
+  indexable={true}
+/>

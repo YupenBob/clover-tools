@@ -33,10 +33,12 @@ export const LOCALES = {
 };
 
 export const ROUTE_POLICY = {
-  // Retain the existing staged rollout until translated tool UX/content is reviewed.
-  toolIndexLanguages: ['zh'],
+  // 2026-11-06 决策：五个语言版本的指南与工具页全部允许收录（用户明确选择“全部直接索引”）。
+  // 风险与前提见 docs/EDITORIAL-AUTOMATION.md「多语言」一节：译文需经独立复核，
+  // 且 AdSense 复审前建议保持广告关闭；回滚方式是收窄 toolIndexLanguages 与 /guides 的语言列表。
+  toolIndexLanguages: ['zh', 'tw', 'ko', 'ja', 'en'],
   localizedSections: [
-    { prefix: '/guides', languages: ['zh'] },
+    { prefix: '/guides', languages: ['zh', 'tw', 'en', 'ko', 'ja'] },
     { prefix: '/editorial', languages: ['zh'] },
   ],
   browserFallbackLanguage: 'en',

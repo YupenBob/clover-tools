@@ -19,15 +19,108 @@ import {
 import { validateGuideStatic, stripHtml, cjkCount } from './editorial/lib/quality.mjs';
 import { readImageInfo } from './editorial/lib/images.mjs';
 import { buildAutoIndex } from './editorial/build-auto-index.mjs';
+import { buildTranslationArtifacts } from './editorial/build-translation-index.mjs';
+import {
+  scanTranslationFiles,
+  validateTranslationStatic,
+  countTranslations,
+} from './lib/guide-i18n-audit.mjs';
 
 const errors = [];
 const warnings = [];
 const config = DEFAULT_CONFIG;
+const guidesDir = join(ROOT, REPO_PATHS.guidesDir);
+
+/** 校验译文文件、translations.json 与生成产物是否一致。返回汇总行。 */
+function checkTranslations() {
+  const scan = scanTranslationFiles(guidesDir);
+  for (const message of scan.errors) errors.push(message);
+  const counts = countTranslations(scan.translations);
+
+  for (const entry of scan.translations) {
+    let source;
+    try {
+      source = JSON.parse(
+        readFileSync(join(guidesDir, `${entry.slug}.json`), 'utf8'),
+      );
+    } catch (error) {
+      errors.push(`${basename(entry.file)}: 无法读取简体源（${error.message}）`);
+      continue;
+    }
+    const result = validateTranslationStatic(entry.data, source, entry.lang);
+    for (const message of result.errors)
+      errors.push(`${basename(entry.file)}: ${message}`);
+    for (const message of result.warnings)
+      warnings.push(`${basename(entry.file)}: ${message}`);
+  }
+
+  let artifacts = null;
+  try {
+    artifacts = buildTranslationArtifacts({ check: true });
+  } catch (error) {
+    errors.push(`多语言指南清单生成失败：${error.message}`);
+  }
+  if (artifacts?.changed) {
+    errors.push(
+      'translations.json 或 src/lib/guides-translated.ts 未与译文文件同步（运行 node scripts/editorial/build-translation-index.mjs 后提交）',
+    );
+  }
+
+  let manifest = null;
+  try {
+    manifest = JSON.parse(readFileSync(join(guidesDir, 'translations.json'), 'utf8'));
+  } catch (error) {
+    errors.push(`translations.json 缺失或无法解析：${error.message}`);
+  }
+  const manifestSlugs = manifest?.slugs ?? {};
+  for (const entry of scan.translations) {
+    const list = manifestSlugs[entry.slug]?.translations;
+    if (!Array.isArray(list) || !list.includes(entry.lang)) {
+      errors.push(
+        `translations.json 缺少译文记录：${entry.slug}.${entry.lang}`,
+      );
+    }
+  }
+  for (const [slug, value] of Object.entries(manifestSlugs)) {
+    for (const lang of Array.isArray(value?.translations) ? value.translations : []) {
+      if (
+        !scan.translations.some(
+          (entry) => entry.slug === slug && entry.lang === lang,
+        )
+      ) {
+        errors.push(`translations.json 列出的译文缺少文件：${slug}.${lang}.json`);
+      }
+    }
+    if (value?.zh && !existsSync(join(guidesDir, `${slug}.json`))) {
+      errors.push(`translations.json 列出的简体源缺少文件：${slug}.json`);
+    }
+  }
+
+  const total = scan.translations.length;
+  return `多语言指南检查通过：${total} 篇译文（tw ${counts.tw}, en ${counts.en}, ko ${counts.ko}, ja ${counts.ja}）`;
+}
+
+function printAndExit() {
+  if (warnings.length > 0)
+    console.warn(
+      warnings.slice(0, 10).map((warning) => `提醒：${warning}`).join('\n'),
+    );
+  if (errors.length > 0) {
+    console.error(
+      errors.slice(0, 40).map((error) => `错误：${error}`).join('\n'),
+    );
+    if (errors.length > 40) console.error(`……另有 ${errors.length - 40} 条错误`);
+    process.exit(1);
+  }
+}
 
 async function main() {
   const files = listAutoGuideFiles(ROOT);
+  const translationSummary = checkTranslations();
   if (files.length === 0) {
+    printAndExit();
     console.log('自动指南检查通过：当前没有自动文章（目录为空）');
+    console.log(translationSummary);
     return;
   }
   const toolIndex = await loadToolIndex(ROOT);
@@ -137,6 +230,7 @@ async function main() {
     process.exit(1);
   }
   console.log(`自动指南检查通过：${summary.files} 个文件（严格 ${summary.strict} 篇、迁移 ${summary.migratedBasicOnly} 篇），共 ${summary.totalCjk} 汉字`);
+  console.log(translationSummary);
 }
 
 main().catch((error) => {

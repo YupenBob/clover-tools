@@ -21,7 +21,10 @@ export function readGuideEntries(guidesDir = join(ROOT, REPO_PATHS.guidesDir)) {
   if (!existsSync(guidesDir)) return [];
   const entries = [];
   for (const name of readdirSync(guidesDir)) {
-    if (!name.endsWith('.json')) continue;
+    // 只读简体源文件 `<slug>.json`；跳过清单 translations.json 与译文 `<slug>.<lang>.json`
+    if (name === 'translations.json') continue;
+    if (/\.(tw|en|ko|ja)\.json$/.test(name)) continue;
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*\.json$/.test(name)) continue;
     const data = JSON.parse(readFileSync(join(guidesDir, name), 'utf8'));
     if (!data || typeof data.slug !== 'string') throw new Error(`自动文章缺少 slug：${name}`);
     entries.push({ name, slug: data.slug, data });

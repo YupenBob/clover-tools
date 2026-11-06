@@ -17,6 +17,7 @@ import {
 } from '../lib/i18n';
 import { getGuidesForTool } from '../lib/guides';
 import { toolWorkspace, type ToolWorkspace, type ToolLayoutMode } from '../lib/tool-presentation';
+import { toolAlternates, toolLanguageLinks } from '../lib/tool-locales';
 import '../styles/tool-workspace.css';
 
 const APP_CATEGORY: Record<ToolCategory, string> = {
@@ -41,6 +42,8 @@ const related = getRelated(category, tool.slug, lang);
 const categoryMeta = getCategoryMeta(category, lang);
 const categoryName = categoryMeta.name;
 const url = SITE.url + pathForLang(getToolHref(category, tool.slug), lang);
+const alternates = toolAlternates(category, tool.slug);
+const languageLinks = toolLanguageLinks(category, tool.slug);
 const categoryUrl = SITE.url + pathForLang(`/tools/${category}/`, lang);
 const homeUrl = SITE.url + pathForLang('/', lang);
 const content = getToolContent(tool.slug, lang);
@@ -87,6 +90,8 @@ const jsonLd: Record<string, unknown>[] = [
   canonical={url}
   jsonLd={jsonLd}
   contentClass="tool-container"
+  alternates={alternates}
+  languageLinks={languageLinks}
 >
  <article class="tool-page" data-tool={tool.slug} data-category={category} data-layout={layout} data-workspace={workspace}>
   <nav class="breadcrumb" aria-label={dict.breadcrumb}>

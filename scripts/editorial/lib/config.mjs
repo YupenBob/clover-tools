@@ -34,6 +34,12 @@ export const DEFAULT_CONFIG = {
     maxFirstParagraphCjk: 120,
   },
 
+  /** 多语言：新增自动文章必须同时产出这些语言的译文（2026-11-06 决策，旧文章不回填） */
+  translation: {
+    languages: ['tw', 'en', 'ko', 'ja'],
+    requireAll: true,
+  },
+
   caps: {
     maxDraftAttempts: 2,
     maxWebFetches: 40,
@@ -52,6 +58,7 @@ export const DEFAULT_CONFIG = {
     allowedPaths: [
       'data/editorial-guides/',
       'src/lib/guides-auto.ts',
+      'src/lib/guides-translated.ts',
       'public/article-images/',
       'public/article-assets/',
       'scripts/editorial/cases/',
@@ -99,12 +106,21 @@ function deepMerge(base, patch) {
   return out;
 }
 
+/** 流水线固定生成物：即使本地 .editorial/config.json 覆盖了 allowedPaths，也必须允许。 */
+const PIPELINE_ARTIFACT_PATHS = ['src/lib/guides-translated.ts'];
+
+function withPipelineArtifacts(config) {
+  if (!config.git || !Array.isArray(config.git.allowedPaths)) return config;
+  config.git.allowedPaths = [...new Set([...config.git.allowedPaths, ...PIPELINE_ARTIFACT_PATHS])];
+  return config;
+}
+
 export function loadConfig() {
   try {
     const raw = JSON.parse(readFileSync(STATE_PATHS.config, 'utf8'));
-    return deepMerge(structuredClone(DEFAULT_CONFIG), raw);
+    return withPipelineArtifacts(deepMerge(structuredClone(DEFAULT_CONFIG), raw));
   } catch {
-    return structuredClone(DEFAULT_CONFIG);
+    return withPipelineArtifacts(structuredClone(DEFAULT_CONFIG));
   }
 }
 

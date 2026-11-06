@@ -111,7 +111,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
    它复制图片、登记 captures.json、写 JSON、重建 barrel，并在失败时按快照精确回滚。
 8. **综合门禁**：`node scripts/editorial/verify-article.mjs --slug <slug> --run <runKey>`（静态规则 + 证据 + 来源覆盖 + 复核 + 图片哈希 + barrel + 允许路径）。
 9. **构建**：`ASTRO_TELEMETRY_DISABLED=1 npm run check:all`（含 189+ 项测试与全部检查）。失败 → 回滚生成物，队列置 `failed`。
-10. **提交**：只 `git add` 允许路径（`data/editorial-guides/`、`src/lib/guides-auto.ts`、`public/article-images/`、
+10. **提交**：只 `git add` 允许路径（`data/editorial-guides/`、`src/lib/guides-auto.ts`、`src/lib/guides-translated.ts`、`public/article-images/`、
     `public/article-assets/`、`scripts/editorial/cases/`），提交信息：
     `content: add guide "<标题>"` / `content: upgrade guide "<标题>"`；作者 `CloverTools Content Bot <content-bot@clovertools.cn>`。
 11. **推送**：`node scripts/editorial/push-main.mjs`（校验作者/允许路径/人工批准列表后带 PAT 推送 `main`）。
@@ -132,6 +132,108 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 | 生产页面校验失败 | 自动 revert + push；暂停并通知 |
 | Host 停机错过槽位 | 不补批量，恢复后只执行最近到期的一次，队列顺延 |
 | 工作区脏/分叉/出现允许路径外改动 | 立即中止，不写任何文件 |
+| 译文校验失败（缺失/静态规则/复核未过） | 同一文章整体失败：**不发布部分语言**；`apply-translations.mjs` 按写入前快照回滚已写译文与索引，队列 `failed`，按"门禁失败"记录 |
+
+## 四·五、多语言（5 语言）
+
+### 决策与索引策略（2026-11-06 用户决定）
+
+- 站点 5 个语言版本：zh（`/`）、tw（`/zh-hant`）、en（`/en`）、ko（`/ko`）、ja（`/ja`）。
+- **新增**自动文章必须同时产出 **tw / en / ko / ja** 四种译文，且 5 种语言**全部直接允许收录**。
+  `config/routes.mjs` 的 `ROUTE_POLICY.toolIndexLanguages` 与 `localizedSections`（`/guides`）已包含全部语言；
+  某篇指南是否真的可索引，仍由 `data/editorial-guides/translations.json` 中是否存在该语言版本决定。
+- **旧文章不回填**：现有已发布的 zh-only 指南保持现状，不为它们批量补译文；
+  若升级旧 URL，则按升级后的新内容重新产出译文，这不属于历史回填。
+- 工具页全语言开放索引；指南页的语言链接与 hreflang 由 `translations.json` 推导。
+- 允许收录不等于降低质量：译文仍须过静态校验与多语 Reviewer，机械转换/机翻原文不得直接发布。
+
+### 数据与生成
+
+- 命名约定：`data/editorial-guides/<slug>.json` 是简体源；译文为 `<slug>.<lang>.json`，`lang ∈ tw/en/ko/ja`。
+- `data/editorial-guides/translations.json`：`{version, langs, slugs: {<slug>: {zh: true, translations: ['tw', ...]}}}`。
+- `src/lib/guides-translated.ts`：按语言显式 import 全部译文 JSON，供页面与检查使用。
+- 两者都由 `node scripts/editorial/build-translation-index.mjs`（`npm run editorial:translations`）生成，
+  `--check` 只比较不写入；`build`/`check`/`verify-article` 都会校验它们是否最新。**禁止手改生成文件**。`src/lib/guides-translated.ts` 属于流水线允许路径（`loadConfig` 会自动补上，兼容旧的本地 `allowedPaths`）。
+- 工具页语言清单：`data/i18n-tool-pages.json`，由 `node scripts/editorial/build-tool-locales.mjs`
+  （`npm run editorial:tool-locales`）扫描 `src/pages[/<lang>]/tools/...` 生成，记录每个工具实际存在的语言版本；
+  工具页的 hreflang 与语言切换只列真实存在的版本（当前唯一缺口语种是 `vocab-flash` 的 en/ko/ja），
+  避免 hreflang/内链指向不存在的页面。`build`/`check` 同样以 `--check` 校验其最新性。
+- 指南索引页（`/guides/`、`/en/guides/` 等）只在对应语言至少有一篇译文时生成；hreflang 与语言切换同样数据驱动。
+
+### Tick 内流程（zh 文章过门禁后）
+
+1. zh 文章通过 `apply-draft.mjs` 与 `verify-article.mjs` 的全部 zh 门禁；
+2. **tw 机械转换**：`node scripts/editorial/translate-tw.mjs --slug <slug> --run <runKey>`，
+   读取 `.editorial/drafts/<slug>/guide.json`，用 `chinese-s2t` 转繁体并把内链本地化为 `/zh-hant/tools/...`，
+   写 `.editorial/drafts/<slug>/translations/tw.json`（`reviewerVerdict=pass`、`reviewerConfidence=1`）；
+3. **Translator 子代理**（fresh，每个语言一份或一个多语任务）产出 `translations/en.json`、`ko.json`、`ja.json`；
+4. **多语 Reviewer 子代理**（fresh）逐语言复核，输出 `.editorial/runs/<runKey>/review-i18n.json`；
+   不通过允许 1 轮修复，复审仍不过则整篇失败；
+5. **回写复核结论**：把 `review-i18n.json` 中每语言的 `verdict/confidence` 写回对应译文的
+   `_meta.translation.reviewerVerdict` / `reviewerConfidence`（Reviewer 直接写回或 Lead 统一写回）；
+6. **落盘**：`node scripts/editorial/apply-translations.mjs --slug <slug> --run <runKey>`
+   （可选 `--langs tw,en,ko,ja`）。逐语言静态校验 + 复核门槛，全部通过才写仓库并重建清单/barrel；
+   任一失败按快照回滚，不发布部分语言；
+7. **综合门禁**：`node scripts/editorial/verify-article.mjs --slug <slug> --run <runKey>` 会检查
+   `config.translation.languages` 每语言都存在、逐个静态校验、并确认 `translations.json` 与 barrel 最新。
+   之后才进入构建/提交/推送；构建失败按"门禁/构建失败"回滚。
+
+### Translator 任务书模板（en / ko / ja）
+
+```
+你是 CloverTools 的 Translator 子代理。输入：
+- 简体源：data/editorial-guides/<slug>.json（或 .editorial/drafts/<slug>/guide.json）
+- 术语表：工具名、产品名（CloverTools、UUID、JSON、RFC、MDN、Node.js 等）与代码标识符保留英文原文；
+  正文中的链接、代码块、示例、数字、日期、来源 URL 一律不得增删或改写。
+任务：把 title / description / content / faqs[].q/a / focus / notice 逐段对应翻译为 <lang>，
+不得新增事实、断言、链接、代码或示例；HTML 结构与 h2 / 表格 / 图片 / 代码块数量必须与 zh 完全一致。
+要求：
+- 内链本地化为 /<lang>/tools/...（tw 为 /zh-hant/tools/...），不得保留简体 /tools/...；
+- 标题 ≤80 字符（tw ≤40 汉字）；description 40–160 字符（zh/tw 40–120 汉字）；
+- 正文长度：en ≥900 词、ko Hangul ≥1500、ja Han+kana ≥1500、tw Han ≥1500；
+- 语言自然，无未翻译的整段中文；专业词首次出现可括注英文。
+输出：.editorial/drafts/<slug>/translations/<lang>.json，字段与 Guide 一致，另含：
+_meta.translation = {
+  of: "<slug>", lang: "<lang>",
+  translatedFrom: sha256Hex(zhGuide.content + zhGuide.title + zhGuide.description),
+  translatedAt: "<ISO>", reviewerVerdict: "pending", reviewerConfidence: 0
+}
+（可直接调用 scripts/editorial/lib/translate.mjs 的 buildTranslation(zhGuide, lang, payload) 生成。）
+完成后返回 <200 字：语言、字数/脚本统计、术语与内链处理、不确定处。
+```
+
+### 多语 Reviewer 任务书模板
+
+```
+你是独立的多语 Reviewer。输入：zh 指南、四种译文、真实来源记录。
+逐语言核对：
+1) 事实是否与 zh 一致，是否有漏译/错译/新增断言；
+2) 术语、产品名、代码、数字、来源 URL 是否保留；
+3) 内链是否本地化（/<lang>/tools/...），是否残留简体 /tools/...；
+4) 语言是否自然，是否含未翻译中文残段（en Hangul/Han 混入、ko/ja 脚本比例异常）；
+5) 标题/描述/正文长度是否达标。
+输出 .editorial/runs/<runKey>/review-i18n.json：
+{
+  "langs": {
+    "tw": {"verdict": "pass|fail", "confidence": 0.0},
+    "en": {"verdict": "pass|fail", "confidence": 0.0},
+    "ko": {"verdict": "pass|fail", "confidence": 0.0},
+    "ja": {"verdict": "pass|fail", "confidence": 0.0}
+  },
+  "blockingIssues": []
+}
+confidence ≥0.7 才算通过；任一语言 fail 允许 1 轮修复后复审，仍 fail 则整篇失败。
+```
+
+### 风险与回滚
+
+- **Google scaled content**：批量自动翻译属于"规模化生成内容"高风险区；只发布经过独立复核、逐段对应、
+  有真实来源的译文，不为同一关键词批量造多语言页。
+- **AdSense**：复审期间建议保持广告关闭；译文质量与 zh 同档，不把未审核翻译当新内容发布。
+- **回滚**：收窄 `config/routes.mjs` 的两个数组——`ROUTE_POLICY.toolIndexLanguages` 与
+  `localizedSections` 里 `/guides` 的 `languages`（例如暂时只留 `zh`），即可停止新语言被收录；
+  需要停止强制产出时在 `.editorial/config.json` 设 `translation.requireAll=false` 或收窄
+  `translation.languages`。已发布译文用 `git revert` 回滚，禁止手改生成文件。
 
 ## 五、选题与需求数据
 
@@ -184,6 +286,9 @@ node scripts/editorial/github-device-login.mjs --timeout 900
 npm run editorial:report      # 队列/运行状态
 npm run editorial:gsc         # 导入 GSC（加 --write 落队列）
 npm run editorial:seed        # 播种队列
+npm run editorial:translations        # 重建译文清单 + barrel
+npm run editorial:translate-tw -- --slug <slug> --run <runKey>   # 繁体机械转换
+npm run editorial:apply-translations -- --slug <slug> --run <runKey>  # 校验并落盘译文
 npm run editorial:probe       # 浏览器能力探针
 npm run editorial:rollback    # 回滚（需 --slug）
 node scripts/editorial/tick-prepare.mjs --slot manual   # 手动准备一次

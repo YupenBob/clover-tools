@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   LOCALES,
   languageFromPath,
@@ -15,6 +16,73 @@ import {
   pagePath,
   htmlTags,
 } from './artifacts.mjs';
+
+const GUIDE_ARTICLE_PATH = /^\/guides\/([^/]+)\/$/;
+const TOOL_ARTICLE_PATH = /^\/tools\/(dev|daily|fun)\/([^/]+)\/$/;
+const TOOL_PAGES_FILE = new URL('../../data/i18n-tool-pages.json', import.meta.url);
+let toolManifestCache;
+function toolManifest() {
+  if (toolManifestCache === undefined) {
+    try {
+      toolManifestCache = JSON.parse(readFileSync(TOOL_PAGES_FILE, 'utf8'))?.tools ?? {};
+    } catch {
+      toolManifestCache = {};
+    }
+  }
+  return toolManifestCache;
+}
+const GUIDE_TRANSLATIONS_FILE = new URL(
+  '../../data/editorial-guides/translations.json',
+  import.meta.url,
+);
+
+/** 译文清单是页面 hreflang 的数据源；读取失败时按“只有简体源”处理。 */
+let guideManifestCache;
+function guideManifest() {
+  if (guideManifestCache === undefined) {
+    try {
+      guideManifestCache =
+        JSON.parse(readFileSync(GUIDE_TRANSLATIONS_FILE, 'utf8'))?.slugs ?? {};
+    } catch {
+      guideManifestCache = {};
+    }
+  }
+  return guideManifestCache;
+}
+
+/**
+ * 指南文章只有存在译文时才输出对应 hreflang；旧文章（清单无记录）回退为仅有简体。
+ * 其他页面继续使用路由策略（现在 /guides/ 列表页对五种语言开放）。
+ */
+function expectedAlternates(path) {
+  const base = stripLanguage(path);
+  if (base === '/guides/') {
+    // 指南索引页：简体 + 至少有一篇译文的语言（与页面生成逻辑一致）。
+    const withTranslation = new Set();
+    for (const entry of Object.values(guideManifest())) {
+      for (const locale of entry?.translations ?? []) withTranslation.add(locale);
+    }
+    const langs = ['zh', ...['tw', 'en', 'ko', 'ja'].filter((locale) => withTranslation.has(locale))].filter((locale) => Object.hasOwn(LOCALES, locale));
+    return { langs, defaultLang: 'zh' };
+  }
+  const slug = stripLanguage(path).match(GUIDE_ARTICLE_PATH)?.[1];
+  if (slug) {
+    const entry = guideManifest()[slug];
+    const translations = Array.isArray(entry?.translations)
+      ? entry.translations.filter(
+          (locale) => locale !== 'zh' && Object.hasOwn(LOCALES, locale),
+        )
+      : [];
+    return { langs: ['zh', ...new Set(translations)], defaultLang: 'zh' };
+  }
+  const toolSlug = stripLanguage(path).match(TOOL_ARTICLE_PATH)?.[2];
+  if (toolSlug && toolManifest()[toolSlug]) {
+    const available = toolManifest()[toolSlug].langs ?? ['zh'];
+    return { langs: available.filter((locale) => Object.hasOwn(LOCALES, locale)), defaultLang: 'zh' };
+  }
+  const langs = alternateLanguages(path);
+  return { langs, defaultLang: langs.includes('zh') ? 'zh' : langs[0] };
+}
 
 export function auditSeoPage(content, file, siteUrl) {
   const problems = [];
@@ -72,16 +140,14 @@ export function auditSeoPage(content, file, siteUrl) {
   if (noindex === isIndexablePath(path))
     problems.push('robots noindex 与共享收录策略不一致');
 
-  const langs = alternateLanguages(path);
+  const { langs, defaultLang } = expectedAlternates(path);
   const expected = Object.fromEntries(
     langs.map((locale) => [
       LOCALES[locale].htmlLang,
       siteUrl + localizedPath(path, locale),
     ]),
   );
-  if (langs.length)
-    expected['x-default'] =
-      siteUrl + localizedPath(path, langs.includes('zh') ? 'zh' : langs[0]);
+  if (langs.length) expected['x-default'] = siteUrl + localizedPath(path, defaultLang);
   const alternates = tags.filter(
     (tag) => tag.rel === 'alternate' && tag.hreflang,
   );
@@ -128,11 +194,14 @@ export function auditSeoPage(content, file, siteUrl) {
     if (!types.includes('Article') || !types.includes('BreadcrumbList'))
       problems.push('指南缺少 Article / BreadcrumbList JSON-LD');
     const article = blocks.find((block) => hasType(block, 'Article'));
-    if (
-      !/^\d{4}-\d{2}-\d{2}$/.test(article?.dateModified ?? '') ||
-      article?.mainEntityOfPage !== canonical
-    )
-      problems.push('指南日期或 mainEntityOfPage 无效');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(article?.dateModified ?? ''))
+      problems.push('指南 dateModified 格式无效');
+    if (article?.mainEntityOfPage !== canonical)
+      problems.push('指南 mainEntityOfPage 与 canonical 不一致');
+    if (article?.inLanguage !== LOCALES[lang].htmlLang)
+      problems.push(
+        `指南 inLanguage 应为 ${LOCALES[lang].htmlLang}（实际 ${article?.inLanguage ?? ''}）`,
+      );
     if (!content.includes('class="article-sources"'))
       problems.push('指南缺少参考来源');
   }

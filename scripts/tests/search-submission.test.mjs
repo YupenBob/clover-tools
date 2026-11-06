@@ -11,11 +11,14 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 20
 const credentials = { type: 'service_account', client_email: 'indexing@fixture.iam.gserviceaccount.com', private_key: privateKey.export({ type: 'pkcs8', format: 'pem' }) };
 const dependency = fetchImpl => ({ fetchImpl, sleep: async () => {} });
 
-test('live locations reject foreign origins, credentials, tracking parameters and noindex languages', () => {
+test('live locations reject foreign origins, credentials and tracking parameters; all languages are accepted', () => {
   assert.equal(canonicalUrl(origin + '/tools/fun/avatar-generator/', origin), origin + '/tools/fun/avatar-generator/');
-  for (const value of ['https://clovertools.cn.attacker.test/', 'https://user:password@clovertools.cn/', origin + '/?tracking=1', origin + '/#fragment', origin + '/en/tools/fun/avatar-generator/', origin + '/404/'])
+  for (const value of ['https://clovertools.cn.attacker.test/', 'https://user:password@clovertools.cn/', origin + '/?tracking=1', origin + '/#fragment', origin + '/404/'])
     assert.throws(() => canonicalUrl(value, origin));
+  // 2026-11-06 起五个语言版本全部允许收录：外语路径不再被拒绝。
   assert.equal(canonicalUrl(origin + '/en/', origin), origin + '/en/');
+  assert.equal(canonicalUrl(origin + '/en/tools/fun/avatar-generator/', origin), origin + '/en/tools/fun/avatar-generator/');
+  assert.equal(canonicalUrl(origin + '/zh-hant/tools/fun/avatar-generator/', origin), origin + '/zh-hant/tools/fun/avatar-generator/');
 });
 
 test('sitemap parser handles declarations, CDATA, numeric entities and duplicate canonical locations', () => {

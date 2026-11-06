@@ -119,7 +119,10 @@ export function listAutoGuideFiles(root) {
   const dir = join(root, 'data', 'editorial-guides');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((name) => name.endsWith('.json'))
+    // 只读简体源文件 `<slug>.json`；跳过 translations.json 与译文 `<slug>.<lang>.json`
+    .filter((name) => name !== 'translations.json')
+    .filter((name) => !/\.(tw|en|ko|ja)\.json$/.test(name))
+    .filter((name) => /^[a-z0-9]+(?:-[a-z0-9]+)*\.json$/.test(name))
     .sort()
     .map((name) => join(dir, name));
 }

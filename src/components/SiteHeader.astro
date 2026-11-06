@@ -5,8 +5,12 @@ import { SITE } from '../lib/site';
 import { DICT, LANGS, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
 import { switchLanguagePath } from '../../config/routes.mjs';
 
-interface Props { containerClass?: string; }
-const { containerClass = '' } = Astro.props;
+interface Props {
+  containerClass?: string;
+  /** When provided, only these language variants are offered by the switcher. */
+  languageLinks?: { locale: Lang; href: string }[];
+}
+const { containerClass = '', languageLinks } = Astro.props;
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const homeHref = pathForLang('/', lang);
@@ -20,6 +24,7 @@ const LANG_LABELS: Record<Lang, string> = {
   ja: '日本語',
   en: 'EN',
 };
+const languageOptions = languageLinks ?? LANGS.map((l) => ({ locale: l, href: switchLanguagePath(switchBase, l) }));
 ---
 
 <header class="site-header">
@@ -30,9 +35,9 @@ const LANG_LABELS: Record<Lang, string> = {
     </a>
     <div class="header-actions">
       <select class="lang-select" id="langSelect" aria-label={dict.switchLang} title={dict.switchLang}>
-        {LANGS.map((l) => (
-          <option value={switchLanguagePath(switchBase, l)} data-lang={l} selected={l === lang}>
-            {LANG_LABELS[l]}
+        {languageOptions.map((option) => (
+          <option value={option.href} data-lang={option.locale} selected={option.locale === lang}>
+            {LANG_LABELS[option.locale]}
           </option>
         ))}
       </select>

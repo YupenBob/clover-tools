@@ -4,7 +4,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { GUIDES } from '../../lib/guides';
 import { getAllTools, getToolHref } from '../../lib/tools';
 import { SITE } from '../../lib/site';
+import { guideIndexAlternates, guideIndexLanguageLinks } from '../../lib/guides-i18n';
 const latestUpdate = GUIDES.reduce((latest, guide) => guide.updated > latest ? guide.updated : latest, '');
+
+const languageLinks = guideIndexLanguageLinks().map((entry) => ({ locale: entry.locale as import('../../lib/i18n').Lang, href: entry.href }));
+const alternates = guideIndexAlternates().map((entry) => ({ locale: entry.locale as import('../../lib/i18n').Lang, href: entry.href }));
 
 const guideJsonLd = {
   '@context': 'https://schema.org',
@@ -36,6 +40,8 @@ function toolLink(slug: string) {
   keywords={['在线工具教程', '开发工具指南', 'JSON教程', '时间戳教程']}
   canonical={`${SITE.url}/guides/`}
   jsonLd={guideJsonLd}
+  languageLinks={languageLinks}
+  alternates={alternates}
 >
   <nav class="breadcrumb" aria-label="面包屑">
     <a href="/"><Icon name="house-door" /> 首页</a>

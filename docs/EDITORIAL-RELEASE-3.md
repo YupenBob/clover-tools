@@ -49,3 +49,20 @@
 | 站点状态 | 指南索引 37 篇；sitemap 144 条 URL（含新页）；首页工具数 77 |
 | GitHub 授权 | 设备授权（scope `public_repo`）；token 存 `.editorial/secrets/github-token`（600，gitignored） |
 | 定时任务 | `schedule-a1d3191e-4b1d-4f80-88f1-599561a9f402`，cron `0 6,12,18 * * *` Asia/Shanghai，首次 2026-11-06 18:00（Asia/Shanghai） |
+
+## 六、多语言与全语言索引（2026-11-06）
+
+用户决策（2026-11-06）：
+
+1. **指南 5 语言**：新文章自动产出 tw/en/ko/ja 译文并直接允许收录；旧文章不回填（UUID 篇的繁中版作为流水线验证样本保留）。
+2. **工具页全语言索引**：`config/routes.mjs` 的 `toolIndexLanguages` 与 `/guides` 的 `localizedSections` 同时开放 zh/tw/en/ko/ja。
+   构建结果：可收录页面从 144 增至 461+（sitemap 461 条；加入繁中译文后 463 条、468 页）。
+   唯一缺口语种是 `vocab-flash` 的 en/ko/ja 页面（不存在），其 hreflang 与语言切换按实际存在的 zh/tw 输出。
+3. **数据结构**：`data/editorial-guides/<slug>.<lang>.json` + 生成的 `translations.json` / `guides-translated.ts`；
+   工具页语言清单 `data/i18n-tool-pages.json`。
+4. **质量门禁**：译文需通过 `validateTranslationStatic`（结构对齐、来源集合一致、内链本地化、语言脚本比例、长度、`_meta.translation` 含复核结论）
+   与多语 Reviewer（confidence ≥0.7）；CI 的 `check-guides-quality.mjs` 做持久校验。
+5. **风险与回滚**：自动翻译在 Google 的 scaled content 规则下仍有风险，尤其 AdSense 低质历史叠加；
+   建议保持广告关闭，并可用一行配置回退：收窄 `config/routes.mjs` 的 `toolIndexLanguages` 与 `localizedSections` 中 `/guides` 的语言列表。
+
+繁中样章：`https://clovertools.cn/zh-hant/guides/uuid-generator/`（机械转换，`_meta.translation.reviewerConfidence=1`）。

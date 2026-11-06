@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { root } from './lib/build-config.mjs';
+import { root, buildSiteUrl } from './lib/build-config.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
 import { LEGAL } from '../config/site.mjs';
 import { runFpsChecks } from './lib/fps-browser-cases.mjs';
@@ -185,7 +185,7 @@ try {
   }
 
   await run(
-    'untranslated guide stays readable and language switch reaches a real page',
+    'untranslated guide stays readable and only offers its real languages',
     { locale: 'en-US' },
     async (page) => {
       const path = '/guides/json-formatting-validation/';
@@ -193,12 +193,32 @@ try {
       assert.equal(response.status(), 200);
       assert.equal(new URL(page.url()).pathname, path);
       assert.ok((await page.locator('.article-sources a').count()) > 0);
-      await page.selectOption('#langSelect', '/en/');
-      await page.waitForURL(base + '/en/');
-      assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+      // 旧文章没有译文：语言下拉只能出现简体自身，不能指向不存在的页面。
+      const options = await page.locator('#langSelect option').evaluateAll((nodes) => nodes.map((node) => node.value));
+      assert.deepEqual(options, [path]);
       await page.locator('.footer-links a[href="/guides/"]').click();
       await page.waitForURL(base + '/guides/');
       assert.ok((await page.locator('.guide-card').count()) > 0);
+    },
+  );
+
+  await run(
+    'translated guide switches to a real traditional Chinese page',
+    {},
+    async (page) => {
+      const manifest = JSON.parse(readFileSync(join(root, 'data/editorial-guides/translations.json'), 'utf8'));
+      const slug = Object.entries(manifest.slugs ?? {}).find(([, entry]) => (entry.translations ?? []).includes('tw'))?.[0];
+      if (!slug) return;
+      const path = `/guides/${slug}/`;
+      const response = await page.goto(base + path);
+      assert.equal(response.status(), 200);
+      assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), buildSiteUrl() + path);
+      await page.selectOption('#langSelect', `/zh-hant/guides/${slug}/`);
+      await page.waitForURL(base + `/zh-hant/guides/${slug}/`);
+      assert.equal(await page.locator('html').getAttribute('lang'), 'zh-Hant');
+      assert.ok((await page.locator('h1').innerText()).length > 0);
+      assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'), buildSiteUrl() + `/zh-hant/guides/${slug}/`);
+      assert.ok((await page.locator('a[href="/zh-hant/guides/"]').count()) > 0);
     },
   );
 
@@ -240,11 +260,10 @@ try {
       await remember(context, 'tw');
       await page.goto(base + '/zh-hant/tools/dev/json-formatter/');
       assert.match(await page.locator('.tool-guide').innerText(), /使用步驟/);
-      assert.equal(
-        await page.locator('meta[name="robots"]').getAttribute('content'),
-        'noindex,follow',
-      );
-      assert.equal(await page.locator('link[hreflang="en"]').count(), 0);
+      // 2026-11-06 起五语言工具页全部允许收录：不再有 noindex，且 hreflang 指向真实存在的语言版本。
+      const robots = await page.evaluate(() => document.querySelector('meta[name="robots"]')?.getAttribute('content') ?? null);
+      assert.equal(robots, null);
+      assert.equal(await page.locator('link[hreflang="en"]').count(), 1);
     },
   );
 

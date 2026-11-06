@@ -27,6 +27,8 @@ import {
 } from './lib/quality.mjs';
 import { readImageInfo } from './lib/images.mjs';
 import { buildAutoIndex } from './build-auto-index.mjs';
+import { buildTranslationArtifacts } from './build-translation-index.mjs';
+import { TRANSLATED_LANGS, validateTranslationStatic } from './lib/translate.mjs';
 import { git } from './lib/git.mjs';
 import { unexpectedChanges } from './lib/workspace.mjs';
 
@@ -160,6 +162,69 @@ async function main() {
   const barrel = buildAutoIndex({ check: true });
   if (barrel.changed) errors.push('src/lib/guides-auto.ts 未更新，请运行 build-auto-index');
 
+  // 多语言译文：新增自动文章必须同时产出 config.translation.languages 中的每种语言
+  const translationConfig = config.translation ?? { languages: TRANSLATED_LANGS, requireAll: true };
+  const requiredLangs =
+    Array.isArray(translationConfig.languages) && translationConfig.languages.length > 0
+      ? translationConfig.languages
+      : TRANSLATED_LANGS;
+  const requireAll = translationConfig.requireAll !== false;
+  const translationResults = {};
+  for (const lang of requiredLangs) {
+    const repoPath = `${REPO_PATHS.guidesDir}${options.slug}.${lang}.json`;
+    const file = join(ROOT, repoPath);
+    if (!existsSync(file)) {
+      if (requireAll) errors.push(`缺少 ${lang} 译文：${repoPath}`);
+      else warnings.push(`缺少 ${lang} 译文（requireAll=false，跳过）：${repoPath}`);
+      translationResults[lang] = {
+        exists: false,
+        required: requireAll,
+        ok: !requireAll,
+        verdict: null,
+        confidence: null,
+        metrics: null,
+        errors: requireAll ? [`缺少译文文件：${repoPath}`] : [],
+        warnings: [],
+      };
+      continue;
+    }
+    const translation = readJson(file, null);
+    const checked = validateTranslationStatic(translation, guide, lang);
+    const entry = {
+      exists: true,
+      required: requireAll,
+      ok: checked.errors.length === 0,
+      verdict: translation?._meta?.translation?.reviewerVerdict ?? null,
+      confidence: translation?._meta?.translation?.reviewerConfidence ?? null,
+      metrics: checked.metrics,
+      errors: checked.errors,
+      warnings: checked.warnings,
+    };
+    translationResults[lang] = entry;
+    errors.push(...checked.errors.map((message) => `[${lang}] ${message}`));
+    warnings.push(...checked.warnings.map((message) => `[${lang}] ${message}`));
+  }
+  const translationArtifacts = buildTranslationArtifacts({ check: true });
+  if (translationArtifacts.changed) {
+    errors.push('译文索引未更新：translations.json / src/lib/guides-translated.ts（请运行 build-translation-index）');
+  }
+  const failedTranslationLangs = requiredLangs.filter((lang) => {
+    const entry = translationResults[lang];
+    return Boolean(entry) && ((!entry.exists && entry.required) || (entry.exists && !entry.ok));
+  });
+  const translationSummary = {
+    ok: failedTranslationLangs.length === 0 && !translationArtifacts.changed,
+    requireAll,
+    langs: requiredLangs,
+    present: requiredLangs.filter((lang) => translationResults[lang]?.exists),
+    failed: failedTranslationLangs,
+    artifacts: {
+      manifestChanged: translationArtifacts.manifestChanged,
+      barrelChanged: translationArtifacts.barrelChanged,
+      translatedCount: translationArtifacts.translatedCount,
+    },
+  };
+
   // 只允许改允许路径
   const unexpected = unexpectedChanges(config.git.allowedPaths);
   if (unexpected.length > 0) errors.push(`出现允许路径之外的改动：${unexpected.slice(0, 8).join('；')}`);
@@ -178,8 +243,10 @@ async function main() {
       expectedReadingMinutes: expectedReadingMinutes(cjk),
       sources: (guide.sources ?? []).length,
       evidenceClaims: evidence?.claims?.length ?? 0,
+      translations: translationSummary,
     },
     reviewer: review ? { verdict: review.verdict, confidence: review.confidence } : null,
+    translations: translationResults,
     errors,
     warnings,
     checkedAt: new Date().toISOString(),
