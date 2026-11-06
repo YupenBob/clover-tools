@@ -102,6 +102,30 @@ export function translationSourceHash(zhGuide) {
  * 只转换 CJK：HTML 标签属性里的中文会被转换，但 <pre>/<code> 代码块与 URL 原样保留，
  * 因此不会破坏标签、链接与代码。
  */
+/** chinese-s2t 的已知误转与站内既有繁体用词校正（按顺序应用）。 */
+const TRADITIONAL_TERM_FIXES = [
+  ['復制', '複製'],
+  ['復核', '複核'],
+  ['復算', '複算'],
+  ['四舍五入', '四捨五入'],
+  ['舍入', '捨入'],
+  ['寬松', '寬鬆'],
+  ['對應關系', '對應關係'],
+  ['關系', '關係'],
+  ['其余', '其餘'],
+  ['重复', '重複'],
+  ['反复', '反覆'],
+  ['重復', '重複'],
+  ['反復', '反覆'],
+  ['占', '佔'],
+  ['麽', '麼'],
+];
+
+function fixTraditionalTerms(text) {
+  if (typeof text !== 'string' || text === '') return text ?? '';
+  return TRADITIONAL_TERM_FIXES.reduce((value, [from, to]) => value.split(from).join(to), text);
+}
+
 function convertCjkText(text) {
   if (typeof text !== 'string' || text === '') return text ?? '';
   const kept = [];
@@ -113,7 +137,7 @@ function convertCjkText(text) {
     .replace(/<pre\b[\s\S]*?<\/pre>/gi, (match) => stash(match))
     .replace(/<code\b[\s\S]*?<\/code>/gi, (match) => stash(match))
     .replace(/\bhttps?:\/\/[^\s"'<>]+/g, (match) => stash(match));
-  const converted = s2t(guarded);
+  const converted = fixTraditionalTerms(s2t(guarded));
   return converted.replace(/\uE000(\d+)\uE001/g, (_, index) => kept[Number(index)] ?? '');
 }
 
@@ -163,6 +187,12 @@ export function convertGuideToTw(guide) {
   }
   if (typeof guide.content === 'string') {
     output.content = localizeInternalLinks(convertCjkText(guide.content), 'tw');
+  }
+  if (Array.isArray(guide.sources)) {
+    output.sources = guide.sources.map((source) => ({
+      ...source,
+      title: typeof source?.title === 'string' ? convertCjkText(source.title) : source?.title,
+    }));
   }
   if (Array.isArray(guide.faqs)) {
     output.faqs = guide.faqs.map((faq) => ({

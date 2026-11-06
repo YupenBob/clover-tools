@@ -424,7 +424,7 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       slug: 'color-convert',
       name: '颜色转换与取色',
       oneLiner: 'HEX、RGB、HSL 互转，取色器实时预览。',
-      description: '在线颜色转换工具，HEX、RGB、HSL 互转与屏幕取色，实时预览色值与对比度，设计还原与前端配色更高效。',
+      description: '在线颜色转换工具，HEX、RGB、HSL 互转与屏幕取色，实时预览色值，设计还原与前端配色更高效。',
       icon: 'palette',
       keywords: ['颜色转换', 'hex转rgb', '取色器'],
       tier: 'P0',

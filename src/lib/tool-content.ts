@@ -438,11 +438,11 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'color-convert': {
     usage:
-      '颜色格式转换工具：支持 HEX、RGB、HSL 互转与屏幕取色，实时预览色值与对比度，设计稿还原与前端开发配色更顺手。',
+      '颜色格式转换工具：支持 HEX、RGB、HSL 互转与屏幕取色，实时预览色值，并按亮度给出黑/白预览文字建议，设计稿还原与前端开发配色更顺手。',
     features: [
       { icon: 'eyedropper', text: 'HEX / RGB / HSL 互转' },
       { icon: 'palette', text: '色值与预览实时同步' },
-      { icon: 'circle-half', text: '文本对比度参考' },
+      { icon: 'circle-half', text: '按亮度选择黑/白预览文字' },
       { icon: 'clipboard-check', text: '一键复制任意格式' },
     ],
   },
