@@ -140,6 +140,13 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 `展示 ×(1−CTR)× 排名权重(4–20 名最高)` 打分，映射到工具/指南，生成 `candidate`；
 Lead 在 tick 中按分数与理由把 `candidate` 升为 `ready`（不自动盲选），并记录理由。
 
+**无凭证需求层（GSC 的替代）**：在无法接入 GSC API 时，运行
+`node scripts/editorial/import-suggest.mjs --write --replace`：从 Bing / Google / Baidu 的公开搜索建议
+采集真实搜索短语（免凭证、免登录），与工具注册表、现有指南、CSDN 语料对齐后生成 `candidate`。
+规则：过滤品牌词与"xxx 在线/工具/下载"这类工具页导航查询；同一工具只保留最强 2 条变体；
+优先级 = 出现的 provider 数 × 120 + 名次权重 + 文章意图 + 覆盖缺口。原始采集留档在 `.editorial/suggest/`。
+它只用于"发现候选"，不等同于 GSC 的曝光/点击数据；拿到 GSC 服务账号后可切回真实数据。
+
 **任务配比**：每 3 篇 ≈ 2 篇 `new-guide` + 1 篇 `upgrade-guide`；GSC 显示"现有页面有曝光但点击低"的优先升级现有 URL。
 
 **队列 schema**：`{id,type,status,priority,toolSlug,slug,primaryQuery,angle,source,attempts,lastError,runId,createdAt,updatedAt}`；

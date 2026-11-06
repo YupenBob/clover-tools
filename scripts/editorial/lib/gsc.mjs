@@ -121,7 +121,14 @@ export function looksBranded(query) {
 }
 
 const INFORMATIONAL_PATTERN =
-  /(怎么|如何|为什么|为何|报错|错误|失败|无法|不能|区别|对比|教程|用法|使用|是什么|哪些|多久|多少|格式|转换|校验|安全|注意|规范|原理|解决|排查|问题|技巧|指南|方法)/;
+  /(怎么|如何|为什么|为何|报错|错误|失败|无法|不能|区别|对比|教程|用法|使用|是什么|哪些|多久|多少|格式|转换|校验|安全|注意|规范|原理|解决|排查|问题|技巧|指南|方法|规则|算法|机制|结构|组成|长度|几位|多少位|重复|唯一|冲突|碰撞|性能|速度|限制|边界|场景|示例|例子|兼容|浏览器|java|python|javascript|node\.js|go 语言|typescript)/i;
+
+/** 文章意图：可支撑一篇指南的问法（比纯导航词更具体）。 */
+export function looksArticleIntent(query) {
+  const text = String(query ?? '');
+  if (INFORMATIONAL_PATTERN.test(text)) return true;
+  return /(怎么|如何|为什么|为何|区别|对比|原理|规则|算法|格式|校验|边界|注意|安全)/.test(text);
+}
 
 export function looksInformational(query) {
   return INFORMATIONAL_PATTERN.test(String(query ?? ''));
@@ -191,7 +198,7 @@ export function matchPageTarget(pageUrl) {
  * 生成队列候选。
  * @returns {Array} 候选数组（status: candidate）
  */
-export function buildCandidates(rows, { toolIndex, guides, existingQueue }) {
+export function buildCandidates(rows, { toolIndex, guides, existingQueue, intentMatcher = looksInformational, priorityResolver = null }) {
   const now = new Date().toISOString();
   const guideBySlug = new Map((guides ?? []).map((guide) => [guide.slug, guide]));
   const guidesByTool = new Map();
@@ -212,7 +219,7 @@ export function buildCandidates(rows, { toolIndex, guides, existingQueue }) {
       if (!query || query.length > 60 || looksBranded(query)) continue;
       const match = matchQueryToTool(query, toolIndex.tools);
       if (!match.tool || match.score < 2) continue;
-      const informational = looksInformational(query);
+      const informational = intentMatcher(query);
       if (!informational) continue;
       const toolGuides = guidesByTool.get(match.tool.slug) ?? [];
       const type = toolGuides.length > 0 ? 'upgrade-guide' : 'new-guide';
@@ -233,7 +240,7 @@ export function buildCandidates(rows, { toolIndex, guides, existingQueue }) {
         createdAt: now,
         updatedAt: now,
       };
-      existing.priority = Math.max(existing.priority, scoreGscRow(row));
+      existing.priority = Math.max(existing.priority, priorityResolver ? priorityResolver(row) : scoreGscRow(row));
       existing.score = existing.priority;
       existing.evidence.rows.push({ query, clicks: row.clicks, impressions: row.impressions, ctr: row.ctr, position: row.position, file: row.file });
       merged.set(key, existing);
@@ -261,7 +268,7 @@ export function buildCandidates(rows, { toolIndex, guides, existingQueue }) {
           createdAt: now,
           updatedAt: now,
         };
-        existing.priority = Math.max(existing.priority, scoreGscRow(row));
+        existing.priority = Math.max(existing.priority, priorityResolver ? priorityResolver(row) : scoreGscRow(row));
         existing.score = existing.priority;
         existing.evidence.rows.push({ page: row.page, clicks: row.clicks, impressions: row.impressions, position: row.position, file: row.file });
         merged.set(key, existing);
@@ -286,7 +293,7 @@ export function buildCandidates(rows, { toolIndex, guides, existingQueue }) {
           createdAt: now,
           updatedAt: now,
         };
-        existing.priority = Math.max(existing.priority, scoreGscRow(row));
+        existing.priority = Math.max(existing.priority, priorityResolver ? priorityResolver(row) : scoreGscRow(row));
         existing.score = existing.priority;
         existing.evidence.rows.push({ page: row.page, clicks: row.clicks, impressions: row.impressions, position: row.position, file: row.file });
         merged.set(key, existing);

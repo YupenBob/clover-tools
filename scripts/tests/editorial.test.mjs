@@ -268,6 +268,45 @@ test('运行摘要包含状态、篇幅与推送信息', () => {
   assert.match(digest, /abcdef01/);
 });
 
+test('搜索建议聚合、排序与导航词过滤', async () => {
+  const suggest = await import('../editorial/lib/suggest.mjs');
+  const batches = [
+    { seed: 'uuid生成', results: { bing: ['uuid生成规则', 'uuid生成器'], google: ['uuid生成规则'], baidu: [] }, errors: {} },
+    { seed: '颜色转换', results: { bing: ['颜色转换器'], google: ['颜色转换原理', '颜色转换器'], baidu: ['颜色转换原理'] }, errors: {} },
+  ];
+  const aggregated = suggest.aggregateSuggestions(batches);
+  const rule = aggregated.find((entry) => entry.text === 'uuid生成规则');
+  assert.equal(rule.providers.size, 2);
+  assert.equal(rule.bestRank, 1);
+  const strong = suggest.suggestionPriority({ providers: new Set(['bing', 'google', 'baidu']), bestRank: 1 }, { informational: true, gap: true });
+  const weak = suggest.suggestionPriority({ providers: new Set(['bing']), bestRank: 8 }, { informational: false, gap: false });
+  assert.ok(strong > weak);
+  const tool = { slug: 'xml-formatter', name: 'XML 格式化与压缩', keywords: ['xml格式化', 'xml压缩'] };
+  assert.equal(suggest.looksToolPageQuery('xml格式化在线', tool), true);
+  assert.equal(suggest.looksToolPageQuery('XML格式化工具', tool), true);
+  assert.equal(suggest.looksToolPageQuery('xml格式化原理', tool), false);
+  const clustered = suggest.clusterByTool(
+    [
+      { toolSlug: 'a', priority: 3, id: '1' },
+      { toolSlug: 'a', priority: 2, id: '2' },
+      { toolSlug: 'a', priority: 1, id: '3' },
+      { toolSlug: 'b', priority: 9, id: '4' },
+    ],
+    2,
+  );
+  assert.equal(clustered.kept.length, 3);
+  assert.equal(clustered.dropped, 1);
+  assert.deepEqual(clustered.kept.map((item) => item.id), ['4', '1', '2']);
+});
+
+test('文章意图识别区分导航词与可写成指南的问法', async () => {
+  const gscLib = await import('../editorial/lib/gsc.mjs');
+  assert.equal(gscLib.looksArticleIntent('uuid 怎么生成'), true);
+  assert.equal(gscLib.looksArticleIntent('json 格式化报错怎么解决'), true);
+  assert.equal(gscLib.looksArticleIntent('uuid生成算法'), true);
+  assert.equal(gscLib.looksArticleIntent('在线工具箱'), false);
+});
+
 test.after(() => {
   rmSync(stateDir, { recursive: true, force: true });
 });
