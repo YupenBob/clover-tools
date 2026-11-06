@@ -64,7 +64,7 @@ async function main() {
       writeFileSync(STATE_PATHS.githubToken, `${result.access_token}\n`, { mode: 0o600 });
       chmodSync(STATE_PATHS.githubToken, 0o600);
       // 校验 token 与仓库写权限（不输出 token 本身）
-      const userResponse = await fetch(`${API}/api/v3`.replace('/api/v3', '/user'), {
+      const userResponse = await fetch('https://api.github.com/user', {
         headers: { Authorization: `Bearer ${result.access_token}`, Accept: 'application/vnd.github+json' },
       }).catch(() => null);
       const user = userResponse ? await userResponse.json().catch(() => null) : null;

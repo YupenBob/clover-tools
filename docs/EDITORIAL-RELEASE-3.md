@@ -37,3 +37,15 @@
 - 质量边界：独立复核由 AI 完成，等同于"自动化的第二人复核"而非人类终审；按 AdSense
   "未经人工审核的自动生成内容"政策，仍建议在 AdSense 复审前保持广告关闭，并保留一键回滚。
 - 首篇之后，本文件在此追加每批（含 commit sha、生产 URL、检查结果）。
+
+## 五、上线结果（2026-11-06 06:44–06:52 UTC）
+
+| 项 | 结果 |
+| --- | --- |
+| 推送 | 13 个提交推送 `main`，HEAD `eac61449`（首篇内容提交 `17c5d96`） |
+| CI | [Quality checks #42176386963](https://github.com/YupenBob/clover-tools/actions/runs/42176386963)：quality job success，Deploy to Cloudflare Pages success |
+| 生产文章 | `https://clovertools.cn/guides/uuid-generator/` HTTP 200，canonical/Article JSON-LD/indexable 校验通过 |
+| 生产透明页 | `https://clovertools.cn/editorial/` HTTP 200 |
+| 站点状态 | 指南索引 37 篇；sitemap 144 条 URL（含新页）；首页工具数 77 |
+| GitHub 授权 | 设备授权（scope `public_repo`）；token 存 `.editorial/secrets/github-token`（600，gitignored） |
+| 定时任务 | `schedule-a1d3191e-4b1d-4f80-88f1-599561a9f402`，cron `0 6,12,18 * * *` Asia/Shanghai，首次 2026-11-06 18:00（Asia/Shanghai） |
