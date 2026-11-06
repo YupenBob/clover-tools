@@ -1,0 +1,63 @@
+{
+  "slug": "json-xml-yaml",
+  "title": "JSON을 YAML로 바꾸는 방법: 상호 변환의 필드와 타입 경계",
+  "description": "JSON → YAML 변환을 출발점으로 네 방향이 필드 이름, XML 속성과 텍스트, YAML 앵커와 타입 추론을 어떻게 다루는지 짚고, 줄바꿈·주석·빈 값·키 순서에서 확인할 경계와 점검 목록을 정리합니다.",
+  "category": "开发实用",
+  "toolSlug": "json-xml-yaml",
+  "published": "2026-11-06",
+  "updated": "2026-11-06",
+  "readingMinutes": 6,
+  "content": "<p>JSON을 YAML로 바꾸는 방법은 단순합니다. \"JSON/XML/YAML 변환기\"를 열고 변환 방향에서 JSON → YAML을 고른 다음, 엄격하게 유효한 JSON을 붙여넣고 \"변환\"을 누르면 YAML이 나옵니다. 도구는 먼저 JSON.parse로 검증하고 YAML 라이브러리에 넘겨 직렬화합니다. JSON 문법이 틀리면 바로 오류가 나며, 타입과 키 이름, 줄바꿈의 차이는 직접 확인해야 합니다.</p>\n\n<h2>방향부터 고르기: JSON을 YAML로 바꾸는 실제 절차</h2>\n<p>네 방향은 같은 입력 상자와 출력 상자를 쓰고, 차이는 \"변환 방향\" 드롭다운뿐입니다. JSON → YAML은 가장 짧은 경로이며 별도 옵션이 없습니다. 들여쓰기와 인용부호, 값 표기 방식은 모두 YAML 라이브러리의 기본 규칙을 따릅니다.</p>\n<ol>\n<li>변환할 JSON을 \"소스 데이터 입력\"에 붙여넣고, 주석이나 끝의 쉼표가 섞이지 않은 순수 JSON인지 먼저 확인합니다.</li>\n<li>\"변환 방향\"에서 JSON → YAML을 선택합니다.</li>\n<li>\"변환\"을 누르면 오른쪽 출력 상자에 결과가 나타납니다. 오류가 나면 상태 표시줄에 오류 메시지가 보이고 출력 상자는 비워집니다.</li>\n<li>\"복사\"로 YAML을 가져와 대상 파일에 붙여넣은 뒤 들여쓰기와 인용부호가 그대로인지 확인합니다.</li>\n</ol>\n<p>전제는 JSON 자체가 유효하다는 것입니다. JSON의 속성 이름은 반드시 큰따옴표를 써야 하고, 끝에 쉼표를 더 둘 수 없으며, // 나 /* */ 주석도 쓸 수 없습니다. 이런 표기는 JavaScript 객체 리터럴에서는 통할 수 있지만 JSON에서는 모두 통하지 않습니다. 설정 파일에서 복사한 \"주석이 있는 JSON\"을 넣는다면 먼저 <a href=\"/ko/tools/dev/json-formatter/\">JSON 포맷터 &amp; 검증기</a>로 문법 오류를 찾은 뒤 다시 변환하세요.</p>\n<p>최소 예시는 다음과 같습니다. 도구에 내장된 예시도 같은 구조이며, 이 예시에서 변환된 YAML은 JSON의 작성 순서를 유지하고 문자열 3.0에는 인용부호가 붙고 배열은 두 칸 들여쓴 하이픈 목록으로 출력됩니다.</p>\n<pre><code>{\n  \"name\": \"Clover\",\n  \"version\": \"3.0\",\n  \"free\": true,\n  \"tags\": [\"dev\", \"tools\"]\n}</code></pre>\n<pre><code>name: Clover\nversion: \"3.0\"\nfree: true\ntags:\n  - dev\n  - tools</code></pre>\n<p>출력 끝에는 줄바꿈이 하나 붙고, 기본적으로 --- 문서 시작 표시는 넣지 않습니다. 이런 세부는 장식이 아닙니다. YAML의 암시적 타입 규칙은 인용부호가 없는 3.0을 숫자로, true를 불리언으로 읽습니다. 문자열을 문자열로 유지하려면 인용부호에 의지해야 합니다.</p>\n\n<h2>네 방향이 각각 하는 일</h2>\n<p>네 방향을 한 표에 놓고 보면 차이가 분명해집니다. 두 XML 방향은 고정된 키 이름 규칙을 따르고, 두 YAML 방향은 YAML 라이브러리의 파싱과 직렬화에 의존합니다.</p>\n<table>\n<thead><tr><th>방향</th><th>구현 경로</th><th>출력 특징</th></tr></thead>\n<tbody>\n<tr><td>JSON → XML</td><td>JSON.parse 후 요소를 재귀 생성</td><td>루트 요소는 항상 root이고, 객체 키는 태그 이름이 되며, 배열 요소 이름은 키 이름에서 끝의 s를 뗀 값이 됩니다</td></tr>\n<tr><td>XML → JSON</td><td>DOMParser로 DOM을 만든 뒤 재귀적으로 읽음</td><td>속성에는 @ 접두사가 붙고, 같은 이름의 자식 요소는 한 번이면 객체·여러 번이면 배열이 되며, 리프 텍스트는 #text에 담깁니다</td></tr>\n<tr><td>JSON → YAML</td><td>JSON.parse 후 YAML 라이브러리의 stringify 호출</td><td>두 칸 들여쓰기, 문서 시작 표시 없음, 줄바꿈이 든 문자열은 리터럴 블록으로 출력</td></tr>\n<tr><td>YAML → JSON</td><td>YAML 라이브러리의 parse 후 JSON.stringify(…, null, 2)</td><td>두 칸 들여쓰기 JSON, 주석과 앵커 이름은 남지 않고 선두의 ---는 버려지며 다중 문서 입력은 바로 오류</td></tr>\n</tbody>\n</table>\n<p>이 표의 항목은 모두 페이지 스크립트에서 확인할 수 있습니다. XML 방향에는 속성을 만드는 분기가 없으므로 JSON의 필드가 XML 속성이 될 수 없습니다. JSON → YAML은 들여쓰기나 인용부호 옵션을 넘기지 않고, YAML → JSON은 JSON 들여쓰기를 두 칸으로 고정하므로 YAML 쪽 형식은 라이브러리의 기본 규칙이 결정합니다.</p>\n\n<h2>필드 이름과 계층이 사라지는 지점</h2>\n<p>먼저 키 이름입니다. JSON → XML은 영문자나 밑줄로 시작하고 뒤에 영문자·숫자·밑줄·점·하이픈이 오는 키만 받습니다. 규칙에 맞지 않는 키는 모두 item으로 기록됩니다. 잘못된 키 두 개가 함께 있으면 출력에 item이 두 개 생기고, JSON으로 되돌릴 때 배열로 합쳐지면서 원래 키 이름은 다시 찾을 수 없습니다.</p>\n<pre><code>{\"2fa\": true, \"first name\": \"Clover\"}</code></pre>\n<p>이 JSON에서 나오는 것은 &lt;item&gt; 요소 두 개이며 &lt;2fa&gt;와 &lt;first name&gt;이 아닙니다. 배열 이름에도 놓치기 쉬운 규칙이 있습니다. 요소 이름은 바깥 키 이름에서 끝의 s를 하나 뗀 값이라 tags는 tag, items는 item이 되지만 status는 statu, address는 addres가 됩니다. 이름이 s로 끝나는 영문 필드는 XML에서 변형됩니다.</p>\n<p>XML → JSON은 다른 규칙을 씁니다. 속성은 @에 속성 이름을 붙여 쓰고, 리프 요소의 텍스트는 #text로 씁니다. 같은 이름의 자식 요소가 하나면 객체, 둘 이상이면 배열을 출력합니다. 여기서 되돌릴 수 없는 모호함이 생깁니다. \"요소가 하나뿐인 배열\"과 \"단일 객체\"는 XML에서 같은 모양이라 JSON으로 되돌릴 때 객체로 퇴화할 수밖에 없습니다.</p>\n<p>{\"id\": 1}을 JSON → XML → JSON으로 한 번 돌리면 id는 {\"#text\": \"1\"}이 되고 루트 노드에는 #text: \"1\"이 더 생깁니다. 도구가 출력한 XML에 들여쓰기가 있어 루트의 첫 자식 노드가 공백 텍스트이고, 읽을 때 그 텍스트가 다시 #text에 합쳐지기 때문입니다. 숫자 1은 문자열이 되고 루트 요소 이름도 사라집니다. JSON → XML은 &lt;root&gt;를 고정으로 출력하고, XML → JSON은 문서 요소의 내용만 읽어 바깥 태그 이름을 남기지 않습니다.</p>\n<p>속성도 마찬가지로 돌아오지 않습니다. @id 같은 키는 XML 태그 이름 규칙에 맞지 않아 JSON → XML에서 &lt;item&gt;이 되고, 속성 값은 남아도 \"이것이 속성이다\"라는 구조 정보는 이미 사라집니다. 콜론이 붙는 XML 네임스페이스 접두사도 같은 문제를 겪습니다.</p>\n\n<h2>값과 줄바꿈: 텍스트 층에서 보이지 않는 타입</h2>\n<p>JSON에는 값이 여섯 가지뿐입니다. 객체, 배열, 숫자, 문자열, true/false, null입니다. XML은 JSON/YAML 같은 스칼라 타입을 싣지 않고 내용이 모두 문자 데이터이므로, 변환이 XML을 거치면 타입 정보는 사실상 텍스트만 남습니다.</p>\n<p>JSON의 1과 \"1\"은 JSON → XML을 거치면 모두 &lt;id&gt;1&lt;/id&gt;가 되고 xml2json으로 읽으면 둘 다 {\"#text\": \"1\"}입니다. 불리언 true는 문자열 \"true\"가 되고, null과 빈 객체 {}, 빈 배열 []은 모두 자체 닫힘 요소로 출력되어 읽으면 빈 문자열이 됩니다. 서로 다른 세 가지 값이 XML 층에서 같은 형태로 눌립니다.</p>\n<pre><code>{\"id\": 1, \"ok\": true, \"note\": null}</code></pre>\n<p>YAML 방향은 사정이 다릅니다. YAML에는 암시적 타입이 있어 파서가 schema에 따라 인용부호 없는 스칼라를 불리언, 정수, 부동소수, null로 인식합니다. YAML 1.2의 core schema는 true, True, TRUE와 false, False, FALSE 여섯 표기만 불리언으로 보고 yes, on, tRuE는 문자열로 남깁니다. 1.0은 숫자 1로, 0123은 십진수 123으로, 0x1F는 31로, ~는 null로 읽힙니다.</p>\n<pre><code>flag: yes\nratio: 1.0\ncode: 0123\nhex: 0x1F\nempty: ~</code></pre>\n<p>JSON으로 바꾸면 {\"flag\":\"yes\",\"ratio\":1,\"code\":123,\"hex\":31,\"empty\":null}이 됩니다. 0123 같은 앞자리 0을 지키려면 YAML에 인용부호를 넣어야 하고, 반대로 JSON → YAML에서는 문자열 \"true\"와 \"123\"에 직렬화기가 인용부호를 붙여 다시 읽을 때 불리언이나 숫자가 되지 않게 합니다. YAML 출력을 손으로 고치면서 이 인용부호를 지우면 타입이 뒤집힙니다.</p>\n<p>줄바꿈은 또 다른 지점입니다. JSON 문자열의 \\n은 JSON → YAML에서 보통 리터럴 블록으로 출력되고, 블록 헤더는 내용에 따라 달라집니다. 줄바꿈으로 끝나지 않으면 |-, 줄바꿈으로 끝나면 |, 끝 줄바꿈이 여러 개면 |+, 앞에 공백이 있으면 |2-처럼 들여쓰기 표시가 붙습니다. YAML로 다시 읽으면 여전히 줄바꿈입니다. YAML의 여러 줄 텍스트는 JSON으로 바꾸면 \\n이 든 보통 문자열이 됩니다. XML은 더 거칩니다. 읽을 때 textContent를 먼저 trim해 앞뒤 공백을 남기지 않고, 자식 요소가 하나이고 첫 자식 노드에 텍스트가 있으면 #text를 붙이지 않으며, 나머지 자식 요소가 있는 경우에는 trim한 textContent 전체를 씁니다(비어 있을 때는 제외). 자식 요소가 둘 이상이면 내부 들여쓰기와 줄바꿈이 이어 붙인 텍스트에 그대로 남습니다.</p>\n\n<h2>경계와 한계</h2>\n<p>이 도구를 \"무손실 변환기\"가 아니라 \"구조 운반자\"로 보고, 아래 경계를 하나씩 확인하세요.</p>\n<ul>\n<li><strong>XML 속성에는 JSON 대응물이 없습니다.</strong> XML → JSON은 @ 접두사로 속성을 남기지만 JSON → XML은 이 규칙을 모르므로 @id는 item으로 기록됩니다. 속성은 XML → JSON 방향에서만 볼 수 있고 돌아오는 길에는 반드시 사라집니다.</li>\n<li><strong>주석과 공백은 남지 않습니다.</strong> JSON은 주석을 지원하지 않고, YAML의 # 주석은 파싱할 때 버려지며, XML 주석은 문자 데이터가 아니라 자식 요소 목록이나 textContent에 들어가지 않습니다. XML 들여쓰기는 배치일 뿐이지만 공백 텍스트 노드가 firstChild/#text 판단에 참여하므로, 자식 요소가 하나이고 그 앞에 공백이 있으면 루트 노드에 trim한 #text가 더 생깁니다. YAML 들여쓰기는 문법 구조라 들여쓰기를 바꾸면 파싱 결과가 달라집니다.</li>\n<li><strong>혼합 내용에서는 텍스트가 사라집니다.</strong> 텍스트와 요소가 섞인 경우(예: &lt;root&gt;a&lt;b&gt;1&lt;/b&gt;c&lt;/root&gt;) 자식 요소가 하나이고 첫 노드가 텍스트이면 innerText가 비워져 a, c 텍스트가 사라집니다.</li>\n<li><strong>앵커, 별칭, 다중 문서.</strong> YAML의 &amp;anchor와 *alias는 parse 후 같은 객체를 가리키므로 JSON.stringify가 내용을 두 번 쓰고 앵커 이름은 나타나지 않습니다. 한 스트림에서 ---로 나눈 여러 문서는 parse 한 번으로 다 읽히지 않으며, 도구는 parse만 호출하므로 다중 문서를 넣으면 Source contains multiple documents 오류가 납니다. 같은 이름의 키가 중복되어도 오류가 납니다.</li>\n<li><strong>숫자와 불리언은 YAML만 추론합니다.</strong> YAML core schema의 규칙이 true/false, 정수, 부동소수, null을 결정하고, JSON 숫자 문법은 NaN과 Infinity 리터럴을 허용하지 않으며, XML은 전부 텍스트입니다. 세 형식을 오갈 때 타입은 파서가 아는 층에만 존재합니다.</li>\n<li><strong>키 순서는 계약이 아닙니다.</strong> JSON 명세는 객체를 순서 없는 집합으로 정의하고 YAML도 매핑을 순서 없는 것으로 정의합니다. 직렬화기는 보통 순회 순서로 출력하지만, 그 순서로 diff나 서명을 만들면 안 됩니다.</li>\n<li><strong>특수 문자는 이스케이프되지만 제어 문자는 안 됩니다.</strong> JSON → XML은 &amp;, &lt;, &gt;, \" 네 문자를 이스케이프하므로 텍스트에 안전하게 넣을 수 있습니다. 그러나 XML 1.0이 허용하는 문자 범위에는 대부분의 C0 제어 문자가 없어서, JSON 문자열에 U+0001 같은 문자가 있으면 생성된 XML은 well-formed가 아닙니다.</li>\n<li><strong>왕복은 무손실을 보장하지 않습니다.</strong> 루트 요소 이름, XML 속성, 빈 값 형태, 단일 요소 배열, 주석과 앵커가 모두 바뀔 수 있습니다. 도구 설명에도 왕복 무손실을 보장하지 않는다고 적혀 있으니 \"변환 성공\"을 \"의미상 동등\"으로 보면 안 됩니다.</li>\n<li><strong>큰 파일에는 스트리밍 처리가 없습니다.</strong> 페이지가 텍스트 전체를 한 번에 읽고 XML 방향은 완전한 DOM까지 만들며, 입력과 출력이 모두 텍스트 상자에 남습니다. 파일이 크면 메모리와 응답이 모두 빠듯해지므로 대량 데이터는 명령줄 도구로 처리하는 편이 낫습니다.</li>\n</ul>\n\n<h2>배포 전 점검 목록</h2>\n<ol>\n<li>먼저 <a href=\"/ko/tools/dev/json-formatter/\">JSON 포맷터 &amp; 검증기</a>로 JSON이 유효한지 확인한 뒤 변환을 시작합니다.</li>\n<li>XML 입력은 <a href=\"/ko/tools/dev/xml-formatter/\">XML 포맷터</a>로 태그가 닫혔는지, 계층이 의도대로인지 먼저 봅니다.</li>\n<li>YAML → JSON 후에는 <a href=\"/ko/tools/dev/jsonpath/\">JSONPath 테스터</a>로 주요 경로를 뽑아 배열이 객체로 눌리지 않았는지 확인합니다.</li>\n<li>원본과 대상의 키 이름을 항목별로 비교합니다. 특히 공백이 있거나 숫자로 시작하거나 s로 끝나는 키를 봅니다.</li>\n<li>null, 빈 객체, 빈 배열, 숫자, 불리언 다섯 부류의 값을 뽑아 빈 문자열이나 문자열로 바뀌지 않았는지 확인합니다.</li>\n<li>결과를 대상 시스템에 실제로 넣어 한 번 파싱해 봅니다. 텍스트 상자에 보기 좋은지로 판단하지 않습니다.</li>\n</ol>\n<p>목표가 JSON 설정을 YAML로 바꾸는 것뿐이라면 구조를 단순하게 유지하는 편이 가장 안전합니다. 키 이름은 영문자로 시작하고, s로 끝나지 않게 하고, 배열은 같은 모양을 유지하고, 문자열에는 필요한 인용부호를 넣습니다. 이렇게 하면 변환기에 이름과 타입 규칙이 있어도 결과를 확인하기 쉽습니다.</p>",
+  "faqs": [
+    {
+      "q": "JSON을 YAML로 바꿀 때 문자열에 왜 인용부호가 자동으로 붙나요?",
+      "a": "YAML은 schema로 인용부호 없는 스칼라의 타입을 추론합니다. 3.0은 숫자로, true는 불리언으로 읽힙니다. 직렬화기가 이런 문자열에 인용부호를 붙이는 것은 다시 읽었을 때 문자열로 남게 하기 위해서이며, 인용부호를 손으로 지우면 타입이 바뀝니다."
+    },
+    {
+      "q": "XML을 JSON으로 바꾸면 생기는 @와 #text는 무엇인가요?",
+      "a": "@ 접두사는 XML 속성을, #text는 요소 안의 텍스트를 뜻합니다. 이 도구의 키 이름 규칙일 뿐 JSON 표준의 일부가 아니며, 결과를 다시 XML로 바꿀 때 @ 키가 속성으로 복원되지는 않습니다."
+    },
+    {
+      "q": "요소가 하나뿐인 배열이 왜 객체가 되나요?",
+      "a": "XML에는 배열 타입이 없습니다. 같은 이름의 자식 요소가 한 번 나오면 xml2json은 객체를, 두 번 이상 나오면 배열을 출력합니다. XML 자체가 \"요소 하나짜리 배열\"과 \"단일 객체\"를 구분할 수 없어 이 정보는 변환 과정에서 사라집니다."
+    },
+    {
+      "q": "YAML의 yes와 on은 왜 불리언이 되지 않나요?",
+      "a": "YAML 1.2의 core schema는 true, True, TRUE와 false, False, FALSE만 불리언으로 해석하고 yes, on은 일반 문자열로 봅니다. 불리언이 필요하면 true나 false를 쓰고 예전 YAML 1.1 습관에 기대지 마세요."
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 8259: JavaScript Object Notation (JSON) 데이터 교환 형식",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259.html"
+    },
+    {
+      "title": "YAML 1.2.2 명세",
+      "url": "https://yaml.org/spec/1.2.2/"
+    },
+    {
+      "title": "W3C: Extensible Markup Language (XML) 1.0 (5판)",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "MDN: JSON",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON"
+    },
+    {
+      "title": "MDN: DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "json-xml-yaml",
+      "lang": "ko",
+      "translatedFrom": "1ec11e1a6b39edad98f430549e8aa54a3d6fd29ce63a1334789cad78ec3f8c92",
+      "translatedAt": "2026-11-06T11:39:35.989Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.9
+    }
+  },
+  "focus": "JSON이 유효한지 먼저 확인하고, 필드 이름·빈 값·타입이 XML이나 YAML에서 어떻게 실체화되는지 정합니다.",
+  "notice": "변환은 브라우저 로컬에서 이루어지며 데이터를 업로드하지 않습니다. 도구는 왕복 무손실을 보장하지 않으므로 XML 속성, 주석, 앵커는 돌아오는 길에 사라질 수 있습니다."
+}

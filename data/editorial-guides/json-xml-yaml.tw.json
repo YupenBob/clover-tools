@@ -1,0 +1,63 @@
+{
+  "slug": "json-xml-yaml",
+  "title": "JSON 轉 YAML 怎麼弄：互轉時的字段與類型邊界",
+  "description": "以 JSON 轉 YAML 的操作為入口，拆解四種轉換方向如何處理字段名、XML 屬性與文本、YAML 錨點與類型推斷，並給出換行、注釋、空值和鍵順序上可核對的邊界與檢查清單。",
+  "category": "开发实用",
+  "toolSlug": "json-xml-yaml",
+  "published": "2026-11-06",
+  "updated": "2026-11-06",
+  "readingMinutes": 6,
+  "content": "<p>JSON 轉 YAML 的做法很直接：打開「JSON/XML/YAML 互轉」，在轉換方向裏選 JSON → YAML，粘貼一段嚴格合法的 JSON，點“轉換”就能得到 YAML。工具先用 JSON.parse 校驗，再交給 YAML 庫序列化；JSON 語法不對會直接報錯，類型、鍵名和換行的差異則要自己核對。</p>\n\n<h2>先選方向：JSON 轉 YAML 的實際操作</h2>\n<p>四個方向共用同一個輸入框和輸出框，區別只在“轉換方向”下拉框。JSON → YAML 走的是最短路徑，沒有額外選項：縮進、引號和值的寫法都由 YAML 庫的默認規則決定。</p>\n<ol>\n<li>把待轉換的 JSON 粘貼到“輸入源數據”，先確認粘貼的是純 JSON，沒有帶進注釋或尾隨逗號。</li>\n<li>在“轉換方向”中選擇 JSON → YAML。</li>\n<li>點“轉換”，結果出現在右側輸出框；出錯時狀態欄顯示錯誤信息，輸出框清空。</li>\n<li>用“複製”取走 YAML，粘貼到目標文件後確認縮進和引號保持原樣。</li>\n</ol>\n<p>這裏的前提是 JSON 本身合法。JSON 的屬性名必須用雙引號，末尾不能多一個逗號，也不能寫 // 或 /* */ 注釋；這些寫法在 JavaScript 對象字面量裏可能成立，在 JSON 裏都不成立。如果輸入的是從配置文件裏複製來的“帶注釋 JSON”，先用 <a href=\"/zh-hant/tools/dev/json-formatter/\">JSON 格式化與校驗</a> 找出語法錯誤，再回來轉換。</p>\n<p>一個最小例子如下。工具自帶的示例與它同構，轉換後的 YAML 在這個例子裏保持 JSON 裏的書寫順序，字符串 3.0 會被加上引號，數組輸出為縮進兩格的短橫線列表。</p>\n<pre><code>{\n  \"name\": \"Clover\",\n  \"version\": \"3.0\",\n  \"free\": true,\n  \"tags\": [\"dev\", \"tools\"]\n}</code></pre>\n<pre><code>name: Clover\nversion: \"3.0\"\nfree: true\ntags:\n  - dev\n  - tools</code></pre>\n<p>輸出末尾會帶一個換行，默認不加 --- 文檔起始標記。這些細節不是裝飾：YAML 的隱式類型規則會把沒有引號的 3.0 讀成數字，把 true 讀成布爾；字符串要保持字符串，就得靠引號。</p>\n\n<h2>四個方向各自在做什麼</h2>\n<p>把四種方向放在一張表裏看，區別就很清楚：兩條 XML 方向有固定的鍵名約定，兩條 YAML 方向則依賴 YAML 庫的解析與序列化。</p>\n<table>\n<thead><tr><th>方向</th><th>實現路徑</th><th>輸出特征</th></tr></thead>\n<tbody>\n<tr><td>JSON → XML</td><td>JSON.parse 後遞歸生成元素</td><td>根元素固定為 root；對象鍵變成標簽名；數組元素名由鍵名去掉結尾的 s 得到</td></tr>\n<tr><td>XML → JSON</td><td>DOMParser 解析成 DOM 後遞歸讀取</td><td>屬性加 @ 前綴；同名子元素出現一次是對象、出現多次是數組；葉子文本放進 #text</td></tr>\n<tr><td>JSON → YAML</td><td>JSON.parse 後調用 YAML 庫的 stringify</td><td>兩空格縮進，不加文檔起始標記；含換行的字符串輸出為字面量塊</td></tr>\n<tr><td>YAML → JSON</td><td>YAML 庫的 parse 後 JSON.stringify(…, null, 2)</td><td>兩空格縮進的 JSON；注釋和錨點名不會保留，開頭的 --- 會被丟棄，多文檔輸入直接報錯</td></tr>\n</tbody>\n</table>\n<p>這張表裏的每一條都能在頁面腳本裏對上：XML 方向沒有生成屬性的分支，所以 JSON 裏的字段不可能變成 XML 屬性；JSON → YAML 沒有傳縮進或引號選項，YAML → JSON 只把 JSON 縮進固定為兩格，所以 YAML 側的格式由庫的默認規則決定。</p>\n\n<h2>字段名和層級在哪裏丟</h2>\n<p>先看鍵名。JSON → XML 只接受字母或下劃線開頭、後續為字母數字下劃線點橫線的鍵；不符合規則的鍵會被統一寫成 item。兩個不合法鍵同時出現時，輸出裏就有兩個 item，回到 JSON 時會被合並成數組，原來的鍵名再也找不回來。</p>\n<pre><code>{\"2fa\": true, \"first name\": \"Clover\"}</code></pre>\n<p>這段 JSON 得到的是兩個 &lt;item&gt; 元素，而不是 &lt;2fa&gt; 和 &lt;first name&gt;。數組的命名還有一處容易忽略：元素名取的是外層鍵名去掉一個結尾的 s，所以 tags 變成 tag、items 變成 item，但 status 會變成 statu，address 會變成 addres。名字以 s 結尾的英文字段在 XML 裏會變形。</p>\n<p>XML → JSON 換了一套約定。屬性寫成 @ 加屬性名，葉子元素的文本寫成 #text；同名子元素只有一個時輸出對象，有兩個及以上時輸出數組。這就帶來一個不可逆的歧義：“只有一個元素的數組”和“單個對象”在 XML 裏長得一樣，轉回 JSON 時只能退化成對象。</p>\n<p>把 {\"id\": 1} 走一遍 JSON → XML → JSON，id 會變成 {\"#text\": \"1\"}，根節點還會多出 #text: \"1\"。原因是工具輸出的 XML 帶縮進，根的第一個子節點是空白文本，讀取時就把整段文本又拼進了 #text。數字 1 變成字符串，根元素名也會丟：JSON → XML 固定輸出 &lt;root&gt;，XML → JSON 只讀取文檔元素的內容，不再保留外層標簽名。</p>\n<p>屬性同樣回不去。@id 這樣的鍵不符合 XML 標簽名規則，JSON → XML 時會落成 &lt;item&gt;，屬性值雖然還在，但“這是屬性”的結構信息已經消失。XML 命名空間前綴帶冒號，也會遇到同樣的問題。</p>\n\n<h2>值和換行：文本層看不出的類型</h2>\n<p>JSON 只有六種值：對象、數組、數字、字符串、true/false 和 null。XML 不攜帶 JSON/YAML 那樣的標量類型，內容都是字符數據；轉換一旦經過 XML，類型信息就基本只剩文本。</p>\n<p>JSON 裏的 1 和 \"1\" 在 JSON → XML 後都是 &lt;id&gt;1&lt;/id&gt;，xml2json 讀回來都是 {\"#text\": \"1\"}；布爾 true 變成字符串 \"true\"；null、空對象 {} 和空數組 [] 都輸出自閉合元素，讀回來是空字符串。三種不同的值在 XML 這一層被壓成同一種形態。</p>\n<pre><code>{\"id\": 1, \"ok\": true, \"note\": null}</code></pre>\n<p>YAML 方向的情況不同：YAML 有隱式類型，解析器按 schema 把未加引號的標量識別成布爾、整數、浮點或 null。YAML 1.2 的 core schema 只把 true、True、TRUE 與 false、False、FALSE 這六種寫法當作布爾，yes、on 和 tRuE 仍是字符串；1.0 會被讀成數字 1，0123 會按十進制讀成 123，0x1F 讀成 31，~ 讀成 null。</p>\n<pre><code>flag: yes\nratio: 1.0\ncode: 0123\nhex: 0x1F\nempty: ~</code></pre>\n<p>轉成 JSON 後是 {\"flag\":\"yes\",\"ratio\":1,\"code\":123,\"hex\":31,\"empty\":null}。想保留 0123 這樣的前導零，必須在 YAML 裏加引號；反過來 JSON → YAML 時，字符串 \"true\" 和 \"123\" 會被序列化器加上引號，避免讀回時變成布爾或數字。手工改 YAML 輸出時如果刪掉這些引號，類型就會翻轉。</p>\n<p>換行是另一處。JSON 字符串裏的 \\n 在 JSON → YAML 時通常輸出為字面量塊，塊頭隨內容變化：不以換行結尾是 |-，以換行結尾是 |，多個結尾換行是 |+，有前導空格時塊頭會帶縮進指示，如 |2-；YAML 讀回時仍是換行。YAML 多行文本轉成 JSON 後變成帶 \\n 的普通字符串。XML 更粗糙：讀取時先 trim textContent，首尾空白不保留；單子元素且首個子節點有文本時不加 #text，其餘有子元素的情況寫的是 trim 後的整段 textContent（為空時除外），子元素多於一個時內部縮進和換行會隨拼接文本保留。</p>\n\n<h2>邊界與限制</h2>\n<p>把這個工具當成“結構搬運工”而不是“無損轉換器”，下面這些邊界要逐條確認。</p>\n<ul>\n<li><strong>XML 屬性沒有 JSON 對應物。</strong>XML → JSON 用 @ 前綴保留屬性，但 JSON → XML 不認識這個約定，@id 會被寫成 item。屬性只能在 XML → JSON 方向查看，回程必然丟失。</li>\n<li><strong>注釋和空白不會保留。</strong>JSON 不支持注釋；YAML 的 # 注釋在解析時被丟棄；XML 注釋不屬於字符數據，也不會進入子元素列表或 textContent。XML 縮進只是排版，但空白文本節點會參與 firstChild/#text 判斷，單子元素前有空白時根節點會多出 trim 後的 #text；YAML 縮進是語法結構，改縮進會改變解析結果。</li>\n<li><strong>混合內容會丟文本。</strong>文本與元素混排（如 &lt;root&gt;a&lt;b&gt;1&lt;/b&gt;c&lt;/root&gt;）時，單子元素且首節點為文本，innerText 被置空，a、c 文本丟失。</li>\n<li><strong>錨點、別名和多文檔。</strong>YAML 的 &amp;anchor 與 *alias 在 parse 後指向同一個對象，JSON.stringify 會把內容重複寫兩遍，錨點名不會出現；一個流裏用 --- 分隔的多份文檔不會被一次 parse 讀全，工具只調用 parse，多文檔輸入會報 Source contains multiple documents；同名鍵重複也會報錯。</li>\n<li><strong>數字與布爾只有 YAML 會推斷。</strong>YAML core schema 的規則決定 true/false、整數、浮點和 null；JSON 的數字語法不允許 NaN 和 Infinity 字面量；XML 全是文本。跨三種格式時，類型只在解析器認識的那一層存在。</li>\n<li><strong>鍵順序不是契約。</strong>JSON 規範把對象定義為無序集合，YAML 也把映射定義為無序；序列化器通常按遍歷順序輸出，但不要依賴這個順序做 diff 或簽名。</li>\n<li><strong>特殊字符會被轉義，但控制字符不行。</strong>JSON → XML 會轉義 &amp;、&lt;、&gt;、\" 這四個字符，所以它們能安全放進文本；但 XML 1.0 允許的字符範圍不含大部分 C0 控制字符，JSON 字符串裏如果帶 U+0001 這類字符，生成的 XML 就不是良構的。</li>\n<li><strong>往返不保證無損。</strong>根元素名、XML 屬性、空值形態、單元素數組、注釋和錨點都可能變化；工具的說明裏也明確寫了不保證往返無損，不要把“轉換成功”當成“語義等價”。</li>\n<li><strong>大文件沒有流式處理。</strong>頁面一次性讀入整段文本，XML 方向還會建一棵完整 DOM；輸入和輸出都留在文本框裏，文件很大時內存和響應都會吃緊，批量數據更適合用命令行工具處理。</li>\n</ul>\n\n<h2>交付前的檢查清單</h2>\n<ol>\n<li>先用 <a href=\"/zh-hant/tools/dev/json-formatter/\">JSON 格式化與校驗</a> 確認 JSON 合法，再開始轉換。</li>\n<li>XML 輸入先用 <a href=\"/zh-hant/tools/dev/xml-formatter/\">XML 格式化</a> 看標簽是否閉合、層級是否符合預期。</li>\n<li>YAML → JSON 之後，用 <a href=\"/zh-hant/tools/dev/jsonpath/\">JSONPath 查詢</a> 抽查關鍵路徑，確認數組沒有被壓成對象。</li>\n<li>逐項對比源和目標的鍵名，尤其是含空格、數字開頭、以 s 結尾的鍵。</li>\n<li>抽查 null、空對象、空數組、數字、布爾五類值，確認沒有變成空串或字符串。</li>\n<li>把結果放回目標系統裏實際解析一次，而不是只看文本框顯示是否順眼。</li>\n</ol>\n<p>如果目標只是把 JSON 配置改成 YAML，最穩妥的做法是保持結構簡單：鍵名用字母開頭、避免以 s 結尾、數組保持同構、字符串該加引號就加引號。這樣即使轉換器有命名和類型約定，結果也更容易核對。</p>",
+  "faqs": [
+    {
+      "q": "為什麼 JSON 轉 YAML 時字符串被自動加了引號？",
+      "a": "YAML 會按 schema 推斷未加引號的標量：3.0 會被讀成數字，true 會被讀成布爾。序列化器給這些字符串加引號，是為了讓它們讀回時仍然是字符串；手工刪掉引號就會改變類型。"
+    },
+    {
+      "q": "XML 轉 JSON 後多出的 @ 和 #text 是什麼？",
+      "a": "@ 前綴表示 XML 屬性，#text 表示元素裏的文本。它們是這個工具的鍵名約定，不是 JSON 標準的一部分；把結果轉回 XML 時，@ 鍵不會被還原成屬性。"
+    },
+    {
+      "q": "為什麼只有一個元素的數組變成了對象？",
+      "a": "XML 沒有數組類型，同名子元素出現一次時，xml2json 輸出對象；出現兩次及以上才輸出數組。XML 本身無法區分“單元素數組”和“單個對象”，所以這個信息在轉換中會丟。"
+    },
+    {
+      "q": "YAML 裏的 yes 和 on 為什麼沒有變成布爾？",
+      "a": "YAML 1.2 的 core schema 只把 true、True、TRUE 與 false、False、FALSE 解析為布爾，yes、on 屬於普通字符串。需要布爾值時寫 true 或 false，避免依賴舊版 YAML 1.1 的習慣。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 8259：JavaScript Object Notation (JSON) Data Interchange Format",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259.html"
+    },
+    {
+      "title": "YAML 1.2.2 規範",
+      "url": "https://yaml.org/spec/1.2.2/"
+    },
+    {
+      "title": "W3C：Extensible Markup Language (XML) 1.0（第五版）",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "MDN：JSON",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON"
+    },
+    {
+      "title": "MDN：DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "json-xml-yaml",
+      "lang": "tw",
+      "translatedFrom": "1ec11e1a6b39edad98f430549e8aa54a3d6fd29ce63a1334789cad78ec3f8c92",
+      "translatedAt": "2026-11-06T11:36:48.248Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.96
+    }
+  },
+  "focus": "先確認 JSON 合法，再決定字段名、空值和類型在 XML 或 YAML 裏如何落地。",
+  "notice": "轉換在瀏覽器本地完成，不上傳數據；工具不保證往返無損，XML 屬性、注釋和錨點在回程可能丟失。"
+}

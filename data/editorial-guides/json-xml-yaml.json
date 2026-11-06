@@ -1,0 +1,66 @@
+{
+  "slug": "json-xml-yaml",
+  "title": "JSON 转 YAML 怎么弄：互转时的字段与类型边界",
+  "description": "以 JSON 转 YAML 的操作为入口，拆解四种转换方向如何处理字段名、XML 属性与文本、YAML 锚点与类型推断，并给出换行、注释、空值和键顺序上可核对的边界与检查清单。",
+  "category": "开发实用",
+  "toolSlug": "json-xml-yaml",
+  "published": "2026-11-06",
+  "updated": "2026-11-06",
+  "readingMinutes": 6,
+  "content": "<p>JSON 转 YAML 的做法很直接：打开「JSON/XML/YAML 互转」，在转换方向里选 JSON → YAML，粘贴一段严格合法的 JSON，点“转换”就能得到 YAML。工具先用 JSON.parse 校验，再交给 YAML 库序列化；JSON 语法不对会直接报错，类型、键名和换行的差异则要自己核对。</p>\n\n<h2>先选方向：JSON 转 YAML 的实际操作</h2>\n<p>四个方向共用同一个输入框和输出框，区别只在“转换方向”下拉框。JSON → YAML 走的是最短路径，没有额外选项：缩进、引号和值的写法都由 YAML 库的默认规则决定。</p>\n<ol>\n<li>把待转换的 JSON 粘贴到“输入源数据”，先确认粘贴的是纯 JSON，没有带进注释或尾随逗号。</li>\n<li>在“转换方向”中选择 JSON → YAML。</li>\n<li>点“转换”，结果出现在右侧输出框；出错时状态栏显示错误信息，输出框清空。</li>\n<li>用“复制”取走 YAML，粘贴到目标文件后确认缩进和引号保持原样。</li>\n</ol>\n<p>这里的前提是 JSON 本身合法。JSON 的属性名必须用双引号，末尾不能多一个逗号，也不能写 // 或 /* */ 注释；这些写法在 JavaScript 对象字面量里可能成立，在 JSON 里都不成立。如果输入的是从配置文件里复制来的“带注释 JSON”，先用 <a href=\"/tools/dev/json-formatter/\">JSON 格式化与校验</a> 找出语法错误，再回来转换。</p>\n<p>一个最小例子如下。工具自带的示例与它同构，转换后的 YAML 在这个例子里保持 JSON 里的书写顺序，字符串 3.0 会被加上引号，数组输出为缩进两格的短横线列表。</p>\n<pre><code>{\n  \"name\": \"Clover\",\n  \"version\": \"3.0\",\n  \"free\": true,\n  \"tags\": [\"dev\", \"tools\"]\n}</code></pre>\n<pre><code>name: Clover\nversion: \"3.0\"\nfree: true\ntags:\n  - dev\n  - tools</code></pre>\n<p>输出末尾会带一个换行，默认不加 --- 文档起始标记。这些细节不是装饰：YAML 的隐式类型规则会把没有引号的 3.0 读成数字，把 true 读成布尔；字符串要保持字符串，就得靠引号。</p>\n\n<h2>四个方向各自在做什么</h2>\n<p>把四种方向放在一张表里看，区别就很清楚：两条 XML 方向有固定的键名约定，两条 YAML 方向则依赖 YAML 库的解析与序列化。</p>\n<table>\n<thead><tr><th>方向</th><th>实现路径</th><th>输出特征</th></tr></thead>\n<tbody>\n<tr><td>JSON → XML</td><td>JSON.parse 后递归生成元素</td><td>根元素固定为 root；对象键变成标签名；数组元素名由键名去掉结尾的 s 得到</td></tr>\n<tr><td>XML → JSON</td><td>DOMParser 解析成 DOM 后递归读取</td><td>属性加 @ 前缀；同名子元素出现一次是对象、出现多次是数组；叶子文本放进 #text</td></tr>\n<tr><td>JSON → YAML</td><td>JSON.parse 后调用 YAML 库的 stringify</td><td>两空格缩进，不加文档起始标记；含换行的字符串输出为字面量块</td></tr>\n<tr><td>YAML → JSON</td><td>YAML 库的 parse 后 JSON.stringify(…, null, 2)</td><td>两空格缩进的 JSON；注释和锚点名不会保留，开头的 --- 会被丢弃，多文档输入直接报错</td></tr>\n</tbody>\n</table>\n<p>这张表里的每一条都能在页面脚本里对上：XML 方向没有生成属性的分支，所以 JSON 里的字段不可能变成 XML 属性；JSON → YAML 没有传缩进或引号选项，YAML → JSON 只把 JSON 缩进固定为两格，所以 YAML 侧的格式由库的默认规则决定。</p>\n\n<h2>字段名和层级在哪里丢</h2>\n<p>先看键名。JSON → XML 只接受字母或下划线开头、后续为字母数字下划线点横线的键；不符合规则的键会被统一写成 item。两个不合法键同时出现时，输出里就有两个 item，回到 JSON 时会被合并成数组，原来的键名再也找不回来。</p>\n<pre><code>{\"2fa\": true, \"first name\": \"Clover\"}</code></pre>\n<p>这段 JSON 得到的是两个 &lt;item&gt; 元素，而不是 &lt;2fa&gt; 和 &lt;first name&gt;。数组的命名还有一处容易忽略：元素名取的是外层键名去掉一个结尾的 s，所以 tags 变成 tag、items 变成 item，但 status 会变成 statu，address 会变成 addres。名字以 s 结尾的英文字段在 XML 里会变形。</p>\n<p>XML → JSON 换了一套约定。属性写成 @ 加属性名，叶子元素的文本写成 #text；同名子元素只有一个时输出对象，有两个及以上时输出数组。这就带来一个不可逆的歧义：“只有一个元素的数组”和“单个对象”在 XML 里长得一样，转回 JSON 时只能退化成对象。</p>\n<p>把 {\"id\": 1} 走一遍 JSON → XML → JSON，id 会变成 {\"#text\": \"1\"}，根节点还会多出 #text: \"1\"。原因是工具输出的 XML 带缩进，根的第一个子节点是空白文本，读取时就把整段文本又拼进了 #text。数字 1 变成字符串，根元素名也会丢：JSON → XML 固定输出 &lt;root&gt;，XML → JSON 只读取文档元素的内容，不再保留外层标签名。</p>\n<p>属性同样回不去。@id 这样的键不符合 XML 标签名规则，JSON → XML 时会落成 &lt;item&gt;，属性值虽然还在，但“这是属性”的结构信息已经消失。XML 命名空间前缀带冒号，也会遇到同样的问题。</p>\n\n<h2>值和换行：文本层看不出的类型</h2>\n<p>JSON 只有六种值：对象、数组、数字、字符串、true/false 和 null。XML 不携带 JSON/YAML 那样的标量类型，内容都是字符数据；转换一旦经过 XML，类型信息就基本只剩文本。</p>\n<p>JSON 里的 1 和 \"1\" 在 JSON → XML 后都是 &lt;id&gt;1&lt;/id&gt;，xml2json 读回来都是 {\"#text\": \"1\"}；布尔 true 变成字符串 \"true\"；null、空对象 {} 和空数组 [] 都输出自闭合元素，读回来是空字符串。三种不同的值在 XML 这一层被压成同一种形态。</p>\n<pre><code>{\"id\": 1, \"ok\": true, \"note\": null}</code></pre>\n<p>YAML 方向的情况不同：YAML 有隐式类型，解析器按 schema 把未加引号的标量识别成布尔、整数、浮点或 null。YAML 1.2 的 core schema 只把 true、True、TRUE 与 false、False、FALSE 这六种写法当作布尔，yes、on 和 tRuE 仍是字符串；1.0 会被读成数字 1，0123 会按十进制读成 123，0x1F 读成 31，~ 读成 null。</p>\n<pre><code>flag: yes\nratio: 1.0\ncode: 0123\nhex: 0x1F\nempty: ~</code></pre>\n<p>转成 JSON 后是 {\"flag\":\"yes\",\"ratio\":1,\"code\":123,\"hex\":31,\"empty\":null}。想保留 0123 这样的前导零，必须在 YAML 里加引号；反过来 JSON → YAML 时，字符串 \"true\" 和 \"123\" 会被序列化器加上引号，避免读回时变成布尔或数字。手工改 YAML 输出时如果删掉这些引号，类型就会翻转。</p>\n<p>换行是另一处。JSON 字符串里的 \\n 在 JSON → YAML 时通常输出为字面量块，块头随内容变化：不以换行结尾是 |-，以换行结尾是 |，多个结尾换行是 |+，有前导空格时块头会带缩进指示，如 |2-；YAML 读回时仍是换行。YAML 多行文本转成 JSON 后变成带 \\n 的普通字符串。XML 更粗糙：读取时先 trim textContent，首尾空白不保留；单子元素且首个子节点有文本时不加 #text，其余有子元素的情况写的是 trim 后的整段 textContent（为空时除外），子元素多于一个时内部缩进和换行会随拼接文本保留。</p>\n\n<h2>边界与限制</h2>\n<p>把这个工具当成“结构搬运工”而不是“无损转换器”，下面这些边界要逐条确认。</p>\n<ul>\n<li><strong>XML 属性没有 JSON 对应物。</strong>XML → JSON 用 @ 前缀保留属性，但 JSON → XML 不认识这个约定，@id 会被写成 item。属性只能在 XML → JSON 方向查看，回程必然丢失。</li>\n<li><strong>注释和空白不会保留。</strong>JSON 不支持注释；YAML 的 # 注释在解析时被丢弃；XML 注释不属于字符数据，也不会进入子元素列表或 textContent。XML 缩进只是排版，但空白文本节点会参与 firstChild/#text 判断，单子元素前有空白时根节点会多出 trim 后的 #text；YAML 缩进是语法结构，改缩进会改变解析结果。</li>\n<li><strong>混合内容会丢文本。</strong>文本与元素混排（如 &lt;root&gt;a&lt;b&gt;1&lt;/b&gt;c&lt;/root&gt;）时，单子元素且首节点为文本，innerText 被置空，a、c 文本丢失。</li>\n<li><strong>锚点、别名和多文档。</strong>YAML 的 &amp;anchor 与 *alias 在 parse 后指向同一个对象，JSON.stringify 会把内容重复写两遍，锚点名不会出现；一个流里用 --- 分隔的多份文档不会被一次 parse 读全，工具只调用 parse，多文档输入会报 Source contains multiple documents；同名键重复也会报错。</li>\n<li><strong>数字与布尔只有 YAML 会推断。</strong>YAML core schema 的规则决定 true/false、整数、浮点和 null；JSON 的数字语法不允许 NaN 和 Infinity 字面量；XML 全是文本。跨三种格式时，类型只在解析器认识的那一层存在。</li>\n<li><strong>键顺序不是契约。</strong>JSON 规范把对象定义为无序集合，YAML 也把映射定义为无序；序列化器通常按遍历顺序输出，但不要依赖这个顺序做 diff 或签名。</li>\n<li><strong>特殊字符会被转义，但控制字符不行。</strong>JSON → XML 会转义 &amp;、&lt;、&gt;、\" 这四个字符，所以它们能安全放进文本；但 XML 1.0 允许的字符范围不含大部分 C0 控制字符，JSON 字符串里如果带 U+0001 这类字符，生成的 XML 就不是良构的。</li>\n<li><strong>往返不保证无损。</strong>根元素名、XML 属性、空值形态、单元素数组、注释和锚点都可能变化；工具的说明里也明确写了不保证往返无损，不要把“转换成功”当成“语义等价”。</li>\n<li><strong>大文件没有流式处理。</strong>页面一次性读入整段文本，XML 方向还会建一棵完整 DOM；输入和输出都留在文本框里，文件很大时内存和响应都会吃紧，批量数据更适合用命令行工具处理。</li>\n</ul>\n\n<h2>交付前的检查清单</h2>\n<ol>\n<li>先用 <a href=\"/tools/dev/json-formatter/\">JSON 格式化与校验</a> 确认 JSON 合法，再开始转换。</li>\n<li>XML 输入先用 <a href=\"/tools/dev/xml-formatter/\">XML 格式化</a> 看标签是否闭合、层级是否符合预期。</li>\n<li>YAML → JSON 之后，用 <a href=\"/tools/dev/jsonpath/\">JSONPath 查询</a> 抽查关键路径，确认数组没有被压成对象。</li>\n<li>逐项对比源和目标的键名，尤其是含空格、数字开头、以 s 结尾的键。</li>\n<li>抽查 null、空对象、空数组、数字、布尔五类值，确认没有变成空串或字符串。</li>\n<li>把结果放回目标系统里实际解析一次，而不是只看文本框显示是否顺眼。</li>\n</ol>\n<p>如果目标只是把 JSON 配置改成 YAML，最稳妥的做法是保持结构简单：键名用字母开头、避免以 s 结尾、数组保持同构、字符串该加引号就加引号。这样即使转换器有命名和类型约定，结果也更容易核对。</p>",
+  "faqs": [
+    {
+      "q": "为什么 JSON 转 YAML 时字符串被自动加了引号？",
+      "a": "YAML 会按 schema 推断未加引号的标量：3.0 会被读成数字，true 会被读成布尔。序列化器给这些字符串加引号，是为了让它们读回时仍然是字符串；手工删掉引号就会改变类型。"
+    },
+    {
+      "q": "XML 转 JSON 后多出的 @ 和 #text 是什么？",
+      "a": "@ 前缀表示 XML 属性，#text 表示元素里的文本。它们是这个工具的键名约定，不是 JSON 标准的一部分；把结果转回 XML 时，@ 键不会被还原成属性。"
+    },
+    {
+      "q": "为什么只有一个元素的数组变成了对象？",
+      "a": "XML 没有数组类型，同名子元素出现一次时，xml2json 输出对象；出现两次及以上才输出数组。XML 本身无法区分“单元素数组”和“单个对象”，所以这个信息在转换中会丢。"
+    },
+    {
+      "q": "YAML 里的 yes 和 on 为什么没有变成布尔？",
+      "a": "YAML 1.2 的 core schema 只把 true、True、TRUE 与 false、False、FALSE 解析为布尔，yes、on 属于普通字符串。需要布尔值时写 true 或 false，避免依赖旧版 YAML 1.1 的习惯。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 8259：JavaScript Object Notation (JSON) Data Interchange Format",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259.html"
+    },
+    {
+      "title": "YAML 1.2.2 规范",
+      "url": "https://yaml.org/spec/1.2.2/"
+    },
+    {
+      "title": "W3C：Extensible Markup Language (XML) 1.0（第五版）",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "MDN：JSON",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON"
+    },
+    {
+      "title": "MDN：DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    }
+  ],
+  "focus": "先确认 JSON 合法，再决定字段名、空值和类型在 XML 或 YAML 里如何落地。",
+  "notice": "转换在浏览器本地完成，不上传数据；工具不保证往返无损，XML 属性、注释和锚点在回程可能丢失。",
+  "_meta": {
+    "auto": true,
+    "type": "new-guide",
+    "mode": "new-guide",
+    "runId": "2026-11-06Tmanual-1117",
+    "primaryQuery": "json转yaml怎么弄",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.85,
+    "reviewerCheckedClaims": 30,
+    "reviewerReviewFile": ".editorial/runs/2026-11-06Tmanual-1117/review.json",
+    "reviewRounds": 2,
+    "verifiedAt": "2026-11-06T11:45:32.778Z"
+  }
+}
