@@ -66,3 +66,13 @@
    建议保持广告关闭，并可用一行配置回退：收窄 `config/routes.mjs` 的 `toolIndexLanguages` 与 `localizedSections` 中 `/guides` 的语言列表。
 
 繁中样章：`https://clovertools.cn/zh-hant/guides/uuid-generator/`（机械转换，`_meta.translation.reviewerConfidence=1`）。
+
+### 上线与验收（2026-11-06）
+
+| 项 | 结果 |
+| --- | --- |
+| 提交 | `c64121b`（五语言指南 + 全语言索引 + 翻译流水线），已推送 `main` |
+| CI / 部署 | [Quality checks #42181987673](https://github.com/YupenBob/clover-tools/actions/runs/42181987673)：quality ✅、Cloudflare 部署 ✅ |
+| 构建 | 468 页；sitemap 463 条（唯一排除项为 5 个 404） |
+| 生产抽查 | `/zh-hant/guides/uuid-generator/` 200 且 canonical/hreflang 正确；`/en/tools/dev/json-formatter/` 无 noindex、5 语言 hreflang；`/zh-hant/tools/daily/vocab-flash/` 仅 zh/zh-Hant；`/en|ja|ko/tools/daily/vocab-flash/` 为真实 404（不虚构页面）；首页工具数 77 |
+| 风险 | 317 个外语工具页与自动翻译同时开放收录，叠加 AdSense 低质历史，风险显著上升；已保留配置级回滚（收回 `toolIndexLanguages` / `localizedSections`）与一键文章回滚 |
