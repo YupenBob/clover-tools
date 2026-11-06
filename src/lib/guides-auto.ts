@@ -20,10 +20,11 @@ import guide11 from '../../data/editorial-guides/random-number-fairness.json' wi
 import guide12 from '../../data/editorial-guides/regex-debugging-method.json' with { type: 'json' };
 import guide13 from '../../data/editorial-guides/strong-password-practices.json' with { type: 'json' };
 import guide14 from '../../data/editorial-guides/text-diff-review.json' with { type: 'json' };
-import guide15 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
-import guide16 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
-import guide17 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
-import guide18 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
+import guide15 from '../../data/editorial-guides/text-transform.json' with { type: 'json' };
+import guide16 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
+import guide17 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
+import guide18 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
+import guide19 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -45,4 +46,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide16 as unknown as Guide,
   guide17 as unknown as Guide,
   guide18 as unknown as Guide,
+  guide19 as unknown as Guide,
 ];

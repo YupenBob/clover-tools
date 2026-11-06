@@ -1,0 +1,67 @@
+{
+  "slug": "text-transform",
+  "title": "駝峰命名怎麼轉換：大小寫、蛇形與全半角規則",
+  "description": "從工具的切詞正則講起，說明 camelCase、PascalCase、snake_case、kebab-case、CONSTANT_CASE 與全角半角的真實輸出，並逐一列出縮寫、數字、中文、標點、空格和換行容易被誤處理的邊界。",
+  "category": "开发实用",
+  "toolSlug": "text-transform",
+  "published": "2026-11-07",
+  "updated": "2026-11-07",
+  "readingMinutes": 7,
+  "content": "<p>駝峰命名轉換的通用做法是先把文本拆成單詞，再按目標規則拼接，例如 <code>user_name</code>、<code>user-name</code> 和 <code>user name</code> 都會得到 <code>userName</code>。本站文本轉換工具正是這樣做的：首詞小寫，後續每個詞的首字母大寫。真正容易出錯的地方是連續大寫縮寫、中文和全角字符，而不是拼接這一步。</p>\n\n<h2>工具如何切詞：一條正則決定所有結果</h2>\n<p>camelCase、PascalCase、snake_case、kebab-case 和 CONSTANT_CASE 共用同一個 <code>splitWords</code>。它先對輸入調用 <code>trim()</code>，再用 <code>/[\\s_\\-]+|(?=[A-Z])/</code> 切分，把每個詞轉成小寫，最後過濾空字符串。也就是說，分隔符只有三類：任意空白、下劃線、連字符，外加每個 ASCII 大寫字母之前的零寬位置。</p>\n<ul>\n<li>空白：空格、制表符、換行都算，全角空格 U+3000 也落在 <code>\\s</code> 裏。</li>\n<li>下劃線與連字符：連續多個會被當成一個分隔符。</li>\n<li>ASCII 大寫字母：<code>(?=[A-Z])</code> 只在不消耗字符的情況下切開，所以 <code>userName</code> 會拆成 <code>user</code> 與 <code>name</code>。</li>\n<li>其他字符不切：逗號、句點、括號、中文和 emoji 都會留在所屬單詞內部。</li>\n</ul>\n<pre><code>function splitWords(s) {\n  return s\n    .trim()\n    .split(/[\\s_\\-]+|(?=[A-Z])/)\n    .map((w) =&gt; w.toLowerCase())\n    .filter(Boolean);\n}</code></pre>\n<p>因為每個詞都會被 <code>toLowerCase()</code> 處理，原始大小寫信息在切詞階段就丟失了。這也解釋了為什麼 <code>userName</code> 再轉 camelCase 仍然是 <code>userName</code>，而 <code>HTTPServer</code> 會變成一串單字母。</p>\n\n<h2>camelCase 與 PascalCase：首詞和單字母詞</h2>\n<p>camelCase 保留第一個詞的小寫形式，後續詞取首字符大寫再拼接；PascalCase 對每個詞都做首字母大寫。實現裏用的是 <code>w[0].toUpperCase() + w.slice(1)</code>，而不是“把整詞首字母大寫、其餘保持不變”，所以每個詞在進入這一步之前已經全是小寫。</p>\n<pre><code>case 'camel':\n  return words.map((w, i) =&gt; (i === 0 ? w : w[0].toUpperCase() + w.slice(1))).join('');\ncase 'pascal':\n  return words.map((w) =&gt; w[0].toUpperCase() + w.slice(1)).join('');</code></pre>\n<table>\n<thead><tr><th>輸入</th><th>camelCase</th><th>PascalCase</th><th>snake_case</th><th>kebab-case</th></tr></thead>\n<tbody>\n<tr><td><code>user_name</code></td><td><code>userName</code></td><td><code>UserName</code></td><td><code>user_name</code></td><td><code>user-name</code></td></tr>\n<tr><td><code>userID</code></td><td><code>userID</code></td><td><code>UserID</code></td><td><code>user_i_d</code></td><td><code>user-i-d</code></td></tr>\n<tr><td><code>HTTPServer</code></td><td><code>hTTPServer</code></td><td><code>HTTPServer</code></td><td><code>h_t_t_p_server</code></td><td><code>h-t-t-p-server</code></td></tr>\n<tr><td><code>XMLHttpRequest</code></td><td><code>xMLHttpRequest</code></td><td><code>XMLHttpRequest</code></td><td><code>x_m_l_http_request</code></td><td><code>x-m-l-http-request</code></td></tr>\n<tr><td><code>iPhone 15 Pro</code></td><td><code>iPhone15Pro</code></td><td><code>IPhone15Pro</code></td><td><code>i_phone_15_pro</code></td><td><code>i-phone-15-pro</code></td></tr>\n</tbody>\n</table>\n<p><code>HTTPServer</code> 的 camelCase 不是常見的 <code>httpServer</code>，而是 <code>hTTPServer</code>：縮寫部分的 H、T、T、P 各成一個詞，拼接時又分別被重新大寫。反過來，<code>HTTPServer</code> 的 PascalCase 恰好等於原文，因為每個單字母詞都被還原成大寫。單字母詞是這套規則裏最容易被忽略的一類輸入。</p>\n\n<h2>snake_case、kebab-case 與 CONSTANT_CASE</h2>\n<p>這三種模式只改連接符：snake_case 用下劃線連接，kebab-case 用連字符連接，CONSTANT_CASE 先按下劃線連接再整體轉大寫。轉換後的每個詞本身已經是小寫，所以 CONSTANT_CASE 的“全大寫”實際作用在拼接結果上，標點和非 ASCII 字符也會一起進入 <code>toUpperCase()</code>。</p>\n<table>\n<thead><tr><th>模式</th><th>輸入 <code>user login count</code> 的結果</th><th>規則</th></tr></thead>\n<tbody>\n<tr><td>全部大寫</td><td><code>USER LOGIN COUNT</code></td><td>整段直接 <code>toUpperCase()</code></td></tr>\n<tr><td>全部小寫</td><td><code>user login count</code></td><td>整段直接 <code>toLowerCase()</code></td></tr>\n<tr><td>每個單詞首字母大寫</td><td><code>User Login Count</code></td><td>只匹配 <code>\\b\\w</code></td></tr>\n<tr><td>句子首字母大寫</td><td><code>User login count</code></td><td>開頭與句末標點之後</td></tr>\n<tr><td>camelCase</td><td><code>userLoginCount</code></td><td>首詞小寫，後續詞首字母大寫</td></tr>\n<tr><td>PascalCase</td><td><code>UserLoginCount</code></td><td>每詞首字母大寫</td></tr>\n<tr><td>snake_case</td><td><code>user_login_count</code></td><td>下劃線連接</td></tr>\n<tr><td>kebab-case</td><td><code>user-login-count</code></td><td>連字符連接</td></tr>\n<tr><td>CONSTANT_CASE</td><td><code>USER_LOGIN_COUNT</code></td><td>下劃線連接後轉大寫</td></tr>\n<tr><td>轉全角</td><td><code>ｕｓｅｒ ｌｏｇｉｎ ｃｏｕｎｔ</code></td><td>ASCII 可見字符逐字加 0xFEE0</td></tr>\n<tr><td>轉半角</td><td><code>user login count</code></td><td>U+FF01–U+FF5E 逐字減 0xFEE0</td></tr>\n</tbody>\n</table>\n<p>注意“轉全角”一行的空格仍是普通空格 U+0020，不是全角空格 U+3000；這不是排版疏忽，而是逐字符映射只覆蓋了 ASCII 的 <code>!</code> 到 <code>~</code>。同理，全角輸入再轉半角時，U+3000 也不會變成普通空格。</p>\n\n<h2>title 與 sentence 只處理 ASCII 詞首</h2>\n<p>“每個單詞首字母大寫”用的是 <code>src.replace(/\\b\\w/g, ...)</code>。在非 Unicode 模式下，<code>\\w</code> 等價於 <code>[A-Za-z0-9_]</code>，<code>\\b</code> 也按這套 ASCII 詞字符判斷邊界。因此它只會把基本拉丁字母變成大寫，中文、全角字母和 emoji 都不會被當作單詞開頭；重音字母同樣不在 <code>\\w</code> 內，<code>éclair</code> 會得到 <code>éClair</code>，而不是 <code>Éclair</code>。</p>\n<p>這個模式只做大寫化，不負責把其餘字母改小寫。<code>hELLO wORLD</code> 的結果是 <code>HELLO WORLD</code>；<code>eBay</code> 會變成 <code>EBay</code>。撇號是另一個坑：<code>don't</code> 裏的 <code>t</code> 前面是非詞字符，構成新的詞邊界，所以 title 得到 <code>Don'T</code>；下劃線則相反，<code>foo_bar</code> 只會在開頭大寫，得到 <code>Foo_bar</code>。</p>\n<p>“句子首字母大寫”用 <code>/(^\\s*\\w|[.!?。！？]\\s*\\w)/g</code>，只覆蓋三種位置：字符串開頭、半角句號/感嘆號/問號之後、中文句號/感嘆號/問號之後。它同樣只識別 ASCII 的 <code>\\w</code>，所以 <code>中文。下一句</code> 不會變化，而 <code>中文。hello</code> 會變成 <code>中文。Hello</code>；如果文本以中文開頭，<code>^\\s*\\w</code> 也匹配不到後面的英文單詞。與 title 不同，sentence 不會碰撇號後的字母，<code>don't</code> 保持 <code>Don't</code>。</p>\n<p>兩個模式都保留原有空白和標點，不做 trim，也不改變未命中的大小寫。這意味著它們適合做展示層的首字母處理，不適合把任意文本規範成某種命名風格。</p>\n\n<h2>全角轉換：只加 0xFEE0，不碰空格</h2>\n<p>“轉全角”的正則是 <code>/[!-~]/g</code>，匹配 U+0021 到 U+007E 的 ASCII 可見字符，再把碼點加 <code>0xFEE0</code>，得到 U+FF01–U+FF5E 的全角形式。字母、數字、下劃線和標點都在範圍內，空格 U+0020 不在，所以 <code>Hello, World!</code> 的輸出是 <code>Ｈｅｌｌｏ， Ｗｏｒｌｄ！</code>，兩個單詞之間仍是普通空格。</p>\n<pre><code>src.replace(/[!-~]/g, (c) =&gt;\n  String.fromCharCode(c.charCodeAt(0) + 0xfee0));</code></pre>\n<p>這條規則也解釋了為什麼 <code>user_name</code> 會變成 <code>ｕｓｅｒ＿ｎａｍｅ</code>：下劃線屬於 ASCII 可見字符，會一起變成全角下劃線。反過來，中文、emoji 和已經是全角的字符都不在 <code>[!-~]</code> 內，會原樣保留。全角模式不是“把整段文本變成全角排版”，而是“把 ASCII 可見字符換成對應的全角兼容字符”。</p>\n\n<h2>半角轉換：只減 0xFEE0，U+3000 與半角假名原樣保留</h2>\n<p>“轉半角”只匹配 <code>[\\uFF01-\\uFF5E]</code>，再減 <code>0xFEE0</code>。它和全角模式構成一對逆映射，但覆蓋範圍僅限於這一段的兼容字符。全角空格 U+3000 不在區間內，半角片假名 U+FF61–U+FF9F 也不在區間內，中文標點 U+3002、U+3001 同樣不在。於是 <code>Ｈｅｌｌｏ，　Ｗｏｒｌｄ！</code> 會變成 <code>Hello,　World!</code>，中間仍是 U+3000；<code>。、！？</code> 只會把後兩個標點變成半角。</p>\n<pre><code>src.replace(/[\\uFF01-\\uFF5E]/g, (c) =&gt;\n  String.fromCharCode(c.charCodeAt(0) - 0xfee0));</code></pre>\n<p>因此不能把“轉半角”當作通用的寬度歸一化。Unicode 的 NFKC 會做兼容分解，把半角與全角片假名、全角 ASCII 等兼容形式歸一到同一串字符，但本工具只做上面那一段碼點的加減。需要嚴格歸一化時應使用 <code>normalize('NFKC')</code> 並單獨處理它帶來的其他兼容折叠，而不是期待這個按鈕完成全部工作。</p>\n\n<h2>數字、標點、中文與換行會怎樣</h2>\n<p>數字不是切詞邊界。<code>v2</code> 始終是一個詞，<code>v2 API</code> 會得到 camelCase 的 <code>v2API</code> 和 snake_case 的 <code>v2_a_p_i</code>；<code>user2FA</code> 只在 <code>F</code>、<code>A</code> 前切開，得到 <code>user2_f_a</code>，而全小寫的 <code>user2fa</code> 不會被拆開。數字與字母的邊界取決於 ASCII 字母是否大寫（非 ASCII 大寫字母不會觸發切分）。</p>\n<p>標點也不是分隔符。<code>hello, world</code> 的第一個詞是 <code>hello,</code>，所以 snake_case 得到 <code>hello,_world</code>，camelCase 得到 <code>hello,World</code>；<code>a.b</code> 只有一個詞，五種命名模式都保留點號。只有空白、下劃線和連字符會被消費掉。</p>\n<p>中文沒有大小寫，也不觸發 <code>(?=[A-Z])</code> 的切分，所以 <code>用户Name</code> 會得到兩個詞：<code>用户</code> 和 <code>name</code>，snake_case 輸出 <code>用户_name</code>。emoji 同樣既不會觸發切分，也不會被任何模式改寫，它會黏在相鄰單詞上，例如 <code>good</code> 後面直接跟一個 emoji 時仍是一個詞。需要按 emoji 或中文分詞時，這個工具不提供詞邊界。</p>\n<p>換行在 camelCase、PascalCase、snake_case、kebab-case 和 CONSTANT_CASE 裏都是空白分隔符，多行文本會被拼成一個連續的字符串（kebab-case 得到 a-b 這類名稱，並非所有語言都當作合法標識符）；而在全部大寫、全部小寫、title、sentence 和全半角模式裏，換行會原樣保留。這個差異來自前者統一調用 <code>splitWords</code>，後者直接對原字符串做替換。</p>\n\n<h2>邊界與限制</h2>\n<p>把上面的行為收攏，使用前至少要確認下面幾件事。</p>\n<ul>\n<li><strong>縮寫會被拆成單字母。</strong><code>HTTPServer</code> 變 snake_case 是 <code>h_t_t_p_server</code>，<code>XMLHttpRequest</code> 變 camelCase 是 <code>xMLHttpRequest</code>，<code>userID</code> 變 snake_case 是 <code>user_i_d</code>。工具沒有縮寫詞典，也不會把連續大寫識別為一個詞。</li>\n<li><strong>title 與 sentence 只認 ASCII。</strong><code>\\w</code> 是 <code>[A-Za-z0-9_]</code>，中文、全角字母、重音字母都不算詞字符；撇號會被當成邊界，title 把 <code>don't</code> 變成 <code>Don'T</code>；sentence 只把句首的 d 大寫、撇號後的 t 保持小寫，結果是 <code>Don't</code>。</li>\n<li><strong>全角轉換不含空格。</strong>只處理 U+0021–U+007E，普通空格仍是 U+0020；半角轉換只處理 U+FF01–U+FF5E，不處理 U+3000，也不處理半角片假名和中文標點。</li>\n<li><strong>數字、中文、emoji 不提供邊界。</strong><code>user2fa</code> 不會被拆成 <code>user</code> 與 <code>2fa</code>，中文只在空白、下劃線、連字符或 ASCII 大寫字母處斷開，emoji 會留在詞內；標點也不會被剝離。</li>\n<li><strong>trim 的時機不一致。</strong>五種命名模式先 trim，再切詞；全部大寫、全部小寫、title、sentence 和全半角都保留首尾空白。只輸入空格或純下劃線時，命名模式會輸出空字符串，但界面仍提示“轉換完成”，因為空值檢查只看原始輸入是否為空字符串。</li>\n<li><strong>大小寫映射可能改變長度。</strong><code>ß</code> 轉大寫得到 <code>SS</code>，某些帶音標字母轉小寫會拆成多個碼點；如果下遊按字符數截斷，需要按碼點而不是 UTF-16 單元處理。</li>\n</ul>\n<p>這些限制不意味著工具不可用，而是說明它做的是“基於分隔符和 ASCII 大小寫的機械轉換”。變量名、配置鍵和文件名適合用它打底；標題排版、語言學意義上的詞首大寫、以及 Unicode 寬度歸一化，都不在它的能力範圍內。</p>\n\n<h2>按目標規範選擇模式並複核</h2>\n<p>先確定目標規範，再決定輸入怎麼準備。需要把多行名單整理成一行一個值時，可以先用<a href=\"/zh-hant/tools/dev/text-toolbox/\">文本處理工具</a>去重、去空行；想驗證切詞正則是否符合預期，可以在<a href=\"/zh-hant/tools/dev/regex-tester/\">正則測試工具</a>裏用同一套表達式逐段試跑。命名結果如果要進入 URL 路徑或查詢參數，還應在<a href=\"/zh-hant/tools/dev/url-encode/\">URL 編碼工具</a>裏單獨編碼，不要假設命名轉換已經處理了轉義。</p>\n<ol>\n<li>確認目標：camelCase、PascalCase、snake_case、kebab-case 還是 CONSTANT_CASE，避免同一項目混用。</li>\n<li>先處理縮寫：把 <code>HTTPServer</code> 這類連續大寫改寫成工具能識別的形式，或轉換後手工修正單字母段。</li>\n<li>檢查數字與標點：確認 <code>v2</code>、<code>user2fa</code> 和帶逗號的短語沒有被拆成意外的詞。</li>\n<li>多行輸入先拆行：命名模式會把換行當分隔符，逐行處理才能得到每行一個標識符。</li>\n<li>全半角單獨驗收：檢查空格是否仍為 U+0020、U+3000 是否殘留、半角假名是否需要另行處理。</li>\n</ol>\n<p>最後做一次反向檢查：把結果粘回工具，用相反模式轉換，看是否回到預期的詞序列。往返不一致通常不是工具出錯，而是原文裏本來就存在縮寫、標點或全角空格，這些信息在第一次轉換時已經丟失。</p>",
+  "faqs": [
+    {
+      "q": "為什麼 HTTPServer 轉 snake_case 會變成 h_t_t_p_server？",
+      "a": "splitWords 會在每個 ASCII 大寫字母前切開，連續大寫的 H、T、T、P 因此各自成為一個詞，再轉小寫並用下劃線連接。工具沒有縮寫詞典；可以先寫成 HttpServer 再轉換，或轉換後手工合並單字母段。"
+    },
+    {
+      "q": "userName 轉 kebab-case 會得到什麼？",
+      "a": "會得到 user-name。切詞時大寫 N 前會斷開，得到 user 和 name 兩個詞，再用連字符連接。同理，userName 轉 snake_case 是 user_name。"
+    },
+    {
+      "q": "全角轉半角為什麼不處理全角空格和半角假名？",
+      "a": "半角模式只匹配 U+FF01–U+FF5E 並減去 0xFEE0。全角空格 U+3000 和半角片假名 U+FF61–U+FF9F 都不在這個區間，中文標點 U+3002、U+3001 也不在。要用 Unicode NFKC 做更廣的兼容歸一化，或單獨替換這些字符。"
+    },
+    {
+      "q": "多行文本轉 camelCase 為什麼變成了一行？",
+      "a": "命名模式統一調用 splitWords，換行屬於空白分隔符，所有詞會被切開再用空字符串拼接。要保留行結構，可以先用文本處理工具按行拆分，再逐行轉換；或者改用全部大寫、全部小寫等直接處理原字符串的模式。"
+    },
+    {
+      "q": "title 模式為什麼把 don't 變成 Don'T？",
+      "a": "title 用 /\\b\\w/g，\\w 是 ASCII 的字母、數字和下劃線，撇號不是詞字符，因此撇號後的 t 被當成新的詞邊界並大寫。sentence 模式只處理句首和標點之後，don't 只會把句首 d 大寫、撇號後的 t 保持小寫，結果是 Don't。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：String.prototype.toUpperCase()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase"
+    },
+    {
+      "title": "MDN：正則表達式語法速查表",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet"
+    },
+    {
+      "title": "ECMAScript：String.prototype.toUpperCase",
+      "url": "https://tc39.es/ecma262/multipage/text-processing.html#sec-string.prototype.touppercase"
+    },
+    {
+      "title": "Unicode UAX #11：East Asian Width",
+      "url": "https://www.unicode.org/reports/tr11/"
+    },
+    {
+      "title": "Unicode UAX #15：Unicode Normalization Forms",
+      "url": "https://www.unicode.org/reports/tr15/"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "text-transform",
+      "lang": "tw",
+      "translatedFrom": "9b15e2bb03404dda3b10c4a572615ae65e8646a87dde98fb12f7a1588205aa2c",
+      "translatedAt": "2026-11-06T22:22:46.325Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.9
+    }
+  },
+  "focus": "先切詞再拼接；縮寫、數字、中文和全半角空格決定結果是否符合預期。",
+  "notice": "轉換在瀏覽器本地完成，不上傳文本；結果只按字符規則處理，不含分詞或語義判斷，重要標識符請人工複核。"
+}
