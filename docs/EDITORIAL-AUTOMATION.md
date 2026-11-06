@@ -156,6 +156,21 @@ Lead 在 tick 中按分数与理由把 `candidate` 升为 `ready`（不自动盲
 - 作者保持 Organization（不伪造个人作者）；FAQ 富结果已停用，不添加 FAQPage/HowTo 结构化数据。
 - AI 辅助披露写在透明页与文章侧栏；不声称"人工亲测"除非有真实运行证据。
 
+## 六·五、GitHub 授权（无需在对话里粘贴 token）
+
+推送需要 `public_repo` 写权限。不要在对话里粘贴 token；使用设备授权：
+
+```bash
+node scripts/editorial/github-device-login.mjs --timeout 900
+```
+
+1. 按脚本输出在浏览器打开 https://github.com/login/device；
+2. 输入脚本给出的一次性代码（形如 `1234-ABCD`）并授权；
+3. 脚本自动把 token 写入 `.editorial/secrets/github-token`（600，gitignored），后续 `push-main.mjs` / `deploy-verify.mjs` / `rollback.mjs` 会自动读取。
+
+撤销：GitHub → Settings → Applications → Authorized OAuth Apps → 移除 "GitHub CLI"；或删除 token 文件。
+如果设备授权不可用，备选：由维护者在自己的电脑上 `git push`（可导出 `git bundle`），或改用 SSH deploy key（把我们生成的公钥加到仓库 Deploy keys 并勾选写权限）。
+
 ## 七、常用命令
 
 ```bash
