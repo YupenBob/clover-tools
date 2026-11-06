@@ -1,0 +1,70 @@
+{
+  "slug": "color-convert",
+  "title": "HEX 转 RGB 怎么算：互转、透明度与取色边界",
+  "description": "从 HEX 拆位与三位简写讲起，说明 RGB、HSL 的换算和取整误差，辨清 alpha 的 0–1 与 0–255 两套刻度，并交代 sRGB、屏幕色域与取色器的实际边界。",
+  "category": "开发实用",
+  "toolSlug": "color-convert",
+  "published": "2026-11-06",
+  "updated": "2026-11-06",
+  "readingMinutes": 7,
+  "content": "<p>HEX 转 RGB 的算法很直接：把 <code>#RRGGBB</code> 拆成三组两位十六进制，每组按 16 的幂换成 0–255 的十进制。例如 <code>#c9a96e</code> 拆成 <code>c9</code>、<code>a9</code>、<code>6e</code>，得到 <code>rgb(201, 169, 110)</code>。三位简写要先展开成六位。容易出错的是透明度、舍入和屏幕差异，而不是这一步换算。</p>\n\n<h2>HEX 拆成三组，再按 16 的幂换算</h2>\n<p>十六进制的一位表示 0–15，两位就是高位乘 16 加低位。<code>c9</code> 是 <code>12 × 16 + 9 = 201</code>，<code>a9</code> 是 <code>10 × 16 + 9 = 169</code>，<code>6e</code> 是 <code>6 × 16 + 14 = 110</code>。三组分别对应红、绿、蓝，顺序固定，不能交换。把这三步写成脚本，就是最常见的 HEX 转 RGB 实现：</p>\n<pre><code>const hex = '#c9a96e';\nconst value = hex.replace('#', '');\nconst rgb = [0, 2, 4].map((i) =&gt; parseInt(value.slice(i, i + 2), 16));\nconsole.log(rgb); // [201, 169, 110]</code></pre>\n<p>三位写法不是“少写几个 0”，而是每一位重复一次：<code>#c9a</code> 展开为 <code>#cc99aa</code>，即 <code>rgb(204, 153, 170)</code>；<code>#f0a</code> 展开为 <code>#ff00aa</code>。四位写法 <code>#RGBA</code> 的前三位同样按 <code>#RGB</code> 逐位重复，末位才是 alpha：<code>#c9a8</code> 展开为 <code>#cc99aa88</code>，不是给三位简写补一位，两者含义不同。</p>\n<table>\n<thead><tr><th>写法</th><th>含义</th><th>本站工具</th></tr></thead>\n<tbody>\n<tr><td><code>#RGB</code></td><td>三位简写，每位重复一次</td><td>接受</td></tr>\n<tr><td><code>#RRGGBB</code></td><td>红、绿、蓝各 8 位</td><td>接受</td></tr>\n<tr><td><code>#RGBA</code></td><td>四位写法，末位是 alpha</td><td>不接受</td></tr>\n<tr><td><code>#RRGGBBAA</code></td><td>八位写法，末两位是 alpha</td><td>不接受</td></tr>\n<tr><td><code>rgb(r, g, b)</code></td><td>三个 0–255 的整数</td><td>接受，可省略 <code>rgb()</code></td></tr>\n<tr><td><code>rgb(r g b / a)</code></td><td>空格分隔的现代写法，可带 alpha</td><td>不接受</td></tr>\n<tr><td><code>hsl(h, s%, l%)</code></td><td>色相角度与两个百分比</td><td>接受，可省略 <code>hsl()</code></td></tr>\n</tbody>\n</table>\n<p>工具对 HEX 的处理比 CSS 宽松一点：<code>#</code> 可以省略，前后空格会被去掉，大小写不敏感。</p>\n\n<h2>HSL 是同一颜色的另一种坐标</h2>\n<p>HSL 把 sRGB 颜色改写成色相（H）、饱和度（S）、亮度（L）三个坐标：H 取 0–360，S 和 L 取 0–100%。L 为 0 是黑，100% 是白，50% 是“正常”；S 为 0 时颜色退化为灰。同一个 <code>#c9a96e</code> 可写成 <code>hsl(39, 46%, 61%)</code>，两者指向同一个 sRGB 颜色，不是两个颜色空间里的两份数据。</p>\n<p>色相是角度，转一圈回到起点，所以 360° 与 0° 等价。工具接受 <code>hsl(360, 100%, 50%)</code>，换算时按 0° 处理，结果仍是 <code>#ff0000</code>。但工具不接受负角度、<code>deg</code> 后缀、空格分隔的现代语法，也不接受 HSL 里的 alpha 参数。饱和度与亮度必须带百分号，<code>hsl(120, 100, 50)</code> 这种写法会被拒绝。</p>\n<p>HSL 的换算本身可逆，真正损失精度的是显示：界面把 H、S、L 四舍五入成整数再填入输入框，复制出去的也是取整后的字符串。</p>\n\n<h2>透明度：0–1 与 0–255 是两套刻度</h2>\n<p>CSS 的 alpha 用 0–1 的数字或 0%–100% 的百分比表示，0 全透明、1 全不透明，省略时默认 100%。八位 HEX 则把 alpha 写成两位十六进制，范围 00–ff，也就是 0–255。以半透明黑为例，CSS 写法是 <code>rgb(0 0 0 / 50%)</code>，八位 HEX 的写法是 <code>#00000080</code>。两者并不完全等价：<code>0x80</code> 等于 128，<code>128 ÷ 255 ≈ 0.502</code>，也就是约 50.2%，<code>#00000080</code> 只是 0.5 在 8 位刻度上最接近的表示。</p>\n<p>换算只需要除以 255：<code>#c9a96e80</code> 的 alpha 是 <code>0x80 = 128</code>，<code>128 ÷ 255 ≈ 0.502</code>，对应约 50.2%。反过来，0.5 的 alpha 乘 255 得 127.5，取 128，写成十六进制就是 <code>80</code>。W3C 的序列化规则在内部以 8 位整数存储 alpha 时也按 8 位处理：内部存 237 时输出 <code>0.93</code>，存 236 时找不到两位小数能精确对应，就输出 <code>0.92549</code>。这说明“0–1”和“0–255”是同一透明度区间的两种刻度，换算必然伴随舍入，不能当成完全等价。</p>\n<p>本站工具只处理不透明颜色：HEX 只认三位和六位，RGB 与 HSL 都不接受 alpha 参数。需要半透明色时，先把基础色转成 <code>#RRGGBB</code>，再单独记录 alpha，最后按目标格式拼成 <code>#RRGGBBAA</code>、<code>rgb(r g b / a)</code> 或 <code>rgba(r, g, b, a)</code>。不要把八位 HEX 粘进工具，它不会自动截掉后两位。</p>\n\n\n<h2>复制界面的 HSL 再粘回去，颜色会偏</h2>\n<p>界面显示的是取整后的 HSL，例如 <code>#c9a96e</code> 显示为 <code>hsl(39, 46%, 61%)</code>，而精确值是 <code>hsl(38.9011, 45.7286%, 60.9804%)</code>，注意 S 和 L 要带 %，否则既不是合法 CSS，也会被工具拒绝。只取整数当然会损失信息，但损失有多大，可以穷举算出来。</p>\n<p>对 16,777,216 个 sRGB 整数颜色逐一执行“RGB → HSL → 四舍五入 → RGB”，有 15,001,662 个颜色至少一个通道发生变化，占 89.42%；最大单通道偏差为 5。偏差 1 个色阶的最多，有 9,123,252 个；偏差 5 的只有 108 个。极端例子是 <code>#000001</code>：它的 HSL 亮度只有 0.1961%，取整成 0% 后直接变成纯黑 <code>#000000</code>。另一个例子 <code>#02e4e6</code> 的精确 HSL 是 <code>hsl(180.5263, 98.2759%, 45.4902%)</code>（同样要补 %），取整为 <code>hsl(181, 98%, 45%)</code> 后回到 <code>rgb(2, 223, 227)</code>，绿色通道差 5、蓝色通道差 3。</p>\n<p>作为对照，同一套函数如果不取整、直接用浮点 HSL 往返，16,777,216 个颜色没有一个发生变化。可见换算公式没问题，误差来自显示精度。把 HEX 或 RGB 当作真值，HSL 只作为编辑时的近似表达，就能避开这条坑；确实需要精确 HSL 时，保留小数而不是依赖界面回填。</p>\n\n<h2>在本站工具里输入、复制与派生色</h2>\n<p>打开 <a href=\"/tools/dev/color-convert/\">颜色转换与取色</a>，页面有取色器和 HEX、RGB、HSL 三个输入框。取色器在 <code>input</code> 事件里实时更新；三个输入框不是逐键同步，而是失焦（<code>change</code>）或按回车提交后，才换算并同步其余两个输入框和预览。三个复制按钮分别给出 <code>#rrggbb</code>、<code>rgb(r, g, b)</code>、<code>hsl(h, s%, l%)</code>；其中 HEX 固定小写六位，RGB 固定为整数，HSL 固定为整数加百分号。</p>\n<ul>\n<li>HEX 输入支持 <code>#RGB</code>、<code>#RRGGBB</code>，<code>#</code> 可省略，大小写均可。</li>\n<li>RGB 只接受三个用逗号分隔的整数，每个在 0–255 之间；百分比、小数和 alpha 都会被拒绝。</li>\n<li>HSL 的色相可为小数，但必须落在 0–360；饱和度与亮度必须写成 0%–100%，不能省略百分号。</li>\n<li>格式不符时输入框会被标记为无效并给出提示，预览保留上一个有效颜色，不做部分解析。</li>\n</ul>\n<p>预览下方还有互补色、明度 −20%、明度 +20% 三个派生按钮。互补色把色相加 180° 再对 360 取模；明度按钮把 L 减 20 或加 20，并裁剪到 0–100。因此 L≤20 的颜色点“明度 −20%”会被裁到 0 变成黑色，L≥80 的颜色点“明度 +20%”会到 100% 变成白色，中间的亮度只会平移 20 个百分点；灰色没有色相，互补色仍是同一个灰色。这些派生只适合快速取近似值，正式色板仍应写回具体数值。</p>\n<p>要把色值放进样式表，可以接着用 <a href=\"/tools/dev/css-formatter/\">CSS 格式化</a> 检查声明与缩进；需要核对某个通道的十进制与十六进制对应关系，可以用 <a href=\"/tools/dev/base-converter/\">进制转换</a> 复算 <code>0xc9 = 201</code> 这类等式。</p>\n\n<h2>色差不是数值差</h2>\n<p>两个颜色在数值上差 30，视觉上不一定差同样多。W3C 在 CSS Color 4 里给了直接例子：<code>hsl(220 100% 50%)</code> 与 <code>hsl(250 100% 50%)</code> 的色相相差 30°，看起来相当接近；<code>hsl(50 100% 50%)</code> 与 <code>hsl(80 100% 50%)</code> 同样相差 30°，视觉差异却很大。HSL 的色相角在感知上分布不均匀，不能把“度数差”当作“观感差”。</p>\n<p>RGB 通道也一样：三个通道各加 10，在暗部和亮部引起的明暗变化并不相同，因为 sRGB 通道值经过 gamma 编码，不是线性光强。HSL 的 L 只是这个圆柱坐标里的亮度轴，不等于按线性光强加权的相对亮度，也不等于可访问性对比度。本站工具的预览会根据相对亮度在黑色和白色文字之间二选一，但它只做这一个选择，不输出对比度数值（本站当前工具不计算对比度，需要时可用其他工具核验）；可读性仍要按前景色与背景色单独检查。</p>\n\n<h2>取色器、屏幕与色域</h2>\n<p>取色器是浏览器的 <code>&lt;input type=\"color\"&gt;</code>，界面由浏览器和操作系统决定，可能是系统取色面板，也可能是自定义窗口。它的值会被规范成七位小写十六进制 <code>#rrggbb</code>；本页没有开启 alpha 属性，选出来的始终是不透明色。</p>\n<p>屏幕状态影响的是“看到的颜色”和屏幕取样结果，不是换算本身：屏幕没校准、亮度不同、开了夜间模式或护眼模式，同一个色块看起来就会不一样，用屏幕吸管取样也可能取到偏差值；但一旦拿到确切的 HEX 数值，HEX、RGB、HSL 之间的换算不受这些设置影响。MDN 也提醒，颜色值定义得再精确，实际外观仍可能因设备而未校准、浏览器不支持输出设备的色彩配置而产生差异。网页里没有标注色彩配置的颜色按 sRGB 处理，而 Display P3 等宽色域的覆盖范围比 sRGB 大；把宽色域颜色塞进 sRGB 数值，超出范围的部分只能被裁剪或映射。本站工具在 sRGB 数值上做换算，不做色域映射，也不处理印刷用的 CMYK。</p>\n<p>因此取色至少要做两次确认：在目标设备的实际背景上取一次，再把 HEX 放到另一块屏幕或另一台设备上复核。</p>\n\n<h2>边界与限制</h2>\n<p>下面这些限制来自工具的实际实现和 CSS 规范，遇到时不要靠猜：</p>\n<ul>\n<li><strong>只支持不透明颜色</strong>：HEX 限三位和六位，RGB 与 HSL 都不接受 alpha；四位、八位 HEX 会被判为无效，不会自动截断。</li>\n<li><strong>透明度有两套刻度</strong>：CSS 用 0–1 或百分比，八位 HEX 用 0–255；换算按除以 255 进行，写进设计稿或接口前要注明用的是哪一套。</li>\n<li><strong>简写规则不同</strong>：<code>#RGB</code> 是每位重复一次；<code>#RGBA</code> 的第四位是 alpha。把四位写法当成“三位补零”会得到完全不同的颜色。</li>\n<li><strong>显示精度有限</strong>：界面 HSL 取整后再输入，穷举结果是有 89.42% 的颜色至少一个通道偏移，最大偏移 5；需要精确值时以 HEX 或 RGB 为准。</li>\n<li><strong>只算 sRGB 数值</strong>：宽色域、HDR、CMYK 都不在换算范围内；数值相同不代表在不同屏幕、不同色彩配置下看起来相同。</li>\n<li><strong>屏幕取样受环境影响</strong>：吸管取到的值可能受屏幕校准、亮度和系统色彩设置影响，且各浏览器与平台的取色界面并不一致；已得到的 HEX 数值本身不随屏幕变化。</li>\n<li><strong>不提供对比度结论</strong>：预览文字只在黑白之间选择，不计算对比度；HSL 的 L 不能替代相对亮度。</li>\n<li><strong>非法输入不做修补</strong>：缺位、越界、错误分隔符都会报错，预览停留在上一个有效颜色。</li>\n</ul>\n\n<h2>一份可执行的检查顺序</h2>\n<ol>\n<li>先确认源值格式：是三位、六位还是八位 HEX，是整数 RGB 还是带百分比的 CSS 写法。</li>\n<li>把基础色转成三组 0–255 的整数，再决定用 HEX、RGB 还是 HSL 表达。</li>\n<li>需要透明就单独记录 alpha，统一用 0–1 或 0–255 其中一套，并在交付物里写明。</li>\n<li>复制回读一次：把结果粘回输入框，确认预览没有跳变；跳变通常说明中间用了取整的 HSL。</li>\n<li>最后放到目标背景和目标设备上检查，别把“换算正确”当成“显示一致”。</li>\n</ol>\n<p>把这几步固定下来，HEX、RGB、HSL 的互转就只是一次可复核的数值换算，而不是靠肉眼反复微调。</p>",
+  "faqs": [
+    {
+      "q": "八位 HEX 也是颜色，为什么工具不接受？",
+      "a": "八位写法是 #RRGGBBAA，后两位是 alpha。本站工具只解析三位和六位的 RGB 部分，所以会把它判为无效；需要半透明色时先转前六位，再单独按 0–255 或 0–1 处理 alpha。"
+    },
+    {
+      "q": "HSL 的 L 能当作亮度或对比度使用吗？",
+      "a": "不能。L 是 HSL 坐标里的亮度轴，不等于相对亮度，也不等于可访问性对比度。工具预览只在黑白文字之间做选择，不输出对比度数值，可读性要另外计算。"
+    },
+    {
+      "q": "为什么复制 HSL 再粘回工具，颜色变了？",
+      "a": "界面显示和复制的是四舍五入后的整数 HSL。穷举 16,777,216 个颜色，有 89.42% 在取整 HSL 往返后至少一个通道偏移，最大偏移 5；以 HEX 或 RGB 作为真值可以避免这个问题。"
+    },
+    {
+      "q": "三位 HEX 和四位 HEX 有什么区别？",
+      "a": "三位 #RGB 是红绿蓝简写，每位重复一次；四位 #RGBA 的最后一位是 alpha。两者不是“补零”关系，四位写法不能当三位颜色直接使用。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：<color> CSS 数据类型",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/color_value"
+    },
+    {
+      "title": "MDN：<hex-color>",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/hex-color"
+    },
+    {
+      "title": "MDN：rgb() 颜色函数",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/rgb"
+    },
+    {
+      "title": "MDN：hsl() 颜色函数",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/hsl"
+    },
+    {
+      "title": "W3C：CSS Color Module Level 4",
+      "url": "https://www.w3.org/TR/css-color-4/"
+    },
+    {
+      "title": "MDN：<input type=\"color\">",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/color"
+    }
+  ],
+  "focus": "先把 HEX 拆成三组 0–255 的数值，再决定用 RGB 还是 HSL 表达。",
+  "notice": "换算在本机浏览器完成，不上传色值；透明度和屏幕色域不在换算范围内，落地前要在目标背景与设备上复核。",
+  "_meta": {
+    "auto": true,
+    "type": "new-guide",
+    "mode": "new-guide",
+    "runId": "2026-11-06T18",
+    "primaryQuery": "hex转rgb怎么算",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "reviewerCheckedClaims": 26,
+    "reviewerReviewFile": ".editorial/runs/2026-11-06T18/review.json",
+    "reviewRounds": 3,
+    "verifiedAt": "2026-11-06T10:34:05.164Z"
+  }
+}
