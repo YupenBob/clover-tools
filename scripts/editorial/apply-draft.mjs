@@ -12,6 +12,7 @@ import { ensureStateDirs, loadQueue, readJson, writeJsonAtomic } from './lib/sta
 import { loadImageRegistry, loadSiteCorpus, loadCsdnCorpus, loadToolIndex, loadExistingCategories } from './lib/corpus.mjs';
 import { validateGuideStatic } from './lib/quality.mjs';
 import { readImageInfo } from './lib/images.mjs';
+import { siteToday } from '../lib/site-date.mjs';
 import { snapshotPaths, rollbackSnapshot } from './lib/workspace.mjs';
 import { buildAutoIndex } from './build-auto-index.mjs';
 
@@ -92,7 +93,7 @@ async function main() {
     const ctx = {
       mode,
       config,
-      today: new Date().toISOString().slice(0, 10),
+      today: siteToday(),
       toolIndex,
       categories,
       corpus,

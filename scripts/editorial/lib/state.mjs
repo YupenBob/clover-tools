@@ -11,6 +11,7 @@ import {
 } from 'node:fs';
 import { join } from 'node:path';
 import { STATE_PATHS } from './paths.mjs';
+import { siteToday } from '../../lib/site-date.mjs';
 
 const STALE_LOCK_MS = 3 * 60 * 60 * 1000;
 
@@ -170,7 +171,7 @@ export function recordOutcome(state, outcome) {
   const failures = outcome.status === 'failed' || outcome.status === 'reverted';
   state.consecutiveFailures = failures ? (state.consecutiveFailures ?? 0) + 1 : 0;
   state.daily = state.daily ?? {};
-  const date = outcome.date ?? new Date().toISOString().slice(0, 10);
+  const date = outcome.date ?? siteToday();
   state.daily[date] = (state.daily[date] ?? 0) + (outcome.status === 'published' ? 1 : 0);
   return state;
 }

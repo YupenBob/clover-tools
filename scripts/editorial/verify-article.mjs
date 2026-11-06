@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { ROOT, REPO_PATHS, STATE_PATHS } from './lib/paths.mjs';
 import { ensureDefaultConfig, loadConfig } from './lib/config.mjs';
 import { readJson, writeJsonAtomic } from './lib/state.mjs';
+import { siteToday } from '../lib/site-date.mjs';
 import {
   loadCsdnCorpus,
   loadExistingCategories,
@@ -83,7 +84,7 @@ async function main() {
   const staticResult = validateGuideStatic(guide, {
     mode,
     config,
-    today: new Date().toISOString().slice(0, 10),
+    today: siteToday(),
     toolIndex,
     categories,
     corpus,

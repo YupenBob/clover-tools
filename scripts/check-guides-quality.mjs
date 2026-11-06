@@ -18,6 +18,7 @@ import {
 } from './editorial/lib/corpus.mjs';
 import { validateGuideStatic, stripHtml, cjkCount } from './editorial/lib/quality.mjs';
 import { readImageInfo } from './editorial/lib/images.mjs';
+import { siteToday } from './lib/site-date.mjs';
 import { buildAutoIndex } from './editorial/build-auto-index.mjs';
 import { buildTranslationArtifacts } from './editorial/build-translation-index.mjs';
 import {
@@ -177,7 +178,7 @@ async function main() {
     const result = validateGuideStatic(guide, {
       mode: guide._meta.mode ?? 'new-guide',
       config,
-      today: new Date().toISOString().slice(0, 10),
+      today: siteToday(),
       toolIndex,
       categories,
       corpus,

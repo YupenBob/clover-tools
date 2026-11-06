@@ -117,11 +117,11 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
   },
   'json-xml-yaml': {
     usage:
-      'JSON、XML、YAML 三种数据格式相互转换，适合接口数据迁移、配置文件转换与文档整理。转换保留原有结构与层次，支持缩进自定义，全部在浏览器本地完成。',
+      'JSON、XML、YAML 三种数据格式相互转换，适合接口数据迁移、配置文件转换与文档整理。四个方向共用同一个输入框；转换后需检查数组、属性与文本差异，不保证往返无损，全部在浏览器本地完成。',
     features: [
-      { icon: 'arrow-left-right', text: 'JSON / XML / YAML 三向互转' },
-      { icon: 'stack', text: '结构层次完整保留' },
-      { icon: 'sliders', text: '缩进与格式可配置' },
+      { icon: 'arrow-left-right', text: 'JSON / XML / YAML 四向互转' },
+      { icon: 'braces', text: 'JSON、YAML 错误即时报错' },
+      { icon: 'stack', text: 'XML 属性与文本单独标记' },
       { icon: 'shield-lock', text: '本地转换，数据安全' },
     ],
   },
