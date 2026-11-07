@@ -9,6 +9,15 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { LOCALES } from '../../config/routes.mjs';
 
+/**
+ * 少数指南的内容本身就是汉字字形（简繁、异体字、地区用词），译文正文必须保留
+ * 字形示例：只对这些 slug 放宽脚本比例上限，其余门槛不变。与
+ * scripts/editorial/lib/translate.mjs 的 SLUG_REQUIREMENT_OVERRIDES 保持一致。
+ */
+export const SLUG_REQUIREMENT_OVERRIDES = {
+  jianfan: { en: { maxHanRatio: 0.02 } },
+}
+
 export const SOURCE_LANG = 'zh';
 export const TRANSLATION_LANGS = ['tw', 'en', 'ko', 'ja'];
 
@@ -35,7 +44,7 @@ export const TRANSLATION_REQUIREMENTS = {
     maxHanRun: null,
   },
   en: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinWords: 900,
@@ -45,7 +54,7 @@ export const TRANSLATION_REQUIREMENTS = {
     maxHanRun: 10,
   },
   ko: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinHangul: 1500,
@@ -55,7 +64,7 @@ export const TRANSLATION_REQUIREMENTS = {
     maxHanRun: 10,
   },
   ja: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinHanKana: 1500,
@@ -271,7 +280,10 @@ export function validateTranslationStatic(translation, sourceGuide, lang) {
   const errors = [];
   const warnings = [];
   const metrics = { slug: translation?.slug ?? sourceGuide?.slug ?? null, lang };
-  const requirements = TRANSLATION_REQUIREMENTS[lang];
+  const requirements = {
+    ...TRANSLATION_REQUIREMENTS[lang],
+    ...(SLUG_REQUIREMENT_OVERRIDES[translation?.slug]?.[lang] ?? {}),
+  };
 
   if (!translation || typeof translation !== 'object') {
     return { errors: ['译文对象无效'], warnings, metrics };
