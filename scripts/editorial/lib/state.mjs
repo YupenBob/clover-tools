@@ -155,7 +155,14 @@ export function pickNextItem(queue, config) {
 
 export function countRunsForDate(date) {
   if (!existsSync(STATE_PATHS.runs)) return 0;
-  return readdirSync(STATE_PATHS.runs).filter((name) => name.startsWith(`${date}T`)).length;
+  // 每个 run 同时有 <runKey>.json 与 <runKey>/ 两种产物，按 runKey 去重后计数，
+  // 否则同一篇会算两次，导致每日上限提前触发。
+  const keys = new Set();
+  for (const name of readdirSync(STATE_PATHS.runs)) {
+    const key = name.endsWith('.json') ? name.slice(0, -5) : name;
+    if (key.startsWith(`${date}T`)) keys.add(key);
+  }
+  return keys.size;
 }
 
 export function recordOutcome(state, outcome) {
