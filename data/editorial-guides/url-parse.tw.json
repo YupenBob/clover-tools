@@ -1,0 +1,67 @@
+{
+  "slug": "url-parse",
+  "title": "URL 參數解析：加號解碼、重複鍵與相對地址",
+  "description": "從查詢串拆分鍵值講起，說明加號與百分號的解碼差異、重複鍵逐條列出的順序、相對地址為何報錯，以及 WHATWG 規範化對原串的改寫和工具的取值邊界。",
+  "category": "开发实用",
+  "toolSlug": "url-parse",
+  "published": "2026-11-07",
+  "updated": "2026-11-07",
+  "readingMinutes": 6,
+  "content": "<p>URL 參數解析就是把問號之後的查詢串按 <code>&amp;</code> 拆成鍵值對，再對每個鍵和值做百分號解碼。瀏覽器與 Node 的 WHATWG 實現都用 <code>URL</code> 和 <code>URLSearchParams</code> 完成這一步，重複鍵、加號、非法轉義都有固定表現。本站的 URL 參數解析工具展示九個地址字段和逐條參數，下文提到的行為都能在它上面復現。</p>\n\n<h2>查詢串先拆成鍵值，再談解碼</h2>\n<p>查詢部分從第一個 <code>?</code> 開始，到 <code>#</code> 或字符串結尾為止；<code>#</code> 之後是錨點，不屬於參數。解析時先按 <code>&amp;</code> 切成若幹段，空段直接丟棄，再對每段取第一個 <code>=</code> 之前的內容作為鍵，之後的內容作為值。第二個及後續的 <code>=</code> 留在值裏，所以 <code>?token=abc=def</code> 的鍵是 <code>token</code>，值是 <code>abc=def</code>，不是三個字段。</p>\n<p>沒有等號的段按“鍵 + 空值”處理：<code>?flag</code> 與 <code>?flag=</code> 在參數表裏都是一條記錄，值是空字符串。分號不是分隔符，<code>?a=1;b=2</code> 只得到一個鍵 <code>a</code>，值是 <code>1;b=2</code>。連續的空段也不會產生空記錄，<code>?a=1&amp;&amp;b=2&amp;</code> 仍然只有兩個參數，順序與原串一致。</p>\n<pre><code>const u = new URL('https://example.com/path?q=clover&amp;lang=zh-CN&amp;page=2');\nfor (const [key, value] of u.searchParams) {\n  console.log(key, JSON.stringify(value));\n}\n// q \"clover\"\n// lang \"zh-CN\"\n// page \"2\"</code></pre>\n<p>這段循環是最穩的取參方式：<code>searchParams</code> 保留出現順序，重複鍵也不會被覆蓋。只有在確定鍵唯一時，才適合轉成普通對象。</p>\n\n<h2>加號與百分號是兩套解碼語義</h2>\n<p>在查詢串裏，<code>+</code> 按表單編碼規則解碼成空格，<code>%20</code> 同樣解成空格，而字面加號必須寫成 <code>%2B</code>。所以 <code>?q=a+b</code> 和 <code>?q=a%20b</code> 得到的值都是 <code>a b</code>，但 <code>?q=a%2Bb</code> 得到的是 <code>a+b</code>。中文同理：<code>%E4%B8%AD</code> 解碼為“中”，輸入原字符“中”時，解析器會把它序列化成 <code>%E4%B8%AD</code>，兩種寫法在參數表裏顯示相同。</p>\n<p>這條規則來自 <code>URLSearchParams</code> 使用的表單編碼解析，別套到 <code>decodeURIComponent</code> 上。<code>decodeURIComponent('a+b')</code> 返回的仍是 <code>a+b</code>，它只處理百分號轉義。也正因如此，不要拿 <code>decodeURIComponent</code> 直接解整條查詢串，否則加號會留著、鍵值邊界也沒人拆。需要手動處理單值時，先按 <code>&amp;</code> 和 <code>=</code> 拆開，再把 <code>+</code> 換成空格，最後才解碼。</p>\n<p>查詢串裏的非法轉義不會讓解析失敗。<code>?a=%zz</code> 的 <code>search</code> 仍是 <code>?a=%zz</code>，取值得到字符串 <code>%zz</code>；<code>%2</code> 這類不完整序列也原樣保留；<code>%FF</code> 不是合法 UTF-8，解碼結果是替換字符 U+FFFD。路徑裏的非法百分號也原樣保留，相比之下 <code>decodeURIComponent('%zz')</code> 會拋 <code>URIError: URI malformed</code>。如果參數值來自外部，別假設它一定能被嚴格解碼。需要重新編碼參數時，可以配合站內的 <a href=\"/zh-hant/tools/dev/url-encode/\">URL 編碼工具</a>，先看清原文再編碼，避免把已經編碼的 <code>%25</code> 再編一次。</p>\n\n<h2>重複鍵與空值：逐條列出，不分組</h2>\n<p><code>?a=1&amp;a=2</code> 在工具裏是兩行，鍵都是 <code>a</code>，值分別是 <code>1</code> 和 <code>2</code>。解析器不把它們合並成數組，也不做“後者覆蓋前者”，只是按出現順序保留。單值接口 <code>get('a')</code> 返回第一個 <code>1</code>，要拿全部得用 <code>getAll('a')</code>。狀態欄顯示的“共 N 個查詢參數”統計的是記錄條數，所以重複鍵會被計入兩次。</p>\n<p>亂序重複同樣保留原順序：<code>?a=1&amp;b=2&amp;a=3</code> 的三條記錄依次是 a=1、b=2、a=3。這一點在排查簽名、分頁和埋點參數時很關鍵：服務端如果只取第一個鍵，後面同名的值可能被靜默忽略；如果服務端自行拼數組，解析結果就會和你看到的兩行不一致。</p>\n<p>空值需要區分來源。<code>?a=</code> 和 <code>?flag</code> 在參數表裏都顯示為空值，但“查詢”一行會分別顯示 <code>?a=</code> 與 <code>?flag</code>。若把參數重新序列化，<code>flag</code> 會被補成 <code>flag=</code>；也就是說，序列化後的串和用戶原始輸入未必逐字相同。判斷“參數存在但為空”時，用 <code>has()</code> 比判斷值真假可靠。</p>\n\n<h2>示例地址的九個字段</h2>\n<p>拿工具自帶的示例地址 <code>https://user:pass@example.com:8080/path/to/page?q=clover&amp;lang=zh-CN&amp;page=2#section-a</code> 解析，九個字段的取值如下。這張表也是核對其他地址時的對照基準：端口、查詢、錨點、用戶名、密碼為空時，工具會顯示“（默認）”或“（無）”。</p>\n<table>\n<thead><tr><th>字段</th><th>示例取值</th><th>為空時</th></tr></thead>\n<tbody>\n<tr><td>協議</td><td><code>https:</code></td><td>必然存在</td></tr>\n<tr><td>主機名</td><td><code>example.com</code></td><td>必然存在</td></tr>\n<tr><td>端口</td><td><code>8080</code></td><td>顯示“（默認）”</td></tr>\n<tr><td>路徑</td><td><code>/path/to/page</code></td><td>顯示 <code>/</code></td></tr>\n<tr><td>查詢</td><td><code>?q=clover&amp;lang=zh-CN&amp;page=2</code></td><td>顯示“（無）”</td></tr>\n<tr><td>錨點</td><td><code>#section-a</code></td><td>顯示“（無）”</td></tr>\n<tr><td>用戶名</td><td><code>user</code></td><td>顯示“（無）”</td></tr>\n<tr><td>密碼</td><td><code>pass</code></td><td>顯示“（無）”</td></tr>\n<tr><td>完整地址</td><td>與輸入一致</td><td>—</td></tr>\n</tbody>\n</table>\n<p>三個參數分別是 <code>q=clover</code>、<code>lang=zh-CN</code>、<code>page=2</code>，參數表逐條列出，順序與查詢串相同。注意“完整地址”是解析後的 <code>href</code>，不是輸入原文；如果原串包含大寫協議、默認端口或 <code>..</code> 路徑，這一行會顯示規範化後的結果。</p>\n\n<h2>規範化會改寫原串，別拿它當原文</h2>\n<p><code>new URL()</code> 不是校驗器，而是一個解析加序列化的過程。協議和主機名統一小寫，<code>HTTPS://EXAMPLE.COM/Path</code> 會變成 <code>https://example.com/Path</code>，路徑大小寫保留。默認端口會被刪掉：<code>https://example.com:443/a</code> 的端口為空，<code>http://example.com:80/a</code> 同理；非默認端口 <code>8443</code> 保留。路徑裏的 <code>..</code> 和 <code>.</code> 會折叠，<code>/a/../b/./c</code> 變成 <code>/b/c</code>，<code>/a/b/..</code> 變成 <code>/a/</code>。</p>\n<p>反斜杠在特殊協議裏被當作斜杠：<code>https://example.com/a\\b\\c</code> 的路徑是 <code>/a/b/c</code>。制表符和換行會被移除，在 <code>/a</code> 與 <code>b</code> 之間夾一個制表符，路徑會變成 <code>/ab</code>，而不是帶空白的路徑。中文域名走 IDNA 轉換，<code>https://例子.测试/path</code> 的主機名顯示為 <code>xn--fsqu00a.xn--0zwm56d</code>。主機後沒有路徑時會補一個 <code>/</code>，<code>https://example.com</code> 的路徑為 <code>/</code>。空格在路徑、查詢和錨點裏都會被編碼成 <code>%20</code>，原字符不會留在 <code>href</code> 中。</p>\n<p>還有一個容易忽略的細節：<code>https://example.com/?</code> 的 <code>href</code> 末尾保留問號，但 <code>search</code> 是空字符串，工具“查詢”一行顯示“（無）”。所以“地址裏有問號”不等於“有查詢參數”，判斷參數個數要看參數表。</p>\n\n<h2>“查詢”行與參數表為什麼對不上</h2>\n<p>“查詢”行取的是 <code>u.search</code>，它是序列化後的查詢串，保留百分號編碼；參數表取的是 <code>searchParams.entries()</code>，鍵值已經解碼。例如 <code>?q=a%26b&amp;x=1</code>，“查詢”行顯示 <code>?q=a%26b&amp;x=1</code>，參數表裏 <code>q</code> 的值是 <code>a&amp;b</code>；<code>?q=a%3Db</code> 的值顯示為 <code>a=b</code>。看到表格裏出現 <code>&amp;</code> 或 <code>=</code> 不必驚訝，那只是解碼後的值，不是新的分隔符。</p>\n<p>兩邊的空格編碼也不一樣。MDN 說明 <code>URL.search</code> 把空格編碼成 <code>%20</code>，而 <code>URLSearchParams</code> 序列化時把空格編碼成 <code>+</code>。工具只讀不寫，所以不會觸發這種改寫；但如果你在自己的代碼裏對 <code>searchParams</code> 調用 <code>set()</code> 或 <code>append()</code>，URL 的 <code>search</code> 會被整體替換，原本的 <code>%20</code> 可能變成 <code>+</code>，其他字符的編碼範圍也可能變化。複製“完整地址”之前，先確認它是不是你要的形態。</p>\n\n<h2>邊界與限制</h2>\n<p>把工具當成“參數解碼器”用之前，先看清這些邊界。它們不是缺陷，而是解析器只做解析、不做業務判斷的結果。</p>\n<ul>\n<li>相對地址不支持。工具調用 <code>new URL(raw)</code> 時沒有傳第二個 <code>base</code> 參數，<code>/path?x=1</code>、<code>example.com/?x=1</code>、<code>//example.com/?x=1</code>、<code>?a=1</code> 都會拋 <code>TypeError: Invalid URL</code>，界面提示“需包含協議”。相對引用要帶基準地址才能解析，這屬於調用方的責任。</li>\n<li>規範化會改寫原串。默認端口消失、路徑 <code>..</code> 折叠、大小寫統一、中文域名轉 punycode、制表符被刪，都意味著“完整地址”不能當作審計原文。需要逐字比對時，自己保留輸入串。</li>\n<li>重複鍵不分組。同名鍵按出現順序逐條列出，不合並、不覆蓋、不排序；要全量值必須用 <code>getAll</code>，只取單值會得到第一條。</li>\n<li>加號與 <code>%20</code> 語義不同。查詢串裏的 <code>+</code> 解成空格，字面加號要寫 <code>%2B</code>；<code>decodeURIComponent</code> 不會替換 <code>+</code>，兩者不能混用。</li>\n<li>非法百分號與超長參數不報錯。查詢串和路徑裏的 <code>%zz</code>、<code>%2</code>、<code>%FF</code> 都不會讓解析失敗，值可能原樣保留或變成替換字符；運行記錄顯示，兩萬字符的值、五百個鍵值仍能被完整解析，但工具界面、日誌系統和後端框架通常另有長度與數量限制，業務層要自己設上限。</li>\n<li>嵌套參數不展開。<code>a[b]=1</code> 的鍵就是字符串 <code>a[b]</code>，不會被拆成對象；<code>data={...}</code> 也只是字符串，工具不解析 JSON。要讀 JSON 值，先取出字符串再用 <a href=\"/zh-hant/tools/dev/jsonpath/\">JSONPath 查詢工具</a> 或 JSON 格式化工具處理。</li>\n<li>不校驗業務含義。必填、類型、簽名、權限、重複提交都不在解析範圍內；解析成功只代表格式能被 URL 解析器接受。</li>\n<li>只看查詢串。錨點裏的 <code>#a=2</code> 不算參數；用戶名和密碼會以明文顯示，別把帶真實令牌、手機號或密碼的地址粘進任何在線工具。</li>\n</ul>\n\n<h2>落到代碼：四條核對清單</h2>\n<p>把上面的行為固化成檢查順序，能避免大部分“本地看著對、線上取不到”的問題。</p>\n<ol>\n<li>遍歷 <code>entries()</code> 而不是 <code>Object.fromEntries</code>。前者保序且保留重複鍵，後者會讓同名鍵只剩最後一個。</li>\n<li>單值用 <code>get</code>，多值用 <code>getAll</code>，存在性用 <code>has</code>；不要用真假判斷區分空值與缺失。</li>\n<li>已經由 <code>URLSearchParams</code> 解碼的值不要再解一次；對 <code>%2520</code> 二次解碼會得到空格，把原始數據改壞。</li>\n<li>需要原始查詢串就保留輸入或讀 <code>search</code>，不要從 <code>href</code> 反推；業務校驗放在解析之後單獨做。</li>\n</ol>\n<p>如果 URL 混在日誌、文檔或聊天記錄裏，先用 <a href=\"/zh-hant/tools/dev/regex-tester/\">正則測試工具</a> 把地址抽出來，再逐條丟進解析工具核對，比手工數 <code>&amp;</code> 可靠。需要生成或改寫參數時，用 <a href=\"/zh-hant/tools/dev/url-encode/\">URL 編碼工具</a> 處理單個鍵值，再拼回查詢串，能避開加號與空格的歧義。</p>",
+  "faqs": [
+    {
+      "q": "/path?x=1 為什麼解析失敗？",
+      "a": "因為調用 new URL(raw) 時沒有傳第二個 base 參數，而 /path 是相對引用；瀏覽器與 Node 的 WHATWG 實現都會拋 TypeError: Invalid URL。工具據此提示“需包含協議”。補上 https://example.com 前綴或改用 base 才能解析。"
+    },
+    {
+      "q": "?a=1&a=2 為什麼顯示兩行，取值只有 1？",
+      "a": "URLSearchParams 把重複鍵保留為兩條記錄：表格逐條列出，get('a') 返回第一個 1；要拿全部用 getAll('a')，順序與查詢串一致。工具不會把它們合並成數組。"
+    },
+    {
+      "q": "參數裏的加號為什麼變成空格？",
+      "a": "URLSearchParams 按 application/x-www-form-urlencoded 解析，把 + 解成空格；%2B 才是字面加號。直接對整串用 decodeURIComponent 不會轉換 +，而且遇到 %zz 會拋 URIError。"
+    },
+    {
+      "q": "中文參數顯示成中文，但“查詢”行還是 %E4%B8%AD？",
+      "a": "參數表展示解碼後的鍵值；“查詢”行是 u.search，保留百分號編碼的查詢串。一個是解碼視圖，一個是序列化結果，需要原始編碼時看查詢行。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "WHATWG：URL 標準（Living Standard）",
+      "url": "https://url.spec.whatwg.org/"
+    },
+    {
+      "title": "MDN：URL",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL"
+    },
+    {
+      "title": "MDN：URL.searchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams"
+    },
+    {
+      "title": "MDN：URLSearchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams"
+    },
+    {
+      "title": "MDN：decodeURIComponent()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent"
+    },
+    {
+      "title": "RFC 3986：URI Generic Syntax",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986.html"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "url-parse",
+      "lang": "tw",
+      "translatedFrom": "2ba014653c58dc26070e4bf3dc52f1902cc405a94cb27351e53231f67b224aac",
+      "translatedAt": "2026-11-07T10:09:50.294Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.78
+    }
+  },
+  "focus": "先按 & 拆段、首個 = 分鍵值，再按 UTF-8 解碼；重複鍵要逐條保留。",
+  "notice": "解析在瀏覽器本地完成，URL 不會上傳；含賬號密碼或令牌的地址不要粘進任何在線工具。"
+}

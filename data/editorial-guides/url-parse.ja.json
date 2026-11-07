@@ -1,0 +1,67 @@
+{
+  "slug": "url-parse",
+  "title": "URL パラメータ解析：プラス記号のデコード、重複キー、相対 URL",
+  "description": "クエリ文字列のキーと値への分割から始め、プラス記号とパーセント記号のデコードの違い、重複キーを1件ずつ並べる順序、相対アドレスがエラーになる理由、WHATWG の正規化による元の文字列の書き換え、ツールの値取得の境界までを説明します。",
+  "category": "开发实用",
+  "toolSlug": "url-parse",
+  "published": "2026-11-07",
+  "updated": "2026-11-07",
+  "readingMinutes": 6,
+  "content": "<p>URL パラメータ解析とは、クエスチョンマーク以降のクエリ文字列を <code>&amp;</code> でキーと値の組に分割し、各キーと値にパーセントデコードを施すことです。ブラウザも Node の WHATWG 実装も <code>URL</code> と <code>URLSearchParams</code> でこの処理を行い、重複キー・プラス記号・不正なエスケープには決まった挙動があります。当サイトの URL パラメータ解析ツールは9つのアドレスフィールドとパラメータを1件ずつ表示し、本記事で述べる挙動はすべてそこで再現できます。</p>\n\n<h2>クエリ文字列をまずキーと値に分割し、そのあとデコードする</h2>\n<p>クエリ部分は最初の <code>?</code> から <code>#</code> または文字列の末尾までです。<code>#</code> より後ろはフラグメントで、パラメータには含まれません。解析ではまず <code>&amp;</code> で区切り、空の区間はそのまま捨て、各区間の最初の <code>=</code> より前をキー、以降を値とします。2つ目以降の <code>=</code> は値に残るため、<code>?token=abc=def</code> のキーは <code>token</code>、値は <code>abc=def</code> であり、3つのフィールドにはなりません。</p>\n<p>等号のない区間は「キー + 空の値」として扱います。<code>?flag</code> と <code>?flag=</code> はどちらもパラメータ表では1件のレコードになり、値は空文字列です。セミコロンは区切り文字ではないので、<code>?a=1;b=2</code> のキーは <code>a</code> 1つだけ、値は <code>1;b=2</code> になります。連続する空の区間も空のレコードを作らず、<code>?a=1&amp;&amp;b=2&amp;</code> はパラメータ2件のままで、順序も元の文字列と同じです。</p>\n<pre><code>const u = new URL('https://example.com/path?q=clover&amp;lang=zh-CN&amp;page=2');\nfor (const [key, value] of u.searchParams) {\n  console.log(key, JSON.stringify(value));\n}\n// q \"clover\"\n// lang \"zh-CN\"\n// page \"2\"</code></pre>\n<p>このループが最も確実なパラメータの取り方です。<code>searchParams</code> は出現順を保ち、重複キーも上書きされません。キーが一意だと確信できる場合に限り、プレーンなオブジェクトへの変換が適しています。</p>\n\n<h2>プラス記号とパーセント記号は別々のデコード規則</h2>\n<p>クエリ文字列では <code>+</code> はフォームエンコードの規則で空白にデコードされ、<code>%20</code> も同じく空白になります。リテラルのプラス記号は <code>%2B</code> と書く必要があります。したがって <code>?q=a+b</code> と <code>?q=a%20b</code> の値はどちらも <code>a b</code> ですが、<code>?q=a%2Bb</code> の値は <code>a+b</code> です。中国語も同様で、<code>%E4%B8%AD</code> は「中」にデコードされ、元の文字「中」を入力するとパーサーが <code>%E4%B8%AD</code> にシリアライズします。どちらの書き方もパラメータ表では同じように表示されます。</p>\n<p>この規則は <code>URLSearchParams</code> が使うフォームエンコードの解析によるもので、<code>decodeURIComponent</code> に当てはめてはいけません。<code>decodeURIComponent('a+b')</code> は <code>a+b</code> をそのまま返し、パーセントエスケープしか処理しません。だからこそ、<code>decodeURIComponent</code> でクエリ文字列全体をそのままデコードすべきではありません。プラス記号が残り、キーと値の境界を分割する処理も行われないからです。1つの値を手動で扱う場合は、まず <code>&amp;</code> と <code>=</code> で分割し、次に <code>+</code> を空白に置き換え、最後にデコードします。</p>\n<p>クエリ文字列の不正なエスケープで解析が失敗することはありません。<code>?a=%zz</code> の <code>search</code> は <code>?a=%zz</code> のままで、値を取り出すと文字列 <code>%zz</code> になります。<code>%2</code> のような不完全なシーケンスもそのまま残ります。<code>%FF</code> は正しい UTF-8 ではないため、デコード結果は置換文字 U+FFFD です。パス内の不正なパーセント記号もそのまま残りますが、<code>decodeURIComponent('%zz')</code> は <code>URIError: URI malformed</code> を投げます。パラメータの値が外部由来なら、厳密にデコードできると決めつけないでください。パラメータを再エンコードするときは、サイト内の <a href=\"/ja/tools/dev/url-encode/\">URL エンコードツール</a> と組み合わせ、原文を確認してからエンコードすると、すでにエンコード済みの <code>%25</code> をもう一度エンコードしてしまう事故を避けられます。</p>\n\n<h2>重複キーと空の値：グループ化せず1件ずつ並べる</h2>\n<p><code>?a=1&amp;a=2</code> はツール上では2行になり、キーはいずれも <code>a</code>、値はそれぞれ <code>1</code> と <code>2</code> です。パーサーはこれらを配列にまとめず、「後のものが前を上書きする」ようなこともせず、出現順に保持するだけです。単一値の <code>get('a')</code> は最初の <code>1</code> を返し、すべてを取得するには <code>getAll('a')</code> を使います。ステータスバーの「クエリパラメータ N 件」はレコード数を数えているため、重複キーは2回数えられます。</p>\n<p>順序が入り乱れた重複も元の順序のまま残ります。<code>?a=1&amp;b=2&amp;a=3</code> の3件は a=1、b=2、a=3 の順です。これは署名・ページネーション・計測用パラメータの調査で重要です。サーバーが最初のキーだけを取る場合、後ろの同名の値は黙って無視されるかもしれません。サーバーが独自に配列を組み立てる場合、解析結果は画面に見えている2行と一致しません。</p>\n<p>空の値は由来を区別する必要があります。<code>?a=</code> と <code>?flag</code> はパラメータ表ではどちらも空の値ですが、「クエリ」行にはそれぞれ <code>?a=</code> と <code>?flag</code> が表示されます。パラメータを再シリアライズすると <code>flag</code> は <code>flag=</code> に補われるため、シリアライズ後の文字列はユーザーの元の入力と逐語的に同じとは限りません。「パラメータは存在するが空」を判定するには、値の真偽を見るより <code>has()</code> を使うほうが確実です。</p>\n\n<h2>サンプルアドレスの9つのフィールド</h2>\n<p>ツール付属のサンプルアドレス <code>https://user:pass@example.com:8080/path/to/page?q=clover&amp;lang=zh-CN&amp;page=2#section-a</code> を解析すると、9つのフィールドの値は次のようになります。この表は他のアドレスを照合するときの基準にもなります。ポート・クエリ・フラグメント・ユーザー名・パスワードが空の場合、ツールは「（デフォルト）」または「（なし）」と表示します。</p>\n<table>\n<thead><tr><th>フィールド</th><th>サンプル値</th><th>空の場合</th></tr></thead>\n<tbody>\n<tr><td>プロトコル</td><td><code>https:</code></td><td>常に存在</td></tr>\n<tr><td>ホスト名</td><td><code>example.com</code></td><td>常に存在</td></tr>\n<tr><td>ポート</td><td><code>8080</code></td><td>「（デフォルト）」と表示</td></tr>\n<tr><td>パス</td><td><code>/path/to/page</code></td><td><code>/</code> と表示</td></tr>\n<tr><td>クエリ</td><td><code>?q=clover&amp;lang=zh-CN&amp;page=2</code></td><td>「（なし）」と表示</td></tr>\n<tr><td>フラグメント</td><td><code>#section-a</code></td><td>「（なし）」と表示</td></tr>\n<tr><td>ユーザー名</td><td><code>user</code></td><td>「（なし）」と表示</td></tr>\n<tr><td>パスワード</td><td><code>pass</code></td><td>「（なし）」と表示</td></tr>\n<tr><td>完全なアドレス</td><td>入力と一致</td><td>—</td></tr>\n</tbody>\n</table>\n<p>3つのパラメータはそれぞれ <code>q=clover</code>、<code>lang=zh-CN</code>、<code>page=2</code> で、パラメータ表にはクエリ文字列と同じ順序で1件ずつ並びます。「完全なアドレス」は解析後の <code>href</code> であり、入力原文ではない点に注意してください。元の文字列に大文字のプロトコル、デフォルトポート、<code>..</code> を含むパスがあれば、この行には正規化後の結果が表示されます。</p>\n\n<h2>正規化は元の文字列を書き換える。原文として扱わないこと</h2>\n<p><code>new URL()</code> はバリデータではなく、解析とシリアライズの過程です。プロトコルとホスト名は小文字に統一され、<code>HTTPS://EXAMPLE.COM/Path</code> は <code>https://example.com/Path</code> になり、パスの大文字小文字は保持されます。デフォルトポートは削除され、<code>https://example.com:443/a</code> のポートは空になり、<code>http://example.com:80/a</code> も同様です。非デフォルトのポート <code>8443</code> は残ります。パス内の <code>..</code> と <code>.</code> は畳み込まれ、<code>/a/../b/./c</code> は <code>/b/c</code>、<code>/a/b/..</code> は <code>/a/</code> になります。</p>\n<p>バックスラッシュは特殊プロトコルではスラッシュとして扱われます。<code>https://example.com/a\\b\\c</code> のパスは <code>/a/b/c</code> です。タブと改行は削除され、<code>/a</code> と <code>b</code> の間にタブを挟むと、パスは空白を含むパスではなく <code>/ab</code> になります。中国語ドメインは IDNA 変換を通り、<code>https://例子.测试/path</code> のホスト名は <code>xn--fsqu00a.xn--0zwm56d</code> と表示されます。ホストの後ろにパスがない場合は <code>/</code> が補われ、<code>https://example.com</code> のパスは <code>/</code> になります。空白はパス・クエリ・フラグメントのいずれでも <code>%20</code> にエンコードされ、元の文字が <code>href</code> に残ることはありません。</p>\n<p>見落としやすい細部がもう1つあります。<code>https://example.com/?</code> の <code>href</code> は末尾にクエスチョンマークを残しますが、<code>search</code> は空文字列で、ツールの「クエリ」行には「（なし）」と表示されます。つまり「アドレスにクエスチョンマークがある」ことは「クエリパラメータがある」ことと同じではなく、パラメータ数はパラメータ表で判断します。</p>\n\n<h2>「クエリ」行とパラメータ表が一致しない理由</h2>\n<p>「クエリ」行は <code>u.search</code> を取り、これはシリアライズ後のクエリ文字列で、パーセントエンコードが残っています。パラメータ表は <code>searchParams.entries()</code> を取り、キーと値はすでにデコードされています。たとえば <code>?q=a%26b&amp;x=1</code> では「クエリ」行は <code>?q=a%26b&amp;x=1</code> を表示し、パラメータ表の <code>q</code> の値は <code>a&amp;b</code> です。<code>?q=a%3Db</code> の値は <code>a=b</code> と表示されます。表に <code>&amp;</code> や <code>=</code> が現れても驚く必要はなく、それはデコード後の値であって、新しい区切り文字ではありません。</p>\n<p>空白のエンコードも両者で異なります。MDN によれば <code>URL.search</code> は空白を <code>%20</code> にエンコードし、<code>URLSearchParams</code> はシリアライズ時に空白を <code>+</code> にエンコードします。このツールは読み取り専用なのでこの書き換えは起きませんが、自分のコードで <code>searchParams</code> に対して <code>set()</code> や <code>append()</code> を呼ぶと、URL の <code>search</code> は丸ごと置き換えられ、元の <code>%20</code> が <code>+</code> になる可能性があり、他の文字のエンコード範囲も変わり得ます。「完全なアドレス」をコピーする前に、それが望む形かを確認してください。</p>\n\n<h2>境界と制限</h2>\n<p>ツールを「パラメータデコーダ」として使う前に、これらの境界を確認してください。これらは欠陥ではなく、パーサーが解析だけを行い、業務上の判断はしない結果です。</p>\n<ul>\n<li>相対アドレスは非対応です。ツールは <code>new URL(raw)</code> を呼ぶときに2番目の <code>base</code> 引数を渡さないため、<code>/path?x=1</code>、<code>example.com/?x=1</code>、<code>//example.com/?x=1</code>、<code>?a=1</code> はいずれも <code>TypeError: Invalid URL</code> を投げ、画面には「プロトコルが必要です」と表示されます。相対参照は基準アドレスがないと解析できず、それは呼び出し側の責任です。</li>\n<li>正規化は元の文字列を書き換えます。デフォルトポートの消失、パス内の <code>..</code> の畳み込み、大文字小文字の統一、中国語ドメインの punycode 変換、タブの削除は、いずれも「完全なアドレス」を監査用の原文として使えないことを意味します。逐語的に比較する必要がある場合は、入力文字列を自分で保持してください。</li>\n<li>重複キーはグループ化されません。同名のキーは出現順に1件ずつ並び、統合も上書きも並べ替えもされません。すべての値が必要なら <code>getAll</code> を使い、単一値だけを取ると最初の1件しか得られません。</li>\n<li>プラス記号と <code>%20</code> は意味が異なります。クエリ文字列の <code>+</code> は空白にデコードされ、リテラルのプラス記号は <code>%2B</code> と書きます。<code>decodeURIComponent</code> は <code>+</code> を置換しないため、両者を混用できません。</li>\n<li>不正なパーセント記号と長すぎるパラメータでもエラーになりません。クエリ文字列やパス内の <code>%zz</code>、<code>%2</code>、<code>%FF</code> は解析を失敗させず、値はそのまま残るか置換文字になります。実行記録では2万文字の値や500件のキーと値も完全に解析できましたが、ツールの画面、ログ基盤、バックエンドのフレームワークには通常それぞれ長さと件数の制限があるため、業務層で独自の上限を設ける必要があります。</li>\n<li>ネストしたパラメータは展開されません。<code>a[b]=1</code> のキーは文字列 <code>a[b]</code> そのもので、オブジェクトに分割されることはありません。<code>data={...}</code> も文字列にすぎず、ツールは JSON を解析しません。JSON の値を読むには、まず文字列を取り出してから <a href=\"/ja/tools/dev/jsonpath/\">JSONPath クエリツール</a> や JSON フォーマッタで処理してください。</li>\n<li>業務上の意味は検証しません。必須・型・署名・権限・二重送信は解析の範囲外です。解析の成功は、その形式を URL パーサーが受け入れられるという意味にすぎません。</li>\n<li>見るのはクエリ文字列だけです。フラグメント内の <code>#a=2</code> はパラメータに数えません。ユーザー名とパスワードは平文で表示されるので、実際のトークン・電話番号・パスワードを含むアドレスをオンラインツールに貼り付けないでください。</li>\n</ul>\n\n<h2>コードに落とす：4つのチェックリスト</h2>\n<p>上記の挙動をチェック順序として固定すれば、「ローカルでは正しく見えるのに本番で取れない」問題の大半を避けられます。</p>\n<ol>\n<li><code>Object.fromEntries</code> ではなく <code>entries()</code> を走査します。前者は順序を保ち重複キーも残しますが、後者では同名キーが最後の1つだけになります。</li>\n<li>単一値は <code>get</code>、複数値は <code>getAll</code>、存在確認は <code>has</code> を使います。真偽値の判定で空の値と欠落を区別しないでください。</li>\n<li><code>URLSearchParams</code> がすでにデコードした値を再度デコードしないでください。<code>%2520</code> を二重にデコードすると空白になり、元のデータを壊します。</li>\n<li>元のクエリ文字列が必要なら入力を保持するか <code>search</code> を読み、<code>href</code> から逆算しないでください。業務上の検証は解析の後に別途行います。</li>\n</ol>\n<p>URL がログやドキュメント、チャット履歴に混ざっている場合は、まず <a href=\"/ja/tools/dev/regex-tester/\">正規表現テストツール</a> でアドレスを抽出し、それを1件ずつ解析ツールに入れて照合するほうが、手で <code>&amp;</code> を数えるより確実です。パラメータを生成・書き換えるときは、<a href=\"/ja/tools/dev/url-encode/\">URL エンコードツール</a> で個々のキーと値を処理してからクエリ文字列に戻すと、プラス記号と空白の曖昧さを避けられます。</p>",
+  "faqs": [
+    {
+      "q": "/path?x=1 が解析に失敗するのはなぜですか？",
+      "a": "new URL(raw) を呼ぶときに2番目の base 引数を渡しておらず、/path が相対参照だからです。ブラウザも Node の WHATWG 実装も TypeError: Invalid URL を投げます。ツールはこれを根拠に「プロトコルが必要です」と案内します。https://example.com の接頭辞を補うか、base を使う方法に変えれば解析できます。"
+    },
+    {
+      "q": "?a=1&a=2 が2行表示されるのに、取得できる値は1つだけなのはなぜですか？",
+      "a": "URLSearchParams は重複キーを2件のレコードとして保持します。表には1件ずつ並び、get('a') は最初の 1 を返します。すべて取得するには getAll('a') を使い、順序はクエリ文字列と同じです。ツールはこれらを配列にまとめません。"
+    },
+    {
+      "q": "パラメータ内のプラス記号が空白になるのはなぜですか？",
+      "a": "URLSearchParams は application/x-www-form-urlencoded として解析し、+ を空白にデコードします。リテラルのプラス記号は %2B です。文字列全体に decodeURIComponent を直接使っても + は変換されず、%zz に当たると URIError を投げます。"
+    },
+    {
+      "q": "中国語のパラメータは中国語で表示されるのに、「クエリ」行は %E4%B8%AD のままなのはなぜですか？",
+      "a": "パラメータ表はデコード後のキーと値を表示します。「クエリ」行は u.search で、パーセントエンコードされたクエリ文字列を保持しています。一方はデコード済みのビュー、もう一方はシリアライズ結果であり、元のエンコードが必要なときはクエリ行を見てください。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "WHATWG: URL 標準（Living Standard）",
+      "url": "https://url.spec.whatwg.org/"
+    },
+    {
+      "title": "MDN: URL",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL"
+    },
+    {
+      "title": "MDN: URL.searchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams"
+    },
+    {
+      "title": "MDN: URLSearchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams"
+    },
+    {
+      "title": "MDN: decodeURIComponent()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent"
+    },
+    {
+      "title": "RFC 3986: URI Generic Syntax",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986.html"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "url-parse",
+      "lang": "ja",
+      "translatedFrom": "2ba014653c58dc26070e4bf3dc52f1902cc405a94cb27351e53231f67b224aac",
+      "translatedAt": "2026-11-07T10:18:05.179Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.9
+    }
+  },
+  "focus": "まず & で区切り、最初の = でキーと値に分け、そのうえで UTF-8 としてデコードします。重複キーは1件ずつ保持します。",
+  "notice": "解析はブラウザ内で完結し、URL は送信されません。アカウントやパスワード、トークンを含むアドレスは、どのオンラインツールにも貼り付けないでください。"
+}

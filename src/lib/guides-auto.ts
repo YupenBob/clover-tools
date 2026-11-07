@@ -25,7 +25,8 @@ import guide16 from '../../data/editorial-guides/text-transform.json' with { typ
 import guide17 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
 import guide18 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
 import guide19 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
-import guide20 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
+import guide20 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
+import guide21 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -49,4 +50,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide18 as unknown as Guide,
   guide19 as unknown as Guide,
   guide20 as unknown as Guide,
+  guide21 as unknown as Guide,
 ];

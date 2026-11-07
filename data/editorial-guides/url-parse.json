@@ -1,0 +1,70 @@
+{
+  "slug": "url-parse",
+  "title": "URL 参数解析：加号解码、重复键与相对地址",
+  "description": "从查询串拆分键值讲起，说明加号与百分号的解码差异、重复键逐条列出的顺序、相对地址为何报错，以及 WHATWG 规范化对原串的改写和工具的取值边界。",
+  "category": "开发实用",
+  "toolSlug": "url-parse",
+  "published": "2026-11-07",
+  "updated": "2026-11-07",
+  "readingMinutes": 6,
+  "content": "<p>URL 参数解析就是把问号之后的查询串按 <code>&amp;</code> 拆成键值对，再对每个键和值做百分号解码。浏览器与 Node 的 WHATWG 实现都用 <code>URL</code> 和 <code>URLSearchParams</code> 完成这一步，重复键、加号、非法转义都有固定表现。本站的 URL 参数解析工具展示九个地址字段和逐条参数，下文提到的行为都能在它上面复现。</p>\n\n<h2>查询串先拆成键值，再谈解码</h2>\n<p>查询部分从第一个 <code>?</code> 开始，到 <code>#</code> 或字符串结尾为止；<code>#</code> 之后是锚点，不属于参数。解析时先按 <code>&amp;</code> 切成若干段，空段直接丢弃，再对每段取第一个 <code>=</code> 之前的内容作为键，之后的内容作为值。第二个及后续的 <code>=</code> 留在值里，所以 <code>?token=abc=def</code> 的键是 <code>token</code>，值是 <code>abc=def</code>，不是三个字段。</p>\n<p>没有等号的段按“键 + 空值”处理：<code>?flag</code> 与 <code>?flag=</code> 在参数表里都是一条记录，值是空字符串。分号不是分隔符，<code>?a=1;b=2</code> 只得到一个键 <code>a</code>，值是 <code>1;b=2</code>。连续的空段也不会产生空记录，<code>?a=1&amp;&amp;b=2&amp;</code> 仍然只有两个参数，顺序与原串一致。</p>\n<pre><code>const u = new URL('https://example.com/path?q=clover&amp;lang=zh-CN&amp;page=2');\nfor (const [key, value] of u.searchParams) {\n  console.log(key, JSON.stringify(value));\n}\n// q \"clover\"\n// lang \"zh-CN\"\n// page \"2\"</code></pre>\n<p>这段循环是最稳的取参方式：<code>searchParams</code> 保留出现顺序，重复键也不会被覆盖。只有在确定键唯一时，才适合转成普通对象。</p>\n\n<h2>加号与百分号是两套解码语义</h2>\n<p>在查询串里，<code>+</code> 按表单编码规则解码成空格，<code>%20</code> 同样解成空格，而字面加号必须写成 <code>%2B</code>。所以 <code>?q=a+b</code> 和 <code>?q=a%20b</code> 得到的值都是 <code>a b</code>，但 <code>?q=a%2Bb</code> 得到的是 <code>a+b</code>。中文同理：<code>%E4%B8%AD</code> 解码为“中”，输入原字符“中”时，解析器会把它序列化成 <code>%E4%B8%AD</code>，两种写法在参数表里显示相同。</p>\n<p>这条规则来自 <code>URLSearchParams</code> 使用的表单编码解析，别套到 <code>decodeURIComponent</code> 上。<code>decodeURIComponent('a+b')</code> 返回的仍是 <code>a+b</code>，它只处理百分号转义。也正因如此，不要拿 <code>decodeURIComponent</code> 直接解整条查询串，否则加号会留着、键值边界也没人拆。需要手动处理单值时，先按 <code>&amp;</code> 和 <code>=</code> 拆开，再把 <code>+</code> 换成空格，最后才解码。</p>\n<p>查询串里的非法转义不会让解析失败。<code>?a=%zz</code> 的 <code>search</code> 仍是 <code>?a=%zz</code>，取值得到字符串 <code>%zz</code>；<code>%2</code> 这类不完整序列也原样保留；<code>%FF</code> 不是合法 UTF-8，解码结果是替换字符 U+FFFD。路径里的非法百分号也原样保留，相比之下 <code>decodeURIComponent('%zz')</code> 会抛 <code>URIError: URI malformed</code>。如果参数值来自外部，别假设它一定能被严格解码。需要重新编码参数时，可以配合站内的 <a href=\"/tools/dev/url-encode/\">URL 编码工具</a>，先看清原文再编码，避免把已经编码的 <code>%25</code> 再编一次。</p>\n\n<h2>重复键与空值：逐条列出，不分组</h2>\n<p><code>?a=1&amp;a=2</code> 在工具里是两行，键都是 <code>a</code>，值分别是 <code>1</code> 和 <code>2</code>。解析器不把它们合并成数组，也不做“后者覆盖前者”，只是按出现顺序保留。单值接口 <code>get('a')</code> 返回第一个 <code>1</code>，要拿全部得用 <code>getAll('a')</code>。状态栏显示的“共 N 个查询参数”统计的是记录条数，所以重复键会被计入两次。</p>\n<p>乱序重复同样保留原顺序：<code>?a=1&amp;b=2&amp;a=3</code> 的三条记录依次是 a=1、b=2、a=3。这一点在排查签名、分页和埋点参数时很关键：服务端如果只取第一个键，后面同名的值可能被静默忽略；如果服务端自行拼数组，解析结果就会和你看到的两行不一致。</p>\n<p>空值需要区分来源。<code>?a=</code> 和 <code>?flag</code> 在参数表里都显示为空值，但“查询”一行会分别显示 <code>?a=</code> 与 <code>?flag</code>。若把参数重新序列化，<code>flag</code> 会被补成 <code>flag=</code>；也就是说，序列化后的串和用户原始输入未必逐字相同。判断“参数存在但为空”时，用 <code>has()</code> 比判断值真假可靠。</p>\n\n<h2>示例地址的九个字段</h2>\n<p>拿工具自带的示例地址 <code>https://user:pass@example.com:8080/path/to/page?q=clover&amp;lang=zh-CN&amp;page=2#section-a</code> 解析，九个字段的取值如下。这张表也是核对其他地址时的对照基准：端口、查询、锚点、用户名、密码为空时，工具会显示“（默认）”或“（无）”。</p>\n<table>\n<thead><tr><th>字段</th><th>示例取值</th><th>为空时</th></tr></thead>\n<tbody>\n<tr><td>协议</td><td><code>https:</code></td><td>必然存在</td></tr>\n<tr><td>主机名</td><td><code>example.com</code></td><td>必然存在</td></tr>\n<tr><td>端口</td><td><code>8080</code></td><td>显示“（默认）”</td></tr>\n<tr><td>路径</td><td><code>/path/to/page</code></td><td>显示 <code>/</code></td></tr>\n<tr><td>查询</td><td><code>?q=clover&amp;lang=zh-CN&amp;page=2</code></td><td>显示“（无）”</td></tr>\n<tr><td>锚点</td><td><code>#section-a</code></td><td>显示“（无）”</td></tr>\n<tr><td>用户名</td><td><code>user</code></td><td>显示“（无）”</td></tr>\n<tr><td>密码</td><td><code>pass</code></td><td>显示“（无）”</td></tr>\n<tr><td>完整地址</td><td>与输入一致</td><td>—</td></tr>\n</tbody>\n</table>\n<p>三个参数分别是 <code>q=clover</code>、<code>lang=zh-CN</code>、<code>page=2</code>，参数表逐条列出，顺序与查询串相同。注意“完整地址”是解析后的 <code>href</code>，不是输入原文；如果原串包含大写协议、默认端口或 <code>..</code> 路径，这一行会显示规范化后的结果。</p>\n\n<h2>规范化会改写原串，别拿它当原文</h2>\n<p><code>new URL()</code> 不是校验器，而是一个解析加序列化的过程。协议和主机名统一小写，<code>HTTPS://EXAMPLE.COM/Path</code> 会变成 <code>https://example.com/Path</code>，路径大小写保留。默认端口会被删掉：<code>https://example.com:443/a</code> 的端口为空，<code>http://example.com:80/a</code> 同理；非默认端口 <code>8443</code> 保留。路径里的 <code>..</code> 和 <code>.</code> 会折叠，<code>/a/../b/./c</code> 变成 <code>/b/c</code>，<code>/a/b/..</code> 变成 <code>/a/</code>。</p>\n<p>反斜杠在特殊协议里被当作斜杠：<code>https://example.com/a\\b\\c</code> 的路径是 <code>/a/b/c</code>。制表符和换行会被移除，在 <code>/a</code> 与 <code>b</code> 之间夹一个制表符，路径会变成 <code>/ab</code>，而不是带空白的路径。中文域名走 IDNA 转换，<code>https://例子.测试/path</code> 的主机名显示为 <code>xn--fsqu00a.xn--0zwm56d</code>。主机后没有路径时会补一个 <code>/</code>，<code>https://example.com</code> 的路径为 <code>/</code>。空格在路径、查询和锚点里都会被编码成 <code>%20</code>，原字符不会留在 <code>href</code> 中。</p>\n<p>还有一个容易忽略的细节：<code>https://example.com/?</code> 的 <code>href</code> 末尾保留问号，但 <code>search</code> 是空字符串，工具“查询”一行显示“（无）”。所以“地址里有问号”不等于“有查询参数”，判断参数个数要看参数表。</p>\n\n<h2>“查询”行与参数表为什么对不上</h2>\n<p>“查询”行取的是 <code>u.search</code>，它是序列化后的查询串，保留百分号编码；参数表取的是 <code>searchParams.entries()</code>，键值已经解码。例如 <code>?q=a%26b&amp;x=1</code>，“查询”行显示 <code>?q=a%26b&amp;x=1</code>，参数表里 <code>q</code> 的值是 <code>a&amp;b</code>；<code>?q=a%3Db</code> 的值显示为 <code>a=b</code>。看到表格里出现 <code>&amp;</code> 或 <code>=</code> 不必惊讶，那只是解码后的值，不是新的分隔符。</p>\n<p>两边的空格编码也不一样。MDN 说明 <code>URL.search</code> 把空格编码成 <code>%20</code>，而 <code>URLSearchParams</code> 序列化时把空格编码成 <code>+</code>。工具只读不写，所以不会触发这种改写；但如果你在自己的代码里对 <code>searchParams</code> 调用 <code>set()</code> 或 <code>append()</code>，URL 的 <code>search</code> 会被整体替换，原本的 <code>%20</code> 可能变成 <code>+</code>，其他字符的编码范围也可能变化。复制“完整地址”之前，先确认它是不是你要的形态。</p>\n\n<h2>边界与限制</h2>\n<p>把工具当成“参数解码器”用之前，先看清这些边界。它们不是缺陷，而是解析器只做解析、不做业务判断的结果。</p>\n<ul>\n<li>相对地址不支持。工具调用 <code>new URL(raw)</code> 时没有传第二个 <code>base</code> 参数，<code>/path?x=1</code>、<code>example.com/?x=1</code>、<code>//example.com/?x=1</code>、<code>?a=1</code> 都会抛 <code>TypeError: Invalid URL</code>，界面提示“需包含协议”。相对引用要带基准地址才能解析，这属于调用方的责任。</li>\n<li>规范化会改写原串。默认端口消失、路径 <code>..</code> 折叠、大小写统一、中文域名转 punycode、制表符被删，都意味着“完整地址”不能当作审计原文。需要逐字比对时，自己保留输入串。</li>\n<li>重复键不分组。同名键按出现顺序逐条列出，不合并、不覆盖、不排序；要全量值必须用 <code>getAll</code>，只取单值会得到第一条。</li>\n<li>加号与 <code>%20</code> 语义不同。查询串里的 <code>+</code> 解成空格，字面加号要写 <code>%2B</code>；<code>decodeURIComponent</code> 不会替换 <code>+</code>，两者不能混用。</li>\n<li>非法百分号与超长参数不报错。查询串和路径里的 <code>%zz</code>、<code>%2</code>、<code>%FF</code> 都不会让解析失败，值可能原样保留或变成替换字符；运行记录显示，两万字符的值、五百个键值仍能被完整解析，但工具界面、日志系统和后端框架通常另有长度与数量限制，业务层要自己设上限。</li>\n<li>嵌套参数不展开。<code>a[b]=1</code> 的键就是字符串 <code>a[b]</code>，不会被拆成对象；<code>data={...}</code> 也只是字符串，工具不解析 JSON。要读 JSON 值，先取出字符串再用 <a href=\"/tools/dev/jsonpath/\">JSONPath 查询工具</a> 或 JSON 格式化工具处理。</li>\n<li>不校验业务含义。必填、类型、签名、权限、重复提交都不在解析范围内；解析成功只代表格式能被 URL 解析器接受。</li>\n<li>只看查询串。锚点里的 <code>#a=2</code> 不算参数；用户名和密码会以明文显示，别把带真实令牌、手机号或密码的地址粘进任何在线工具。</li>\n</ul>\n\n<h2>落到代码：四条核对清单</h2>\n<p>把上面的行为固化成检查顺序，能避免大部分“本地看着对、线上取不到”的问题。</p>\n<ol>\n<li>遍历 <code>entries()</code> 而不是 <code>Object.fromEntries</code>。前者保序且保留重复键，后者会让同名键只剩最后一个。</li>\n<li>单值用 <code>get</code>，多值用 <code>getAll</code>，存在性用 <code>has</code>；不要用真假判断区分空值与缺失。</li>\n<li>已经由 <code>URLSearchParams</code> 解码的值不要再解一次；对 <code>%2520</code> 二次解码会得到空格，把原始数据改坏。</li>\n<li>需要原始查询串就保留输入或读 <code>search</code>，不要从 <code>href</code> 反推；业务校验放在解析之后单独做。</li>\n</ol>\n<p>如果 URL 混在日志、文档或聊天记录里，先用 <a href=\"/tools/dev/regex-tester/\">正则测试工具</a> 把地址抽出来，再逐条丢进解析工具核对，比手工数 <code>&amp;</code> 可靠。需要生成或改写参数时，用 <a href=\"/tools/dev/url-encode/\">URL 编码工具</a> 处理单个键值，再拼回查询串，能避开加号与空格的歧义。</p>",
+  "faqs": [
+    {
+      "q": "/path?x=1 为什么解析失败？",
+      "a": "因为调用 new URL(raw) 时没有传第二个 base 参数，而 /path 是相对引用；浏览器与 Node 的 WHATWG 实现都会抛 TypeError: Invalid URL。工具据此提示“需包含协议”。补上 https://example.com 前缀或改用 base 才能解析。"
+    },
+    {
+      "q": "?a=1&a=2 为什么显示两行，取值只有 1？",
+      "a": "URLSearchParams 把重复键保留为两条记录：表格逐条列出，get('a') 返回第一个 1；要拿全部用 getAll('a')，顺序与查询串一致。工具不会把它们合并成数组。"
+    },
+    {
+      "q": "参数里的加号为什么变成空格？",
+      "a": "URLSearchParams 按 application/x-www-form-urlencoded 解析，把 + 解成空格；%2B 才是字面加号。直接对整串用 decodeURIComponent 不会转换 +，而且遇到 %zz 会抛 URIError。"
+    },
+    {
+      "q": "中文参数显示成中文，但“查询”行还是 %E4%B8%AD？",
+      "a": "参数表展示解码后的键值；“查询”行是 u.search，保留百分号编码的查询串。一个是解码视图，一个是序列化结果，需要原始编码时看查询行。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "WHATWG：URL 标准（Living Standard）",
+      "url": "https://url.spec.whatwg.org/"
+    },
+    {
+      "title": "MDN：URL",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL"
+    },
+    {
+      "title": "MDN：URL.searchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URL/searchParams"
+    },
+    {
+      "title": "MDN：URLSearchParams",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams"
+    },
+    {
+      "title": "MDN：decodeURIComponent()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent"
+    },
+    {
+      "title": "RFC 3986：URI Generic Syntax",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986.html"
+    }
+  ],
+  "focus": "先按 & 拆段、首个 = 分键值，再按 UTF-8 解码；重复键要逐条保留。",
+  "notice": "解析在浏览器本地完成，URL 不会上传；含账号密码或令牌的地址不要粘进任何在线工具。",
+  "_meta": {
+    "auto": true,
+    "type": "new-guide",
+    "mode": "new-guide",
+    "runId": "2026-11-07T18",
+    "primaryQuery": "url参数怎么解析",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.87,
+    "reviewerCheckedClaims": 16,
+    "reviewerReviewFile": ".editorial/runs/2026-11-07T18/review.json",
+    "reviewRounds": 1,
+    "verifiedAt": "2026-11-07T10:19:34.235Z"
+  }
+}
