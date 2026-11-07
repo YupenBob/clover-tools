@@ -58,6 +58,15 @@ export const TRANSLATION_REQUIREMENTS = {
   },
 };
 
+/**
+ * 少数指南的内容本身就是汉字字形（简繁、异体字、地区用词），译文正文必须保留
+ * 字形示例，汉字比例会高于普通指南。只对这些 slug 放宽脚本比例上限，其余门槛不变；
+ * maxHanRun 仍然生效，避免整段未翻译中文。
+ */
+export const SLUG_REQUIREMENT_OVERRIDES = {
+  jianfan: { en: { maxHanRatio: 0.02 } },
+}
+
 export const REQUIRED_TRANSLATION_FIELDS = [
   'slug',
   'title',
@@ -373,7 +382,10 @@ export function validateTranslationStatic(translation, zhGuide, lang) {
   const errors = [];
   const warnings = [];
   const metrics = { slug: translation?.slug ?? zhGuide?.slug ?? null, lang };
-  const requirements = TRANSLATION_REQUIREMENTS[lang];
+  const requirements = {
+    ...TRANSLATION_REQUIREMENTS[lang],
+    ...(SLUG_REQUIREMENT_OVERRIDES[translation?.slug]?.[lang] ?? {}),
+  };
 
   if (!translation || typeof translation !== 'object' || Array.isArray(translation)) {
     return { errors: ['译文对象无效'], warnings, metrics };

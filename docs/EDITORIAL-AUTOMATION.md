@@ -147,6 +147,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
   若升级旧 URL，则按升级后的新内容重新产出译文，这不属于历史回填。
 - 工具页全语言开放索引；指南页的语言链接与 hreflang 由 `translations.json` 推导。
 - 允许收录不等于降低质量：译文仍须过静态校验与多语 Reviewer，机械转换/机翻原文不得直接发布。
+- 例外（脚本比例）：`jianfan` 这类以汉字字形本身为主题的指南，英文译文正文必须保留字形示例，`translate.mjs` 的 `SLUG_REQUIREMENT_OVERRIDES` 仅对该 slug 把 `maxHanRatio` 放宽到 0.02，`maxHanRun` 仍生效；新增此类例外需在代码注释里写明理由。
 
 ### 数据与生成
 
