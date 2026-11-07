@@ -89,6 +89,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 ## 四、单次运行契约（Tick Contract）
 
 > 以下命令全部在仓库根执行；Astro 命令需要 `ASTRO_TELEMETRY_DISABLED=1`（沙箱内 `~/.config` 不可写）。
+> 日期口径：站点「今天」统一按 Asia/Shanghai 计算（`scripts/lib/site-date.mjs`），tick 规划、`apply-draft`、`verify-article`、`check-guides-quality`、`finish-run` 必须一致，否则 UTC 晚间会出现「updated 晚于今天」的假失败。
 > 任何一步失败都按"失败处理矩阵"回滚并结束，不做降级发布。
 
 0. **守卫**：`cat .editorial/PAUSED` 存在 → 直接结束并说明原因。
@@ -189,7 +190,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 不得新增事实、断言、链接、代码或示例；HTML 结构与 h2 / 表格 / 图片 / 代码块数量必须与 zh 完全一致。
 要求：
 - 内链本地化为 /<lang>/tools/...（tw 为 /zh-hant/tools/...），不得保留简体 /tools/...；
-- 标题 ≤80 字符（tw ≤40 汉字）；description 40–160 字符（zh/tw 40–120 汉字）；
+- 标题 ≤66 字符（tw ≤40 汉字；页面 `<title>` 会追加「 - CloverTools」后缀，SEO 上限 80 字符）；description 40–160 字符（zh/tw 40–120 汉字）；
 - 正文长度：en ≥900 词、ko Hangul ≥1500、ja Han+kana ≥1500、tw Han ≥1500；
 - 语言自然，无未翻译的整段中文；专业词首次出现可括注英文。
 输出：.editorial/drafts/<slug>/translations/<lang>.json，字段与 Guide 一致，另含：

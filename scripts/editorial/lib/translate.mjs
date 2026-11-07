@@ -34,7 +34,7 @@ export const TRANSLATION_REQUIREMENTS = {
     bodyMinHan: 1500,
   },
   en: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinWords: 900,
@@ -42,7 +42,7 @@ export const TRANSLATION_REQUIREMENTS = {
     maxHanRun: 10,
   },
   ko: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinHangul: 1500,
@@ -50,7 +50,7 @@ export const TRANSLATION_REQUIREMENTS = {
     maxHanRun: 10,
   },
   ja: {
-    titleMaxChars: 80,
+    titleMaxChars: 66,
     descriptionMinChars: 40,
     descriptionMaxChars: 160,
     bodyMinHanKana: 1500,
