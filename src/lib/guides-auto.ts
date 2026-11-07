@@ -16,17 +16,18 @@ import guide7 from '../../data/editorial-guides/json-formatting-validation.json'
 import guide8 from '../../data/editorial-guides/json-to-csv-excel.json' with { type: 'json' };
 import guide9 from '../../data/editorial-guides/json-xml-yaml.json' with { type: 'json' };
 import guide10 from '../../data/editorial-guides/jwt-expiry-and-verification.json' with { type: 'json' };
-import guide11 from '../../data/editorial-guides/qrcode-safe-publishing.json' with { type: 'json' };
-import guide12 from '../../data/editorial-guides/random-number-fairness.json' with { type: 'json' };
-import guide13 from '../../data/editorial-guides/regex-debugging-method.json' with { type: 'json' };
-import guide14 from '../../data/editorial-guides/strong-password-practices.json' with { type: 'json' };
-import guide15 from '../../data/editorial-guides/text-diff-review.json' with { type: 'json' };
-import guide16 from '../../data/editorial-guides/text-transform.json' with { type: 'json' };
-import guide17 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
-import guide18 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
-import guide19 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
-import guide20 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
-import guide21 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
+import guide11 from '../../data/editorial-guides/password-strength.json' with { type: 'json' };
+import guide12 from '../../data/editorial-guides/qrcode-safe-publishing.json' with { type: 'json' };
+import guide13 from '../../data/editorial-guides/random-number-fairness.json' with { type: 'json' };
+import guide14 from '../../data/editorial-guides/regex-debugging-method.json' with { type: 'json' };
+import guide15 from '../../data/editorial-guides/strong-password-practices.json' with { type: 'json' };
+import guide16 from '../../data/editorial-guides/text-diff-review.json' with { type: 'json' };
+import guide17 from '../../data/editorial-guides/text-transform.json' with { type: 'json' };
+import guide18 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
+import guide19 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
+import guide20 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
+import guide21 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
+import guide22 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -51,4 +52,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide19 as unknown as Guide,
   guide20 as unknown as Guide,
   guide21 as unknown as Guide,
+  guide22 as unknown as Guide,
 ];
