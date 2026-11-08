@@ -1,0 +1,59 @@
+{
+  "slug": "symmetric-encrypt-params",
+  "title": "AES 加密怎麼用：模式、填充與 IV 怎麼填",
+  "description": "按本站對稱加解密工具的真實實現，講清 AES 的模式、填充、十六進制 IV 和輸出格式怎麼填，以及留空 IV、錯誤口令、hex 與 base64 誤判這幾類提示分別對應什麼原因。",
+  "category": "开发实用",
+  "toolSlug": "symmetric-encrypt",
+  "published": "2026-11-08",
+  "updated": "2026-11-08",
+  "readingMinutes": 7,
+  "content": "<p>選好算法與模式、填入口令和密鑰、再補一段十六進制 IV，就能在本站的<a href=\"/zh-hant/tools/dev/symmetric-encrypt/\">對稱加解密</a>工具裏完成一次 AES 加密；最容易卡住的是 IV 和輸出格式，下文按工具的真實實現逐項說明。</p>\n\n<h2>一次加密要填的六項</h2>\n<p>工具面板從上到下是算法、模式、輸出格式、密鑰、IV、明文或密文，再加加密與解密兩顆按鈕。算法只有 AES、DES、RC4、Rabbit 四個選項，模式只有 CBC、ECB、CFB、OFB、CTR 五個，輸出格式只有 Base64 與 Hex。這裏沒有 GCM、CCM 這類帶認證的模式，也沒有密鑰協商或密鑰存儲：它只負責把一段文字用口令變成密文，再變回來。</p>\n<p>模式下拉並不是對所有算法都生效。代碼只在算法不是 RC4 或 Rabbit 時把模式寫進加密配置，選這兩種算法時下拉框裏的模式會被忽略。IV 的處理不完全一樣：RC4 完全忽略 IV，Rabbit 仍會讀取 IV 參與計算，所以選 Rabbit 又填了 IV 時，輸出會隨 IV 改變。</p>\n\n<h2>密鑰不是口令本身</h2>\n<p>密鑰框裏輸入的口令不會直接當 AES 密鑰用。第 77 行把鹽寫死成十六進制 <code>636c6f766572746f6f6c73</code>（正好是 ASCII 的 clovertools），第 80 到 84 行調用 <code>CryptoJS.EvpKDF</code>，用 MD5、1 次迭代、keySize 256/32 派生出一段 32 字節密鑰。CryptoJS 的源碼注釋說這個函數對應 OpenSSL 的 EVP_BytesToKey，它和 PBKDF2 不是一回事。</p>\n<p>派生過程沒有任何隨機成分，所以同一口令每次都得到同一把密鑰：clover-secret 派生出 <code>62d67a827882be3b6e846666ff79d05cd5aa8a9c24381c5b966fb20a562a5d9b</code>。同一密鑰配同一 IV 加密 hello clover，兩次都得到 <code>334655f38007aef2a0f164bc8cadb40b</code>；換一個 IV 才變成 <code>214efeff18a2071fa654b83f5c1bfd20</code>。</p>\n<p>RFC 8018 第 4.1 節解釋鹽的作用：它讓同一口令對應大量可能的密鑰，攻擊者只能針對每個鹽單獨搜索口令；第 4.2 節引用 SP 800-132 的建議，迭代次數應在用戶可接受的前提下盡量大，至少 1000 次。本站這條派生鏈只有 1 次迭代、鹽固定，因此它的作用是把任意長度口令攤成 32 字節，而不是拖慢逐個口令的嘗試。</p>\n<p>換算法後密鑰長度並不跟著變：DES 只取 32 字節裏的前 8 字節，Rabbit 只取前 16 字節，RC4 用滿 32 字節。用前 8 字節和用完整派生密鑰算出的 DES 密文完全一樣，Rabbit 也一樣；RC4 換成 16 字節密鑰則得到不同密文（<code>add8585e17c1692a7d5300186a</code> 對 <code>6db1136d35162490db945dc60f</code>）。</p>\n\n<h2>五種模式的實際差別</h2>\n<p>這五個下拉項對應 NIST SP 800-38A 定義的幾種分組密碼保密模式，本站的做法是把它們原樣交給 CryptoJS，並在非 ECB 時要求一個 IV。差別在報錯和結果上很直接：</p>\n<table>\n<thead><tr><th>模式</th><th>本站是否要求 IV</th><th>實際表現</th></tr></thead>\n<tbody>\n<tr><td>CBC</td><td>要求，32 個十六進制字符</td><td>IV 參與首塊計算，換 IV 解同一密文，首塊會變樣</td></tr>\n<tr><td>ECB</td><td>不要求，填了也被忽略</td><td>相同明文塊得到相同密文塊，只適合演示</td></tr>\n<tr><td>CFB</td><td>要求，與 CBC 同一分支</td><td>IV 為空時拋同一句錯</td></tr>\n<tr><td>OFB</td><td>要求，與 CBC 同一分支</td><td>IV 為空時拋同一句錯</td></tr>\n<tr><td>CTR</td><td>要求，與 CBC 同一分支</td><td>同上，且 AES 下 CryptoJS 仍按 16 字節分組填充</td></tr>\n</tbody></table>\n<p>ECB 的表現值得單獨看一眼。把 32 個字符 abcd 排成兩塊的明文加密，ECB 得到的兩塊密文完全相同（都是 <code>9dbec8d37b6941e6365653d6915b6468</code>），而 CBC 的兩塊不同（<code>fe66930ca9a4b508c8f10883ecd8c748</code> 與 <code>257de9ee3bcf8ce56902c9e07f3981da</code>）。明文裏只要有重複的 16 字節片段，ECB 就會把這個重複原樣留在密文裏。</p>\n<p>還有一點：下拉裏沒有帶認證的模式。MDN 在 SubtleCrypto.encrypt 的說明裏建議優先使用帶認證的加密，並指出 CBC 與 CTR 默認不提供校驗，被篡改的密文不會被發現；本站的輸出又只有 ciphertext，沒有任何校驗標簽。</p>\n\n<h2>填充：5 個字符也輸出 16 字節</h2>\n<p>CryptoJS 的分組加密默認用 PKCS#7 填充，把明文補到 16 字節的整數倍。運行結果是：5 字節和 11 字節的明文都輸出 16 字節密文，16 字節明文輸出 32 字節，17 字節輸出 32 字節，32 字節輸出 48 字節。16 字節明文之所以變成 32 字節，是因為 PKCS#7 在長度正好整除時會額外補一整塊。</p>\n<p>選 CTR 也一樣：5 字節明文同樣輸出 16 字節。CryptoJS 的流式模式走同一套分塊與填充邏輯，別指望換成 CTR 就能省掉這幾個字節。</p>\n<p>知道這一點，就能拿長度做第一道檢查。16 字節密文對應 32 個十六進制字符或 24 個 Base64 字符（結尾是 ==），如果你粘進來的 hex 是 30 位或 33 位，說明複製時少了或多了字符，改密鑰、改 IV 都不可能解對。</p>\n<p>還有一處不對稱：加密時明文不做 trim，尾巴上多一個空格，密文就完全不同（hello 是 <code>9133db62e0212f2eac8559b78161ba4a</code>，hello 加一個空格是 <code>4cda43142a1ee427278c33a7ea6a996d</code>）；解密時輸入會先 trim，所以粘貼密文時帶的換行不影響解析。</p>\n\n<h2>IV：32 個十六進制字符，留空會報錯</h2>\n<p>IV 輸入框的提示文字寫著“留空則自動生成”，但實際代碼不是這樣：非 ECB 模式下只要 IV 為空，就會拋出“該模式需要填寫十六進制 IV（偏移量）”。目前留空不會自動生成，必須自己填。</p>\n<p>格式要求是十六進制，32 個字符正好 16 字節。MDN 對 AES-CBC 的 iv 參數說明是：必須 16 字節、不可預測、最好由密碼學隨機數生成，但不必保密，可以和密文一起傳輸。生成一個可以這樣寫：<code>node -e \"console.log(require('crypto').randomBytes(16).toString('hex'))\"</code>，輸出的就是 32 個十六進制字符。</p>\n<p>工具不校驗 IV 的長度和字符。填 <code>00</code> 這種只有 1 字節的 IV 也能加密，用同一個 IV 能解回 hello clover；換成標準的 16 字節 IV 解同一段密文，解出來是 <code>hdnok</code> 這樣的碎字（換用 2 字節的 <code>0001</code>，對應結果是 <code>henok</code>，同樣解不回原文）。填 zz 這種非十六進制內容同樣不報錯，Hex.parse 把 zz 解析成 1 字節的 0，效果等於全零 IV：明文不超過 15 字節時只有一塊，密文與 ECB 不填 IV 完全一樣；明文在 16 字節及以上時會補出第二塊（32 字節的明文是 3 塊），CBC 從第二塊起串聯前一塊的密文，結果和 ECB 分岔。短 IV 或臟 IV 不會當場失敗，只會讓對面拿著正確 IV 也解不出來。</p>\n<p>IV 不必保密，但必須和密文一起交給對方。工具的輸出框只放密文，不帶 IV、不帶模式、不帶算法名，跨工具解密時缺的這幾項要自己補齊。</p>\n\n<h2>Hex 還是 Base64</h2>\n<p>加密時按輸出格式下拉把 ciphertext 轉成 hex 或 base64；解密時這個下拉不參與判斷，代碼用 <code>/^[0-9a-fA-F]+$/</code> 測整段輸入，命中就當十六進制，否則當 Base64。這裏有個坑：一段本來全是 Base64 字符的密文，只要恰好只由 0-9、a-f、A-F 組成，就會被當成 hex。</p>\n<p>短密文很容易撞上。比如 RC4 加密 0bh，hex 是 <code>f5df5c</code>，Base64 是 <code>9d9c</code>，把 9d9c 粘進解密框會被按 hex 解析，解出 X! 而不是 0bh。AES 加密短明文得到的 Base64 是 24 個字符且以 == 結尾，基本不會誤判，但這也說明格式判斷靠的是“看起來像”，而不是你選過哪個格式。</p>\n<p>穩妥的做法是固定一種格式：加密選 Hex，解密就粘 Hex；加密選 Base64，解密就粘 Base64，中間不要轉手。十六進制大小寫都認，ABCD 會被歸一成 abcd；奇數個十六進制字符也不會被拒絕，abc 會解析成 1.5 字節，但這種輸入解出來的東西沒有意義。</p>\n\n<h2>常見報錯對應什麼</h2>\n<table>\n<thead><tr><th>提示</th><th>觸發條件</th><th>怎麼處理</th></tr></thead>\n<tbody>\n<tr><td>請填寫密鑰和內容</td><td>密鑰框或內容框為空，加密與解密共用這一句</td><td>補齊兩項再點</td></tr>\n<tr><td>該模式需要填寫十六進制 IV（偏移量）</td><td>非 ECB 模式，且 IV 為空</td><td>填 32 個十六進制字符；只有 ECB 可以留空</td></tr>\n<tr><td>解密失敗：Malformed UTF-8 data</td><td>解出的字節不是合法 UTF-8，多半是密鑰或 IV 不對</td><td>核對算法、模式、密鑰、IV 四項</td></tr>\n<tr><td>解密結果為空，請檢查密鑰、IV 或模式</td><td>解出空字符串，代碼主動拋錯</td><td>同上，並檢查密文是否被截斷或格式被誤判</td></tr>\n</tbody></table>\n<p>用錯誤口令解同一段 AES-CBC 密文，200 次裏有 193 次得到“解密結果為空”，7 次拋 Malformed UTF-8 data。兩種提示對應同一件事：密鑰錯了。工具沒法直接說“口令不對”，因為 CBC 沒有校驗位，錯誤密鑰只會解出垃圾。</p>\n<p>“解密結果為空”還有另一個來源：密文格式判斷錯了，或者密文長度不是 16 字節的整數倍。前面 9d9c 的例子屬於能解出內容但內容不對；粘了半截密文則會得到空結果或亂碼。排查順序建議是先看長度，再看 IV，最後換回加密時的算法與模式。</p>\n\n<h2>邊界與限制</h2>\n<ul>\n<li>派生是確定性的：固定鹽、1 次迭代、MD5，同一口令永遠得到同一密鑰，同一明文配同一 IV 的密文可以復現。它不提供隨機鹽，也不提供迭代成本。</li>\n<li>IV 靠手填：工具不生成、不校驗長度與字符，1 字節 IV 或含非法字符的 IV 都能加密成功，代價是別人解不出來。</li>\n<li>沒有認證：輸出只有密文，沒有任何校驗標簽；MDN 指出 CBC 與 CTR 默認不提供完整性校驗，密文被改動不會被當成篡改報錯。</li>\n<li>輸出不含元數據：鹽、IV、模式、算法名都不在結果裏。用 openssl 的 -K 提供派生密鑰和同一 IV 能解出 hello clover，但直接 -pass 交口令會報 bad magic number，因為那條路徑要求輸入自帶它自己的鹽頭。</li>\n<li>算法與密鑰長度不匹配：DES 只吃 8 字節、Rabbit 只吃 16 字節，四種算法共用同一條派生鏈，切換算法後舊密文不能互解。</li>\n<li>用途有限：頁面腳本只在瀏覽器裏讀寫輸入框，沒有上傳步驟；但它不做文件加密、不做密鑰管理，也不適合保護真正敏感的數據。</li>\n</ul>\n<p>如果需求不是“把一段文字變回原文”，這裏還有幾個更合適的工具：只校驗內容有沒有被改，用<a href=\"/zh-hant/tools/dev/hash/\">哈希計算</a>；要把密文塞進 URL 或 JSON，先用<a href=\"/zh-hant/tools/dev/base64/\">Base64 編碼</a>確認格式；需要把密鑰交給對方而不是共享口令，用<a href=\"/zh-hant/tools/dev/rsa-encrypt/\">RSA 加密</a>；要存登錄口令，用<a href=\"/zh-hant/tools/dev/bcrypt/\">bcrypt</a> 這類慢哈希，而不是可逆加密。</p>\n\n<h2>按順序填一遍</h2>\n<ol>\n<li>算法選 AES，模式先選 CBC。ECB 可以留空 IV，但重複的明文塊會留下重複的密文塊，只適合演示。</li>\n<li>密鑰框填口令；點“示例”會填入 clover-secret，方便對上文裏的數字。</li>\n<li>IV 填 32 個十六進制字符，用上面的 randomBytes 命令生成，不要留空。</li>\n<li>輸出格式選 Hex；粘上明文，點加密，記下密文。</li>\n<li>解密時把算法、模式、密鑰、IV 四項改回與加密時一致，粘同一份密文，再點解密。</li>\n</ol>\n<p>想確認自己有沒有選錯模式，可以拿同一段明文在兩個 IV 下各加密一次：CBC 的密文會隨 IV 變化，ECB 則完全不受 IV 影響。兩組結果一模一樣，就說明模式停在 ECB 上。</p>",
+  "faqs": [
+    {
+      "q": "IV 留空會自動生成嗎？",
+      "a": "不會。輸入框裏寫的是“留空則自動生成”，但非 ECB 模式檢查到 IV 為空會直接拋“該模式需要填寫十六進制 IV（偏移量）”。目前必須自己填 32 個十六進制字符；只有 ECB 不需要 IV，填了也會被忽略。"
+    },
+    {
+      "q": "同一口令加密兩次，結果為什麼完全一樣？",
+      "a": "派生用的是固定鹽 636c6f766572746f6f6c73、MD5、1 次迭代，沒有任何隨機成分。只要密鑰、模式、IV 和明文都不變，密文就完全一致；想每次不同，就要在非 ECB 模式下每次換一個 IV。"
+    },
+    {
+      "q": "解密提示 Malformed UTF-8 data 是什麼意思？",
+      "a": "解出的字節不是合法的 UTF-8 文本。用 200 個錯誤口令試同一段 AES-CBC 密文，193 次提示“解密結果為空”，7 次是這個錯誤。兩者都指向同一件事：算法、模式、密鑰或 IV 與加密時不一致。"
+    },
+    {
+      "q": "Base64 密文為什麼會解密失敗？",
+      "a": "解密按 /^[0-9a-fA-F]+$/ 判斷格式，全由十六進制字符組成的 Base64 會被當成 hex。RC4 加密 0bh 的 Base64 是 9d9c，會被解成 X!。固定只用一種格式就能避開，例如加密選 Hex 就始終粘 Hex。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：SubtleCrypto.encrypt()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt"
+    },
+    {
+      "title": "MDN：AesCbcParams（AES-CBC 的 iv 參數）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/AesCbcParams"
+    },
+    {
+      "title": "NIST SP 800-38A：Recommendation for Block Cipher Modes of Operation",
+      "url": "https://csrc.nist.gov/pubs/sp/800/38/a/final"
+    },
+    {
+      "title": "RFC 8018：PKCS #5 v2.1（鹽與迭代次數）",
+      "url": "https://www.rfc-editor.org/rfc/rfc8018.html"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "symmetric-encrypt-params",
+      "lang": "tw",
+      "translatedFrom": "ed6897f9d9b5e8206c67d3f24f179655738b370ddece586d6de26b93bb145b8c",
+      "translatedAt": "2026-11-08T04:36:06.092Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 1
+    }
+  },
+  "focus": "口令先派生成 32 字節密鑰，再按模式與 IV 加密；非 ECB 模式必須自己填 32 位十六進制 IV。",
+  "notice": "派生與加密都在瀏覽器本地完成，內容不會上傳；固定鹽與 1 次迭代只適合演示與格式自查，真實敏感數據不要交給它。"
+}

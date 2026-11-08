@@ -1,0 +1,59 @@
+{
+  "slug": "symmetric-encrypt-params",
+  "title": "AES 加密怎么用：模式、填充与 IV 怎么填",
+  "description": "按本站对称加解密工具的真实实现，讲清 AES 的模式、填充、十六进制 IV 和输出格式怎么填，以及留空 IV、错误口令、hex 与 base64 误判这几类提示分别对应什么原因。",
+  "category": "开发实用",
+  "toolSlug": "symmetric-encrypt",
+  "published": "2026-11-08",
+  "updated": "2026-11-08",
+  "readingMinutes": 7,
+  "content": "<p>选好算法与模式、填入口令和密钥、再补一段十六进制 IV，就能在本站的<a href=\"/tools/dev/symmetric-encrypt/\">对称加解密</a>工具里完成一次 AES 加密；最容易卡住的是 IV 和输出格式，下文按工具的真实实现逐项说明。</p>\n\n<h2>一次加密要填的六项</h2>\n<p>工具面板从上到下是算法、模式、输出格式、密钥、IV、明文或密文，再加加密与解密两颗按钮。算法只有 AES、DES、RC4、Rabbit 四个选项，模式只有 CBC、ECB、CFB、OFB、CTR 五个，输出格式只有 Base64 与 Hex。这里没有 GCM、CCM 这类带认证的模式，也没有密钥协商或密钥存储：它只负责把一段文字用口令变成密文，再变回来。</p>\n<p>模式下拉并不是对所有算法都生效。代码只在算法不是 RC4 或 Rabbit 时把模式写进加密配置，选这两种算法时下拉框里的模式会被忽略。IV 的处理不完全一样：RC4 完全忽略 IV，Rabbit 仍会读取 IV 参与计算，所以选 Rabbit 又填了 IV 时，输出会随 IV 改变。</p>\n\n<h2>密钥不是口令本身</h2>\n<p>密钥框里输入的口令不会直接当 AES 密钥用。第 77 行把盐写死成十六进制 <code>636c6f766572746f6f6c73</code>（正好是 ASCII 的 clovertools），第 80 到 84 行调用 <code>CryptoJS.EvpKDF</code>，用 MD5、1 次迭代、keySize 256/32 派生出一段 32 字节密钥。CryptoJS 的源码注释说这个函数对应 OpenSSL 的 EVP_BytesToKey，它和 PBKDF2 不是一回事。</p>\n<p>派生过程没有任何随机成分，所以同一口令每次都得到同一把密钥：clover-secret 派生出 <code>62d67a827882be3b6e846666ff79d05cd5aa8a9c24381c5b966fb20a562a5d9b</code>。同一密钥配同一 IV 加密 hello clover，两次都得到 <code>334655f38007aef2a0f164bc8cadb40b</code>；换一个 IV 才变成 <code>214efeff18a2071fa654b83f5c1bfd20</code>。</p>\n<p>RFC 8018 第 4.1 节解释盐的作用：它让同一口令对应大量可能的密钥，攻击者只能针对每个盐单独搜索口令；第 4.2 节引用 SP 800-132 的建议，迭代次数应在用户可接受的前提下尽量大，至少 1000 次。本站这条派生链只有 1 次迭代、盐固定，因此它的作用是把任意长度口令摊成 32 字节，而不是拖慢逐个口令的尝试。</p>\n<p>换算法后密钥长度并不跟着变：DES 只取 32 字节里的前 8 字节，Rabbit 只取前 16 字节，RC4 用满 32 字节。用前 8 字节和用完整派生密钥算出的 DES 密文完全一样，Rabbit 也一样；RC4 换成 16 字节密钥则得到不同密文（<code>add8585e17c1692a7d5300186a</code> 对 <code>6db1136d35162490db945dc60f</code>）。</p>\n\n<h2>五种模式的实际差别</h2>\n<p>这五个下拉项对应 NIST SP 800-38A 定义的几种分组密码保密模式，本站的做法是把它们原样交给 CryptoJS，并在非 ECB 时要求一个 IV。差别在报错和结果上很直接：</p>\n<table>\n<thead><tr><th>模式</th><th>本站是否要求 IV</th><th>实际表现</th></tr></thead>\n<tbody>\n<tr><td>CBC</td><td>要求，32 个十六进制字符</td><td>IV 参与首块计算，换 IV 解同一密文，首块会变样</td></tr>\n<tr><td>ECB</td><td>不要求，填了也被忽略</td><td>相同明文块得到相同密文块，只适合演示</td></tr>\n<tr><td>CFB</td><td>要求，与 CBC 同一分支</td><td>IV 为空时抛同一句错</td></tr>\n<tr><td>OFB</td><td>要求，与 CBC 同一分支</td><td>IV 为空时抛同一句错</td></tr>\n<tr><td>CTR</td><td>要求，与 CBC 同一分支</td><td>同上，且 AES 下 CryptoJS 仍按 16 字节分组填充</td></tr>\n</tbody></table>\n<p>ECB 的表现值得单独看一眼。把 32 个字符 abcd 排成两块的明文加密，ECB 得到的两块密文完全相同（都是 <code>9dbec8d37b6941e6365653d6915b6468</code>），而 CBC 的两块不同（<code>fe66930ca9a4b508c8f10883ecd8c748</code> 与 <code>257de9ee3bcf8ce56902c9e07f3981da</code>）。明文里只要有重复的 16 字节片段，ECB 就会把这个重复原样留在密文里。</p>\n<p>还有一点：下拉里没有带认证的模式。MDN 在 SubtleCrypto.encrypt 的说明里建议优先使用带认证的加密，并指出 CBC 与 CTR 默认不提供校验，被篡改的密文不会被发现；本站的输出又只有 ciphertext，没有任何校验标签。</p>\n\n<h2>填充：5 个字符也输出 16 字节</h2>\n<p>CryptoJS 的分组加密默认用 PKCS#7 填充，把明文补到 16 字节的整数倍。运行结果是：5 字节和 11 字节的明文都输出 16 字节密文，16 字节明文输出 32 字节，17 字节输出 32 字节，32 字节输出 48 字节。16 字节明文之所以变成 32 字节，是因为 PKCS#7 在长度正好整除时会额外补一整块。</p>\n<p>选 CTR 也一样：5 字节明文同样输出 16 字节。CryptoJS 的流式模式走同一套分块与填充逻辑，别指望换成 CTR 就能省掉这几个字节。</p>\n<p>知道这一点，就能拿长度做第一道检查。16 字节密文对应 32 个十六进制字符或 24 个 Base64 字符（结尾是 ==），如果你粘进来的 hex 是 30 位或 33 位，说明复制时少了或多了字符，改密钥、改 IV 都不可能解对。</p>\n<p>还有一处不对称：加密时明文不做 trim，尾巴上多一个空格，密文就完全不同（hello 是 <code>9133db62e0212f2eac8559b78161ba4a</code>，hello 加一个空格是 <code>4cda43142a1ee427278c33a7ea6a996d</code>）；解密时输入会先 trim，所以粘贴密文时带的换行不影响解析。</p>\n\n<h2>IV：32 个十六进制字符，留空会报错</h2>\n<p>IV 输入框的提示文字写着“留空则自动生成”，但实际代码不是这样：非 ECB 模式下只要 IV 为空，就会抛出“该模式需要填写十六进制 IV（偏移量）”。目前留空不会自动生成，必须自己填。</p>\n<p>格式要求是十六进制，32 个字符正好 16 字节。MDN 对 AES-CBC 的 iv 参数说明是：必须 16 字节、不可预测、最好由密码学随机数生成，但不必保密，可以和密文一起传输。生成一个可以这样写：<code>node -e \"console.log(require('crypto').randomBytes(16).toString('hex'))\"</code>，输出的就是 32 个十六进制字符。</p>\n<p>工具不校验 IV 的长度和字符。填 <code>00</code> 这种只有 1 字节的 IV 也能加密，用同一个 IV 能解回 hello clover；换成标准的 16 字节 IV 解同一段密文，解出来是 <code>hdnok</code> 这样的碎字（换用 2 字节的 <code>0001</code>，对应结果是 <code>henok</code>，同样解不回原文）。填 zz 这种非十六进制内容同样不报错，Hex.parse 把 zz 解析成 1 字节的 0，效果等于全零 IV：明文不超过 15 字节时只有一块，密文与 ECB 不填 IV 完全一样；明文在 16 字节及以上时会补出第二块（32 字节的明文是 3 块），CBC 从第二块起串联前一块的密文，结果和 ECB 分岔。短 IV 或脏 IV 不会当场失败，只会让对面拿着正确 IV 也解不出来。</p>\n<p>IV 不必保密，但必须和密文一起交给对方。工具的输出框只放密文，不带 IV、不带模式、不带算法名，跨工具解密时缺的这几项要自己补齐。</p>\n\n<h2>Hex 还是 Base64</h2>\n<p>加密时按输出格式下拉把 ciphertext 转成 hex 或 base64；解密时这个下拉不参与判断，代码用 <code>/^[0-9a-fA-F]+$/</code> 测整段输入，命中就当十六进制，否则当 Base64。这里有个坑：一段本来全是 Base64 字符的密文，只要恰好只由 0-9、a-f、A-F 组成，就会被当成 hex。</p>\n<p>短密文很容易撞上。比如 RC4 加密 0bh，hex 是 <code>f5df5c</code>，Base64 是 <code>9d9c</code>，把 9d9c 粘进解密框会被按 hex 解析，解出 X! 而不是 0bh。AES 加密短明文得到的 Base64 是 24 个字符且以 == 结尾，基本不会误判，但这也说明格式判断靠的是“看起来像”，而不是你选过哪个格式。</p>\n<p>稳妥的做法是固定一种格式：加密选 Hex，解密就粘 Hex；加密选 Base64，解密就粘 Base64，中间不要转手。十六进制大小写都认，ABCD 会被归一成 abcd；奇数个十六进制字符也不会被拒绝，abc 会解析成 1.5 字节，但这种输入解出来的东西没有意义。</p>\n\n<h2>常见报错对应什么</h2>\n<table>\n<thead><tr><th>提示</th><th>触发条件</th><th>怎么处理</th></tr></thead>\n<tbody>\n<tr><td>请填写密钥和内容</td><td>密钥框或内容框为空，加密与解密共用这一句</td><td>补齐两项再点</td></tr>\n<tr><td>该模式需要填写十六进制 IV（偏移量）</td><td>非 ECB 模式，且 IV 为空</td><td>填 32 个十六进制字符；只有 ECB 可以留空</td></tr>\n<tr><td>解密失败：Malformed UTF-8 data</td><td>解出的字节不是合法 UTF-8，多半是密钥或 IV 不对</td><td>核对算法、模式、密钥、IV 四项</td></tr>\n<tr><td>解密结果为空，请检查密钥、IV 或模式</td><td>解出空字符串，代码主动抛错</td><td>同上，并检查密文是否被截断或格式被误判</td></tr>\n</tbody></table>\n<p>用错误口令解同一段 AES-CBC 密文，200 次里有 193 次得到“解密结果为空”，7 次抛 Malformed UTF-8 data。两种提示对应同一件事：密钥错了。工具没法直接说“口令不对”，因为 CBC 没有校验位，错误密钥只会解出垃圾。</p>\n<p>“解密结果为空”还有另一个来源：密文格式判断错了，或者密文长度不是 16 字节的整数倍。前面 9d9c 的例子属于能解出内容但内容不对；粘了半截密文则会得到空结果或乱码。排查顺序建议是先看长度，再看 IV，最后换回加密时的算法与模式。</p>\n\n<h2>边界与限制</h2>\n<ul>\n<li>派生是确定性的：固定盐、1 次迭代、MD5，同一口令永远得到同一密钥，同一明文配同一 IV 的密文可以复现。它不提供随机盐，也不提供迭代成本。</li>\n<li>IV 靠手填：工具不生成、不校验长度与字符，1 字节 IV 或含非法字符的 IV 都能加密成功，代价是别人解不出来。</li>\n<li>没有认证：输出只有密文，没有任何校验标签；MDN 指出 CBC 与 CTR 默认不提供完整性校验，密文被改动不会被当成篡改报错。</li>\n<li>输出不含元数据：盐、IV、模式、算法名都不在结果里。用 openssl 的 -K 提供派生密钥和同一 IV 能解出 hello clover，但直接 -pass 交口令会报 bad magic number，因为那条路径要求输入自带它自己的盐头。</li>\n<li>算法与密钥长度不匹配：DES 只吃 8 字节、Rabbit 只吃 16 字节，四种算法共用同一条派生链，切换算法后旧密文不能互解。</li>\n<li>用途有限：页面脚本只在浏览器里读写输入框，没有上传步骤；但它不做文件加密、不做密钥管理，也不适合保护真正敏感的数据。</li>\n</ul>\n<p>如果需求不是“把一段文字变回原文”，这里还有几个更合适的工具：只校验内容有没有被改，用<a href=\"/tools/dev/hash/\">哈希计算</a>；要把密文塞进 URL 或 JSON，先用<a href=\"/tools/dev/base64/\">Base64 编码</a>确认格式；需要把密钥交给对方而不是共享口令，用<a href=\"/tools/dev/rsa-encrypt/\">RSA 加密</a>；要存登录口令，用<a href=\"/tools/dev/bcrypt/\">bcrypt</a> 这类慢哈希，而不是可逆加密。</p>\n\n<h2>按顺序填一遍</h2>\n<ol>\n<li>算法选 AES，模式先选 CBC。ECB 可以留空 IV，但重复的明文块会留下重复的密文块，只适合演示。</li>\n<li>密钥框填口令；点“示例”会填入 clover-secret，方便对上文里的数字。</li>\n<li>IV 填 32 个十六进制字符，用上面的 randomBytes 命令生成，不要留空。</li>\n<li>输出格式选 Hex；粘上明文，点加密，记下密文。</li>\n<li>解密时把算法、模式、密钥、IV 四项改回与加密时一致，粘同一份密文，再点解密。</li>\n</ol>\n<p>想确认自己有没有选错模式，可以拿同一段明文在两个 IV 下各加密一次：CBC 的密文会随 IV 变化，ECB 则完全不受 IV 影响。两组结果一模一样，就说明模式停在 ECB 上。</p>",
+  "faqs": [
+    {
+      "q": "IV 留空会自动生成吗？",
+      "a": "不会。输入框里写的是“留空则自动生成”，但非 ECB 模式检查到 IV 为空会直接抛“该模式需要填写十六进制 IV（偏移量）”。目前必须自己填 32 个十六进制字符；只有 ECB 不需要 IV，填了也会被忽略。"
+    },
+    {
+      "q": "同一口令加密两次，结果为什么完全一样？",
+      "a": "派生用的是固定盐 636c6f766572746f6f6c73、MD5、1 次迭代，没有任何随机成分。只要密钥、模式、IV 和明文都不变，密文就完全一致；想每次不同，就要在非 ECB 模式下每次换一个 IV。"
+    },
+    {
+      "q": "解密提示 Malformed UTF-8 data 是什么意思？",
+      "a": "解出的字节不是合法的 UTF-8 文本。用 200 个错误口令试同一段 AES-CBC 密文，193 次提示“解密结果为空”，7 次是这个错误。两者都指向同一件事：算法、模式、密钥或 IV 与加密时不一致。"
+    },
+    {
+      "q": "Base64 密文为什么会解密失败？",
+      "a": "解密按 /^[0-9a-fA-F]+$/ 判断格式，全由十六进制字符组成的 Base64 会被当成 hex。RC4 加密 0bh 的 Base64 是 9d9c，会被解成 X!。固定只用一种格式就能避开，例如加密选 Hex 就始终粘 Hex。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：SubtleCrypto.encrypt()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt"
+    },
+    {
+      "title": "MDN：AesCbcParams（AES-CBC 的 iv 参数）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/AesCbcParams"
+    },
+    {
+      "title": "NIST SP 800-38A：Recommendation for Block Cipher Modes of Operation",
+      "url": "https://csrc.nist.gov/pubs/sp/800/38/a/final"
+    },
+    {
+      "title": "RFC 8018：PKCS #5 v2.1（盐与迭代次数）",
+      "url": "https://www.rfc-editor.org/rfc/rfc8018.html"
+    }
+  ],
+  "focus": "口令先派生成 32 字节密钥，再按模式与 IV 加密；非 ECB 模式必须自己填 32 位十六进制 IV。",
+  "notice": "派生与加密都在浏览器本地完成，内容不会上传；固定盐与 1 次迭代只适合演示与格式自查，真实敏感数据不要交给它。",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-08T12",
+    "primaryQuery": "aes加密怎么用",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "verifiedAt": "2026-11-08T04:41:09.114Z"
+  }
+}
