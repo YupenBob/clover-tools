@@ -4,7 +4,7 @@
  * 用法：node scripts/editorial/approve-commit.mjs --sha <sha> [--sha2 ...]
  */
 import { saveConfig, loadConfig } from './lib/config.mjs';
-import { commitsAhead } from './lib/git.mjs';
+import { commitsAhead, resolveSha } from './lib/git.mjs';
 
 function main() {
   const argv = process.argv.slice(2);
@@ -19,7 +19,7 @@ function main() {
   if (shas.length === 0) throw new Error('用法：approve-commit.mjs --sha <sha> | --all-pending');
   const config = loadConfig();
   const approved = new Set(config.git.approvedCommits ?? []);
-  for (const sha of shas.filter(Boolean)) approved.add(sha);
+  for (const sha of shas.filter(Boolean)) approved.add(resolveSha(sha) ?? sha);
   config.git.approvedCommits = [...approved];
   saveConfig(config);
   console.log(JSON.stringify({ ok: true, approved: config.git.approvedCommits }, null, 2));

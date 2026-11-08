@@ -8,7 +8,7 @@
 import { join } from 'node:path';
 import { STATE_PATHS } from './lib/paths.mjs';
 import { readJson, writeJsonAtomic } from './lib/state.mjs';
-import { githubApi, readToken, remoteInfo, workflowRunForSha } from './lib/git.mjs';
+import { githubApi, readToken, remoteInfo, resolveSha, workflowRunForSha } from './lib/git.mjs';
 
 function parseArgs(argv) {
   const options = {};
@@ -51,7 +51,7 @@ async function main() {
   const record = readJson(recordFile, null);
   if (!record) throw new Error(`运行记录不存在：.editorial/runs/${options.run}.json`);
   const slug = record.slug;
-  const sha = record.push?.sha;
+  const sha = resolveSha(record.push?.sha);
   if (!slug || !sha) {
     console.log(JSON.stringify({ status: 'unknown', reason: '运行记录缺少 slug 或推送 sha' }, null, 2));
     process.exit(1);

@@ -35,6 +35,19 @@ export function headSha(cwd) {
   return git(['rev-parse', 'HEAD'], { cwd }).stdout;
 }
 
+/** 把短 sha 归一化为完整 sha（GitHub Actions 查询只接受完整 sha）。无法解析时原样返回。 */
+export function resolveSha(sha, cwd) {
+  if (!sha || !/^[0-9a-f]{7,40}$/i.test(String(sha).trim())) return sha ?? null;
+  const value = String(sha).trim();
+  if (value.length === 40) return value;
+  try {
+    const full = git(['rev-parse', '--verify', `${value}^{commit}`], { cwd, allowFailure: true }).stdout;
+    return /^[0-9a-f]{40}$/i.test(full) ? full : value;
+  } catch {
+    return value;
+  }
+}
+
 export function fetchOrigin(remote = 'origin', cwd) {
   git(['fetch', '--quiet', remote, 'main'], { cwd, allowFailure: true });
 }

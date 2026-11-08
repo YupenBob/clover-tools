@@ -8,6 +8,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { STATE_PATHS } from './lib/paths.mjs';
+import { resolveSha } from './lib/git.mjs';
 import { ensureStateDirs, loadQueue, loadState, readJson, recordOutcome, saveQueue, saveState, writeRunRecord } from './lib/state.mjs';
 import { buildRunRecord, formatDigest } from './lib/report.mjs';
 
@@ -50,6 +51,9 @@ function main() {
   const sources = readJson(join(runDir, 'sources.json'), []);
   const request = readJson(join(STATE_PATHS.drafts, options.slug ?? '', 'draft-request.json'), null);
 
+  const commitSha = resolveSha(options.commit);
+  const pushSha = resolveSha(options['push-sha'] ?? options.commit ?? null);
+
   const record = buildRunRecord({
     runKey: options.run,
     date: options.run.slice(0, 10),
@@ -63,9 +67,9 @@ function main() {
       claims: verify?.metrics?.evidenceClaims ?? null,
       sources: Array.isArray(sources) ? sources.map((source) => ({ url: source.url, status: source.status })) : [],
     },
-    commits: options.commit ? [{ sha: options.commit }] : [],
+    commits: commitSha ? [{ sha: commitSha }] : [],
     push: options.pushOk || options['push-error'] || options['push-sha']
-      ? { ok: Boolean(options.pushOk), sha: options['push-sha'] ?? options.commit ?? null, error: options['push-error'] ?? null }
+      ? { ok: Boolean(options.pushOk), sha: pushSha, error: options['push-error'] ?? null }
       : null,
     deploy: options['deploy-status']
       ? { status: options['deploy-status'] }
