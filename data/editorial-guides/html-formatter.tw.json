@@ -1,0 +1,68 @@
+{
+  "slug": "html-formatter",
+  "title": "HTML 格式化怎麼弄：解析、空白與安全邊界",
+  "description": "站內 HTML 格式化工具怎麼用：格式化、壓縮、實體編碼與解碼各自改了什麼；為什麼格式化會丟 head、壓縮會毀掉 pre，以及輸出何時不能當 HTML 使用。",
+  "category": "开发实用",
+  "toolSlug": "html-formatter",
+  "published": "2026-11-08",
+  "updated": "2026-11-08",
+  "readingMinutes": 5,
+  "content": "<p>HTML 格式化工具把一段源碼交給瀏覽器的 HTML 解析器，再遍歷 <code>body</code> 裏的節點、用兩空格縮進重新輸出；同一個工具還能把代碼壓成一行、把特殊字符轉成實體、把實體解回文本。前三個動作都先解析再遍歷，實體編碼只做字符串替換——這個差別決定了它改的到底是什麼。</p>\n\n<h2>三個按鈕先解析，實體編碼只做替換</h2>\n<p>格式化、壓縮、解碼的入口都是 <code>new DOMParser().parseFromString(输入, 'text/html')</code>：先把字符串解析成文檔樹，再在樹上遍歷、重新拼出字符串。實體編碼走另一條路，直接對輸入字符串做四次替換，全程不解析。</p>\n<ul>\n<li><strong>格式化</strong>：從 <code>doc.body.childNodes</code> 起逐層遍歷，每層縮進兩個空格；元素只含文本子節點時，把 <code>textContent</code> 去掉首尾空白後原樣放進一個數組項（內部換行與空格不折叠）；混排元素下的文本節點則把連續空白壓成單個空格；遍歷只處理文本節點與元素節點，注釋會被跳過；<code>area、base、br、col、embed、hr、img、input、link、meta、source、track、wbr</code> 這 13 個空元素只寫開始標簽，屬性統一補雙引號並把值裏的雙引號轉成 <code>&amp;quot;</code>。</li>\n<li><strong>壓縮</strong>：同樣解析、同樣遍歷，但不輸出換行與縮進，所有文本節點的連續空白替換成單個空格。</li>\n<li><strong>實體編碼</strong>：只做四次替換，順序是 <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code>。先換 &amp; 是為了讓自己產生的實體不會被再換一遍。</li>\n<li><strong>實體解碼</strong>：解析後取 <code>doc.body.textContent</code>，等於把所有標簽剝掉，再把實體解一層。</li>\n</ul>\n<p>理解這一點，後面每個現象都能推出來：工具處理的是解析後的文檔，不是你輸入的源碼。</p>\n\n<h2>格式化會改變哪些東西</h2>\n<p>把含 doctype 與 head 的完整文檔交給格式化，輸出只剩 body 裏的內容：doctype、<code>title</code>、<code>meta</code> 全部消失，因為遍歷的起點就是 <code>doc.body</code>。在真實瀏覽器裏跑這一步，輸入框是完整文檔，輸出框只剩 <code>div</code>、<code>h2</code> 與 <code>p</code> 這幾個元素。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-format-document.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：HTML 格式化工具處理整篇文檔後的輸入與輸出對照\"><img src=\"/article-images/2026-11/html-formatter-format-document.jpg\" alt=\"HTML 格式化工具處理整篇文檔後的輸入與輸出對照\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>輸入含 doctype 與 head 的完整文檔，格式化後輸出只剩 body 內的元素 點擊圖片可查看原圖。</figcaption></figure>\n<p>幾類常見變化，括號裏的字符串都是實測輸出：</p>\n<table>\n<thead><tr><th>輸入</th><th>格式化後</th><th>原因</th></tr></thead>\n<tbody>\n<tr><td><code>&lt;!DOCTYPE html&gt;…&lt;head&gt;&lt;title&gt;页面标题&lt;/title&gt;&lt;/head&gt;…</code></td><td>只剩 <code>&lt;div&gt;&lt;p&gt;…</code></td><td>遍歷從 body 開始</td></tr>\n<tr><td><code>&lt;!--keep me--&gt;</code></td><td>注釋消失</td><td>只處理文本與元素節點</td></tr>\n<tr><td><code>&lt;table&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code></td><td>多出一層 <code>&lt;tbody&gt;</code></td><td>HTML 解析器補全表格結構</td></tr>\n<tr><td><code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code></td><td>拆成七行，渲染成 a x y</td><td>行內元素被拆行，新行算一個空格</td></tr>\n<tr><td><code>&lt;pre&gt;if (a) {&lt;span&gt;return b;&lt;/span&gt;}&lt;/pre&gt;</code></td><td>span 獨佔一行</td><td>預格式化裏的混合內容被重新換行</td></tr>\n</tbody>\n</table>\n<p>後兩行最容易踩。行內元素之間的換行在渲染時算一個空格，所以緊湊寫法 <code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code> 被格式化後，頁面上的文字會從 axy 變成 a x y；<code>pre</code> 裏混排元素時，文本部分被 trim 並另起一行，原本的縮進關係也會跟著變。</p>\n\n<h2>壓縮的代價</h2>\n<p>壓縮把每個文本節點的連續空白換成單個空格，不看祖先是誰，於是預格式化內容最先受傷：<code>&lt;pre&gt;line1</code> 換行加縮進再接 <code>line2&lt;/pre&gt;</code> 會變成 <code>&lt;pre&gt;line1 line2&lt;/pre&gt;</code>，<code>textarea</code> 裏的換行同樣被吃掉。普通段落看不出區別，對代碼示例就是排版事故。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：HTML 壓縮工具把 pre 元素的換行壓縮成空格\"><img src=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" alt=\"HTML 壓縮工具把 pre 元素的換行壓縮成空格\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>壓縮 pre 元素後，換行與縮進被合並成一個空格 點擊圖片可查看原圖。</figcaption></figure>\n<p>更隱蔽的是屬性。格式化會把屬性值裏的雙引號轉成實體，壓縮不會：<code>&lt;div title='a\"b'&gt;x&lt;/div&gt;</code> 壓縮後得到 <code>&lt;div title=\"a\"b\"&gt;x&lt;/div&gt;</code>，再交給瀏覽器解析，屬性被拆成 <code>title=\"a\"</code> 和一個名為 <code>b\"</code> 的空屬性（outerHTML 裏寫作 <code>b\"=\"\"</code>），語義直接變了。</p>\n\n<h2>實體編碼與實體解碼</h2>\n<p>編碼只處理四個字符：<code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code>。因為先替換 &amp;，編碼一次不會自我嵌套；但如果你輸入的內容已經編碼過，再點一次就會變成 <code>&amp;amp;amp;</code>（頁面上顯示為 <code>&amp;amp;</code>）這類雙重轉義。單引號不在處理範圍內，寫進單引號包圍的屬性值時要自己留意。</p>\n<p>解碼更像提純：先解析再取 <code>textContent</code>，標簽會被剝掉。輸入 <code>&lt;p&gt;Hello &lt;b&gt;world&lt;/b&gt; &amp;amp; &lt;i&gt;all&lt;/i&gt;&lt;/p&gt;</code>，得到的是 <code>Hello world &amp; all</code>，<code>b</code> 與 <code>i</code> 都不見了；而且只解一層，<code>&amp;amp;lt;script&amp;amp;gt;</code> 得到的是 <code>&amp;lt;script&amp;gt;</code> 這段文本，不會繼續變成標簽。想反覆解碼，就得反覆點。</p>\n\n<h2>邊界與限制：格式化不等於消毒</h2>\n<p>格式化輸出不會對文本節點重新轉義。輸入裏安全的 <code>&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;</code>，在輸出裏會變回真實的 <code>&lt;script&gt;</code> 標簽，因為文本節點的內容被原樣寫出去了。</p>\n<p>工具本身不執行它：結果寫進 <code>textarea.value</code>，不參與頁面解析。實測把這段輸出用 <code>innerHTML</code> 插進空白頁面，能查到 1 個 script 元素，但腳本不運行；把這類輸出保存成 .html 文件再用瀏覽器打開，腳本就執行了。差別不在工具，而在你把輸出當文本還是當 HTML。</p>\n<p>另一個反直覺的點：工具裏“HTML 解析失敗”的分支幾乎不會命中。text/html 走的是容錯解析器，壞標簽會被補全而不是報錯，MDN 也說明 parsererror 與 XML 解析失敗相關。輸入 <code>&lt;div&gt;&lt;p&gt;unclosed &lt;span&gt;x&lt;/div&gt;</code> 時，狀態仍然顯示格式化完成，輸出被補成 div、p、span 三層。</p>\n<p>同樣的坑也出現在別的上下文：把輸出寫進屬性值、拼進模板字符串、交給框架的 <code>innerHTML</code> 綁定，原本轉義好的字符都會重新生效。要展示代碼，就放進 <code>pre</code> 並做實體編碼；要生成頁面，就讓模板引擎或消毒庫處理。</p>\n<p>它也不是通用格式化器：不保留空白語義、不會保留行內元素的緊湊寫法（行內元素會被拆行）、不理解模板語法（Vue 指令或 JSX 屬性表達式會被當普通屬性），更不做消毒。要按工程規範整理源碼，應該交給 prettier 這類工具。</p>\n\n<h2>怎麼確認格式化沒有改變頁面效果</h2>\n<p>格式化過的代碼要進生產前，做三步核對，比肉眼掃一遍可靠：</p>\n<ol>\n<li>比較渲染文本：把輸入和輸出分別交給 <code>new DOMParser().parseFromString(文本, 'text/html')</code>，取 <code>body.textContent</code> 並把連續空白壓成單個空格，兩邊應當一致。前面 <code>a&lt;b&gt;x&lt;/b&gt;y</code> 的例子在這一步就會暴露：輸入是 axy，輸出是 a x y。</li>\n<li>比較結構數量：統計 <code>script</code>、<code>style</code>、<code>pre</code> 與表格元素的數量。數量對不上，通常意味著某段文本被當成了標簽，或者解析器補了一層結構。</li>\n<li>檢查危險節點的增量：輸出裏多出 <code>script</code> 標簽或 <code>on</code> 開頭的事件屬性，說明轉義在格式化過程中丟了，這段輸出不能直接進頁面。</li>\n</ol>\n<p>三項都通過也只說明文本與結構沒變；doctype、head、注釋這類不進 body 的內容，需要單獨確認。</p>\n\n<h2>什麼時候用，什麼時候別用</h2>\n<ul>\n<li><strong>適合</strong>：快速看清一段 HTML 的層級；壓縮自己可控、且不含 pre 與 textarea 的模板片段；把一小段文本轉成實體。</li>\n<li><strong>別用</strong>：處理用戶提交的 HTML 後直接渲染，轉義會在輸出裏丟失，等於跳過消毒；壓縮整頁 HTML，pre 與 textarea 的空白會被吃掉；格式化整篇文檔後覆蓋源文件，head 與 doctype 會消失。</li>\n</ul>\n<p>它更像排版工具而不是編譯器：處理的是樹，不保留你對源碼的排版意圖。最穩的用法是先想清楚要的是文本還是 HTML：給頁面看，就編碼；給編輯器看，就格式化；給構建看，先確認片段裏沒有 pre 與 textarea。</p>\n<p>處理樣式表或腳本時用 <a href=\"/zh-hant/tools/dev/css-formatter/\">CSS 格式化</a> 與 <a href=\"/zh-hant/tools/dev/js-formatter/\">JavaScript 格式化</a>；改完想確認到底動了哪些文字，配合 <a href=\"/zh-hant/tools/dev/diff/\">文本對比</a> 更直觀。也可以直接打開 <a href=\"/zh-hant/tools/dev/html-formatter/\">HTML 格式化工具</a>，把上面每個例子復現一遍。</p>",
+  "faqs": [
+    {
+      "q": "格式化會把我的代碼改壞嗎？",
+      "a": "結構通常不會壞，但空白語義、注釋和 head 會變：完整文檔的 doctype、title、meta 不會出現在輸出裏，注釋被丟棄，行內元素被拆行後渲染文字會多出空格。要覆蓋源文件前先用文本對比看一眼差異。"
+    },
+    {
+      "q": "為什麼輸出的 head 和 doctype 不見了？",
+      "a": "工具解析後從 doc.body 開始遍歷，head 裏的 title、meta、style 都不在這個範圍裏。它的定位是重排 body 裏的片段，不是整理整篇文檔。"
+    },
+    {
+      "q": "壓縮後頁面顯示會不一樣嗎？",
+      "a": "普通段落不會，因為連續空白在 HTML 渲染時本來就會合並。但 pre 與 textarea 依賴原始換行，壓縮會把它們折叠成空格，代碼示例和預填文本會變形。"
+    },
+    {
+      "q": "工具處理帶腳本的 HTML 安全嗎？",
+      "a": "工具本身只把結果寫進文本框，不執行腳本。但輸出不會重新轉義，原本安全的 &lt;script&gt; 會變回真實標簽；把輸出當 HTML 插進頁面或保存成頁面就會有執行風險，渲染前必須自己轉義或過濾。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "MDN：Node.textContent",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+    },
+    {
+      "title": "WHATWG HTML 標準：語法（空元素定義）",
+      "url": "https://html.spec.whatwg.org/multipage/syntax.html#void-elements"
+    },
+    {
+      "title": "WHATWG HTML 標準：解析 HTML 文檔",
+      "url": "https://html.spec.whatwg.org/multipage/parsing.html"
+    },
+    {
+      "title": "MDN：Element.innerHTML（安全提示）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+    },
+    {
+      "title": "MDN：pre 元素（保留空白）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/pre"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "html-formatter",
+      "lang": "tw",
+      "translatedFrom": "d225e73bfeb0014e6e2e6989e9d7213f8a318cf084e0a618a9bc748fa07a935e",
+      "translatedAt": "2026-11-08T10:22:05.006Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.86
+    }
+  },
+  "image": "/article-images/2026-11/html-formatter-format-document.jpg",
+  "focus": "先解析再序列化：格式化從 body 開始遍歷、壓縮折叠空白、實體解碼剝標簽且不重新轉義。",
+  "notice": "工具在瀏覽器本地運行，內容不會上傳；它不做消毒，輸出在渲染或保存成頁面前必須自己轉義或過濾。"
+}

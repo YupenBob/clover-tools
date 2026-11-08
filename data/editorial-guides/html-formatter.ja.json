@@ -1,0 +1,68 @@
+{
+  "slug": "html-formatter",
+  "title": "HTML 整形のやり方：パース・空白・安全な境界",
+  "description": "HTML 整形ツールの使い方を整理します。整形・圧縮・実体参照のエンコードとデコードがそれぞれ何を変えるのか、なぜ整形で head が消え、圧縮で pre が壊れるのか、出力を HTML として扱ってはいけない場面までを解説します。",
+  "category": "开发实用",
+  "toolSlug": "html-formatter",
+  "published": "2026-11-08",
+  "updated": "2026-11-08",
+  "readingMinutes": 5,
+  "content": "<p>HTML 整形ツールは、渡されたソースをブラウザの HTML パーサーに読ませ、<code>body</code> の中のノードをたどりながら半角スペース2個のインデントで出力し直します。同じツールで、コードを1行に圧縮したり、特殊文字を実体参照に変換したり、実体参照をテキストに戻したりもできます。前の3つはまずパースしてからツリーを走査し、実体参照のエンコードだけは文字列の置換しかしません。この違いが、何が変わるのかを決めます。</p>\n\n<h2>3つのボタンは先にパースし、実体参照のエンコードは置換だけを行う</h2>\n<p>整形、圧縮、デコードの入口はいずれも <code>new DOMParser().parseFromString(入力, 'text/html')</code> です。まず文字列を文書ツリーにパースし、ツリーをたどって文字列を組み直します。実体参照のエンコードだけは別の経路で、入力文字列に直接4回の置換を行うだけで、一切パースしません。</p>\n<ul>\n<li><strong>整形</strong>：<code>doc.body.childNodes</code> から階層ごとにたどり、1階層につき半角スペース2個でインデントします。要素がテキストの子ノードだけを持つ場合は、<code>textContent</code> の前後の空白を取り除いてそのまま1つの配列要素に入れ（内部の改行と空白は畳みません）、混在した内容を持つ要素の下のテキストノードは、連続する空白を半角スペース1個に圧縮します。走査の対象はテキストノードと要素ノードだけで、コメントは飛ばされます。<code>area、base、br、col、embed、hr、img、input、link、meta、source、track、wbr</code> の13個の空要素は開始タグだけを書き、属性はすべて二重引用符で囲み、値の中の二重引用符を <code>&amp;quot;</code> に変換します。</li>\n<li><strong>圧縮</strong>：解析も走査も同じですが、改行とインデントを出力せず、すべてのテキストノードの連続する空白を半角スペース1個に置き換えます。</li>\n<li><strong>実体参照のエンコード</strong>：置換は4回だけで、順序は <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code> です。&amp; を最初に置き換えるのは、自分が生成した実体参照をもう一度置き換えてしまわないためです。</li>\n<li><strong>実体参照のデコード</strong>：解析後に <code>doc.body.textContent</code> を取得するので、すべてのタグを剥がしてから実体参照を1層だけ解くことになります。</li>\n</ul>\n<p>ここを押さえれば、この後に出てくる現象はすべて導けます。ツールが扱うのは解析後の文書であり、入力したソースそのものではないからです。</p>\n\n<h2>整形で変わるもの</h2>\n<p>doctype と head を含む完全な文書を整形にかけると、出力には body の中身しか残りません。走査の起点が <code>doc.body</code> なので、doctype、<code>title</code>、<code>meta</code> はすべて消えます。実際のブラウザでこの手順を実行すると、入力欄は完全な文書のまま、出力欄には <code>div</code>、<code>h2</code>、<code>p</code> という要素だけが残ります。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-format-document.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"大きな画像を見る：HTML 整形ツールで文書全体を処理したときの入力と出力の比較\"><img src=\"/article-images/2026-11/html-formatter-format-document.jpg\" alt=\"HTML 整形ツールで文書全体を処理したときの入力と出力の比較\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>doctype と head を含む完全な文書を入力しても、整形後の出力には body 内の要素しか残らない 画像をクリックすると元の画像を表示します。</figcaption></figure>\n<p>よくある変化をいくつか挙げます。表の中の文字列はいずれも実際に測った出力です。</p>\n<table>\n<thead><tr><th>入力</th><th>整形後</th><th>原因</th></tr></thead>\n<tbody>\n<tr><td><code>&lt;!DOCTYPE html&gt;…&lt;head&gt;&lt;title&gt;页面标题&lt;/title&gt;&lt;/head&gt;…</code></td><td>残るのは <code>&lt;div&gt;&lt;p&gt;…</code> だけ</td><td>走査が body から始まるため</td></tr>\n<tr><td><code>&lt;!--keep me--&gt;</code></td><td>コメントが消える</td><td>テキストノードと要素ノードしか扱わない</td></tr>\n<tr><td><code>&lt;table&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code></td><td><code>&lt;tbody&gt;</code> が1層増える</td><td>HTML パーサーが表の構造を補完する</td></tr>\n<tr><td><code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code></td><td>7行に分割され、描画結果は a x y になる</td><td>インライン要素が改行で分割され、新しい行が空白1個として数えられる</td></tr>\n<tr><td><code>&lt;pre&gt;if (a) {&lt;span&gt;return b;&lt;/span&gt;}&lt;/pre&gt;</code></td><td>span が1行を占める</td><td>整形済みの領域で混在した内容が改行し直される</td></tr>\n</tbody>\n</table>\n<p>つまずきやすいのは後ろの2行です。インライン要素の間に入った改行は描画時に空白1個として扱われるので、詰めて書いた <code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code> を整形すると、ページ上の文字は axy から a x y に変わります。<code>pre</code> の中で要素が混在している場合、テキスト部分は trim されて別の行に移り、元のインデント関係もそれに合わせて変わります。</p>\n\n<h2>圧縮の代償</h2>\n<p>圧縮は、祖先が何であってもすべてのテキストノードの連続する空白を半角スペース1個に置き換えます。そのため最初に傷むのが整形済みの内容です。<code>&lt;pre&gt;line1</code> の後ろに改行とインデントを挟んで <code>line2&lt;/pre&gt;</code> と続けたものは <code>&lt;pre&gt;line1 line2&lt;/pre&gt;</code> になり、<code>textarea</code> の中の改行も同じように飲み込まれます。普通の段落では違いが見えませんが、コード例にとってはレイアウト事故です。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"大きな画像を見る：HTML 圧縮ツールが pre 要素の改行を空白に圧縮する\"><img src=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" alt=\"HTML 圧縮ツールが pre 要素の改行を空白に圧縮する\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>pre 要素を圧縮すると、改行とインデントが半角スペース1個にまとめられる 画像をクリックすると元の画像を表示します。</figcaption></figure>\n<p>さらに見つけにくいのが属性です。整形は属性値の中の二重引用符を実体参照に変換しますが、圧縮は変換しません。<code>&lt;div title='a\"b'&gt;x&lt;/div&gt;</code> を圧縮すると <code>&lt;div title=\"a\"b\"&gt;x&lt;/div&gt;</code> になり、これをブラウザに解析させると属性は <code>title=\"a\"</code> と <code>b\"</code> という名前の空の属性（outerHTML では <code>b\"=\"\"</code> と表記）に分かれ、意味がそのまま変わってしまいます。</p>\n\n<h2>実体参照のエンコードとデコード</h2>\n<p>エンコードが扱うのは <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code> の4文字だけです。&amp; を先に置き換えるので、1回のエンコードで入れ子にはなりません。ただし入力がすでにエンコード済みの場合、もう一度押すと <code>&amp;amp;amp;</code>（ページ上では <code>&amp;amp;</code> と表示）のような二重エスケープになります。単一引用符は対象外なので、単一引用符で囲んだ属性値に書き込むときは自分で気をつけてください。</p>\n<p>デコードはむしろ精製に近い処理です。まず解析してから <code>textContent</code> を取るので、タグは剥がれます。<code>&lt;p&gt;Hello &lt;b&gt;world&lt;/b&gt; &amp;amp; &lt;i&gt;all&lt;/i&gt;&lt;/p&gt;</code> を入力すると得られるのは <code>Hello world &amp; all</code> で、<code>b</code> と <code>i</code> は跡形もありません。しかも解けるのは1層だけなので、<code>&amp;amp;lt;script&amp;amp;gt;</code> から得られるのは <code>&amp;lt;script&amp;gt;</code> というテキストであり、タグに変わることはありません。何度もデコードしたいなら、その都度押し直す必要があります。</p>\n\n<h2>境界と制限：整形はサニタイズではない</h2>\n<p>整形の出力はテキストノードを再エスケープしません。入力では安全だった <code>&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;</code> が、出力では本物の <code>&lt;script&gt;</code> タグに戻ります。テキストノードの中身がそのまま書き出されるからです。</p>\n<p>ツール自身はそれを実行しません。結果は <code>textarea.value</code> に書き込まれるだけで、ページの解析には関与しません。実際にこの出力を <code>innerHTML</code> で空のページに挿入すると、script 要素は1個見つかりますがスクリプトは動きません。こうした出力を .html ファイルとして保存しブラウザで開くと、スクリプトは実行されます。違いはツール側ではなく、出力をテキストとして扱うか HTML として扱うかにあります。</p>\n<p>もう1つ直感に反する点があります。ツール内の「HTML 解析失敗」の分岐はほとんど発火しません。text/html はエラーに強いパーサーを通るため、壊れたタグはエラーではなく補完され、MDN も parsererror は XML 解析の失敗に関係すると説明しています。<code>&lt;div&gt;&lt;p&gt;unclosed &lt;span&gt;x&lt;/div&gt;</code> を入力しても状態は整形完了のままで、出力は div、p、span の3階層に補完されます。</p>\n<p>同じ罠は別の文脈にもあります。出力を属性値に書き込む、テンプレート文字列に連結する、フレームワークの <code>innerHTML</code> バインディングに渡す、といった場面です。いずれも、エスケープ済みだった文字が再び効いてきます。コードを見せたいなら <code>pre</code> に入れて実体参照にエンコードし、ページを生成したいならテンプレートエンジンかサニタイズ用のライブラリに任せてください。</p>\n<p>汎用のフォーマッターでもありません。空白の意味は保持せず、インライン要素の詰めた書き方も保たず（インライン要素は改行で分割されます）、テンプレート構文も理解しません（Vue のディレクティブや JSX の属性式は普通の属性として扱われます）。サニタイズも行いません。プロジェクトの規約に沿ってソースを整えたいなら、prettier のようなツールに任せるべきです。</p>\n\n<h2>整形でページの見た目が変わっていないか確認する方法</h2>\n<p>整形したコードを本番に入れる前に、次の3段階の確認をしてください。目で流し読みするより確実です。</p>\n<ol>\n<li>描画テキストを比較する：入力と出力をそれぞれ <code>new DOMParser().parseFromString(テキスト, 'text/html')</code> に渡し、<code>body.textContent</code> を取って連続する空白を半角スペース1個に畳みます。両者が一致するはずです。前述の <code>a&lt;b&gt;x&lt;/b&gt;y</code> の例はこの段階で露見します。入力は axy、出力は a x y です。</li>\n<li>構造の数を比較する：<code>script</code>、<code>style</code>、<code>pre</code> と表の要素の個数を数えます。数が合わないときは、たいていどこかのテキストがタグとして扱われたか、パーサーが構造を1層補ったかのどちらかです。</li>\n<li>危険なノードの増加を確認する：出力に <code>script</code> タグや <code>on</code> で始まるイベント属性が増えていれば、整形の過程でエスケープが失われたということです。その出力はそのままページに入れられません。</li>\n</ol>\n<p>3項目すべて通っても、言えるのはテキストと構造が変わっていないことだけです。doctype、head、コメントのように body に入らない内容は、別に確認する必要があります。</p>\n\n<h2>使う場面と避ける場面</h2>\n<ul>\n<li><strong>向いている</strong>：ある HTML の階層を素早く把握したいとき。自分で管理でき、pre と textarea を含まないテンプレート断片を圧縮したいとき。短いテキストを実体参照に変換したいとき。</li>\n<li><strong>避けるべき</strong>：ユーザーが送信した HTML を処理してそのまま描画する使い方。出力でエスケープが失われるので、サニタイズを飛ばしたのと同じです。ページ全体の HTML を圧縮する使い方。pre と textarea の空白が飲み込まれます。文書全体を整形してソースファイルに上書きする使い方。head と doctype が消えます。</li>\n</ul>\n<p>これはコンパイラというより組版の道具です。扱うのはツリーであり、あなたがソースに込めたレイアウトの意図は保持しません。もっとも安全な使い方は、欲しいのがテキストなのか HTML なのかを先に決めることです。ページに見せるならエンコード、エディタで読むなら整形、ビルドに渡すなら断片に pre と textarea が入っていないか先に確認します。</p>\n<p>スタイルシートやスクリプトを扱うときは <a href=\"/ja/tools/dev/css-formatter/\">CSS 整形</a> と <a href=\"/ja/tools/dev/js-formatter/\">JavaScript 整形</a> を使ってください。修正後にどの文字が変わったかを確かめたいときは <a href=\"/ja/tools/dev/diff/\">テキスト比較</a> を併用すると分かりやすいです。<a href=\"/ja/tools/dev/html-formatter/\">HTML 整形ツール</a> を直接開いて、ここまでの例を1つずつ再現してみるのもよいでしょう。</p>",
+  "faqs": [
+    {
+      "q": "整形するとコードが壊れますか？",
+      "a": "構造はたいてい壊れませんが、空白の意味、コメント、head は変わります。完全な文書の doctype、title、meta は出力に現れず、コメントは捨てられ、インライン要素が改行で分割されると描画テキストに余分な空白が入ります。ソースファイルを上書きする前に、テキスト比較で差分を一度見てください。"
+    },
+    {
+      "q": "出力から head と doctype が消えるのはなぜですか？",
+      "a": "ツールは解析後に doc.body から走査を始めるので、head の中の title、meta、style はその範囲に入りません。これは文書全体を整えるためのものではなく、body 内の断片を並べ直すためのツールです。"
+    },
+    {
+      "q": "圧縮するとページの表示は変わりますか？",
+      "a": "普通の段落では変わりません。連続する空白は HTML の描画時にそもそもまとめられるからです。ただし pre と textarea は元の改行に依存しているので、圧縮すると空白1個に畳まれ、コード例やプリフィルされたテキストが崩れます。"
+    },
+    {
+      "q": "スクリプトを含む HTML を扱っても安全ですか？",
+      "a": "ツール自体は結果をテキストボックスに書き込むだけで、スクリプトを実行しません。ただし出力は再エスケープされないので、元は安全だった &lt;script&gt; が本物のタグに戻ります。出力を HTML としてページに挿入したり、ページとして保存したりすると実行リスクが生じるため、描画前に自分でエスケープするかフィルタする必要があります。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN: DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "MDN: Node.textContent",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+    },
+    {
+      "title": "WHATWG HTML 標準: 構文（空要素の定義）",
+      "url": "https://html.spec.whatwg.org/multipage/syntax.html#void-elements"
+    },
+    {
+      "title": "WHATWG HTML 標準: HTML 文書のパース",
+      "url": "https://html.spec.whatwg.org/multipage/parsing.html"
+    },
+    {
+      "title": "MDN: Element.innerHTML（セキュリティ上の注意）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+    },
+    {
+      "title": "MDN: pre 要素（空白の保持）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/pre"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "html-formatter",
+      "lang": "ja",
+      "translatedFrom": "d225e73bfeb0014e6e2e6989e9d7213f8a318cf084e0a618a9bc748fa07a935e",
+      "translatedAt": "2026-11-08T10:16:15.790Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.84
+    }
+  },
+  "image": "/article-images/2026-11/html-formatter-format-document.jpg",
+  "focus": "まず解析し、その後にシリアライズする。整形は body から走査し、圧縮は空白を畳み、実体参照のデコードはタグを剥がしたうえで再エスケープしない。",
+  "notice": "ツールはブラウザ内で動作し、内容は送信されません。ただしサニタイズは行わないため、出力を描画したりページとして保存したりする前に、必ず自分でエスケープするかフィルタしてください。"
+}

@@ -1,0 +1,68 @@
+{
+  "slug": "html-formatter",
+  "title": "HTML 格式化怎么弄：解析、空白与安全边界",
+  "description": "站内 HTML 格式化工具怎么用：格式化、压缩、实体编码与解码各自改了什么；为什么格式化会丢 head、压缩会毁掉 pre，以及输出何时不能当 HTML 使用。",
+  "category": "开发实用",
+  "toolSlug": "html-formatter",
+  "published": "2026-11-08",
+  "updated": "2026-11-08",
+  "readingMinutes": 5,
+  "content": "<p>HTML 格式化工具把一段源码交给浏览器的 HTML 解析器，再遍历 <code>body</code> 里的节点、用两空格缩进重新输出；同一个工具还能把代码压成一行、把特殊字符转成实体、把实体解回文本。前三个动作都先解析再遍历，实体编码只做字符串替换——这个差别决定了它改的到底是什么。</p>\n\n<h2>三个按钮先解析，实体编码只做替换</h2>\n<p>格式化、压缩、解码的入口都是 <code>new DOMParser().parseFromString(输入, 'text/html')</code>：先把字符串解析成文档树，再在树上遍历、重新拼出字符串。实体编码走另一条路，直接对输入字符串做四次替换，全程不解析。</p>\n<ul>\n<li><strong>格式化</strong>：从 <code>doc.body.childNodes</code> 起逐层遍历，每层缩进两个空格；元素只含文本子节点时，把 <code>textContent</code> 去掉首尾空白后原样放进一个数组项（内部换行与空格不折叠）；混排元素下的文本节点则把连续空白压成单个空格；遍历只处理文本节点与元素节点，注释会被跳过；<code>area、base、br、col、embed、hr、img、input、link、meta、source、track、wbr</code> 这 13 个空元素只写开始标签，属性统一补双引号并把值里的双引号转成 <code>&amp;quot;</code>。</li>\n<li><strong>压缩</strong>：同样解析、同样遍历，但不输出换行与缩进，所有文本节点的连续空白替换成单个空格。</li>\n<li><strong>实体编码</strong>：只做四次替换，顺序是 <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code>。先换 &amp; 是为了让自己产生的实体不会被再换一遍。</li>\n<li><strong>实体解码</strong>：解析后取 <code>doc.body.textContent</code>，等于把所有标签剥掉，再把实体解一层。</li>\n</ul>\n<p>理解这一点，后面每个现象都能推出来：工具处理的是解析后的文档，不是你输入的源码。</p>\n\n<h2>格式化会改变哪些东西</h2>\n<p>把含 doctype 与 head 的完整文档交给格式化，输出只剩 body 里的内容：doctype、<code>title</code>、<code>meta</code> 全部消失，因为遍历的起点就是 <code>doc.body</code>。在真实浏览器里跑这一步，输入框是完整文档，输出框只剩 <code>div</code>、<code>h2</code> 与 <code>p</code> 这几个元素。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-format-document.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：HTML 格式化工具处理整篇文档后的输入与输出对照\"><img src=\"/article-images/2026-11/html-formatter-format-document.jpg\" alt=\"HTML 格式化工具处理整篇文档后的输入与输出对照\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入含 doctype 与 head 的完整文档，格式化后输出只剩 body 内的元素 点击图片可查看原图。</figcaption></figure>\n<p>几类常见变化，括号里的字符串都是实测输出：</p>\n<table>\n<thead><tr><th>输入</th><th>格式化后</th><th>原因</th></tr></thead>\n<tbody>\n<tr><td><code>&lt;!DOCTYPE html&gt;…&lt;head&gt;&lt;title&gt;页面标题&lt;/title&gt;&lt;/head&gt;…</code></td><td>只剩 <code>&lt;div&gt;&lt;p&gt;…</code></td><td>遍历从 body 开始</td></tr>\n<tr><td><code>&lt;!--keep me--&gt;</code></td><td>注释消失</td><td>只处理文本与元素节点</td></tr>\n<tr><td><code>&lt;table&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;td&gt;2&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code></td><td>多出一层 <code>&lt;tbody&gt;</code></td><td>HTML 解析器补全表格结构</td></tr>\n<tr><td><code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code></td><td>拆成七行，渲染成 a x y</td><td>行内元素被拆行，新行算一个空格</td></tr>\n<tr><td><code>&lt;pre&gt;if (a) {&lt;span&gt;return b;&lt;/span&gt;}&lt;/pre&gt;</code></td><td>span 独占一行</td><td>预格式化里的混合内容被重新换行</td></tr>\n</tbody>\n</table>\n<p>后两行最容易踩。行内元素之间的换行在渲染时算一个空格，所以紧凑写法 <code>&lt;p&gt;a&lt;b&gt;x&lt;/b&gt;y&lt;/p&gt;</code> 被格式化后，页面上的文字会从 axy 变成 a x y；<code>pre</code> 里混排元素时，文本部分被 trim 并另起一行，原本的缩进关系也会跟着变。</p>\n\n<h2>压缩的代价</h2>\n<p>压缩把每个文本节点的连续空白换成单个空格，不看祖先是谁，于是预格式化内容最先受伤：<code>&lt;pre&gt;line1</code> 换行加缩进再接 <code>line2&lt;/pre&gt;</code> 会变成 <code>&lt;pre&gt;line1 line2&lt;/pre&gt;</code>，<code>textarea</code> 里的换行同样被吃掉。普通段落看不出区别，对代码示例就是排版事故。</p>\n<figure><a href=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：HTML 压缩工具把 pre 元素的换行压缩成空格\"><img src=\"/article-images/2026-11/html-formatter-minify-pre.jpg\" alt=\"HTML 压缩工具把 pre 元素的换行压缩成空格\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>压缩 pre 元素后，换行与缩进被合并成一个空格 点击图片可查看原图。</figcaption></figure>\n<p>更隐蔽的是属性。格式化会把属性值里的双引号转成实体，压缩不会：<code>&lt;div title='a\"b'&gt;x&lt;/div&gt;</code> 压缩后得到 <code>&lt;div title=\"a\"b\"&gt;x&lt;/div&gt;</code>，再交给浏览器解析，属性被拆成 <code>title=\"a\"</code> 和一个名为 <code>b\"</code> 的空属性（outerHTML 里写作 <code>b\"=\"\"</code>），语义直接变了。</p>\n\n<h2>实体编码与实体解码</h2>\n<p>编码只处理四个字符：<code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code>、<code>\"</code>。因为先替换 &amp;，编码一次不会自我嵌套；但如果你输入的内容已经编码过，再点一次就会变成 <code>&amp;amp;amp;</code>（页面上显示为 <code>&amp;amp;</code>）这类双重转义。单引号不在处理范围内，写进单引号包围的属性值时要自己留意。</p>\n<p>解码更像提纯：先解析再取 <code>textContent</code>，标签会被剥掉。输入 <code>&lt;p&gt;Hello &lt;b&gt;world&lt;/b&gt; &amp;amp; &lt;i&gt;all&lt;/i&gt;&lt;/p&gt;</code>，得到的是 <code>Hello world &amp; all</code>，<code>b</code> 与 <code>i</code> 都不见了；而且只解一层，<code>&amp;amp;lt;script&amp;amp;gt;</code> 得到的是 <code>&amp;lt;script&amp;gt;</code> 这段文本，不会继续变成标签。想反复解码，就得反复点。</p>\n\n<h2>边界与限制：格式化不等于消毒</h2>\n<p>格式化输出不会对文本节点重新转义。输入里安全的 <code>&amp;lt;script&amp;gt;alert(1)&amp;lt;/script&amp;gt;</code>，在输出里会变回真实的 <code>&lt;script&gt;</code> 标签，因为文本节点的内容被原样写出去了。</p>\n<p>工具本身不执行它：结果写进 <code>textarea.value</code>，不参与页面解析。实测把这段输出用 <code>innerHTML</code> 插进空白页面，能查到 1 个 script 元素，但脚本不运行；把这类输出保存成 .html 文件再用浏览器打开，脚本就执行了。差别不在工具，而在你把输出当文本还是当 HTML。</p>\n<p>另一个反直觉的点：工具里“HTML 解析失败”的分支几乎不会命中。text/html 走的是容错解析器，坏标签会被补全而不是报错，MDN 也说明 parsererror 与 XML 解析失败相关。输入 <code>&lt;div&gt;&lt;p&gt;unclosed &lt;span&gt;x&lt;/div&gt;</code> 时，状态仍然显示格式化完成，输出被补成 div、p、span 三层。</p>\n<p>同样的坑也出现在别的上下文：把输出写进属性值、拼进模板字符串、交给框架的 <code>innerHTML</code> 绑定，原本转义好的字符都会重新生效。要展示代码，就放进 <code>pre</code> 并做实体编码；要生成页面，就让模板引擎或消毒库处理。</p>\n<p>它也不是通用格式化器：不保留空白语义、不会保留行内元素的紧凑写法（行内元素会被拆行）、不理解模板语法（Vue 指令或 JSX 属性表达式会被当普通属性），更不做消毒。要按工程规范整理源码，应该交给 prettier 这类工具。</p>\n\n<h2>怎么确认格式化没有改变页面效果</h2>\n<p>格式化过的代码要进生产前，做三步核对，比肉眼扫一遍可靠：</p>\n<ol>\n<li>比较渲染文本：把输入和输出分别交给 <code>new DOMParser().parseFromString(文本, 'text/html')</code>，取 <code>body.textContent</code> 并把连续空白压成单个空格，两边应当一致。前面 <code>a&lt;b&gt;x&lt;/b&gt;y</code> 的例子在这一步就会暴露：输入是 axy，输出是 a x y。</li>\n<li>比较结构数量：统计 <code>script</code>、<code>style</code>、<code>pre</code> 与表格元素的数量。数量对不上，通常意味着某段文本被当成了标签，或者解析器补了一层结构。</li>\n<li>检查危险节点的增量：输出里多出 <code>script</code> 标签或 <code>on</code> 开头的事件属性，说明转义在格式化过程中丢了，这段输出不能直接进页面。</li>\n</ol>\n<p>三项都通过也只说明文本与结构没变；doctype、head、注释这类不进 body 的内容，需要单独确认。</p>\n\n<h2>什么时候用，什么时候别用</h2>\n<ul>\n<li><strong>适合</strong>：快速看清一段 HTML 的层级；压缩自己可控、且不含 pre 与 textarea 的模板片段；把一小段文本转成实体。</li>\n<li><strong>别用</strong>：处理用户提交的 HTML 后直接渲染，转义会在输出里丢失，等于跳过消毒；压缩整页 HTML，pre 与 textarea 的空白会被吃掉；格式化整篇文档后覆盖源文件，head 与 doctype 会消失。</li>\n</ul>\n<p>它更像排版工具而不是编译器：处理的是树，不保留你对源码的排版意图。最稳的用法是先想清楚要的是文本还是 HTML：给页面看，就编码；给编辑器看，就格式化；给构建看，先确认片段里没有 pre 与 textarea。</p>\n<p>处理样式表或脚本时用 <a href=\"/tools/dev/css-formatter/\">CSS 格式化</a> 与 <a href=\"/tools/dev/js-formatter/\">JavaScript 格式化</a>；改完想确认到底动了哪些文字，配合 <a href=\"/tools/dev/diff/\">文本对比</a> 更直观。也可以直接打开 <a href=\"/tools/dev/html-formatter/\">HTML 格式化工具</a>，把上面每个例子复现一遍。</p>",
+  "faqs": [
+    {
+      "q": "格式化会把我的代码改坏吗？",
+      "a": "结构通常不会坏，但空白语义、注释和 head 会变：完整文档的 doctype、title、meta 不会出现在输出里，注释被丢弃，行内元素被拆行后渲染文字会多出空格。要覆盖源文件前先用文本对比看一眼差异。"
+    },
+    {
+      "q": "为什么输出的 head 和 doctype 不见了？",
+      "a": "工具解析后从 doc.body 开始遍历，head 里的 title、meta、style 都不在这个范围里。它的定位是重排 body 里的片段，不是整理整篇文档。"
+    },
+    {
+      "q": "压缩后页面显示会不一样吗？",
+      "a": "普通段落不会，因为连续空白在 HTML 渲染时本来就会合并。但 pre 与 textarea 依赖原始换行，压缩会把它们折叠成空格，代码示例和预填文本会变形。"
+    },
+    {
+      "q": "工具处理带脚本的 HTML 安全吗？",
+      "a": "工具本身只把结果写进文本框，不执行脚本。但输出不会重新转义，原本安全的 &lt;script&gt; 会变回真实标签；把输出当 HTML 插进页面或保存成页面就会有执行风险，渲染前必须自己转义或过滤。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：DOMParser.parseFromString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "MDN：Node.textContent",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent"
+    },
+    {
+      "title": "WHATWG HTML 标准：语法（空元素定义）",
+      "url": "https://html.spec.whatwg.org/multipage/syntax.html#void-elements"
+    },
+    {
+      "title": "WHATWG HTML 标准：解析 HTML 文档",
+      "url": "https://html.spec.whatwg.org/multipage/parsing.html"
+    },
+    {
+      "title": "MDN：Element.innerHTML（安全提示）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML"
+    },
+    {
+      "title": "MDN：pre 元素（保留空白）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/pre"
+    }
+  ],
+  "focus": "先解析再序列化：格式化从 body 开始遍历、压缩折叠空白、实体解码剥标签且不重新转义。",
+  "notice": "工具在浏览器本地运行，内容不会上传；它不做消毒，输出在渲染或保存成页面前必须自己转义或过滤。",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-08T18",
+    "primaryQuery": "html格式化怎么弄",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "verifiedAt": "2026-11-08T10:35:26.651Z"
+  },
+  "image": "/article-images/2026-11/html-formatter-format-document.jpg"
+}
