@@ -1,0 +1,68 @@
+{
+  "slug": "css-formatter",
+  "title": "CSS 포매터 사용법: 포맷, 압축, 속성 정렬의 경계",
+  "description": "사이트 내 CSS 포매터 사용법: 토큰 분할 규칙, 압축이 지우는 공백, 속성 정렬이 사전순인 이유와 정렬이 캐스케이드 결과를 바꾸는 경우, 그리고 경계와 권장 사용법을 정리합니다.",
+  "category": "开发实用",
+  "toolSlug": "css-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 6,
+  "content": "<p>CSS 포매터는 CSS 한 조각을 <code>{</code>, <code>}</code>, <code>;</code> 기준으로 토큰으로 나누고, 들여쓰기에 맞춰 여러 줄로 다시 배치합니다. 같은 페이지에서 코드를 한 줄로 압축하거나 속성 이름의 사전순으로 정렬할 수도 있습니다. 문자열을 자르는 방식이지 CSS 파서가 아니므로 문법 검사를 하지 않으며, 속성 정렬을 켜면 출력이 최종 스타일을 바꿀 수도 있습니다.</p>\n\n<h2>세 가지 동작, 하나의 분할 규칙</h2>\n<p>변환은 세 가지뿐입니다. 포맷, 압축, 그리고 속성 정렬을 켠 뒤의 포맷입니다. 셋은 같은 <code>tokenize()</code>를 공유합니다. 입력을 문자 단위로 훑으면서 괄호 깊이가 0일 때의 <code>{</code>, <code>}</code>, <code>;</code>만 지금까지 쌓인 텍스트를 하나의 토큰으로 자르고, 이 세 기호도 각각 하나의 토큰을 차지합니다. 깊이는 <code>(</code>나 <code>[</code>를 만나면 1 늘고 <code>)</code>나 <code>]</code>를 만나면 1 줄어들며(최소 0), 그래서 <code>url(...)</code>, <code>rgba(...)</code> 안의 세미콜론과 중괄호는 구분자로 취급되지 않습니다.</p>\n<p>이 규칙이 능력의 상한도 정합니다. 기호의 위치는 알지만 CSS 문법은 모르고, 선택자나 속성 이름이 유효한지도 판단하지 않습니다. 압축도 같은 토큰화 경로를 지나며, 차이는 다시 이어 붙이는 방식뿐입니다.</p>\n\n<h2>포맷: 세미콜론을 채우고, 첫 콜론에서 선언을 나눈다</h2>\n<p>포맷은 토큰 열 위에서 한 줄씩 만들어 갑니다. <code>{</code>를 만나면 앞서 모인 선택자나 at-rule 프리앰블을 새 줄에 쓰고 끝에 <code> {</code>를 붙이며 깊이를 1 늘립니다. <code>}</code>를 만나면 세미콜론으로 끝나지 않은 선언이 남아 있으면 세미콜론을 먼저 채우고, <code>}</code>를 따로 한 줄로 놓은 뒤 깊이를 1 줄입니다. <code>;</code>를 만나면 현재 선언을 한 줄로 마무리합니다. 들여쓰기는 공백 2칸과 4칸, 두 단계뿐입니다.</p>\n<p>블록 안(깊이가 0보다 클 때)에서 콜론을 포함한 토큰을 만났고 다음 토큰이 <code>{</code>가 아니면, 첫 콜론을 기준으로 ‘속성: 값’으로 나누고 값에 남은 콜론은 그대로 다시 붙입니다. 그래서 <code>background: url(https://…)</code> 같은 값이 깨지지 않습니다. 규칙은 네 가지입니다.</p>\n<ul>\n<li>주석은 토큰화 단계에서 통째로 버려지고, 공백도 대신 넣지 않습니다. 주석 양쪽에 붙어 있던 문자는 그대로 이어져 <code>a/**/b</code>가 <code>ab</code>가 됩니다. 닫히지 않은 <code>/*</code>는 입력 끝까지 삼킵니다.</li>\n<li>따옴표 안의 문자열은 자르지 않고, 역슬래시는 다음 문자를 건너뛰므로 이스케이프된 따옴표가 문자열을 일찍 끝내지 않습니다.</li>\n<li>괄호 안의 <code>;</code>와 <code>{</code> <code>}</code>는 분할에 참여하지 않으므로 data URI의 세미콜론과 함수 안의 쉼표는 안전합니다.</li>\n<li>선택자와 at-rule 프리앰블은 앞뒤 공백만 제거하고 내부의 줄바꿈과 공백은 그대로 둡니다. 그래서 여러 줄로 쓴 선택자 목록은 포맷 후에도 줄바꿈을 유지합니다. 들여쓰기 접두사는 현재 중첩 깊이에 따라 줄 맨 앞에 붙으므로, 최상위(깊이 0)에서는 두 줄 모두 들여쓰기가 없고, 블록 안에 중첩된 경우에만 첫 줄에 접두사가 붙습니다.</li>\n</ul>\n<p>결국 포맷은 기호의 위치를 줄바꿈과 들여쓰기로 옮기는 일이지, 코드를 표준 표기로 재배치하는 일이 아닙니다. 선택자 그룹을 조정하지 않고, 중복 선언을 합치지 않고, 값에 단위를 붙이지 않으며, 출력에서 새로 채워지는 문자는 블록 끝의 세미콜론 하나뿐입니다.</p>\n<figure><a href=\"/article-images/2026-11/css-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"큰 이미지 보기: CSS 포매터가 압축 표기 스타일시트를 들여쓴 여러 줄 결과로 펼친 모습\"><img src=\"/article-images/2026-11/css-formatter-format-sample.jpg\" alt=\"CSS 포매터가 압축 표기 스타일시트를 들여쓴 여러 줄 결과로 펼친 모습\" width=\"1232\" height=\"639\" loading=\"lazy\" decoding=\"async\"></a><figcaption>한 줄로 압축된 스타일시트를 포맷하면 at-rule과 블록 안 선언이 각각 한 줄이 됩니다 이미지를 클릭하면 원본 크기로 볼 수 있습니다.</figcaption></figure>\n\n<h2>압축: 공백, 블록 끝 세미콜론, 콜론 뒤 공백만 건드린다</h2>\n<p>압축은 토큰을 그대로 이어 붙인 뒤 정규식 치환을 한 차례 합니다. <code>}</code> 바로 앞의 세미콜론을 지우고, <code>{</code> <code>}</code> <code>;</code> <code>,</code> 네 기호 양쪽의 공백을 없애고, <code>: </code>를 <code>:</code>로 줄이고, 나머지 연속 공백은 공백 하나로 접습니다. 따옴표 안의 문자열은 따로 보호되어 한 글자도 바뀌지 않고, 괄호 안의 여러 줄 값은 많아야 공백 하나로 접힙니다.</p>\n<p>값 자체는 처리 대상이 아닙니다. 색상 축약도 없고(<code>#ffffff</code>는 <code>#fff</code>가 되지 않습니다), 0 값의 단위 제거도 없으며(<code>0px</code>는 <code>0</code>이 되지 않습니다), <code>calc()</code>에 공백을 넣어 주지도 않습니다. 규격상 <code>calc()</code>의 <code>+</code>와 <code>-</code> 양쪽에는 공백이 있어야 하는데, 도구는 원래 쓴 것만 유지하고 대신 채워 주지 않습니다. 그래서 <code>calc(100%-1em)</code>는 압축 후에도 여전히 성립하지 않습니다. 이미 있던 공백 하나는 살아남고, 여러 개 쓴 공백은 하나로 접힙니다.</p>\n<p>빈 입력 처리는 양쪽이 다릅니다. 포맷은 비었는지 먼저 확인해 “CSS를 입력하세요”를 안내하고, 압축에는 그 확인이 없어 빈 입력에도 “압축 완료”를 표시하며 출력 상자는 비어 있습니다.</p>\n\n<h2>속성 정렬: 사전순이고, 인접한 선언만 정렬한다</h2>\n<p>‘속성 정렬’을 켜면 도구는 이미 만들어진 줄을 한 번 더 훑습니다. 어떤 줄이 선언인지 판정하는 조건은 두 가지로 고정입니다. 들여쓰기를 뺀 뒤 속성 이름(단어 문자나 하이픈)과 콜론으로 시작하고, 줄 전체가 세미콜론으로 끝나야 합니다. 이런 줄만 정렬 대기 목록에 들어가며, 정렬 키는 속성 이름이고 비교는 캐스케이드 우선순위가 아니라 로캘 기준 문자열 비교(<code>localeCompare</code>)입니다.</p>\n<p>선언이 아닌 줄, 즉 선택자 줄이나 <code>{</code>, <code>}</code>, <code>@media</code> 프리앰블, 빈 줄을 만나면 현재 대기 목록을 먼저 정렬해 붙여 넣고 다시 뒤로 훑습니다. 그래서 정렬 범위는 같은 블록 안에서 인접한 선언으로 제한됩니다. <code>}</code>를 넘나드는 선언, <code>@media</code>나 중첩 규칙으로 갈라진 선언은 상대 위치가 그대로입니다. 정렬은 안정적이라 같은 속성을 두 번 쓴 경우(예: <code>display</code> 두 줄로 폴백을 만드는 경우)에도 선후 순서가 유지됩니다.</p>\n<p>부수 효과도 둘입니다. 주석은 토큰화 단계에서 이미 사라져서, 두 선언 사이를 막고 있던 주석은 줄 배열에 없습니다. 그래서 그 두 선언은 인접한 선언이 되어 함께 정렬됩니다. 사용자 지정 속성(<code>--brand-color</code> 같은 것)과 벤더 접두사 속성도 판정 조건을 만족하므로 똑같이 정렬에 포함됩니다.</p>\n\n<h2>정렬이 최종 스타일을 바꾸는 이유</h2>\n<p>브라우저는 같은 규칙 블록 안에서 어느 선언이 이기는지를 작성 순서로 정합니다. 명시도가 같으면 뒤에 쓴 선언이 앞의 것을 덮습니다. 그런데 단축 속성은 자신이 포함하는 모든 긴 속성을 초기화합니다. <code>font</code>는 <code>font-size</code>, <code>font-weight</code>, <code>line-height</code>를, <code>background</code>는 <code>background-color</code>, <code>background-image</code>를, <code>border</code>는 <code>border-color</code>, <code>border-width</code>를 초기화합니다. 이 두 규칙이 겹치면 정렬에 부작용이 생깁니다.</p>\n<p>같은 블록에서 <code>font-size</code>를 먼저 쓰고 <code>font</code>를 나중에 썼다고 해 봅시다. 정렬하지 않으면 <code>font</code>가 뒤에 있어 글자 크기를 초기화하고, 앞의 <code>font-size</code>는 덮입니다. 알파벳순에서 <code>font</code>는 <code>font-size</code>의 접두사라 짧은 쪽이 앞서므로, 정렬하면 <code>font</code>가 앞으로 올라가고 <code>font-size</code>가 맨 뒤로 밀립니다. 글자 크기는 이제 <code>font-size</code>가 결정하고, <code>font</code>에 적은 크기는 효력이 없습니다. 도구는 처음부터 끝까지 속성 이름 문자열만 비교하며, 이 관계를 이해하는 단계는 하나도 없습니다.</p>\n<figure><a href=\"/article-images/2026-11/css-formatter-sort-cascade.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"큰 이미지 보기: CSS 포매터에서 속성 정렬을 켜면 font 단축 속성이 font-size보다 앞에 놓인다\"><img src=\"/article-images/2026-11/css-formatter-sort-cascade.jpg\" alt=\"CSS 포매터에서 속성 정렬을 켜면 font 단축 속성이 font-size보다 앞에 놓인다\" width=\"1232\" height=\"639\" loading=\"lazy\" decoding=\"async\"></a><figcaption>같은 블록 안에서 단축 속성과 긴 속성의 작성 순서가 정렬로 뒤바뀌면 실제로 적용되는 선언이 달라집니다 이미지를 클릭하면 원본 크기로 볼 수 있습니다.</figcaption></figure>\n<p>흔한 세 조합도 마찬가지입니다.</p>\n<table>\n<thead><tr><th>단축 속성</th><th>초기화되는 긴 속성</th><th>정렬하지 않을 때</th><th>정렬을 켰을 때</th></tr></thead>\n<tbody>\n<tr><td><code>font</code></td><td><code>font-size</code></td><td><code>font</code>가 뒤에 쓰여 글자 크기는 단축 속성의 값을 쓴다</td><td><code>font</code>가 앞으로, <code>font-size</code>가 뒤에 쓰여 적용된다</td></tr>\n<tr><td><code>background</code></td><td><code>background-color</code></td><td><code>background</code>가 뒤에 쓰여 색은 단축 속성의 값을 쓴다</td><td><code>background</code>가 앞으로, <code>background-color</code>가 뒤에 쓰여 적용된다</td></tr>\n<tr><td><code>border</code></td><td><code>border-color</code>, <code>border-width</code></td><td><code>border</code>가 뒤에 쓰여 색과 너비는 단축 속성 값을 쓴다</td><td><code>border</code>가 앞으로, 대응하는 긴 속성이 뒤에 쓰여 적용된다</td></tr>\n</tbody>\n</table>\n<p>반대도 성립합니다. 원래 <code>font</code>를 먼저 쓰고 <code>font-size</code>를 나중에 쓴 블록은 정렬 전후 순서가 같고 결과도 바뀌지 않습니다. 정렬이 무엇을 더 옳게 만드는 것은 아닙니다. 누가 나중에 쓰였는지를 알파벳순으로 한 번 다시 배열할 뿐입니다. 캐스케이드 우선순위 도구로 착각해서도 안 됩니다. 명시도도 보지 않고 <code>!important</code>도 보지 않으며, 블록을 넘어 선언을 옮기지도 않습니다. 정렬을 하려면 단축 속성을 긴 속성으로 펼쳐 두거나, 같은 블록에서 이 속성 쌍을 섞어 쓰지 마세요. 정렬한 뒤에는 출력 텍스트를 읽는 것보다 개발자 도구에서 계산된 스타일을 한 번 보는 편이 믿을 만합니다.</p>\n\n<h2>언제 무엇을 쓸까: 세 가지 작업 경로</h2>\n<ol>\n<li>남이 압축한 코드를 읽을 때: 붙여 넣고 공백 2칸을 고른 뒤 포맷을 눌러 구조를 먼저 파악하고 손을 대세요. 정렬은 켜지 마세요.</li>\n<li>납품 전 압축: 소스가 브라우저에서 정상적으로 렌더링되는지 먼저 확인한 뒤 압축을 누르고 결과를 복사하세요. 문자열과 data URI는 깨지지 않지만 주석과 블록 끝 세미콜론은 사라집니다.</li>\n<li>속성 순서 통일: 블록 전체가 긴 속성으로만 된 규칙에만 정렬을 켜세요. 단축 속성이 섞인 블록은 먼저 손으로 펼친 다음 일괄 처리하세요.</li>\n</ol>\n<p>도구는 CSS 텍스트만 다룹니다. HTML 구조를 정리하려면 <a href=\"/ko/tools/dev/html-formatter/\">HTML 포매터</a>를, JavaScript를 다루려면 <a href=\"/ko/tools/dev/js-formatter/\">JS 포매터</a>를, 스타일시트에서 특정 선택자 텍스트만 찾으려면 <a href=\"/ko/tools/dev/regex-tester/\">정규식 테스터</a>를 쓰세요.</p>\n\n<h2>경계와 한계</h2>\n<ul>\n<li><strong>문법 검사를 하지 않습니다</strong>: 포맷은 입력이 비었는지만 확인하고, 비어 있지 않으면 배치한 뒤 “포맷 완료”를 표시합니다. 압축에는 그 확인조차 없습니다. CSS 파서도, 오류 줄 번호도, 경고도 없으므로 잘못 쓴 CSS도 똑같이 “완료”를 받습니다.</li>\n<li><strong>문법을 고치지 않습니다</strong>: 빠진 괄호를 맞춰 주지 않고, 단위를 붙이지 않고, 접두사를 넣지 않고, 중복 규칙을 합치지 않고, 선언 단위로 중복을 제거하지도 않습니다. SCSS/Less의 <code>//</code> 주석과 <code>$변수</code>도 알아보지 못하며, 그저 일반 텍스트로 옮겨질 뿐입니다.</li>\n<li><strong>정렬은 캐스케이드를 따르지 않습니다</strong>: 유일한 근거는 속성 이름의 사전순이며, 단축 속성이 긴 속성을 초기화한다는 것도 이해하지 못하고, <code>!important</code>와 명시도도 보지 않으며, 규칙 블록을 넘어 선언을 옮기지도 않습니다.</li>\n<li><strong>외부 리소스를 처리하지 않습니다</strong>: <code>@import</code>는 한 줄의 텍스트일 뿐이고, 그것이 가리키는 파일을 불러오거나 인라인하지 않습니다.</li>\n<li><strong>공백에 민감한 곳은 직접 확인해야 합니다</strong>: 압축은 기호 양쪽과 콜론 뒤의 공백을 없애고, <code>calc()</code>에 여러 개 쓴 공백은 하나만 남깁니다. 문자열은 그대로 두고 나머지 배치는 모두 촘촘해집니다.</li>\n<li><strong>메인 스레드에서 동기 실행</strong>: 클릭하면 토큰화와 정규식이 한 번에 끝까지 돌고, 진행률도 취소도 없습니다. 큰 파일은 페이지를 계속 붙잡고, 닫히지 않은 문자열이나 주석은 분할을 예상과 다르게 만듭니다.</li>\n</ul>\n<p>한 가지 더: 이 페이지는 정적 HTML과 브라우저 안 스크립트로 되어 있어 입력이 서버로 전송되지 않고, 새로고침하면 사라집니다. 또 검사를 하지 않으므로 “포맷 완료”를 코드가 쓸 수 있다는 증거로 여기지 말고, 스타일이 실제로 적용되는지는 브라우저에서 확인하세요.</p>",
+  "faqs": [
+    {
+      "q": "속성 정렬을 하면 스타일이 달라질 수 있나요?",
+      "a": "그럴 수 있습니다. 단, 같은 블록에서 단축 속성과 이에 대응하는 긴 속성을 섞어 쓴 경우에 한합니다. 정렬은 속성 이름의 사전순만 따르므로 font가 font-size보다 앞에 놓이고, 그러면 뒤에 쓰인 font-size가 오히려 적용됩니다. 블록 전체가 긴 속성뿐이면 보통 영향이 없습니다. 정렬을 하려면 단축 속성을 긴 속성으로 펼치고, 정렬한 뒤 개발자 도구로 계산된 스타일을 확인하세요."
+    },
+    {
+      "q": "“포맷 완료”가 나오면 코드에 문제가 없다는 뜻인가요?",
+      "a": "아닙니다. 도구는 입력이 비었는지만 확인한 뒤 바로 토큰화와 배치를 돌립니다. CSS 파서도, 오류 줄 번호도, 경고도 없고, 압축은 빈 입력 확인조차 없어 빈 내용에도 “압축 완료”를 표시합니다."
+    },
+    {
+      "q": "압축이 문자열이나 data URI를 바꾸나요?",
+      "a": "바꾸지 않습니다. 따옴표 안의 내용은 통째로 보존되고 괄호 안의 세미콜론도 분할에 참여하지 않으므로 url(data:...;base64,...) 같은 값은 그대로 통과합니다. 지워지는 것은 주석, 블록 끝 세미콜론, 기호 주변의 공백이며 값 자체를 축약하거나 단위를 떼지는 않습니다."
+    },
+    {
+      "q": "포맷하면 왜 주석이 모두 사라지나요?",
+      "a": "토큰화할 때 /* */가 통째로 버려지고 공백도 대신 넣지 않아서, 주석 양쪽에 붙은 문자가 이어 붙습니다. a/**/b는 ab가 됩니다. 닫히지 않은 /*는 입력 끝까지 삼킵니다. 설명을 남기고 싶다면 그 CSS 안에 두지 마세요."
+    }
+  ],
+  "sources": [
+    {
+      "title": "W3C: CSS Syntax Module Level 3(주석, 문자열, 이스케이프)",
+      "url": "https://www.w3.org/TR/css-syntax-3/"
+    },
+    {
+      "title": "MDN: Shorthand properties(단축 속성과 캐스케이드 순서)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties"
+    },
+    {
+      "title": "MDN: font(단축 속성이 font-size를 초기화)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/font"
+    },
+    {
+      "title": "MDN: calc()(+와 - 양쪽에 공백 필요)",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/calc"
+    },
+    {
+      "title": "MDN: CSS 주석",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Comments"
+    },
+    {
+      "title": "W3C: CSS Nesting Module Level 1(중첩 규칙)",
+      "url": "https://www.w3.org/TR/css-nesting-1/"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "css-formatter",
+      "lang": "ko",
+      "translatedFrom": "9b9165570d6d138537ed26390e76da279f2d24f854070ced60680a4003908bfa",
+      "translatedAt": "2026-11-08T22:14:04.300Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.85
+    }
+  },
+  "image": "/article-images/2026-11/css-formatter-format-sample.jpg",
+  "focus": "괄호 깊이로 토큰을 나눈 뒤 재배치합니다. 포맷은 블록 끝 세미콜론만 채우고, 압축은 공백과 기호만 줄이고, 속성 정렬은 속성 이름의 사전순만 따르므로 단축 속성과 긴 속성의 덮어쓰기 관계가 뒤집힐 수 있습니다.",
+  "notice": "도구는 브라우저에서 로컬로 실행되며 CSS가 업로드되지 않습니다. 문법 검사를 하지 않으므로 “포맷 완료”가 코드가 유효하다는 뜻은 아닙니다."
+}

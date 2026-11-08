@@ -1,0 +1,68 @@
+{
+  "slug": "css-formatter",
+  "title": "CSS 格式化工具：格式化、压缩与属性排序的边界",
+  "description": "站内 CSS 格式化工具怎么用：切分规则、压缩删掉哪些空白、属性排序为什么按字母序，以及排序为何可能改变层叠结果；附边界清单与使用建议。",
+  "category": "开发实用",
+  "toolSlug": "css-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 6,
+  "content": "<p>CSS 格式化工具把一段 CSS 按 <code>{</code>、<code>}</code>、<code>;</code> 切成 token，再按缩进重排成多行；同一个页面还能把代码压成一行、按属性名字典序排序。它用字符串切分而不是 CSS 解析器，所以不做语法校验，勾选属性排序后输出甚至可能改变最终样式。</p>\n\n<h2>三个动作，同一条切分规则</h2>\n<p>转换只有三种：格式化、压缩、勾选属性排序后再格式化。三者共用同一个 <code>tokenize()</code>：逐字符扫描输入，只有括号深度为 0 时的 <code>{</code>、<code>}</code>、<code>;</code> 才把已经累积的文本切成一个 token，这三个符号本身也各占一个。深度遇到 <code>(</code> 或 <code>[</code> 加一、遇到 <code>)</code> 或 <code>]</code> 减一（最低到 0），所以 <code>url(...)</code>、<code>rgba(...)</code> 里的分号与花括号不会被当成分隔符。</p>\n<p>这条规则也划出了能力上限：它认识符号位置，不认识 CSS 语法，不判断选择器与属性名是否合法。压缩走同一条分词路径，区别只在拼回去的方式。</p>\n\n<h2>格式化：补分号，按第一处冒号拆声明</h2>\n<p>格式化在 token 序列上逐条生成行。遇到 <code>{</code>，把此前累积的选择器或 at-rule 前导写在新行、末尾加 <code> {</code>，深度加一；遇到 <code>}</code>，如果还有没写分号的声明就先补一个分号，再把 <code>}</code> 单独成行、深度减一；遇到 <code>;</code>，把当前声明收尾成一行。缩进只有 2 空格与 4 空格两档。</p>\n<p>块内（深度大于 0）遇到含冒号的 token，并且下一个 token 不是 <code>{</code>，就按第一个冒号拆成「属性: 值」，值里剩下的冒号原样拼回去——所以 <code>background: url(https://…)</code> 这种值不会被拆坏。规则四条：</p>\n<ul>\n<li>注释在分词阶段整段丢弃，而且不补空格：紧贴注释两侧的字符会直接粘连，<code>a/**/b</code> 会变成 <code>ab</code>；未闭合的 <code>/*</code> 会一直吞到输入末尾。</li>\n<li>引号内的字符串不切分，反斜杠会跳过下一个字符，转义引号因此不会提前结束字符串。</li>\n<li>括号内的 <code>;</code> 与 <code>{</code> <code>}</code> 不参与切分，data URI 里的分号、函数里的逗号都安全。</li>\n<li>选择器与 at-rule 前导只去掉首尾空白，内部换行与空格原样保留，所以多行写的选择器列表格式化后仍带换行；缩进前缀按当前嵌套深度加在行首，顶层深度为 0，因此顶层多行选择器两行都不缩进，只有嵌在块内的首行才带缩进前缀。</li>\n</ul>\n<p>所以格式化只是把符号位置翻译成换行与缩进，不是重排成规范写法：它不调整选择器分组、不合并重复声明、不给值补单位，输出里唯一补上的字符是块尾那个分号。</p>\n<figure><a href=\"/article-images/2026-11/css-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：CSS 格式化工具把压缩写法的样式表展开成带缩进的多行结果\"><img src=\"/article-images/2026-11/css-formatter-format-sample.jpg\" alt=\"CSS 格式化工具把压缩写法的样式表展开成带缩进的多行结果\" width=\"1232\" height=\"639\" loading=\"lazy\" decoding=\"async\"></a><figcaption>压缩成一行的样式表经格式化后，at-rule 与块内声明各自成行 点击图片可查看原图。</figcaption></figure>\n\n<h2>压缩：只动空白、块尾分号与冒号后的空格</h2>\n<p>压缩把 token 直接拼接，再做一轮正则替换：删掉紧跟 <code>}</code> 之前的分号，去掉 <code>{</code> <code>}</code> <code>;</code> <code>,</code> 四个符号两侧的空白，把「<code>: </code>」压成「<code>:</code>」，其余连续空白压成单个空格。引号内的字符串被单独保护，内容一字不改；括号里的多行值最多压成一个空格。</p>\n<p>值本身不在处理范围内：没有颜色缩写（<code>#ffffff</code> 不会变 <code>#fff</code>），没有零值去单位（<code>0px</code> 不会变 <code>0</code>），也不会给 <code>calc()</code> 补空格。按规范 <code>calc()</code> 里的 <code>+</code> 与 <code>-</code> 两侧必须有空白，工具只保留你原本写的、不会替你补，所以 <code>calc(100%-1em)</code> 压完仍然不成立；已有的单个空格能活下来，多写的空白会被压成一个。</p>\n<p>空输入的处理两边不一致：格式化先判断是否为空、空了提示「请输入 CSS」；压缩没有这道判断，空输入也提示「压缩完成」，输出框仍是空的。</p>\n\n<h2>属性排序：字典序，而且只排相邻声明</h2>\n<p>勾选「属性排序」后，工具在已生成的行上再扫一遍。判定一条行是不是声明，用的是两个硬条件：去掉缩进后以属性名（单词字符或连字符）加冒号开头，并且整行以分号结尾。只有这样的行进待排列表，排序键是属性名，比较方式是按区域设置做字符串比较（<code>localeCompare</code>），而不是按层叠优先级。</p>\n<p>遇到非声明行——选择器行、<code>{</code>、<code>}</code>、<code>@media</code> 前导、空行——就先把当前待排列表排好接回去，再继续往后扫。于是排序范围被限制在同一块内相邻的声明：跨 <code>}</code> 的声明、被 <code>@media</code> 或嵌套规则隔开的声明，相对位置不动。排序是稳定的，同一属性写两遍（例如两条 <code>display</code> 做回退）时先后顺序保持不变。</p>\n<p>两个连带效果：注释在分词阶段已消失，原本夹在两段声明之间的注释不在行数组里，那两段声明因此变成相邻声明、一起参与排序；自定义属性（<code>--brand-color</code> 之类）与前缀属性同样满足判定条件，也会被排进去。</p>\n\n<h2>排序为什么会改掉最终样式</h2>\n<p>浏览器决定同一规则块里哪条声明生效，看的是书写顺序：特异性相同时，后写的覆盖先写的。而简写属性会重置它包含的所有长写属性——<code>font</code> 重置 <code>font-size</code>、<code>font-weight</code>、<code>line-height</code>，<code>background</code> 重置 <code>background-color</code>、<code>background-image</code>，<code>border</code> 重置 <code>border-color</code>、<code>border-width</code>。两条规则叠在一起，排序就有了副作用。</p>\n<p>假设同一块里先写 <code>font-size</code>、后写 <code>font</code>。不排序时 <code>font</code> 在后，它重置字号，前面的 <code>font-size</code> 被覆盖。字母序上 <code>font</code> 是 <code>font-size</code> 的前缀，短的排在前面，排序后 <code>font</code> 被提前、<code>font-size</code> 落到最后，字号改由 <code>font-size</code> 决定，<code>font</code> 里写的字号不再生效。工具全程只比较属性名字符串，没有任何一步理解这层关系。</p>\n<figure><a href=\"/article-images/2026-11/css-formatter-sort-cascade.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：CSS 格式化工具勾选属性排序后 font 简写被排到 font-size 之前\"><img src=\"/article-images/2026-11/css-formatter-sort-cascade.jpg\" alt=\"CSS 格式化工具勾选属性排序后 font 简写被排到 font-size 之前\" width=\"1232\" height=\"639\" loading=\"lazy\" decoding=\"async\"></a><figcaption>同一块内简写与长写的书写顺序被排序打乱后，最终生效的声明发生变化 点击图片可查看原图。</figcaption></figure>\n<p>三类常见组合同理：</p>\n<table>\n<thead><tr><th>简写属性</th><th>会被重置的长写</th><th>不排序时</th><th>勾选排序后</th></tr></thead>\n<tbody>\n<tr><td><code>font</code></td><td><code>font-size</code></td><td><code>font</code> 后写，字号取简写里的值</td><td><code>font</code> 提前，<code>font-size</code> 后写并生效</td></tr>\n<tr><td><code>background</code></td><td><code>background-color</code></td><td><code>background</code> 后写，颜色取简写里的值</td><td><code>background</code> 提前，<code>background-color</code> 后写并生效</td></tr>\n<tr><td><code>border</code></td><td><code>border-color</code>、<code>border-width</code></td><td><code>border</code> 后写，颜色与宽度取简写值</td><td><code>border</code> 提前，对应长写后写并生效</td></tr>\n</tbody>\n</table>\n<p>反过来同样成立：原本先写 <code>font</code>、再写 <code>font-size</code> 的块，排序前后顺序一致，结果也不变。排序没有让谁更正确，它只是把「谁后写」按字母序重排了一遍；也别把它当成层叠优先级工具，它不看特异性、不看 <code>!important</code>、不跨块搬声明。要排序，就把简写展开成长写，或者别在同一块里混用这几对属性；排完用开发者工具看一眼计算后的样式，比读输出文本可靠。</p>\n\n<h2>什么时候用哪个：三条操作路径</h2>\n<ol>\n<li>读别人压缩过的代码：粘贴后选 2 空格、点格式化，先看清结构再动手，别勾排序。</li>\n<li>交付前压缩：确认源码已在浏览器里渲染正常，再点压缩、复制结果；字符串与 data URI 不会被破坏，但注释与块尾分号会消失。</li>\n<li>统一属性顺序：只在整块都是长写的规则上勾排序；含简写的块先手工展开，再批量处理。</li>\n</ol>\n<p>工具只处理 CSS 文本。要整理 HTML 结构用 <a href=\"/tools/dev/html-formatter/\">HTML 格式化工具</a>，要处理 JavaScript 用 <a href=\"/tools/dev/js-formatter/\">JS 格式化工具</a>，只是要在样式表里匹配某段选择器文本则用 <a href=\"/tools/dev/regex-tester/\">正则测试器</a>。</p>\n\n<h2>边界与限制</h2>\n<ul>\n<li><strong>不做语法校验</strong>：格式化只判断输入是否为空，非空就排版并提示「格式化完成」；压缩连这层判断都没有。没有 CSS 解析器、没有错误行号、没有警告，写错的 CSS 一样会得到「完成」。</li>\n<li><strong>不修语法</strong>：不配对缺失的括号、不补单位、不补前缀、不合并重复规则、不按声明去重，也不识别 SCSS/Less 的 <code>//</code> 注释与 <code>$变量</code>，这些只会被当成普通文本搬来搬去。</li>\n<li><strong>排序不按层叠</strong>：唯一依据是属性名字典序，既不理解简写会重置长写，也不看 <code>!important</code> 与特异性，更不会跨规则块移动声明。</li>\n<li><strong>不处理外部资源</strong>：<code>@import</code> 只是一行文本，不会去加载或内联它指向的文件。</li>\n<li><strong>空白敏感处要人工看</strong>：压缩去掉符号两侧与冒号后的空白，<code>calc()</code> 里多写的空白只留一个；字符串原样保留，其余排版全部变紧。</li>\n<li><strong>主线程同步执行</strong>：点击后一次性跑完分词与正则，没有进度也没有取消；大文件会一直占用页面，未闭合的字符串或注释还会让切分偏离预期。</li>\n</ul>\n<p>还有一点：页面是静态 HTML 加浏览器内脚本，输入不会发到服务器，刷新就没了；也因为它不做校验，别把「格式化完成」当成代码可用的证明，样式是否生效要在浏览器里看。</p>",
+  "faqs": [
+    {
+      "q": "属性排序会不会让我的样式变样？",
+      "a": "会，前提是同一块里混用了简写与对应长写。排序只按属性名字典序，font 会排到 font-size 前面，于是后写的 font-size 反而生效；整块都是长写时一般不受影响。要排序就把简写展开成长写，排完再用开发者工具核对计算后的样式。"
+    },
+    {
+      "q": "提示「格式化完成」，是不是说明代码没问题？",
+      "a": "不是。工具只检查输入是否为空，然后直接跑分词与排版，没有 CSS 解析器，也没有错误行号或警告；压缩连空输入判断都没有，空内容照样提示「压缩完成」。"
+    },
+    {
+      "q": "压缩会改动字符串或 data URI 吗？",
+      "a": "不会。引号内的内容整段保留，括号内的分号也不参与切分，所以 url(data:...;base64,...) 这类值能原样通过；被删掉的是注释、块尾分号与符号周围的空白，值本身不做缩写或去单位。"
+    },
+    {
+      "q": "为什么格式化后注释全没了？",
+      "a": "分词时 /* */ 整段被丢弃，而且不补空格，紧贴注释两侧的字符会粘在一起，a/**/b 会变成 ab；未闭合的 /* 会一路吞到输入末尾。想保留说明，就别把它放在这段 CSS 里。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "W3C：CSS Syntax Module Level 3（注释、字符串、转义）",
+      "url": "https://www.w3.org/TR/css-syntax-3/"
+    },
+    {
+      "title": "MDN：Shorthand properties（简写与层叠顺序）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Shorthand_properties"
+    },
+    {
+      "title": "MDN：font（简写会重置 font-size）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/font"
+    },
+    {
+      "title": "MDN：calc()（+ 与 - 两侧必须有空白）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/calc"
+    },
+    {
+      "title": "MDN：CSS 注释",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Comments"
+    },
+    {
+      "title": "W3C：CSS Nesting Module Level 1（嵌套规则）",
+      "url": "https://www.w3.org/TR/css-nesting-1/"
+    }
+  ],
+  "focus": "按括号深度切 token 再重排：格式化只补块尾分号，压缩只压空白与符号，属性排序只按属性名字典序，因此可能反转简写与长写的覆盖关系。",
+  "notice": "工具在浏览器本地运行，CSS 不会上传；它不做语法校验，提示「格式化完成」不代表代码有效。",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-09T06",
+    "primaryQuery": "css格式化工具",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "verifiedAt": "2026-11-08T22:22:59.000Z"
+  },
+  "image": "/article-images/2026-11/css-formatter-format-sample.jpg"
+}
