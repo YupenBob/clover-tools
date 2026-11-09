@@ -1,0 +1,68 @@
+{
+  "slug": "js-formatter",
+  "title": "JavaScript 格式化：引號、分號與壓縮的邊界",
+  "description": "站內 JavaScript 格式化工具用 Prettier 的 babel 解析器重排代碼：補分號、換引號、規範數字與尾逗號；壓縮按鈕走 Terser。說明兩項操作各改什麼、解析器能接受哪些語法，以及為什麼格式化不等於壓縮、不能替代測試。",
+  "category": "开发实用",
+  "toolSlug": "js-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 7,
+  "content": "<p>站內的 JavaScript 格式化工具用 Prettier 重排代碼，壓縮按鈕用的卻是 Terser：一個補分號、換引號、加縮進，一個改名、折叠常量、刪死代碼。這裏說明兩項操作各自動了哪些字符、解析器能接受哪些語法，以及它們各自不能保證什麼。</p>\n\n<h2>一個頁面，兩套引擎</h2>\n<p>兩個按鈕背後是兩個庫。格式化動態導入 Prettier 的 standalone 版本，再加載 babel 與 estree 兩個插件；壓縮動態導入 Terser，然後調用 minify()。兩者都等到點擊時才加載，首次格式化時狀態欄會提示正在加載約 1MB 的引擎（這是頁面文案，不是實測值）——本次運行記錄到三個腳本，合計 610677 字節，約 0.6 MB。</p>\n<p>格式化的參數寫死：parser 為 babel，semi、singleQuote 為 true，tabWidth 為 2，printWidth 為 100；頁面沒有下拉框或復選框可改。壓縮只傳 mangle: true 與 compress: true，沒有傳 toplevel，因此 Terser 默認的 toplevel: false 保持不變。</p>\n<p>輸入為空時，兩個按鈕都只顯示「請輸入 JavaScript 代碼」，並且不會清空上一次的輸出；解析或壓縮失敗時才清空輸出，並在狀態欄給出「解析失敗」或「壓縮失敗」。</p>\n\n<h2>格式化改的不只是空白</h2>\n<p>把示例裏那段 102 字符的壓縮寫法交給格式化，輸出變成 115 字符：分號從 2 個增至 3 個，雙引號從 8 個變成 0 個，單引號從 0 個增至 8 個。多出來的字符主要來自運算符兩側的空格、換行與縮進，但真正改變字符的不止這些。</p>\n<figure><a href=\"/article-images/2026-11/js-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：JavaScript 格式化工具把壓縮寫法展開成多行，雙引號變單引號、語句補分號並縮進\"><img src=\"/article-images/2026-11/js-formatter-format-sample.jpg\" alt=\"JavaScript 格式化工具把壓縮寫法展開成多行，雙引號變單引號、語句補分號並縮進\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>壓縮寫法經格式化後按語句換行：引號統一、分號補齊、函數體縮進兩格，狀態欄顯示格式化完成 點擊圖片可查看原圖。</figcaption></figure>\n<p>分號：語句末尾缺分號會補上，function 聲明自身的閉合花括號後不加分號。引號：singleQuote: true 讓雙引號字符串改用單引號，但選擇規則以「轉義更少」優先；<code>const a = \"it's\";</code> 的內容含單引號，換成單引號反而要轉義，因此保留雙引號。JSX 屬性的引號不受這項設置影響，仍然是雙引號。</p>\n<p>對象鍵按 as-needed 處理：<code>{\"a\":1,\"a-b\":2,\"1\":3}</code> 變成 <code>{ a: 1, 'a-b': 2, 1: 3 }</code>。數字字面量也會被規範：0XFF 變 0xff，.5 變 0.5，1. 變 1，而 1e3、0b101、0o17 與 1_000 保留原寫法。無參數的 new 表達式補括號，new Date 變 new Date()。</p>\n<p>連續空行折叠成一個，文件末尾補一個換行。注釋會保留，行注釋仍在原位置，塊注釋跟著相鄰代碼。模板字符串內部的空格與換行、普通字符串內部的字符都不改。</p>\n<p>超過 printWidth: 100 的長參數列表會拆行，最後一項帶尾逗號；本次長調用被拆成 7 行（首行、5 個參數行與閉合行），最長一行只有 34 字符。尾逗號不是工具另加的開關，而是 Prettier 3 默認 trailingComma: \"all\" 的結果，單行結構不會加。</p>\n<p>把格式化結果再格式化一次，輸出完全相同；壓縮成一行的代碼也能正常展開。格式化可以反覆跑，但每次都重排整份代碼，而不是只動選中的局部。</p>\n\n<h2>解析器邊界：babel 能吃什麼，不能吃什麼</h2>\n<p>解析器是 babel，插件只有 babel 與 estree，沒有 TypeScript 插件。因此 <code>const a: number = 1;</code> 會直接失敗：狀態欄顯示「解析失敗：Unexpected token (1:8)」，輸出框被清空。這不是代碼邏輯錯誤，而是解析器不認識類型注解；頁面也沒有切換到 typescript 解析器的入口。</p>\n<p>能被接受的語法比想象中多：JSX 通過，屬性仍用雙引號；類私有字段通過；類裝飾器通過，而且類裝飾器被單獨放一行；頂層 await 通過；可選鏈與空值合並通過。Prettier 文檔說明非標準語法的支持屬於盡力而為，升級後可能變化，邊界以頁面實際返回的狀態為準。</p>\n<ul>\n<li>JSX：通過，輸出保留 <code>&lt;div className=\"a\"&gt;hi&lt;/div&gt;</code> 這類結構。</li>\n<li>類私有字段：<code>#x = 1;</code> 與 <code>this.#x</code> 原樣保留。</li>\n<li>類裝飾器：@sealed 與 class A {} 分兩行輸出。</li>\n<li>頂層 await：<code>await fetch('/x');</code> 通過。</li>\n<li>TypeScript 類型注解：失敗，輸出被清空並給出報錯位置。</li>\n</ul>\n\n<h2>壓縮動的是名字與結構</h2>\n<p>壓縮走 Terser，默認開啟 mangle 與 compress。139 字符的函數 addNumbers(firstNumber, secondNumber) 壓縮後是 85 字符，減少 38.8%：兩個參數被改名成 e 與 r，函數體壓成一行；頂層函數名 addNumbers 與頂層常量 result 保留，因為 toplevel 沒有開啟。</p>\n<figure><a href=\"/article-images/2026-11/js-formatter-minify-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：JavaScript 壓縮工具把帶長參數名與注釋的函數壓成一行，參數被改名、注釋被刪除\"><img src=\"/article-images/2026-11/js-formatter-minify-sample.jpg\" alt=\"JavaScript 壓縮工具把帶長參數名與注釋的函數壓成一行，參數被改名、注釋被刪除\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>帶長參數名與注釋的函數壓縮後參數被改名、注釋被刪除，輸出長度明顯下降，狀態欄顯示壓縮完成 點擊圖片可查看原圖。</figcaption></figure>\n<p>compress 會折叠常量：<code>const a = 1 + 2;</code> 變成 <code>const a=3</code>，<code>\"a\" + \"b\"</code> 變成 <code>\"ab\"</code>；函數內 if (false) 的死代碼被刪掉，<code>return x * 2</code> 變成 <code>return 2*n</code>。頂層未使用的 <code>let unused = 5</code> 默認不會被刪除，刪除頂層未使用變量同樣需要 toplevel: true。</p>\n<p>改名會改變運行時可觀察的信息：內層具名函數 innerHelper 壓縮後成了匿名函數，eval 後取 .name 得到空字符串；函數體的 toString 也從 54 字符變成 42 字符。依賴 Function.prototype.name 或源碼文本的代碼（例如某些依賴注入與測試框架）會受影響；Terser 的 keep_fnames 就是為這種場景準備的，但頁面沒有暴露該選項。</p>\n<p>含 eval 的作用域會被特殊對待：函數裏調用 eval(userInput) 時，userInput 與 localSecret 都不會被改名，因為改名可能破壞 eval 按名字取變量。普通注釋被刪除，/*! 開頭的許可注釋保留；數字與引號也會壓縮，1000 變 1e3、0.5 變 .5、含雙引號的字符串改成單引號寫法。壓縮輸出末尾沒有換行。</p>\n\n<h2>格式化不等於壓縮：目標相反</h2>\n<p>兩個按鈕都會改變源碼文本，但方向相反。格式化為了可讀與代碼評審，輸出通常更長；壓縮為了傳輸體積，輸出更短，並且會改名與刪代碼。本次樣例裏，先把代碼格式化再壓縮，輸出與原樣直接壓縮逐字節相同：壓縮前是否先格式化，不改變壓縮結果；反過來把壓縮結果再格式化，只能得到可讀版本，回不到原始源碼。</p>\n<table>\n<thead><tr><th>維度</th><th>格式化（Prettier）</th><th>壓縮（Terser）</th></tr></thead>\n<tbody>\n<tr><td>主要目標</td><td>可讀、風格統一</td><td>減少字節數</td></tr>\n<tr><td>空白與縮進</td><td>重排為多行縮進</td><td>刪除多余空白</td></tr>\n<tr><td>分號與引號</td><td>補分號、統一引號</td><td>刪可省略的空白與分號，引號取更短寫法</td></tr>\n<tr><td>名字</td><td>不改</td><td>局部變量、參數與內層函數名改名</td></tr>\n<tr><td>注釋</td><td>保留</td><td>普通注釋刪除，/*! 保留</td></tr>\n<tr><td>末尾換行</td><td>有</td><td>無</td></tr>\n<tr><td>可觀察信息</td><td>源碼文本與 toString 文本變，行為不變</td><td>源碼文本、Function.name、toString 與注釋變，行為結果不變</td></tr>\n</tbody>\n</table>\n<p>表格最後一行是使用時的關鍵：格式化把「行為不變」當作正確性要求；壓縮以保持運行結果為目標，但不保證名字、源碼文本與注釋不變。</p>\n\n<h2>邊界與限制</h2>\n<p>先明確提示語的含義。「格式化完成」只說明 babel 解析成功、Prettier 打印成功，不代表代碼沒有邏輯錯誤、沒有類型錯誤，也不代表它符合團隊 lint 規則；「壓縮完成」同樣只說明 Terser 能解析並完成壓縮。</p>\n<p>解析器限制：只能解析 babel 支持的 JavaScript 語法。TypeScript 與 Flow 的類型注解都會失敗，babel 不認識的語法會在解析階段失敗並給出報錯位置（本次兩類注解都試過，Flow 還試了變量注解，狀態欄都是「解析失敗」）；頁面沒有切換解析器的選項。非標準語法（例如裝飾器）當前能過，但這類支持是盡力而為，升級後可能變化。</p>\n<p>無法配置：semi、singleQuote、tabWidth、printWidth 四項寫死，trailingComma 取 Prettier 默認值，不能套用團隊已有風格；壓縮的 toplevel、keep_fnames、source map 等選項也沒有暴露。想要與倉庫配置一致，應在本地用項目自己的 Prettier 與 Terser 配置跑，而不是把網頁輸出當作最終風格。</p>\n<p>格式化不等於壓縮，也不能替代測試。格式化輸出通常更長（本次 102 字符變 115 字符），壓縮會改名並改變 Function.name 與 toString 文本；把格式化或壓縮後的代碼直接上線前，仍要跑測試與構建。</p>\n<p>本地處理：工具頁面只在瀏覽器裏讀寫文本框。本次運行 47 個用例期間共 17 個請求，全部是 127.0.0.1 上的 GET，沒有請求體，也沒有上傳代碼的請求；刷新或關閉頁面後輸入不會保留。</p>\n\n<h2>把結果用回項目時怎麼判斷</h2>\n<p>如果目的是讓代碼好讀、diff 穩定，用格式化：它保留注釋、只重排空白與少量字符，適合提交前統一風格；但尾逗號與引號規則可能與倉庫配置不同，複製回項目後仍要讓項目自己的 Prettier 再跑一遍。</p>\n<p>如果目的是減小體積，用壓縮，但先量收益：本次示例從 139 字符降到 85 字符，減少 38.8%，真實項目裏還要算上 gzip 後的差異。壓縮結果適合構建產物，不適合作為倉庫源碼；需要保留函數名時，改用項目裏的 Terser 配置 keep_fnames 或關閉 mangle。</p>\n<p>站內還有幾個相鄰工具可以配合：處理樣式表時用 <a href=\"/zh-hant/tools/dev/css-formatter/\">CSS 格式化工具</a>，檢查 JSON 結構時用 <a href=\"/zh-hant/tools/dev/json-formatter/\">JSON 格式化工具</a>，整理 HTML 片段時用 <a href=\"/zh-hant/tools/dev/html-formatter/\">HTML 格式化工具</a>；需要驗證替換規則而不是重排代碼時，用 <a href=\"/zh-hant/tools/dev/regex-tester/\">正則表達式測試工具</a>。它們各自有解析器與空白處理上的差異，不要假設同一份輸入在不同工具裏得到相同結果。</p>\n<p>判斷結果是否可用不靠狀態欄文字，而靠對比：格式化前後執行同一組表達式、壓縮前後調用同一組參數，確認行為結果不變；同時檢查 Function.name、toString 與注釋，這幾項會按前面的說明變化。本次運行只覆蓋了有限樣例。</p>",
+  "faqs": [
+    {
+      "q": "格式化後為什麼多出尾逗號？",
+      "a": "Prettier 3 的 trailingComma 默認是 \"all\"，工具沒有改這項設置，所以多行對象、數組、參數列表的最後一項會加逗號，單行結構不加。若團隊規範不允許尾逗號，需要把輸出交給項目自己的 Prettier 配置重跑，網頁裏沒有關閉這項的開關。"
+    },
+    {
+      "q": "為什麼 TypeScript 代碼提示解析失敗？",
+      "a": "解析器固定為 babel，只加載 babel 與 estree 插件，沒有 TypeScript 插件，類型注解在解析階段就會失敗，狀態欄會給出類似 Unexpected token 的位置並清空輸出。工具不做類型檢查，換成 JavaScript 或去掉類型注解後才能格式化。"
+    },
+    {
+      "q": "壓縮後函數名為什麼變了，能還原嗎？",
+      "a": "Terser 默認開啟 mangle，局部變量、參數與內層函數名會被縮短或改成匿名，所以 Function.name 與 toString 文本會變化；頂層名字默認保留，因為頁面沒有開啟 toplevel。壓縮是單向的，本站頁面不保存映射，也沒有 source map 或 keep_fnames 選項。"
+    },
+    {
+      "q": "提示格式化完成就說明代碼沒問題嗎？",
+      "a": "不是。它只說明 babel 解析成功、Prettier 打印成功，不做類型檢查、lint 或邏輯校驗；語法正確的代碼可能有運行時錯誤，TypeScript 注解甚至會直接解析失敗。發布前仍要跑測試、類型檢查與構建。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Prettier：Options（semi、singleQuote、tabWidth、printWidth、trailingComma 默認值）",
+      "url": "https://prettier.io/docs/options"
+    },
+    {
+      "title": "Prettier：Rationale（正確性目標、引號與空行規則、只打印不轉換）",
+      "url": "https://prettier.io/docs/rationale"
+    },
+    {
+      "title": "Terser：API Reference（mangle、compress、toplevel、keep_fnames）",
+      "url": "https://terser.org/docs/api-reference"
+    },
+    {
+      "title": "MDN：Function.prototype.toString（返回精確源碼文本）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/toString"
+    },
+    {
+      "title": "MDN：Automatic semicolon insertion（自動分號插入規則）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#automatic_semicolon_insertion"
+    },
+    {
+      "title": "MDN：Template literals（模板字符串的換行與空白）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "js-formatter",
+      "lang": "tw",
+      "translatedFrom": "e575375187070fc45a534cd43bf9cd16509fcc58671483d01d20cdfe6e3dd0fe",
+      "translatedAt": "2026-11-09T04:46:36.056Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.98
+    }
+  },
+  "image": "/article-images/2026-11/js-formatter-format-sample.jpg",
+  "focus": "格式化補分號、換引號、規範數字與尾逗號，壓縮改名與折叠常量；兩者都改變源碼文本與 toString 文本，只有壓縮會改變 Function.name；格式化保持行為不變，而 babel 解析器不接受 TypeScript 與 Flow 的類型注解。",
+  "notice": "格式化與壓縮都在瀏覽器本地完成，本次記錄到的請求全部是本地靜態資源的 GET，沒有上傳代碼的請求；提示「格式化完成」只代表解析與打印成功，不代表代碼正確。"
+}
