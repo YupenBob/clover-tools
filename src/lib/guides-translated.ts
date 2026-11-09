@@ -10,36 +10,40 @@ import guide7 from '../../data/editorial-guides/symmetric-encrypt-params.tw.json
 import guide8 from '../../data/editorial-guides/text-transform.tw.json' with { type: 'json' };
 import guide9 from '../../data/editorial-guides/url-parse.tw.json' with { type: 'json' };
 import guide10 from '../../data/editorial-guides/uuid-generator.tw.json' with { type: 'json' };
-import guide11 from '../../data/editorial-guides/color-convert.en.json' with { type: 'json' };
-import guide12 from '../../data/editorial-guides/css-formatter.en.json' with { type: 'json' };
-import guide13 from '../../data/editorial-guides/html-formatter.en.json' with { type: 'json' };
-import guide14 from '../../data/editorial-guides/jianfan.en.json' with { type: 'json' };
-import guide15 from '../../data/editorial-guides/js-formatter.en.json' with { type: 'json' };
-import guide16 from '../../data/editorial-guides/json-xml-yaml.en.json' with { type: 'json' };
-import guide17 from '../../data/editorial-guides/password-strength.en.json' with { type: 'json' };
-import guide18 from '../../data/editorial-guides/symmetric-encrypt-params.en.json' with { type: 'json' };
-import guide19 from '../../data/editorial-guides/text-transform.en.json' with { type: 'json' };
-import guide20 from '../../data/editorial-guides/url-parse.en.json' with { type: 'json' };
-import guide21 from '../../data/editorial-guides/color-convert.ko.json' with { type: 'json' };
-import guide22 from '../../data/editorial-guides/css-formatter.ko.json' with { type: 'json' };
-import guide23 from '../../data/editorial-guides/html-formatter.ko.json' with { type: 'json' };
-import guide24 from '../../data/editorial-guides/jianfan.ko.json' with { type: 'json' };
-import guide25 from '../../data/editorial-guides/js-formatter.ko.json' with { type: 'json' };
-import guide26 from '../../data/editorial-guides/json-xml-yaml.ko.json' with { type: 'json' };
-import guide27 from '../../data/editorial-guides/password-strength.ko.json' with { type: 'json' };
-import guide28 from '../../data/editorial-guides/symmetric-encrypt-params.ko.json' with { type: 'json' };
-import guide29 from '../../data/editorial-guides/text-transform.ko.json' with { type: 'json' };
-import guide30 from '../../data/editorial-guides/url-parse.ko.json' with { type: 'json' };
-import guide31 from '../../data/editorial-guides/color-convert.ja.json' with { type: 'json' };
-import guide32 from '../../data/editorial-guides/css-formatter.ja.json' with { type: 'json' };
-import guide33 from '../../data/editorial-guides/html-formatter.ja.json' with { type: 'json' };
-import guide34 from '../../data/editorial-guides/jianfan.ja.json' with { type: 'json' };
-import guide35 from '../../data/editorial-guides/js-formatter.ja.json' with { type: 'json' };
-import guide36 from '../../data/editorial-guides/json-xml-yaml.ja.json' with { type: 'json' };
-import guide37 from '../../data/editorial-guides/password-strength.ja.json' with { type: 'json' };
-import guide38 from '../../data/editorial-guides/symmetric-encrypt-params.ja.json' with { type: 'json' };
-import guide39 from '../../data/editorial-guides/text-transform.ja.json' with { type: 'json' };
-import guide40 from '../../data/editorial-guides/url-parse.ja.json' with { type: 'json' };
+import guide11 from '../../data/editorial-guides/xml-formatter.tw.json' with { type: 'json' };
+import guide12 from '../../data/editorial-guides/color-convert.en.json' with { type: 'json' };
+import guide13 from '../../data/editorial-guides/css-formatter.en.json' with { type: 'json' };
+import guide14 from '../../data/editorial-guides/html-formatter.en.json' with { type: 'json' };
+import guide15 from '../../data/editorial-guides/jianfan.en.json' with { type: 'json' };
+import guide16 from '../../data/editorial-guides/js-formatter.en.json' with { type: 'json' };
+import guide17 from '../../data/editorial-guides/json-xml-yaml.en.json' with { type: 'json' };
+import guide18 from '../../data/editorial-guides/password-strength.en.json' with { type: 'json' };
+import guide19 from '../../data/editorial-guides/symmetric-encrypt-params.en.json' with { type: 'json' };
+import guide20 from '../../data/editorial-guides/text-transform.en.json' with { type: 'json' };
+import guide21 from '../../data/editorial-guides/url-parse.en.json' with { type: 'json' };
+import guide22 from '../../data/editorial-guides/xml-formatter.en.json' with { type: 'json' };
+import guide23 from '../../data/editorial-guides/color-convert.ko.json' with { type: 'json' };
+import guide24 from '../../data/editorial-guides/css-formatter.ko.json' with { type: 'json' };
+import guide25 from '../../data/editorial-guides/html-formatter.ko.json' with { type: 'json' };
+import guide26 from '../../data/editorial-guides/jianfan.ko.json' with { type: 'json' };
+import guide27 from '../../data/editorial-guides/js-formatter.ko.json' with { type: 'json' };
+import guide28 from '../../data/editorial-guides/json-xml-yaml.ko.json' with { type: 'json' };
+import guide29 from '../../data/editorial-guides/password-strength.ko.json' with { type: 'json' };
+import guide30 from '../../data/editorial-guides/symmetric-encrypt-params.ko.json' with { type: 'json' };
+import guide31 from '../../data/editorial-guides/text-transform.ko.json' with { type: 'json' };
+import guide32 from '../../data/editorial-guides/url-parse.ko.json' with { type: 'json' };
+import guide33 from '../../data/editorial-guides/xml-formatter.ko.json' with { type: 'json' };
+import guide34 from '../../data/editorial-guides/color-convert.ja.json' with { type: 'json' };
+import guide35 from '../../data/editorial-guides/css-formatter.ja.json' with { type: 'json' };
+import guide36 from '../../data/editorial-guides/html-formatter.ja.json' with { type: 'json' };
+import guide37 from '../../data/editorial-guides/jianfan.ja.json' with { type: 'json' };
+import guide38 from '../../data/editorial-guides/js-formatter.ja.json' with { type: 'json' };
+import guide39 from '../../data/editorial-guides/json-xml-yaml.ja.json' with { type: 'json' };
+import guide40 from '../../data/editorial-guides/password-strength.ja.json' with { type: 'json' };
+import guide41 from '../../data/editorial-guides/symmetric-encrypt-params.ja.json' with { type: 'json' };
+import guide42 from '../../data/editorial-guides/text-transform.ja.json' with { type: 'json' };
+import guide43 from '../../data/editorial-guides/url-parse.ja.json' with { type: 'json' };
+import guide44 from '../../data/editorial-guides/xml-formatter.ja.json' with { type: 'json' };
 
 /**
  * 多语言指南译文索引（tw / en / ko / ja）。
@@ -61,9 +65,9 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide8 as unknown as Guide,
     guide9 as unknown as Guide,
     guide10 as unknown as Guide,
+    guide11 as unknown as Guide,
   ],
   en: [
-    guide11 as unknown as Guide,
     guide12 as unknown as Guide,
     guide13 as unknown as Guide,
     guide14 as unknown as Guide,
@@ -73,10 +77,10 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide18 as unknown as Guide,
     guide19 as unknown as Guide,
     guide20 as unknown as Guide,
-  ],
-  ko: [
     guide21 as unknown as Guide,
     guide22 as unknown as Guide,
+  ],
+  ko: [
     guide23 as unknown as Guide,
     guide24 as unknown as Guide,
     guide25 as unknown as Guide,
@@ -85,11 +89,11 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide28 as unknown as Guide,
     guide29 as unknown as Guide,
     guide30 as unknown as Guide,
-  ],
-  ja: [
     guide31 as unknown as Guide,
     guide32 as unknown as Guide,
     guide33 as unknown as Guide,
+  ],
+  ja: [
     guide34 as unknown as Guide,
     guide35 as unknown as Guide,
     guide36 as unknown as Guide,
@@ -97,5 +101,9 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide38 as unknown as Guide,
     guide39 as unknown as Guide,
     guide40 as unknown as Guide,
+    guide41 as unknown as Guide,
+    guide42 as unknown as Guide,
+    guide43 as unknown as Guide,
+    guide44 as unknown as Guide,
   ],
 };

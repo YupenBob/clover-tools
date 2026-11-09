@@ -1,0 +1,67 @@
+{
+  "slug": "xml-formatter",
+  "title": "XML フォーマッター：CDATA・名前空間・実体参照",
+  "description": "サイト内の XML フォーマッターはインデントを組み直し、XML 宣言を UTF-8 に固定するが、残すのは要素とテキストノードだけで、CDATA・コメント・処理命令は消える。実体参照をデコードした出力は妥当でない XML になり得る。今回の実測から、整形・圧縮・検証それぞれの限界を整理する。",
+  "category": "开发实用",
+  "toolSlug": "xml-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 7,
+  "content": "<p>サイト内の <a href=\"/ja/tools/dev/xml-formatter/\">XML フォーマッター</a> は、渡された XML をインデントし直す。圧縮ボタンは構造をコンパクトな形にまとめ、検証ボタンは解析できるかどうかだけを返す。3 つのボタンはいずれも最初に DOMParser で解析してから、それぞれの処理に入る。本記事では今回の実行の全ケースをもとに、整形・圧縮・検証が何を変えるのか、CDATA・名前空間・実体参照がなぜここで問題になりやすいのかを説明する。</p>\n\n<h2>整形：宣言の固定と 2 スペースのインデント</h2>\n<p>整形に成功すると、出力の 1 行目は必ず <code>&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;</code> になり、その直後にルート要素の開始タグが続く。両者の間に改行は入らない。入力側の宣言は置き換えられる。<code>encoding=\"GBK\"</code> と <code>standalone=\"yes\"</code> を持つ文書を渡すと、出力に残るのは UTF-8 の宣言だけで、GBK も standalone も現れない。出力は trim されるので末尾に改行はなく、ステータスバーには「整形が完了しました」、文字数には「71 文字」が表示される。これは出力文字列の長さと一致する。</p>\n<p>インデントは 2 スペースで固定される。4 階層にネストしたサンプルは 9 行になり、最も深いテキストの前には 8 文字分の空白が入る。テキストノードだけを子に持ち、trim しても空にならない要素では、テキストを単独の行に置いてさらに 1 段深くインデントする。<code>&lt;a&gt;  x  &lt;/a&gt;</code> は 3 行になり、x の両側の空白は消えるが、内部の空白と日本語はそのまま残る。空要素は <code>&lt;a/&gt;</code> と書かれ、属性の順序は変わらず、単一引用符はすべて二重引用符に統一される。</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"拡大表示：XML フォーマッターが 1 行に圧縮された catalog データを複数行に展開し、XML 宣言を補って 2 スペースずつインデントした結果\"><img src=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" alt=\"XML フォーマッターが 1 行に圧縮された catalog データを複数行に展開し、XML 宣言を補って 2 スペースずつインデントした結果\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>整形後の XML 宣言はルート要素のタグと同じ 1 行目にあり、子要素は 2 スペースずつ階層ごとにインデントされる。 画像をクリックすると原寸で表示される。</figcaption></figure>\n<p>整形は繰り返し実行できるが、「バイト単位で同じ」になるには前提がある。入力に実体参照と文字参照が含まれず、属性値に XML 解析で正規化される空白文字がない場合に限り、1 回目の出力をもう一度整形にかけると、2 回目の出力は 1 回目と同じになる。属性値に <code>&amp;#10;</code> を書いたサンプルでは、1 回目の出力に文字どおりの改行が含まれ、2 回目の解析でそれが空白に正規化されて出力が変わる。<code>&amp;amp;</code> を含む入力では、1 回目の出力に裸の <code>&amp;</code> が現れ、2 回目の解析はそのまま失敗する。要素名は変更せず、属性値は DOM の値のまま保持する。解析時の空白の正規化と実体参照のデコードによって、文字どおりの書き方は変わる。テキストは前後の空白を削るだけで、その他の変更は宣言・空白・属性の引用符にとどまる。次節で述べるとおり、要素でもテキストでもないノードはまるごと飛ばされる。</p>\n\n<h2>CDATA・コメント・処理命令はどこへ消えるのか</h2>\n<p>整形も圧縮も、扱うのは要素ノードとテキストノードだけである。CDATA は DOM では独立したノード種別で、どちらの関数にもその分岐がないため、中身ごと飛ばされる。<code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;</code> を整形すると 2 行だけが残る。1 行目は宣言と <code>&lt;a&gt;</code>、2 行目は <code>&lt;/a&gt;</code> で、文字数は 46 文字になる。圧縮すると <code>&lt;a&gt;&lt;/a&gt;</code> の 7 文字になり、x&lt;y&gt; はまったく現れない。</p>\n<pre><code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n&lt;/a&gt;</code></pre>\n<p>コメントと処理命令も出力されない。<code>&lt;a&gt;&lt;!-- note --&gt;&lt;b&gt;1&lt;/b&gt;&lt;/a&gt;</code> を整形すると <code>&lt;b&gt;</code> のサブツリーだけが残る。ルート要素の前に置いた <code>&lt;?xml-stylesheet ...?&gt;</code> も出力には現れない。このツールは XMLSerializer のようなシリアライザを使わず、ノード種別ごとに文字列を手で組み立てる。そのため、飛ばされたノードが別の形で残ることはない。</p>\n<p>混合内容はブロック状のレイアウトに変わる。<code>&lt;p&gt;a&lt;b&gt;c&lt;/b&gt;d&lt;/p&gt;</code> は、p、テキスト a、子要素 b、テキスト d がそれぞれ 1 行を占める形で出力され、a と b、b と d の間にあったインラインの関係は失われる。この出力をテキストとして読み直すと、a・b・d の間に改行とインデントの空白が増える。インラインの空白に依存する XHTML の段落や DocBook の段落は、この方法で処理すべきではない。</p>\n\n<h2>実体参照のデコード：出力が妥当な XML でなくなることがある</h2>\n<p>DOMParser は解析の時点で実体参照を文字に置き換える。<code>&amp;amp; &amp;lt; &amp;gt;</code> は <code>&amp; &lt; &gt;</code> に、<code>&amp;#65;&amp;#x42;</code> は AB になる。整形はその文字をそのまま出力に組み込むだけで、エスケープも再エンコードもしない。そのため <code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;</code> の出力には裸の <code>&amp;</code> と <code>&lt;</code> が現れる。この出力をもう一度 DOMParser に渡すと parsererror になる：error on line 2 at column 4: Unexpected token inside entity。</p>\n<pre><code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n  &amp; &lt; &gt;\n&lt;/a&gt;</code></pre>\n<p>属性値も同じ経路を通る。<code>&lt;a b=\"&amp;amp;\"/&gt;</code> を圧縮すると <code>&lt;a b=\"&amp;\"&gt;&lt;/a&gt;</code> になり、文字数は 13 文字になる。これを再解析しても同じエラーになる。エスケープが不要な文字（英数字など）に対応する文字参照は影響を受けない。<code>&amp;#65;&amp;#x42;</code> は AB と出力される。<code>&amp;#38;</code> や <code>&amp;#60;</code> のような数値文字参照は、そのまま裸の <code>&amp;</code> と <code>&lt;</code> に解ける。属性値の中の <code>&amp;#34;</code> は二重引用符に解けた時点で属性値を途中で打ち切ってしまうため、出力が不正になることもある。<code>&amp;#10;</code> のような空白文字への文字参照は文字どおりの改行になり、1 行化と繰り返し処理の結果に影響する。日本語と内部の空白はそのまま残る。問題はデコードそのものではなく、デコードしたあとに再エスケープしない点にある。手で組み立てた文字列は、シリアライザのように文字データ中の <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code> を実体参照へ戻したりはしない。</p>\n<p>したがって、整形の出力をそのまま妥当な XML として保存し直すべきではない。実体参照のデコード後に裸の <code>&amp;</code> や <code>&lt;</code> を含む出力は、見た目は行が変わっただけでも、実際には解析できない。ツールも出力が妥当かどうかは検査せず、入力の解析に成功すれば「整形が完了しました」と表示する。</p>\n\n<h2>圧縮：1 行化、宣言の削除、空要素の書き換え</h2>\n<p>圧縮の道筋はもっと単純である。documentElement から再帰し、要素は <code>&lt;tag attrs&gt;</code> として出力し、テキストは trim してから連結し、最後に join して 1 行にする（テキスト自体に改行が含まれていれば、その改行は出力に残る）。XML 宣言は出力せず、タグ間の空白はすべて消える。複数行のサンプルは 29 文字の <code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code> になり、空要素 <code>&lt;a/&gt;</code> は <code>&lt;a&gt;&lt;/a&gt;</code> と書かれ、文字数は 7 文字になる。</p>\n<pre><code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code></pre>\n<p>圧縮でも CDATA・コメント・処理命令は失われ、テキストは前後を trim するだけで内部の空白は残る。<code>&lt;a&gt;  x  &lt;b&gt;  y  &lt;/b&gt;  z  &lt;/a&gt;</code> は <code>&lt;a&gt;x&lt;b&gt;y&lt;/b&gt;z&lt;/a&gt;</code> になり、文字数は 17 文字である。要素間の空白が削除され、x・y・z がタグに直接くっつく。属性の順序と値は保たれ、実体参照をデコードした裸の文字もそのまま残る。</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"拡大表示：コメントと CDATA を含む XML を圧縮して 1 行にまとめた結果。コメントと CDATA 内のテキストは出力に現れない\"><img src=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" alt=\"コメントと CDATA を含む XML を圧縮して 1 行にまとめた結果。コメントと CDATA 内のテキストは出力に現れない\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>圧縮するとタグ間の空白が消えて結果は 1 行だけになる。入力に XML 宣言があっても、宣言は出力に現れない。 画像をクリックすると原寸で表示される。</figcaption></figure>\n<p>圧縮は同じ入力に対して繰り返し実行しても、結果は通常変わらない。ただしここにも前提がある。入力に実体参照と文字参照が含まれず、属性値に正規化される空白文字がなく、しかも 1 回目の出力が引き続き解析できる場合に限り、2 回目の圧縮は 1 回目と同じになる。テキストノード自体が改行を含む場合、その改行は出力に残るため、結果は厳密には 1 行にならない。圧縮の出力に裸の <code>&amp;</code> や <code>&lt;</code> が現れることもある（たとえば <code>&amp;amp;</code> を圧縮すると <code>&amp;</code> になる）。そうした出力をもう一度圧縮すると解析に失敗し、前回の出力が残る。整形と同様、できるのは構造を短くすることだけで、出力が妥当な XML であることや意味が変わらないことは保証しない。</p>\n\n<h2>検証ボタンと名前空間</h2>\n<p>検証ボタンは解析を 1 回行うだけである。妥当ならステータスバーは「XML は有効です」になり、妥当でなければ「XML が無効です：」に parsererror のテキストを続け、最大 100 文字までを表示する。空白しか入力がないときは「XML を入力してください」になる。空入力を弾くのは検証ボタンだけで、整形と圧縮は空白入力を解析失敗として扱う。ステータスバーは同じく「XML が無効です：」で始まり、直前の出力は消されない。検証そのものは出力欄に書き込まず、ステータスバーだけを更新する。</p>\n<p>ツールは名前空間を特別に扱わないが、文字列としての情報は保たれる。接頭辞付きの <code>&lt;ns:Envelope xmlns:ns=\"urn:example\"&gt;</code> は、出力時も tagName が <code>ns:Envelope</code> のままで、<code>xmlns:ns</code> は普通の属性としてそのまま書き出される。既定の名前空間 <code>&lt;a xmlns=\"urn:x\"&gt;</code> では子要素に接頭辞が付かず、整形後も <code>&lt;b&gt;</code> のままである。ツールは名前空間の束縛を計算し直さず、tagName と attributes をそのまま連結するだけである。</p>\n\n<h2>境界と制限</h2>\n<p>まずボタンが約束する範囲を明確にしておく。整形は宣言を置き換えて固定し、空白と属性の引用符を組み直し、圧縮は構造を縮める。どちらも CDATA・コメント・処理命令を残さず、テキストを再エスケープせず、出力が妥当かどうかも検査しない。ステータスバーの「整形が完了しました」「圧縮が完了しました」は解析と連結が終わったことだけを示すもので、文書の意味が保たれたことまでは示さない。</p>\n<p>設定できない点も覚えておきたい。インデントは 2 スペース固定、宣言は UTF-8 固定、要素間に空行を残すオプションはなく、属性の引用符は二重引用符に統一される。CDATA やコメントを残すかどうかを選ぶスイッチもページにはない。混合内容、CDATA に入ったスクリプト、空白に依存する古い文書は、そのまま一度通して保存し直すのには向かない。</p>\n<ul>\n<li>CDATA・コメント・処理命令を残さず、これらのノードを飛ばしても警告は出ない。</li>\n<li>テキストを再エスケープしないため、裸の &amp; や &lt; を含む出力は妥当な XML でないことがある。</li>\n<li>インデント幅、宣言の内容、要素間の空行を設定する項目はない。</li>\n<li>出力が妥当かどうかを検査せず、整形の前後で意味が一致するかも比較しない。</li>\n</ul>\n<p>ローカル処理とリクエストの境界も確認しておく。今回の実行中、ページが発したリクエストは合計 12 件で、すべて同一オリジンの静的リソースだった。外部へのリクエストは 0 件、POST リクエストも 0 件である。入力はテキストエリアにしか存在せず、再読み込みやページを閉じたあとは残らない。コピーボタンは出力欄を読むだけで、追加のリクエストは発生しない。</p>\n<p>2 つのボタンを並べて見ると、違いは次の数点に集約される。</p>\n<table>\n<thead><tr><th>項目</th><th>整形</th><th>圧縮</th></tr></thead>\n<tbody>\n<tr><td>XML 宣言</td><td>UTF-8 に固定し、入力の宣言を置き換える</td><td>出力しない</td></tr>\n<tr><td>インデントと改行</td><td>2 スペースで、ルート要素は宣言と同じ行、その下は階層ごとに 1 行</td><td>タグ間の空白を削除し、通常は 1 行</td></tr>\n<tr><td>空要素</td><td>自己終了形 <code>&lt;a/&gt;</code> で出力</td><td><code>&lt;a&gt;&lt;/a&gt;</code> に展開</td></tr>\n<tr><td>テキスト</td><td>前後を trim し、単独の行に</td><td>前後を trim し、タグに密着</td></tr>\n<tr><td>CDATA・コメント・処理命令</td><td>出力しない</td><td>出力しない</td></tr>\n<tr><td>実体参照</td><td>デコードしてそのまま出力</td><td>デコードしてそのまま出力</td></tr>\n<tr><td>属性</td><td>順序と値を保ち、二重引用符</td><td>順序と値を保ち、二重引用符</td></tr>\n<tr><td>末尾の改行</td><td>なし</td><td>なし</td></tr>\n</tbody>\n</table>\n<p>目的が整形ではなく構造の変換なら、サイト内の <a href=\"/ja/tools/dev/json-xml-yaml/\">JSON/XML/YAML 変換</a> が扱うのはフィールドの対応付けと型の欠落であり、本記事の空白の組み直しとは別物である。HTML の断片を整えるなら <a href=\"/ja/tools/dev/html-formatter/\">HTML フォーマッター</a> を使えるが、どこまでエラーを許すかの規則は XML パーサーと異なる。同じ入力を 2 つのツールに通した結果を等価とみなしてはいけない。</p>\n<p>使うかどうかは後続の工程で決まる。読むだけ、diff を取るだけなら整形で足りる。厳密な XML パーサー、XSLT、SOAP サービスに渡すなら、出力に裸の <code>&amp;</code> と <code>&lt;</code> がないことを先に確かめ、必要なら元の入力に戻るか、エスケープを行うシリアライザに切り替える。文書が CDATA・コメント・混合内容に依存しているなら、この 2 つのボタンを使わないのが最も安全である。ツールページにも、これらの挙動を止めるオプションはない。</p>",
+  "faqs": [
+    {
+      "q": "整形すると CDATA とコメントが消えるのはなぜか？",
+      "a": "整形の pretty() は要素ノードとテキストノードだけを出力し、CDATA・コメント・処理命令に出会うとそのまま return する。そのためノードごと内容が消える。圧縮の walk() も要素とテキストノードしか扱わないので結果は同じである。これらを残したい場合にこの 2 つのボタンは使えない。残すかどうかを切り替えるオプションはページにない。"
+    },
+    {
+      "q": "出力の XML 宣言とルート要素が同じ行に並ぶのはなぜか？",
+      "a": "format() はまず固定の宣言を lines 配列に入れ、そのあと documentElement に対して深さ 0 から pretty() を呼ぶ。pretty() はルート要素のタグを追加するときに先頭の改行を補わないため、最後に join(\"\") で 2 つがそのまま連結され、1 行目が宣言とルート要素のタグになる。インデントはルート要素より下の階層にだけ働き、この配置を変えるスイッチはページにない。"
+    },
+    {
+      "q": "名前空間付きの XML は整形後もそのまま使えるか？",
+      "a": "接頭辞と xmlns 宣言は文字列として保たれる。ns:Envelope は ns:Envelope のままで、xmlns:ns は普通の属性として書き出され、既定の名前空間の子要素には接頭辞が付かない。ツールは名前空間の束縛を計算し直さないが、検証ボタンが行う 1 回の解析は名前空間を考慮している。束縛されていない接頭辞は parsererror になり、たとえば <ns:a>1</ns:a> では Element ns:a prefix is unbound と表示される。ただし出力やスキーマ、業務上の制約は検査しない。入力が CDATA・コメント・実体参照に依存しているなら、本文で述べた制限に照らして出力を確認する必要がある。"
+    },
+    {
+      "q": "検証で「XML は有効です」と出ればそのまま使えるのか？",
+      "a": "いいえ。検証は DOMParser を 1 回呼び、parsererror があるかどうかだけを見る。整形や圧縮の出力は検査せず、スキーマや業務上の制約も検査しない。エスケープされた実体参照を含む文書は解析自体は通っても、整形の出力には裸の & が現れるため、出力をもう一度解析して確かめる必要がある。入力に束縛されていない接頭辞があれば検証はエラーを返すが、出力が引き続き整形式かどうかまでは検証しない。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "XML introduction",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/XML/XML_introduction"
+    },
+    {
+      "title": "DOMParser: parseFromString() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "Extensible Markup Language (XML) 1.0 (Fifth Edition)",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "Namespaces in XML 1.0 (Third Edition)",
+      "url": "https://www.w3.org/TR/xml-names/"
+    },
+    {
+      "title": "DOM Parsing and Serialization",
+      "url": "https://www.w3.org/TR/DOM-Parsing/"
+    },
+    {
+      "title": "XMLSerializer",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "xml-formatter",
+      "lang": "ja",
+      "translatedFrom": "1a09cfe5d08b4da512f3f8b28248f14fa75867ccf03bc2e20165f544ecc0ba12",
+      "translatedAt": "2026-11-09T10:38:23.022Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.9
+    }
+  },
+  "image": "/article-images/2026-11/xml-formatter-format-sample.jpg",
+  "focus": "XML フォーマッターは UTF-8 の宣言と 2 スペースのインデントを固定で出力し、要素とテキストノードだけを残すため、CDATA・コメント・処理命令は捨てられる。実体参照はデコードしたまま組み込まれ、裸の & や < を含む出力は妥当な XML でなくなることがある。圧縮は宣言を落とし、すべての空要素を開始タグと終了タグに展開して 1 行にまとめる。検証は入力が解析できるかだけを判定し、出力も名前空間の束縛も確認しない。"
+}

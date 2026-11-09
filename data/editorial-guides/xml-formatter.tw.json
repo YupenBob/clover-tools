@@ -1,0 +1,67 @@
+{
+  "slug": "xml-formatter",
+  "title": "XML 格式化工具：CDATA、命名空間與實體",
+  "description": "站內 XML 格式化工具會重排縮進，並把聲明固定為 UTF-8；但它只保留元素與文本節點，CDATA、注釋與處理指令會消失，實體解碼後還可能輸出非法 XML。本文按本次實測說明格式化、壓縮與校驗的邊界。",
+  "category": "开发实用",
+  "toolSlug": "xml-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 7,
+  "content": "<p>站內的 <a href=\"/zh-hant/tools/dev/xml-formatter/\">XML 格式化工具</a> 把一份 XML 重新縮進，壓縮按鈕把結構壓成緊湊形式，校驗按鈕只回答能否解析。三個按鈕都先用 DOMParser 解析，再各自處理；本文按本次運行的全部用例，說明格式化、壓縮與校驗各自改動了什麼，以及 CDATA、命名空間與實體為什麼容易在這裏出問題。</p>\n\n<h2>格式化：固定聲明與兩空格縮進</h2>\n<p>格式化成功後，輸出的第一行固定是 <code>&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;</code>，後面緊貼根元素的開標簽，兩者之間沒有換行。輸入自帶的聲明會被替換：把帶 <code>encoding=\"GBK\"</code> 與 <code>standalone=\"yes\"</code> 的文檔交進去，輸出只剩 UTF-8 聲明，GBK 與 standalone 都不再出現。輸出經 trim，末尾沒有換行；狀態欄顯示「格式化完成」，統計顯示「71 字符」，與輸出字符串的長度一致。</p>\n<p>縮進固定為兩個空格：四層嵌套的樣例輸出 9 行，最深一層的文本前面有 8 個空格。只含文本子節點、且 trim 後非空的元素，會把文本單獨放一行並再縮進一級；<code>&lt;a&gt;  x  &lt;/a&gt;</code> 變成三行，x 兩側的空格消失，內部空格與中文保留。空元素寫成 <code>&lt;a/&gt;</code>，屬性順序不變，單引號統一改成雙引號。</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：XML 格式化工具把一行壓縮的 catalog 數據展開成多行，補上 XML 聲明並按兩空格逐層縮進\"><img src=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" alt=\"XML 格式化工具把一行壓縮的 catalog 數據展開成多行，補上 XML 聲明並按兩空格逐層縮進\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>格式化後的 XML 聲明與根標簽同處第一行，子元素按兩空格逐層縮進。 點擊圖片可查看原圖。</figcaption></figure>\n<p>格式化可以重複跑，但「逐字節相同」有前提：輸入不含實體與字符引用、屬性值裏沒有被 XML 解析歸一化的空白字符時，對第一次輸出再點一次，第二次輸出與第一次相同。屬性值裏寫了 <code>&amp;#10;</code> 的樣例，第一次輸出含字面換行，第二次解析把它歸一化成空格，輸出隨之變化；含 <code>&amp;amp;</code> 的輸入第一次輸出裏出現裸 <code>&amp;</code>，第二次解析直接失敗。它不修改元素名，屬性值按 DOM 值保留——解析階段的空白歸一化與實體解碼會改變字面寫法；文本只裁掉首尾空白，其餘改動是聲明、空白與屬性引號；下一節那些不是元素也不是文本的節點會被整段跳過。</p>\n\n<h2>CDATA、注釋和處理指令去了哪裏</h2>\n<p>格式化與壓縮都只處理元素節點和文本節點。CDATA 在 DOM 裏是獨立的節點類型，兩個函數都沒有為它寫分支，於是整段內容被跳過：<code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;</code> 格式化後只剩兩行：首行是聲明與 <code>&lt;a&gt;</code>，第二行是 <code>&lt;/a&gt;</code>，統計 46 字符；壓縮後是 <code>&lt;a&gt;&lt;/a&gt;</code>，統計 7 字符，x&lt;y&gt; 完全不出現。</p>\n<pre><code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n&lt;/a&gt;</code></pre>\n<p>注釋和處理指令同樣不輸出。<code>&lt;a&gt;&lt;!-- note --&gt;&lt;b&gt;1&lt;/b&gt;&lt;/a&gt;</code> 格式化後只剩 <code>&lt;b&gt;</code> 子樹；放在根元素前的 <code>&lt;?xml-stylesheet ...?&gt;</code> 也不會出現在輸出裏。工具沒有使用 XMLSerializer 一類的序列化器，而是按節點類型手工拼接字符串，所以被跳過的節點不會以任何形式保留下來。</p>\n<p>混合內容會被改成塊狀布局：<code>&lt;p&gt;a&lt;b&gt;c&lt;/b&gt;d&lt;/p&gt;</code> 輸出為 p、文本 a、子元素 b、文本 d 各佔一行，a 與 b、b 與 d 原有的行內關係不再存在。把這份輸出再當作文本讀取時，a、b、d 之間會多出換行與縮進空白；依賴行內空白的 XHTML 段落或 DocBook 段落不適合這樣處理。</p>\n\n<h2>實體解碼：輸出可能不再是合法 XML</h2>\n<p>DOMParser 在解析階段就把實體引用換成字符：<code>&amp;amp; &amp;lt; &amp;gt;</code> 變成 <code>&amp; &lt; &gt;</code>，<code>&amp;#65;&amp;#x42;</code> 變成 AB。格式化隨後把這些字符原樣拼進輸出，既不加轉義也不重新編碼，於是 <code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;</code> 的輸出裏出現裸 <code>&amp;</code> 與 <code>&lt;</code>。把這份輸出再交給 DOMParser，得到 parsererror：error on line 2 at column 4: Unexpected token inside entity。</p>\n<pre><code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n  &amp; &lt; &gt;\n&lt;/a&gt;</code></pre>\n<p>屬性值走同一條路徑。壓縮 <code>&lt;a b=\"&amp;amp;\"/&gt;</code> 得到 <code>&lt;a b=\"&amp;\"&gt;&lt;/a&gt;</code>，統計 13 字符；再解析同樣報錯。字母、數字等無需轉義的字符實體不受影響：<code>&amp;#65;&amp;#x42;</code> 輸出 AB；<code>&amp;#38;</code>、<code>&amp;#60;</code> 這類數字實體照樣解出裸 <code>&amp;</code> 與 <code>&lt;</code>，屬性值裏的 <code>&amp;#34;</code> 解出雙引號後會把屬性值提前截斷，輸出同樣可能非法；<code>&amp;#10;</code> 這類空白字符引用會變成字面換行，影響單行與重複處理的結果，中文與內部空格原樣保留。問題不在解碼，而在解碼之後沒有再轉義——手工拼接字符串不會像序列化器那樣，把字符數據裏的 <code>&amp;</code>、<code>&lt;</code>、<code>&gt;</code> 換回實體引用。</p>\n<p>因此不要把格式化輸出直接當合法 XML 回存。實體解碼後帶裸 <code>&amp;</code> 或 <code>&lt;</code> 的輸出，看起來只是換了行，實際已經不可解析；工具也不檢查輸出是否仍合法，只要輸入解析成功就顯示「格式化完成」。</p>\n\n<h2>壓縮：單行、去聲明、空元素改寫</h2>\n<p>壓縮的走法更直接：從 documentElement 開始遞歸，元素輸出 <code>&lt;tag attrs&gt;</code>，文本 trim 後拼接，最後 join 成一行（文本內部自帶換行時，換行會留在輸出裏）。它不輸出 XML 聲明，標簽之間的空白全部消失，多行樣例變成 29 字符的 <code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code>；空元素 <code>&lt;a/&gt;</code> 被寫成 <code>&lt;a&gt;&lt;/a&gt;</code>，統計 7 字符。</p>\n<pre><code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code></pre>\n<p>壓縮同樣丟 CDATA、注釋與處理指令，文本只做首尾 trim，內部空格保留。<code>&lt;a&gt;  x  &lt;b&gt;  y  &lt;/b&gt;  z  &lt;/a&gt;</code> 壓縮成 <code>&lt;a&gt;x&lt;b&gt;y&lt;/b&gt;z&lt;/a&gt;</code>，統計 17 字符——元素之間的空白被刪除，x、y、z 直接貼著標簽。屬性順序與值保留，實體解碼後的裸字符也保留。</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：XML 壓縮工具把帶注釋與 CDATA 的 XML 壓成一行，注釋和 CDATA 裏的文本沒有出現在輸出中\"><img src=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" alt=\"XML 壓縮工具把帶注釋與 CDATA 的 XML 壓成一行，注釋和 CDATA 裏的文本沒有出現在輸出中\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>壓縮後標簽間空白消失、結果只剩一行；若輸入帶 XML 聲明，聲明不會出現在輸出裏。 點擊圖片可查看原圖。</figcaption></figure>\n<p>壓縮對同一輸入重複執行結果通常不變，但同樣有前提：輸入不含實體與字符引用、屬性值沒有會被歸一化的空白字符，且第一次輸出仍可解析時，第二次壓縮才與第一次相同；文本節點內部自帶換行時，換行會留在輸出裏，結果不是嚴格單行；壓縮輸出裏也可能出現裸 <code>&amp;</code> 或 <code>&lt;</code>（例如壓縮 <code>&amp;amp;</code> 得到 <code>&amp;</code>），這類輸出再壓縮會解析失敗並保留上一次輸出。和格式化一樣，它只適合把結構壓短，不保證輸出仍是合法 XML，也不保證語義不變。</p>\n\n<h2>校驗按鈕與命名空間</h2>\n<p>校驗按鈕只做一次解析：合法時狀態欄是「XML 合法」；非法時是「XML 不合法：」加上 parsererror 文本，最多取前 100 個字符；輸入只有空白時是「請輸入 XML」。只有校驗按鈕會攔空輸入，格式化與壓縮把空白輸入當解析失敗，狀態欄同樣以「XML 不合法：」開頭，並且不清空上一次的輸出。校驗本身不寫入輸出框，只更新狀態欄。</p>\n<p>工具不專門處理命名空間，但字符串層面的信息被保留。帶前綴的 <code>&lt;ns:Envelope xmlns:ns=\"urn:example\"&gt;</code> 輸出時 tagName 仍是 <code>ns:Envelope</code>，<code>xmlns:ns</code> 作為普通屬性原樣寫出；默認命名空間 <code>&lt;a xmlns=\"urn:x\"&gt;</code> 的子元素不帶前綴，格式化後仍是 <code>&lt;b&gt;</code>。工具不重新計算命名空間綁定，只按 tagName 與 attributes 拼接。</p>\n\n<h2>邊界與限制</h2>\n<p>先明確按鈕的承諾。格式化替換並固定聲明，重排空白與屬性引號，壓縮做結構壓縮；兩者都不保留 CDATA、注釋、處理指令，都不對文本重新轉義，也都不檢查輸出是否合法。狀態欄的「格式化完成」「壓縮完成」只說明解析與拼接走完，不代表文檔語義沒變。</p>\n<p>不可配置的地方也值得記住：縮進固定兩格，聲明固定 UTF-8，元素之間沒有保留空行的選項，屬性引號統一為雙引號；頁面沒有讓用戶選擇是否保留 CDATA 或注釋的開關。混合內容、CDATA 裏的腳本、依賴空白的老文檔，都不適合直接過一遍就回存。</p>\n<ul>\n<li>不保留 CDATA、注釋與處理指令，跳過這些節點時不會給出提示；</li>\n<li>不對文本重新轉義，含裸 &amp; 或 &lt; 的輸出可能不是合法 XML；</li>\n<li>不提供縮進寬度、聲明內容或元素間空行的配置項；</li>\n<li>不檢查輸出是否合法，也不比較格式化前後的語義是否一致。</li>\n</ul>\n<p>本地處理與請求邊界：本次運行期間頁面共發出 12 個請求，全部是同源靜態資源，站外請求 0 個，POST 請求 0 個；輸入只存在於文本框，刷新或關閉頁面後不會保留。複製按鈕只讀取輸出框，不發起額外請求。</p>\n<p>把兩個按鈕並排看，差異集中在下面幾項：</p>\n<table>\n<thead><tr><th>項目</th><th>格式化</th><th>壓縮</th></tr></thead>\n<tbody>\n<tr><td>XML 聲明</td><td>固定為 UTF-8，替換輸入聲明</td><td>不輸出</td></tr>\n<tr><td>縮進與換行</td><td>兩空格，根元素與聲明同行、其下每層一行</td><td>刪去標簽間空白，通常單行</td></tr>\n<tr><td>空元素</td><td>輸出自閉合 <code>&lt;a/&gt;</code></td><td>展開為 <code>&lt;a&gt;&lt;/a&gt;</code></td></tr>\n<tr><td>文本</td><td>首尾 trim，單獨一行</td><td>首尾 trim，緊貼標簽</td></tr>\n<tr><td>CDATA、注釋、處理指令</td><td>不輸出</td><td>不輸出</td></tr>\n<tr><td>實體</td><td>解碼後原樣輸出</td><td>解碼後原樣輸出</td></tr>\n<tr><td>屬性</td><td>順序與值保留，雙引號</td><td>順序與值保留，雙引號</td></tr>\n<tr><td>末尾換行</td><td>無</td><td>無</td></tr>\n</tbody>\n</table>\n<p>如果目的是轉換結構而不是排版，站內的 <a href=\"/zh-hant/tools/dev/json-xml-yaml/\">JSON/XML/YAML 互轉</a> 處理的是字段映射與類型丟失，和本文的空白重排不是一回事；整理 HTML 片段可以用 <a href=\"/zh-hant/tools/dev/html-formatter/\">HTML 格式化工具</a>，但它的容錯規則與 XML 解析器不同，不要把同一份輸入在兩個工具裏的結果當成等價。</p>\n<p>用不用取決於後續步驟：只是閱讀、對比 diff，可以用格式化；要交給嚴格 XML 解析器、XSLT 或 SOAP 服務，先確認輸出裏沒有裸 <code>&amp;</code> 與 <code>&lt;</code>，必要時回到原始輸入，或改用會轉義的序列化器。若文檔依賴 CDATA、注釋或混合內容，最穩妥的做法是不用這兩個按鈕處理，工具頁也不提供關閉這些行為的選項。</p>",
+  "faqs": [
+    {
+      "q": "為什麼格式化後 CDATA 和注釋都不見了？",
+      "a": "格式化的 pretty() 只對元素節點和文本節點輸出，遇到 CDATA、注釋、處理指令會直接返回，所以這些節點連同內容一起消失。壓縮的 walk() 同樣只處理元素與文本節點，結果一樣。需要保留這些內容時不要用這兩個按鈕，頁面沒有保留或關閉的選項。"
+    },
+    {
+      "q": "為什麼輸出的 XML 聲明和根標簽擠在同一行？",
+      "a": "format() 先把固定聲明放進 lines 數組，再對 documentElement 從深度 0 調用 pretty()；pretty() 追加根標簽時不會補前導換行，最後 join(\"\") 把兩項直接拼在一起，所以第一行是聲明加根標簽。縮進只作用於根元素以下的層級，頁面沒有調整這項排版的開關。"
+    },
+    {
+      "q": "帶命名空間的 XML 格式化後還能用嗎？",
+      "a": "前綴和 xmlns 聲明會按字符串保留：ns:Envelope 仍是 ns:Envelope，xmlns:ns 作為普通屬性寫出，默認命名空間的子元素仍不帶前綴。工具不重新計算命名空間綁定，但校驗按鈕的那一次解析是命名空間感知的：未綁定前綴會報 parsererror（如 <ns:a>1</ns:a> 提示 Element ns:a prefix is unbound）；它不檢查輸出、schema 或業務約束。如果輸入依賴 CDATA、注釋或實體，仍要按正文的限制檢查輸出。"
+    },
+    {
+      "q": "校驗顯示 XML 合法就說明能直接使用嗎？",
+      "a": "不能。校驗只調用一次 DOMParser，判斷有沒有 parsererror；它不檢查格式化或壓縮後的輸出，也不檢查 schema 或業務約束。帶轉義實體的文檔解析可能合法，但格式化輸出會出現裸 &，需要把輸出再解析一次才能確認；輸入裏有未綁定前綴時校驗會報錯，但它不會驗證輸出是否仍良構。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "XML introduction",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/XML/XML_introduction"
+    },
+    {
+      "title": "DOMParser: parseFromString() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "Extensible Markup Language (XML) 1.0 (Fifth Edition)",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "Namespaces in XML 1.0 (Third Edition)",
+      "url": "https://www.w3.org/TR/xml-names/"
+    },
+    {
+      "title": "DOM Parsing and Serialization",
+      "url": "https://www.w3.org/TR/DOM-Parsing/"
+    },
+    {
+      "title": "XMLSerializer",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "xml-formatter",
+      "lang": "tw",
+      "translatedFrom": "1a09cfe5d08b4da512f3f8b28248f14fa75867ccf03bc2e20165f544ecc0ba12",
+      "translatedAt": "2026-11-09T10:37:20.552Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.98
+    }
+  },
+  "image": "/article-images/2026-11/xml-formatter-format-sample.jpg",
+  "focus": "XML 格式化工具固定輸出 UTF-8 聲明與兩空格縮進，只保留元素和文本節點，CDATA、注釋與處理指令會被丟棄；實體解碼後原樣拼回，含裸 & 或 < 的輸出可能不再是合法 XML；壓縮去掉聲明、把所有空元素展開成開閉標簽並壓成一行；校驗只判斷輸入能否解析，不檢查輸出，也不驗證命名空間綁定是否仍然成立。"
+}

@@ -1,0 +1,67 @@
+{
+  "slug": "xml-formatter",
+  "title": "XML 포맷터: CDATA, 네임스페이스와 엔티티",
+  "description": "사이트 내 XML 포맷터는 들여쓰기를 다시 맞추고 선언을 UTF-8로 고정하지만, 요소와 텍스트 노드만 남겨 CDATA, 주석, 처리 명령이 사라지고 엔티티를 디코딩한 출력이 유효하지 않은 XML이 될 수 있습니다. 이 글은 이번 실측을 바탕으로 포맷, 압축, 검증의 경계를 설명합니다.",
+  "category": "开发实用",
+  "toolSlug": "xml-formatter",
+  "published": "2026-11-09",
+  "updated": "2026-11-09",
+  "readingMinutes": 7,
+  "content": "<p>사이트 내 <a href=\"/ko/tools/dev/xml-formatter/\">XML 포맷터</a>는 XML을 다시 들여쓰고, 압축 버튼은 구조를 간결한 형태로 압축하며, 검증은 파싱 가능 여부만 답합니다. 세 버튼 모두 DOMParser로 먼저 파싱한 뒤 각자 처리합니다. 이 글은 이번 실행의 모든 사례를 바탕으로 포맷, 압축, 검증이 무엇을 바꾸는지와 CDATA, 네임스페이스, 엔티티가 왜 문제가 되기 쉬운지 설명합니다.</p>\n<h2>포맷: 고정 선언과 두 칸 들여쓰기</h2>\n<p>포맷이 성공하면 첫 줄은 항상 <code>&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;</code> 뒤에 루트 여는 태그가 바로 붙고 둘 사이에 줄바꿈이 없습니다. 입력 선언은 교체됩니다. <code>encoding=\"GBK\"</code>과 <code>standalone=\"yes\"</code>는 출력에서 사라지고 UTF-8 선언만 남습니다. 출력은 trim을 거쳐 끝에 줄바꿈이 없고, 상태 표시줄의 “포맷 완료”와 통계의 “71자”는 출력 문자열 길이와 일치합니다.</p>\n<p>들여쓰기는 두 칸 고정입니다. 네 단계 중첩 예시는 9줄로 출력되고 가장 깊은 텍스트 앞에는 공백 8개가 붙습니다. 텍스트 자식만 있고 trim 후 비어 있지 않은 요소는 텍스트를 별도 줄에 두고 한 단계 더 들여씁니다. <code>&lt;a&gt;  x  &lt;/a&gt;</code>는 세 줄이 되고 x 양쪽 공백은 사라지지만 내부 공백과 중국어는 남습니다. 빈 요소는 <code>&lt;a/&gt;</code>로 쓰이고 속성 순서는 유지되며 작은따옴표는 큰따옴표로 바뀝니다.</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"큰 이미지 보기: XML 포맷터의 포맷 결과\"><img src=\"/article-images/2026-11/xml-formatter-format-sample.jpg\" alt=\"XML 포맷터의 포맷 결과 예시\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>선언과 루트 태그가 첫 줄에 붙고 하위 요소는 두 칸씩 들여쓰입니다. 이미지를 클릭하면 원본을 볼 수 있습니다.</figcaption></figure>\n<p>포맷은 반복 실행할 수 있지만 “바이트 단위로 같다”에는 전제가 있습니다. 입력에 엔티티와 문자 참조가 없고 속성 값에 XML 파싱이 정규화하는 공백 문자가 없을 때만 첫 출력을 다시 포맷한 결과가 첫 번째와 같습니다. 속성 값에 <code>&amp;#10;</code>을 쓴 예시는 첫 출력에 리터럴 줄바꿈이 들어가고, 두 번째 파싱이 이를 공백으로 정규화해 출력이 달라집니다. <code>&amp;amp;</code>가 든 입력은 첫 출력에 이스케이프되지 않은 <code>&amp;</code>가 나타나고 두 번째 파싱은 바로 실패합니다. 요소 이름은 바꾸지 않고 속성 값은 DOM 값대로 유지합니다. 파싱 단계의 공백 정규화와 엔티티 디코딩이 표기 자체를 바꾸기 때문입니다. 텍스트는 앞뒤 공백만 잘라내고, 나머지 변경은 선언, 공백, 속성 인용부호입니다. 다음 절에서 다루는, 요소도 텍스트도 아닌 노드는 통째로 건너뜁니다.</p>\n<h2>CDATA, 주석, 처리 명령은 어디로 가는가</h2>\n<p>포맷과 압축은 요소 노드와 텍스트 노드만 처리합니다. CDATA는 DOM에서 별도 노드 타입이지만 두 함수 모두 분기가 없어 내용 전체가 건너뛰어집니다. <code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;</code>는 포맷 후 두 줄만 남습니다. 첫 줄은 선언과 <code>&lt;a&gt;</code>, 둘째 줄은 <code>&lt;/a&gt;</code>이고 46자입니다. 압축 후에는 <code>&lt;a&gt;&lt;/a&gt;</code> 7자가 되며 x&lt;y&gt;는 나타나지 않습니다.</p>\n<pre><code>&lt;a&gt;&lt;![CDATA[x&lt;y&gt;]]&gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n&lt;/a&gt;</code></pre>\n<p>주석과 처리 명령도 출력되지 않습니다. <code>&lt;a&gt;&lt;!-- note --&gt;&lt;b&gt;1&lt;/b&gt;&lt;/a&gt;</code>는 포맷 후 <code>&lt;b&gt;</code> 하위 트리만 남고, 루트 앞의 <code>&lt;?xml-stylesheet ...?&gt;</code>도 나타나지 않습니다. 도구는 XMLSerializer 같은 직렬화기 없이 노드 타입별로 문자열을 직접 이어 붙이므로 건너뛴 노드는 어떤 형태로도 남지 않습니다.</p>\n<p>혼합 내용은 블록 배치로 바뀝니다. <code>&lt;p&gt;a&lt;b&gt;c&lt;/b&gt;d&lt;/p&gt;</code>는 p, 텍스트 a, 자식 b, 텍스트 d가 각각 한 줄로 출력되어 a와 b, b와 d의 인라인 관계가 사라집니다. 이 출력을 다시 텍스트로 읽으면 a, b, d 사이에 줄바꿈과 들여쓰기 공백이 더해지므로, 인라인 공백에 의존하는 XHTML이나 DocBook 문단에는 적합하지 않습니다.</p>\n<h2>엔티티 디코딩: 출력이 유효한 XML이 아닐 수 있음</h2>\n<p>DOMParser는 파싱 단계에서 엔티티 참조를 문자로 바꿉니다. <code>&amp;amp; &amp;lt; &amp;gt;</code>는 <code>&amp; &lt; &gt;</code>가 되고 <code>&amp;#65;&amp;#x42;</code>는 AB가 됩니다. 포맷은 이 문자를 그대로 출력에 이어 붙이고 다시 이스케이프하지 않으므로 <code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;</code>의 출력에는 이스케이프되지 않은 <code>&amp;</code>와 <code>&lt;</code>가 나타납니다. 이 출력을 다시 DOMParser에 넘기면 parsererror: error on line 2 at column 4: Unexpected token inside entity가 납니다.</p>\n<pre><code>&lt;a&gt;&amp;amp; &amp;lt; &amp;gt;&lt;/a&gt;\n\n&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;&lt;a&gt;\n  &amp; &lt; &gt;\n&lt;/a&gt;</code></pre>\n<p>속성 값도 같은 경로입니다. <code>&lt;a b=\"&amp;amp;\"/&gt;</code>를 압축하면 <code>&lt;a b=\"&amp;\"&gt;&lt;/a&gt;</code>가 되고 13자이며 다시 파싱하면 오류가 납니다. 알파벳과 숫자처럼 이스케이프가 필요 없는 문자 엔티티는 영향을 받지 않습니다. <code>&amp;#65;&amp;#x42;</code>는 AB로 출력됩니다. <code>&amp;#38;</code>, <code>&amp;#60;</code> 같은 숫자 엔티티는 그대로 이스케이프되지 않은 <code>&amp;</code>와 <code>&lt;</code>로 풀리며, 속성 값의 <code>&amp;#34;</code>는 큰따옴표로 풀려 속성 값을 앞에서 잘라내므로 출력 역시 유효하지 않을 수 있습니다. <code>&amp;#10;</code> 같은 공백 문자 참조는 리터럴 줄바꿈이 되어 한 줄 처리와 반복 처리 결과에 영향을 주며, 중국어와 내부 공백은 그대로 유지됩니다. 문제는 디코딩이 아니라 그 뒤에 다시 이스케이프하지 않는 데 있습니다. 직접 이어 붙이는 방식은 직렬화기처럼 문자 데이터의 <code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>를 엔티티로 되돌리지 않습니다.</p>\n<p>따라서 포맷 출력을 유효한 XML로 그대로 저장하면 안 됩니다. 엔티티를 디코딩한 뒤 이스케이프되지 않은 <code>&amp;</code>나 <code>&lt;</code>가 든 출력은 줄만 바뀐 것처럼 보이지만 파싱할 수 없습니다. 도구도 출력의 유효성을 확인하지 않고, 입력 파싱에 성공하면 “포맷 완료”를 표시합니다.</p>\n<h2>압축: 한 줄, 선언 제거, 빈 요소 재작성</h2>\n<p>압축은 더 직접적입니다. documentElement에서 재귀하며 요소는 <code>&lt;tag attrs&gt;</code>, 텍스트는 trim한 값으로 출력하고 마지막에 join해 한 줄로 만듭니다(텍스트 내부 줄바꿈은 남습니다). XML 선언은 출력하지 않고 태그 사이 공백은 모두 사라지며, 여러 줄 예시는 29자인 <code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code>가 됩니다. 빈 요소 <code>&lt;a/&gt;</code>는 <code>&lt;a&gt;&lt;/a&gt;</code>로 쓰이고 7자입니다.</p>\n<pre><code>&lt;root&gt;&lt;a&gt;1&lt;/a&gt;&lt;b&gt;2&lt;/b&gt;&lt;/root&gt;</code></pre>\n<p>압축도 CDATA, 주석, 처리 명령을 버리고 텍스트의 앞뒤만 trim하며 내부 공백은 남깁니다. <code>&lt;a&gt;  x  &lt;b&gt;  y  &lt;/b&gt;  z  &lt;/a&gt;</code>는 <code>&lt;a&gt;x&lt;b&gt;y&lt;/b&gt;z&lt;/a&gt;</code>로 압축되어 17자이고, 요소 사이 공백이 삭제되어 x, y, z가 태그에 바로 붙습니다. 속성 순서와 값은 유지되고 엔티티 디코딩 후의 이스케이프되지 않은 문자도 남습니다.</p>\n<figure><a href=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"큰 이미지 보기: XML 압축 도구의 압축 결과\"><img src=\"/article-images/2026-11/xml-formatter-minify-sample.jpg\" alt=\"XML 압축 도구의 압축 결과 예시\" width=\"1232\" height=\"549\" loading=\"lazy\" decoding=\"async\"></a><figcaption>압축 후 태그 사이 공백이 사라지고 결과는 한 줄만 남습니다. 입력에 XML 선언이 있으면 선언은 출력에 나타나지 않습니다. 이미지를 클릭하면 원본을 볼 수 있습니다.</figcaption></figure>\n<p>압축은 같은 입력에 반복 실행해도 결과가 보통 같지만 여기에도 전제가 있습니다. 입력에 엔티티와 문자 참조가 없고, 속성 값에 정규화될 공백 문자가 없으며, 첫 번째 출력이 여전히 파싱 가능할 때만 두 번째 압축 결과가 첫 번째와 같습니다. 텍스트 노드 내부에 줄바꿈이 있으면 줄바꿈이 출력에 남아 결과가 엄격한 한 줄이 아닙니다. 압축 출력에도 이스케이프되지 않은 <code>&amp;</code>이나 <code>&lt;</code>가 나타날 수 있습니다. 예를 들어 <code>&amp;amp;</code>를 압축하면 <code>&amp;</code>가 됩니다. 이런 출력을 다시 압축하면 파싱이 실패하고 이전 출력이 유지됩니다. 포맷과 마찬가지로 구조를 짧게 만드는 데만 적합하며, 출력이 유효한 XML인지, 의미가 그대로인지 보장하지 않습니다.</p>\n<h2>검증 버튼과 네임스페이스</h2>\n<p>검증은 파싱을 한 번만 합니다. 유효하면 “XML이 유효합니다”, 아니면 “XML이 유효하지 않습니다: ”와 함께 parsererror 텍스트 앞 100자까지 표시합니다. 공백 입력에는 “XML을 입력하세요”가 표시됩니다. 빈 입력을 막는 것은 검증뿐입니다. 포맷과 압축은 공백 입력을 파싱 실패로 처리하고 상태 표시줄이 같은 문구로 시작하며 이전 출력은 지우지 않습니다. 검증은 출력 상자 대신 상태 표시줄만 갱신합니다.</p>\n<p>도구는 네임스페이스를 따로 처리하지 않지만 문자열 정보는 유지됩니다. 접두사가 있는 <code>&lt;ns:Envelope xmlns:ns=\"urn:example\"&gt;</code>는 tagName이 <code>ns:Envelope</code>로 남고 <code>xmlns:ns</code>는 일반 속성으로 기록됩니다. 기본 네임스페이스 <code>&lt;a xmlns=\"urn:x\"&gt;</code>의 자식은 접두사가 없어 포맷 후에도 <code>&lt;b&gt;</code>입니다. 도구는 바인딩을 다시 계산하지 않고 tagName과 attributes만으로 이어 붙입니다.</p>\n<h2>경계와 한계</h2>\n<p>먼저 버튼이 무엇을 보장하는지 분명히 해야 합니다. 포맷은 선언을 교체해 고정하고 공백과 속성 인용부호를 다시 배치하며, 압축은 구조를 간결하게 만듭니다. 둘 다 CDATA, 주석, 처리 명령을 남기지 않고 텍스트를 다시 이스케이프하지 않으며 출력의 유효성도 확인하지 않습니다. “포맷 완료”와 “압축 완료”는 파싱과 이어 붙이기가 끝났다는 뜻일 뿐, 의미 보존을 뜻하지 않습니다.</p>\n<p>설정할 수 없는 부분도 기억할 만합니다. 들여쓰기는 두 칸, 선언은 UTF-8로 고정됩니다. 요소 사이 빈 줄을 남기거나 속성 인용부호를 바꾸는 옵션도 없고, 인용부호는 큰따옴표로 통일됩니다. CDATA나 주석을 남길지 선택하는 스위치도 없습니다. 혼합 내용, CDATA 안의 스크립트, 공백에 의존하는 오래된 문서는 한 번 처리해 그대로 저장하기에 적합하지 않습니다.</p>\n<ul>\n<li>CDATA, 주석, 처리 명령을 남기지 않고 건너뛸 때 안내도 없습니다.</li>\n<li>텍스트를 다시 이스케이프하지 않아 이스케이프되지 않은 &amp;나 &lt;가 든 출력은 유효한 XML이 아닐 수 있습니다.</li>\n<li>들여쓰기 너비, 선언 내용, 요소 사이 빈 줄을 설정할 수 없습니다.</li>\n<li>출력의 유효성과 포맷 전후 의미의 동일성을 확인하지 않습니다.</li>\n</ul>\n<p>로컬 처리와 요청 경계: 이번 실행에서 페이지는 총 12개 요청을 보냈고 모두 동일 출처 정적 리소스였으며, 외부 요청과 POST 요청은 각각 0개였습니다. 입력은 텍스트 상자에만 있어 새로 고치거나 닫으면 남지 않습니다. 복사 버튼은 출력 상자를 읽기만 하고 추가 요청을 보내지 않습니다.</p>\n<p>두 버튼의 차이는 아래 항목에 집중됩니다.</p>\n<table>\n<thead><tr><th>항목</th><th>포맷</th><th>압축</th></tr></thead>\n<tbody>\n<tr><td>XML 선언</td><td>UTF-8 고정, 입력 선언 교체</td><td>출력하지 않음</td></tr>\n<tr><td>들여쓰기와 줄바꿈</td><td>두 칸, 루트 요소는 선언과 같은 줄에, 그 아래는 단계마다 한 줄</td><td>공백 삭제, 보통 한 줄</td></tr>\n<tr><td>빈 요소</td><td>자체 닫힘 <code>&lt;a/&gt;</code></td><td><code>&lt;a&gt;&lt;/a&gt;</code>로 펼침</td></tr>\n<tr><td>텍스트</td><td>앞뒤 trim, 별도 줄</td><td>앞뒤 trim, 태그에 붙음</td></tr>\n<tr><td>CDATA, 주석, 처리 명령</td><td>출력하지 않음</td><td>출력하지 않음</td></tr>\n<tr><td>엔티티</td><td>디코딩 후 그대로 출력</td><td>디코딩 후 그대로 출력</td></tr>\n<tr><td>속성</td><td>순서와 값 유지, 큰따옴표</td><td>순서와 값 유지, 큰따옴표</td></tr>\n<tr><td>끝 줄바꿈</td><td>없음</td><td>없음</td></tr>\n</tbody>\n</table>\n<p>구조 변환이 목적이라면 사이트 내 <a href=\"/ko/tools/dev/json-xml-yaml/\">JSON/XML/YAML 변환기</a>는 필드 매핑과 타입 손실을 다루므로 이 글의 공백 재배치와 다릅니다. HTML 조각 정리에는 <a href=\"/ko/tools/dev/html-formatter/\">HTML 포맷터</a>를 쓸 수 있지만 오류 허용 규칙이 XML 파서와 달라, 같은 입력의 결과를 두 도구에서 동등하다고 보면 안 됩니다.</p>\n<p>사용 여부는 다음 단계에 달렸습니다. 읽기나 diff 비교에는 포맷을 써도 됩니다. 엄격한 XML 파서, XSLT, SOAP 서비스에 넘길 때는 출력에 이스케이프되지 않은 <code>&amp;</code>와 <code>&lt;</code>가 없는지 확인하고, 필요하면 원본으로 돌아가거나 이스케이프하는 직렬화기를 써야 합니다. 문서가 CDATA, 주석, 혼합 내용에 의존한다면 두 버튼을 쓰지 않는 것이 가장 안전하며, 도구 페이지에도 동작을 끄는 옵션은 없습니다.</p>",
+  "faqs": [
+    {
+      "q": "포맷 후 CDATA와 주석이 모두 사라지는 이유는 무엇인가요?",
+      "a": "포맷의 pretty()는 요소와 텍스트 노드만 출력하고 CDATA, 주석, 처리 명령을 만나면 바로 반환하므로 해당 노드가 내용과 함께 사라집니다. 압축의 walk()도 요소와 텍스트 노드만 처리해 결과가 같습니다. 이 내용을 남겨야 한다면 두 버튼을 쓰면 안 됩니다. 페이지에는 남기거나 끄는 옵션이 없습니다."
+    },
+    {
+      "q": "출력에서 XML 선언과 루트 태그가 같은 줄에 붙는 이유는 무엇인가요?",
+      "a": "format()은 고정 선언을 lines 배열에 먼저 넣고 documentElement에 대해 깊이 0에서 pretty()를 호출합니다. pretty()는 루트 태그를 추가할 때 앞에 줄바꿈을 넣지 않고, 마지막 join(\"\")이 두 항목을 그대로 이어 붙이므로 첫 줄이 선언과 루트 태그가 됩니다. 들여쓰기는 루트 아래 계층에만 적용되며, 페이지에는 이 배치를 조정하는 스위치가 없습니다."
+    },
+    {
+      "q": "네임스페이스가 있는 XML도 포맷 후 그대로 쓸 수 있나요?",
+      "a": "접두사와 xmlns 선언은 문자열로 유지됩니다. ns:Envelope는 ns:Envelope로 남고, xmlns:ns는 일반 속성으로 기록되며, 기본 네임스페이스의 자식 요소는 여전히 접두사가 없습니다. 도구는 네임스페이스 바인딩을 다시 계산하지 않지만, 검증 버튼의 그 한 번의 파싱은 네임스페이스를 인식합니다. 바인딩되지 않은 접두사는 parsererror를 냅니다(예: <ns:a>1</ns:a>의 경우 Element ns:a prefix is unbound가 표시됩니다). 출력, 스키마, 비즈니스 제약은 확인하지 않습니다. 입력이 CDATA, 주석, 엔티티에 의존한다면 본문의 제한에 따라 출력을 확인해야 합니다."
+    },
+    {
+      "q": "검증에서 XML이 유효하다고 나오면 바로 사용해도 되나요?",
+      "a": "아닙니다. 검증은 DOMParser를 한 번 호출해 parsererror가 있는지만 판단합니다. 포맷이나 압축 후 출력을 확인하지 않고, 스키마나 비즈니스 제약도 확인하지 않습니다. 이스케이프된 엔티티가 있는 문서는 파싱이 유효해도 포맷 출력에 이스케이프되지 않은 &가 나타날 수 있으므로 출력을 다시 파싱해야 확인할 수 있습니다. 입력에 바인딩되지 않은 접두사가 있으면 검증은 오류를 내지만 출력이 여전히 올바른 형식인지는 확인하지 않습니다."
+    }
+  ],
+  "sources": [
+    {
+      "title": "XML introduction",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/XML/XML_introduction"
+    },
+    {
+      "title": "DOMParser: parseFromString() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString"
+    },
+    {
+      "title": "Extensible Markup Language (XML) 1.0 (Fifth Edition)",
+      "url": "https://www.w3.org/TR/xml/"
+    },
+    {
+      "title": "Namespaces in XML 1.0 (Third Edition)",
+      "url": "https://www.w3.org/TR/xml-names/"
+    },
+    {
+      "title": "DOM Parsing and Serialization",
+      "url": "https://www.w3.org/TR/DOM-Parsing/"
+    },
+    {
+      "title": "XMLSerializer",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/XMLSerializer"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "xml-formatter",
+      "lang": "ko",
+      "translatedFrom": "1a09cfe5d08b4da512f3f8b28248f14fa75867ccf03bc2e20165f544ecc0ba12",
+      "translatedAt": "2026-11-09T10:39:04.785Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.84
+    }
+  },
+  "image": "/article-images/2026-11/xml-formatter-format-sample.jpg",
+  "focus": "XML 포맷터는 UTF-8 선언과 두 칸 들여쓰기를 고정 출력하고 요소와 텍스트 노드만 남기므로 CDATA, 주석, 처리 명령은 버려집니다. 엔티티는 디코딩된 뒤 그대로 다시 이어 붙어 이스케이프되지 않은 &나 <가 든 출력은 더 이상 유효한 XML이 아닐 수 있습니다. 압축은 선언을 없애고 모든 빈 요소를 여는 태그와 닫는 태그로 펼쳐 한 줄로 만듭니다. 검증은 입력을 파싱할 수 있는지만 판단하고 출력이나 네임스페이스 바인딩이 여전히 성립하는지는 확인하지 않습니다."
+}
