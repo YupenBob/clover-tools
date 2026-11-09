@@ -1,0 +1,67 @@
+{
+  "slug": "world-clock",
+  "title": "世界時鐘怎麼用：三行卡片、夏令時與 IANA 時區",
+  "description": "站內世界時鐘的每張卡片有三行不同口徑：時間行是 UTC、日期行是當地日歷、差值徽章相對瀏覽器本機。本文按本次 68 個用例與 34 個 Node 檢查，說明夏令時切換、半小時時區取整與 IANA 命名陷阱。",
+  "category": "日常实用",
+  "toolSlug": "world-clock",
+  "published": "2026-11-10",
+  "updated": "2026-11-10",
+  "readingMinutes": 6,
+  "content": "<p>站內的 <a href=\"/zh-hant/tools/daily/world-clock/\">世界時鐘</a> 把多個時區並排顯示。每張卡片有三行：時間行、日期行、差值徽章。三行口徑不同，誤讀幾乎都出在這裏。</p>\n\n<h2>一、卡片三行：UTC 時間、當地日期、相對本機的差</h2>\n<p>頁面內置 14 個時區，默認放北京（時區 Asia/Shanghai）、東京、倫敦、紐約 4 個，下拉框是剩下 10 個，選項文案形如「香港（Asia/Hong_Kong）」。城市名來自寫死的對照表，14 張卡片加滿後逐個對上了中文名。</p>\n<p>時間行來自寫死 <code>timeZone: 'UTC'</code> 的 <code>Intl.DateTimeFormat</code>，不隨城市變化。凍結在 2026-01-15T03:00:00Z，四張卡的時間行都是 03:00:00；同一瞬間上海當地 11:00:00、東京 12:00:00、倫敦 03:00:00、紐約 1 月 14 日 22:00:00。</p>\n<p>日期行按各時區自己的日歷取年月日，格式為 <code>yyyy/mm/dd</code>（如 <code>2026/01/15</code>）：同一瞬間上海、東京、倫敦都是 2026/01/15，紐約已是 2026/01/14。徽章則是第三套口徑，比較該時區與瀏覽器本機的偏移差，0 顯示「與本地相同」，正數「與本地 +8 小時」，負數「與本地 -5 小時」。</p>\n<table>\n<thead><tr><th>城市</th><th>時間行</th><th>日期行</th><th>徽章（UTC 瀏覽器）</th><th>當地實際時間</th></tr></thead>\n<tbody>\n<tr><td>北京</td><td>03:00:00</td><td>2026/01/15</td><td>與本地 +8 小時</td><td>11:00:00</td></tr>\n<tr><td>東京</td><td>03:00:00</td><td>2026/01/15</td><td>與本地 +9 小時</td><td>12:00:00</td></tr>\n<tr><td>倫敦</td><td>03:00:00</td><td>2026/01/15</td><td>與本地相同</td><td>03:00:00</td></tr>\n<tr><td>紐約</td><td>03:00:00</td><td>2026/01/14</td><td>與本地 -5 小時</td><td>22:00:00（1 月 14 日）</td></tr>\n</tbody>\n</table>\n<p>三行並排看，矛盾很清楚：紐約卡時間行 03:00:00、日期 2026/01/14，當地那一刻卻是 22:00。時間行沒有錯，它只是 UTC。截圖裏的時間行是 03:00:01，比表格裏的 03:00:00 多走了 1 秒——頁面每秒重繪，截圖停在走時之後的那一幀。</p>\n<figure><a href=\"/article-images/2026-11/world-clock-grid.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：世界時鐘工具默認顯示北京、東京、倫敦、紐約四張卡片，四張卡片的時間行都是同一個時刻；日期行出現跨日差異（上海、東京、倫敦是 2026/01/15，紐約是 2026/01/14），差值徽章各不相同\"><img src=\"/article-images/2026-11/world-clock-grid.jpg\" alt=\"世界時鐘工具默認顯示北京、東京、倫敦、紐約四張卡片，四張卡片的時間行都是同一個時刻；日期行出現跨日差異（上海、東京、倫敦是 2026/01/15，紐約是 2026/01/14），差值徽章各不相同\" width=\"1232\" height=\"333\" loading=\"lazy\" decoding=\"async\"></a><figcaption>同一瞬間的四張卡片：時間行完全相同；日期行出現跨日差異（上海、東京、倫敦 2026/01/15，紐約 2026/01/14）；差值徽章各不相同。點擊圖片可查看原圖。</figcaption></figure>\n\n<h2>二、差值徽章量的是「與本機的差」</h2>\n<p><code>offsetOf(tz)</code> 每次渲染把該時區的墻上時間讀出來、當成 UTC 再減當前時刻，四捨五入成小時；再用 <code>-new Date().getTimezoneOffset()/60</code> 算出本機偏移，相減得到 <code>diff</code>。瀏覽器時區是 UTC 時本機偏移為 0，徽章剛好等於絕對偏移：上海 +8、東京 +9、倫敦 0、紐約 -5。這正是最容易過度概括的地方。</p>\n<p>換成 <code>timezoneId: 'Asia/Shanghai'</code> 的瀏覽器上下文，時間行仍是 03:00:00（UTC），日期行仍是上海 01/15、紐約 01/14，但四張徽章變成「與本地相同」「與本地 +1 小時」「與本地 -8 小時」「與本地 -13 小時」。同一份代碼、同一瞬間，只有瀏覽器時區變了。</p>\n<p>所以「與本地 -5 小時」只在 UTC 瀏覽器裏等於紐約的 UTC 偏移，而瀏覽器時區不一定是 UTC（本次截圖與實測環境恰好是 UTC）。午夜那條最能暴露口徑混用：2026-11-10T00:00:00Z，紐約卡顯示 00:00:00 / 2026/11/09 / 與本地 -5 小時，而紐約當地是 19:00:00。</p>\n<p>格式細節：<code>hour12: false</code> 配 <code>hour: '2-digit'</code> 在 zh-CN 下走 h23，午夜輸出 00 而不是 24，本次 4 張卡全部顯示 00:00:00。</p>\n<figure><a href=\"/article-images/2026-11/world-clock-diff.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：在世界時鐘工具裏添加悉尼和洛杉磯後，六張卡片的時間行仍是同一個時刻，日期行有跨日差異，差值徽章分別顯示 +11 和 -8 小時\"><img src=\"/article-images/2026-11/world-clock-diff.jpg\" alt=\"在世界時鐘工具裏添加悉尼和洛杉磯後，六張卡片的時間行仍是同一個時刻，日期行有跨日差異，差值徽章分別顯示 +11 和 -8 小時\" width=\"1232\" height=\"503\" loading=\"lazy\" decoding=\"async\"></a><figcaption>添加悉尼與洛杉磯後共六張卡片：時間行仍相同，徽章隨城市變化 點擊圖片可查看原圖。</figcaption></figure>\n\n<h2>三、夏令時：偏移會變，一天可能不是 24 小時</h2>\n<p>徽章不是常量。每次渲染都重新調用 <code>offsetOf</code>，日期一變徽章就可能變。紐約兩個切換點前後各取一點（切換點前 30 秒與後 30 秒）：2026-03-08T06:59:30Z 是 -5，07:00:30Z 變 -4；2026-11-01T05:59:30Z 是 -4，06:00:30Z 回 -5。倫敦更直觀：1 月 15 日「與本地相同」，7 月 15 日「與本地 +1 小時」。</p>\n<p>切換還會讓當地出現不存在與重複的時刻。逐分鐘掃描 2026-03-08 紐約本地時間，300 分鐘裏沒有 02:xx，01:59 之後直接是 03:00；切換瞬間卡片時間行 07:00:30，當地已是 03:00:30。</p>\n<p>回撥方向相反：2026-11-01 紐約的 01:00 出現兩次，分別對應 05:00:00Z 與 06:00:00Z，整段 01:xx 有 60 個重複的本地時刻。落在這一小時裏的約定，光寫「紐約 01:30」不夠。</p>\n<p>南半球方向相反：悉尼 1 月偏移 +660 分鐘、7 月 +600 分鐘，UTC 瀏覽器下徽章 1 月 +11、7 月 +10。中國也用過夏令時：<code>Asia/Shanghai</code> 在 1988-07-15 偏移 +540 分鐘，1988-01-15 是 +480；1991-07-15 仍是 +540，1992-07-15 回到 +480。所以「中國沒有夏令時」並不是一直成立：本次采樣裏 1988 與 1991 年夏季都是 +540，1992 年夏季才回到 +480。</p>\n\n<h2>四、內置 14 個時區都是整小時，半小時時區會被取整</h2>\n<p>14 個內置時區在兩個采樣點（2026-01-15T03:00:00Z 與 2026-07-15T03:00:00Z）上的偏移都是 60 分鐘的整數倍。1 月采樣裏迪拜 +240、莫斯科 +180、聖保羅 -180、奧克蘭 +780，沒有一個是半小時。</p>\n<p>但 IANA 裏半小時與 45 分鐘時區真實存在，用 ICU 實測固定瞬間的偏移分鐘數：</p>\n<ul>\n<li><code>Asia/Kolkata</code>：+330 分鐘（UTC+5:30），冬夏兩個采樣點相同。</li>\n<li><code>Asia/Kathmandu</code>：+345 分鐘（UTC+5:45）。</li>\n<li><code>Australia/Adelaide</code>：1 月 +630 分鐘、7 月 +570 分鐘，半小時偏移還跟著夏令時切換。</li>\n<li><code>Pacific/Chatham</code>：1 月 +825 分鐘、7 月 +765 分鐘（UTC+13:45 / +12:45）。</li>\n</ul>\n<p>把頁面公式 <code>Math.round((asUtc - now) / 3600000)</code> 套上去：加爾各答 +5:30 被算成 +6，多算 30 分鐘；加德滿都 +5:45 也算成 +6，多算 15 分鐘；阿德萊德 7 月的 +9:30 算成 +10；查塔姆 1 月的 +13:45 算成 +14。負數側同樣不對稱，<code>America/St_Johns</code> 的 -3:30 被算成 -3，少算 30 分鐘。</p>\n<p>這幾條是「頁面代碼公式 + ICU 數據」的推斷，不是界面實測：下拉框只有 14 個整小時時區，沒有輸入任意時區名的入口。它說明公式只保留到小時，對內置名單沒有損失，名單以外就會出現誤差。</p>\n\n<h2>五、IANA 名稱：不是城市清單，也有符號陷阱</h2>\n<p>時區名來自 IANA 的 tz 數據庫，格式是「區域/地點」，如 <code>Asia/Shanghai</code>、<code>America/New_York</code>。數據庫定期更新，瀏覽器和 Node 各用內置的 ICU 數據，同一名字在不同版本上可能給出不同的歷史或未來規則。</p>\n<p>名字不是城市清單。IANA 命名說明明確優先 <code>Asia/Shanghai</code> 而不是 <code>Asia/Beijing</code>；把 <code>Asia/Beijing</code> 交給 <code>Intl.DateTimeFormat</code> 會拋 <code>RangeError: Invalid time zone specified: Asia/Beijing</code>，空串、<code>Not/AZone</code>、<code>Asia/Shanghai/Extra</code> 同樣被拒絕。</p>\n<p>別名是另一層：<code>Asia/Calcutta</code> 與 <code>Asia/Kolkata</code> 是同一時區，格式化結果相同、偏移都是 +330 分鐘；本次 ICU 的規範名反而是舊的 <code>Asia/Calcutta</code>，<code>resolvedOptions().timeZone</code> 會把 Kolkata 映射回 Calcutta。</p>\n<p>縮寫不是可靠的時區名：<code>CST</code> 在本次 Node 22 的 ICU 裏不報錯，被解析成 <code>America/Chicago</code>（冬季 -360 分鐘）；IANA 也提醒 CST 在中國與北美含義不同，建議改用數字偏移。</p>\n<p>偏移量標識符是另一類合法輸入：<code>+08:00</code> 不報錯，03:00Z 顯示 11:00。ECMA-402 把時區內部槽定義為命名時區標識符或偏移量時區標識符。遺留名要提防：<code>Etc/GMT-8</code> 的真實偏移是 +480 分鐘（UTC+8），<code>Etc/GMT+8</code> 是 -480（UTC-8），符號和方向相反；<code>Etc/UTC</code> 是 0。</p>\n<p>符號約定：<code>getTimezoneOffset()</code> 返回「本地比 UTC 慢多少分鐘」，UTC+8 返回 -480、UTC-5 返回 300；頁面裏 <code>-new Date().getTimezoneOffset()/60</code> 就是把它翻正。MDN 的例子相同，UTC+10 返回 -600。</p>\n<p>時區清單也不等於所有可用名字：<code>Intl.supportedValuesOf('timeZone')</code> 在本次運行返回 418 個條目，含 <code>Asia/Shanghai</code> 與 <code>Asia/Calcutta</code>，不含別名 <code>Asia/Kolkata</code>，也不含 <code>UTC</code>。</p>\n\n<h2>六、怎麼正確用這個工具</h2>\n<p>三行當三件事讀：時間行是 UTC，日期行是當地日歷，徽章是相對本機的差。要回答「倫敦現在幾點」，不能把時間行和徽章直接相加：徽章是相對本機的差，只在本機時區恰為 UTC 時才等於絕對偏移。穩妥做法是把瀏覽器或瀏覽器上下文設為 UTC，讓徽章等於 UTC 偏移，或用 <a href=\"/zh-hant/tools/daily/timestamp/\">時間戳轉換</a> 把同一瞬間換到目標時區。</p>\n<ul>\n<li>跨日先看日期行：同一瞬間上海 2026/01/15、紐約 2026/01/14，只看時間行會以為兩邊同一天。</li>\n<li>別把徽章當絕對偏移：要絕對偏移，把瀏覽器或瀏覽器上下文設成 UTC，這時徽章才與 UTC 偏移一致。</li>\n<li>別把「與本地相同」讀成「與 UTC 相同」：在 UTC 瀏覽器下倫敦只在冬令時才相同，7 月會變成「與本地 +1 小時」。</li>\n<li>約定跨時區時間要寫清時區名和日期：切換那一小時裏「紐約 01:30」可以指兩個瞬間，必要時用 <a href=\"/zh-hant/tools/daily/date-diff/\">日期差計算</a> 核對天數。</li>\n</ul>\n<p>界面細節：默認 4 張卡、下拉框 10 項；添加後卡片 +1、選項 -1，新卡時間行與第一張相同；14 個加滿後下拉框為空，再點「添加」彈「該時區已添加」。刪除按鈕在右上角，刪一張卡片 -1、下拉框恢復該項；全刪光得到 0 張卡，grid 裏沒有空狀態文案，看起來像頁面壞了，其實只是列表為空。刷新回到默認 4 張，選擇不保存。</p>\n<p>頁面每秒整塊重繪：<code>render()</code> 整體替換 <code>grid.innerHTML</code>，並掛著 <code>setInterval(render, 1000)</code>。暫停在 03:00:00 後走時 1 秒，4 個舊卡片節點全部脫離文檔，時間行變 03:00:01；再走 1 秒，上一輪節點又被替換。腳本抓內容時每次都要重新取節點。</p>\n<p>網絡側沒有跨源請求：本次運行裏整輪請求全部同源（247 個 GET），POST 數為 0。</p>\n\n<h2>七、邊界與限制</h2>\n<p>時間行恒為 UTC；日期行是當地日歷；徽章是相對瀏覽器本機的整小時差。頁面沒有提示說明三行口徑不同，也沒有「顯示當地時間」的開關。</p>\n<p>徽章只精確到小時，只在整小時時區上準確。夏令時切換瞬間會跳一小時；半小時或 45 分鐘時區代入同一公式會取整，誤差 15 到 30 分鐘；換設備或改系統時區，徽章也會變。</p>\n<p>可選時區只有 14 個，寫死在數組裏，沒有搜索或自定義輸入；選擇不持久化；刪光沒有空狀態，也沒有數量上下限提示。</p>\n<p>數據來自運行環境的 ICU/tzdata，本次 Node 22.23.4 的 ICU 是 78.3。歷史偏移與未來規則隨版本變化，IANA 2026f 已發布，瀏覽器與 Node 更新節奏不同步；政府改規則時，本地計算只能跟隨已有數據。</p>\n<p>本文只描述這個頁面在本次 68 個瀏覽器用例與 34 個 Node/ICU 檢查裏的行為，不構成跨時區會議、出行或計費建議，也不校驗輸入時間的合理性。</p>",
+  "faqs": [
+    {
+      "q": "為什麼四張卡片的時間行一模一樣？",
+      "a": "時間行用的 Intl.DateTimeFormat 寫死了 timeZone: \"UTC\"，所有卡片共用同一個格式化器，所以時間行只表示當前 UTC 時刻。變化的只有日期行（按各時區日歷）和差值徽章（相對瀏覽器本機）。"
+    },
+    {
+      "q": "為什麼紐約卡片顯示 00:00:00，日期卻是前一天？",
+      "a": "時間行是 UTC，日期行是紐約當地日歷。2026-11-10T00:00:00Z 時紐約當地是 11 月 9 日 19:00，所以卡片上時間行是 00:00:00、日期行是 2026/11/09、徽章是「與本地 -5 小時」（UTC 瀏覽器下）。三行不是同一套口徑。"
+    },
+    {
+      "q": "「與本地 -5 小時」是紐約的 UTC 偏移嗎？",
+      "a": "不是，它是紐約與瀏覽器本機的差。UTC 瀏覽器下差值恰好等於 -5 小時；換成 Asia/Shanghai 的瀏覽器上下文，同一張卡會變成「與本地 -13 小時」，而紐約的絕對偏移仍是 UTC-5。"
+    },
+    {
+      "q": "為什麼加不進加爾各答或加德滿都？",
+      "a": "頁面只有寫死的 14 個時區，沒有輸入任意時區名的入口，所以下拉框裏根本沒有這兩個城市。即使把同類時區代入頁面公式，offsetOf 的 Math.round 也只會保留整小時：+5:30 被算成 +6，+5:45 也被算成 +6。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Time Zones",
+      "url": "https://www.iana.org/time-zones"
+    },
+    {
+      "title": "Theory and pragmatics of the tz code and data",
+      "url": "https://data.iana.org/time-zones/theory.html"
+    },
+    {
+      "title": "Intl.DateTimeFormat",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat"
+    },
+    {
+      "title": "Intl.DateTimeFormat() constructor",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat"
+    },
+    {
+      "title": "Date.prototype.getTimezoneOffset()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset"
+    },
+    {
+      "title": "ECMA-402: ECMAScript Internationalization API Specification",
+      "url": "https://tc39.es/ecma402/"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "world-clock",
+      "lang": "tw",
+      "translatedFrom": "48b1bb9b0a04eb0efabd9ba7432bf40134ee4c4e303296d216fcdb4aa187296c",
+      "translatedAt": "2026-11-09T22:25:15.057Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 1
+    }
+  },
+  "image": "/article-images/2026-11/world-clock-grid.jpg",
+  "focus": "世界時鐘卡片的時間行寫死 UTC、日期行按各時區日歷、差值徽章是相對瀏覽器本機的整小時差；目標時區與瀏覽器時區的夏令時切換不同步時，徽章會在切換瞬間跳一小時，切換日會出現不存在與重複的本地時刻；內置 14 個時區都是整小時，頁面的 Math.round 公式會把半小時時區取整；IANA 名稱有別名、縮寫與 Etc/GMT 符號陷阱，非法名會拋 RangeError。"
+}
