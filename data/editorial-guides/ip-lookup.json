@@ -1,0 +1,109 @@
+{
+  "id": "seed-new-ip-lookup",
+  "slug": "ip-lookup",
+  "category": "开发实用",
+  "toolSlug": "ip-lookup",
+  "date": "2026-11-11",
+  "title": "IP 归属地怎么查：精度、隐私与请求去向",
+  "description": "IP 归属地怎么查：本页把 IPv4/IPv6 解析放在浏览器本地，归属地只向同源 /api/ip 请求；域名解析走阿里与 Cloudflare 的 DoH。本文按请求去向拆开精度、隐私与失败边界。",
+  "published": "2026-11-11",
+  "updated": "2026-11-11",
+  "readingMinutes": 7,
+  "content": "<p>查 IP 归属地，输入地址后看「归属地信息」面板就行；但要先分清：归属地是 IP 的登记与机房地理，不是设备定位。本页把地址解析放在浏览器本地，只有归属地与域名解析联网。</p>\n\n<h2>一、先给结论：一次查询分三段</h2>\n<p>站内 <a href=\"/tools/dev/ip-lookup/\">IP 地址查询</a> 的流程可以拆成三段。第一段是本地解析：IPv4/IPv6 语法、地址分类、进制换算与网段计算都在浏览器里完成，不产生网络请求。第二段是归属地：输入合法地址后，页面等待约 900 毫秒自动发起同源请求 <code>/api/ip?ip=…</code>，也可以点「解析并查询」立即查。第三段是域名：输入 example.com 这类字符串时，页面先通过 DNS-over-HTTPS 把域名换成 IP，再对第一个 IP 做本地解析与在线归属地查询。</p>\n<p>三段对应三个面板：「本机 IP」显示当前网络出口，「IP 地址解析」显示本地计算，「归属地信息」显示在线结果。重点不是记住某个 IP 的城市，而是知道每个数字从哪来、请求发到哪、哪些字段可能为空。</p>\n\n<h2>二、打开页面时已经发生了什么</h2>\n<p>页面脚本最后一行是 <code>void refreshSelf()</code>，加载时立刻请求同源 <code>/api/ip</code>，把「本机 IP」和归属地面板一起填出来。打开页面、什么都没输入，就已经有一次不带参数的联网请求，返回访问者自己的出口 IP 与 Cloudflare 边缘地理。</p>\n<p>「IP 地址解析」的初始提示是「输入 IP 或域名后自动解析（本地计算，无需联网）」，它只描述解析面板，不覆盖归属地查询；归属地的空状态另写「查询后显示国家、运营商、经纬度等归属地信息（在线查询）」。</p>\n<p>「示例」按固定顺序轮换 9 个样本并立即查询；「清空」清空输入并隐藏解析、归属地两个面板，但不动「本机 IP」面板（仍留着上次查到的出口 IP），也不改 URL、不写历史；「粘贴」读剪贴板后立即查询。网段前缀下拉框只在 IPv4 时出现。</p>\n\n<h2>三、本地解析：先过语法，再算进制</h2>\n<p>IPv4 解析要求四段、每段 1–3 位数字、0–255，并且用 <code>/^0\\d/</code> 明确拒绝前导零：<code>010.0.0.1</code> 不会被当成 IPv4。IPv6 则先处理内嵌 IPv4（如 <code>::ffff:8.8.8.8</code>），再把 <code>::</code> 补成 8 组、逐组校验 1–4 位十六进制。校验通过后，页面给出十进制、十六进制、二进制与 <code>::ffff:</code> 映射；IPv6 给出展开形式、压缩形式与内嵌 IPv4。</p>\n<ul>\n<li>8.8.8.8 → 十进制 134744072、十六进制 0x08080808、二进制 00001000.00001000.00001000.00001000、映射 ::ffff:8.8.8.8。</li>\n<li>2001:4860:4860::8888 → 展开 2001:4860:4860:0000:0000:0000:0000:8888，压缩回 2001:4860:4860::8888。</li>\n<li>::ffff:8.8.8.8 → 展开 0000:0000:0000:0000:0000:ffff:0808:0808，压缩形式是 ::ffff:808:808，另有一行内嵌 IPv4 8.8.8.8。</li>\n</ul>\n<p>压缩形式按「最长的一段连续 0」折叠，且只折叠长度至少 2 的段。所以 <code>::ffff:8.8.8.8</code> 的压缩结果是 <code>::ffff:808:808</code>，不是常见的点分写法；页面也没有把最后 32 位还原成点分十进制。</p>\n\n<h2>四、分类徽标：顺序决定命中哪一条</h2>\n<p>IPv4 分类是一个按顺序遍历的区间表：<code>V4_RANGES</code> 共 15 条，从 <code>0.0.0.0/8</code> 到 <code>240.0.0.0/4</code>，每条带长度、标签与 RFC。命中第一条就返回，所以表的顺序就是优先级；<code>255.255.255.255</code> 在遍历前被单独判断为「受限广播」，公网地址则在整张表都不命中时落到「公网 IPv4（0.0.0.0/0）」。</p>\n<table>\n<thead><tr><th>输入</th><th>徽标</th><th>默认网段</th></tr></thead>\n<tbody>\n<tr><td>192.168.1.100</td><td>私网地址（192.168.0.0/16）</td><td>/16</td></tr>\n<tr><td>10.1.1.1</td><td>私网地址（10.0.0.0/8）</td><td>/8</td></tr>\n<tr><td>100.64.0.1</td><td>运营商级 NAT（100.64.0.0/10）</td><td>/10</td></tr>\n<tr><td>127.0.0.1</td><td>回环地址（127.0.0.0/8）</td><td>/8</td></tr>\n<tr><td>169.254.1.1</td><td>链路本地（169.254.0.0/16）</td><td>/16</td></tr>\n<tr><td>224.0.0.1</td><td>组播地址（224.0.0.0/4）</td><td>/4</td></tr>\n<tr><td>240.0.0.1</td><td>保留地址（240.0.0.0/4）</td><td>/4</td></tr>\n<tr><td>255.255.255.255</td><td>受限广播（255.255.255.255）</td><td>/32</td></tr>\n<tr><td>192.0.2.1</td><td>文档示例（192.0.2.0/24）</td><td>/24</td></tr>\n<tr><td>198.51.100.7</td><td>文档示例（198.51.100.0/24）</td><td>/24</td></tr>\n<tr><td>203.0.113.9</td><td>文档示例（203.0.113.0/24）</td><td>/24</td></tr>\n<tr><td>198.18.0.1</td><td>基准测试（198.18.0.0/15）</td><td>/15</td></tr>\n<tr><td>8.8.8.8</td><td>公网 IPv4</td><td>/24</td></tr>\n</tbody>\n</table>\n<p>默认网段跟着分类走：命中区间时用该区间的长度，只有公网 IPv4 没有自带长度，才默认 <code>/24</code>。所以 10.1.1.1 只有 <code>/8</code>，100.64.0.1 只有 <code>/10</code>，192.168.1.100 只有 <code>/16</code>；公网地址才有 <code>/8 /16 /24 /28 /30 /31 /32</code> 七个选项。</p>\n<p>IPv6 的分类表有 11 条，涵盖未指定、回环、IPv4 映射、NAT64、文档示例、IETF 协议分配、弃用地址、6to4、唯一本地、链路本地与组播。IPv6 不显示网段面板：版本为 6 时页面直接隐藏「网段信息」，默认前缀字段虽写成 64，却没有渲染入口。</p>\n\n<h2>五、网段计算：/31 与 /32 没有「减二」</h2>\n<p>网段按位与算网络地址、按位或算广播地址，地址总数是 2 的（32 减前缀）次方。可用地址在 /30 及更短前缀时是总数减 2（去掉网络地址与广播地址），到 /31 与 /32 时不再减：/31 两个都可用，/32 只有 1 个。这个分支写在 <code>usable = prefix &gt;= 31 ? total : total - 2</code>。</p>\n<table>\n<thead><tr><th>地址与前缀</th><th>网段 CIDR</th><th>广播地址</th><th>地址数量</th></tr></thead>\n<tbody>\n<tr><td>8.8.8.8 /24</td><td>8.8.8.0/24</td><td>8.8.8.255</td><td>共 256 个，可用 254 个</td></tr>\n<tr><td>8.8.8.8 /31</td><td>8.8.8.8/31</td><td>8.8.8.9</td><td>2 个可用</td></tr>\n<tr><td>8.8.8.8 /32</td><td>8.8.8.8/32</td><td>8.8.8.8</td><td>1 个可用</td></tr>\n<tr><td>10.1.1.1 /8</td><td>10.0.0.0/8</td><td>10.255.255.255</td><td>共 16,777,216 个，可用 16,777,214 个</td></tr>\n</tbody>\n</table>\n<p>注意 /31 这一行：8.8.8.8 是偶数，所以它所在的 /31 是 <code>8.8.8.8/31</code>、广播地址 <code>8.8.8.9</code>，不是 <code>8.8.8.0/31</code>。网段按输入地址算，不是按分类的起始地址算。</p>\n<figure><a href=\"/article-images/2026-11/ip-lookup-parse-and-geo.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：在线 IP 地址查询工具的完整工作区截图，自上而下三个面板。第一个面板标题「本机 IP」，右上角「复制」「刷新」两个按钮，下面「当前网络出口 IP」与 170.9.8.210，小字「San Jose · US · Oracle Corporation · AS31898」，绿色状态条「已获取本机 IP（Cloudflare 边缘）」。第二个面板「IP 地址解析」，输入框内是 8.8.8.8，按钮「解析并查询」「粘贴」「示例」「清空」，提示「地址解析完全在浏览器本地完成；输入有效地址后稍候会自动查询归属地，也可随时点击按钮。」，摘要行徽标「公网 IPv4」加 8.8.8.8；「地址信息」各行：地址类型 IPv4、地址分类 公网 IPv4（0.0.0.0/0）、说明 全球可路由的公网地址、参考标准 IANA 全球单播地址空间、十进制 134744072、十六进制 0x08080808、二进制 00001000.00001000.00001000.00001000、IPv6 映射 ::ffff:8.8.8.8；「网段信息」右侧前缀选择器 /24，行：网段 CIDR 8.8.8.0/24、网络地址 8.8.8.0、广播地址 8.8.8.255、可用范围 8.8.8.1 – 8.8.8.254、地址数量 共 256 个，可用 254 个。第三个面板「归属地信息」，绿色状态条「查询完成：8.8.8.8」，行：国家/地区 美国国旗 United States (US)、大洲 NA、省份/州 California、城市 Mountain View、邮编 94035、时区 America/Los_Angeles、ASN ASAS15169、运营商 Google LLC、经纬度 37.3860, -122.0838；底部左「在地图中查看」，右「数据来源：Cloudflare 边缘」。\"><img src=\"/article-images/2026-11/ip-lookup-parse-and-geo.jpg\" alt=\"在线 IP 地址查询工具的完整工作区截图，自上而下三个面板。第一个面板标题「本机 IP」，右上角「复制」「刷新」两个按钮，下面「当前网络出口 IP」与 170.9.8.210，小字「San Jose · US · Oracle Corporation · AS31898」，绿色状态条「已获取本机 IP（Cloudflare 边缘）」。第二个面板「IP 地址解析」，输入框内是 8.8.8.8，按钮「解析并查询」「粘贴」「示例」「清空」，提示「地址解析完全在浏览器本地完成；输入有效地址后稍候会自动查询归属地，也可随时点击按钮。」，摘要行徽标「公网 IPv4」加 8.8.8.8；「地址信息」各行：地址类型 IPv4、地址分类 公网 IPv4（0.0.0.0/0）、说明 全球可路由的公网地址、参考标准 IANA 全球单播地址空间、十进制 134744072、十六进制 0x08080808、二进制 00001000.00001000.00001000.00001000、IPv6 映射 ::ffff:8.8.8.8；「网段信息」右侧前缀选择器 /24，行：网段 CIDR 8.8.8.0/24、网络地址 8.8.8.0、广播地址 8.8.8.255、可用范围 8.8.8.1 – 8.8.8.254、地址数量 共 256 个，可用 254 个。第三个面板「归属地信息」，绿色状态条「查询完成：8.8.8.8」，行：国家/地区 美国国旗 United States (US)、大洲 NA、省份/州 California、城市 Mountain View、邮编 94035、时区 America/Los_Angeles、ASN ASAS15169、运营商 Google LLC、经纬度 37.3860, -122.0838；底部左「在地图中查看」，右「数据来源：Cloudflare 边缘」。\" width=\"1232\" height=\"1994\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入 8.8.8.8 后的完整结果（假时钟 2026-11-11T03:00:00Z）：本地解析给出公网 IPv4、进制与 ::ffff 映射，默认 /24 网段，ASN 一栏是 ASAS15169（代理路径把 ipapi 的 AS15169 又拼了一次 AS）；「本机 IP」与「归属地信息」用固定 fixture 模拟 /api/ip 返回，字段与生产一致。 点击图片可查看原图。</figcaption></figure>\n\n<h2>六、归属地请求：浏览器只发同源 /api/ip</h2>\n<p>本页当前版本的在线归属地请求只指向同源 <code>/api/ip</code>。无参时函数返回访客 IP 与 Cloudflare 边缘地理字段，响应头是 <code>Cache-Control: no-store</code>；带 <code>?ip=</code> 时函数做代理：IPv4 转 <code>https://ipapi.co/&lt;ip&gt;/json/</code>，IPv6 转 <code>https://ipwho.is/&lt;ip&gt;</code>，统一成同一套字段，UA 固定为 <code>CloverTools-IP-Lookup/1.0</code>，响应头是 <code>public, max-age=3600</code>。浏览器不会直接访问 ipapi.co 或 ipwho.is。</p>\n<table>\n<thead><tr><th>动作</th><th>浏览器请求</th><th>实际去处</th><th>缓存头</th></tr></thead>\n<tbody>\n<tr><td>打开页面</td><td>GET /api/ip</td><td>Cloudflare 边缘（request.cf）</td><td>no-store</td></tr>\n<tr><td>输入有效 IP</td><td>GET /api/ip?ip=…</td><td>Cloudflare 函数再转 ipapi.co 或 ipwho.is</td><td>public, max-age=3600</td></tr>\n<tr><td>输入域名，A 记录</td><td>GET dns.alidns.com/resolve?name=…&amp;type=1</td><td>阿里公共 DNS；无答案时换 Cloudflare</td><td>由第三方决定</td></tr>\n<tr><td>输入域名，AAAA 记录</td><td>GET dns.alidns.com/resolve?name=…&amp;type=28</td><td>阿里公共 DNS；无答案时换 Cloudflare</td><td>由第三方决定</td></tr>\n</tbody>\n</table>\n<p>输入有效 IP 后不是立刻请求：先等 250 毫秒防抖，再等 900 毫秒确认输入没变，才调用 <code>doOnline()</code>；点「解析并查询」或按回车则立即请求。域名解析没有这 900 毫秒：检测到域名就调用 <code>resolveDomain()</code>，先查 AliDNS，拿不到答案再查 Cloudflare，类型顺序是 A(1) 再到 AAAA(28)，先有答案者胜。</p>\n<p>归属地面板底部固定写「数据来源：Cloudflare 边缘」，因为两条路径传入的 source 都是 <code>cloudflare</code>；<code>SOURCE_NAME</code> 里虽有 <code>ipapi</code> 与 <code>ipwhois</code> 键，代码却没有使用它们。走 <code>?ip=</code> 时数据实际来自 ipapi.co 或 ipwho.is，页脚仍写 Cloudflare 边缘。</p>\n<p>代理路径还有两处格式差异：ipapi 归一化会把上游的 <code>asn: \"AS15169\"</code> 再拼一个 <code>AS</code>，得到 <code>ASAS15169</code>；时区偏移则出现了字段名对不上——函数输出的键是 <code>utcOffset</code>，前端只读 <code>raw.utc_offset</code> 或 <code>raw.offset</code>，所以时区行只有 <code>America/Los_Angeles</code>，不会出现 <code>(UTC-0800)</code>。无参路径的 country 与 countryCode 都取 <code>request.cf.country</code>，所以国家/地区行显示「US (US)」。</p>\n<p>当日实测（2026-11-10T22:00Z 前后）：无参 <code>GET /api/ip</code> 返回 200 JSON；<code>?ip=8.8.8.8</code>、<code>?ip=2001:4860:4860::8888</code> 与 <code>?ip=..</code> 都返回 HTTP 502 的 Cloudflare 错误页，而不是函数 catch 里的 JSON 错误体。这是当天边缘层的表现，不代表这条路径永远失败。</p>\n<figure><a href=\"/article-images/2026-11/ip-lookup-domain-and-requests.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：同一工作区的域名查询结果：第一个面板仍是本机 IP 170.9.8.210 与「San Jose · US · Oracle Corporation · AS31898」，绿色状态条「已获取本机 IP（Cloudflare 边缘）」；第二个面板输入框是 example.com，摘要行是徽标「公网 IPv4」、172.66.147.243、灰字「example.com 解析出 4 个地址」，右侧 4 个 chip：172.66.147.243、104.20.23.154、2606:4700:10::ac42:93f3、2606:4700:10::6814:179a；地址信息各行：地址类型 IPv4、地址分类 公网 IPv4（0.0.0.0/0）、说明 全球可路由的公网地址、参考标准 IANA 全球单播地址空间、十进制 2890044403、十六进制 0xac4293f3、二进制 10101100.01000010.10010011.11110011、IPv6 映射 ::ffff:172.66.147.243；网段信息 /24，网段 CIDR 172.66.147.0/24、网络地址 172.66.147.0、广播地址 172.66.147.255、可用范围 172.66.147.1 – 172.66.147.254、地址数量 共 256 个，可用 254 个；第三个面板状态条「查询完成：172.66.147.243」，国家/地区 美国国旗 United States (US)、大洲 NA、省份/州 California、城市 San Francisco、邮编 94107、时区 America/Los_Angeles、ASN ASAS13335、运营商 Cloudflare, Inc.、经纬度 37.7749, -122.4194，底部左「在地图中查看」、右「数据来源：Cloudflare 边缘」。\"><img src=\"/article-images/2026-11/ip-lookup-domain-and-requests.jpg\" alt=\"同一工作区的域名查询结果：第一个面板仍是本机 IP 170.9.8.210 与「San Jose · US · Oracle Corporation · AS31898」，绿色状态条「已获取本机 IP（Cloudflare 边缘）」；第二个面板输入框是 example.com，摘要行是徽标「公网 IPv4」、172.66.147.243、灰字「example.com 解析出 4 个地址」，右侧 4 个 chip：172.66.147.243、104.20.23.154、2606:4700:10::ac42:93f3、2606:4700:10::6814:179a；地址信息各行：地址类型 IPv4、地址分类 公网 IPv4（0.0.0.0/0）、说明 全球可路由的公网地址、参考标准 IANA 全球单播地址空间、十进制 2890044403、十六进制 0xac4293f3、二进制 10101100.01000010.10010011.11110011、IPv6 映射 ::ffff:172.66.147.243；网段信息 /24，网段 CIDR 172.66.147.0/24、网络地址 172.66.147.0、广播地址 172.66.147.255、可用范围 172.66.147.1 – 172.66.147.254、地址数量 共 256 个，可用 254 个；第三个面板状态条「查询完成：172.66.147.243」，国家/地区 美国国旗 United States (US)、大洲 NA、省份/州 California、城市 San Francisco、邮编 94107、时区 America/Los_Angeles、ASN ASAS13335、运营商 Cloudflare, Inc.、经纬度 37.7749, -122.4194，底部左「在地图中查看」、右「数据来源：Cloudflare 边缘」。\" width=\"1232\" height=\"1994\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入 example.com 后的结果（同一假时钟）：DoH fixture 返回 2 个 A 与 2 个 AAAA，摘要行出现 4 个可点击 chip，解析取第一个 A 记录 172.66.147.243，网段与归属地随之更新；域名解析与归属地面板均用固定 fixture 模拟 DoH 与 /api/ip 返回，字段与生产一致。 点击图片可查看原图。</figcaption></figure>\n\n<h2>七、精度边界：登记地理不等于设备位置</h2>\n<p>归属地来自 IP 地址库的登记信息与机房位置，通常精确到国家、省/州、城市，可能带邮编与经纬度，但不是 GPS 或 Wi-Fi 定位。跨城漫游、企业专线、云主机都会让「IP 在哪」与「人在哪」不一致。</p>\n<ul>\n<li>私网、回环、链路本地、文档示例、组播、保留地址没有全球归属地；页面仍会请求在线接口，但这些地址不在全球登记范围内，在线查询对它们没有意义，结果可能为空或失败。</li>\n<li>CGNAT（100.64.0.0/10）与运营商 NAT 后面大量用户共享出口 IP，归属地最多到运营商或城市，不能定位到个人。</li>\n<li>经纬度可能缺失。当日实测的无参响应里 <code>latitude</code> 与 <code>longitude</code> 都是 <code>null</code>，页面只在两者都是数字时才显示「经纬度」行与「在地图中查看」链接。</li>\n<li>时区字段来自 IP 库（例如 America/Los_Angeles），不是浏览器本地时区；可作线索，不能当设备时区证据。</li>\n</ul>\n<p>还有一类边界来自输入本身。IPv4 的前导零会被本地解析拒绝，但 <code>010.0.0.1</code> 仍能通过页面的域名正则，于是被当作域名送 DoH：自动路径显示「域名解析失败」，手动查询显示「无法解析 010.0.0.1」。「无法识别：请输入合法的 IP 地址（IPv4/IPv6）或域名」只给连域名正则也不匹配的输入，例如 <code>1.2.3.</code> 或 <code>abc</code>。</p>\n\n<h2>八、隐私：访问、输入与域名各产生什么流量</h2>\n<p>把「本地计算」与「联网查询」分开看，隐私边界就清楚了。打开页面就会请求同源 <code>/api/ip</code>；输入合法 IP，约 900 毫秒后会自动请求同源 <code>/api/ip?ip=…</code>。这两步的目标是本站接口，但函数在服务端还会访问 ipapi.co 或 ipwho.is，所以「浏览器没直连第三方」不等于「第三方没收到这个 IP」。</p>\n<p>域名解析是另一条链路：浏览器把输入的域名发给 <code>dns.alidns.com</code>，失败或无答案时再发给 <code>cloudflare-dns.com</code>，域名会出现在第三方 DNS 的请求里。页面没有「关闭自动查询」的开关，也没有历史列表或本地存储；请求头与服务端日志不在页面代码的控制范围内。</p>\n<ul>\n<li>想只做本地解析、不产生归属地请求，目前没有界面开关；可以在输入后立刻清空，或使用浏览器开发者工具拦截 /api/ip，但这属于外部手段。</li>\n</ul>\n\n<h2>九、失败提示与下一步</h2>\n<p>归属地请求失败时，面板先显示「正在查询归属地…」，随后空状态改成「归属地查询失败，请检查网络连接后重试」，状态行是「查询失败：所有数据源均不可用」。函数返回 502 也走这条分支；页面不区分超时、限流与边缘错误。</p>\n<p>「清空」把面板隐藏并清空表格，但没有重置空状态文案：上一次查询失败后清空，归属地面板仍保留「归属地查询失败，请检查网络连接后重试」，刷新页面才回到初始提示。</p>\n<p>要把请求本身看清楚，可以配合 <a href=\"/tools/dev/http-tester/\">HTTP 请求测试</a> 看响应头、<a href=\"/tools/dev/ua-parser/\">User-Agent 解析</a> 检查客户端标识、<a href=\"/tools/dev/url-parse/\">URL 解析</a> 拆开带参数的地址，用 <a href=\"/tools/dev/base-converter/\">进制转换</a> 换算进制。本文描述的是本页当前版本与当日实测，不构成网络定位或隐私合规建议。</p>",
+  "faqs": [
+    {
+      "q": "IP 归属地能查到具体街道或门牌吗？",
+      "a": "通常不能。归属地是 IP 地址库里的登记与机房地理，常见精度是国家、省/州、城市，可能带邮编与经纬度；它不是 GPS 或 Wi-Fi 定位。即使同一城市的不同网络共用一个登记点，页面也只能显示那个登记点。"
+    },
+    {
+      "q": "为什么 192.168.1.100 这类地址查不到归属地？",
+      "a": "192.168.0.0/16 是 RFC 1918 私网地址，没有全球登记。页面会在本地把它标成「私网地址（192.168.0.0/16）」，也会在你输入后照常请求在线接口，但这类地址不在全球登记范围内，结果可能为空或显示查询失败。"
+    },
+    {
+      "q": "010.0.0.1 为什么提示「无法解析」而不是「无法识别」？",
+      "a": "parseIpv4 用 /^0\\d/ 拒绝前导零，所以它不是合法 IPv4；但页面随后用域名正则判断，010.0.0.1 能通过，于是被当作域名送 DoH。空答案时自动路径显示「域名解析失败」，手动查询显示「无法解析 010.0.0.1」。只有连域名正则都不匹配的输入，如 1.2.3. 或 abc，才显示「无法识别：请输入合法的 IP 地址（IPv4/IPv6）或域名」。"
+    },
+    {
+      "q": "查询域名时请求发到哪里？会暴露域名吗？",
+      "a": "浏览器先把域名发给 dns.alidns.com，A 记录无答案时换 cloudflare-dns.com，再查 AAAA，顺序相同；两家都拿不到答案才报解析失败。域名会出现在第三方 DNS 请求里，所以不要在不可信的公共网络上查询带内部项目名或个人信息的域名。"
+    },
+    {
+      "q": "页面会保存查询历史吗？",
+      "a": "本页代码没有历史列表或本地存储，清空只复位输入与解析、归属地两个面板，不动「本机 IP」面板。但打开页面会请求 /api/ip，输入合法地址会自动请求 /api/ip?ip=…，域名会请求两家 DoH；这些请求、服务端日志与 CDN 日志不在页面代码的控制范围内。"
+    },
+    {
+      "q": "为什么页脚写「数据来源：Cloudflare 边缘」，ASN 却是 ASAS15169？",
+      "a": "页脚取的是固定的 source 文案，查询与无参路径都传 cloudflare；而 ?ip= 实际由函数代理 ipapi.co 或 ipwho.is。ASAS15169 是因为函数的 ipapi 归一化把上游的 AS15169 又拼了一个 AS；同样的代理路径还把时区偏移写成 utcOffset，前端读的是 utc_offset 与 offset，字段名对不上，所以时区行不显示 UTC 括号。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 1918: Address Allocation for Private Internets",
+      "url": "https://www.rfc-editor.org/rfc/rfc1918.html",
+      "publisher": "RFC Editor / IETF",
+      "why": "定义 10.0.0.0/8、172.16.0.0/12、192.168.0.0/16 三个私网段，对应页面 V4_RANGES 里的 private 条目与「私网地址」徽标。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    },
+    {
+      "title": "RFC 5737: IPv4 Address Blocks Reserved for Documentation",
+      "url": "https://www.rfc-editor.org/rfc/rfc5737.html",
+      "publisher": "RFC Editor / IETF",
+      "why": "定义 192.0.2.0/24、198.51.100.0/24、203.0.113.0/24 三个文档示例段，对应页面的 documentation 分类与 TEST-NET 说明。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    },
+    {
+      "title": "RFC 6598: IANA-Reserved IPv4 Prefix for Shared Address Space",
+      "url": "https://www.rfc-editor.org/rfc/rfc6598.html",
+      "publisher": "RFC Editor / IETF",
+      "why": "定义 100.64.0.0/10 共享地址空间（CGNAT），对应页面的「运营商级 NAT」徽标与默认 /10 前缀。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    },
+    {
+      "title": "RFC 8484: DNS Queries over HTTPS (DoH)",
+      "url": "https://www.rfc-editor.org/rfc/rfc8484.html",
+      "publisher": "RFC Editor / IETF",
+      "why": "说明 DNS-over-HTTPS 的请求方式与 application/dns-json 之外的媒体类型背景，用来界定页面把域名发给第三方 DoH 解析器这一行为。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    },
+    {
+      "title": "ipapi.co API Documentation",
+      "url": "https://ipapi.co/api/",
+      "publisher": "ipapi.co",
+      "why": "示例响应里 asn 字段已经是 \"AS15169\"、utc_offset 是 \"-0800\"、country_name 是 \"United States\"。这解释了函数再拼一次 AS 后出现 ASAS15169；但函数输出的键名是 utcOffset（驼峰），前端读的是 utc_offset／offset，两者对不上，所以时区括号不会显示。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    },
+    {
+      "title": "IncomingRequestCfProperties（Workers Request.cf）",
+      "url": "https://developers.cloudflare.com/workers/runtime-apis/request/",
+      "publisher": "Cloudflare Docs",
+      "why": "证明函数无参路径读取的 country/region/city/postalCode/continent/timezone/asn/asOrganization/colo/latitude/longitude 都是 Cloudflare 请求对象上的边缘地理属性，而不是第三方 IP 库结果。",
+      "accessedAt": "2026-11-11",
+      "checkedAt": "2026-11-11",
+      "status": 200
+    }
+  ],
+  "focus": "IP 归属地查的是 IP 的登记与机房地理，不是设备定位。本页把 IPv4/IPv6 语法、分类、进制与网段放在浏览器本地，归属地只请求同源 /api/ip；域名解析直接走阿里与 Cloudflare 的 DoH。理解请求去向，才能读懂「数据来源：Cloudflare 边缘」、ASAS15169、空经纬度与 502 失败的边界。",
+  "notice": "",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-11T06",
+    "primaryQuery": "ip归属地怎么查",
+    "editorialDate": "2026-11-11",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.92,
+    "verifiedAt": "2026-11-10T22:46:23.292Z"
+  },
+  "image": "/article-images/2026-11/ip-lookup-parse-and-geo.jpg"
+}
