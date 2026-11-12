@@ -30,13 +30,14 @@ import guide21 from '../../data/editorial-guides/strong-password-practices.json'
 import guide22 from '../../data/editorial-guides/symmetric-encrypt-params.json' with { type: 'json' };
 import guide23 from '../../data/editorial-guides/text-diff-review.json' with { type: 'json' };
 import guide24 from '../../data/editorial-guides/text-transform.json' with { type: 'json' };
-import guide25 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
-import guide26 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
-import guide27 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
-import guide28 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
-import guide29 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
-import guide30 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
-import guide31 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
+import guide25 from '../../data/editorial-guides/timer.json' with { type: 'json' };
+import guide26 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
+import guide27 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
+import guide28 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
+import guide29 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
+import guide30 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
+import guide31 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
+import guide32 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -71,4 +72,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide29 as unknown as Guide,
   guide30 as unknown as Guide,
   guide31 as unknown as Guide,
+  guide32 as unknown as Guide,
 ];
