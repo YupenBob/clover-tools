@@ -1,34 +1,89 @@
 {
   "slug": "jwt-expiry-and-verification",
-  "title": "JWT 过期怎么看：解码、验签与授权不能混为一谈",
-  "description": "从 exp、iat、iss、aud 等声明判断令牌结构，并说明为什么客户端解码不等于服务端验签。",
-  "seoDescription": "JWT 的过期与验签要分开看：Header、Payload 默认只是 Base64URL 编码，任何人都能读取，在线解码只适合排查结构与 exp、iat、iss、aud 等时间字段，不能证明令牌来自可信签发者；文中还提醒服务端必须做算法白名单与签名校验，客户端解码不能当授权依据。exp 一般是秒级时间戳。",
+  "title": "JWT 过期与验签：exp 秒级时间、时钟偏移与常见误解",
+  "description": "JWT 的 exp、nbf、iat 都是秒级 NumericDate；判断过期要结合服务端当前时间与几分钟时钟偏移，解码只读取 Header 与 Payload，HS256 验签成功也不代表令牌未过期或未被撤销。",
+  "seoDescription": "JWT 的 exp、nbf、iat 都是 NumericDate 秒级时间，过期判断要比较服务端当前时间，并可按需预留几分钟时钟偏移；解码只读取 Base64URL 的 Header 与 Payload，HS256 验签成功也不代表令牌未过期或未被撤销。本文用站内 JWT 解码器核对时间字段、算法限制与常见误解。",
   "category": "开发实用",
   "toolSlug": "jwt-decoder",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>JWT 通常由 Header、Payload 和 Signature 三段组成。前两段默认只是 Base64URL 编码，任何持有令牌的人都可以读取。在线解码适合排查结构和时间字段，但不能证明令牌来自可信签发者。</p>\n      <h2>检查过期时间</h2>\n      <p><code>exp</code> 和 <code>iat</code> 通常使用 Unix 秒级时间戳。查看时要确认单位和时区，并结合服务端当前时间判断是否过期。令牌没有 <code>exp</code> 不代表永不过期，服务端仍应有明确的会话策略。</p>\n      <h2>服务端必须做什么</h2>\n      <ul><li>使用固定的算法白名单和受保护的密钥验签。</li><li>检查签发者 <code>iss</code>、受众 <code>aud</code>、过期时间和必要的权限声明。</li><li>对撤销、登出、密钥轮换和重放风险制定策略。</li></ul>\n      <h2>安全使用建议</h2>\n      <p>不要把生产令牌粘贴到公共工具或截图中。Payload 里不要放密码、长期秘密或不应被客户端读取的个人信息。</p>",
+  "updated": "2026-11-14",
+  "readingMinutes": 7,
+  "content": "<p>JWT 的 <code>exp</code> 是秒级 NumericDate，判断是否过期要用服务端当前时间与 <code>exp</code> 比较，并可留几分钟时钟偏移；解码只读取 Header 与 Payload，HS256 验签只说明签名匹配，三者不能互相替代。</p>\n\n<h2>一、先分清三件事：解码、验签、声明校验</h2>\n<p>把 JWT 粘进工具点「解码」，看到的是 Header 与 Payload 的 JSON；点「校验 HS256 签名」，做的是用你输入的密钥重算 HMAC 并比对第三段。两件事都不是“令牌有效”的完整证明。</p>\n<ul>\n<li><strong>解码</strong>：Base64URL 还原 JSON，证明的是这段字符串能按三段拆开、前两段是合法 JSON。</li>\n<li><strong>验签</strong>：用密钥重算签名，证明的是“签名与这段 header.payload 匹配”。</li>\n<li><strong>声明校验</strong>：检查 <code>exp</code>、<code>nbf</code>、<code>iss</code>、<code>aud</code>、撤销状态与权限，决定“这个令牌现在能不能用”。</li>\n</ul>\n<p>站内 <a href=\"/tools/dev/jwt-decoder/\">JWT 解码器</a> 把前两步放在一页：它能解码，也能用 HS256 密钥验签；它会把 <code>exp</code> 渲染成摘要，却不会因为过期而拒绝令牌。所以页面上的绿色「解码成功」只代表解析成功，不代表服务端会接受。</p>\n\n<h2>二、三段结构：Header、Payload、Signature</h2>\n<p>RFC 7519 把 JWT 描述为用句点分隔的 URL-safe 片段，每个片段是 base64url 编码值。JWS 形式的 JWT 通常正好三段：Header 描述算法与类型，Payload 放声明，Signature 保护前两段。</p>\n<p>三段式 JWS 里的 base64url 不是加密：它只是把 Base64 的 <code>+</code>、<code>/</code> 换成 <code>-</code>、<code>_</code>，并去掉末尾的 <code>=</code> 填充。任何人拿到令牌都能还原出明文 JSON，所以 Payload 里不要放密码、长期密钥或不该被客户端读取的个人信息。想单独对照两种编码，可以用 <a href=\"/tools/dev/base64/\">Base64 编解码工具</a> 看同一段字节的两种输出。</p>\n<table>\n<thead><tr><th>片段</th><th>典型内容</th><th>是否可直接读取</th><th>站内工具如何展示</th></tr></thead>\n<tbody>\n<tr><td>Header</td><td><code>{\"alg\":\"HS256\",\"typ\":\"JWT\"}</code></td><td>是，Base64URL 解码即可</td><td>「═══ Header ═══」加缩进 JSON</td></tr>\n<tr><td>Payload</td><td><code>sub</code>、<code>iat</code>、<code>exp</code>、<code>iss</code> 等声明</td><td>是，默认不加密</td><td>「═══ Payload ═══」加缩进 JSON</td></tr>\n<tr><td>Signature</td><td>对 <code>header.payload</code> 的签名或 MAC</td><td>否，但可被重算比对</td><td>不在输出区单独展开，验签时使用</td></tr>\n</tbody>\n</table>\n<p>签名输入不是整个令牌，而是 <code>ASCII(BASE64URL(header) || '.' || BASE64URL(payload))</code>；第三段不参与签名输入。RFC 7515 第 5.2 节还要求 <code>alg</code> 必须存在，并且必须准确表示实际使用的算法。</p>\n\n<h2>三、exp、iat、nbf：单位是秒，不是毫秒</h2>\n<p>NumericDate 的定义是“从 1970-01-01T00:00:00Z 起经过的秒数”，允许非整数。RFC 7519 的 <code>exp</code>、<code>nbf</code>、<code>iat</code> 都要求是这个类型；<code>exp</code> 表示“到该时间或之后不得再接受”，<code>nbf</code> 表示“到该时间之前不得接受”，<code>iat</code> 只表示签发时间，可用来判断令牌年龄。</p>\n<p>因此 <code>exp</code> 常见是 10 位数字。把 13 位毫秒值直接填进去，工具仍会按秒解释：站内页面会把 <code>exp</code> 乘以 1000 再构造日期，13 位值会让年份变成五位数，看起来“永远不过期”。要换算时间戳，可配合 <a href=\"/tools/daily/timestamp/\">时间戳转换工具</a> 先确认单位。</p>\n<p>三个声明都标为 OPTIONAL：没有 <code>exp</code> 并不等于令牌永不过期，只说明标准里没有给出这个截止点，服务端仍可以用会话策略、密钥轮换与撤销机制让它失效。</p>\n\n<h2>四、时钟偏移：几分钟的容错，不是长期免死金牌</h2>\n<p>签发方、资源服务器和校验方可能不是同一台机器，系统时钟也会有少量差异。RFC 7519 允许实现者为 <code>exp</code> 与 <code>nbf</code> 留一点 leeway，通常不超过几分钟，用来吸收这种 clock skew；它不是把过期时间无限往后推的理由。</p>\n<p>浏览器里的解码工具用的是本机时间：页面用 <code>Date.now()</code> 算剩余分钟，用 <code>toLocaleString</code> 按本地时区显示日期。笔记本时钟慢 10 分钟，“剩余 N 分钟”就会多 10 分钟；时区不同，显示的钟点也不同。这些都不改变服务端按自己的时钟做出的判断。</p>\n<p>所以“本地看还没过期”不能当成授权依据。服务端应按自己的时钟与策略设置可接受的偏移；客户端展示只适合排查。</p>\n\n<h2>五、在站内 JWT 解码器里核对时间字段</h2>\n<p>操作很简单：点「示例」填入内置 token，再点「解码」。输出区先给 Header 与 Payload，再给「信息摘要」：<code>exp</code> 行带本地时间与剩余分钟，<code>iat</code> 行给签发时间，有 <code>sub</code>、<code>iss</code> 时各补一行。状态条变绿并写「解码成功」。</p>\n<figure><a href=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：JWT 解码器解码示例 token 后的两个面板：输入框为三段示例 token，密钥框为空，状态条「解码成功」，输出区显示 Header、Payload 与信息摘要的过期时间、签发时间与 subject 行。\"><img src=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg\" alt=\"JWT 解码器解码示例 token 后的两个面板：输入框为三段示例 token，密钥框为空，状态条「解码成功」，输出区显示 Header、Payload 与信息摘要的过期时间、签发时间与 subject 行。\" width=\"1232\" height=\"1086\" loading=\"lazy\" decoding=\"async\"></a><figcaption>示例 token 解码后的两个面板：上方「JWT Token」输入框保留完整三段 token，下方绿色状态条写「解码成功」，输出区依次显示 Header、Payload 与「信息摘要」，其中「过期时间：2027/7/25 17:20:00（剩余 365360 分钟）」「签发时间：2026/7/25 17:20:00」「subject (sub)：clover」。截图为 UTC 时区、时钟固定为 2026-11-14T00:00:00Z。 点击图片可查看原图。</figcaption></figure>\n<p>这个示例 token 的 Header 是 <code>{\"alg\":\"HS256\",\"typ\":\"JWT\"}</code>，Payload 是 <code>{\"sub\":\"clover\",\"iat\":1785000000,\"exp\":1816536000}</code>，第三段是 18 字节的 <code>AnExampleSignature</code> 的 Base64URL。它不是 32 字节的 HMAC-SHA256 结果，所以填入任意非空密钥后点「校验 HS256 签名」，一定得到「签名无效」；示例只用于看结构，不是可验签的样本。</p>\n<p>另一个容易误解的地方：解码一个已经过期的 token，页面仍会显示「解码成功」，只在摘要里写「已过期」。状态条描述的是解析结果，不是有效期结论；这也是为什么不能把“解码成功”当成“令牌有效”。</p>\n\n<h2>六、HS256 验签：只回答“这个密钥算出的签名是否一致”</h2>\n<p>点「校验 HS256 签名」前要同时填 token 与密钥。页面在 token 与密钥都非空后先拆三段，再确认 <code>alg</code> 是 HS256，然后用 <code>header.payload</code> 与密钥重算 HMAC-SHA256，把结果转成 Base64URL 后与第三段逐字比较；一致显示「签名有效」，不一致显示「签名无效：密钥不匹配或 Token 被篡改」。</p>\n<figure><a href=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-verify-hs256.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：JWT 解码器验签演示的两个面板：输入框为自算 HS256 token，密钥框填 clover-demo-secret，状态条「签名有效」，输出区为解码得到的 Header、Payload 与四行信息摘要。\"><img src=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-verify-hs256.jpg\" alt=\"JWT 解码器验签演示的两个面板：输入框为自算 HS256 token，密钥框填 clover-demo-secret，状态条「签名有效」，输出区为解码得到的 Header、Payload 与四行信息摘要。\" width=\"1232\" height=\"1133\" loading=\"lazy\" decoding=\"async\"></a><figcaption>先解码再点「校验 HS256 签名」：输入框为自算 HS256 token，密钥框填 clover-demo-secret，绿色状态条写「签名有效」，输出区保留解码得到的 Header、Payload 与四行信息摘要（过期时间、签发时间、subject、issuer）。截图为 UTC 时区，时钟同图 1。 点击图片可查看原图。</figcaption></figure>\n<p>“签名有效”只证明签名匹配，不证明令牌未过期、签发者可信、受众正确或未被撤销。错误密钥与篡改 Payload 会得到同一句失败文案，页面没有区分这两种情况，不能据此判断是密钥错了还是内容被改了。若 Header 的 <code>alg</code> 不是 HS256，页面会显示提示「当前工具仅支持 HS256 验签（该 Token 使用 RS256）」，然后停止，不会退化成别的算法去验。</p>\n<p>页面判断算法时会把 <code>alg</code> 转成大写再比较，所以 <code>hs256</code> 这种小写写法也能通过；但服务端不应依赖这种宽松匹配，而应按注册表里的精确算法名和密钥类型做白名单。</p>\n\n<h2>七、HS256 与 RS256：密钥方向不同，算法不能由令牌说了算</h2>\n<p>HS256 是对称 MAC：签发和校验用同一个共享密钥，适合单服务或受控服务群。RS256 是非对称签名：私钥签发，公钥校验，资源服务器只拿公钥也能验签，私钥不必分发到每个校验点。两者不是“强度高低”的简单排序，而是密钥分发模型不同。</p>\n<p>关键风险是算法混淆：Header 里的 <code>alg</code> 由发送方填写，攻击者可以改。RFC 8725 第 2.1 节点名了把 <code>alg</code> 改成 <code>none</code>、或把 RS256 改成 HS256 并用 RSA 公钥当 HMAC 密钥的攻击；对应的最佳实践是调用方指定允许的算法集合、每个密钥只用于一种算法（第 3.1 节），并且只接受当前安全要求的算法（第 3.2 节）。</p>\n<p>所以服务端应先按业务决定“这里只接受 RS256”，再用对应公钥验签；不能读 Header 写什么就验什么，更不能把公钥当 HS256 的共享密钥。站内工具只支持 HS256，是本地演示的边界，不是服务端实现的模板。</p>\n\n<h2>八、撤销、没有 exp，以及“解码成功=有效吗”</h2>\n<p>签名正确、时间也没过，令牌仍可能已经被撤销。OAuth 2.0 的令牌撤销机制要求实现支持 refresh token 撤销、建议支持 access token 撤销；撤销端点收到请求后立即失效，但现实中可能有传播延迟。对于自包含的 access token，规范也承认可能需要授权服务器与资源服务器之间的后端交互，或改用短生命周期令牌来缩小窗口。</p>\n<p>签发者与受众同样要校验：<code>iss</code> 标识签发方，处理方式由应用决定；<code>aud</code> 标识预期接收方，处理方如果不在受众里就必须拒绝。RFC 8725 第 3.8、3.9 节把“验签发者/主题”和“验受众”列为独立要求。需要防重放时，<code>jti</code> 可以作为唯一标识配合服务端记录使用。</p>\n<ol>\n<li>用固定算法白名单验签，并确认密钥确实属于该签发者。</li>\n<li>按服务端当前时间检查 <code>exp</code> 与 <code>nbf</code>，只留策略允许的少量偏移。</li>\n<li>校验 <code>iss</code>、<code>aud</code>、<code>sub</code> 是否与当前应用和用户匹配。</li>\n<li>检查会话/令牌是否被撤销、登出或轮换，必要时查 <code>jti</code> 或版本号。</li>\n<li>最后才做权限与业务授权；签名只解决“内容没被改”，不解决“这个人能不能做这件事”。</li>\n</ol>\n<p>回到常见问题：解码成功说明三段能拆开、前两段是合法 JSON；验签成功说明签名匹配。它们都不等于“令牌有效”。只有把签名、时间、签发者、受众、撤销与权限一起检查完，才能得到可用的授权结论。</p>\n\n<h2>九、边界与限制：本地工具能做什么，不能做什么</h2>\n<p>站内 JWT 解码器只处理三段式 JWS 紧凑格式，不处理五段式 JWE，也不解析加密后的内容；验签只支持 HS256，不支持 RS256、ES256 等算法；它展示 <code>exp</code> 摘要但不执行过期拒绝，也不校验 <code>aud</code>、<code>iss</code> 或撤销状态。示例 token 的签名是 18 字节的演示值，不能通过 HS256 验签。</p>\n<p>页面确实把处理留在本地：本次实测里，解码期间没有出现携带 token 的请求；密钥框也写明「仅本地校验，不离开浏览器」。但“本地”不等于“可以随便贴”：截图、录屏、浏览器扩展、共享电脑都可能泄露令牌。请用已脱敏的测试 token，不要粘贴生产凭据。</p>\n<p>另外两个小边界：「清空」只清输入与输出并把状态条隐藏，密钥框会保留上一个值；日期按浏览器本地时区显示，同一 token 在不同时区看到的钟点不同。把这两点记住，能少踩一些“为什么和服务器看到的不一样”的坑。</p>\n<p>本文的规范部分以 RFC 7519、RFC 7515、RFC 8725 与 RFC 7009 为准，页面行为以当前线上实现与本次实测证据为准；示例中的时间与状态均由固定时钟复现。</p>",
   "faqs": [
     {
       "q": "JWT 解码成功就说明令牌有效吗？",
-      "a": "不说明。解码没有验签，也没有确认签发者、受众、过期和撤销状态。"
+      "a": "不说明。解码只做 Base64URL 还原与 JSON 解析；签名、<code>exp</code>/<code>nbf</code>、<code>iss</code>/<code>aud</code>、撤销状态和权限都要另外检查。站内工具对过期 token 仍会显示「解码成功」，只在摘要里标注「已过期」。"
     },
     {
       "q": "exp 是秒还是毫秒？",
-      "a": "JWT 标准注册声明通常使用 NumericDate，即秒级时间；仍应以你的服务端实现和接口文档为准。"
+      "a": "RFC 7519 规定 <code>exp</code> 是 NumericDate，单位是秒（自 1970-01-01T00:00:00Z 起），允许非整数。站内工具会把 <code>exp</code> 乘以 1000 再构造日期；填 13 位毫秒值会被当成秒，年份会跑到五位数。遇到非常规实现，先看签发方文档。"
+    },
+    {
+      "q": "本地时间不准或时区不同，会影响过期判断吗？",
+      "a": "会影响你在浏览器里看到的“剩余 N 分钟”和日期，因为页面用 <code>Date.now()</code> 与本机时区计算、显示；但服务端应按自己的时钟和允许的少量 leeway 判断。不要用客户端显示结果做授权决定。"
+    },
+    {
+      "q": "HS256 和 RS256 有什么区别？",
+      "a": "HS256 用同一个共享密钥做 HMAC，签发与校验双方都要持有它；RS256 用私钥签发、公钥校验，资源服务器只拿公钥即可验签。服务端应固定允许的算法集合，不能根据 Header 里的 <code>alg</code> 临时换算法，也要避免把 RSA 公钥当 HS256 密钥使用。"
+    },
+    {
+      "q": "没有 exp 是不是就永不过期？",
+      "a": "不是。RFC 7519 把 <code>exp</code> 标为 OPTIONAL；没有它只表示标准没有给出截止时间。服务端仍可通过会话策略、短生命周期、密钥轮换、撤销名单或 <code>jti</code> 记录让令牌失效。"
+    },
+    {
+      "q": "token 被撤销了，解码或验签能看出来吗？",
+      "a": "不能。JWT 本身通常不携带撤销状态，签名与 <code>exp</code> 都正常也可能已被撤销。OAuth 2.0 定义了撤销端点，但自包含令牌往往还需要后端交互或缩短有效期；是否撤销要以签发方的会话/撤销记录为准。"
     }
   ],
   "sources": [
     {
-      "title": "RFC 7519：JSON Web Token",
-      "url": "https://www.rfc-editor.org/rfc/rfc7519"
+      "title": "RFC 7519: JSON Web Token (JWT)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7519",
+      "publisher": "IETF",
+      "why": "定义 JWT 三段结构、NumericDate 与 exp/nbf/iat/iss/sub/aud/jti 等声明；本文第 2、3、8 节引用第 2、3、4.1 节，第 2 节另引第 12 节的隐私提醒。",
+      "accessedAt": "2026-11-13",
+      "status": 200
+    },
+    {
+      "title": "RFC 7515: JSON Web Signature (JWS)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7515",
+      "publisher": "IETF",
+      "why": "定义 Base64URL 编码与 JWS 紧凑序列化，并在第 5.2 节给出签名输入、验签步骤与 alg 要求；本文第 2、6 节引用第 2、5.2 节。",
+      "accessedAt": "2026-11-13",
+      "status": 200
+    },
+    {
+      "title": "RFC 8725: JSON Web Token Best Current Practices",
+      "url": "https://www.rfc-editor.org/rfc/rfc8725",
+      "publisher": "IETF",
+      "why": "给出算法白名单、密钥单一用途、签发者/受众校验等最佳实践，并描述 none 与 RS256→HS256 混淆攻击；本文第 7、8 节引用第 2.1、3.1、3.2、3.8、3.9 节。",
+      "accessedAt": "2026-11-13",
+      "status": 200
+    },
+    {
+      "title": "RFC 7009: OAuth 2.0 Token Revocation",
+      "url": "https://www.rfc-editor.org/rfc/rfc7009",
+      "publisher": "IETF",
+      "why": "说明 OAuth 令牌撤销端点、refresh/access token 的撤销要求与传播延迟，以及自包含令牌的撤销取舍；本文第 8 节引用第 2、3 节。",
+      "accessedAt": "2026-11-13",
+      "status": 200
     }
   ],
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
+    "auto": true,
+    "mode": "upgrade-guide",
+    "runId": "2026-11-14T06",
+    "type": "upgrade-guide",
+    "primaryQuery": "jwt 过期 验签",
+    "angle": "JWT 过期与验签：时间、时钟偏移与常见误解",
+    "upgradedFrom": {
+      "published": "2026-09-30",
+      "cjk": 238
+    },
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "verifiedAt": "2026-11-13T22:29:23.917Z",
     "originalPublished": "2026-09-30"
-  }
+  },
+  "image": "/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg"
 }

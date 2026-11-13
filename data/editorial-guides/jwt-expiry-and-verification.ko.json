@@ -1,0 +1,66 @@
+{
+  "slug": "jwt-expiry-and-verification",
+  "title": "JWT 만료와 서명 검증: exp 초 단위 시각, 클록 오차와 흔한 오해",
+  "description": "JWT의 exp, nbf, iat은 모두 초 단위 NumericDate입니다. 만료 판단에는 서버 현재 시각과 몇 분의 클록 오차가 필요하고, 디코딩은 Header와 Payload만 읽으며, HS256 서명 검증 성공도 토큰이 만료되지 않았거나 폐기되지 않았다는 뜻은 아닙니다.",
+  "category": "开发实用",
+  "toolSlug": "jwt-decoder",
+  "published": "2026-09-30",
+  "updated": "2026-11-14",
+  "readingMinutes": 7,
+  "content": "<p>JWT의 <code>exp</code>는 초 단위 NumericDate이며, 만료 여부는 서버의 현재 시각과 <code>exp</code>를 비교해 판단하고 몇 분의 클록 오차를 남겨 둘 수 있습니다. 디코딩은 Header와 Payload만 읽고, HS256 서명 검증은 서명이 일치한다는 것만 알려 주므로 이 세 가지는 서로를 대신할 수 없습니다.</p>\n\n<h2>1. 먼저 구분할 세 가지: 디코딩, 서명 검증, 클레임 검증</h2>\n<p>JWT를 도구에 붙여 넣고 「解码」(디코딩)를 누르면 Header와 Payload의 JSON이 보입니다. 「校验 HS256 签名」(HS256 서명 검증)을 누르면 입력한 키로 HMAC을 다시 계산해 세 번째 세그먼트와 비교합니다. 두 동작 모두 “토큰이 유효하다”는 완전한 증명은 아닙니다.</p>\n<ul>\n<li><strong>디코딩</strong>: Base64URL로 JSON을 복원하며, 이 문자열이 세 세그먼트로 나뉘고 앞의 두 세그먼트가 올바른 JSON이라는 것만 증명합니다.</li>\n<li><strong>서명 검증</strong>: 키로 서명을 다시 계산해, 서명이 이 header.payload와 일치한다는 것을 증명합니다.</li>\n<li><strong>클레임 검증</strong>: <code>exp</code>, <code>nbf</code>, <code>iss</code>, <code>aud</code>, 폐기 상태와 권한을 확인해 “이 토큰을 지금 쓸 수 있는지”를 결정합니다.</li>\n</ul>\n<p>사이트 내 <a href=\"/ko/tools/dev/jwt-decoder/\">JWT 디코더</a>는 앞의 두 단계를 한 페이지에 담았습니다. 디코딩도 되고 HS256 키로 서명 검증도 됩니다. <code>exp</code>를 요약으로 보여 주지만 만료되었다고 토큰을 거부하지는 않습니다. 그래서 화면의 초록색 「解码成功」은 파싱이 성공했다는 뜻일 뿐, 서버가 받아 준다는 뜻은 아닙니다.</p>\n\n<h2>2. 세 세그먼트 구조: Header, Payload, Signature</h2>\n<p>RFC 7519는 JWT를 마침표로 구분된 URL-safe 조각으로 설명하며, 각 조각은 base64url 인코딩 값입니다. JWS 형식의 JWT는 보통 정확히 세 세그먼트입니다. Header는 알고리즘과 타입을 설명하고, Payload는 클레임을 담고, Signature는 앞의 두 세그먼트를 보호합니다.</p>\n<p>세 세그먼트 JWS의 base64url은 암호화가 아닙니다. Base64의 <code>+</code>, <code>/</code>를 <code>-</code>, <code>_</code>로 바꾸고 끝의 <code>=</code> 패딩을 제거했을 뿐입니다. 토큰을 가진 사람은 누구나 평문 JSON을 복원할 수 있으므로 Payload에는 비밀번호, 장기 키, 클라이언트가 읽으면 안 되는 개인 정보를 넣지 마세요. 두 인코딩을 따로 비교하려면 <a href=\"/ko/tools/dev/base64/\">Base64 인코더·디코더</a>로 같은 바이트의 두 가지 출력을 확인할 수 있습니다.</p>\n<table>\n<thead><tr><th>세그먼트</th><th>일반적인 내용</th><th>바로 읽을 수 있는지</th><th>사이트 도구의 표시 방식</th></tr></thead>\n<tbody>\n<tr><td>Header</td><td><code>{\"alg\":\"HS256\",\"typ\":\"JWT\"}</code></td><td>예, Base64URL 디코딩이면 충분</td><td>「═══ Header ═══」와 들여쓴 JSON</td></tr>\n<tr><td>Payload</td><td><code>sub</code>, <code>iat</code>, <code>exp</code>, <code>iss</code> 등의 클레임</td><td>예, 기본적으로 암호화되지 않음</td><td>「═══ Payload ═══」와 들여쓴 JSON</td></tr>\n<tr><td>Signature</td><td><code>header.payload</code>에 대한 서명 또는 MAC</td><td>아니요, 다만 다시 계산해 비교 가능</td><td>출력 영역에 따로 펼치지 않고 서명 검증에 사용</td></tr>\n</tbody>\n</table>\n<p>서명 입력은 토큰 전체가 아니라 <code>ASCII(BASE64URL(header) || '.' || BASE64URL(payload))</code>이며, 세 번째 세그먼트는 서명 입력에 포함되지 않습니다. RFC 7515 5.2절은 <code>alg</code>가 반드시 존재하고 실제 사용한 알고리즘을 정확히 나타내야 한다고 요구합니다.</p>\n\n<h2>3. exp, iat, nbf: 단위는 밀리초가 아니라 초</h2>\n<p>NumericDate는 “1970-01-01T00:00:00Z 이후 경과한 초”로 정의되며 정수가 아니어도 됩니다. RFC 7519의 <code>exp</code>, <code>nbf</code>, <code>iat</code>는 모두 이 타입이어야 합니다. <code>exp</code>는 “이 시각 이후에는 더 이상 받아들이지 말 것”, <code>nbf</code>는 “이 시각 이전에는 받아들이지 말 것”을 뜻하고, <code>iat</code>는 발급 시각만 나타내며 토큰의 나이를 판단하는 데 쓸 수 있습니다.</p>\n<p>그래서 <code>exp</code>는 보통 10자리 숫자입니다. 13자리 밀리초 값을 그대로 넣어도 도구는 초로 해석합니다. 사이트 페이지는 <code>exp</code>에 1000을 곱해 날짜를 만들기 때문에 13자리 값이 들어가면 연도가 다섯 자리가 되어 “영원히 만료되지 않는” 것처럼 보입니다. 타임스탬프를 환산하려면 <a href=\"/ko/tools/daily/timestamp/\">타임스탬프 변환 도구</a>로 단위를 먼저 확인하세요.</p>\n<p>세 클레임은 모두 OPTIONAL입니다. <code>exp</code>가 없다고 토큰이 영원히 만료되지 않는 것은 아니며, 표준이 그 마감 시각을 정해 두지 않았다는 뜻일 뿐입니다. 서버는 세션 정책, 키 교체, 폐기 메커니즘으로 여전히 토큰을 무효화할 수 있습니다.</p>\n\n<h2>4. 클록 오차: 몇 분의 여유이지 영구 면제권이 아님</h2>\n<p>발급자, 리소스 서버, 검증자가 같은 기계가 아닐 수 있고 시스템 시계에도 약간의 차이가 있습니다. RFC 7519는 구현자가 <code>exp</code>와 <code>nbf</code>에 약간의 leeway를 둘 수 있게 허용하며, 보통 몇 분을 넘지 않습니다. 이는 clock skew를 흡수하기 위한 것이지 만료 시각을 무한정 미루라는 뜻이 아닙니다.</p>\n<p>브라우저의 디코딩 도구는 로컬 시간을 씁니다. 페이지는 <code>Date.now()</code>로 남은 분을 계산하고 <code>toLocaleString</code>으로 로컬 시간대에 맞춰 날짜를 표시합니다. 노트북 시계가 10분 느리면 “남은 N분”도 10분 늘어나고, 시간대가 다르면 표시되는 시각도 달라집니다. 그러나 서버가 자기 시계로 내리는 판단은 바뀌지 않습니다.</p>\n<p>따라서 “로컬에서는 아직 만료되지 않았다”는 것을 권한 부여의 근거로 삼을 수 없습니다. 서버는 자기 시계와 정책에 따라 허용 가능한 오차를 정해야 하고, 클라이언트 표시는 문제를 살펴보는 용도로만 적합합니다.</p>\n\n<h2>5. 사이트 내 JWT 디코더에서 시간 필드 확인하기</h2>\n<p>조작은 간단합니다. 「示例」를 눌러 내장 token을 채우고 「解码」를 누르면 됩니다. 출력 영역에는 Header와 Payload가 먼저 나오고 이어서 「信息摘要」가 나옵니다. <code>exp</code> 행에는 로컬 시각과 남은 분이, <code>iat</code> 행에는 발급 시각이 표시되고 <code>sub</code>, <code>iss</code>가 있으면 각각 한 줄씩 추가됩니다. 상태 표시줄이 초록색으로 바뀌고 「解码成功」이라고 표시됩니다.</p>\n<figure><a href=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"크게 보기: JWT 디코더로 예시 token을 디코딩한 뒤의 두 패널. 입력 상자에는 세 세그먼트 예시 token이, 키 상자는 비어 있고, 상태 표시줄에는 「解码成功」, 출력 영역에는 Header, Payload와 정보 요약의 만료 시간, 발급 시간, subject 행이 표시됩니다.\"><img src=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg\" alt=\"JWT 디코더로 예시 token을 디코딩한 뒤의 두 패널. 입력 상자에는 세 세그먼트 예시 token이, 키 상자는 비어 있고, 상태 표시줄에는 「解码成功」, 출력 영역에는 Header, Payload와 정보 요약의 만료 시간, 발급 시간, subject 행이 표시됩니다.\" width=\"1232\" height=\"1086\" loading=\"lazy\" decoding=\"async\"></a><figcaption>예시 token을 디코딩한 뒤의 두 패널입니다. 위쪽 「JWT Token」 입력 상자에는 세 세그먼트 token 전체가 남아 있고, 아래쪽 초록색 상태 표시줄에는 「解码成功」이 적혀 있으며, 출력 영역에는 Header, Payload와 「信息摘要」가 차례로 표시됩니다. 그중 「过期时间：2027/7/25 17:20:00（剩余 365360 分钟）」「签发时间：2026/7/25 17:20:00」「subject (sub)：clover」가 보입니다. 스크린샷은 UTC 시간대에 시계를 2026-11-14T00:00:00Z로 고정한 상태입니다. 이미지를 클릭하면 원본 크기로 볼 수 있습니다.</figcaption></figure>\n<p>이 예시 token의 Header는 <code>{\"alg\":\"HS256\",\"typ\":\"JWT\"}</code>이고 Payload는 <code>{\"sub\":\"clover\",\"iat\":1785000000,\"exp\":1816536000}</code>이며, 세 번째 세그먼트는 18바이트 <code>AnExampleSignature</code>의 Base64URL입니다. 32바이트 HMAC-SHA256 결과가 아니므로 비어 있지 않은 임의의 키를 넣고 「校验 HS256 签名」을 눌러도 반드시 「签名无效」가 나옵니다. 예시는 구조를 보기 위한 것이지 검증 가능한 표본이 아닙니다.</p>\n<p>또 하나 오해하기 쉬운 점은, 이미 만료된 token을 디코딩해도 페이지는 여전히 「解码成功」을 보여 주고 요약에만 「已过期」라고 적는다는 것입니다. 상태 표시줄은 파싱 결과를 설명할 뿐 유효기간의 결론이 아닙니다. 그래서 “디코딩 성공”을 “토큰 유효”로 삼을 수 없습니다.</p>\n\n<h2>6. HS256 서명 검증: “이 키로 계산한 서명이 일치하는가”만 답함</h2>\n<p>「校验 HS256 签名」을 누르기 전에 token과 키를 모두 채워야 합니다. 페이지는 token과 키가 모두 비어 있지 않으면 먼저 세 세그먼트를 나누고, <code>alg</code>가 HS256인지 확인한 뒤 <code>header.payload</code>와 키로 HMAC-SHA256을 다시 계산합니다. 결과를 Base64URL로 바꿔 세 번째 세그먼트와 글자 단위로 비교해 같으면 「签名有效」, 다르면 「签名无效：密钥不匹配或 Token 被篡改」를 표시합니다.</p>\n<figure><a href=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-verify-hs256.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"크게 보기: JWT 디코더 서명 검증 시연의 두 패널. 입력 상자에는 직접 계산한 HS256 token이, 키 상자에는 clover-demo-secret이 채워져 있고, 상태 표시줄에는 「签名有效」, 출력 영역에는 디코딩된 Header, Payload와 네 줄의 정보 요약이 표시됩니다.\"><img src=\"/article-images/2026-11/jwt-expiry-and-verification-jwt-verify-hs256.jpg\" alt=\"JWT 디코더 서명 검증 시연의 두 패널. 입력 상자에는 직접 계산한 HS256 token이, 키 상자에는 clover-demo-secret이 채워져 있고, 상태 표시줄에는 「签名有效」, 출력 영역에는 디코딩된 Header, Payload와 네 줄의 정보 요약이 표시됩니다.\" width=\"1232\" height=\"1133\" loading=\"lazy\" decoding=\"async\"></a><figcaption>먼저 디코딩한 뒤 「校验 HS256 签名」을 누른 상태입니다. 입력 상자에는 직접 계산한 HS256 token이, 키 상자에는 clover-demo-secret이 채워져 있고, 초록색 상태 표시줄에는 「签名有效」가 적혀 있으며, 출력 영역에는 디코딩된 Header, Payload와 네 줄의 정보 요약(만료 시간, 발급 시간, subject, issuer)이 남아 있습니다. 스크린샷은 UTC 시간대이며 시계는 그림 1과 같습니다. 이미지를 클릭하면 원본 크기로 볼 수 있습니다.</figcaption></figure>\n<p>“서명 유효”는 서명이 일치한다는 것만 증명하며, 토큰이 만료되지 않았거나 발급자를 신뢰할 수 있거나 대상이 올바르거나 폐기되지 않았다는 것은 증명하지 않습니다. 잘못된 키와 변조된 Payload는 같은 실패 문구를 만들고 페이지는 두 경우를 구분하지 않으므로, 키가 틀렸는지 내용이 바뀌었는지 판단할 근거가 되지 못합니다. Header의 <code>alg</code>가 HS256이 아니면 페이지는 「当前工具仅支持 HS256 验签（该 Token 使用 RS256）」라는 안내를 표시하고 멈추며, 다른 알고리즘으로 대신 검증하지 않습니다.</p>\n<p>페이지는 알고리즘을 판단할 때 <code>alg</code>를 대문자로 바꿔 비교하므로 <code>hs256</code> 같은 소문자 표기도 통과합니다. 그러나 서버는 이런 느슨한 일치에 의존하지 말고 레지스트리의 정확한 알고리즘 이름과 키 유형으로 화이트리스트를 만들어야 합니다.</p>\n\n<h2>7. HS256과 RS256: 키 방향이 다르고, 알고리즘은 토큰이 정할 일이 아님</h2>\n<p>HS256은 대칭 MAC입니다. 발급과 검증이 같은 공유 키를 쓰므로 단일 서비스나 통제된 서비스군에 적합합니다. RS256은 비대칭 서명입니다. 개인 키로 발급하고 공개 키로 검증하므로 리소스 서버가 공개 키만 받아도 서명을 검증할 수 있고, 개인 키를 모든 검증 지점에 배포할 필요가 없습니다. 둘은 “강도 순위”가 아니라 키 배포 모델이 다른 것입니다.</p>\n<p>핵심 위험은 알고리즘 혼동입니다. Header의 <code>alg</code>는 보낸 쪽이 채우는 값이라 공격자가 바꿀 수 있습니다. RFC 8725 2.1절은 <code>alg</code>를 <code>none</code>으로 바꾸거나 RS256을 HS256으로 바꿔 RSA 공개 키를 HMAC 키로 쓰게 만드는 공격을 지목합니다. 대응하는 모범 사례는 호출하는 쪽이 허용 알고리즘 집합을 지정하고, 키마다 하나의 알고리즘에만 사용하며(3.1절), 현재 보안 요구에 맞는 알고리즘만 받아들이는 것입니다(3.2절).</p>\n<p>그래서 서버는 먼저 업무에 따라 “여기서는 RS256만 받는다”를 정한 뒤 해당 공개 키로 검증해야 합니다. Header에 적힌 대로 검증해서는 안 되고, 공개 키를 HS256의 공유 키로 쓰는 일은 더더욱 없어야 합니다. 사이트 도구가 HS256만 지원하는 것은 로컬 데모의 경계이지 서버 구현의 본보기가 아닙니다.</p>\n\n<h2>8. 폐기, exp 없음, 그리고 “디코딩 성공 = 유효?”</h2>\n<p>서명이 맞고 시간도 지나지 않았는데 토큰이 이미 폐기되었을 수 있습니다. OAuth 2.0 토큰 폐기 메커니즘은 구현이 refresh token 폐기를 지원할 것을 요구하고(MUST), access token 폐기를 지원할 것을 권장합니다(SHOULD). 폐기 엔드포인트는 요청을 받으면 즉시 무효화하지만 실제로는 전파 지연이 있을 수 있습니다. 자체 포함 access token의 경우 규격도 인가 서버와 리소스 서버 사이의 백엔드 상호작용이 필요하거나, 수명이 짧은 토큰으로 창을 줄이는 방식을 인정합니다.</p>\n<p>발급자와 대상도 검증해야 합니다. <code>iss</code>는 발급자를 식별하며 처리 방식은 애플리케이션이 정합니다. <code>aud</code>는 예상 수신자를 식별하며, 처리하는 쪽이 대상에 포함되지 않으면 거부해야 합니다. RFC 8725 3.8절과 3.9절은 “발급자/주체 검증”과 “대상 검증”을 별도 요구 사항으로 둡니다. 재전송을 막아야 할 때는 <code>jti</code>를 고유 식별자로 서버 기록과 함께 사용할 수 있습니다.</p>\n<ol>\n<li>고정된 알고리즘 화이트리스트로 서명을 검증하고, 키가 정말 해당 발급자의 것인지 확인합니다.</li>\n<li>서버의 현재 시각으로 <code>exp</code>와 <code>nbf</code>를 검사하고, 정책이 허용하는 소량의 오차만 둡니다.</li>\n<li><code>iss</code>, <code>aud</code>, <code>sub</code>가 현재 애플리케이션과 사용자에 맞는지 확인합니다.</li>\n<li>세션/토큰이 폐기·로그아웃·교체되지 않았는지 확인하고 필요하면 <code>jti</code>나 버전 번호를 조회합니다.</li>\n<li>마지막에 권한과 업무 인가를 처리합니다. 서명은 “내용이 바뀌지 않았다”만 해결하고 “이 사람이 이 일을 해도 되는가”는 해결하지 않습니다.</li>\n</ol>\n<p>다시 흔한 질문으로 돌아가면, 디코딩 성공은 세 세그먼트가 나뉘고 앞의 두 세그먼트가 올바른 JSON이라는 뜻이고, 서명 검증 성공은 서명이 일치한다는 뜻입니다. 어느 것도 “토큰 유효”와 같지 않습니다. 서명, 시간, 발급자, 대상, 폐기, 권한을 함께 확인해야 쓸 수 있는 인가 결론에 도달합니다.</p>\n\n<h2>9. 경계와 한계: 로컬 도구가 할 수 있는 일과 없는 일</h2>\n<p>사이트 내 JWT 디코더는 세 세그먼트 JWS 컴팩트 형식만 다루고, 다섯 세그먼트 JWE나 암호화된 내용은 해석하지 않습니다. 서명 검증은 HS256만 지원하며 RS256, ES256 등의 알고리즘은 지원하지 않습니다. <code>exp</code> 요약을 보여 주지만 만료 거부를 수행하지 않고 <code>aud</code>, <code>iss</code>, 폐기 상태도 검증하지 않습니다. 예시 token의 서명은 18바이트 데모 값이라 HS256 검증을 통과하지 못합니다.</p>\n<p>페이지가 처리를 실제로 로컬에서 하는 것은 맞습니다. 이번 실측에서 디코딩 중 token을 담은 요청은 없었고, 키 상자에도 「仅本地校验，不离开浏览器」라고 적혀 있습니다. 다만 “로컬”이 “아무거나 붙여 넣어도 된다”는 뜻은 아닙니다. 스크린샷, 화면 녹화, 브라우저 확장, 공용 PC 모두 토큰을 유출할 수 있습니다. 비식별화한 테스트 token을 쓰고 운영 자격 증명은 붙여 넣지 마세요.</p>\n<p>작은 경계가 둘 더 있습니다. 「清空」은 입력과 출력만 지우고 상태 표시줄을 숨기며 키 상자에는 이전 값이 남습니다. 날짜는 브라우저 로컬 시간대로 표시되므로 같은 token이라도 시간대에 따라 보이는 시각이 다릅니다. 이 두 가지를 기억하면 “왜 서버에서 보는 것과 다른가”에서 오는 실수를 줄일 수 있습니다.</p>\n<p>이 글의 규격 부분은 RFC 7519, RFC 7515, RFC 8725, RFC 7009를 기준으로 하고, 페이지 동작은 현재 운영 구현과 이번 실측 근거를 기준으로 합니다. 예시의 시간과 상태는 모두 고정된 시계로 재현했습니다.</p>",
+  "faqs": [
+    {
+      "q": "JWT 디코딩이 성공하면 토큰이 유효한가요?",
+      "a": "아닙니다. 디코딩은 Base64URL 복원과 JSON 파싱만 합니다. 서명, <code>exp</code>/<code>nbf</code>, <code>iss</code>/<code>aud</code>, 폐기 상태와 권한은 따로 확인해야 합니다. 사이트 도구는 만료된 token에도 여전히 「解码成功」을 표시하고 요약에만 「已过期」라고 적습니다."
+    },
+    {
+      "q": "exp는 초 단위인가요, 밀리초 단위인가요?",
+      "a": "RFC 7519는 <code>exp</code>를 NumericDate로 정하며 단위는 초(1970-01-01T00:00:00Z부터)이고 정수가 아니어도 됩니다. 사이트 도구는 <code>exp</code>에 1000을 곱해 날짜를 만들므로 13자리 밀리초 값을 넣으면 초로 해석되어 연도가 다섯 자리가 됩니다. 비표준 구현을 만나면 발급자 문서를 먼저 확인하세요."
+    },
+    {
+      "q": "로컬 시각이 부정확하거나 시간대가 다르면 만료 판단에 영향이 있나요?",
+      "a": "브라우저에서 보이는 “남은 N분”과 날짜에는 영향을 줍니다. 페이지가 <code>Date.now()</code>와 로컬 시간대로 계산하고 표시하기 때문입니다. 그러나 서버는 자기 시계와 허용된 소량의 leeway로 판단해야 합니다. 클라이언트 표시 결과를 권한 결정에 쓰지 마세요."
+    },
+    {
+      "q": "HS256과 RS256은 무엇이 다른가요?",
+      "a": "HS256은 같은 공유 키로 HMAC을 만들기 때문에 발급과 검증 양쪽이 모두 키를 가져야 합니다. RS256은 개인 키로 발급하고 공개 키로 검증하므로 리소스 서버는 공개 키만 있으면 서명을 검증할 수 있습니다. 서버는 허용 알고리즘 집합을 고정해야 하고 Header의 <code>alg</code>에 따라 알고리즘을 즉석에서 바꾸면 안 되며, RSA 공개 키를 HS256 키로 쓰는 일도 피해야 합니다."
+    },
+    {
+      "q": "exp가 없으면 영원히 만료되지 않나요?",
+      "a": "아닙니다. RFC 7519는 <code>exp</code>를 OPTIONAL로 표시합니다. 없다는 것은 표준이 마감 시각을 제시하지 않았다는 뜻일 뿐입니다. 서버는 세션 정책, 짧은 수명, 키 교체, 폐기 목록, <code>jti</code> 기록으로 여전히 토큰을 무효화할 수 있습니다."
+    },
+    {
+      "q": "token이 폐기되면 디코딩이나 서명 검증으로 알 수 있나요?",
+      "a": "알 수 없습니다. JWT 자체는 보통 폐기 상태를 담지 않으므로 서명과 <code>exp</code>가 모두 정상이어도 이미 폐기되었을 수 있습니다. OAuth 2.0은 폐기 엔드포인트를 정의하지만 자체 포함 토큰은 백엔드 상호작용이 필요하거나 유효기간을 줄여야 하는 경우가 많습니다. 폐기 여부는 발급자의 세션/폐기 기록을 기준으로 해야 합니다."
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 7519: JSON Web Token (JWT)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7519"
+    },
+    {
+      "title": "RFC 7515: JSON Web Signature (JWS)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7515"
+    },
+    {
+      "title": "RFC 8725: JSON Web Token Best Current Practices",
+      "url": "https://www.rfc-editor.org/rfc/rfc8725"
+    },
+    {
+      "title": "RFC 7009: OAuth 2.0 Token Revocation",
+      "url": "https://www.rfc-editor.org/rfc/rfc7009"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "jwt-expiry-and-verification",
+      "lang": "ko",
+      "translatedFrom": "7c6c49f90ce4f6b70b89d8c3d434a915320545fafaeaf76fa286c0cfdd238e67",
+      "translatedAt": "2026-11-13T22:44:13.871Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.9
+    }
+  },
+  "image": "/article-images/2026-11/jwt-expiry-and-verification-jwt-decode-exp.jpg"
+}

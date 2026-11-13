@@ -310,5 +310,31 @@
     "alt": "ASCII 艺术字工具的中文像素画结果。上方「输入内容」面板里「中文像素画」标签选中，输入框是两行「三叶草工具箱」和「CloverTools」，清晰度 8、字符集「细腻灰阶（纯 ASCII）」、每行宽度 60、反色未勾选，底部绿色状态条「生成完成」。下方「终端输出」面板的假命令行分两行显示：第一行 clover@tools:~/ascii-cjk$ clover-ascii \"三叶草工具箱，第二行 CloverTools\" -res 8 -charset gray -w 60，终端可滚动，图中可见输出开头：首行「 =@@@@@@@@@@@@= .@%%%@-  +@+    -###@@###%@@###-」，第二行「                .@* +@-  +@+      =#%@####@%#=」；统计行「30 行 · 1373 字符 · 最大宽度 60」，终端右上角「60×30」。",
     "caption": "中文像素画示例（8 行/字、灰阶、宽度 60，假时钟 2026-11-13T10:00:00Z）：输入「三叶草工具箱」换行「CloverTools」，输出统计 30 行、最大宽度 60，首行「 =@@@@@@@@@@@@= .@%%%@-  +@+    -###@@###%@@###-」，第二行「                .@* +@-  +@+      =#%@####@%#=」，状态条「生成完成」；终端可滚动，图中展示开头部分。",
     "slug": "ascii-art"
+  },
+  {
+    "file": "jwt-expiry-and-verification-jwt-decode-exp.jpg",
+    "width": 1232,
+    "height": 1086,
+    "bytes": 78532,
+    "sha256": "238eaac81b02a4024a5f873c76abcc997371c69adf7cf26598722411cf6d55b1",
+    "capturedAt": "2026-11-13T22:14:00.939Z",
+    "source": "/tools/dev/jwt-decoder/",
+    "purpose": "支撑正文“示例 token 解码后的时间摘要”与“解码成功只代表解析成功”的断言。",
+    "alt": "JWT 解码器解码示例 token 后的两个面板：输入框为三段示例 token，密钥框为空，状态条「解码成功」，输出区显示 Header、Payload 与信息摘要的过期时间、签发时间与 subject 行。",
+    "caption": "示例 token 解码后的两个面板：上方「JWT Token」输入框保留完整三段 token，下方绿色状态条写「解码成功」，输出区依次显示 Header、Payload 与「信息摘要」，其中「过期时间：2027/7/25 17:20:00（剩余 365360 分钟）」「签发时间：2026/7/25 17:20:00」「subject (sub)：clover」。截图为 UTC 时区、时钟固定为 2026-11-14T00:00:00Z。 点击图片可查看原图。",
+    "slug": "jwt-expiry-and-verification"
+  },
+  {
+    "file": "jwt-expiry-and-verification-jwt-verify-hs256.jpg",
+    "width": 1232,
+    "height": 1133,
+    "bytes": 88923,
+    "sha256": "53bddccbd73d4b2d66ce6939056f1e7ab3e1aa05d0ed873b845b5218dbc7d9de",
+    "capturedAt": "2026-11-13T22:14:01.898Z",
+    "source": "/tools/dev/jwt-decoder/",
+    "purpose": "支撑正文“自算 HS256 签名可得到签名有效，且签名有效不等于过期/受众/撤销校验”的断言。",
+    "alt": "JWT 解码器验签演示的两个面板：输入框为自算 HS256 token，密钥框填 clover-demo-secret，状态条「签名有效」，输出区为解码得到的 Header、Payload 与四行信息摘要。",
+    "caption": "先解码再点「校验 HS256 签名」：输入框为自算 HS256 token，密钥框填 clover-demo-secret，绿色状态条写「签名有效」，输出区保留解码得到的 Header、Payload 与四行信息摘要（过期时间、签发时间、subject、issuer）。截图为 UTC 时区，时钟同图 1。 点击图片可查看原图。",
+    "slug": "jwt-expiry-and-verification"
   }
 ]
