@@ -99,18 +99,26 @@ export function auditSeoPage(content, file, siteUrl) {
   const title = decodeEntities(
     content.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.trim() ?? '',
   );
-  if (!title || [...title].length > SEO_LIMITS.titleMax)
-    problems.push('title 缺失或过长');
+  const titleLength = [...title].length;
+  const titleMin = SEO_LIMITS.titleMin[lang] ?? 0;
+  if (
+    !title ||
+    titleLength > SEO_LIMITS.titleMax ||
+    (!errorPage && titleLength < titleMin)
+  )
+    problems.push(
+      `title 长度 ${titleLength} 不在 ${titleMin}~${SEO_LIMITS.titleMax}（${lang}）`,
+    );
   const desc = meta('name', 'description');
-  const descMax = SEO_LIMITS.descriptionMax[lang];
+  const descMin = SEO_LIMITS.descriptionMin[lang] ?? 0;
+  const descMax = SEO_LIMITS.descriptionMax[lang] ?? SEO_LIMITS.descriptionMax.en;
+  const descLength = [...desc].length;
   if (
     !desc ||
-    (!errorPage &&
-      ([...desc].length < SEO_LIMITS.descriptionMin ||
-        [...desc].length > descMax))
+    (!errorPage && (descLength < descMin || descLength > descMax))
   ) {
     problems.push(
-      `meta description 长度 ${[...desc].length} 超出 ${SEO_LIMITS.descriptionMin}~${descMax}`,
+      `meta description 长度 ${descLength} 超出 ${descMin}~${descMax}（${lang}）`,
     );
   }
   const canonical = tags.find((tag) => tag.rel === 'canonical')?.href;

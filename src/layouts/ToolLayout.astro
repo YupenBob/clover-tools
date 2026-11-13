@@ -16,6 +16,7 @@ import {
   type Lang,
 } from '../lib/i18n';
 import { getGuidesForTool } from '../lib/guides';
+import { TOOL_SEO_ZH } from '../lib/tool-seo';
 import { toolWorkspace, type ToolWorkspace, type ToolLayoutMode } from '../lib/tool-presentation';
 import { toolAlternates, toolLanguageLinks } from '../lib/tool-locales';
 import '../styles/tool-workspace.css';
@@ -49,6 +50,8 @@ const homeUrl = SITE.url + pathForLang('/', lang);
 const content = getToolContent(tool.slug, lang);
 const detail = content?.detail;
 const guides = getGuidesForTool(tool.slug);
+// 简体中文工具页使用统一的 SEO 标题与元描述；其它语言沿用各自翻译文案。
+const seoZh = lang === 'zh' ? TOOL_SEO_ZH[tool.slug] : undefined;
 const inLanguage =
   lang === 'en' ? 'en' : lang === 'tw' ? 'zh-Hant' : lang === 'ko' ? 'ko' : lang === 'ja' ? 'ja' : 'zh-CN';
 
@@ -57,7 +60,7 @@ const jsonLd: Record<string, unknown>[] = [
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: tool.name,
-    description: tool.description,
+    description: seoZh?.description ?? tool.description,
     applicationCategory: APP_CATEGORY[category],
     operatingSystem: 'Web',
     url,
@@ -84,8 +87,8 @@ const jsonLd: Record<string, unknown>[] = [
 ---
 
 <BaseLayout
-  title={`${tool.name} - ${SITE.name}`}
-  description={tool.description}
+  title={seoZh?.title ?? `${tool.name} - ${SITE.name}`}
+  description={seoZh?.description ?? tool.description}
   keywords={tool.keywords}
   canonical={url}
   jsonLd={jsonLd}

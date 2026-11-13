@@ -38,6 +38,8 @@ function makeGuide(overrides = {}) {
     title: 'JSON 格式化与校验：从报错到可读输出',
     description:
       '演示 JSON 格式化的排查顺序、语法校验与压缩边界，说明输入示例、输出结果和工具限制，避免把格式化当成字段校验。',
+    seoDescription:
+      '这篇指南演示 JSON 格式化的排查顺序、语法校验与压缩边界，先给出可以直接对照的输入示例与期望输出，再说明缩进、键顺序和转义字符的处理方式，以及格式化不能替代字段校验、类型校验和业务校验的原因，最后列出常见报错的定位步骤与工具限制，并说明哪些字段问题需要回到接口文档、日志或调用方排查，避免只靠格式化结果下结论。',
     category: '开发实用',
     toolSlug: 'json-formatter',
     published: '2026-11-01',
@@ -124,6 +126,7 @@ test('标题/描述/日期/站内来源与禁用词会被拦截', () => {
   const guide = makeGuide({
     title: longTitle,
     description: '太短',
+    seoDescription: '还是太短',
     published: '2026-13-01',
     sources: [
       { title: '本站', url: 'https://clovertools.cn/guides/x/' },
@@ -135,6 +138,7 @@ test('标题/描述/日期/站内来源与禁用词会被拦截', () => {
   const text = result.errors.join('\n');
   assert.match(text, /标题汉字数/);
   assert.match(text, /description 汉字数/);
+  assert.match(text, /seoDescription 长度/);
   assert.match(text, /published 不是合法日期/);
   assert.match(text, /不得把本站作为来源/);
   assert.match(text, /禁用表述/);

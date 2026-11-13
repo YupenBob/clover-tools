@@ -13,14 +13,31 @@ interface Props {
 const { kind, lang } = Astro.props;
 const { copy, labels } = getLegalContent(kind, lang);
 
-const title = `${copy.title} - ${SITE.name}`;
+const ZH_META: Record<'privacy' | 'terms' | 'contact', { title: string; description: string }> = {
+  contact: {
+    title: `联系我们：工具错误、内容建议与隐私问题的反馈渠道、处理流程与响应方式说明 - ${SITE.name}`,
+    description: '向 CloverTools 反馈工具错误、内容建议或隐私问题：请附上页面地址、浏览器与设备、脱敏后的输入类型、实际结果与预期结果，涉及安全问题时先隐藏可识别信息，请勿提交真实密码与令牌；一般反馈通过公开 GitHub Issues 处理，会按可复现性与影响范围安排，但不承诺固定响应时限，反馈内容会用于核对与改进。',
+  },
+  privacy: {
+    title: `隐私政策：浏览器本地处理、必要的技术日志、第三方广告服务、Cookie 与你的选择 - ${SITE.name}`,
+    description: '了解 CloverTools 如何处理工具输入与页面数据：JSON、文本、图片与计算类工具默认在浏览器本地运行，托管服务会记录必要的技术日志，广告与字体等第三方资源按其隐私政策处理，我们不通过工具输入建立个人画像；你可以关闭页面、清空输入或阻止第三方 Cookie，隐私问题可通过联系页说明，我们会据此核查。',
+  },
+  terms: {
+    title: `使用条款：免费浏览器工具的服务范围、合理使用、结果复核、内容署名与免责声明 - ${SITE.name}`,
+    description: '了解 CloverTools 在线工具的服务范围与使用约定：工具结果应由你自行复核，涉及财务、健康、安全与合规的决定请咨询专业人士，不得用于未授权访问或处理无权处理的数据。CloverTools 提供免费的浏览器工具，功能可能随浏览器与输入格式变化，引用或再利用内容时请保留来源，使用前请确认工具适合你的场景。',
+  },
+};
+
+const meta = lang === 'zh' ? ZH_META[kind] : { title: `${copy.title} - ${SITE.name}`, description: copy.desc };
+const title = meta.title;
+const description = meta.description;
 const canonical = `${SITE.url}${pathForLang(`/${kind}/`, lang)}`;
 const contactEmail = (import.meta.env.PUBLIC_CONTACT_EMAIL || '').trim();
 const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ? contactEmail : null;
 const privateLabel = {zh: '私人联系（请勿发送密码或令牌）', tw: '私人聯絡（請勿傳送密碼或權杖）', en: 'Private contact (do not send passwords or tokens)', ko: '비공개 문의 (비밀번호나 토큰을 보내지 마세요)', ja: '非公開の連絡（パスワードやトークンは送信しないでください）'}[lang];
 ---
 
-<BaseLayout title={title} description={copy.desc} canonical={canonical} ads={false}>
+<BaseLayout title={title} description={description} canonical={canonical} ads={false}>
   <nav class="legal-breadcrumb" aria-label={DICT[lang].breadcrumb}>
     <a href={pathForLang('/', lang)}><Icon name="house-door" /> {labels.back}</a>
     <Icon name="chevron-right" />

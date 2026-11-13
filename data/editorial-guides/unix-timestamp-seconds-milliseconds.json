@@ -2,6 +2,7 @@
   "slug": "unix-timestamp-seconds-milliseconds",
   "title": "Unix 时间戳 10 位和 13 位：先确认单位再排查时区",
   "description": "理解秒级与毫秒级时间戳、UTC 与本地时间的关系，避免接口时间错位。附单位辨别方法和接口调试检查步骤。",
+  "seoDescription": "Unix 时间戳的 10 位与 13 位先分清：秒级与毫秒级相差三位是最常见的接口错误，但位数不能代替接口文档；文中给出排查步骤，包括记录原始数值、确认运行时 API 的单位、同时查看 UTC 与业务时区，并建议跨系统传递时用带时区的 ISO 8601 字符串。2038 年问题与负数时间也会打破位数猜测。",
   "category": "日常实用",
   "toolSlug": "timestamp",
   "published": "2026-09-30",

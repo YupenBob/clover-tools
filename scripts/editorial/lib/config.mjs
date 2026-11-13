@@ -30,6 +30,9 @@ export const DEFAULT_CONFIG = {
     minReadingMinutes: 2,
     maxDescriptionCjk: 120,
     minDescriptionCjk: 40,
+    /** 简体中文指南的 SEO meta description 长度（Unicode 码点，Bing 建议 150–160）。 */
+    seoDescriptionMinChars: 150,
+    seoDescriptionMaxChars: 160,
     maxTitleCjk: 40,
     maxFirstParagraphCjk: 120,
   },

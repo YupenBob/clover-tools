@@ -33,6 +33,10 @@ Astro 配置读取 `.env` 使用 Vite 的 `loadEnv`；页面使用 Astro 注入�
 7. 自动化产出的文章（`data/editorial-guides/` 中带 `_meta.auto` 的文件）必须通过
    [自动化内容流水线](EDITORIAL-AUTOMATION.md)的硬门禁；`scripts/check-guides-quality.mjs` 已接入
    `npm run check` 做持久校验。人工新增指南仍按本节原有规则执行。
+8. 简体中文页面的 `<title>` 与 meta description 按 Bing 建议维护：工具页与固定页标题 50–60 字符、
+   meta description 150–160 字符（`scripts/check-seo-metadata.mjs` 与构建后的 `check-seo` 双重校验）；
+   指南页通过 `seoDescription` 字段提供长描述，界面摘要仍用 `description`。见
+   [Bing 标题与元描述整改](SEO-BING-REMEDIATION.md)。
 
 ## 验证命令
 

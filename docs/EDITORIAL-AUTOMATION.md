@@ -76,7 +76,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 | 内链 | 正文 ≥2 个已登记工具页链接，不得指向未登记路径 |
 | 证据 | `.editorial/drafts/<slug>/evidence.json` 至少 5 条断言，类型 `source`/`code`/`run`，各自可回查；来源需已抓取、代码引用需文件与行号有效、运行需 exit 0 且有落盘输出 |
 | 去重 | 与站内语料 8-gram Jaccard <0.20、与 CSDN 语料 <0.25；标题相似度 <0.6；slug 唯一；`_meta.primaryQuery` 不得与已发布自动文章重复；同一工具 30 天内最多 1 篇（队列层面控制） |
-| 元信息 | title ≤40 汉字且总长 ≤80；description 40–120 汉字；category 属于既有分类；slug 为 ASCII kebab-case；日期真实（published ≤ updated ≤ 今天）；不伪造作者/实测经历；禁止 emoji、占位文本、夸大用语 |
+| 元信息 | title ≤40 汉字且总长 ≤80；description 40–120 汉字（界面摘要）；**seoDescription 150–160 字符**（简体中文 `<meta name="description">`，Bing 建议区间，见 [Bing 整改记录](SEO-BING-REMEDIATION.md)）；category 属于既有分类；slug 为 ASCII kebab-case；日期真实（published ≤ updated ≤ 今天）；不伪造作者/实测经历；禁止 emoji、占位文本、夸大用语 |
 | 图片 | 真实浏览器截图：`<figure>` + `img[width][height][alt]`；登记 `public/article-images/<YYYY-MM>/captures.json`（宽高/字节/SHA-256），CI 逐字节复核；浏览器不可用时降级为"验证表格 + 仓库内 SVG 流程图"，并记录降级原因 |
 | 复核 | 独立 Reviewer 子代理 `verdict=pass` 且 `confidence ≥0.7`；阻塞问题清零；Lead 不采信 Writer 自评 |
 
@@ -191,7 +191,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 不得新增事实、断言、链接、代码或示例；HTML 结构与 h2 / 表格 / 图片 / 代码块数量必须与 zh 完全一致。
 要求：
 - 内链本地化为 /<lang>/tools/...（tw 为 /zh-hant/tools/...），不得保留简体 /tools/...；
-- 标题 ≤66 字符（tw ≤40 汉字；页面 `<title>` 会追加「 - CloverTools」后缀，SEO 上限 80 字符）；description 40–160 字符（zh/tw 40–120 汉字）；
+- 标题 ≤66 字符（tw ≤40 汉字；页面 `<title>` 会追加「 - CloverTools」后缀，SEO 上限 80 字符）；description 40–160 字符（zh/tw 40–120 汉字）；简体 `seoDescription` 不参与翻译，译文 meta description 仍用各自 `description`；
 - 正文长度：en ≥900 词、ko Hangul ≥1500、ja Han+kana ≥1500、tw Han ≥1500；
 - 语言自然，无未翻译的整段中文；专业词首次出现可括注英文。
 输出：.editorial/drafts/<slug>/translations/<lang>.json，字段与 Guide 一致，另含：
@@ -317,7 +317,8 @@ node scripts/check-guides-quality.mjs                   # CI 门禁（手工复�
 允许写入：.editorial/drafts/<slug>/ 与 scripts/editorial/cases/<slug>.mjs；其他仓库文件一律不改。
 必须产出：
 1) guide.json：字段与 Guide 接口一致，另含 _meta:{auto:true, mode, runId, primaryQuery, type}；
-   title ≤40 汉字、description 40–120 汉字、readingMinutes=ceil(汉字/400)、published=updated=<今天>、
+   title ≤40 汉字、description 40–120 汉字（界面摘要）、seoDescription 150–160 字符（简体中文 meta description，
+   Bing 建议区间，由 check-guides-quality.mjs 校验）、readingMinutes=ceil(汉字/400)、published=updated=<今天>、
    content 为可信 HTML（≥1500 汉字、≥5 个 h2、列表、表格或图片、≥2 个工具内链、边界与限制专节）。
 2) evidence.json：≥5 条断言，类型 source/code/run 可回查；来源只需列出 URL，由 Lead 抓取核验；
    code 写 `<path>:<line>`；run 写命令、exitCode=0 与 outputs/ 下的真实输出文件。

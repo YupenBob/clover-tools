@@ -17,8 +17,8 @@ import { auditSeoPage } from '../lib/seo-audit.mjs';
 const origin = 'https://test.example';
 function toolPage(lang = 'zh') {
   const path = localizedPath('/tools/dev/json-formatter/', lang);
-  return `<html lang="${LOCALES[lang].htmlLang}"><head><title>JSON formatter</title>
-    <meta name="description" content="A browser-based JSON formatter with validation, readable output, and configurable indentation.">
+  return `<html lang="${LOCALES[lang].htmlLang}"><head><title>JSON formatter: format, validate, and copy JSON online</title>
+    <meta name="description" content="A browser-based JSON formatter with validation, readable output, configurable indentation, copy support, and explicit local-processing notes for data.">
     <meta property="og:locale" content="${LOCALES[lang].ogLocale}">
     ${isIndexablePath(path) ? '' : '<meta name="robots" content="noindex,follow">'}
     <link rel="canonical" href="${origin + path}">

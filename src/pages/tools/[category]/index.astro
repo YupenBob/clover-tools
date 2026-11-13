@@ -16,16 +16,25 @@ const url = `${SITE.url}/tools/${cat.id}/`;
 const tools = TOOLS[cat.id];
 const others = CATEGORIES.filter((c) => c.id !== cat.id);
 
-const CATEGORY_DESC: Record<ToolCategory, string> = {
-  dev: 'CloverTools 开发实用工具合集，覆盖 JSON 与代码格式化、加解密、哈希、正则、接口调试等开发者高频场景，纯浏览器处理，即开即用无需注册。',
-  daily: 'CloverTools 日常实用工具合集，涵盖万年历、时间戳、单位换算、理财计算、BMI、作息计时等生活与办公常用工具，数据不出浏览器。',
-  fun: 'CloverTools 趣味工具合集，包含拼豆图纸生成、人格风格测试、创意头像、抽奖、反应训练与 ASCII 艺术字，为手工、社交分享和放松娱乐提供小工具。',
+const CATEGORY_TITLE: Record<ToolCategory, string> = {
+  dev: `开发实用工具：JSON、代码格式化、编码解码、哈希、正则与接口调试，多数本地处理 - ${SITE.name}`,
+  daily: `日常实用工具：万年历、时间戳、单位换算、理财计算与倒计时，数据不出浏览器 - ${SITE.name}`,
+  fun: `趣味在线小工具合集：拼豆图纸、抽奖转盘、反应训练与头像生成，放松解压、即开即用 - ${SITE.name}`,
 };
+
+const CATEGORY_DESC: Record<ToolCategory, string> = {
+  dev: 'CloverTools 开发实用工具合集，收录 JSON 与代码格式化、编码解码、加解密、哈希校验、正则测试、进制转换、接口调试、二维码生成与图片转码等开发者高频工具，另有 JWT 解码、随机密码、UUID 与颜色转换等小工具，多数在浏览器本地处理，联网的接口测试与 IP 查询会说明请求去向，即开即用，无需注册。',
+  daily: 'CloverTools 日常实用工具合集，收录万年历与公历农历互转、世界时钟、时间戳与日期间隔、工作日与年龄计算、单位换算、工资与理财计算、BMI、倒计时与秒表等生活办公工具，另有 M3U8 视频下载、背单词、键盘按键测试、九宫格切图、敏感词检测与生肖星座查询，输入数据留在浏览器，人民币大写转换与油耗计算也已收录。',
+  fun: 'CloverTools 趣味工具合集，收录拼豆图纸生成、人格风格测试、创意头像、抽奖转盘、反应与专注训练、ASCII 艺术字、表情包与昵称创意等小工具，另有 FPS 练枪、点击速度、舒尔特训练、随机数与色板生成，为手工制作、社交分享与放松娱乐提供即开即用的玩法，还有摩斯密码、图片滤镜与浏览器信息检测。',
+};
+
+// 「趣味工具」本身已含「工具」，避免渲染成「趣味工具工具」。
+const categoryLabel = cat.name.endsWith('工具') ? cat.name : `${cat.name}工具`;
 
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
-  name: `${cat.name}工具`,
+  name: categoryLabel,
   description: cat.blurb,
   url,
   numberOfItems: tools.length,
@@ -39,20 +48,20 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title={`${cat.name}工具 - ${SITE.name}`}
+  title={CATEGORY_TITLE[cat.id]}
   description={CATEGORY_DESC[cat.id]}
-  keywords={[cat.name, `${cat.name}工具`, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
+  keywords={[cat.name, categoryLabel, ...tools.slice(0, 6).flatMap((t) => t.keywords.slice(0, 1))]}
   canonical={url}
   jsonLd={jsonLd}
 >
   <nav class="breadcrumb" aria-label="面包屑">
     <a href="/"><Icon name="house-door" /> 首页</a>
     <Icon name="chevron-right" />
-    <span>{cat.name}工具</span>
+    <span>{categoryLabel}</span>
   </nav>
 
   <header class="tool-hero">
-    <h1>{cat.name}工具</h1>
+    <h1>{categoryLabel}</h1>
     <p class="tool-hero-desc">{cat.blurb}共 {TOOLS[cat.id].length} 个，全部纯浏览器处理。</p>
   </header>
 

@@ -274,6 +274,23 @@ export function validateGuideStatic(guide, ctx) {
     push(`description 汉字数 ${descCjk} 不在 ${quality.minDescriptionCjk}–${quality.maxDescriptionCjk} 之间`);
   }
 
+  // 简体中文指南另需独立的 SEO meta description：界面 description 保持简短，
+  // `<meta name="description">` 用 150–160 字符的长描述（Bing 建议区间）。
+  const seoDescription = String(guide.seoDescription ?? '');
+  if (!seoDescription.trim()) {
+    push('缺少字段或类型错误：seoDescription');
+  } else {
+    const seoDescriptionLength = [...seoDescription].length;
+    if (
+      seoDescriptionLength < quality.seoDescriptionMinChars ||
+      seoDescriptionLength > quality.seoDescriptionMaxChars
+    ) {
+      push(
+        `seoDescription 长度 ${seoDescriptionLength} 不在 ${quality.seoDescriptionMinChars}–${quality.seoDescriptionMaxChars} 之间`,
+      );
+    }
+  }
+
   if (!isIsoDate(guide.published)) push(`published 不是合法日期：${guide.published}`);
   if (!isIsoDate(guide.updated)) push(`updated 不是合法日期：${guide.updated}`);
   if (isIsoDate(guide.published) && isIsoDate(guide.updated) && guide.published > guide.updated) push('published 晚于 updated');

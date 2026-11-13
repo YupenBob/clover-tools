@@ -143,12 +143,13 @@ npm run check:browser # 临时预览与真实浏览器回归
 FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练、环形 Bot 靶场和小球点击，支持可调浏览器转向倍率、灵敏度校准与本地成绩。急停采用左右交替的横移、停稳、首发回合；预瞄要求探头首发后回到中央安全区再换边，配有步骤指引、方向标线、失败原因和回合复盘。回掩体提示显示剩余距离及当前视角下的按键方向；慢走和蹲伏保持各自速度上限，CS2 蹲行可以实际完成返回。靶场使用分区 HUD、独立步枪造型与击发/换弹动作；小球也保留步枪与枪声。CC0 实录枪声和机械音在进入训练或试听时加载，主音量、枪声、命中音可分别调节；音效失败仍可训练。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。画面准备完成后需点击开始才锁定鼠标；Esc 或切出页面会释放，返回后需主动恢复。配置、参数和素材来源、近似模型边界与验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
 
 1. 在 `src/lib/tools.ts` 的对应分类数组里登记工具元信息（slug、名称、一句话描述、icon 语义键、关键词、tier）
-2. 手写页面 `src/pages/tools/{cat}/{slug}.astro`，使用 `ToolLayout`
-3. 页面必须包含：输入校验与错误提示、复制 / 清空 / 示例、Ctrl+Enter 快捷执行、移动端适配、SEO meta（布局已内置 JSON-LD）
-4. 图标使用 `<Icon name="…" />`（语义键见 `src/lib/icons/registry.ts`），禁止 emoji 字符
-5. 需要服务端能力的工具，在 `functions/api/` 增加 Pages Function，前端 `fetch('/api/...')`
-6. 若保留旧版同名工具，在 `public/_redirects` 中补充旧路径 301 到新路径
-7. 提交前运行 `npm run check` 全部通过
+2. 在 `src/lib/tool-seo/<分类>.ts` 补充该工具简体中文页面的 SEO 标题（50–60 字符，含 " - CloverTools"）与 meta description（150–160 字符），`scripts/check-seo-metadata.mjs` 会校验覆盖与长度
+3. 手写页面 `src/pages/tools/{cat}/{slug}.astro`，使用 `ToolLayout`
+4. 页面必须包含：输入校验与错误提示、复制 / 清空 / 示例、Ctrl+Enter 快捷执行、移动端适配、SEO meta（布局已内置 JSON-LD）
+5. 图标使用 `<Icon name="…" />`（语义键见 `src/lib/icons/registry.ts`），禁止 emoji 字符
+6. 需要服务端能力的工具，在 `functions/api/` 增加 Pages Function，前端 `fetch('/api/...')`
+7. 若保留旧版同名工具，在 `public/_redirects` 中补充旧路径 301 到新路径
+8. 提交前运行 `npm run check` 全部通过
 
 ## 部署与运维
 

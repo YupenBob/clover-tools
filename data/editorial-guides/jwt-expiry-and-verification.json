@@ -2,6 +2,7 @@
   "slug": "jwt-expiry-and-verification",
   "title": "JWT 过期怎么看：解码、验签与授权不能混为一谈",
   "description": "从 exp、iat、iss、aud 等声明判断令牌结构，并说明为什么客户端解码不等于服务端验签。",
+  "seoDescription": "JWT 的过期与验签要分开看：Header、Payload 默认只是 Base64URL 编码，任何人都能读取，在线解码只适合排查结构与 exp、iat、iss、aud 等时间字段，不能证明令牌来自可信签发者；文中还提醒服务端必须做算法白名单与签名校验，客户端解码不能当授权依据。exp 一般是秒级时间戳。",
   "category": "开发实用",
   "toolSlug": "jwt-decoder",
   "published": "2026-09-30",

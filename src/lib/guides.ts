@@ -10,6 +10,12 @@ export interface Guide {
   slug: string;
   title: string;
   description: string;
+  /**
+   * 简体中文页面的 meta description（150–160 个 Unicode 字符）。
+   * 只用于 `<meta name="description">` 与 Article JSON-LD；H1、列表卡片等界面文案继续用 `description`。
+   * 译文对象不带该字段，`GuideArticle` 会回退到 `description`。
+   */
+  seoDescription?: string;
   category: string;
   toolSlug: string;
   published: string;

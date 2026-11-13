@@ -9,10 +9,12 @@ const totalTools = (Object.keys(TOOLS) as ToolCategory[]).reduce(
   0,
 );
 
-const title = `关于 - ${SITE.name}`;
+const title = `关于 ${SITE.name}：${totalTools} 个手写在线工具的分类、隐私原则与来源说明 - ${SITE.name}`;
 const description =
-  `了解 ${SITE.name}：覆盖开发实用、日常实用与趣味工具三大类场景的精选在线工具箱，` +
-  `共 ${totalTools} 个工具，多数工具在浏览器本地处理，联网功能会说明、即开即用无需注册。`;
+  `了解 ${SITE.name}：这是一个覆盖开发实用、日常实用与趣味工具三大场景的精选在线工具箱，` +
+  `共 ${totalTools} 个手写工具，每个工具都内置输入校验与示例；` +
+  `多数功能在浏览器本地处理，IP 查询、HTTP 测试与视频下载需联网，` +
+  `打开即用无需注册，源码托管于 GitHub。编辑与验证流程公开，欢迎提交问题与纠错建议。`;
 const canonical = `${SITE.url}/about/`;
 
 const aboutJsonLd = {
