@@ -1,0 +1,75 @@
+{
+  "slug": "ascii-art",
+  "title": "ASCII 藝術字怎麼生成：22 款字體、字距、寬度與中文限制",
+  "description": "站內 ASCII 藝術字工具把 22 款 FIGlet 字體、中文像素畫與圖片轉字符畫放在一頁：40–200 列寬度、3 種字符集，輸入約 250 ms 後自動渲染；中文沒有 FIGlet 字體，會被自動改畫成像素字。",
+  "category": "趣味工具",
+  "toolSlug": "ascii-art",
+  "published": "2026-11-13",
+  "updated": "2026-11-13",
+  "readingMinutes": 7,
+  "content": "<p>在站內 <a href=\"/zh-hant/tools/fun/ascii-art/\">ASCII 藝術字</a> 工具裏，生成英文藝術字只要三步：選「英文藝術字」、輸入英文或數字、等約 250 ms 自動渲染。字體、字距、每行寬度一改就重畫；中文沒有 FIGlet 字體，輸入後會自動改用像素畫渲染。</p>\n\n<h2>一、先給結論：三步生成第一幅 ASCII 藝術字</h2>\n<p>三個標簽頁共用同一塊「終端輸出」：英文藝術字走 FIGlet，中文像素畫逐字采樣。切換標簽會立刻用當前輸入重畫；切到圖片模式時若還沒選圖，點「生成字符畫」才提示「請先選擇一張圖片」。</p>\n<p>輸出面板頂部是一條假命令行，下面是字符畫，右上角顯示「最大寬×行數」；狀態條給出「生成完成」或錯誤文案。統計行按「N 行 · M 字符 · 最大寬度 W」計數，M 把換行符也算進去：CLOVER TOOLS 的 Standard 輸出 10 行、每行 38 字符，380 加 9 個換行就是 389。</p>\n<table>\n<thead><tr><th>控件</th><th>選擇器與可選值</th><th>作用</th></tr></thead>\n<tbody>\n<tr><td>模式</td><td><code>.seg-btn</code>：英文藝術字 / 中文像素畫 / 圖片轉字符畫</td><td>用 <code>aria-pressed</code> 標記當前模式，切換面板並重畫</td></tr>\n<tr><td>字體風格</td><td><code>#figletFont</code>：22 項、4 個分組，默認 Standard</td><td>選擇 FIGlet 字體</td></tr>\n<tr><td>字距</td><td><code>#figletLayout</code>：默認 / 緊湊 / 寬鬆 / 通用融合</td><td>傳給 figlet 的 horizontalLayout</td></tr>\n<tr><td>每行寬度</td><td><code>#figletWidth</code>：40 / 60 / 80 / 120 / 160 / 200，默認 60</td><td>傳給 figlet 的 width，按空白斷行</td></tr>\n<tr><td>清晰度</td><td><code>#cjkRes</code>：6 / 8 / 10 / 12 行/字，默認 8</td><td>每個字的字高是行數乘 4 像素</td></tr>\n<tr><td>字符集</td><td><code>#cjkCharset</code> 與 <code>#imgCharset</code>：灰階 / 方塊 / 二進制</td><td>決定明暗對應的字符表</td></tr>\n<tr><td>輸出寬度</td><td><code>#imgWidth</code>：60 / 80 / 100 / 120 / 160 列，默認 60</td><td>同時決定圖片字符畫的行數</td></tr>\n<tr><td>對比度</td><td><code>#imgContrast</code>：0–200%，默認 100%</td><td>拉開或壓平圖片明暗</td></tr>\n<tr><td>反色</td><td><code>#cjkInvert</code> 與 <code>#imgInvert</code></td><td>把墨量與亮度對調</td></tr>\n<tr><td>ANSI 彩色</td><td><code>#ansiColor</code></td><td>只影響終端預覽與複製，不影響下載</td></tr>\n<tr><td>操作</td><td><code>#asciiRender</code> / <code>#asciiCopy</code> / <code>#asciiDownload</code></td><td>立即生成 / 複製 / 下載純文本</td></tr>\n<tr><td>統計</td><td><code>#asciiStats</code></td><td>N 行 · M 字符 · 最大寬度 W</td></tr>\n</tbody>\n</table>\n\n<h2>二、22 款字體分四組：提示裏的「字形」怎麼讀</h2>\n<p>字體下拉框不是 22 個平鋪選項，而是 4 個 <code>optgroup</code>：經典字體 8 款（Standard、Slant、Banner、Big、Block、Small、Mini、Calvin S）、炫酷字體 7 款、立體字體 4 款、裝飾字體 3 款。每項文字是「中文名（Name）」，默認選中 Standard；換字體後提示行變成「中文名 · 描述 · 字形 最大寬×高」。</p>\n<p>提示裏的「字形 16×6」來自 <code>figlet.metadata</code>：16 是字體裏單個字符的最大寬度，6 是字體高度，不是最終輸出的寬高。不同字體差很多：Mini 是 10×4、Calvin S 是 7×3、Poison 是 20×12；同樣輸入 CLOVER，Standard 輸出 6 行、最大寬度 38，Poison 會拉到 24 行、最大寬度 50。</p>\n<p>同一段文字換字體，行數與寬度都會變，先按用途選更省事：注釋和短句用 Mini、Small、Calvin S；標題用 Banner、Big、ANSI Shadow；要立體感再用 3D-ASCII、Larry 3D、Big Money-ne。工具卡片寫「21 種 FIGlet 英文字體」，頁面實際加載 22 個 <code>.flf</code> 文件（8+7+4+3），本文以頁面選項為準。</p>\n<table>\n<thead><tr><th>分組</th><th>數量</th><th>字體（Name）</th><th>提示裏的字形</th></tr></thead>\n<tbody>\n<tr><td>經典字體</td><td>8</td><td>Standard、Slant、Banner、Big、Block、Small、Mini、Calvin S</td><td>Standard 16×6、Mini 10×4、Calvin S 7×3</td></tr>\n<tr><td>炫酷字體</td><td>7</td><td>ANSI Shadow、Speed、Doom、Bloody、Epic、Star Wars、Poison</td><td>ANSI Shadow 13×7、Bloody 10×10、Poison 20×12</td></tr>\n<tr><td>立體字體</td><td>4</td><td>3D-ASCII、Larry 3D、Big Money-ne、Crawford</td><td>3D-ASCII 27×10、Larry 3D 30×9</td></tr>\n<tr><td>裝飾字體</td><td>3</td><td>Bubble、Graffiti、Ogre</td><td>Bubble 8×4、Graffiti 32×6</td></tr>\n</tbody>\n</table>\n<figure><a href=\"/article-images/2026-11/ascii-art-figlet-banner.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：ASCII 藝術字工具的兩個面板。上方「輸入內容」面板裏「英文藝術字」標簽選中，輸入框是 CLOVER TOOLS，字體「標準體（Standard）」、字距「默認（字體設計）」、每行寬度 60，底部綠色狀態條「生成完成」。下方「終端輸出」面板的假命令行是 clover@tools:~/ascii-figlet$ figlet -f Standard -l default -w 60 &quot;CLOVER TOOLS&quot;，隨後是 10 行、每行 38 字符的塊狀大字：首行「   ____ _     _____     _______ ____  」，第二行「  / ___| |   / _ \\ \\   / / ____|  _ \\ 」，末行是 38 個空格；統計行「10 行 · 389 字符 · 最大寬度 38」，終端右上角「38×10」。\"><img src=\"/article-images/2026-11/ascii-art-figlet-banner.jpg\" alt=\"ASCII 藝術字工具的兩個面板。上方「輸入內容」面板裏「英文藝術字」標簽選中，輸入框是 CLOVER TOOLS，字體「標準體（Standard）」、字距「默認（字體設計）」、每行寬度 60，底部綠色狀態條「生成完成」。下方「終端輸出」面板的假命令行是 clover@tools:~/ascii-figlet$ figlet -f Standard -l default -w 60 &quot;CLOVER TOOLS&quot;，隨後是 10 行、每行 38 字符的塊狀大字：首行「   ____ _     _____     _______ ____  」，第二行「  / ___| |   / _ \\ \\   / / ____|  _ \\ 」，末行是 38 個空格；統計行「10 行 · 389 字符 · 最大寬度 38」，終端右上角「38×10」。\" width=\"1232\" height=\"1082\" loading=\"lazy\" decoding=\"async\"></a><figcaption>Standard、寬度 60 下輸入 CLOVER TOOLS 的終端輸出：10 行、最大寬度 38，統計行 10 行 · 389 字符 · 最大寬度 38，狀態條「生成完成」。 點擊圖片可查看原圖。</figcaption></figure>\n\n<h2>三、字距與每行寬度：同一句話為什麼會被折成兩段</h2>\n<p>字距對應 figlet 的 <code>horizontalLayout</code>，四個選項是「默認（字體設計）」「緊湊 fitted」「寬鬆 full」「通用融合 universal」。默認按字體作者設計的字距；緊湊把字母推近到幾乎相碰；寬鬆保留完整字格。改字體、字距、寬度都會重畫。</p>\n<p>「通用融合」這一項要留意：頁面傳給 figlet 的值是 <code>universal</code>，而 figlet.js 文檔列出的合法值是 <code>universal smushing</code>。瀏覽器證據裏選「通用融合」的輸出與「默認」逐字相同，命令行也照寫 <code>-l universal</code>，等於這個選項沒有實際效果；想要更緊或更松，用 fitted 或 full。</p>\n<p>每行寬度可選 40/60/80/120/160/200，默認 60，傳給 figlet 的 width，並打開 <code>whitespaceBreak</code>，讓它在空白處斷行。以 CLOVER TOOLS CLOVER TOOLS 為例：寬度 40 時折成 18 行、最大寬度 38；寬度 120 時壓回 10 行、最大寬度 107。超長單詞沒有空白可斷，仍可能把單行撐過設定值。</p>\n\n<h2>四、輸入中文會發生什麼：自動改用像素畫</h2>\n<p>這套 FIGlet 字體主要覆蓋 ASCII 字符，沒有漢字。頁面用一條 <code>CJK_RE</code> 判斷輸入：只要出現 CJK 統一表意文字、諺文、假名、全角標點或全角字母，就跳過 FIGlet，直接調用中文像素畫算法。</p>\n<p>標簽頁不會自動跳到「中文像素畫」，仍停在「英文藝術字」，只是輸出換成像素畫；字體選擇被忽略，清晰度固定 8 行/字、灰階、不反色，寬度沿用「每行寬度」。狀態條會變成藍色提示「檢測到中文/全角字符，已自動使用「中文像素畫」方式渲染，可在對應模式下調節清晰度」。</p>\n<p>例如在英文輸入框輸入「中文」，輸出是 8 行、最大寬度 32；換成 Slant 再輸入同樣的字，輸出逐字不變。要調清晰度、字符集和反色，得切到「中文像素畫」重新生成。</p>\n\n<h2>五、中文像素畫的四個參數與「字體依賴」</h2>\n<p>「清晰度」是 6/8/10/12 行/字，默認 8。它先把每個字按 <code>bold ${res×4}px</code> 畫到 canvas 上，再以 2×4 像素為一格采樣；8 行/字對應 32px 字高，12 行/字對應 48px。字號越大，筆畫層次越多，輸出行數也越多：示例「三葉草工具箱 / CloverTools」在 8 行/字、灰階、寬度 60 下是 30 行，換成 12 行/字、同樣不反色會到 62 行。</p>\n<p>字符集三檔：細膩灰階 <code> .:-=+*#%@</code>（10 級）、高對比方塊 <code> ░▒▓█</code>（5 級）、二進制點陣 <code> #</code>（2 級）。采樣後先按白底做 alpha 合成，取亮度 <code>0.299R+0.587G+0.114B</code>；非反色時用 255 減亮度當作墨量，再套 gamma 0.65 增強細筆畫，最後按 <code>ink/256×字符数</code> 取整。結果就是筆畫越黑，字符越密。</p>\n<p>反色把墨量換成亮度本身，於是背景變成大片 @ 或 #，字變成鏤空，輸出往往更多行、更像黑底白字的底片。換行用 <code>measureText</code> 的像素寬度累加，超過「寬度×2 像素」就斷行，所以輸出列數不是固定網格：同一段字在不同系統上會因是否安裝 Noto Sans SC、微軟雅黑、蘋方而變化。畫完會裁掉上下空行、去掉行尾空格、壓縮連續換行。</p>\n<figure><a href=\"/article-images/2026-11/ascii-art-cjk-pixel-canvas.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：ASCII 藝術字工具的中文像素畫結果。上方「輸入內容」面板裏「中文像素畫」標簽選中，輸入框是兩行「三葉草工具箱」和「CloverTools」，清晰度 8、字符集「細膩灰階（純 ASCII）」、每行寬度 60、反色未勾選，底部綠色狀態條「生成完成」。下方「終端輸出」面板的假命令行分兩行顯示：第一行 clover@tools:~/ascii-cjk$ clover-ascii &quot;三葉草工具箱，第二行 CloverTools&quot; -res 8 -charset gray -w 60，終端可滾動，圖中可見輸出開頭：首行「 =@@@@@@@@@@@@= .@%%%@-  +@+    -###@@###%@@###-」，第二行「                .@* +@-  +@+      =#%@####@%#=」；統計行「30 行 · 1373 字符 · 最大寬度 60」，終端右上角「60×30」。\"><img src=\"/article-images/2026-11/ascii-art-cjk-pixel-canvas.jpg\" alt=\"ASCII 藝術字工具的中文像素畫結果。上方「輸入內容」面板裏「中文像素畫」標簽選中，輸入框是兩行「三葉草工具箱」和「CloverTools」，清晰度 8、字符集「細膩灰階（純 ASCII）」、每行寬度 60、反色未勾選，底部綠色狀態條「生成完成」。下方「終端輸出」面板的假命令行分兩行顯示：第一行 clover@tools:~/ascii-cjk$ clover-ascii &quot;三葉草工具箱，第二行 CloverTools&quot; -res 8 -charset gray -w 60，終端可滾動，圖中可見輸出開頭：首行「 =@@@@@@@@@@@@= .@%%%@-  +@+    -###@@###%@@###-」，第二行「                .@* +@-  +@+      =#%@####@%#=」；統計行「30 行 · 1373 字符 · 最大寬度 60」，終端右上角「60×30」。\" width=\"1232\" height=\"1343\" loading=\"lazy\" decoding=\"async\"></a><figcaption>中文像素畫示例（8 行/字、灰階、寬度 60）：30 行、最大寬度 60，統計行 30 行 · 1373 字符 · 最大寬度 60，狀態條「生成完成」。 點擊圖片可查看原圖。</figcaption></figure>\n\n<h2>六、圖片轉字符畫：列數決定行數，對比度只改明暗</h2>\n<p>圖片模式接受 PNG/JPG/GIF/WebP，點擊或拖拽都行；只檢查 <code>file.type</code> 是否以 <code>image/</code> 開頭，其他類型提示「請選擇圖片文件（PNG / JPG / GIF / WebP）」，圖片解碼失敗提示「圖片加載失敗，請更換文件重試」。選好後預覽顯示「文件名 · 寬×高」與 B/KB/MB 體積。</p>\n<p>輸出寬度是 60/80/100/120/160 列，行數由圖片比例算出：<code>rows = max(1, round(cols × 高 / 宽))</code>。200×100 的圖選 60 列得到 30 行、選 80 列得到 40 行；每個字符覆蓋 2×4 像素（橫向 2、縱向 4），細節會比原圖粗；終端裏等寬字符的高約為寬的兩倍，兩者叠加後字符陣的顯示高度約等於寬度的 2×高/寬 倍——200×100 的橫圖在 60 列下得到 60×30，屏幕上接近正方形、縱向被拉長，頁面沒有做比例補償。移除圖片會重新顯示拖拽框並清空輸出，參數保持不變；但預覽塊只是被加上 hidden 屬性，樣式表裏的 display:flex 仍讓它可見，舊文件名與體積留在頁面上、圖片變成裂圖，要徹底換圖請點「重新選擇」。</p>\n<p>對比度 0–200%、默認 100%，公式是 <code>(亮度−128)×对比度+128</code> 再夾到 0–255；調低更灰，調高黑白更分明。反色把明暗反過來，字符集三檔與中文像素畫相同。每一格還保留采樣到的 RGB，勾選 ANSI 彩色後按格著色。</p>\n\n<h2>七、ANSI 彩色、複製與下載：終端只是預覽</h2>\n<p>「終端輸出」是模擬器：命令行文案由 <code>buildCommand</code> 拼出來，英文模式寫 <code>figlet -f Standard -l default -w 60 \"CLOVER TOOLS\"</code>，中文模式寫 <code>clover-ascii \"三叶草工具箱\" -res 8 -charset gray -w 60</code>，圖片模式寫 <code>img2txt \"文件名\" -w 60 -charset gray</code>；只有對比度不是 100% 才加 <code>-c</code>，勾反色才加 <code>-invert</code>。它不會真的執行這些命令，也沒有 shell。</p>\n<p>ANSI 彩色勾選後，文本模式按行上色：色相從 40° 線性走到 300°，一行一個 24 位真彩色轉義；圖片模式按格上色，用每格采樣的 RGB。終端預覽會渲染成彩色 <code>span</code>，複製也會帶上轉義，粘到支持的終端可見顏色；文本模式按行著色，不是按字符。</p>\n<p>下載則始終是純文本：Blob 裏只有字符畫本身，文件名固定為 <code>clover-ascii-art-YYYYMMDD.txt</code>，不受 ANSI 勾選影響。沒有結果時複製報「沒有可複製的內容，請先生成字符畫」，下載報「沒有可下載的內容，請先生成字符畫」；「清空」會同時清掉輸入、輸出與狀態，但保留當前模式與參數。</p>\n\n<h2>八、常見錯誤與自查清單</h2>\n<p>最常見的四類問題：把模擬終端裏的命令行當成真的執行了；輸入中文卻發現字體選項沒反應；切換模式後輸出被清空；下載得到的是純文本而不是彩色圖。</p>\n<ul>\n<li>只想要英文橫幅：確認標簽是「英文藝術字」，輸入僅 ASCII，寬度從 60 起步。</li>\n<li>中文變成像素畫：這是自動降級，不是字體損壞；要調清晰度請切「中文像素畫」。</li>\n<li>「通用融合」沒變化：figlet 只認 universal smushing，這個選項等同默認。</li>\n<li>切換模式輸出消失：切到空的中文模式會立即清空並提示；圖片模式要點「生成字符畫」才提示。切回英文會按當前輸入重畫。</li>\n<li>複製帶彩色：勾選 ANSI 彩色後複製會帶 ESC 序列；要純文本先取消勾選。</li>\n<li>下載沒顏色：.txt 永遠是純文本，彩色只在終端預覽與複製內容裏。</li>\n</ul>\n<p>自查順序：先看標簽與輸入框是否匹配，再看狀態條是成功、提示還是錯誤，最後看統計行是否符合預期。輸出寬度明顯超過設定值時，先檢查超長單詞，再檢查字體是否過寬。想把成品再加工，可先用 <a href=\"/zh-hant/tools/dev/text-transform/\">文本轉換工具</a> 統一大小寫或全半角；想核對瀏覽器暴露的字體與 canvas 能力，可看 <a href=\"/zh-hant/tools/fun/browser-info/\">瀏覽器信息檢測</a>。</p>\n\n<h2>九、邊界與出處</h2>\n<p>FIGlet 只對字體裏有的字符生效，中文、日文、韓文與 emoji 都不在 22 個 <code>.flf</code> 裏；中文自動走像素畫，emoji 不在 <code>CJK_RE</code> 裏，會在 FIGlet 分支得到空串。像素畫寬度依賴系統字體，同一段字在不同系統上可能不同；圖片模式只做明暗映射，不識別內容。輸出是文本不是圖片，終端是模擬器，不能執行命令；需要可解碼的短信號可以看 <a href=\"/zh-hant/tools/fun/morse/\">摩斯密碼工具</a>，它同樣只做逐字符映射。</p>\n<p>來源：FIGlet 項目主頁與 Wikipedia 條目說明 FIGlet 的歷史與字體機制；figlet.js 倉庫文檔給出 width、whitespaceBreak、horizontalLayout 與 metadata 的語義；MDN 說明 <code>measureText</code> 返回文本寬度，<code>getImageData</code> 與 canvas 像素操作讀取畫布像素。本文的字體、分組、默認值與文案以頁面源碼和本次瀏覽器證據為準。</p>",
+  "faqs": [
+    {
+      "q": "ASCII 藝術字怎麼生成？",
+      "a": "打開 <a href=\"/zh-hant/tools/fun/ascii-art/\">ASCII 藝術字</a>，確認標簽是「英文藝術字」，在輸入框寫英文或數字，約 250 ms 後自動出現結果；也可以點「生成字符畫」或按 Ctrl+Enter 立即渲染。字體、字距、每行寬度改動後會自動重畫，輸出在下方「終端輸出」面板，統計行給出「N 行 · M 字符 · 最大寬度 W」。"
+    },
+    {
+      "q": "為什麼輸入中文後字體選項沒反應？",
+      "a": "因為 FIGlet 字體裏沒有漢字。輸入一旦命中 <code>CJK_RE</code>（漢字、假名、諺文、全角字符），頁面會跳過 FIGlet，改用固定 8 行/字、灰階、不反色的像素畫算法，並顯示藍色提示；標簽頁仍停在「英文藝術字」，字體選擇被忽略。要調清晰度、字符集或反色，請切到「中文像素畫」重新生成。"
+    },
+    {
+      "q": "為什麼選「通用融合」和默認字距一樣？",
+      "a": "頁面把該選項的值傳成 <code>universal</code>，而 figlet.js 文檔裏的合法值是 <code>universal smushing</code>。本次瀏覽器證據中，選「通用融合」的輸出與「默認」逐字相同，命令行仍寫 <code>-l universal</code>，等於沒有生效；需要更緊或更松，請用「緊湊 fitted」或「寬鬆 full」。"
+    },
+    {
+      "q": "中文像素畫的寬度為什麼每次不一樣？",
+      "a": "它按 <code>measureText</code> 量出的實際像素寬度累加換行，閾值是「每行寬度×2 像素」，不是固定字符網格。字體棧是 Noto Sans SC、微軟雅黑、蘋方等系統字體，安裝情況不同，同一個字的寬度和字形就不同；再加上 2×4 采樣、裁空行與去行尾空格，最終列數會隨系統變化。"
+    },
+    {
+      "q": "圖片轉字符畫的行數怎麼算？",
+      "a": "行數由圖片比例和輸出列數決定：<code>rows = max(1, round(cols × 高 / 宽))</code>。200×100 的圖選 60 列就是 30 行，選 80 列就是 40 行；每個字符取 2×4 像素的一格平均色，而字符單元高約為寬的兩倍，所以成品顯示時縱向會被拉長（200×100 的圖在 60 列下是接近正方形的 60×30 塊），頁面不做比例補償。對比度只改明暗，不改變行列數。"
+    },
+    {
+      "q": "複製和下載有什麼區別？",
+      "a": "勾選「ANSI 彩色」後，複製會把 24 位真彩色轉義序列一起寫進剪貼板，文本模式按行著色、圖片模式按格著色；下載始終只寫純文本，文件名固定為 <code>clover-ascii-art-YYYYMMDD.txt</code>。沒有結果時複製報「沒有可複製的內容，請先生成字符畫」，下載報「沒有可下載的內容，請先生成字符畫」。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "FIGlet 項目主頁",
+      "url": "https://www.figlet.org/"
+    },
+    {
+      "title": "FIGlet — Wikipedia",
+      "url": "https://en.wikipedia.org/wiki/FIGlet"
+    },
+    {
+      "title": "patorjk/figlet.js — JavaScript FIGlet implementation",
+      "url": "https://github.com/patorjk/figlet.js"
+    },
+    {
+      "title": "CanvasRenderingContext2D: measureText() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/measureText"
+    },
+    {
+      "title": "CanvasRenderingContext2D: getImageData() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/getImageData"
+    },
+    {
+      "title": "Pixel manipulation with canvas",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "ascii-art",
+      "lang": "tw",
+      "translatedFrom": "e64fc60e62bac0dee7615bfca45097959d1532cfcf2b6d1829bbf58b60822fbb",
+      "translatedAt": "2026-11-13T10:36:49.302Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 1
+    }
+  },
+  "image": "/article-images/2026-11/ascii-art-figlet-banner.jpg",
+  "focus": "ASCII 藝術字工具的三條路徑：FIGlet 英文藝術字（22 款字體、4 組、字距與寬度）、中文像素畫（6–12 行/字、3 種字符集、反色）、圖片轉字符畫（60–160 列、按比例算行數、對比度與逐格 ANSI）。中文沒有 FIGlet 字體，會被自動降級為像素畫；像素畫寬度依賴系統字體，emoji 會得到空串。"
+}
