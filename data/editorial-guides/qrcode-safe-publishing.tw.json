@@ -1,0 +1,62 @@
+{
+  "slug": "qrcode-safe-publishing",
+  "title": "二維碼容錯級別怎麼選：版本、尺寸與掃碼失敗排查",
+  "description": "二維碼掃不出來，往往不是容錯級別太低，而是內容太長、模塊太小或對比度不足。本文用與站內生成器相同的 qrcode 1.5.4 引擎復現版本與容量邊界，說明容錯級別怎麼選、384px 下每模塊多少像素，以及發布前該檢查什麼。",
+  "category": "开发实用",
+  "toolSlug": "qrcode",
+  "published": "2026-09-30",
+  "updated": "2026-11-14",
+  "readingMinutes": 7,
+  "content": "<p>二維碼掃不出來，通常不是「容錯級別不夠高」，而是內容長度、模塊像素、對比度或跳轉目標出了問題。下面按版本、容錯、尺寸與發布驗證四層拆開，並用站內二維碼生成器復現 384px 與超容量兩種邊界。</p>\n\n<h2>一、二維碼編碼了什麼：版本、模塊與數據區</h2>\n<p>二維碼把一段字節編碼成黑白模塊矩陣。DENSO WAVE 的版本說明給出兩條規則：版本從 1 到 40，版本 1 是 21×21 個模塊，版本 40 是 177×177 個模塊，每升一版每邊增加 4 個模塊。模塊是構成符號的黑白點，不是屏幕像素，也不是打印尺寸。</p>\n<p>矩陣裏有一部分是固定圖案。用 qrcode 1.5.4 生成 <code>https://clovertools.cn</code>（級別 M）後檢查矩陣：三個角落各有 7×7 定位圖形，索引 6 的行與列是深淺交替的時序線；換一段同版本內容，這些定位與時序圖案不變；數據與糾錯碼字只填充數據區，定位、時序等固定圖案不承載業務數據。DENSO 把碼字定義為數據區單位，一個碼字 8 位。</p>\n<p>所以「二維碼多大」有兩個答案：模塊數由版本決定，每模塊的像素或毫米由輸出尺寸決定。混在一起，就會得出「尺寸選 512 一定更清楚」這類片面結論。</p>\n\n<h2>二、容錯率不是越高越安全</h2>\n<p>四檔容錯級別 L/M/Q/H 在工具裏標注為 7%、15%、25%、30%。DENSO 強調：提高級別會增強糾錯，但也會增加二維碼佔用的數據量；工廠等臟汙環境可選 Q 或 H，幹凈、數據量大時可選 L，M（15%）是日常最常用檔位。</p>\n<p>百分比是「可恢復碼字佔總碼字」，不是「遮住 30% 面積也能掃」。DENSO 的例子是：100 個碼字裏有 50 個需要糾正，需要 100 個 Reed-Solomon 碼字，總碼字變成 200 個，其中能糾正 50 個，比例 25%，對應 Q 級。</p>\n<p>代價同樣明確：同一段 329 字符鏈接，L 選版本 12（65×65），H 要選版本 19（93×93）；384px 預覽裏每模塊的縮放比從約 5.26 降到約 3.80。容錯提高，模塊更密、更小，印刷尺寸不變時掃描難度可能上升。所以更準確的說法是「容錯越高越耐汙損，但同一內容會更密」。</p>\n\n<h2>三、內容長度決定密度：容量與版本</h2>\n<p>版本由內容字節數和糾錯級別共同決定。用 qrcode 1.5.4 的 8-bit 字節模式做二分查找，版本 40 的單個符號容量是 L 2953、M 2331、Q 1663、H 1273 字節；再多一個字節，庫就拋「The amount of data is too big to be stored in a QR Code」。</p>\n<p>短內容也有版本差異。<code>https://clovertools.cn</code> 是 22 個字符，L 與 M 選版本 2（25×25），Q 與 H 選版本 3（29×29）；換成 329 字符長鏈接，版本變成 L 12、M 13、Q 17、H 19，對應 65、69、85、93 模塊見方。同一內容提高容錯，會把整個符號推高到更密的版本。</p>\n<p>超容量時工具的處理很直接：輸入 3000 個 <code>a</code>、級別 M，狀態條顯示「生成失敗: The amount of data is too big to be stored in a QR Code」，預覽保持「等待生成」，下載按鈕保持禁用。沒有半成品，也沒有自動降級。</p>\n<figure><a href=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-over-capacity.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：二維碼生成器填入長串字母 a 後生成：狀態條「生成失敗: The amount of data is too big to be stored in a QR Code」，下方預覽仍為「等待生成」空態，下載按鈕不可用。\"><img src=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-over-capacity.jpg\" alt=\"二維碼生成器填入長串字母 a 後生成：狀態條「生成失敗: The amount of data is too big to be stored in a QR Code」，下方預覽仍為「等待生成」空態，下載按鈕不可用。\" width=\"602\" height=\"1099\" loading=\"lazy\" decoding=\"async\"></a><figcaption>填入一長串字母 a 後生成：狀態條寫「生成失敗: The amount of data is too big to be stored in a QR Code」，下方預覽仍顯示「等待生成」與「填寫內容並生成，預覽會顯示在這裏。」，「下載 PNG」按鈕不可用。 點擊圖片可查看原圖。</figcaption></figure>\n<p>生成前會執行 <code>input.value.trim()</code>，首尾空白被去掉；中間的空白會原樣編碼。要精確控制內容，先在編輯器裏確認首尾沒有多余字符。</p>\n<table>\n<thead><tr><th>糾錯級別</th><th>工具標注的可恢復比例</th><th>版本 40 字節容量</th></tr></thead>\n<tbody>\n<tr><td>L</td><td>7%</td><td>2953 字節</td></tr>\n<tr><td>M</td><td>15%</td><td>2331 字節</td></tr>\n<tr><td>Q</td><td>25%</td><td>1663 字節</td></tr>\n<tr><td>H</td><td>30%</td><td>1273 字節</td></tr>\n</tbody>\n</table>\n<p>這張表只適用於 8-bit 字節模式；容量還隨字符類型變化，所以「能裝多少」不能只看級別。</p>\n\n<h2>四、尺寸與每模塊像素：384px 與打印尺寸</h2>\n<p>站內 <a href=\"/zh-hant/tools/dev/qrcode/\">二維碼生成器</a> 提供 256/384/512 三檔，默認 384px，固定 margin=4 個模塊，前景 #232019、背景 #ffffff。留白兩側共 8 模塊，PNG 邊長 =（模塊數 + 8）× 縮放比，而庫把縮放比取為 width ÷（模塊數 + 8），所以最終邊長就是所選寬度。</p>\n<p>真正決定清晰度的是每模塊分到多少像素。384px 下，版本 2（25 模塊）縮放比是 384÷33≈11.64，版本 3 是 384÷37≈10.38，版本 40 只有 384÷185≈2.08。柵格化按整數像素落點，相鄰模塊實際佔 11 或 12、10 或 11、2 或 3 像素。</p>\n<p>打印會放大差別：384px 按 300dpi 約 32.5mm 寬，版本 2 的模塊約 0.99mm，版本 3 約 0.88mm，版本 40 只剩約 0.18mm。後者不到 0.2mm，能否穩定分辨取決於打印機、紙張與掃描設備，不能只看「預覽很清晰」。</p>\n<figure><a href=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：二維碼生成器填入 https://clovertools.cn 後生成：尺寸 384px、容錯級別 M (15%)、狀態條「生成成功」，下方預覽為白底、深色模塊的方形二維碼（canvas 尺寸 384×384），下載按鈕可用。\"><img src=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg\" alt=\"二維碼生成器填入 https://clovertools.cn 後生成：尺寸 384px、容錯級別 M (15%)、狀態條「生成成功」，下方預覽為白底、深色模塊的方形二維碼（canvas 尺寸 384×384），下載按鈕可用。\" width=\"602\" height=\"1142\" loading=\"lazy\" decoding=\"async\"></a><figcaption>填入 https://clovertools.cn 後生成：尺寸顯示 384px、容錯級別顯示 M (15%)，狀態條寫「生成成功」，「下載 PNG」按鈕已可用，下方預覽是白底、深色模塊的二維碼。 點擊圖片可查看原圖。</figcaption></figure>\n<p>導出走 <code>canvas.toDataURL('image/png')</code>；MDN 說明 type 缺省為 <code>image/png</code>，返回 data URL，畫布非同源會拋 <code>SecurityError</code>。這裏的二維碼由本地腳本繪制，能直接導出。</p>\n\n<h2>五、對比度、白邊與顏色反轉</h2>\n<p>掃描器靠明暗差識別模塊。工具把前景固定為深灰 #232019、背景固定為純白 #ffffff，按相對亮度公式算對比度約 16.25:1。預覽頁腳寫明「預覽保留白色背景，導出包含掃碼所需留白」，導出的 PNG 也帶 4 個模塊白邊。</p>\n<p>四個邊界：不要裁掉白邊；不要用透明背景替換白色；不要反轉顏色，淺色模塊配深色背景會改變明暗關係，必須在目標設備上試掃；不要用漸變、陰影或半透明前景。工具沒有顏色選擇器，這些風險主要在下載後再加工。</p>\n<p>改尺寸時回到工具重選 256/384/512 重新生成，不要拉伸 384px 的圖。拉伸會改變每模塊的實際像素寬度，白邊也可能被裁掉或變形。</p>\n\n<h2>六、靜態碼與可改寫短鏈：誰控制域名</h2>\n<p>二維碼印出去，內容就固定了；掃描器讀到的通常是一段 URI。RFC 3986 把 URI 拆成 scheme、authority、path、query、fragment：scheme 說明協議，authority 裏的 host 說明找哪台服務器，path 與 query 決定請求哪個資源。掃碼之後發生什麼，取決於 URI 指向的服務器，而不是圖案本身。</p>\n<p>靜態碼把最終地址寫進圖案，改地址只能重印。可改寫短鏈把自有域名寫進圖案，由服務器用 3xx 重定向到當前目標：RFC 9110 第 15.4 節把 301、302、307、308 歸為通過 Location 頭指示新 URI 的重定向，第 15.4.3 節的 302 Found 表示目標暫時位於另一個 URI，重定向可能變化。</p>\n<p>代價是控制權轉移：誰掌握短鏈域名與重定向配置，誰就能改最終頁面；服務停運或證書過期，紙上的碼就會失效，域名易主則可能把掃碼者帶到別人的頁面。長期張貼時，先確認域名歸屬、重定向可審計、停服後能導出最終地址。</p>\n<p>鏈接也值得拆開。站內 <a href=\"/zh-hant/tools/dev/url-parse/\">URL 解析工具</a> 能把地址拆成協議、主機名、端口、路徑、查詢、錨點，並逐條列出查詢參數；帶 <code>user:pass@</code> 的地址會把用戶名與密碼單獨顯示，這類憑據不應放進二維碼。RFC 3986 第 6.2.2.1 節還提醒 scheme 與 host 大小寫不敏感，不要靠大小寫區分「可信域名」。</p>\n\n<h2>七、發布前驗證清單</h2>\n<p>把「能生成」和「能掃、掃對」分開驗證。下面按風險從高到低排列，適合在印刷或張貼前逐項過一遍。</p>\n<table>\n<thead><tr><th>檢查項</th><th>怎麼做</th><th>不通過時</th></tr></thead>\n<tbody>\n<tr><td>內容與目標</td><td>用 URL 解析工具核對協議、主機名、路徑、參數</td><td>重新生成，不手改圖片</td></tr>\n<tr><td>容量與版本</td><td>確認未超過當前級別的版本 40 容量</td><td>先比較模塊密度，再決定提級或縮短</td></tr>\n<tr><td>尺寸與模塊</td><td>按最終尺寸換算每模塊毫米數</td><td>放大印刷尺寸，不拉伸圖片</td></tr>\n<tr><td>對比度與留白</td><td>確認深色模塊、淺色背景、四邊留白完整</td><td>重新導出，不裁邊、不反色</td></tr>\n<tr><td>設備與光線</td><td>至少兩台設備、目標光線與距離各掃一次</td><td>記錄樣張，回到尺寸與版本排查</td></tr>\n<tr><td>跳轉與歸屬</td><td>短鏈確認域名歸屬、狀態碼與落地頁</td><td>改用自有域名或靜態碼</td></tr>\n</tbody>\n</table>\n<p>最容易被跳過的是「設備與光線」。在顯示器上放大、用同一部手機在室內掃一次，不代表海報、桌牌或包裝上的條件。至少換一台設備、換一個距離，並在弱光下再掃；失敗時記錄是「識別不到」還是「跳轉錯誤」，兩者排查方向不同。</p>\n\n<h2>八、常見誤解</h2>\n<ul>\n<li><strong>「容錯選 H 就萬事大吉」</strong>：H 提高的是碼字級恢復能力，同內容會把版本推高、模塊變小；容量也從 2953 字節降到 1273 字節。</li>\n<li><strong>「能生成就能掃」</strong>：生成只證明內容能編碼進某個版本；模塊像素、對比度、留白、印刷與光線都影響識別。</li>\n<li><strong>「二維碼會自動過期」</strong>：圖案不會自己過期，失效的是它指向的頁面、短鏈服務或憑據。</li>\n<li><strong>「條形碼也能當網址入口」</strong>：條形碼模式輸出 CODE128 一維碼（條寬 2、條高 80、留白 12），適合掃碼槍；它沒有容錯級別，也不適合承載需要手機相機打開的網址。</li>\n<li><strong>「改設置不影響已生成的圖」</strong>：修改內容、尺寸或級別會立即清空預覽並禁用下載；已保存的舊文件不會變，每次改完都要重新生成、導出。</li>\n</ul>\n\n<h2>九、邊界與限制</h2>\n<p>能力邊界很明確：類型只有二維碼與條形碼（Code128）；二維碼尺寸只有 256/384/512，容錯只有 L/M/Q/H；前景與背景固定，不能換色、加 logo 或調整留白；導出文件名固定為 <code>clover-code.png</code>；生成與下載都在瀏覽器本地完成，不會替你訪問目標地址，也不檢查鏈接是否可達、是否跳轉、證書是否有效。</p>\n<p>切換到條形碼時，容錯字段隱藏、尺寸下拉禁用，因為 CODE128 沒有二維碼那種糾錯級別；條形碼由 SVG 渲染，導出仍是 PNG。它適合資產標簽、庫存條碼等掃碼槍場景，不要承載需要手機相機打開的網址。</p>\n<p>工具也不判斷內容是否安全：二維碼只把字節畫成圖案，不校驗域名信譽、不檢測惡意鏈接、不阻止你把 Wi-Fi 密碼或帶憑據的 URL 編碼進去。發布前的內容審查與權限確認要在工具之外完成；本文數字來自 qrcode 1.5.4 與當前頁面實現的復現，不構成對具體印刷設備或掃碼 App 的兼容性承諾。</p>",
+  "faqs": [
+    {
+      "q": "二維碼容錯級別越高，掃描成功率就越高嗎？",
+      "a": "不一定。H 級能恢復更多碼字，但同一內容會被推到更高版本、模塊更密；在印刷尺寸不變時，每模塊的像素或毫米數反而變小。先按使用環境選級別，再用最終尺寸在目標設備上驗證。"
+    },
+    {
+      "q": "內容太長生成失敗怎麼辦？",
+      "a": "版本 40 的字節容量是 L 2953、M 2331、Q 1663、H 1273；超過就會顯示「生成失敗: The amount of data is too big to be stored in a QR Code」。優先縮短鏈接或改用自有域名，不要靠降低容錯把內容硬塞進去。"
+    },
+    {
+      "q": "384px 的二維碼能直接印刷嗎？",
+      "a": "384px 按 300dpi 約 32.5mm 寬；版本 2 的模塊約 0.99mm，版本 40 只有約 0.18mm。印刷前按最終尺寸換算每模塊毫米數，並在目標設備與目標光線下試掃。"
+    },
+    {
+      "q": "靜態碼和短鏈二維碼怎麼選？",
+      "a": "靜態碼把最終地址寫進圖案，改地址要重印；短鏈把自有域名寫進圖案，用 3xx 重定向改目標。短鏈更方便，但最終去向由域名與重定向配置的控制者決定。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986"
+    },
+    {
+      "title": "RFC 9110: HTTP Semantics",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110"
+    },
+    {
+      "title": "HTMLCanvasElement: toDataURL() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL"
+    },
+    {
+      "title": "Error Correction Feature",
+      "url": "https://www.qrcode.com/en/about/error_correction.html"
+    },
+    {
+      "title": "Information capacity and versions of the QR Code",
+      "url": "https://www.qrcode.com/en/about/version.html"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "qrcode-safe-publishing",
+      "lang": "tw",
+      "translatedFrom": "fb575e114f3457d68a45f055b5e300d0e229ed9d17e0235ae3538c5d8e2e742e",
+      "translatedAt": "2026-11-14T04:39:17.564Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 1
+    }
+  },
+  "image": "/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg"
+}

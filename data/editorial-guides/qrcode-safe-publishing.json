@@ -1,34 +1,89 @@
 {
   "slug": "qrcode-safe-publishing",
-  "title": "二维码生成后怎么验证：内容安全与识别率检查",
-  "description": "了解二维码容错、对比度和静态链接验证，避免二维码能生成却扫不出来或跳错地址。发布前请用实际设备检查扫码结果。",
-  "seoDescription": "二维码生成成功只是第一步，发布前还要验证：二维码只是内容的图形表示，生成成功不等于发布安全；先确认容错与尺寸是否匹配内容长度，前景背景保持明显对比并留住白边，再用手机在目标尺寸与弱光下实际扫码，确认显示的域名与文字准确。内容越长所需尺寸越大，长链接更适合放在稳定的 HTTPS 页面里，Wi-Fi 凭据也要在发布前确认。",
+  "title": "二维码容错级别怎么选：版本、尺寸与扫码失败排查",
+  "description": "二维码扫不出来，往往不是容错级别太低，而是内容太长、模块太小或对比度不足。本文用与站内生成器相同的 qrcode 1.5.4 引擎复现版本与容量边界，说明容错级别怎么选、384px 下每模块多少像素，以及发布前该检查什么。",
+  "seoDescription": "二维码扫不出来时，先看内容长度与版本：内容越长，符号版本越高、模块越密，同尺寸下每模块分到的像素越少。本文用与站内生成器相同的 qrcode 1.5.4 引擎复现 L/M/Q/H 四档容错、版本 1–40 容量边界与 384px 预览，说明容错级别怎么选、白边与对比度为什么重要，并给出发布前扫码清单，减少返工。",
   "category": "开发实用",
   "toolSlug": "qrcode",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>二维码只是内容的图形表示，生成成功不等于发布安全。发布前要检查它包含的 URL、Wi-Fi 凭据或联系人信息，并在实际尺寸、实际光线和不同设备上扫描。</p>\n      <h2>容错与尺寸</h2>\n      <p>更高容错可以承受部分遮挡，但会让图案更密。内容越长，所需尺寸越大；如果把长文案塞进二维码，识别距离和成功率都会下降。长内容更适合放在稳定的 HTTPS 页面中。</p>\n      <h2>颜色和印刷</h2>\n      <p>前景与背景要有明显对比，避免透明背景、渐变和复杂图片干扰定位点。下载后不要随意裁剪白边、压缩图片或拉伸比例。</p>\n      <h2>发布前的三次测试</h2>\n      <ol><li>用手机扫描，确认显示的域名和文字准确。</li><li>在目标尺寸和弱光下再次扫描。</li><li>让另一台设备或同事独立检查，确认没有把测试链接、密码或私密邀请公开。</li></ol>",
+  "updated": "2026-11-14",
+  "readingMinutes": 7,
+  "content": "<p>二维码扫不出来，通常不是「容错级别不够高」，而是内容长度、模块像素、对比度或跳转目标出了问题。下面按版本、容错、尺寸与发布验证四层拆开，并用站内二维码生成器复现 384px 与超容量两种边界。</p>\n\n<h2>一、二维码编码了什么：版本、模块与数据区</h2>\n<p>二维码把一段字节编码成黑白模块矩阵。DENSO WAVE 的版本说明给出两条规则：版本从 1 到 40，版本 1 是 21×21 个模块，版本 40 是 177×177 个模块，每升一版每边增加 4 个模块。模块是构成符号的黑白点，不是屏幕像素，也不是打印尺寸。</p>\n<p>矩阵里有一部分是固定图案。用 qrcode 1.5.4 生成 <code>https://clovertools.cn</code>（级别 M）后检查矩阵：三个角落各有 7×7 定位图形，索引 6 的行与列是深浅交替的时序线；换一段同版本内容，这些定位与时序图案不变；数据与纠错码字只填充数据区，定位、时序等固定图案不承载业务数据。DENSO 把码字定义为数据区单位，一个码字 8 位。</p>\n<p>所以「二维码多大」有两个答案：模块数由版本决定，每模块的像素或毫米由输出尺寸决定。混在一起，就会得出「尺寸选 512 一定更清楚」这类片面结论。</p>\n\n<h2>二、容错率不是越高越安全</h2>\n<p>四档容错级别 L/M/Q/H 在工具里标注为 7%、15%、25%、30%。DENSO 强调：提高级别会增强纠错，但也会增加二维码占用的数据量；工厂等脏污环境可选 Q 或 H，干净、数据量大时可选 L，M（15%）是日常最常用档位。</p>\n<p>百分比是「可恢复码字占总码字」，不是「遮住 30% 面积也能扫」。DENSO 的例子是：100 个码字里有 50 个需要纠正，需要 100 个 Reed-Solomon 码字，总码字变成 200 个，其中能纠正 50 个，比例 25%，对应 Q 级。</p>\n<p>代价同样明确：同一段 329 字符链接，L 选版本 12（65×65），H 要选版本 19（93×93）；384px 预览里每模块的缩放比从约 5.26 降到约 3.80。容错提高，模块更密、更小，印刷尺寸不变时扫描难度可能上升。所以更准确的说法是「容错越高越耐污损，但同一内容会更密」。</p>\n\n<h2>三、内容长度决定密度：容量与版本</h2>\n<p>版本由内容字节数和纠错级别共同决定。用 qrcode 1.5.4 的 8-bit 字节模式做二分查找，版本 40 的单个符号容量是 L 2953、M 2331、Q 1663、H 1273 字节；再多一个字节，库就抛「The amount of data is too big to be stored in a QR Code」。</p>\n<p>短内容也有版本差异。<code>https://clovertools.cn</code> 是 22 个字符，L 与 M 选版本 2（25×25），Q 与 H 选版本 3（29×29）；换成 329 字符长链接，版本变成 L 12、M 13、Q 17、H 19，对应 65、69、85、93 模块见方。同一内容提高容错，会把整个符号推高到更密的版本。</p>\n<p>超容量时工具的处理很直接：输入 3000 个 <code>a</code>、级别 M，状态条显示「生成失败: The amount of data is too big to be stored in a QR Code」，预览保持「等待生成」，下载按钮保持禁用。没有半成品，也没有自动降级。</p>\n<figure><a href=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-over-capacity.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：二维码生成器填入长串字母 a 后生成：状态条「生成失败: The amount of data is too big to be stored in a QR Code」，下方预览仍为「等待生成」空态，下载按钮不可用。\"><img src=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-over-capacity.jpg\" alt=\"二维码生成器填入长串字母 a 后生成：状态条「生成失败: The amount of data is too big to be stored in a QR Code」，下方预览仍为「等待生成」空态，下载按钮不可用。\" width=\"602\" height=\"1099\" loading=\"lazy\" decoding=\"async\"></a><figcaption>填入一长串字母 a 后生成：状态条写「生成失败: The amount of data is too big to be stored in a QR Code」，下方预览仍显示「等待生成」与「填写内容并生成，预览会显示在这里。」，「下载 PNG」按钮不可用。 点击图片可查看原图。</figcaption></figure>\n<p>生成前会执行 <code>input.value.trim()</code>，首尾空白被去掉；中间的空白会原样编码。要精确控制内容，先在编辑器里确认首尾没有多余字符。</p>\n<table>\n<thead><tr><th>纠错级别</th><th>工具标注的可恢复比例</th><th>版本 40 字节容量</th></tr></thead>\n<tbody>\n<tr><td>L</td><td>7%</td><td>2953 字节</td></tr>\n<tr><td>M</td><td>15%</td><td>2331 字节</td></tr>\n<tr><td>Q</td><td>25%</td><td>1663 字节</td></tr>\n<tr><td>H</td><td>30%</td><td>1273 字节</td></tr>\n</tbody>\n</table>\n<p>这张表只适用于 8-bit 字节模式；容量还随字符类型变化，所以「能装多少」不能只看级别。</p>\n\n<h2>四、尺寸与每模块像素：384px 与打印尺寸</h2>\n<p>站内 <a href=\"/tools/dev/qrcode/\">二维码生成器</a> 提供 256/384/512 三档，默认 384px，固定 margin=4 个模块，前景 #232019、背景 #ffffff。留白两侧共 8 模块，PNG 边长 =（模块数 + 8）× 缩放比，而库把缩放比取为 width ÷（模块数 + 8），所以最终边长就是所选宽度。</p>\n<p>真正决定清晰度的是每模块分到多少像素。384px 下，版本 2（25 模块）缩放比是 384÷33≈11.64，版本 3 是 384÷37≈10.38，版本 40 只有 384÷185≈2.08。栅格化按整数像素落点，相邻模块实际占 11 或 12、10 或 11、2 或 3 像素。</p>\n<p>打印会放大差别：384px 按 300dpi 约 32.5mm 宽，版本 2 的模块约 0.99mm，版本 3 约 0.88mm，版本 40 只剩约 0.18mm。后者不到 0.2mm，能否稳定分辨取决于打印机、纸张与扫描设备，不能只看「预览很清晰」。</p>\n<figure><a href=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：二维码生成器填入 https://clovertools.cn 后生成：尺寸 384px、容错级别 M (15%)、状态条「生成成功」，下方预览为白底、深色模块的方形二维码（canvas 尺寸 384×384），下载按钮可用。\"><img src=\"/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg\" alt=\"二维码生成器填入 https://clovertools.cn 后生成：尺寸 384px、容错级别 M (15%)、状态条「生成成功」，下方预览为白底、深色模块的方形二维码（canvas 尺寸 384×384），下载按钮可用。\" width=\"602\" height=\"1142\" loading=\"lazy\" decoding=\"async\"></a><figcaption>填入 https://clovertools.cn 后生成：尺寸显示 384px、容错级别显示 M (15%)，状态条写「生成成功」，「下载 PNG」按钮已可用，下方预览是白底、深色模块的二维码。 点击图片可查看原图。</figcaption></figure>\n<p>导出走 <code>canvas.toDataURL('image/png')</code>；MDN 说明 type 缺省为 <code>image/png</code>，返回 data URL，画布非同源会抛 <code>SecurityError</code>。这里的二维码由本地脚本绘制，能直接导出。</p>\n\n<h2>五、对比度、白边与颜色反转</h2>\n<p>扫描器靠明暗差识别模块。工具把前景固定为深灰 #232019、背景固定为纯白 #ffffff，按相对亮度公式算对比度约 16.25:1。预览页脚写明「预览保留白色背景，导出包含扫码所需留白」，导出的 PNG 也带 4 个模块白边。</p>\n<p>四个边界：不要裁掉白边；不要用透明背景替换白色；不要反转颜色，浅色模块配深色背景会改变明暗关系，必须在目标设备上试扫；不要用渐变、阴影或半透明前景。工具没有颜色选择器，这些风险主要在下载后再加工。</p>\n<p>改尺寸时回到工具重选 256/384/512 重新生成，不要拉伸 384px 的图。拉伸会改变每模块的实际像素宽度，白边也可能被裁掉或变形。</p>\n\n<h2>六、静态码与可改写短链：谁控制域名</h2>\n<p>二维码印出去，内容就固定了；扫描器读到的通常是一段 URI。RFC 3986 把 URI 拆成 scheme、authority、path、query、fragment：scheme 说明协议，authority 里的 host 说明找哪台服务器，path 与 query 决定请求哪个资源。扫码之后发生什么，取决于 URI 指向的服务器，而不是图案本身。</p>\n<p>静态码把最终地址写进图案，改地址只能重印。可改写短链把自有域名写进图案，由服务器用 3xx 重定向到当前目标：RFC 9110 第 15.4 节把 301、302、307、308 归为通过 Location 头指示新 URI 的重定向，第 15.4.3 节的 302 Found 表示目标暂时位于另一个 URI，重定向可能变化。</p>\n<p>代价是控制权转移：谁掌握短链域名与重定向配置，谁就能改最终页面；服务停运或证书过期，纸上的码就会失效，域名易主则可能把扫码者带到别人的页面。长期张贴时，先确认域名归属、重定向可审计、停服后能导出最终地址。</p>\n<p>链接也值得拆开。站内 <a href=\"/tools/dev/url-parse/\">URL 解析工具</a> 能把地址拆成协议、主机名、端口、路径、查询、锚点，并逐条列出查询参数；带 <code>user:pass@</code> 的地址会把用户名与密码单独显示，这类凭据不应放进二维码。RFC 3986 第 6.2.2.1 节还提醒 scheme 与 host 大小写不敏感，不要靠大小写区分「可信域名」。</p>\n\n<h2>七、发布前验证清单</h2>\n<p>把「能生成」和「能扫、扫对」分开验证。下面按风险从高到低排列，适合在印刷或张贴前逐项过一遍。</p>\n<table>\n<thead><tr><th>检查项</th><th>怎么做</th><th>不通过时</th></tr></thead>\n<tbody>\n<tr><td>内容与目标</td><td>用 URL 解析工具核对协议、主机名、路径、参数</td><td>重新生成，不手改图片</td></tr>\n<tr><td>容量与版本</td><td>确认未超过当前级别的版本 40 容量</td><td>先比较模块密度，再决定提级或缩短</td></tr>\n<tr><td>尺寸与模块</td><td>按最终尺寸换算每模块毫米数</td><td>放大印刷尺寸，不拉伸图片</td></tr>\n<tr><td>对比度与留白</td><td>确认深色模块、浅色背景、四边留白完整</td><td>重新导出，不裁边、不反色</td></tr>\n<tr><td>设备与光线</td><td>至少两台设备、目标光线与距离各扫一次</td><td>记录样张，回到尺寸与版本排查</td></tr>\n<tr><td>跳转与归属</td><td>短链确认域名归属、状态码与落地页</td><td>改用自有域名或静态码</td></tr>\n</tbody>\n</table>\n<p>最容易被跳过的是「设备与光线」。在显示器上放大、用同一部手机在室内扫一次，不代表海报、桌牌或包装上的条件。至少换一台设备、换一个距离，并在弱光下再扫；失败时记录是「识别不到」还是「跳转错误」，两者排查方向不同。</p>\n\n<h2>八、常见误解</h2>\n<ul>\n<li><strong>「容错选 H 就万事大吉」</strong>：H 提高的是码字级恢复能力，同内容会把版本推高、模块变小；容量也从 2953 字节降到 1273 字节。</li>\n<li><strong>「能生成就能扫」</strong>：生成只证明内容能编码进某个版本；模块像素、对比度、留白、印刷与光线都影响识别。</li>\n<li><strong>「二维码会自动过期」</strong>：图案不会自己过期，失效的是它指向的页面、短链服务或凭据。</li>\n<li><strong>「条形码也能当网址入口」</strong>：条形码模式输出 CODE128 一维码（条宽 2、条高 80、留白 12），适合扫码枪；它没有容错级别，也不适合承载需要手机相机打开的网址。</li>\n<li><strong>「改设置不影响已生成的图」</strong>：修改内容、尺寸或级别会立即清空预览并禁用下载；已保存的旧文件不会变，每次改完都要重新生成、导出。</li>\n</ul>\n\n<h2>九、边界与限制</h2>\n<p>能力边界很明确：类型只有二维码与条形码（Code128）；二维码尺寸只有 256/384/512，容错只有 L/M/Q/H；前景与背景固定，不能换色、加 logo 或调整留白；导出文件名固定为 <code>clover-code.png</code>；生成与下载都在浏览器本地完成，不会替你访问目标地址，也不检查链接是否可达、是否跳转、证书是否有效。</p>\n<p>切换到条形码时，容错字段隐藏、尺寸下拉禁用，因为 CODE128 没有二维码那种纠错级别；条形码由 SVG 渲染，导出仍是 PNG。它适合资产标签、库存条码等扫码枪场景，不要承载需要手机相机打开的网址。</p>\n<p>工具也不判断内容是否安全：二维码只把字节画成图案，不校验域名信誉、不检测恶意链接、不阻止你把 Wi-Fi 密码或带凭据的 URL 编码进去。发布前的内容审查与权限确认要在工具之外完成；本文数字来自 qrcode 1.5.4 与当前页面实现的复现，不构成对具体印刷设备或扫码 App 的兼容性承诺。</p>",
   "faqs": [
     {
-      "q": "静态二维码会自动过期吗？",
-      "a": "图案不会自动过期，但它指向的链接、凭据或服务可能失效。"
+      "q": "二维码容错级别越高，扫描成功率就越高吗？",
+      "a": "不一定。H 级能恢复更多码字，但同一内容会被推到更高版本、模块更密；在印刷尺寸不变时，每模块的像素或毫米数反而变小。先按使用环境选级别，再用最终尺寸在目标设备上验证。"
     },
     {
-      "q": "二维码里可以放 Wi-Fi 密码吗？",
-      "a": "可以，但二维码本身会携带凭据，分享前必须确认接收对象和网络权限。"
+      "q": "内容太长生成失败怎么办？",
+      "a": "版本 40 的字节容量是 L 2953、M 2331、Q 1663、H 1273；超过就会显示「生成失败: The amount of data is too big to be stored in a QR Code」。优先缩短链接或改用自有域名，不要靠降低容错把内容硬塞进去。"
+    },
+    {
+      "q": "384px 的二维码能直接印刷吗？",
+      "a": "384px 按 300dpi 约 32.5mm 宽；版本 2 的模块约 0.99mm，版本 40 只有约 0.18mm。印刷前按最终尺寸换算每模块毫米数，并在目标设备与目标光线下试扫。"
+    },
+    {
+      "q": "静态码和短链二维码怎么选？",
+      "a": "静态码把最终地址写进图案，改地址要重印；短链把自有域名写进图案，用 3xx 重定向改目标。短链更方便，但最终去向由域名与重定向配置的控制者决定。"
     }
   ],
   "sources": [
     {
-      "title": "DENSO WAVE：二维码纠错级别",
-      "url": "https://www.qrcode.com/en/about/error_correction.html"
+      "title": "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986",
+      "publisher": "IETF",
+      "why": "本文第六节的 URI 组件说明对应 RFC 3986 第 3、3.1、3.2 节（URI 由 scheme、authority、path、query、fragment 组成，scheme 说明协议、authority 含 host），并显式引用第 6.2.2.1 节的规范化提醒：scheme 与 host 大小写不敏感，规范化应转小写。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "RFC 9110: HTTP Semantics",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110",
+      "publisher": "IETF",
+      "why": "本文第六节引用 RFC 9110 第 15.4 节（3xx 重定向通过 Location 头指示新 URI）与第 15.4.3 节（302 Found 表示目标暂时位于另一个 URI，重定向可能变化）。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "HTMLCanvasElement: toDataURL() method",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL",
+      "publisher": "MDN Web Docs (Mozilla)",
+      "why": "本文第四节引用该页「Parameters」「Return value」「Exceptions」小节（该页无编号章节）：type 缺省为 image/png，返回 data URL 字符串；画布位图非 origin-clean 时抛 SecurityError。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "Error Correction Feature",
+      "url": "https://www.qrcode.com/en/about/error_correction.html",
+      "publisher": "DENSO WAVE",
+      "why": "本文第二节引用该页「Error Correction Feature」正文（该页无编号章节）：四种容错级别、Reed-Solomon 纠错、级别越高占用数据量越大、M（15%）最常用、脏污环境可选 Q 或 H。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "Information capacity and versions of the QR Code",
+      "url": "https://www.qrcode.com/en/about/version.html",
+      "publisher": "DENSO WAVE",
+      "why": "本文第一、三节引用该页正文（该页无编号章节）：版本 1–40、21×21 到 177×177、每升一版每边加 4 模块、容量随数据量、字符类型与纠错级别变化。",
+      "accessedAt": "2026-11-14",
+      "status": 200
     }
   ],
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
+    "auto": true,
+    "mode": "upgrade-guide",
+    "runId": "2026-11-14T12",
+    "type": "upgrade-guide",
+    "primaryQuery": "二维码 容错级别 扫描失败",
+    "angle": "二维码生成与发布：容错率、内容长度与扫码边界",
+    "upgradedFrom": {
+      "published": "2026-09-30",
+      "cjk": 253
+    },
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.92,
+    "verifiedAt": "2026-11-14T04:46:55.162Z",
     "originalPublished": "2026-09-30"
-  }
+  },
+  "image": "/article-images/2026-11/qrcode-safe-publishing-qrcode-generate-384-m.jpg"
 }
