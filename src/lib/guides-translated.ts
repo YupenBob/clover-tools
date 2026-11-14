@@ -17,73 +17,77 @@ import guide14 from '../../data/editorial-guides/qrcode-safe-publishing.tw.json'
 import guide15 from '../../data/editorial-guides/symmetric-encrypt-params.tw.json' with { type: 'json' };
 import guide16 from '../../data/editorial-guides/text-transform.tw.json' with { type: 'json' };
 import guide17 from '../../data/editorial-guides/timer.tw.json' with { type: 'json' };
-import guide18 from '../../data/editorial-guides/url-parse.tw.json' with { type: 'json' };
-import guide19 from '../../data/editorial-guides/uuid-generator.tw.json' with { type: 'json' };
-import guide20 from '../../data/editorial-guides/world-clock.tw.json' with { type: 'json' };
-import guide21 from '../../data/editorial-guides/xml-formatter.tw.json' with { type: 'json' };
-import guide22 from '../../data/editorial-guides/ascii-art.en.json' with { type: 'json' };
-import guide23 from '../../data/editorial-guides/calculator.en.json' with { type: 'json' };
-import guide24 from '../../data/editorial-guides/calendar.en.json' with { type: 'json' };
-import guide25 from '../../data/editorial-guides/color-convert.en.json' with { type: 'json' };
-import guide26 from '../../data/editorial-guides/css-formatter.en.json' with { type: 'json' };
-import guide27 from '../../data/editorial-guides/html-formatter.en.json' with { type: 'json' };
-import guide28 from '../../data/editorial-guides/ip-lookup.en.json' with { type: 'json' };
-import guide29 from '../../data/editorial-guides/jianfan.en.json' with { type: 'json' };
-import guide30 from '../../data/editorial-guides/js-formatter.en.json' with { type: 'json' };
-import guide31 from '../../data/editorial-guides/json-xml-yaml.en.json' with { type: 'json' };
-import guide32 from '../../data/editorial-guides/jwt-expiry-and-verification.en.json' with { type: 'json' };
-import guide33 from '../../data/editorial-guides/lunar-converter.en.json' with { type: 'json' };
-import guide34 from '../../data/editorial-guides/morse.en.json' with { type: 'json' };
-import guide35 from '../../data/editorial-guides/password-strength.en.json' with { type: 'json' };
-import guide36 from '../../data/editorial-guides/qrcode-safe-publishing.en.json' with { type: 'json' };
-import guide37 from '../../data/editorial-guides/symmetric-encrypt-params.en.json' with { type: 'json' };
-import guide38 from '../../data/editorial-guides/text-transform.en.json' with { type: 'json' };
-import guide39 from '../../data/editorial-guides/timer.en.json' with { type: 'json' };
-import guide40 from '../../data/editorial-guides/url-parse.en.json' with { type: 'json' };
-import guide41 from '../../data/editorial-guides/world-clock.en.json' with { type: 'json' };
-import guide42 from '../../data/editorial-guides/xml-formatter.en.json' with { type: 'json' };
-import guide43 from '../../data/editorial-guides/ascii-art.ko.json' with { type: 'json' };
-import guide44 from '../../data/editorial-guides/calculator.ko.json' with { type: 'json' };
-import guide45 from '../../data/editorial-guides/calendar.ko.json' with { type: 'json' };
-import guide46 from '../../data/editorial-guides/color-convert.ko.json' with { type: 'json' };
-import guide47 from '../../data/editorial-guides/css-formatter.ko.json' with { type: 'json' };
-import guide48 from '../../data/editorial-guides/html-formatter.ko.json' with { type: 'json' };
-import guide49 from '../../data/editorial-guides/ip-lookup.ko.json' with { type: 'json' };
-import guide50 from '../../data/editorial-guides/jianfan.ko.json' with { type: 'json' };
-import guide51 from '../../data/editorial-guides/js-formatter.ko.json' with { type: 'json' };
-import guide52 from '../../data/editorial-guides/json-xml-yaml.ko.json' with { type: 'json' };
-import guide53 from '../../data/editorial-guides/jwt-expiry-and-verification.ko.json' with { type: 'json' };
-import guide54 from '../../data/editorial-guides/lunar-converter.ko.json' with { type: 'json' };
-import guide55 from '../../data/editorial-guides/morse.ko.json' with { type: 'json' };
-import guide56 from '../../data/editorial-guides/password-strength.ko.json' with { type: 'json' };
-import guide57 from '../../data/editorial-guides/qrcode-safe-publishing.ko.json' with { type: 'json' };
-import guide58 from '../../data/editorial-guides/symmetric-encrypt-params.ko.json' with { type: 'json' };
-import guide59 from '../../data/editorial-guides/text-transform.ko.json' with { type: 'json' };
-import guide60 from '../../data/editorial-guides/timer.ko.json' with { type: 'json' };
-import guide61 from '../../data/editorial-guides/url-parse.ko.json' with { type: 'json' };
-import guide62 from '../../data/editorial-guides/world-clock.ko.json' with { type: 'json' };
-import guide63 from '../../data/editorial-guides/xml-formatter.ko.json' with { type: 'json' };
-import guide64 from '../../data/editorial-guides/ascii-art.ja.json' with { type: 'json' };
-import guide65 from '../../data/editorial-guides/calculator.ja.json' with { type: 'json' };
-import guide66 from '../../data/editorial-guides/calendar.ja.json' with { type: 'json' };
-import guide67 from '../../data/editorial-guides/color-convert.ja.json' with { type: 'json' };
-import guide68 from '../../data/editorial-guides/css-formatter.ja.json' with { type: 'json' };
-import guide69 from '../../data/editorial-guides/html-formatter.ja.json' with { type: 'json' };
-import guide70 from '../../data/editorial-guides/ip-lookup.ja.json' with { type: 'json' };
-import guide71 from '../../data/editorial-guides/jianfan.ja.json' with { type: 'json' };
-import guide72 from '../../data/editorial-guides/js-formatter.ja.json' with { type: 'json' };
-import guide73 from '../../data/editorial-guides/json-xml-yaml.ja.json' with { type: 'json' };
-import guide74 from '../../data/editorial-guides/jwt-expiry-and-verification.ja.json' with { type: 'json' };
-import guide75 from '../../data/editorial-guides/lunar-converter.ja.json' with { type: 'json' };
-import guide76 from '../../data/editorial-guides/morse.ja.json' with { type: 'json' };
-import guide77 from '../../data/editorial-guides/password-strength.ja.json' with { type: 'json' };
-import guide78 from '../../data/editorial-guides/qrcode-safe-publishing.ja.json' with { type: 'json' };
-import guide79 from '../../data/editorial-guides/symmetric-encrypt-params.ja.json' with { type: 'json' };
-import guide80 from '../../data/editorial-guides/text-transform.ja.json' with { type: 'json' };
-import guide81 from '../../data/editorial-guides/timer.ja.json' with { type: 'json' };
-import guide82 from '../../data/editorial-guides/url-parse.ja.json' with { type: 'json' };
-import guide83 from '../../data/editorial-guides/world-clock.ja.json' with { type: 'json' };
-import guide84 from '../../data/editorial-guides/xml-formatter.ja.json' with { type: 'json' };
+import guide18 from '../../data/editorial-guides/unit-conversion-precision.tw.json' with { type: 'json' };
+import guide19 from '../../data/editorial-guides/url-parse.tw.json' with { type: 'json' };
+import guide20 from '../../data/editorial-guides/uuid-generator.tw.json' with { type: 'json' };
+import guide21 from '../../data/editorial-guides/world-clock.tw.json' with { type: 'json' };
+import guide22 from '../../data/editorial-guides/xml-formatter.tw.json' with { type: 'json' };
+import guide23 from '../../data/editorial-guides/ascii-art.en.json' with { type: 'json' };
+import guide24 from '../../data/editorial-guides/calculator.en.json' with { type: 'json' };
+import guide25 from '../../data/editorial-guides/calendar.en.json' with { type: 'json' };
+import guide26 from '../../data/editorial-guides/color-convert.en.json' with { type: 'json' };
+import guide27 from '../../data/editorial-guides/css-formatter.en.json' with { type: 'json' };
+import guide28 from '../../data/editorial-guides/html-formatter.en.json' with { type: 'json' };
+import guide29 from '../../data/editorial-guides/ip-lookup.en.json' with { type: 'json' };
+import guide30 from '../../data/editorial-guides/jianfan.en.json' with { type: 'json' };
+import guide31 from '../../data/editorial-guides/js-formatter.en.json' with { type: 'json' };
+import guide32 from '../../data/editorial-guides/json-xml-yaml.en.json' with { type: 'json' };
+import guide33 from '../../data/editorial-guides/jwt-expiry-and-verification.en.json' with { type: 'json' };
+import guide34 from '../../data/editorial-guides/lunar-converter.en.json' with { type: 'json' };
+import guide35 from '../../data/editorial-guides/morse.en.json' with { type: 'json' };
+import guide36 from '../../data/editorial-guides/password-strength.en.json' with { type: 'json' };
+import guide37 from '../../data/editorial-guides/qrcode-safe-publishing.en.json' with { type: 'json' };
+import guide38 from '../../data/editorial-guides/symmetric-encrypt-params.en.json' with { type: 'json' };
+import guide39 from '../../data/editorial-guides/text-transform.en.json' with { type: 'json' };
+import guide40 from '../../data/editorial-guides/timer.en.json' with { type: 'json' };
+import guide41 from '../../data/editorial-guides/unit-conversion-precision.en.json' with { type: 'json' };
+import guide42 from '../../data/editorial-guides/url-parse.en.json' with { type: 'json' };
+import guide43 from '../../data/editorial-guides/world-clock.en.json' with { type: 'json' };
+import guide44 from '../../data/editorial-guides/xml-formatter.en.json' with { type: 'json' };
+import guide45 from '../../data/editorial-guides/ascii-art.ko.json' with { type: 'json' };
+import guide46 from '../../data/editorial-guides/calculator.ko.json' with { type: 'json' };
+import guide47 from '../../data/editorial-guides/calendar.ko.json' with { type: 'json' };
+import guide48 from '../../data/editorial-guides/color-convert.ko.json' with { type: 'json' };
+import guide49 from '../../data/editorial-guides/css-formatter.ko.json' with { type: 'json' };
+import guide50 from '../../data/editorial-guides/html-formatter.ko.json' with { type: 'json' };
+import guide51 from '../../data/editorial-guides/ip-lookup.ko.json' with { type: 'json' };
+import guide52 from '../../data/editorial-guides/jianfan.ko.json' with { type: 'json' };
+import guide53 from '../../data/editorial-guides/js-formatter.ko.json' with { type: 'json' };
+import guide54 from '../../data/editorial-guides/json-xml-yaml.ko.json' with { type: 'json' };
+import guide55 from '../../data/editorial-guides/jwt-expiry-and-verification.ko.json' with { type: 'json' };
+import guide56 from '../../data/editorial-guides/lunar-converter.ko.json' with { type: 'json' };
+import guide57 from '../../data/editorial-guides/morse.ko.json' with { type: 'json' };
+import guide58 from '../../data/editorial-guides/password-strength.ko.json' with { type: 'json' };
+import guide59 from '../../data/editorial-guides/qrcode-safe-publishing.ko.json' with { type: 'json' };
+import guide60 from '../../data/editorial-guides/symmetric-encrypt-params.ko.json' with { type: 'json' };
+import guide61 from '../../data/editorial-guides/text-transform.ko.json' with { type: 'json' };
+import guide62 from '../../data/editorial-guides/timer.ko.json' with { type: 'json' };
+import guide63 from '../../data/editorial-guides/unit-conversion-precision.ko.json' with { type: 'json' };
+import guide64 from '../../data/editorial-guides/url-parse.ko.json' with { type: 'json' };
+import guide65 from '../../data/editorial-guides/world-clock.ko.json' with { type: 'json' };
+import guide66 from '../../data/editorial-guides/xml-formatter.ko.json' with { type: 'json' };
+import guide67 from '../../data/editorial-guides/ascii-art.ja.json' with { type: 'json' };
+import guide68 from '../../data/editorial-guides/calculator.ja.json' with { type: 'json' };
+import guide69 from '../../data/editorial-guides/calendar.ja.json' with { type: 'json' };
+import guide70 from '../../data/editorial-guides/color-convert.ja.json' with { type: 'json' };
+import guide71 from '../../data/editorial-guides/css-formatter.ja.json' with { type: 'json' };
+import guide72 from '../../data/editorial-guides/html-formatter.ja.json' with { type: 'json' };
+import guide73 from '../../data/editorial-guides/ip-lookup.ja.json' with { type: 'json' };
+import guide74 from '../../data/editorial-guides/jianfan.ja.json' with { type: 'json' };
+import guide75 from '../../data/editorial-guides/js-formatter.ja.json' with { type: 'json' };
+import guide76 from '../../data/editorial-guides/json-xml-yaml.ja.json' with { type: 'json' };
+import guide77 from '../../data/editorial-guides/jwt-expiry-and-verification.ja.json' with { type: 'json' };
+import guide78 from '../../data/editorial-guides/lunar-converter.ja.json' with { type: 'json' };
+import guide79 from '../../data/editorial-guides/morse.ja.json' with { type: 'json' };
+import guide80 from '../../data/editorial-guides/password-strength.ja.json' with { type: 'json' };
+import guide81 from '../../data/editorial-guides/qrcode-safe-publishing.ja.json' with { type: 'json' };
+import guide82 from '../../data/editorial-guides/symmetric-encrypt-params.ja.json' with { type: 'json' };
+import guide83 from '../../data/editorial-guides/text-transform.ja.json' with { type: 'json' };
+import guide84 from '../../data/editorial-guides/timer.ja.json' with { type: 'json' };
+import guide85 from '../../data/editorial-guides/unit-conversion-precision.ja.json' with { type: 'json' };
+import guide86 from '../../data/editorial-guides/url-parse.ja.json' with { type: 'json' };
+import guide87 from '../../data/editorial-guides/world-clock.ja.json' with { type: 'json' };
+import guide88 from '../../data/editorial-guides/xml-formatter.ja.json' with { type: 'json' };
 
 /**
  * 多语言指南译文索引（tw / en / ko / ja）。
@@ -116,9 +120,9 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide19 as unknown as Guide,
     guide20 as unknown as Guide,
     guide21 as unknown as Guide,
+    guide22 as unknown as Guide,
   ],
   en: [
-    guide22 as unknown as Guide,
     guide23 as unknown as Guide,
     guide24 as unknown as Guide,
     guide25 as unknown as Guide,
@@ -139,10 +143,10 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide40 as unknown as Guide,
     guide41 as unknown as Guide,
     guide42 as unknown as Guide,
-  ],
-  ko: [
     guide43 as unknown as Guide,
     guide44 as unknown as Guide,
+  ],
+  ko: [
     guide45 as unknown as Guide,
     guide46 as unknown as Guide,
     guide47 as unknown as Guide,
@@ -162,11 +166,11 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide61 as unknown as Guide,
     guide62 as unknown as Guide,
     guide63 as unknown as Guide,
-  ],
-  ja: [
     guide64 as unknown as Guide,
     guide65 as unknown as Guide,
     guide66 as unknown as Guide,
+  ],
+  ja: [
     guide67 as unknown as Guide,
     guide68 as unknown as Guide,
     guide69 as unknown as Guide,
@@ -185,5 +189,9 @@ export const TRANSLATED_GUIDES: Record<TranslatedLang, Guide[]> = {
     guide82 as unknown as Guide,
     guide83 as unknown as Guide,
     guide84 as unknown as Guide,
+    guide85 as unknown as Guide,
+    guide86 as unknown as Guide,
+    guide87 as unknown as Guide,
+    guide88 as unknown as Guide,
   ],
 };
