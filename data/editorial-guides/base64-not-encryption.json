@@ -1,34 +1,99 @@
 {
   "slug": "base64-not-encryption",
-  "title": "Base64 不是加密：编码、压缩和 Data URL 的正确用法",
-  "description": "理解 Base64 的体积开销、URL-safe 变体和图片 Data URL，避免把编码误当作安全保护。",
-  "seoDescription": "Base64 到底能保护什么？先看它的实际作用：它只是把二进制字节转成可传输的 ASCII 字符，没有密钥，任何人拿到字符串都能解码，因此不能当密码或令牌的保护措施；文中还讲清体积增加约三分之一、URL-safe 变体与图片 Data URL 的用法。它也不隐藏内容；需要保密时应改用 HTTPS、短期令牌与权限控制。",
+  "title": "Base64 不是加密：编码原理、体积与安全边界",
+  "description": "讲清 Base64 只是编码而非加密：3 字节如何变 4 个字符、体积为何多出三分之一、填充与 URL 安全变体的差别、图片 Data URL 的组成，以及把编码当保密手段的常见误用与替代方案。",
+  "seoDescription": "Base64 不是加密，只是把字节按 6 比特一组映射成 64 个可打印字符，没有密钥，任何人都能还原原文；本文讲清体积为何多约三分之一、填充符与 URL 安全变体的差别、图片 Data URL 的组成、btoa 处理中文的 Latin-1 限制，以及把编码当保密手段的常见误用与正确替代方案，帮你判断何时该换方案。",
   "category": "开发实用",
   "toolSlug": "base64",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>Base64 的作用是把二进制字节表示成可传输的 ASCII 字符。它没有密钥，也没有隐藏内容的能力。任何拿到字符串的人都能解码，因此不要把 Base64 当作密码、令牌或个人信息的保护措施。</p>\n      <h2>为什么编码后会变大</h2>\n      <p>Base64 每 3 个字节通常编码成 4 个字符，体积增加约三分之一，还可能因为 JSON 或 URL 转义进一步变大。若目标是减少传输体积，应先用 gzip 或 Brotli 压缩，再按接口要求编码。</p>\n      <h2>图片 Data URL 的组成</h2>\n      <p>图片嵌入网页时常见的形式是 <code>data:image/png;base64,...</code>。前缀告诉浏览器媒体类型，逗号后才是 Base64 正文。正文被截断、MIME 类型错误或复制了不可见空格，都会导致图片无法显示。</p>\n      <h2>选择合适的方案</h2>\n      <ul><li>小图标或极小资源可考虑 Data URL，以减少请求数量。</li><li>较大图片应使用独立文件和 CDN，便于缓存和压缩。</li><li>认证信息应使用 HTTPS、短期令牌和权限控制，而不是 Base64。</li></ul>",
+  "updated": "2026-11-15",
+  "readingMinutes": 7,
+  "content": "<p>Base64 不是加密，只是把字节按 6 比特一组映射成 64 个可打印字符：没有密钥，也没有认证，任何人拿到字符串都能还原原始字节。它解决的是二进制怎么通过只认 ASCII 的通道，体积会涨约三分之一；要保密，应依靠 HTTPS、加密与权限控制，而不是换一种编码。</p>\n\n<h2>一、Base64 到底做了什么：三个字节换四个字符</h2>\n<p>算法很朴素。RFC 4648 把 3 个 8 位字节拼成 24 位，切成 4 个 6 位组，每组当作下标查一张 64 字符表，输出 4 个字符，末尾可能还带 <code>=</code>。所以每个字符只承载 6 比特而不是 8 比特，这正是体积变大的根源。</p>\n<p>字符表是 A–Z、a–z、0–9 再加 <code>+</code> 与 <code>/</code>，合计 64 个。编码是确定且无状态的：同一段字节永远得到同一个字符串，不需要密钥，也没有随机性。任何人几行代码就能还原，也可以贴进站内 <a href=\"/tools/dev/base64/\">Base64 编解码工具</a> 看回原文。</p>\n\n<h2>二、体积为什么大约多三分之一</h2>\n<p>4/3 的比例来自分组方式：3 字节进、4 字符出，字符数是字节数的 4/3 倍。RFC 2045 在定义 MIME 的 Base64 传输编码时给出的估计也是「编码后稳定地只比原始数据大约大三分之一（33%）」。</p>\n<table>\n<thead><tr><th>输入字节</th><th>输出字符</th><th>末尾填充</th><th>相对体积</th></tr></thead>\n<tbody>\n<tr><td>1</td><td>4</td><td><code>==</code></td><td>400%</td></tr>\n<tr><td>2</td><td>4</td><td><code>=</code></td><td>200%</td></tr>\n<tr><td>3</td><td>4</td><td>无</td><td>133.3%</td></tr>\n<tr><td>6</td><td>8</td><td>无</td><td>133.3%</td></tr>\n<tr><td>1024</td><td>1368</td><td><code>==</code></td><td>133.6%</td></tr>\n</tbody>\n</table>\n<p>前两行是小输入的例外：最后一组不满 3 字节也要占满 4 个字符，所以 1 字节的体积是 4 倍。输入越长越接近 4/3，1024 字节变成 1368 个字符，已经贴近该比例；真实传输还会叠加 JSON 引号与转义、URL 百分号编码，只会更大。</p>\n<p>顺序也不能反：想省流量，先压缩（gzip、Brotli，图片换 WebP），再按协议要求编码；Base64 不压缩任何东西。</p>\n\n<h2>三、填充符 =：解码端凭什么知道原长</h2>\n<p>输入不是 3 的倍数时，最后一组不足 24 位，编码器用 <code>=</code> 补齐并标记真实字节数：<code>a</code> 编成 <code>YQ==</code>，<code>ab</code> 编成 <code>YWI=</code>，<code>abc</code> 编成 <code>YWJj</code>。三个结果都是 4 个字符，区别只在末尾的填充符。</p>\n<p>RFC 4648 第 3.2 节要求编码器写足填充，除非引用它的规范明确说不写；第 5 节的 base64url 就是「长度可隐式推断、于是省掉填充」的情形。解码端的宽容度差别很大：严格实现可以拒收缺填充的输入，宽松实现（例如 Node 的 Buffer）照收不误。看到「能解出来」就默认格式正确，是很多事故的起点。</p>\n\n<h2>四、URL 安全变体：把 + 和 / 换成 - 和 _</h2>\n<p>标准字母表里的 <code>+</code> 在表单与查询串中常被解释成空格，<code>/</code> 会被当成路径分隔符。RFC 4648 第 5 节定义的 base64url 只改第 62、63 个字符，换成 <code>-</code> 与 <code>_</code>，再靠去填充避免 <code>%3D</code>；规范在第 5 节提醒它不应被简称为 base64；至于「不提供保密性」，那是第 12 节的内容，与是否更安全无关。</p>\n<p>站内工具的「URL 安全模式」做的就是这两步：编码时把 <code>+</code> 换成 <code>-</code>、<code>/</code> 换成 <code>_</code>，并去掉末尾的 <code>=</code>；解码时反向替换并按需补回填充。</p>\n<p>同一段 30 字节的示例文本，标准输出是 <code>Q2xvdmVyVG9vbHMg5byA5Y+R6ICF5bel5YW3566x</code>，URL 安全输出是 <code>Q2xvdmVyVG9vbHMg5byA5Y-R6ICF5bel5YW3566x</code>：长度都是 40，只有 1 个字符不同。把后者按标准表解码会直接报错，这就是 JWT 的 Header 与 Payload 必须用 base64url 的原因，可以用 <a href=\"/tools/dev/jwt-decoder/\">JWT 解码器</a> 对照三段内容。</p>\n<p>去掉填充等于丢掉长度信息，解码端必须能靠上下文推断字节数；协议没有约定时别擅自省略。</p>\n\n<h2>五、Data URL：前缀、MIME 与逗号后的正文</h2>\n<p>把图标或小文件塞进 HTML、CSS 时用的 <code>data:</code> URL 由 RFC 2397 定义：<code>data:</code> 后跟媒体类型与可选的 <code>;base64</code>，第一个逗号之后才是正文。省略媒体类型时默认 <code>text/plain;charset=US-ASCII</code>；带 <code>;base64</code> 表示正文按 Base64 编码，否则按百分号转义。</p>\n<p>浏览器解析它的现行规则写在 Fetch 标准里：以第一个逗号切分前缀与正文，允许缺失填充，但正文在去掉空白后只能包含 Base64 字母表，出现非法字符会让整段 URL 解析失败。所以复制时混进全角空格、把 URL 安全变体的 <code>-</code> <code>_</code> 塞进标准正文或手动截断，都会让图片不显示。</p>\n<p>它只在很短的数据上划算：没有独立的缓存条目，每次都要随 HTML 或 CSS 一起下载，还要多付约三分之一的体积。图标级别的资源可以考虑；稍大的图片更适合独立文件加 CDN，需要本地转换时用 <a href=\"/tools/dev/image-to-base64/\">图片转 Base64</a> 生成结果。</p>\n\n<h2>六、站内工具实操：先看字节数，再看 URL 安全模式</h2>\n<p>打开 <a href=\"/tools/dev/base64/\">Base64 编解码工具</a>：左侧「输入内容」面板有输入框、字节统计与「URL 安全模式」复选框，右侧「输出结果」面板只读，并带「复制」。输入框每次改动都会回显「N 字符 · M 字节」，字节按 UTF-8 计而不是字符数，这一步就能看出编码前的真实体积。</p>\n<ol>\n<li>点「示例」填入内置文本「CloverTools 开发者工具箱」，输入框下方显示 18 字符 · 30 字节。</li>\n<li>点「编码」，输出框出现 40 个字符，下方显示 40 字符 · 30 字节，状态条变绿写「编码完成」。</li>\n<li>勾选「URL 安全模式」再点「编码」，同一段文本变成 <code>Q2xvdmVyVG9vbHMg5byA5Y-R6ICF5bel5YW3566x</code>，长度仍是 40。</li>\n<li>把结果粘回输入框点「解码」，状态条写「解码完成」，输出回到原文；点「复制」会写入剪贴板并弹出「已复制到剪贴板」。</li>\n</ol>\n\n<figure><a href=\"/article-images/2026-11/base64-not-encryption-base64-encode-urlsafe.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Base64 编解码工具两个面板并排：左侧输入示例文本（18 字符 · 30 字节）且已勾选 URL 安全模式，右侧输出 40 个字符；左下绿色状态条「编码完成」。\"><img src=\"/article-images/2026-11/base64-not-encryption-base64-encode-urlsafe.jpg\" alt=\"Base64 编解码工具两个面板并排：左侧输入示例文本（18 字符 · 30 字节）且已勾选 URL 安全模式，右侧输出 40 个字符；左下绿色状态条「编码完成」。\" width=\"1232\" height=\"410\" loading=\"lazy\" decoding=\"async\"></a><figcaption>勾选「URL 安全模式」后点「编码」，左右两个面板并排：左侧输入框保留示例文本，框下统计为 18 字符 · 30 字节，复选框已勾选，面板底部是绿色状态条「编码完成」；右侧输出框里是 40 个字符的 Base64，框下统计为 40 字符 · 30 字节。 点击图片可查看原图。</figcaption></figure>\n\n<p>快捷键是 Ctrl+Enter（macOS 上是 Cmd+Enter），直接触发编码；「清空」只清输入与输出两框并隐藏状态条，不重置下方的字符统计。</p>\n\n<h2>七、中文、表情符号与 btoa 的 Latin-1 陷阱</h2>\n<p>浏览器的 <code>btoa</code> 只接受码点在 0 到 255 之间的字符串，直接 <code>btoa('你好')</code> 会抛 <code>InvalidCharacterError</code>。不少小工具在这里翻车：要么按 Latin-1 处理出乱码，要么直接崩掉。</p>\n<p>这个页面绕开的办法是先把字符串编码成 UTF-8 字节，再逐字节拼成 <code>btoa</code> 能接受的字符串。所以「你好」被当成 6 个字节处理，输出 <code>5L2g5aW9</code>；常用汉字在 UTF-8 里占 3 字节，表情符号占 4 字节，两种输入编码后都是 8 个字符。解码方向同理：先 <code>atob</code> 得到字节，再用严格 UTF-8 解码器还原文本。</p>\n<p>严格解码也带来限制：若解出的字节不是合法 UTF-8（例如图片文件头），页面会直接报错，而不是给出一串乱码；二进制与图片的转换属于另一个工具。</p>\n\n<h2>八、四种把编码当保护的误用</h2>\n<ul>\n<li>把密码、API Key、连接串「加密」后写进配置或前端代码：解码即明文，等同于没保护。</li>\n<li>用 Base64 当签名或校验和：它不带密钥、不防篡改，改一个字符重新编码即可；需要完整性应使用 HMAC 或数字签名。</li>\n<li>把敏感参数 Base64 后放进 URL，以为用户看不见：浏览器历史、访问日志、Referer 与截图都会留下它。</li>\n<li>在 Data URL 或 JWT Payload 里塞不该外泄的字段：两者默认可读，JWT 的 Payload 只是 base64url，不是密文。</li>\n</ul>\n<p>真正要保密的通道得同时解决传输加密（HTTPS）、静态数据加密（服务端管密钥）与访问控制（短期令牌、最小权限）；编码不参与其中任何一件。</p>\n\n<h2>九、哪些场景该用，哪些该换方案</h2>\n<table>\n<thead><tr><th>场景</th><th>建议</th><th>理由</th></tr></thead>\n<tbody>\n<tr><td>邮件附件、MIME 报文</td><td>用</td><td>RFC 2045 就是为此设计的传输编码</td></tr>\n<tr><td>令牌放进 URL、Cookie 或 JWT 片段</td><td>用 base64url</td><td>避免 <code>+</code> <code>/</code> 被二次解释</td></tr>\n<tr><td>图标级小资源内联</td><td>谨慎使用</td><td>少一次请求，但体积多三分之一且不能单独缓存</td></tr>\n<tr><td>图片、音视频整段内联</td><td>不要</td><td>体积膨胀、阻塞首屏，应走独立文件与 CDN</td></tr>\n<tr><td>需要防篡改或校验完整性</td><td>不要</td><td>改用 HMAC、数字签名或哈希</td></tr>\n<tr><td>需要保密</td><td>不要</td><td>改用 TLS 与加密，Base64 不可替代</td></tr>\n</tbody>\n</table>\n\n<h2>十、边界与限制</h2>\n<p>工具侧：它只处理 UTF-8 文本，解出的字节若不是合法 UTF-8 会直接失败，因此不适合查看二进制；解码失败时输出框被清空，但下方统计仍显示上一次的值，别把统计当成内容长度；URL 安全模式只是一个手动开关，页面不会判断你输入的是哪种字母表。</p>\n\n<figure><a href=\"/article-images/2026-11/base64-not-encryption-base64-decode-error.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Base64 编解码工具两个面板并排：左侧输入 12 字符非法内容（18 字节），右侧输出框回到空状态；左下红色状态条以「解码失败：内容不是有效的 Base64 / UTF-8」开头，右下统计仍显示 2 字符 · 6 字节。\"><img src=\"/article-images/2026-11/base64-not-encryption-base64-decode-error.jpg\" alt=\"Base64 编解码工具两个面板并排：左侧输入 12 字符非法内容（18 字节），右侧输出框回到空状态；左下红色状态条以「解码失败：内容不是有效的 Base64 / UTF-8」开头，右下统计仍显示 2 字符 · 6 字节。\" width=\"1232\" height=\"432\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入一串不是 Base64 的内容后点「解码」：左侧输入框是这段非法内容，面板底部是红色状态条，文字以「解码失败：内容不是有效的 Base64 / UTF-8」开头；右侧输出框回到空状态，只显示空状态文案「结果将显示在这里」，框下统计仍保留上一次解码留下的 2 字符 · 6 字节。 点击图片可查看原图。</figcaption></figure>\n\n<p>规范侧：Base64 不提供保密性、完整性或身份认证。RFC 4648 第 3.3 节要求实现拒绝字母表之外的字符，除非引用它的规范明确说忽略（MIME 就选择忽略）；第 3.5 节还指出，填充位不为零时同一段字节可能有多种非规范表示，严格实现可以拒收。换句话说，「解码成功」本身就是与实现相关的结论。</p>\n<p>生态侧：宽容度差别很大。Node 的 Buffer 解码会跳过非法字符、接受缺填充、忽略空白；浏览器的 <code>atob</code> 与 Fetch 的 <code>data:</code> 处理会忽略空白、容忍缺填充，但遇到字母表外的字符就失败。同一串内容在两条路径上结果不同，别把「本地能解」当成服务端也能解，更别用它替代校验。</p>\n<p>大输入没有统一的长度上限，受浏览器、DOM 与目标协议约束；本工具不签名、不校验完整性，也不判断内容类型，只负责把字节换一种写法。</p>\n\n<h2>十一、发布前的五条自检</h2>\n<ol>\n<li>我在解决什么：可传输性、体积，还是保密？只有前两者与 Base64 有关。</li>\n<li>对方解码后能看到全部内容，我能接受吗？不能就换方案。</li>\n<li>需要防篡改吗？需要就用 HMAC 或签名，而不是换个编码。</li>\n<li>体积多三分之一会不会拖慢首屏？会，就让大资源走独立文件与 CDN。</li>\n<li>换个实现还能解出同样结果吗？不要依赖缺填充、非法字符被忽略这类宽容行为。</li>\n</ol>",
   "faqs": [
     {
       "q": "Base64 能防止别人看到内容吗？",
-      "a": "不能。它是可逆编码，不提供保密性。"
+      "a": "不能。它是可逆编码，没有密钥也没有认证，任何人拿到字符串都能还原原始字节。需要保密应使用 HTTPS 与加密方案，需要防篡改应使用 HMAC 或数字签名。"
     },
     {
-      "q": "URL-safe Base64 和普通 Base64 有什么区别？",
-      "a": "URL-safe 版本通常用连字符和下划线替换加号和斜杠，适合放在 URL 或 Cookie 中，具体填充规则由协议决定。"
+      "q": "Base64 和 URL 安全变体差在哪里？",
+      "a": "字母表只差两个字符：标准表用 <code>+</code> 与 <code>/</code>，base64url 用 <code>-</code> 与 <code>_</code>；URL 场景常常连末尾的 <code>=</code> 填充一起省掉。同一段字节编码后长度相同，内容只差个别字符，但两种字母表不能混用。"
+    },
+    {
+      "q": "为什么编码后体积会增加约三分之一？",
+      "a": "每 3 个字节（24 位）被切成 4 个 6 位组，输出 4 个字符，所以字符数是字节数的 4/3 倍。1 字节的小输入要占满一组，体积会到 4 倍；1024 字节会变成 1368 个字符，已经接近这个比例。"
+    },
+    {
+      "q": "站内工具能编码图片吗？",
+      "a": "不能。这个页面只处理 UTF-8 文本：解出的字节若不是合法 UTF-8 会直接报错。图片、文件等二进制内容请用图片转 Base64 工具，它按文件读取字节，不经过文本解码。"
+    },
+    {
+      "q": "为什么有些 Base64 少了解码也能成功，有些就报错？",
+      "a": "宽松实现会忽略空白、容忍缺填充，但会拒绝字母表之外的字符；严格实现连缺填充也拒收。Fetch 的 data: URL 处理与浏览器 atob 都会忽略空白、容忍缺填充，同时拒绝字母表外的字符。不要把「能解」当成格式正确。"
     }
   ],
   "sources": [
     {
-      "title": "RFC 4648：Base64 与 Base64URL",
-      "url": "https://www.rfc-editor.org/rfc/rfc4648"
+      "title": "RFC 4648: The Base16, Base32, and Base64 Data Encodings",
+      "url": "https://www.rfc-editor.org/rfc/rfc4648",
+      "publisher": "IETF",
+      "why": "定义 Base64 的 24 位分组与 64 字符字母表（第 4 节）、填充要求（第 3.2 节）、非字母字符的处理（第 3.3 节）、规范编码与填充位（第 3.5 节），以及 URL 安全字母表 base64url（第 5 节）；本文第一、三、四、十节引用。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One",
+      "url": "https://www.rfc-editor.org/rfc/rfc2045",
+      "publisher": "IETF",
+      "why": "第 6.8 节定义 Base64 Content-Transfer-Encoding，说明每字符承载 6 比特、编码后数据通常比原始数据大约大 33%，并要求每行不超过 76 个字符；本文第二、九节引用。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "RFC 2397: The \"data\" URL scheme",
+      "url": "https://www.rfc-editor.org/rfc/rfc2397",
+      "publisher": "IETF",
+      "why": "定义 data: URL 的语法、;base64 标记与省略媒体类型时的默认值 text/plain;charset=US-ASCII，并指出该方案只适合短数据；本文第五节引用。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "Fetch Standard: data: URLs",
+      "url": "https://fetch.spec.whatwg.org/#data-urls",
+      "publisher": "WHATWG",
+      "why": "给出浏览器解析 data: URL 的现行步骤：以第一个逗号切分前缀与正文、;base64 标记须位于媒体类型末尾、正文使用宽松 Base64 解码；本文第五、十节引用。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "MDN: Window.btoa() — Base64 编码与 Latin-1 限制",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/Window/btoa",
+      "publisher": "MDN Web Docs",
+      "why": "说明 btoa 只接受码点在 0–255 范围内的字符串，超出范围会抛 InvalidCharacterError，并给出先转 UTF-8 字节再编码的做法；本文第七节引用。",
+      "accessedAt": "2026-11-14",
+      "status": 200
+    },
+    {
+      "title": "Node.js Documentation: Buffer — base64 与 base64url 编码",
+      "url": "https://nodejs.org/api/buffer.html",
+      "publisher": "Node.js",
+      "why": "说明 Buffer 支持 base64 与 base64url 两种编码、base64url 会自动去填充；本文第四、十节把 Node 的宽容解码行为作为与浏览器实现对照的参照。",
+      "accessedAt": "2026-11-14",
+      "status": 200
     }
   ],
+  "image": "/article-images/2026-11/base64-not-encryption-base64-encode-urlsafe.jpg",
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
-    "originalPublished": "2026-09-30"
+    "auto": true,
+    "type": "upgrade-guide",
+    "mode": "upgrade-guide",
+    "runId": "2026-11-15T06",
+    "upgradedFrom": {
+      "cjk": 262
+    },
+    "originalPublished": "2026-09-30",
+    "primaryQuery": "base64 是加密吗",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.82,
+    "verifiedAt": "2026-11-14T22:17:46.379Z"
   }
 }
