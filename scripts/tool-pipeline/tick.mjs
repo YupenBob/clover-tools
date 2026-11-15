@@ -55,6 +55,7 @@ import {
   remoteHead,
 } from './lib/git.mjs';
 import {
+  acquireGlobalLock,
   acquireRunLock,
   ensureStateDirs,
   loadBacklog,
@@ -205,7 +206,7 @@ function setPhase(run, name, status, detail = '') {
     detail,
     updatedAt: nowIso(),
   };
-  if (status === 'running' && !previous.startedAt) run.phases[name].startedAt = nowIso();
+  if (status === 'running') run.phases[name].startedAt = nowIso();
   if ((status === 'done' || status === 'failed' || status === 'skipped') && previous.startedAt) {
     run.phases[name].endedAt = nowIso();
     run.phases[name].durationMs = Date.now() - new Date(previous.startedAt).getTime();
@@ -474,7 +475,7 @@ function audit(run, item, config, worktree, label = 'diff') {
 }
 
 async function gatesWithRepair({ run, item, config, worktree, spec, runDirPath, logDir, allowRepair = true }) {
-  ensureBudget(run, config, 150);
+  ensureBudget(run, config, 45);
   setPhase(run, 'gates', 'running');
   let result = await runGates({
     worktree,
@@ -649,8 +650,14 @@ async function runPipeline(options, existingRun = null) {
   }
 
   await waitForLoad(config);
+  const globalLock = acquireGlobalLock();
+  if (!globalLock.ok) {
+    console.log(JSON.stringify({ ok: false, status: 'locked', runKey, reason: 'another pipeline run holds global.lock' }, null, 2));
+    return 0;
+  }
   const lock = acquireRunLock(runKey);
   if (!lock.ok) {
+    globalLock.stop();
     console.log(JSON.stringify({ ok: false, status: 'locked', runKey, reason: lock.reason }, null, 2));
     return 0;
   }
@@ -857,13 +864,19 @@ async function runPipeline(options, existingRun = null) {
     run.status = options.noPush ? 'local-ok' : 'published';
     run.finishedAt = nowIso();
     writeRun(run);
-    recordOutcome({
-      run,
-      queue,
-      status: options.noPush ? 'local-ok' : 'published',
-      config,
-      error: '',
-    });
+    try {
+      recordOutcome({
+        run,
+        queue,
+        status: options.noPush ? 'local-ok' : 'published',
+        config,
+        error: '',
+      });
+    } catch (queueError) {
+      // The commit is already pushed; never turn a queue bookkeeping failure into
+      // a "failed" run. Surface it in the report instead.
+      run.notes = [...(run.notes ?? []), `queue update failed: ${queueError.message}`];
+    }
     writeRun(run);
     if (!options.noPush) cleanupWorktree(runKey);
     console.log(
@@ -894,6 +907,7 @@ async function runPipeline(options, existingRun = null) {
     return 1;
   } finally {
     lock.stop();
+    globalLock.stop();
     writeLatest(run);
   }
 }

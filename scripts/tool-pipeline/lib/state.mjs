@@ -148,6 +148,39 @@ export function readLatest() {
   return readJson(LATEST_FILE, null);
 }
 
+export function acquireGlobalLock() {
+  ensureStateDirs();
+  const lockPath = join(STATE_DIR, 'global.lock');
+  if (existsSync(lockPath)) {
+    const meta = readJson(lockPath, null);
+    if (meta && isProcessAlive(meta.pid)) {
+      return { ok: false, reason: 'locked', lockPath, meta };
+    }
+    removeFile(lockPath);
+  }
+  try {
+    const fd = openSync(lockPath, 'wx');
+    try {
+      writeSync(fd, `${JSON.stringify({ pid: process.pid, startedAt: nowIso() }, null, 2)}\n`);
+    } finally {
+      closeSync(fd);
+    }
+    const heartbeat = setInterval(() => touch(lockPath), 60000);
+    heartbeat.unref?.();
+    return {
+      ok: true,
+      lockPath,
+      stop() {
+        clearInterval(heartbeat);
+        rmSync(lockPath, { force: true });
+      },
+    };
+  } catch (error) {
+    if (error?.code === 'EEXIST') return { ok: false, reason: 'locked', lockPath };
+    throw error;
+  }
+}
+
 export function acquireRunLock(runKey) {
   ensureStateDirs();
   const lockPath = join(STATE_DIR, `run-${runKey}.lock`);

@@ -144,6 +144,15 @@ export function parseVerifierJson(text) {
     const blockingIssues = Array.isArray(parsed.blockingIssues)
       ? parsed.blockingIssues.map(String)
       : [];
+    const rubric = parsed.rubric && typeof parsed.rubric === 'object' ? parsed.rubric : {};
+    const lowRubric = Object.entries(rubric).filter(
+      ([, value]) => typeof value === 'number' && value < 0.6,
+    );
+    if (lowRubric.length) {
+      blockingIssues.push(
+        `rubric 低于 0.6：${lowRubric.map(([key, value]) => `${key}=${value}`).join(', ')}`,
+      );
+    }
     const confidence = Number(parsed.confidence ?? 0);
     const verdict =
       parsed.verdict === 'pass' && blockingIssues.length === 0 && confidence >= 0.8
@@ -154,7 +163,7 @@ export function parseVerifierJson(text) {
       confidence: Number.isFinite(confidence) ? confidence : 0,
       blockingIssues,
       nonBlocking: Array.isArray(parsed.nonBlocking) ? parsed.nonBlocking.map(String) : [],
-      rubric: parsed.rubric && typeof parsed.rubric === 'object' ? parsed.rubric : {},
+      rubric,
       notes: parsed.notes ?? '',
       raw,
     };
