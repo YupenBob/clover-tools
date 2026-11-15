@@ -132,8 +132,13 @@ export function auditDiff({ worktree, base, item, config }) {
     if (isSourceForEval(path) && /\b(TODO|TBD|FIXME)\b/.test(text)) {
       issues.push({ path, code: 'placeholder', message: '源码含 TODO/TBD/FIXME' });
     }
-    if (/[\u{1F300}-\u{1FAFF}]/u.test(text)) {
-      issues.push({ path, code: 'emoji', message: '新文件含 emoji' });
+    if (
+      (path.startsWith('src/') || path.startsWith('functions/')) &&
+      /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/u.test(text)
+    ) {
+      // Tests and docs may legitimately contain symbols/emoji as fixtures or prose;
+      // only user-facing source is checked. dist/ is checked by check-emoji.
+      issues.push({ path, code: 'emoji', message: '用户可见源码含 emoji' });
     }
   }
 
