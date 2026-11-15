@@ -1,22 +1,24 @@
 ---
+import HomeArtwork from './HomeArtwork.astro';
 import { HOME_DATA } from '../lib/home-data';
 import Icon from './Icon.astro';
 import { SITE } from '../lib/site';
-import { DICT, getCategoryMetas, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
+import { DICT, getCategoryMetas, langFromUrl, pathForLang, stripLang, type Lang } from '../lib/i18n';
 
 interface Props { containerClass?: string; }
 const { containerClass = '' } = Astro.props;
 
 const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
+const homeFooter = stripLang(Astro.url.pathname) === '/';
 const categories = getCategoryMetas(lang);
 const year = new Date().getFullYear();
 const lastUpdated = HOME_DATA.updated;
 ---
 
-<footer class="site-footer">
+<footer class:list={['site-footer', { 'home-footer': homeFooter }]}>
   <div class:list={['container', 'footer-inner', containerClass]}>
-    <div class="footer-project"><span>© {year} {SITE.name} · {dict.footerTagline}</span><p>{dict.footerMaintainer}</p><div class="footer-project-links"><a href={SITE.github} target="_blank" rel="noopener noreferrer"><Icon name="github" /> {dict.footerRepo}</a><a href="https://github.com/YupenBob" target="_blank" rel="noopener noreferrer">{dict.footerDeveloper} · YupenBob</a></div></div>
+    <div class="footer-project">{homeFooter && <HomeArtwork kind="seal" />}<span>© {year} {SITE.name} · {dict.footerTagline}</span><p>{dict.footerMaintainer}</p><div class="footer-project-links"><a href={SITE.github} target="_blank" rel="noopener noreferrer"><Icon name="github" /> {dict.footerRepo}</a><a href="https://github.com/YupenBob" target="_blank" rel="noopener noreferrer">{dict.footerDeveloper} · YupenBob</a></div></div>
     <div class="footer-links">
       <span class="footer-updated"><Icon name="calendar-check" /> {dict.updated} {lastUpdated}</span>
       {categories.map((cat) => (
@@ -33,6 +35,14 @@ const lastUpdated = HOME_DATA.updated;
 </footer>
 
 <style>
+  .home-footer { background: var(--bg-secondary); }
+  .home-footer .footer-project { position: relative; padding-left: 80px; }
+  .home-footer .footer-project :global(.home-art-seal) { position: absolute; left: 0; top: 0; width: 60px; height: 60px; color: var(--primary-dark); }
+  @media (max-width: 640px) {
+    .home-footer .footer-project { padding: 0; }
+    .home-footer .footer-project :global(.home-art-seal) { position: static; display: block; margin: 0 auto 16px; }
+  }
+
   .footer-inner { align-items: start; gap: 24px; }
   .footer-project { flex: 1 1 360px; min-width: 0; }
   .footer-project p { max-width: 560px; margin: 10px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }

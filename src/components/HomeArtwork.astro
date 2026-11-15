@@ -1,0 +1,40 @@
+---
+/** Original home-only paper illustrations. Theme colors inherit from home.css. */
+interface Props { kind: 'hero' | 'dev' | 'daily' | 'fun' | 'guide' | 'seal'; class?: string; }
+const { kind, class: className = '' } = Astro.props;
+---
+{kind === 'hero' ? (
+  <svg class:list={['home-art', 'home-art-hero', className]} viewBox="0 0 960 260" fill="none" aria-hidden="true">
+    <path d="M36 192C90 153 82 89 149 86c76-4 49 113 111 92" stroke="var(--art-line)" stroke-width="1.5" stroke-dasharray="3 8" />
+    <g transform="translate(118 47) rotate(-16)"><path d="m0 20 87-20-36 58-12-28Z" fill="var(--art-paper)" stroke="var(--art-line)" stroke-width="1.5"/><path d="M39 30 87 0 51 58" stroke="var(--art-line)" stroke-width="1.5"/><path d="m39 30 1 18 11-10" fill="var(--art-gold)"/></g>
+    <ellipse cx="807" cy="131" rx="92" ry="41" transform="rotate(-28 807 131)" stroke="var(--art-line)" stroke-width="1.2" />
+    <g transform="translate(794 115) rotate(18)"><path d="M0 0C-61-12-60-73-21-65 8-71 16-24 0 0Z" fill="var(--art-green)"/><path d="M0 0C12-61 73-60 65-21 71 8 24 16 0 0Z" fill="var(--art-mint)"/><path d="M0 0C61 12 60 73 21 65-8 71-16 24 0 0Z" fill="var(--art-green)"/><path d="M0 0C-12 61-73 60-65 21-71-8-24-16 0 0Z" fill="var(--art-mint)"/><path d="m0 0 40 66" stroke="var(--art-line)" stroke-width="2"/></g>
+    <path d="m687 62 4 12 12 4-12 4-4 12-4-12-12-4 12-4ZM890 202l3 9 9 3-9 3-3 9-3-9-9-3 9-3Z" fill="var(--art-gold)"/><circle cx="875" cy="72" r="4" fill="var(--art-green)"/><circle cx="234" cy="128" r="3" fill="var(--art-gold)"/>
+  </svg>
+) : kind === 'seal' ? (
+  <svg class:list={['home-art', 'home-art-seal', className]} viewBox="0 0 80 80" fill="none" aria-hidden="true"><circle cx="40" cy="40" r="35" stroke="currentColor" stroke-width="1.5"/><circle cx="40" cy="40" r="29" stroke="currentColor" stroke-dasharray="1 5"/><g transform="translate(40 36)"><path d="M0 0C-25-7-21-31-7-23 6-30 12-10 0 0ZM0 0C7-25 31-21 23-7 30 6 10 12 0 0ZM0 0C25 7 21 31 7 23-6 30-12 10 0 0ZM0 0C-7 25-31 21-23 7-30-6-10-12 0 0Z" fill="currentColor"/><path d="m0 0 15 22" stroke="var(--bg-elevated)" stroke-width="1.2"/></g></svg>
+) : (
+  <svg class:list={['home-art', `home-art-${kind}`, className]} viewBox="0 0 320 180" fill="none" aria-hidden="true">
+    <path d="M24 147c54-19 166 30 267-12" stroke="var(--art-line)" stroke-width="1.3" stroke-dasharray="2 6"/>
+    {kind === 'daily' ? <>
+      <path d="m78 35 112-11 20 129-112 10Z" fill="var(--art-paper)" stroke="var(--art-line)" stroke-width="1.5"/>
+      <path d="m78 35 112-11 3 24L81 59Z" fill="var(--art-green)"/>
+      <path d="m98 22 3 24m64-30 3 24" stroke="var(--art-line)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="180" cy="104" r="48" fill="var(--art-mint)" stroke="var(--art-line)" stroke-width="1.5"/><circle cx="180" cy="104" r="37" stroke="var(--art-line)" stroke-dasharray="1 8"/>
+      <path d="m180 77 1 28 20 12" stroke="var(--art-line)" stroke-width="3" stroke-linecap="round"/><circle cx="180" cy="104" r="4" fill="var(--art-gold)"/>
+      <path d="m106 81 13-1m-11 20 13-1m-10 20 13-1" stroke="var(--art-line)" stroke-width="3"/>
+    </> : kind === 'fun' ? <>
+      <path d="m99 50 78-24 62 58-99 42Z" fill="var(--art-paper)" stroke="var(--art-line)" stroke-width="1.5"/>
+      <path d="m177 26-15 60 77-2-99 42 22-40-63-36Z" fill="var(--art-green)"/><path d="m140 126 22-40 15-60" stroke="var(--art-line)" stroke-width="1.5"/>
+      <path d="M143 124c-40 40 44 13 17 43" stroke="var(--art-line)" stroke-width="1.5"/><path d="m65 73 4 13 13 4-13 4-4 13-4-13-13-4 13-4Z" fill="var(--art-gold)"/>
+    </> : <>
+      <path d="m69 43 102-15 17 115-102 15Z" fill="var(--art-mint)" stroke="var(--art-line)" stroke-width="1.5"/>
+      <path d="m133 34 103 11-12 117-103-11Z" fill="var(--art-paper)" stroke="var(--art-line)" stroke-width="1.5"/>
+      <path d="m236 45-25-3 22 26Z" fill="var(--art-gold)"/>
+      <path d="m151 67 49 5m-51 12 63 7m-65 11 37 4m-39 13 55 6" stroke="var(--art-line)" stroke-width="3" stroke-linecap="round"/>
+      <path d="m89 68 14-2m-11 21 14-2m-11 21 14-2" stroke="var(--art-green)" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="254" cy="124" r="17" fill="var(--art-green)"/><path d="m246 124 6 5 11-13" stroke="var(--art-paper)" stroke-width="2"/>
+    </>}
+    <circle cx="54" cy="125" r="3" fill="var(--art-gold)"/><path d="m254 34 3 10 10 3-10 3-3 10-3-10-10-3 10-3Z" fill="var(--art-gold)"/>
+  </svg>
+)}

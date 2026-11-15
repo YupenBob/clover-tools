@@ -1,4 +1,5 @@
 ---
+import HomeArtwork from '../../components/HomeArtwork.astro';
 import HomeDiscovery from '../../components/HomeDiscovery.astro';
 import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -59,14 +60,7 @@ const homeJsonLd = [
 
 <BaseLayout contentClass="home-container" title={`${SITE.name} - ${site.tagline}`} description={site.description} canonical={homeUrl} jsonLd={homeJsonLd}>
   <section class="hero">
-    <div class="hero-glow" aria-hidden="true"></div>
-    <div class="dust" aria-hidden="true">
-      <span class="dust-p" style="left: 16%; --d: 9s; --dl: 0s; --dx: 24px;"></span>
-      <span class="dust-p" style="left: 34%; --d: 11s; --dl: 2.6s; --dx: -18px;"></span>
-      <span class="dust-p" style="left: 55%; --d: 10s; --dl: 1.2s; --dx: 30px;"></span>
-      <span class="dust-p" style="left: 72%; --d: 12s; --dl: 4s; --dx: -26px;"></span>
-      <span class="dust-p" style="left: 88%; --d: 9.5s; --dl: 3.2s; --dx: 14px;"></span>
-    </div>
+    <HomeArtwork kind="hero" />
     <div class="hero-inner">
       <img class="hero-logo" src="/clover-logo.svg" alt="CloverTools ロゴ" width="96" height="96" fetchpriority="high" />
       <h1 class="hero-title brand-title">Clover<span class="accent">Tools</span></h1>
@@ -108,7 +102,7 @@ const homeJsonLd = [
   {CATEGORIES.map((cat, ci) => (
     <section class="category-section" data-category={cat.id} id={`cat-${cat.id}`}>
       <div class="category-head">
-        <span class="category-icon"><Icon name={cat.icon} /></span>
+        <span class="category-icon home-category-art"><HomeArtwork kind={cat.id} /></span>
         <div>
           <h2 class="category-title">{cat.name}</h2>
           <p class="category-blurb">{cat.blurb}</p>

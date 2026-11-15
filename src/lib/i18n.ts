@@ -321,6 +321,10 @@ export const DICT: Record<Lang, Record<string, string>> = {
 
 const HOME_ZH = {
   "homeFeatured": "精选工具",
+  "homePreviewAlt": "相关实拍预览",
+  "homeDrawingAlt": "纸张主题插画",
+  "homeGuideImageAlt": "指南中的实拍图",
+  "homeFortuneArtAlt": "星空轨道中的折纸四叶草与空白签纸，原创趣味插画",
   "homeFeaturedNote": "从一个具体任务开始，打开就能操作。",
   "homeGuides": "原创指南 · 实战排错",
   "homeGuidesNote": "先看复现与边界，再回到工具验证。每篇均附参考来源。",
@@ -357,6 +361,10 @@ const HOME_ZH = {
 };
 const HOME_EN = {
   "homeFeatured": "Selected tools",
+  "homePreviewAlt": "Related captured preview",
+  "homeDrawingAlt": "Paper-themed illustration",
+  "homeGuideImageAlt": "Actual capture from this guide",
+  "homeFortuneArtAlt": "Original illustration of a folded-paper clover and blank fortune slips in a starry orbit",
   "homeFeaturedNote": "Start with a specific task and work directly in your browser.",
   "homeGuides": "Original guides & troubleshooting",
   "homeGuidesNote": "Reproduce the problem, understand the limits, then verify with a tool. References included.",

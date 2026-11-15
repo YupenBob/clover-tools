@@ -1,4 +1,5 @@
 ---
+import HomeArtwork from './HomeArtwork.astro';
 import Icon from './Icon.astro';
 import { DICT, getToolMeta, langFromUrl, pathForLang } from '../lib/i18n';
 import { getAllTools, getToolHref } from '../lib/tools';
@@ -9,25 +10,39 @@ import '../styles/home.css';
 const lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
 const allTools = getAllTools();
+// Local optimized derivatives of existing guide captures; originals stay intact.
+const thumbnails: Record<string, string> = {
+  '/article-images/2026-10/json-html.jpg': '/illustrations/guide-json-html.webp',
+  '/article-images/2026-10/fetch-cors.jpg': '/illustrations/guide-fetch-cors.webp',
+  '/article-images/2026-10/base-bigint.jpg': '/illustrations/guide-base-bigint.webp',
+};
+const thumbnail = (image: string | undefined) => image ? thumbnails[image] ?? image : undefined;
+const statsMax = Math.max(HOME_DATA.toolCount, HOME_DATA.guideCount, 1);
 const selectedTools = HOME_TOOL_SLUGS.map((slug, index) => {
   const base = allTools.find(tool => tool.slug === slug)!;
-  return { ...getToolMeta(base.category, slug, lang), href: pathForLang(getToolHref(base.category, slug), lang), scenario: dict[['homeScenarioJson', 'homeScenarioTimestamp', 'homeScenarioDiff'][index]] };
+  return { ...getToolMeta(base.category, slug, lang), category: base.category, href: pathForLang(getToolHref(base.category, slug), lang), scenario: dict[['homeScenarioJson', 'homeScenarioTimestamp', 'homeScenarioDiff'][index]] };
 });
 const selectedGuides = HOME_GUIDE_SLUGS.map(slug => {
   const original = getGuide(slug)!;
   const translated = getGuideForLang(slug, lang);
   const guide = translated ?? original;
   const tool = allTools.find(tool => tool.slug === guide.toolSlug)!;
-  return { ...guide, href: guidePath(slug, translated ? lang : 'zh'), fallback: !translated && lang !== 'zh', toolHref: pathForLang(getToolHref(tool.category, tool.slug), lang) };
+  return { ...guide, image: thumbnail(guide.image ?? original.image), href: guidePath(slug, translated ? lang : 'zh'), fallback: !translated && lang !== 'zh', toolHref: pathForLang(getToolHref(tool.category, tool.slug), lang) };
 });
 ---
 
 <div class="home-discovery">
+  <div class="home-lead">
   <section class="home-featured home-module" aria-labelledby="home-featured-title">
     <div class="home-section-head"><div><p class="home-eyebrow">CloverTools / TOOLBOX</p><h2 id="home-featured-title">{dict.homeFeatured}</h2></div><a href="#tool-directory">{dict.homeDirectory} <Icon name="arrow-down" /></a></div>
     <p class="home-section-note">{dict.homeFeaturedNote}</p>
     <div class="home-featured-grid">
-      {selectedTools.map(tool => <a class="home-pick" href={tool.href}><Icon name={tool.icon} size={24} /><h3>{tool.name}</h3><p>{tool.scenario}</p><span>{dict.useNow} <Icon name="arrow-right" /></span></a>)}
+      {selectedTools.map(tool => <a class="home-pick" href={tool.href}>
+        <div class="home-pick-visual">{tool.preview
+          ? <img src={thumbnail(tool.preview)} width="640" height="483" alt={`${tool.name} · ${dict.homePreviewAlt}`} loading="lazy" decoding="async" />
+          : <HomeArtwork kind={tool.category} />}</div>
+        <div class="home-pick-copy"><h3>{tool.name}</h3><p>{tool.scenario}</p><span>{dict.useNow} <Icon name="arrow-right" /></span></div>
+      </a>)}
     </div>
   </section>
 
@@ -36,8 +51,10 @@ const selectedGuides = HOME_GUIDE_SLUGS.map(slug => {
     <p class="home-section-note">{dict.homeGuidesNote}</p>
     <div class="home-guide-list">
       {selectedGuides.map((guide, i) => <article class="home-guide-card">
-        <span class="home-guide-number" aria-hidden="true">0{i + 1}</span>
-        <div><p class="home-guide-meta">{guide.readingMinutes} {dict.homeMinutes} · <time datetime={guide.updated}>{guide.updated}</time>{guide.fallback && <> · {dict.homeSourceFallback}</>}</p>
+        <a class="home-guide-visual" href={guide.href} tabindex="-1" aria-hidden="true">{guide.image
+          ? <img src={guide.image} width="640" height={i === 0 ? 483 : i === 1 ? 445 : 322} alt={`${guide.title} · ${dict.homeGuideImageAlt}`} loading="lazy" decoding="async" />
+          : <HomeArtwork kind="guide" />}</a>
+        <div class="home-guide-copy"><p class="home-guide-meta"><span class="home-guide-number" aria-hidden="true">0{i + 1}</span> {guide.readingMinutes} {dict.homeMinutes} · <time datetime={guide.updated}>{guide.updated}</time>{guide.fallback && <> · {dict.homeSourceFallback}</>}</p>
           <h3><a href={guide.href}>{guide.title}</a></h3><p>{guide.description}</p>
           <div class="home-guide-actions"><a href={guide.href}>{dict.homeRead} <Icon name="arrow-up-right" /></a><a href={guide.toolHref}>{dict.homeOpenTool} <Icon name="arrow-right" /></a></div>
         </div>
@@ -45,27 +62,36 @@ const selectedGuides = HOME_GUIDE_SLUGS.map(slug => {
     </div>
   </section>
 
+  </div>
+
   <section class="home-stats home-side-card" aria-labelledby="home-stats-title">
-    <h2 id="home-stats-title"><Icon name="bar-chart" /> {dict.homeStats}</h2>
+    <h2 id="home-stats-title">{dict.homeStats}</h2>
+    <svg class="home-data-art" viewBox="0 0 240 76" role="img" aria-label={`${dict.homeToolsLabel}: ${HOME_DATA.toolCount}; ${dict.homeGuidesLabel}: ${HOME_DATA.guideCount}`}>
+      <path d="M8 23H212M8 56H212" stroke="var(--border)" stroke-width="14" stroke-linecap="round"/>
+      <path d={`M8 23h${204 * HOME_DATA.toolCount / statsMax}`} stroke="var(--art-green)" stroke-width="14" stroke-linecap="round"/>
+      <path d={`M8 56h${204 * HOME_DATA.guideCount / statsMax}`} stroke="var(--primary)" stroke-width="14" stroke-linecap="round"/>
+      <circle cx="231" cy="23" r="3" fill="var(--art-green)"/><circle cx="231" cy="56" r="3" fill="var(--primary)"/>
+    </svg>
     <dl class="home-stat-numbers"><div><dt>{dict.homeToolsLabel}</dt><dd>{HOME_DATA.toolCount}</dd></div><div><dt>{dict.homeGuidesLabel}</dt><dd>{HOME_DATA.guideCount}</dd></div></dl>
     <p class="home-stat-date">{dict.updated} <time datetime={HOME_DATA.updated}>{HOME_DATA.updated}</time></p>
     <details class="home-data-method"><summary>{dict.homeMethod}</summary><p>{dict.homeStatsNote}</p><p>{dict.homeDateNote}</p></details>
   </section>
 
   <section class="home-recommended-tools home-side-card" aria-labelledby="home-recommended-tools-title">
-    <h2 id="home-recommended-tools-title">{dict.homeRecommendedTools}</h2><p class="home-side-note">{dict.homeCurated}</p>
+    <div class="home-side-heading"><h2 id="home-recommended-tools-title">{dict.homeRecommendedTools}</h2><HomeArtwork kind="dev" /></div><p class="home-side-note">{dict.homeCurated}</p>
     <ul class="home-side-list">{selectedTools.map(tool => <li><a href={tool.href}><strong>{tool.name}</strong><span>{tool.scenario}</span></a></li>)}</ul>
   </section>
 
   <section class="home-recommended-guides home-side-card" aria-labelledby="home-recommended-guides-title">
     <h2 id="home-recommended-guides-title">{dict.homeRecommendedGuides}</h2>
-    <ul class="home-side-list">{selectedGuides.map(guide => <li><a href={guide.href}><strong>{guide.title}</strong><span>{guide.readingMinutes} {dict.homeMinutes}{guide.fallback && <> · {dict.homeSourceFallback}</>}</span></a></li>)}</ul>
+    <ul class="home-side-list">{selectedGuides.map(guide => <li><a href={guide.href}>{guide.image && <img src={guide.image} width="80" height="45" alt={`${guide.title} · ${dict.homeGuideImageAlt}`} loading="lazy" decoding="async" />}<div><strong>{guide.title}</strong><span>{guide.readingMinutes} {dict.homeMinutes}{guide.fallback && <> · {dict.homeSourceFallback}</>}</span></div></a></li>)}</ul>
   </section>
 
   <div class="home-directory" id="tool-directory"><h2 class="home-directory-title">{dict.homeDirectory}</h2><slot /></div>
 
   <section class="home-fortune home-side-card" aria-labelledby="home-fortune-title" data-home-fortune data-notes={JSON.stringify(Array.from({ length: 6 }, (_, i) => dict[`homeFortune${i + 1}`]))}>
-    <h2 id="home-fortune-title"><Icon name="stars" /> {dict.homeFortune}</h2>
+    <div class="home-fortune-art"><img src="/illustrations/clover-fortune.webp" width="960" height="640" alt={dict.homeFortuneArtAlt} loading="lazy" decoding="async" /></div>
+    <h2 id="home-fortune-title">{dict.homeFortune}</h2>
     <time data-fortune-date></time><p class="home-fortune-message" data-fortune-message>{dict.homeFortuneIdle}</p><p class="home-side-note">{dict.homeFortuneNote}</p>
   </section>
 </div>
