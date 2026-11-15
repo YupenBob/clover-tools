@@ -651,7 +651,11 @@ function cleanupWorktree(runKey) {
 
 async function runPipeline(options, existingRun = null) {
   const config = loadConfig();
-  const { runKey, date, slot, zoned } = runKeyFor(options, config);
+  const computed = runKeyFor(options, config);
+  const runKey = existingRun?.runKey ?? computed.runKey;
+  const date = existingRun?.date ?? computed.date;
+  const slot = existingRun?.slot ?? computed.slot;
+  const zoned = computed.zoned;
   options.slot = slot;
   const guard = assertGuard(config, options, runKey, zoned);
   if (!guard.ok) {
