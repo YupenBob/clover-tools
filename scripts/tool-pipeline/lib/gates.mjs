@@ -188,11 +188,19 @@ function checkIntegration({ worktree, item, issues }) {
 }
 
 function checkTests({ worktree, item, issues }) {
-  const testFile = join(worktree, 'scripts', 'tests', `${item.slug}.test.mjs`);
-  if (!existsSync(testFile)) {
+  const testDir = join(worktree, 'scripts', 'tests');
+  const mainTest = `${item.slug}.test.mjs`;
+  const related = existsSync(testDir)
+    ? readdirSync(testDir).filter(
+        (name) =>
+          name === mainTest ||
+          (name.startsWith(`${item.slug}-`) && name.endsWith('.test.mjs')),
+      )
+    : [];
+  if (!related.includes(mainTest)) {
     issues.push('缺少单元测试 scripts/tests/<slug>.test.mjs');
   } else {
-    const text = readText(testFile);
+    const text = related.map((name) => readText(join(testDir, name))).join('\n');
     const tests = (text.match(/\btest\s*\(/g) ?? []).length;
     const asserts = (text.match(/\bassert\./g) ?? []).length;
     if (tests < 3) issues.push(`单元测试只有 ${tests} 条 test()，至少 3 条`);

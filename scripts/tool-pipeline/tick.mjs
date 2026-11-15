@@ -223,6 +223,7 @@ function codexSummary(result) {
     ok: result.ok,
     exitCode: result.exitCode,
     timedOut: result.timedOut,
+    usageLimited: result.usageLimited,
     durationMs: result.durationMs,
     model: result.model,
     reasoning: result.reasoning,
@@ -916,8 +917,22 @@ async function runPipeline(options, existingRun = null) {
     );
     return 0;
   } catch (error) {
-    run.status = /预算|超过|cutoff|timeout/i.test(error.message) ? 'stalled' : 'failed';
+    const usageLimited =
+      Object.values(run.codex ?? {}).some((entry) => entry?.usageLimited) ||
+      /usage limit/i.test(String(error.message ?? ''));
+    run.status = usageLimited
+      ? 'stalled'
+      : /预算|超过|cutoff|timeout/i.test(error.message)
+        ? 'stalled'
+        : 'failed';
     run.error = String(error.stack ?? error.message ?? error);
+    if (usageLimited) {
+      run.notes = [
+        ...(run.notes ?? []),
+        'Codex 账号额度耗尽；等待额度重置后使用 --resume <runKey> 继续，无需重跑 Builder。',
+      ];
+      pause('Codex usage limit 已耗尽，等待额度重置后 --resume', { runKey: run.runKey });
+    }
     run.finishedAt = nowIso();
     recordOutcome({ run, queue, status: run.status, config, error: run.error });
     writeRun(run);

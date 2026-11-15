@@ -174,7 +174,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | `PAUSED` 存在 | 直接退出 0，报告原因 |
 | 主 checkout 脏 / 有未推送内容提交 | 跳过，不写任何文件 |
 | 主 checkout / origin 移动 | 不合并、不推送，保留 worktree |
-| codex 未登录 / 限流 | `PAUSED`，早报说明 |
+| codex 未登录 / 额度耗尽 | 写 `PAUSED` 并保留 worktree/spec；额度重置后 `--resume <runKey>` 继续，不重跑 Builder |
 | Architect spec lint 失败 | 重试 1 次；仍失败→`stalled` |
 | Builder 超时 | `stalled`，保留 worktree |
 | Diff 违规 | 不发布；报告违规路径；`failed` |

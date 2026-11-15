@@ -87,6 +87,7 @@ export async function runCodex({
   const stderrTail = [];
   let timedOut = false;
   let aborted = false;
+  let usageLimited = false;
 
   const child = spawn(codexBin(config), args, {
     cwd,
@@ -110,6 +111,12 @@ export async function runCodex({
       try {
         const event = JSON.parse(line);
         events.push(event);
+        if (event?.type === 'error' && /usage limit/i.test(String(event.message ?? ''))) {
+          usageLimited = true;
+        }
+        if (event?.type === 'turn.failed' && /usage limit/i.test(JSON.stringify(event))) {
+          usageLimited = true;
+        }
         if (stdoutTail.length < 200) stdoutTail.push(line);
         else {
           stdoutTail.shift();
@@ -122,6 +129,7 @@ export async function runCodex({
   };
   const onStderr = (chunk) => {
     const text = stripAnsi(chunk.toString());
+    if (/usage limit/i.test(text)) usageLimited = true;
     stderr.write(text);
     if (stderrTail.length < 200) stderrTail.push(text);
     else {
@@ -168,6 +176,7 @@ export async function runCodex({
     exitCode,
     timedOut,
     signal: aborted,
+    usageLimited,
     durationMs: Date.now() - startedAt,
     model,
     reasoning,
