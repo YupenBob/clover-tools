@@ -177,6 +177,24 @@
           "uncertaintyMs",
           "cached"
         ],
+        "types": {
+          "ok": "boolean-true",
+          "serverNowMs": "number",
+          "source": "string",
+          "sourceUrl": "string",
+          "sourceSampleMs": "number",
+          "sampleAgeMs": "number",
+          "upstreamRttMs": "number",
+          "uncertaintyMs": "number",
+          "cached": "boolean"
+        },
+        "max": {
+          "sampleAgeMs": 15000
+        },
+        "plausible": {
+          "field": "serverNowMs",
+          "withinMs": 60000
+        },
         "source": "cloudflare-trace",
         "sourceUrl": "https://www.cloudflare.com/cdn-cgi/trace",
         "advanceField": "serverNowMs",

@@ -117,10 +117,34 @@ export async function checkApi(url, spec = {}) {
       const expected = [...spec.fields].sort();
       if (JSON.stringify(actual) !== JSON.stringify(expected))
         failures.push(`fields ${actual.join(',')}`);
+      const types = spec.types ?? {};
       for (const field of expected) {
+        const kind = types[field];
         const value = body[field];
-        if (typeof value === 'number' && !(Number.isFinite(value) && value >= 0))
-          failures.push(`${field} must be a finite non-negative number`);
+        if (kind === 'number') {
+          if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+            failures.push(`${field} must be a finite non-negative number`);
+        } else if (kind === 'boolean') {
+          if (typeof value !== 'boolean')
+            failures.push(`${field} must be a boolean`);
+        } else if (kind === 'boolean-true') {
+          if (value !== true) failures.push(`${field} must be true`);
+        } else if (kind === 'string') {
+          if (typeof value !== 'string' || !value)
+            failures.push(`${field} must be a non-empty string`);
+        }
+      }
+      for (const [field, max] of Object.entries(spec.max ?? {})) {
+        if (typeof body[field] === 'number' && body[field] > max)
+          failures.push(`${field} ${body[field]} exceeds ${max}`);
+      }
+      if (spec.plausible) {
+        const value = body[spec.plausible.field];
+        if (
+          typeof value === 'number' &&
+          Math.abs(value - Date.now()) > spec.plausible.withinMs
+        )
+          failures.push(`${spec.plausible.field} is implausible`);
       }
       if (spec.source && body.source !== spec.source)
         failures.push(`source ${body.source} !== ${spec.source}`);
@@ -132,6 +156,12 @@ export async function checkApi(url, spec = {}) {
       await sleep(2100);
       const second = await readJson(url);
       const elapsed = performance.now() - before;
+      if (second.status !== 200) failures.push(`second sample status ${second.status}`);
+      if (second.json === null) failures.push('second sample is not JSON');
+      if (spec.noStore && !/no-store/i.test(second.cacheControl))
+        failures.push(`second sample cache-control ${second.cacheControl || '(missing)'}`);
+      if (spec.types?.ok === 'boolean-true' && second.json?.ok !== true)
+        failures.push('second sample must report ok');
       const from = body[spec.advanceField];
       const to = second.json?.[spec.advanceField];
       if (!Number.isFinite(from) || !Number.isFinite(to))
