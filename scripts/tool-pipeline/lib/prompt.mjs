@@ -179,18 +179,45 @@ export function parseVerifierJson(text) {
   }
 }
 
+// Codex forwards this as an OpenAI `response_format` JSON schema, which is
+// validated in strict mode: every object must list all of its keys in
+// `required` and set `additionalProperties: false`. A free-form rubric object
+// (and a `notes` key outside `required`) is rejected by the API, so the rubric
+// keys are fixed here to match scripts/tool-pipeline/templates/verifier.md.
 export const VERIFIER_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['verdict', 'confidence', 'blockingIssues', 'nonBlocking', 'rubric'],
+  required: ['verdict', 'confidence', 'blockingIssues', 'nonBlocking', 'rubric', 'notes'],
   properties: {
     verdict: { type: 'string', enum: ['pass', 'fail'] },
-    confidence: { type: 'number', minimum: 0, maximum: 1 },
+    confidence: { type: 'number' },
     blockingIssues: { type: 'array', items: { type: 'string' } },
     nonBlocking: { type: 'array', items: { type: 'string' } },
     rubric: {
       type: 'object',
-      additionalProperties: { type: 'number', minimum: 0, maximum: 1 },
+      additionalProperties: false,
+      required: [
+        'features',
+        'interaction',
+        'a11y',
+        'i18n',
+        'tests',
+        'honesty',
+        'security',
+        'docs',
+        'maintainability',
+      ],
+      properties: {
+        features: { type: 'number' },
+        interaction: { type: 'number' },
+        a11y: { type: 'number' },
+        i18n: { type: 'number' },
+        tests: { type: 'number' },
+        honesty: { type: 'number' },
+        security: { type: 'number' },
+        docs: { type: 'number' },
+        maintainability: { type: 'number' },
+      },
     },
     notes: { type: 'string' },
   },
