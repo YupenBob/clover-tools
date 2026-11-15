@@ -174,8 +174,11 @@ function gateEnv() {
 }
 
 async function waitForLoad(config) {
-  const max = Number(config.guard.maxLoadAverage ?? 8);
-  const deadline = Date.now() + Number(config.guard.loadWaitMinutes ?? 10) * 60 * 1000;
+  const max = Number(process.env.TOOL_PIPELINE_MAX_LOAD ?? config.guard.maxLoadAverage ?? 8);
+  const waitMinutes = Number(
+    process.env.TOOL_PIPELINE_LOAD_WAIT_MINUTES ?? config.guard.loadWaitMinutes ?? 10,
+  );
+  const deadline = Date.now() + waitMinutes * 60 * 1000;
   while (os.loadavg()[0] > max && Date.now() < deadline) {
     console.log(
       `[guard] load ${os.loadavg()[0].toFixed(1)} > ${max}; waiting 30s…`,
