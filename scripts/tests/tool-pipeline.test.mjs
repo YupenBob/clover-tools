@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import http from 'node:http';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -15,6 +16,7 @@ import {
 import { selectNext } from '../tool-pipeline/lib/select.mjs';
 import { lintSpec, parseVerifierJson, VERIFIER_SCHEMA } from '../tool-pipeline/lib/prompt.mjs';
 import { auditDiff } from '../tool-pipeline/lib/diff-guard.mjs';
+import { checkApi } from '../tool-pipeline/lib/verify-deploy.mjs';
 
 const repo = join(import.meta.dirname, '../..');
 
@@ -180,4 +182,112 @@ test('diff guard is default-deny and blocks forbidden, rewrites and oversized ch
   result = auditDiff({ worktree: dir, base, item, config: diffConfig });
   assert.equal(result.ok, false);
   assert.equal(result.issues.some((issue) => issue.code === 'not-allowed'), true);
+});
+
+const timeSpec = {
+  fields: [
+    'ok',
+    'serverNowMs',
+    'source',
+    'sourceUrl',
+    'sourceSampleMs',
+    'sampleAgeMs',
+    'upstreamRttMs',
+    'uncertaintyMs',
+    'cached',
+  ],
+  types: {
+    ok: 'boolean-true',
+    serverNowMs: 'number',
+    source: 'string',
+    sourceUrl: 'string',
+    sourceSampleMs: 'number',
+    sampleAgeMs: 'number',
+    upstreamRttMs: 'number',
+    uncertaintyMs: 'number',
+    cached: 'boolean',
+  },
+  max: { sampleAgeMs: 15000 },
+  plausible: { field: 'serverNowMs', withinMs: 60000 },
+  source: 'cloudflare-trace',
+  sourceUrl: 'https://www.cloudflare.com/cdn-cgi/trace',
+  advanceField: 'serverNowMs',
+  noStore: true,
+  methodGuards: true,
+};
+
+function timeServer(sample) {
+  const server = http.createServer((request, response) => {
+    if (request.url.includes('?probe=1')) {
+      response.writeHead(400, { 'content-type': 'application/json' });
+      return response.end('{}');
+    }
+    if (request.method === 'POST') {
+      response.writeHead(405, { 'content-type': 'application/json' });
+      return response.end('{}');
+    }
+    const body = sample();
+    const headers = {
+      'content-type': 'application/json',
+      'cache-control': body.cacheControl ?? 'no-store',
+    };
+    delete body.cacheControl;
+    response.writeHead(200, headers);
+    response.end(JSON.stringify(body));
+  });
+  return new Promise((resolve) =>
+    server.listen(0, () =>
+      resolve({ server, url: `http://127.0.0.1:${server.address().port}/api/time` }),
+    ),
+  );
+}
+
+const liveSample = () => ({
+  ok: true,
+  serverNowMs: Date.now(),
+  source: 'cloudflare-trace',
+  sourceUrl: 'https://www.cloudflare.com/cdn-cgi/trace',
+  sourceSampleMs: Date.now(),
+  sampleAgeMs: 0,
+  upstreamRttMs: 0,
+  uncertaintyMs: 1000,
+  cached: false,
+});
+
+test('production API deep check accepts a live, uncached clock', async () => {
+  const { server, url } = await timeServer(liveSample);
+  try {
+    const result = await checkApi(url, timeSpec);
+    assert.deepEqual(result.failures, []);
+    assert.equal(result.ok, true);
+  } finally {
+    server.close();
+  }
+});
+
+test('production API deep check rejects malformed or cached replies', async () => {
+  const stringNumbers = await timeServer(() => ({ ...liveSample(), sampleAgeMs: '0' }));
+  try {
+    const result = await checkApi(stringNumbers.url, timeSpec);
+    assert.equal(result.ok, false);
+    assert.ok(result.failures.some((item) => item.includes('sampleAgeMs')));
+  } finally {
+    stringNumbers.server.close();
+  }
+  const cacheable = await timeServer(() => ({ ...liveSample(), cacheControl: 'public, max-age=60' }));
+  try {
+    const result = await checkApi(cacheable.url, timeSpec);
+    assert.equal(result.ok, false);
+    assert.ok(result.failures.some((item) => item.includes('cache-control')));
+  } finally {
+    cacheable.server.close();
+  }
+  const frozen = await timeServer(() => ({ ...liveSample(), serverNowMs: Date.UTC(2026, 0, 1) }));
+  try {
+    const result = await checkApi(frozen.url, timeSpec);
+    assert.equal(result.ok, false);
+    assert.ok(result.failures.some((item) => item.includes('advanced')));
+  } finally {
+    frozen.server.close();
+  }
 });
