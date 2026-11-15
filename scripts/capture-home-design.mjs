@@ -45,6 +45,8 @@ try {
       for (const testWidth of [320, 390, 768, 1280]) {
         await page.setViewportSize({ width: testWidth, height });
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme}: overflow at ${testWidth}`);
+        const ratios = await page.locator('.home-guide-visual').evaluateAll(images => images.map(image => { const r = image.getBoundingClientRect(); return r.width / r.height; }));
+        assert.ok(ratios.every(ratio => Math.abs(ratio - 16 / 9) < .02), 'Guide thumbnail frames must stay 16:9');
         const rects = await page.locator('.home-pick').evaluateAll(cards => cards.map(card => { const r = card.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; }));
         for (let i = 1; i < rects.length; i++) assert.ok(rects[i].left >= rects[i - 1].right || rects[i].top >= rects[i - 1].bottom, 'Overlapping tool cards');
       }
