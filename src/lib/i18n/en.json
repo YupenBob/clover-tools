@@ -866,19 +866,6 @@
         "random avatar",
         "SVG avatar"
       ]
-    },
-    "exam-clock": {
-      "name": "Exam clock",
-      "oneLiner": "Full-screen Beijing-time clock with exam countdown phases.",
-      "description": "Full-screen exam hall clock with Beijing-time sync, exam countdown phases, sound reminders, wake lock and offline fallback. Exam settings stay in this browser.",
-      "keywords": [
-        "exam clock",
-        "classroom clock",
-        "exam countdown",
-        "big screen clock",
-        "beijing time clock",
-        "fullscreen clock"
-      ]
     }
   },
   "content": {
@@ -2604,78 +2591,6 @@
           }
         ],
         "privacy": "Seeds, colors and drawing generation remain on your device, without uploading names or saving a history. Copied settings include the seed you entered; inspect them before sharing."
-      }
-    },
-    "exam-clock": {
-      "usage": "Full-screen Beijing-time clock with exam countdown, HTTP time sync, phase reminders, wake lock and offline fallback. Exam settings and display preferences stay in this browser.",
-      "features": [
-        {
-          "icon": "bi-stopwatch",
-          "text": "Full-screen clock and exam countdown"
-        },
-        {
-          "icon": "bi-clock",
-          "text": "HTTP time reference with estimated error"
-        },
-        {
-          "icon": "bi-bell",
-          "text": "30/15/5/1 minute phase reminders"
-        },
-        {
-          "icon": "bi-calendar-event",
-          "text": "Exam times and presets saved locally"
-        }
-      ],
-      "detail": {
-        "intro": "Exam clock turns a tablet or classroom screen into a Beijing-time clock readable from a distance. It calculates waiting time, progress, phases and remaining time from fixed exam start and end times, unlike a general stopwatch. HTTP time sync provides a time reference; it does not replace broadcast or national time services. If the network or sync fails, the display clearly switches to device time.",
-        "steps": [
-          "Enter an exam name and start and end times on the same Beijing-time date, or use a duration to calculate the end time.",
-          "Check the times, then select “Enable exam”. You can join an exam already in progress; an exam whose end time has passed cannot be enabled.",
-          "Adjust the 12/24-hour format, seconds, text size, theme, phase reminders and sound as needed. Fullscreen and keeping the screen awake can be enabled separately.",
-          "After the exam, select “Reset exam” before setting up the next one. Display preferences and exam presets stay in this browser and can be cleared at any time."
-        ],
-        "examples": [
-          {
-            "label": "A 90-minute exam",
-            "input": "Name: “Mock exam”; start at 09:00 and end at 10:30 Beijing time.",
-            "output": "Once enabled, the display shows the countdown, progress and start and end times. Reminders follow your settings at the 30/15/5/1-minute thresholds."
-          },
-          {
-            "label": "Keep only the 5-minute reminder",
-            "input": "Disable the 30, 15 and 1-minute thresholds, leaving only 5 minutes enabled.",
-            "output": "The disabled thresholds give no reminders. The 5-minute threshold is handled once; a threshold passed while muted is also marked as handled."
-          },
-          {
-            "label": "Time sync fails",
-            "input": "The device goes offline or /api/time times out.",
-            "output": "The clock switches to device time and displays “Device clock”. The loaded page continues its countdown and returns to the network reference after a successful sync."
-          }
-        ],
-        "principles": [
-          "Date and time fields are strictly validated and converted using fixed UTC+8, regardless of the visitor’s device time zone.",
-          "Time sync uses the same-origin /api/time HTTP reference, sourced from Cloudflare’s trace endpoint. Estimated error includes round-trip delay; it is an estimate, not an accuracy guarantee.",
-          "Exam settings, display preferences and the latest successful sync details are stored in localStorage, using the same key across languages."
-        ],
-        "pitfalls": [
-          "Do not use this as a substitute for a broadcast, exam bell or national time service. Device sleep, sound permissions and closing the tab can affect reminders.",
-          "HTTP time sync depends on network round-trip delay and does not provide NTP-level accuracy.",
-          "Exams crossing midnight, ending at or before their start, or having a duration inconsistent with their start and end times are rejected. Test the setup in advance and keep a backup clock for important exams."
-        ],
-        "faqs": [
-          {
-            "q": "Is this a national time service or NTP sync?",
-            "a": "No. The page uses a same-origin HTTP time reference and estimates round-trip error. It does not replace NTP, broadcast time signals or official time services."
-          },
-          {
-            "q": "Does it work offline?",
-            "a": "An already loaded page falls back to device time and continues the countdown. First-time offline access and offline refresh are not guaranteed, and the device clock may be inaccurate."
-          },
-          {
-            "q": "Will reminders continue after I close the page?",
-            "a": "This is not guaranteed. When the page stops running, its display and sound may stop. Keep the page visible and prepare a backup clock for important exams."
-          }
-        ],
-        "privacy": "Exam names, start and end times, display preferences and sound settings stay in this browser. The page requests only the same-origin /api/time endpoint; our server requests the Cloudflare time reference without sending exam settings. This tool’s application code does not read, store or output visitor IP addresses, and does not forward visitor IP addresses or account information upstream. The hosting platform still processes connection information to provide network services."
       }
     }
   }

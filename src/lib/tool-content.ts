@@ -787,14 +787,4 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { icon: 'lightbulb', text: '摩斯电码表参考' },
     ],
   },
-  'exam-clock': {
-    usage:
-      '在线考场大屏时钟：全屏显示北京时间与考试倒计时，支持 HTTP 校时、阶段提醒、常亮、全屏与断网回退设备时间；考试配置与显示设置保存在当前浏览器，不上传考试名称或时间。',
-    features: [
-      { icon: 'stopwatch', text: '全屏大字时钟与考试倒计时' },
-      { icon: 'clock', text: 'HTTP 校时并标注估计误差' },
-      { icon: 'bell', text: '30/15/5/1 分钟阶段提醒' },
-      { icon: 'calendar-event', text: '考试起止时间与多套方案本地保存' },
-    ],
-  },
 };

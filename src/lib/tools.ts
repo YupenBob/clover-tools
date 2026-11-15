@@ -547,17 +547,6 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       legacyPath: '/tools/time/countdown.html',
     },
     {
-      slug: 'exam-clock',
-      name: '考场大屏时钟',
-      oneLiner: '全屏大字时钟，校准北京时间并倒计时考试阶段。',
-      description:
-        '在线考场大屏时钟，全屏显示北京时间与考试倒计时，支持 HTTP 校时、阶段提醒、常亮与断网回退设备时间；考试配置只保存在本机，适合监考、自习室与家庭大屏。',
-      icon: 'stopwatch',
-      keywords: ['考场时钟', '考试倒计时', '大屏时钟', '北京时间校准', '全屏时钟'],
-      tier: 'P0',
-      badge: 'new',
-    },
-    {
       slug: 'bmi',
       name: 'BMI 计算器',
       oneLiner: '身高体重算 BMI，可选成人参考标准。',

@@ -60,7 +60,6 @@ const ALIASES = {
   'date-diff': ['日期', '间隔', '天数'],
   workday: ['工作日', '考勤'],
   'age-calculator': ['年龄', '周岁'],
-  'exam-clock': ['考场', '考试倒计时', '大屏时钟', 'exam clock', '北京时间'],
   timer: ['倒计时', '秒表', '计时', '专注'],
   bmi: ['bmi', '体重指数', '体重'],
   salary: ['工资', '五险一金', '税后', '个税'],
