@@ -65,13 +65,19 @@ try {
       const selected = theme === 'light' ? Object.entries(modules) : Object.entries(modules).filter(([key]) => ['stats', 'fortune', 'footer', 'guides'].includes(key));
       for (const [key, selector] of selected) {
         const module = page.locator(selector);
-        await module.scrollIntoViewIfNeeded();
+        const box = await module.boundingBox();
+        // Taller close-up viewport keeps the sticky navigation outside the
+        // captured module, including sections taller than the normal screen.
+        await page.setViewportSize({ width, height: Math.max(height, Math.ceil(box.height) + 120) });
+        await module.evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+        await page.evaluate(() => window.scrollBy({ top: -80, behavior: 'instant' }));
         await module.evaluate(async el => { await Promise.all([...el.querySelectorAll('img')].map(img => img.decode())); });
         const path = `${name}-${key}.png`;
         await module.screenshot({ path, animations: 'disabled' }); screenshots.push(path);
       }
       // content-visibility:auto may omit offscreen category contents in a full
       // screenshot. Verify and capture the actual viewport after scrolling there.
+      await page.setViewportSize({ width, height });
       await page.locator('#cat-fun').scrollIntoViewIfNeeded();
       await page.locator('#cat-fun .tool-card').first().waitFor({ state: 'visible' });
       assert.ok(await page.locator('#cat-fun').evaluate(el => el.querySelector('.tool-card').getBoundingClientRect().height > 0));
