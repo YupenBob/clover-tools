@@ -136,3 +136,7 @@
 .home-discovery.is-filtering > :not(.home-directory) { display: none; }
 .home-container .tab-indicator { transition: none; }
 @media (prefers-reduced-motion: reduce) { .home-container * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (hover: hover) {
+  .home-guide-card:hover { border-color: var(--primary-dark); }
+  .home-guide-card h3 a:hover, .home-side-list a:hover strong { color: var(--home-link); }
+}
