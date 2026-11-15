@@ -1,8 +1,9 @@
 /** Local browser acceptance and unedited full-page screenshots for the homepage. */
 import assert from 'node:assert/strict';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright-core';
 import { HOME_DATA } from '../src/lib/home-data.ts';
+import { getAllTools } from '../src/lib/tools.ts';
 const base = process.env.HOME_BASE_URL || 'http://127.0.0.1:4321';
 const output = 'output/lead';
 await mkdir(output, { recursive: true });
@@ -10,6 +11,8 @@ const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_E
 const report = [];
 try {
   for (const [lang, prefix] of [['zh', ''], ['tw', '/zh-hant'], ['en', '/en'], ['ko', '/ko'], ['ja', '/ja']]) {
+    const localeTools = ['en', 'ko', 'ja'].includes(lang) ? JSON.parse(await readFile(`src/lib/i18n/${lang}.json`, 'utf8')).tools : null;
+    const listedTools = getAllTools().filter(tool => !localeTools || localeTools[tool.slug]).length;
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-CN', colorScheme: 'light' });
     await context.addInitScript(lang => { localStorage.setItem('clover-lang', lang); localStorage.setItem('clover-theme', 'light'); }, lang);
     const page = await context.newPage();
@@ -17,7 +20,8 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`${base}${prefix}/`, { waitUntil: 'networkidle' });
     await page.locator('.home-guides').waitFor();
-    assert.equal(await page.locator('.tool-card').count(), HOME_DATA.toolCount);
+    assert.equal(await page.locator('.tool-card').count(), listedTools);
+    assert.equal(Number(await page.locator('#builtCount').textContent()), listedTools);
     assert.equal(await page.locator('.home-guide-card').count(), 3);
     assert.equal(await page.locator('.home-stat-numbers dd').allTextContents().then(values => values.join('/')), `${HOME_DATA.toolCount}/${HOME_DATA.guideCount}`);
     assert.equal(await page.locator('.ad-slot, [data-grid-filler], ins.adsbygoogle, script[src*="adsbygoogle"]').count(), 0);
@@ -37,7 +41,7 @@ try {
     await page.locator('#toolSearch').fill('zzzz-no-such-tool-zzzz');
     await page.locator('#searchEmpty.show').waitFor();
     await page.locator('#emptyReset').click();
-    assert.equal(await page.locator('.tool-card:visible').count(), HOME_DATA.toolCount);
+    assert.equal(await page.locator('.tool-card:visible').count(), listedTools);
     await page.locator('[data-tab="dev"]').click();
     assert.equal(await page.locator('[data-category]:visible').count(), 1);
     await page.locator('[data-tab="all"]').click();
@@ -73,7 +77,7 @@ try {
       }
     }
     assert.deepEqual(errors, []);
-    report.push({ lang, localLinks: links.length, columns, search: 'pass', fortune: 'stable', overflowWidths: [320, 390, 768, 1280], pageErrors: errors });
+    report.push({ lang, listedTools, sourceTools: HOME_DATA.toolCount, localLinks: links.length, columns, search: 'pass', fortune: 'stable', overflowWidths: [320, 390, 768, 1280], pageErrors: errors });
     console.log(`PASS ${lang}: links, source counts, search/reset/filter, fortune, 4 widths, no ads`);
     await context.close();
   }
