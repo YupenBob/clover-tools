@@ -12,6 +12,7 @@
 import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import {
+  appendFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -361,6 +362,14 @@ function ensureWorktree(runKey, base) {
     } catch {
       /* already linked */
     }
+  }
+  const excludeFile = join(REPO, '.git/info/exclude');
+  const exclude = readText(excludeFile);
+  if (!exclude.includes('# tool-pipeline worktree-owned')) {
+    appendFileSync(
+      excludeFile,
+      '\n# tool-pipeline worktree-owned\nnode_modules\n.playwright-browsers\n.env\n.env.local\n',
+    );
   }
   return worktree;
 }
@@ -755,6 +764,10 @@ async function runPipeline(options, existingRun = null) {
     run.status = 'in_progress';
     run.error = null;
     run.finishedAt = null;
+    // A resume gets a fresh budget window; otherwise yesterday's startedAt would
+    // immediately trip the 330-minute guard.
+    run.resumedAt = nowIso();
+    run.startedAt = nowIso();
     run.updatedAt = nowIso();
   }
   saveRun(run);

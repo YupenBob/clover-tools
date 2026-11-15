@@ -3,6 +3,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { REPO } from './paths.mjs';
 
+const WORKTREE_OWNED = new Set(['node_modules', '.playwright-browsers', '.env', '.env.local']);
+
+function isWorktreeOwned(path) {
+  return WORKTREE_OWNED.has(String(path).split('/')[0]);
+}
+
 const GIT_ENV = {
   ...process.env,
   GIT_TERMINAL_PROMPT: '0',
@@ -90,7 +96,8 @@ export function changedPaths(base, cwd = REPO) {
     .filter(Boolean);
   const untracked = gitOut(['ls-files', '--others', '--exclude-standard', '-z'], { cwd })
     .split('\0')
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((path) => !isWorktreeOwned(path));
   return {
     tracked: [...new Set(tracked)],
     deleted: [...new Set(deleted)],
