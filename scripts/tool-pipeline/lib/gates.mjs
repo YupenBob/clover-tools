@@ -236,6 +236,50 @@ function checkDocs({ worktree, base, item, issues }) {
   }
 }
 
+export function sourceIntegrationIssues({ worktree, base, item }) {
+  const issues = [];
+  const tools = readText(join(worktree, 'src/lib/tools.ts'));
+  if (!tools.includes(`slug: '${item.slug}'`) && !tools.includes(`slug: "${item.slug}"`)) {
+    issues.push('src/lib/tools.ts 未登记工具 slug');
+  }
+  const seo = readText(join(worktree, 'src/lib/tool-seo', `${item.category}.ts`));
+  if (!seo.includes(item.slug)) issues.push(`src/lib/tool-seo/${item.category}.ts 未登记`);
+  for (const file of ['src/lib/tool-content.ts', 'src/lib/tool-details.ts']) {
+    if (!readText(join(worktree, file)).includes(item.slug)) issues.push(`${file} 未登记`);
+  }
+  for (const lang of ['en', 'ja', 'ko']) {
+    const data = readJson(join(worktree, 'src/lib/i18n', `${lang}.json`), null);
+    if (!data?.tools?.[item.slug]) issues.push(`src/lib/i18n/${lang}.json 缺少 tools.${item.slug}`);
+    if (!data?.content?.[item.slug]) issues.push(`src/lib/i18n/${lang}.json 缺少 content.${item.slug}`);
+  }
+  if (!readText(join(worktree, 'tsconfig.tools.json')).includes(item.slug)) {
+    issues.push('tsconfig.tools.json 未纳入新 lib/scripts');
+  }
+  if (!readText(join(worktree, 'scripts/gen-search-index.mjs')).includes(item.slug)) {
+    issues.push('scripts/gen-search-index.mjs 缺少搜索别名');
+  }
+  for (const locale of ['zh', 'en', 'ja', 'ko', 'zh-hant']) {
+    const prefix = locale === 'zh' ? '' : `${locale}/`;
+    const page = join(worktree, 'src/pages', prefix, 'tools', item.category, `${item.slug}.astro`);
+    if (!existsSync(page)) issues.push(`缺少页面 src/pages/${prefix}tools/${item.category}/${item.slug}.astro`);
+  }
+  if (item.network) {
+    const apiRelative = item.apiFile ?? `functions/api/${item.slug}.ts`;
+    const api = join(worktree, apiRelative);
+    if (!existsSync(api)) issues.push(`缺少 ${apiRelative}`);
+    else if (!/onRequest/.test(readText(api))) issues.push(`${apiRelative} 缺少 onRequest`);
+  }
+  const testFile = join(worktree, 'scripts/tests', `${item.slug}.test.mjs`);
+  if (!existsSync(testFile)) issues.push(`缺少 scripts/tests/${item.slug}.test.mjs`);
+  const caseFile = join(worktree, 'scripts/lib/tool-cases', `${item.slug}.mjs`);
+  if (!existsSync(caseFile)) issues.push(`缺少 scripts/lib/tool-cases/${item.slug}.mjs`);
+  const docs = changedPaths(base, worktree).all.filter(
+    (path) => path.startsWith('docs/') && path.endsWith('.md') && path.toLowerCase().includes(String(item.slug).toLowerCase()),
+  );
+  if (!docs.length) issues.push('缺少 docs/<TOOL>.md（文件名需包含 slug）');
+  return issues;
+}
+
 export function verifyStructure({ worktree, base, item, issues: initial = [] }) {
   const issues = [...initial];
   for (const locale of ['zh', 'tw', 'en', 'ko', 'ja']) {
@@ -257,6 +301,23 @@ export async function runGates({ worktree, base, item, config, runDir, env = {},
     results.push(result);
     return result;
   };
+
+  const integrationIssues = sourceIntegrationIssues({ worktree, base, item });
+  add({
+    label: 'integration',
+    command: 'sourceIntegrationIssues',
+    ok: integrationIssues.length === 0,
+    code: integrationIssues.length === 0 ? 0 : 1,
+    timedOut: false,
+    durationMs: 0,
+    logFile: null,
+    tail: integrationIssues.join('\n'),
+    issues: integrationIssues,
+    finishedAt: nowIso(),
+  });
+  if (integrationIssues.length) {
+    return { ok: false, failed: 'integration', results };
+  }
 
   const counts = join(worktree, 'scripts/tool-pipeline/update-tool-counts.mjs');
   if (existsSync(counts)) {
