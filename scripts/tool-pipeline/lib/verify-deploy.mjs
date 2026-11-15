@@ -211,6 +211,8 @@ export async function checkApi(url, spec = {}) {
   }
 }
 
+const LANG_FOR = { zh: 'zh-CN', tw: 'zh-Hant', en: 'en', ko: 'ko', ja: 'ja' };
+
 export async function verifyDeploy({ run, config, mainRepo, autoRevert = true }) {
   const publish = run.publish ?? {};
   if (publish.status !== 'pushed' || !publish.commit) {
