@@ -61,6 +61,9 @@ try {
         for (let i = 1; i < rects.length; i++) assert.ok(rects[i].left >= rects[i - 1].right || rects[i].top >= rects[i - 1].bottom, 'Overlapping tool cards');
       }
       await page.setViewportSize({ width, height });
+      // Capture a fresh visit at the target size, after the deliberate resize
+      // matrix, so the category indicator uses this viewport's initial layout.
+      await page.reload({ waitUntil: 'networkidle' });
       await page.evaluate(async () => {
         for (let y = 0; y < document.body.scrollHeight; y += 600) {
           window.scrollTo({ top: y, behavior: 'instant' });
