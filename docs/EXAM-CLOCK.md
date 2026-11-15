@@ -48,11 +48,11 @@ Cache API 使用固定键保存清洗后的样本十五秒：原始时间、上�
 
 ## 实际验证记录（2026-11-15）
 
-- `npm test`：264 项通过（含客户端 19 项、服务端 15 项），0 失败、0 跳过。
+- `npm test`：265 项通过（含客户端 19 项、服务端 15 项），0 失败、0 跳过。
 - `npm run build`：583 个页面构建成功；内容关联、SEO 元数据、链接、发布商、emoji 与图标检查通过；README 工具计数更新为 78。
 - `node scripts/smoke-tool.mjs --slug exam-clock --category daily`：39 项浏览器场景通过，覆盖 5 语言、生产 CSP、阶段提醒、声音节点、全屏降级、常亮、存储异常、时间跳变与 5 档布局；新增「设备时钟前跳不得直接结束考试」和「表单不合法时显示/声音设置仍保存并在刷新后生效」两项回归。
 - `npx tsc -p tsconfig.tools.json`、`npx tsc -p tsconfig.functions.json`：通过。
-- `npm run tool:verify` 的通用门禁已识别选题的 `/api/time`，深检按 `tool-pipeline.config.json` 的 `verify.apiChecks` 执行：成功字段集合、有限非负数值、声明来源与上游、`Cache-Control: no-store`、间隔约两秒的时间推进与其他方法 405、查询参数 400。该命令尚未执行（需发布后运行）；生产 5 语言页面验收与独立 Reviewer 评分同样待流水线 push 后由该步骤完成。未生成或宣称伪造截图、生产发布或实测结论。
+- `npm run tool:verify` 的通用门禁已识别选题的 `/api/time`，深检按 `tool-pipeline.config.json` 的 `verify.apiChecks` 执行：成功字段集合、有限非负数值、声明来源与上游、`Cache-Control: no-store`、间隔约两秒的时间推进与其他方法 405、查询参数 400。该命令已在本版本发布后执行（提交 2f7c642）：五个生产语言页面均 HTTP 200、`lang` 与标题正确，真实 `/api/time` 返回 200 且字段集合、有限非负数值、声明来源与上游、`Cache-Control: no-store`、约两秒时间推进、查询参数 400、POST 405 全部通过；Quality checks 工作流成功。首次发布曾因 Workers 把脱离全局对象的原生 `fetch` 判为 Illegal invocation 而使 `/api/time` 返回 502，生产验证按设计自动回滚（`c7410e3`），修复入口后重新发布并通过。未生成或宣称伪造截图。
 
 ## 文件清单
 
