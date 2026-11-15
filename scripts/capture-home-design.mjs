@@ -66,7 +66,9 @@ try {
           window.scrollTo({ top: y, behavior: 'instant' });
           await new Promise(resolve => setTimeout(resolve, 35));
         }
-        await Promise.all([...document.images].map(img => img.decode().catch(() => {})));
+        // Mobile hides catalog preview images with display:none; lazy images
+        // in those hidden nodes must not block a screenshot decode pass.
+        await Promise.all([...document.images].filter(img => img.getClientRects().length > 0).map(img => img.decode().catch(() => {})));
         window.scrollTo({ top: 0, behavior: 'instant' });
       });
       const name = `${output}/design-after-${device}-${theme}`;
