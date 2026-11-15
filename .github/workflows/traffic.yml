@@ -44,7 +44,7 @@ jobs:
         run: node scripts/traffic/fetch-cloudflare.mjs
       - name: Commit refreshed snapshot
         run: |
-          if git diff --quiet -- data/site-traffic.json; then
+          if [ -z "$(git status --porcelain -- data/site-traffic.json)" ]; then
             echo "No traffic changes"
             exit 0
           fi
