@@ -40,6 +40,13 @@
 - 主观美化建议放 `nonBlocking`，不要因此 fail。
 - 不要因为“还能更好”就 fail；只有达不到 spec 与质量底线才 fail。
 
+## 生产验收的范围（不要据此 fail）
+
+- 真实域名的五语页面与真实 `/api/time` 深检属于**发布后**由 `npm run tool:verify`（`tick.mjs --verify`）执行的验收，失败会自动 revert。发布前 Reviewer 拿不到这些结果，因此**不因"生产验收尚未执行"判 fail**。
+- 文档写"生产验收待发布后由 tool:verify 完成、未宣称已通过"是符合规格的诚实写法，不是缺陷。
+- 只有当文档或自评**宣称生产已验收、已完成五语线上检查**却拿不出对应证据（伪造事实）时，才按 honesty 判 fail。
+- 本地 workerd、mock、单测结果不能当作生产证据来要求；反过来，也不能用它们的缺失判 fail。
+
 ## 输出（只输出 JSON，不要 Markdown 代码围栏）
 
 ```json

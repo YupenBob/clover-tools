@@ -30,6 +30,7 @@
   - `npx tsc -p tsconfig.tools.json`
   - `node --test scripts/tests/{{SLUG}}.test.mjs`
   - 网络工具：`npx tsc -p tsconfig.functions.json`
+- 生产验收（真实域名的五语页面与真实 API 深检）由发布后的 `npm run tool:verify` 执行，不属于修复轮范围。修复轮**禁止**为此访问外部网络，也**禁止**在 `docs/*.md` 里追加"生产验收受阻/失败/无法访问"之类的记录；若复核失败项只涉及这一点，不要修改任何文件，原样返回。
 - 不要为了让测试变绿而删断言、加 skip、放宽阈值；要修实现或补真实边界。
 
 ## 网络契约（如适用）
