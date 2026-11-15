@@ -32,4 +32,20 @@ if [[ -z "${PLAYWRIGHT_EXECUTABLE_PATH:-}" ]]; then
   fi
 fi
 
-exec nice -n 10 node scripts/tool-pipeline/tick.mjs --slot nightly "$@"
+set +e
+nice -n 10 node scripts/tool-pipeline/tick.mjs --slot nightly "$@"
+rc=$?
+set -e
+echo "=== $(date -Iseconds) tool pipeline tick exit:$rc ==="
+
+# A successful publish still needs the GitHub quality workflow and the Cloudflare
+# Pages deploy to finish. Poll until that settles so a broken deploy is reverted
+# the same night instead of waiting for a human or the next morning's report.
+if [[ "$rc" -eq 0 && "${SKIP_VERIFY:-0}" != "1" ]]; then
+  verify_rc=0
+  MAX_ATTEMPTS="${VERIFY_MAX_ATTEMPTS:-25}" bash scripts/tool-pipeline/verify-later.sh || verify_rc=$?
+  echo "=== $(date -Iseconds) verify-later exit:$verify_rc ==="
+fi
+
+echo "=== $(date -Iseconds) tool pipeline done ==="
+exit "$rc"

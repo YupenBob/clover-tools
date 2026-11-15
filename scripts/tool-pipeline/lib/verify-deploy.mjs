@@ -40,9 +40,10 @@ export function findQualityRun(sha, workflow, cwd = REPO) {
   } catch (error) {
     return { status: 'error', reason: error.message };
   }
-  const exact = runs.find((run) => run.headSha === sha && run.workflowName === workflow);
-  const any = runs.find((run) => run.headSha === sha);
-  return exact ?? any ?? null;
+  // Only the configured quality workflow counts. Falling back to "any run for
+  // this commit" would let an unrelated (often skipped/failed) workflow such as
+  // the crawler audit decide whether a freshly published tool gets reverted.
+  return runs.find((run) => run.headSha === sha && run.workflowName === workflow) ?? null;
 }
 
 export function runJobs(runId, cwd = REPO) {

@@ -52,6 +52,7 @@ schedule_create:
 scripts/tool-pipeline/
   tick.mjs                 # CLI：run/dry-run/report/verify/resume
   nightly.sh               # systemd 入口（env、flock、nice、日志）
+  verify-later.sh           # 推送后轮询 CI/生产，直到 verified/reverted
   config.mjs               # 配置读取
   backlog.json             # 选题源（committed）
   specs/<slug>.md          # 选题卡（committed）
@@ -159,12 +160,15 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 ## 五、发布、验证与回滚
 
 - 提交作者：`CloverTools Tool Bot <tool-bot@clovertools.cn>`；信息 `feat(tool): add <name> (<slug>)`。
-- 推送后 `run.publish.status=pushed`，`run.verify.status` 留给 08:00 早报。
-- 08:00 `--verify`：
-  - 找到同 commit 的 `Quality checks` workflow；未完成→pending。
+- 推送后 `run.publish.status=pushed`，`run.verify.status=pending`。
+- `nightly.sh` 在 tick 成功后自动执行 `verify-later.sh`：每 60s 调一次 `--verify`，最多 25 次（约 25 分钟），直到结果落定。
+- `--verify` 的判定顺序：
+  - 只认 `config.verify.qualityWorkflow`（`Quality checks`）的 run；同 SHA 的其它 workflow（crawler audit、search submission 等）不参与判定，避免被无关的 skipped/failed workflow 误触发 revert。
+  - 该 workflow 未开始/未完成→pending，继续轮询。
   - quality 失败→自动 `git revert` + push + `PAUSED`。
   - deploy job 失败→保留 main（生产仍是旧版本），报告并允许重试。
   - 生产 5 语言页面/API 失败→自动 revert + `PAUSED`。
+- 08:00 DSH 早报仍会 `--report --verify`，作为夜间轮询超时（pending/机器关机）后的兜底。
 - 不 force-push；revert 是普通提交。
 
 ## 六、失败矩阵
@@ -184,6 +188,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | CI quality 失败 | 自动 revert + `PAUSED` |
 | deploy job 失败 | 不 revert；报告；允许重试 |
 | 生产页面/API 失败 | 自动 revert + `PAUSED` |
+| 推送后 CI/部署 25 分钟内未落定 | `verify-later` 退出 2 并保留 pending，08:00 早报复检 |
 | 连续 2 次失败/停滞 | 写 `PAUSED`，早报提示人工处理 |
 | 补跑窗口已过（≥06:00） | 跳过，避免与内容线冲突 |
 

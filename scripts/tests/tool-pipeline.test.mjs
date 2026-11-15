@@ -307,3 +307,33 @@ test('production API deep check rejects malformed or cached replies', async () =
     frozen.server.close();
   }
 });
+
+test('deploy verification only trusts runs of the configured quality workflow', async () => {
+  const { findQualityRun } = await import('../tool-pipeline/lib/verify-deploy.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'clover-gh-stub-'));
+  const bin = join(dir, 'bin');
+  mkdirSync(bin);
+  const stub = join(bin, 'gh');
+  writeFileSync(stub, '#!/usr/bin/env bash\nprintf \'%s\' "$GH_STUB_JSON"\n');
+  execFileSync('chmod', ['+x', stub]);
+  const savedPath = process.env.PATH;
+  const savedJson = process.env.GH_STUB_JSON;
+  try {
+    process.env.PATH = `${bin}:${savedPath}`;
+    process.env.GH_STUB_JSON = JSON.stringify([
+      { databaseId: 1, status: 'completed', conclusion: 'failure', workflowName: 'Cloudflare crawler audit', headSha: 'abc' },
+      { databaseId: 2, status: 'completed', conclusion: 'success', workflowName: 'Quality checks', headSha: 'abc' },
+    ]);
+    assert.equal(findQualityRun('abc', 'Quality checks', dir)?.databaseId, 2);
+
+    process.env.GH_STUB_JSON = JSON.stringify([
+      { databaseId: 1, status: 'completed', conclusion: 'failure', workflowName: 'Cloudflare crawler audit', headSha: 'abc' },
+      { databaseId: 3, status: 'completed', conclusion: 'skipped', workflowName: 'Search engine submission', headSha: 'abc' },
+    ]);
+    assert.equal(findQualityRun('abc', 'Quality checks', dir), null);
+  } finally {
+    process.env.PATH = savedPath;
+    if (savedJson === undefined) delete process.env.GH_STUB_JSON;
+    else process.env.GH_STUB_JSON = savedJson;
+  }
+});
