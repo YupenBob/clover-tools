@@ -265,6 +265,22 @@ test('production API deep check accepts a live, uncached clock', async () => {
   }
 });
 
+test('production API deep check rejects a malformed second sample', async () => {
+  let calls = 0;
+  const { server, url } = await timeServer(() => {
+    calls += 1;
+    if (calls === 1) return liveSample();
+    return { ...liveSample(), sampleAgeMs: '15000' };
+  });
+  try {
+    const result = await checkApi(url, timeSpec);
+    assert.equal(result.ok, false);
+    assert.ok(result.failures.some((item) => item.includes('second sample: sampleAgeMs')));
+  } finally {
+    server.close();
+  }
+});
+
 test('production API deep check rejects malformed or cached replies', async () => {
   const stringNumbers = await timeServer(() => ({ ...liveSample(), sampleAgeMs: '0' }));
   try {

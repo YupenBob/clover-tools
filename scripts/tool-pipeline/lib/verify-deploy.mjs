@@ -104,39 +104,48 @@ async function readJson(url, init = {}) {
 // that the reported clock keeps moving between two samples.
 export async function checkApi(url, spec = {}) {
   const startedAt = performance.now();
-  try {
-    const first = await readJson(url);
-    const failures = [];
-    if (first.status !== 200) failures.push(`status ${first.status}`);
-    if (first.json === null) failures.push('response is not JSON');
-    const body = first.json ?? {};
-    if (spec.noStore && !/no-store/i.test(first.cacheControl))
-      failures.push(`cache-control ${first.cacheControl || '(missing)'}`);
+  const failures = [];
+  // Every sample goes through the same inspection, so the second response can
+  // never be looser than the first one.
+  const inspect = (sample, label) => {
+    const prefix = label ? `${label}: ` : '';
+    if (sample.status !== 200) failures.push(`${prefix}status ${sample.status}`);
+    if (spec.noStore && !/no-store/i.test(sample.cacheControl))
+      failures.push(`${prefix}cache-control ${sample.cacheControl || '(missing)'}`);
+    if (sample.json === null) {
+      failures.push(`${prefix}response is not JSON`);
+      return;
+    }
+    const body = sample.json;
     if (spec.fields) {
       const actual = Object.keys(body).sort();
       const expected = [...spec.fields].sort();
       if (JSON.stringify(actual) !== JSON.stringify(expected))
-        failures.push(`fields ${actual.join(',')}`);
+        failures.push(`${prefix}fields ${actual.join(',')}`);
       const types = spec.types ?? {};
       for (const field of expected) {
         const kind = types[field];
         const value = body[field];
         if (kind === 'number') {
           if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
-            failures.push(`${field} must be a finite non-negative number`);
+            failures.push(`${prefix}${field} must be a finite non-negative number`);
         } else if (kind === 'boolean') {
           if (typeof value !== 'boolean')
-            failures.push(`${field} must be a boolean`);
+            failures.push(`${prefix}${field} must be a boolean`);
         } else if (kind === 'boolean-true') {
-          if (value !== true) failures.push(`${field} must be true`);
+          if (value !== true) failures.push(`${prefix}${field} must be true`);
         } else if (kind === 'string') {
           if (typeof value !== 'string' || !value)
-            failures.push(`${field} must be a non-empty string`);
+            failures.push(`${prefix}${field} must be a non-empty string`);
         }
       }
       for (const [field, max] of Object.entries(spec.max ?? {})) {
         if (typeof body[field] === 'number' && body[field] > max)
-          failures.push(`${field} ${body[field]} exceeds ${max}`);
+          failures.push(`${prefix}${field} ${body[field]} exceeds ${max}`);
+      }
+      for (const [field, limit] of Object.entries(spec.below ?? {})) {
+        if (typeof body[field] === 'number' && body[field] >= limit)
+          failures.push(`${prefix}${field} ${body[field]} must stay below ${limit}`);
       }
       if (spec.plausible) {
         const value = body[spec.plausible.field];
@@ -144,25 +153,24 @@ export async function checkApi(url, spec = {}) {
           typeof value === 'number' &&
           Math.abs(value - Date.now()) > spec.plausible.withinMs
         )
-          failures.push(`${spec.plausible.field} is implausible`);
+          failures.push(`${prefix}${spec.plausible.field} is implausible`);
       }
       if (spec.source && body.source !== spec.source)
-        failures.push(`source ${body.source} !== ${spec.source}`);
+        failures.push(`${prefix}source ${body.source} !== ${spec.source}`);
       if (spec.sourceUrl && body.sourceUrl !== spec.sourceUrl)
-        failures.push(`sourceUrl ${body.sourceUrl} !== ${spec.sourceUrl}`);
+        failures.push(`${prefix}sourceUrl ${body.sourceUrl} !== ${spec.sourceUrl}`);
     }
-    if (spec.advanceField) {
+  };
+  try {
+    const first = await readJson(url);
+    inspect(first, '');
+    if (spec.advanceField && first.json) {
       const before = performance.now();
       await sleep(2100);
       const second = await readJson(url);
       const elapsed = performance.now() - before;
-      if (second.status !== 200) failures.push(`second sample status ${second.status}`);
-      if (second.json === null) failures.push('second sample is not JSON');
-      if (spec.noStore && !/no-store/i.test(second.cacheControl))
-        failures.push(`second sample cache-control ${second.cacheControl || '(missing)'}`);
-      if (spec.types?.ok === 'boolean-true' && second.json?.ok !== true)
-        failures.push('second sample must report ok');
-      const from = body[spec.advanceField];
+      inspect(second, 'second sample');
+      const from = first.json[spec.advanceField];
       const to = second.json?.[spec.advanceField];
       if (!Number.isFinite(from) || !Number.isFinite(to))
         failures.push(`second sample missing ${spec.advanceField}`);
@@ -197,13 +205,11 @@ export async function checkApi(url, spec = {}) {
       ok: false,
       status: 0,
       error: error.message,
-      failures: [error.message],
+      failures: [...failures, error.message],
       elapsedMs: Math.round(performance.now() - startedAt),
     };
   }
 }
-
-const LANG_FOR = { zh: 'zh-CN', tw: 'zh-Hant', en: 'en', ko: 'ko', ja: 'ja' };
 
 export async function verifyDeploy({ run, config, mainRepo, autoRevert = true }) {
   const publish = run.publish ?? {};
