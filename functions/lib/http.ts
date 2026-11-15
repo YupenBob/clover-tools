@@ -127,15 +127,39 @@ export async function readJsonLimited<T = unknown>(
   response: Response,
   maxBytes = 256 * 1024,
 ): Promise<T> {
-  const text = await response.text();
-  if (text.length > maxBytes) throw new Error('body-too-large');
+  const text = await readTextLimited(response, maxBytes);
   return JSON.parse(text) as T;
 }
 
-export async function readTextLimited(response: Response, maxBytes = 256 * 1024): Promise<string> {
-  const text = await response.text();
-  if (text.length > maxBytes) throw new Error('body-too-large');
-  return text;
+export async function readTextLimited(
+  response: Response,
+  maxBytes = 256 * 1024,
+  signal?: AbortSignal,
+): Promise<string> {
+  signal?.throwIfAborted();
+  if (!response.body) return '';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = '';
+  const cancel = () => { void reader.cancel(signal?.reason).catch(() => {}); };
+  signal?.addEventListener('abort', cancel, { once: true });
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      signal?.throwIfAborted();
+      if (done) return text + decoder.decode();
+      bytes += value.byteLength;
+      if (bytes > maxBytes) {
+        void reader.cancel().catch(() => {});
+        throw new Error('body-too-large');
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+  } finally {
+    signal?.removeEventListener('abort', cancel);
+    reader.releaseLock();
+  }
 }
 
 export function normalizeError(error: unknown): string {

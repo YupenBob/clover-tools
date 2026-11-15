@@ -1,0 +1,14 @@
+---
+// @shared-tool-ui: five thin routes share the exam clock workspace.
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import ExamClock from '../../../../components/ExamClock.astro';
+import { getToolMeta } from '../../../../lib/i18n';
+const lang = 'tw' as const;
+const category = 'daily' as const;
+const baseTool = getToolMeta(category, 'exam-clock', lang);
+const tool = { ...baseTool, name: '考場大螢幕時鐘', description: '考場大螢幕時鐘顯示北京時間、日期、考試倒數與進度，提供 HTTP 校時、階段提醒、全螢幕及高對比設定。校時失敗時使用本機時鐘，最多儲存十套考試設定；提示音及螢幕常亮須主動開啟。' };
+const related = ['timer', 'world-clock', 'calendar'].map(slug => getToolMeta(category, slug, lang));
+---
+<ToolLayout category={category} tool={tool} related={related} layout="wide" workspace="canvas">
+  <ExamClock lang={lang} />
+</ToolLayout>
