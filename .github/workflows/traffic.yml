@@ -1,0 +1,59 @@
+name: Traffic snapshot
+
+# Refreshes data/site-traffic.json from Cloudflare edge analytics once a day.
+# The sidebar reads this committed snapshot at build time; missing/invalid data
+# degrades to a transparent "not connected" state instead of fabricated numbers.
+#
+# Required repository secret: CLOUDFLARE_ANALYTICS_TOKEN (read-only token with
+# Zone:Read + Zone Analytics:Read). Falls back to CLOUDFLARE_API_TOKEN when that
+# token already carries analytics access.
+
+on:
+  schedule:
+    - cron: '20 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: clovertools-traffic
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Never echo tokens: the script only reports HTTP status/error codes.
+      CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.CLOUDFLARE_ANALYTICS_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+      CLOUDFLARE_ZONE_NAME: clovertools.cn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Fetch aggregate traffic snapshot
+        run: node scripts/traffic/fetch-cloudflare.mjs
+      - name: Commit refreshed snapshot
+        run: |
+          if git diff --quiet -- data/site-traffic.json; then
+            echo "No traffic changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/site-traffic.json
+          git commit -m "chore(traffic): refresh site traffic snapshot [skip ci]"
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" != "$GITHUB_SHA" ] && [ "$(git rev-parse HEAD~1)" != "$GITHUB_SHA" ]; then
+            echo "::notice::main moved during the refresh; rebasing the snapshot commit"
+            git pull --rebase origin main
+          fi
+          git push
