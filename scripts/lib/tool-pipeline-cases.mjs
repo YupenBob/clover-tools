@@ -1,4 +1,4 @@
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -8,6 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
  */
 export async function runToolPipelineChecks({ run, remember, base, artifacts }) {
   const directory = fileURLToPath(new URL('./tool-cases/', import.meta.url));
+  if (!existsSync(directory)) return;
   const files = readdirSync(directory)
     .filter((name) => name.endsWith('.mjs') && !name.startsWith('_'))
     .sort();
