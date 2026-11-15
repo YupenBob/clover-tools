@@ -85,11 +85,14 @@ async function api(path, { method = 'GET', body, retries = 3 } = {}) {
       if (!response.ok || data.success !== true) {
         const codes = (data.errors || []).map((error) => String(error.code));
         const detail = (data.errors || []).map((error) => error.message).filter(Boolean).join('; ');
+        const debug = `[status ${response.status}, success ${data.success}, ` +
+          `errors ${JSON.stringify(data.errors ?? []).slice(0, 300)}]`;
+        if (process.env.TRAFFIC_DEBUG) console.error(`traffic: debug ${method} ${path.split('?')[0]} ${debug}`);
         if ((response.status === 429 || response.status >= 500) && attempt < retries) {
           await sleep(attempt * 2_000);
           continue;
         }
-        throw new Error(`${authHint(response.status, codes)} ${detail}`.trim());
+        throw new Error(`${authHint(response.status, codes)} ${detail} ${debug}`.trim());
       }
       return data.result;
     } catch (error) {
