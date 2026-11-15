@@ -6,6 +6,7 @@ import { getAllTools, getToolHref } from '../lib/tools';
 import { getGuide } from '../lib/guides';
 import { getGuideForLang, guidePath } from '../lib/guides-i18n';
 import { HOME_DATA, HOME_TOOL_SLUGS, HOME_GUIDE_SLUGS } from '../lib/home-data';
+import { TRAFFIC } from '../lib/site-traffic';
 import '../styles/home.css';
 const lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
@@ -18,6 +19,10 @@ const thumbnails: Record<string, string> = {
 };
 const thumbnail = (image: string | undefined) => image ? thumbnails[image] ?? image : undefined;
 const statsMax = Math.max(HOME_DATA.toolCount, HOME_DATA.guideCount, 1);
+const formatCount = (value: number) => value.toLocaleString('en-US');
+const trafficUpdated = TRAFFIC ? `${new Date(TRAFFIC.generatedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC` : '';
+const trafficSince = TRAFFIC ? dict.homeTrafficSince.replace('{since}', TRAFFIC.cumulativeSince) : '';
+const trafficChartLabel = TRAFFIC ? `${dict.homeTrafficChartLabel} (${TRAFFIC.windowStart} - ${TRAFFIC.windowEnd}, UTC)` : '';
 const selectedTools = HOME_TOOL_SLUGS.map((slug, index) => {
   const base = allTools.find(tool => tool.slug === slug)!;
   return { ...getToolMeta(base.category, slug, lang), category: base.category, href: pathForLang(getToolHref(base.category, slug), lang), scenario: dict[['homeScenarioJson', 'homeScenarioTimestamp', 'homeScenarioDiff'][index]] };
@@ -75,6 +80,28 @@ const selectedGuides = HOME_GUIDE_SLUGS.map(slug => {
     <dl class="home-stat-numbers"><div><dt>{dict.homeToolsLabel}</dt><dd>{HOME_DATA.toolCount}</dd></div><div><dt>{dict.homeGuidesLabel}</dt><dd>{HOME_DATA.guideCount}</dd></div></dl>
     <p class="home-stat-date">{dict.updated} <time datetime={HOME_DATA.updated}>{HOME_DATA.updated}</time></p>
     <details class="home-data-method"><summary>{dict.homeMethod}</summary><p>{dict.homeStatsNote}</p><p>{dict.homeDateNote}</p></details>
+  </section>
+
+  <section class="home-traffic home-side-card" aria-labelledby="home-traffic-title">
+    <h2 id="home-traffic-title">{dict.homeTraffic}</h2>
+    {TRAFFIC ? (
+      <>
+        <div class="home-traffic-numbers">
+          <div class="home-traffic-number"><span class="home-traffic-value">{formatCount(TRAFFIC.pageViews7d)}</span><span class="home-traffic-label">{dict.homeTrafficPv7d}</span></div>
+          <div class="home-traffic-number"><span class="home-traffic-value">{formatCount(TRAFFIC.dailyVisitors)}</span><span class="home-traffic-label">{dict.homeTrafficDailyVisitors}</span></div>
+        </div>
+        <div class="home-traffic-chart" role="img" aria-label={trafficChartLabel}>
+          {TRAFFIC.chart.map(day => <span class="home-traffic-bar" style={`--h:${day.heightPct}%`} aria-hidden="true"></span>)}
+        </div>
+        <p class="home-traffic-window">{TRAFFIC.windowStart} – {TRAFFIC.windowEnd} · {dict.homeTrafficWindow}</p>
+        <p class="home-traffic-cumulative">{dict.homeTrafficCumulative} <strong>{formatCount(TRAFFIC.cumulativePageViews)}</strong> <span>{trafficSince}</span></p>
+        <p class="home-traffic-meta">{dict.homeTrafficSource}</p>
+        <p class="home-traffic-meta">{dict.homeTrafficUpdated} <time datetime={TRAFFIC.generatedAt}>{trafficUpdated}</time></p>
+        {TRAFFIC.stale && <p class="home-traffic-stale">{dict.homeTrafficStale}</p>}
+      </>
+    ) : (
+      <p class="home-side-note">{dict.homeTrafficUnavailable}</p>
+    )}
   </section>
 
   <section class="home-recommended-tools home-side-card" aria-labelledby="home-recommended-tools-title">

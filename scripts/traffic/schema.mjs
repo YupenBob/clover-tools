@@ -83,3 +83,47 @@ export function validateTrafficSnapshot(snapshot, { now = new Date() } = {}) {
 
   return { ok: errors.length === 0, errors };
 }
+
+export const TRAFFIC_WINDOW_DAYS = 7;
+export const TRAFFIC_STALE_AFTER_HOURS = 48;
+export const TRAFFIC_UNAVAILABLE_AFTER_DAYS = 14;
+
+/**
+ * Summarize a validated snapshot for build-time rendering.
+ * Returns `null` when the snapshot is missing, invalid, or so old that showing
+ * numbers would be misleading (the UI then renders a transparent fallback).
+ */
+export function summarizeTraffic(snapshot, { now = new Date() } = {}) {
+  if (!snapshot || !validateTrafficSnapshot(snapshot, { now }).ok) return null;
+  const history = snapshot.history;
+  const days = history.slice(-TRAFFIC_WINDOW_DAYS);
+  const ageHours = (now.getTime() - Date.parse(snapshot.generatedAt)) / 3_600_000;
+  if (ageHours > TRAFFIC_UNAVAILABLE_AFTER_DAYS * 24) return null;
+  const pageViews7d = days.reduce((total, day) => total + day.pageViews, 0);
+  const dailyVisitors = days.length
+    ? Math.round(days.reduce((total, day) => total + day.uniqueVisitors, 0) / days.length)
+    : 0;
+  const maxPageViews = Math.max(...days.map((day) => day.pageViews), 1);
+  return {
+    available: true,
+    stale: ageHours > TRAFFIC_STALE_AFTER_HOURS,
+    source: snapshot.source,
+    timezone: snapshot.timezone,
+    includesBots: snapshot.includesBots,
+    generatedAt: snapshot.generatedAt,
+    windowStart: days[0].date,
+    windowEnd: days.at(-1).date,
+    windowDays: days.length,
+    pageViews7d,
+    dailyVisitors,
+    cumulativePageViews: snapshot.cumulative.pageViews,
+    cumulativeSince: snapshot.cumulative.since,
+    days: days.map((day) => ({ date: day.date, pageViews: day.pageViews })),
+    chart: days.map((day) => ({
+      date: day.date,
+      pageViews: day.pageViews,
+      // Keep zero days visible as a baseline instead of a zero-height bar.
+      heightPct: day.pageViews === 0 ? 2 : Math.max(4, Math.round((day.pageViews / maxPageViews) * 100)),
+    })),
+  };
+}

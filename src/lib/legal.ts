@@ -26,6 +26,10 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
           '你的选择',
           '你可以关闭页面、清空输入、阻止第三方 Cookie 或停止使用站点。需要报告数据处理问题时，请通过联系我们页面提交说明。',
         ],
+        [
+          '聚合访问统计',
+          '页面可能展示托管服务（Cloudflare）边缘计算的聚合访问统计，例如页面浏览总量与近似独立访客数。统计不含个人身份信息，不用于广告定向或个人画像；本站目前没有接入第三方访问计数器。',
+        ],
       ],
     },
     en: {
@@ -48,6 +52,10 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
         [
           'Your choices',
           'You can close a page, clear input, block third-party cookies, or stop using the site. Use the contact page to report a privacy concern.',
+        ],
+        [
+          'Aggregate traffic statistics',
+          'Pages may display aggregate traffic statistics computed at the hosting provider (Cloudflare) edge, such as total page views and approximate unique visitors. These figures contain no personal identifiers and are not used for advertising targeting or profiling. The site does not embed third-party visitor counters.',
         ],
       ],
     },
@@ -72,6 +80,10 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
           '你的選擇',
           '你可以關閉頁面、清除輸入或停止使用本站；隱私問題可透過聯絡頁面回報。',
         ],
+        [
+          '聚合訪問統計',
+          '頁面可能顯示託管服務（Cloudflare）邊緣運算的聚合訪問統計，例如頁面瀏覽總量與近似獨立訪客數。統計不含個人身分資訊，不用於廣告定向或個人輪廓；本站目前沒有接入第三方訪問計數器。',
+        ],
       ],
     },
     ko: {
@@ -95,6 +107,10 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
           '사용자 선택',
           '페이지를 닫거나 입력을 삭제할 수 있습니다. 개인정보 문의는 연락처 페이지를 이용해 주세요.',
         ],
+        [
+          '집계 방문 통계',
+          '페이지에는 호스팅 서비스(Cloudflare) 엣지에서 계산한 집계 방문 통계(예: 총 페이지 조회 수와 근사 순방문자 수)가 표시될 수 있습니다. 이 통계에는 개인 식별 정보가 포함되지 않으며 광고 타기팅이나 프로파일링에 사용되지 않습니다. 본 사이트는 제3자 방문 카운터를 삽입하지 않습니다.',
+        ],
       ],
     },
     ja: {
@@ -117,6 +133,10 @@ export function getLegalContent(kind: LegalKind, lang: Lang) {
         [
           '選択肢',
           'ページを閉じる、入力を消去する、利用を停止することができます。プライバシーに関する連絡はお問い合わせページからお願いします。',
+        ],
+        [
+          '集計アクセス統計',
+          'ホスティングサービス（Cloudflare）のエッジで集計されたアクセス統計（総ページビューや概算のユニーク訪問者数など）を表示する場合があります。個人を識別する情報は含まず、広告ターゲティングやプロファイリングには使用しません。本サイトは第三者の訪問カウンターを埋め込んでいません。',
         ],
       ],
     },
