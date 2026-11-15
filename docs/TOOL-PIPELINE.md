@@ -6,7 +6,7 @@
 - 触发：systemd timer，每天 **00:00 Asia/Shanghai**（服务器 UTC 16:00）
 - 运行体：`scripts/tool-pipeline/tick.mjs`
 - 早报：DSH 每天 08:00 只读检查，不参与构建
-- 模型：默认 `gpt-6.1-sol`；修复轮 `gpt-6-astra`；复核 `gpt-6.1-terra`
+- 模型：默认 `gpt-6.1-sol`；修复轮 `gpt-6.1-sol`（Astra 额度不足时回退）；复核 `gpt-6.1-terra`
 
 ## 零、目标与边界
 
@@ -98,7 +98,7 @@ docs/TOOL-PIPELINE.md      # 本文
 | --- | --- | --- | --- | --- |
 | Architect | `gpt-6.1-sol` | high | read-only | 35m |
 | Builder | `gpt-6.1-sol` | high | workspace-write | 165m |
-| Repair | `gpt-6-astra` | high | workspace-write | 45m |
+| Repair | `gpt-6.1-sol`（`gpt-6-astra` 额度不足时回退） | high | workspace-write | 45m |
 | Verifier | `gpt-6.1-terra` | medium | read-only | 30m |
 | Propose | `gpt-6.1-terra` | medium | read-only | — |
 
