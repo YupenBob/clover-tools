@@ -17,6 +17,7 @@
 | `src/lib/ads.ts` / `scripts/check-publisher.mjs` | 广告默认关闭、站点验证保留、页面排除与内容覆盖检查 |
 | `src/lib/tool-presentation.ts` / `src/styles/tool-workspace.css` | 五语工具布局、视觉层级与响应式表现；见 [工具页设计](TOOL-DESIGN.md) |
 | `scripts/lib/` | 构建环境读取、产物解析与可单独测试的 SEO 审计 |
+| `scripts/tool-pipeline/` / [工具生产线](TOOL-PIPELINE.md) | 每日 00:00 Codex 工具流水线：worktree 隔离、确定性门禁、独立复核、发布与回滚 |
 
 `tw` 是内部 ID，公开路径始终是 `/zh-hant/`。增加语言需要同时提供词典、页面、政策文案及验证；不能只登记不存在的路径。增加仅部分语言存在的栏目时，先维护 `localizedSections`。
 

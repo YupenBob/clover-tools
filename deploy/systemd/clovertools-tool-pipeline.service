@@ -1,0 +1,21 @@
+[Unit]
+Description=CloverTools daily tool pipeline (Codex)
+Documentation=file:///home/ubuntu/Clovertools/docs/TOOL-PIPELINE.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/Clovertools
+Environment=HOME=/home/ubuntu
+Environment=TZ=Asia/Shanghai
+Environment=ASTRO_TELEMETRY_DISABLED=1
+Environment=GIT_TERMINAL_PROMPT=0
+ExecStart=/home/ubuntu/Clovertools/scripts/tool-pipeline/nightly.sh
+TimeoutStartSec=21600
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+Restart=no

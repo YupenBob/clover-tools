@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the CloverTools tool pipeline every day at 00:00 Asia/Shanghai
+
+[Timer]
+OnCalendar=*-*-* 00:00:00 Asia/Shanghai
+Persistent=true
+AccuracySec=1min
+Unit=clovertools-tool-pipeline.service
+
+[Install]
+WantedBy=timers.target

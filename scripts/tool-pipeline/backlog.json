@@ -1,0 +1,421 @@
+{
+  "version": 1,
+  "updated": "2026-11-15",
+  "notes": "Committed idea backlog. Runtime status lives in .editorial/tool-pipeline/queue.json; a slug already present in src/lib/tools.ts is treated as published.",
+  "items": [
+    {
+      "id": "exam-clock",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 100,
+      "category": "daily",
+      "slug": "exam-clock",
+      "title": "考场大屏时钟",
+      "angle": "全屏大字时钟 + 官方时间校时 + 考试倒计时/阶段提醒 + 唤醒锁/断网降级",
+      "scope": "large",
+      "network": true,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/exam-clock.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "user-request",
+          "search-gap"
+        ],
+        "evidence": "用户 2026-11-15 指定测试选题：考场屏幕大时间"
+      },
+      "apiPath": "/api/time",
+      "apiFile": "functions/api/time.ts"
+    },
+    {
+      "id": "focus-timer",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 95,
+      "category": "daily",
+      "slug": "focus-timer",
+      "title": "专注时间",
+      "angle": "番茄循环 + 任务记录 + 周统计 + 环境声 + 通知/唤醒锁，与现有 timer 明确分工",
+      "scope": "large",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/focus-timer.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "user-request",
+          "search-gap"
+        ],
+        "evidence": "用户 2026-11-15 指定测试选题：专注时间"
+      }
+    },
+    {
+      "id": "time-sync",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 90,
+      "category": "daily",
+      "slug": "time-sync",
+      "title": "标准北京时间校时",
+      "angle": "多源 HTTP 校时、RTT/偏移/精度、本地时钟 vs 网络时钟、历史记录",
+      "scope": "medium",
+      "network": true,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/time-sync.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "user-request",
+          "search-gap"
+        ],
+        "evidence": "用户 2026-11-15 指定测试选题：标准北京时间（NTP）"
+      },
+      "apiPath": "/api/time",
+      "apiFile": "functions/api/time.ts"
+    },
+    {
+      "id": "ip-reputation",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 85,
+      "category": "dev",
+      "slug": "ip-reputation",
+      "title": "IP 风险与纯净度查询",
+      "angle": "机房/VPN/代理/Tor/滥用信号，多源对照；无密钥时诚实降级，不伪造风险分",
+      "scope": "large",
+      "network": true,
+      "requiresSecrets": [
+        "IPAPI_IS_KEY"
+      ],
+      "secretPolicy": "optional",
+      "spec": "specs/ip-reputation.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "user-request",
+          "competitor-gap"
+        ],
+        "evidence": "用户 2026-11-15 指定测试选题：IP 纯洁度查询（需接 API）"
+      },
+      "apiPath": "/api/ip-reputation",
+      "apiFile": "functions/api/ip-reputation.ts"
+    },
+    {
+      "id": "service-reachability",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 80,
+      "category": "dev",
+      "slug": "service-reachability",
+      "title": "服务可达性检测",
+      "angle": "Claude/GPT/TikTok/X 等固定 host 的服务器 + 浏览器双视角可达性、延迟、状态；不判断封号",
+      "scope": "large",
+      "network": true,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/service-reachability.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "user-request"
+        ],
+        "evidence": "用户 2026-11-15 指定测试选题：Claude/GPT/TikTok/X 会不会封"
+      },
+      "apiPath": "/api/reachability",
+      "apiFile": "functions/api/reachability.ts"
+    },
+    {
+      "id": "json-to-sql",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 75,
+      "category": "dev",
+      "slug": "json-to-sql",
+      "title": "JSON 转 SQL",
+      "angle": "对象数组 → INSERT/UPDATE/DDL，方言、转义、嵌套与错误定位",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/json-to-sql.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "竞品缺口 272 项中的 JSON→SQL；现有 json-codegen 只做 TS/Go/Java/C#"
+      }
+    },
+    {
+      "id": "image-convert",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 70,
+      "category": "daily",
+      "slug": "image-convert",
+      "title": "图片格式转换",
+      "angle": "JPG/PNG/WebP/AVIF 互转、质量/尺寸、透明背景、EXIF 提示、本地处理",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/image-convert.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "aconvert/33tool 高需求缺口；Canvas API 可纯前端完成"
+      }
+    },
+    {
+      "id": "image-compress",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 65,
+      "category": "daily",
+      "slug": "image-compress",
+      "title": "图片压缩",
+      "angle": "目标体积/质量/尺寸压缩、前后对比、单文件下载；无新依赖",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/image-compress.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "图片压缩是工具站高频需求；Canvas/OffscreenCanvas 可实现"
+      }
+    },
+    {
+      "id": "wcag-contrast",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 60,
+      "category": "dev",
+      "slug": "wcag-contrast",
+      "title": "WCAG 对比度检查",
+      "angle": "前景/背景对比度、alpha 合成、AA/AAA、建议色、色盲模拟",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/wcag-contrast.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "可访问性需求增长；现有 color-convert 只做格式转换"
+      }
+    },
+    {
+      "id": "http-status",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 55,
+      "category": "dev",
+      "slug": "http-status",
+      "title": "HTTP 状态码参考",
+      "angle": "状态码/方法/常见头参考、搜索、场景示例、复制",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/http-status.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "开发高频查询；静态数据可离线"
+      }
+    },
+    {
+      "id": "mime-types",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 50,
+      "category": "dev",
+      "slug": "mime-types",
+      "title": "MIME 类型参考",
+      "angle": "扩展名/MIME/压缩/字符集查询、反向查询、复制",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/mime-types.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "开发高频查询；静态数据可离线"
+      }
+    },
+    {
+      "id": "image-palette",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 45,
+      "category": "fun",
+      "slug": "image-palette",
+      "title": "图片取色板",
+      "angle": "上传图片提取主色/配色板、色值复制、导出；Canvas 像素统计",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/image-palette.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "设计与趣味交叉需求；与 avatar/palette-generator 不同"
+      }
+    },
+    {
+      "id": "ulid-generator",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 40,
+      "category": "dev",
+      "slug": "ulid-generator",
+      "title": "ULID 批量生成",
+      "angle": "ULID/时间有序 ID 批量生成、时间戳解析、排序校验、复制/导出",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/ulid-generator.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap"
+        ],
+        "evidence": "现有 uuid-generator 不含 ULID；纯算法可实现"
+      }
+    },
+    {
+      "id": "text-stats",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 35,
+      "category": "daily",
+      "slug": "text-stats",
+      "title": "文本统计与可读性",
+      "angle": "字数/词数/句数/段落/阅读时间/重复词/可读性提示；中英文分别处理",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/text-stats.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "search-suggest"
+        ],
+        "evidence": "写作/运营高频需求；与 text-toolbox 的去重排序不同"
+      }
+    },
+    {
+      "id": "color-blindness",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 30,
+      "category": "fun",
+      "slug": "color-blindness",
+      "title": "色觉模拟器",
+      "angle": "上传/取色后模拟红色盲/绿色盲/蓝色盲，对比度提示，导出对比图",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/color-blindness.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap"
+        ],
+        "evidence": "可访问性设计需求；Canvas 色彩矩阵可实现"
+      }
+    },
+    {
+      "id": "favicon-generator",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 25,
+      "category": "dev",
+      "slug": "favicon-generator",
+      "title": "站点图标生成",
+      "angle": "上传图片生成多尺寸 PNG/favicon 清单、预览、下载；不引入新依赖",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/favicon-generator.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "search-suggest"
+        ],
+        "evidence": "建站高频需求；Canvas 缩放 + HTML 下载可完成"
+      }
+    },
+    {
+      "id": "image-to-ascii",
+      "type": "new-tool",
+      "status": "ready",
+      "priority": 20,
+      "category": "fun",
+      "slug": "image-to-ascii",
+      "title": "图片转 ASCII",
+      "angle": "上传图片转字符画、字符集/宽度/反色/彩色 ANSI、复制/下载",
+      "scope": "medium",
+      "network": false,
+      "requiresSecrets": [],
+      "secretPolicy": "optional",
+      "spec": "specs/image-to-ascii.md",
+      "maxAttempts": 2,
+      "cooldownDays": 30,
+      "demand": {
+        "sources": [
+          "competitor-gap",
+          "fun-gap"
+        ],
+        "evidence": "趣味工具缺口；Canvas 像素采样可实现"
+      }
+    }
+  ]
+}

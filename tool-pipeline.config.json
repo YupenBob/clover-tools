@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "timezone": "Asia/Shanghai",
+  "slot": "nightly",
+  "publishMode": "push-main",
+  "author": {
+    "name": "CloverTools Tool Bot",
+    "email": "tool-bot@clovertools.cn"
+  },
+  "models": {
+    "architect": "gpt-6.1-sol",
+    "builder": "gpt-6.1-sol",
+    "repair": "gpt-6-astra",
+    "verifier": "gpt-6.1-terra",
+    "propose": "gpt-6.1-terra"
+  },
+  "reasoning": {
+    "architect": "high",
+    "builder": "high",
+    "repair": "high",
+    "verifier": "medium",
+    "propose": "medium"
+  },
+  "timeoutsMinutes": {
+    "architect": 35,
+    "builder": 165,
+    "repair": 45,
+    "verifier": 30,
+    "gates": 150
+  },
+  "budget": {
+    "hardCutoff": "05:30",
+    "maxTotalMinutes": 330,
+    "maxCodexRuns": 6
+  },
+  "guard": {
+    "minFreeDiskGb": 5,
+    "maxLoadAverage": 8,
+    "loadWaitMinutes": 10,
+    "requireCleanMain": true,
+    "requireOriginSynced": true
+  },
+  "caps": {
+    "maxAttemptsPerItem": 2,
+    "consecutiveFailuresToPause": 2
+  },
+  "diff": {
+    "maxFileBytes": 2097152,
+    "maxChangedFiles": 80,
+    "allowed": [
+      "src/pages/tools/{cat}/{slug}.astro",
+      "src/pages/en/tools/{cat}/{slug}.astro",
+      "src/pages/ja/tools/{cat}/{slug}.astro",
+      "src/pages/ko/tools/{cat}/{slug}.astro",
+      "src/pages/zh-hant/tools/{cat}/{slug}.astro",
+      "src/components/*.astro",
+      "src/lib/{slug}.ts",
+      "src/lib/{slug}-*.ts",
+      "src/scripts/{slug}.ts",
+      "src/scripts/{slug}-*.ts",
+      "src/styles/{slug}.css",
+      "src/lib/tools.ts",
+      "src/lib/tool-seo/{cat}.ts",
+      "src/lib/tool-content.ts",
+      "src/lib/tool-details.ts",
+      "src/lib/icons/registry.ts",
+      "src/lib/i18n/en.json",
+      "src/lib/i18n/ja.json",
+      "src/lib/i18n/ko.json",
+      "scripts/tests/{slug}.test.mjs",
+      "scripts/lib/tool-cases/{slug}.mjs",
+      "scripts/gen-search-index.mjs",
+      "tsconfig.tools.json",
+      "README.md",
+      "docs/*.md",
+      "functions/api/*.ts",
+      "functions/lib/*.ts",
+      "data/i18n-tool-pages.json",
+      "public/search-index.json",
+      "public/en/search-index.json",
+      "public/ja/search-index.json",
+      "public/ko/search-index.json",
+      "public/zh-hant/search-index.json"
+    ],
+    "allowedNewOnly": [
+      "src/components/*.astro",
+      "src/lib/{slug}.ts",
+      "src/lib/{slug}-*.ts",
+      "src/scripts/{slug}.ts",
+      "src/scripts/{slug}-*.ts",
+      "src/styles/{slug}.css",
+      "scripts/tests/{slug}.test.mjs",
+      "scripts/lib/tool-cases/{slug}.mjs",
+      "docs/*.md",
+      "functions/api/*.ts"
+    ],
+    "forbidden": [
+      "package.json",
+      "package-lock.json",
+      ".github/**",
+      ".editorial/**",
+      "config/**",
+      "content/**",
+      "data/editorial-guides/**",
+      "dist/**",
+      "legacy/**",
+      "node_modules/**",
+      "public/_headers",
+      "public/_redirects",
+      "public/article-assets/**",
+      "public/article-images/**",
+      "scripts/check-*.mjs",
+      "scripts/editorial/**",
+      "scripts/smoke-growth.mjs",
+      "scripts/smoke-core.mjs",
+      "src/lib/guides-auto.ts",
+      "src/lib/guides-translated.ts",
+      "src/lib/guides.ts",
+      "src/lib/editorial-guides.ts",
+      "src/layouts/**",
+      "src/pages/about.astro",
+      "src/pages/index.astro",
+      "src/pages/[lang]/**",
+      "wrangler.toml",
+      ".env",
+      ".env.*"
+    ]
+  },
+  "gates": {
+    "test": {
+      "command": ["npm", "test"],
+      "timeoutMinutes": 30
+    },
+    "build": {
+      "command": ["npm", "run", "build"],
+      "timeoutMinutes": 75
+    },
+    "browser": {
+      "command": ["node", "scripts/smoke-tool.mjs"],
+      "timeoutMinutes": 60
+    }
+  },
+  "verify": {
+    "productionBase": "https://clovertools.cn",
+    "qualityWorkflow": "Quality checks",
+    "autoRevertOnQualityFailure": true,
+    "productionLanguages": ["zh", "tw", "en", "ko", "ja"]
+  }
+}

@@ -151,6 +151,8 @@ FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、
 7. 若保留旧版同名工具，在 `public/_redirects` 中补充旧路径 301 到新路径
 8. 提交前运行 `npm run check` 全部通过
 
+每日自动工具流水线：每天 00:00（Asia/Shanghai）由 Codex 在独立 worktree 中按上述规范完成一个中大型工具，5 语言、单测、真实浏览器回归与独立复核全部通过后直接发布 `main`。触发、门禁、失败矩阵与首次上线步骤见 [工具生产线](docs/TOOL-PIPELINE.md)。
+
 ## 部署与运维
 
 ### Cloudflare Pages

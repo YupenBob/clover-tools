@@ -17,6 +17,7 @@ import { runDailyToolChecks } from './lib/daily-tool-browser-cases.mjs';
 import { runFunToolChecks } from './lib/fun-tool-browser-cases.mjs';
 import { runFocusFlightChecks } from './lib/focus-flight-browser-cases.mjs';
 import { runEditorialChecks } from './lib/editorial-browser-cases.mjs';
+import { runToolPipelineChecks } from './lib/tool-pipeline-cases.mjs';
 
 let server;
 let browser;
@@ -317,6 +318,7 @@ try {
   await runDailyToolChecks({ run, remember, base, artifacts });
   await runFunToolChecks({ run, remember, base, artifacts });
   await runFocusFlightChecks({ run, remember, base, artifacts });
+  await runToolPipelineChecks({ run, remember, base, artifacts });
   await runFpsChecks({ run, remember, base, artifacts });
   console.log(`Browser growth checks passed: ${passed} scenarios`);
 } catch (error) {
