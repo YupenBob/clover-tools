@@ -1,4 +1,5 @@
 ---
+import HomeDiscovery from '../components/HomeDiscovery.astro';
 import Icon from '../components/Icon.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ToolCard from '../components/ToolCard.astro';
@@ -96,6 +97,7 @@ const homeJsonLd = [
 
   <div class="search-count" id="searchCount">共 {total} 个工具</div>
 
+  <HomeDiscovery>
   <AdUnit adSlot="home_top" />
 
   {CATEGORIES.map((cat, ci) => (
@@ -128,6 +130,7 @@ const homeJsonLd = [
     <p>没有找到匹配的工具</p>
     <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">清除搜索与筛选</button>
   </div>
+  </HomeDiscovery>
 </BaseLayout>
 
 <script>
@@ -190,6 +193,7 @@ const homeJsonLd = [
 
   function applyFilter() {
     const query = input.value.trim().toLowerCase();
+    document.querySelector('.home-discovery')?.classList.toggle('is-filtering', Boolean(query) || activeTab !== 'all');
     const terms = query.split(/\s+/).filter(Boolean);
     clearBtn.hidden = query === '';
     let visibleSections = 0;

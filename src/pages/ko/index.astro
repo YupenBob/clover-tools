@@ -1,4 +1,5 @@
 ---
+import HomeDiscovery from '../../components/HomeDiscovery.astro';
 import Icon from '../../components/Icon.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ToolCard from '../../components/ToolCard.astro';
@@ -101,6 +102,7 @@ const homeJsonLd = [
 
   <div class="search-count" id="searchCount">{total}개 도구</div>
 
+  <HomeDiscovery>
   <AdUnit adSlot="home_top" />
 
   {CATEGORIES.map((cat, ci) => (
@@ -133,6 +135,7 @@ const homeJsonLd = [
     <p>일치하는 도구가 없습니다</p>
     <button class="btn btn-secondary btn-sm" id="emptyReset" type="button">검색어 및 필터 지우기</button>
   </div>
+  </HomeDiscovery>
 </BaseLayout>
 
 
@@ -196,6 +199,7 @@ const homeJsonLd = [
 
   function applyFilter() {
     const query = input.value.trim().toLowerCase();
+    document.querySelector('.home-discovery')?.classList.toggle('is-filtering', Boolean(query) || activeTab !== 'all');
     const terms = query.split(/\s+/).filter(Boolean);
     clearBtn.hidden = query === '';
     let visibleSections = 0;

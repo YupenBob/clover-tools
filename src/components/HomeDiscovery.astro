@@ -1,0 +1,91 @@
+---
+import Icon from './Icon.astro';
+import { DICT, getToolMeta, langFromUrl, pathForLang } from '../lib/i18n';
+import { getAllTools, getToolHref } from '../lib/tools';
+import { getGuide } from '../lib/guides';
+import { getGuideForLang, guidePath } from '../lib/guides-i18n';
+import { HOME_DATA, HOME_TOOL_SLUGS, HOME_GUIDE_SLUGS } from '../lib/home-data';
+import '../styles/home.css';
+const lang = langFromUrl(Astro.url.pathname);
+const dict = DICT[lang];
+const allTools = getAllTools();
+const selectedTools = HOME_TOOL_SLUGS.map((slug, index) => {
+  const base = allTools.find(tool => tool.slug === slug)!;
+  return { ...getToolMeta(base.category, slug, lang), href: pathForLang(getToolHref(base.category, slug), lang), scenario: dict[['homeScenarioJson', 'homeScenarioTimestamp', 'homeScenarioDiff'][index]] };
+});
+const selectedGuides = HOME_GUIDE_SLUGS.map(slug => {
+  const original = getGuide(slug)!;
+  const translated = getGuideForLang(slug, lang);
+  const guide = translated ?? original;
+  const tool = allTools.find(tool => tool.slug === guide.toolSlug)!;
+  return { ...guide, href: guidePath(slug, translated ? lang : 'zh'), fallback: !translated && lang !== 'zh', toolHref: pathForLang(getToolHref(tool.category, tool.slug), lang) };
+});
+---
+
+<div class="home-discovery">
+  <section class="home-featured home-module" aria-labelledby="home-featured-title">
+    <div class="home-section-head"><div><p class="home-eyebrow">CloverTools / TOOLBOX</p><h2 id="home-featured-title">{dict.homeFeatured}</h2></div><a href="#tool-directory">{dict.homeDirectory} <Icon name="arrow-down" /></a></div>
+    <p class="home-section-note">{dict.homeFeaturedNote}</p>
+    <div class="home-featured-grid">
+      {selectedTools.map(tool => <a class="home-pick" href={tool.href}><Icon name={tool.icon} size={24} /><h3>{tool.name}</h3><p>{tool.scenario}</p><span>{dict.useNow} <Icon name="arrow-right" /></span></a>)}
+    </div>
+  </section>
+
+  <section class="home-guides home-module" aria-labelledby="home-guides-title">
+    <div class="home-section-head"><div><p class="home-eyebrow">CloverTools / KNOWLEDGE</p><h2 id="home-guides-title">{dict.homeGuides}</h2></div><a href={pathForLang('/guides/', lang)}>{dict.homeAllGuides} <Icon name="arrow-right" /></a></div>
+    <p class="home-section-note">{dict.homeGuidesNote}</p>
+    <div class="home-guide-list">
+      {selectedGuides.map((guide, i) => <article class="home-guide-card">
+        <span class="home-guide-number" aria-hidden="true">0{i + 1}</span>
+        <div><p class="home-guide-meta">{guide.readingMinutes} {dict.homeMinutes} · <time datetime={guide.updated}>{guide.updated}</time>{guide.fallback && <> · {dict.homeSourceFallback}</>}</p>
+          <h3><a href={guide.href}>{guide.title}</a></h3><p>{guide.description}</p>
+          <div class="home-guide-actions"><a href={guide.href}>{dict.homeRead} <Icon name="arrow-up-right" /></a><a href={guide.toolHref}>{dict.homeOpenTool} <Icon name="arrow-right" /></a></div>
+        </div>
+      </article>)}
+    </div>
+  </section>
+
+  <section class="home-stats home-side-card" aria-labelledby="home-stats-title">
+    <h2 id="home-stats-title"><Icon name="bar-chart" /> {dict.homeStats}</h2>
+    <dl class="home-stat-numbers"><div><dt>{dict.homeToolsLabel}</dt><dd>{HOME_DATA.toolCount}</dd></div><div><dt>{dict.homeGuidesLabel}</dt><dd>{HOME_DATA.guideCount}</dd></div></dl>
+    <p class="home-stat-date">{dict.updated} <time datetime={HOME_DATA.updated}>{HOME_DATA.updated}</time></p>
+    <details class="home-data-method"><summary>{dict.homeMethod}</summary><p>{dict.homeStatsNote}</p><p>{dict.homeDateNote}</p></details>
+  </section>
+
+  <section class="home-recommended-tools home-side-card" aria-labelledby="home-recommended-tools-title">
+    <h2 id="home-recommended-tools-title">{dict.homeRecommendedTools}</h2><p class="home-side-note">{dict.homeCurated}</p>
+    <ul class="home-side-list">{selectedTools.map(tool => <li><a href={tool.href}><strong>{tool.name}</strong><span>{tool.scenario}</span></a></li>)}</ul>
+  </section>
+
+  <section class="home-recommended-guides home-side-card" aria-labelledby="home-recommended-guides-title">
+    <h2 id="home-recommended-guides-title">{dict.homeRecommendedGuides}</h2>
+    <ul class="home-side-list">{selectedGuides.map(guide => <li><a href={guide.href}><strong>{guide.title}</strong><span>{guide.readingMinutes} {dict.homeMinutes}{guide.fallback && <> · {dict.homeSourceFallback}</>}</span></a></li>)}</ul>
+  </section>
+
+  <div class="home-directory" id="tool-directory"><h2 class="home-directory-title">{dict.homeDirectory}</h2><slot /></div>
+
+  <section class="home-fortune home-side-card" aria-labelledby="home-fortune-title" data-home-fortune data-notes={JSON.stringify(Array.from({ length: 6 }, (_, i) => dict[`homeFortune${i + 1}`]))}>
+    <h2 id="home-fortune-title"><Icon name="stars" /> {dict.homeFortune}</h2>
+    <time data-fortune-date></time><p class="home-fortune-message" data-fortune-message>{dict.homeFortuneIdle}</p><p class="home-side-note">{dict.homeFortuneNote}</p>
+  </section>
+</div>
+
+<script>
+  const fortune = document.querySelector<HTMLElement>('[data-home-fortune]');
+  if (fortune) {
+    const notes: string[] = JSON.parse(fortune.dataset.notes || '[]');
+    function updateFortune() {
+      const now = new Date();
+      const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      // A calendar-day index: stable on reload, advances at local midnight,
+      // requires no storage or identifier, and cannot depend on build time.
+      const day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+      const date = fortune!.querySelector('time')!;
+      date.dateTime = key; date.textContent = key;
+      fortune!.querySelector('[data-fortune-message]')!.textContent = notes[day % notes.length];
+    }
+    updateFortune();
+    setInterval(updateFortune, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) updateFortune(); });
+  }
+</script>

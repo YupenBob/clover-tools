@@ -1,4 +1,5 @@
 ---
+import { HOME_DATA } from '../lib/home-data';
 import Icon from './Icon.astro';
 import { SITE } from '../lib/site';
 import { DICT, getCategoryMetas, langFromUrl, pathForLang, type Lang } from '../lib/i18n';
@@ -10,26 +11,37 @@ const lang: Lang = langFromUrl(Astro.url.pathname);
 const dict = DICT[lang];
 const categories = getCategoryMetas(lang);
 const year = new Date().getFullYear();
-const lastUpdated = SITE.updated;
+const lastUpdated = HOME_DATA.updated;
 ---
 
 <footer class="site-footer">
   <div class:list={['container', 'footer-inner', containerClass]}>
-    <span>© {year} {SITE.name} · {dict.footerTagline}</span>
+    <div class="footer-project"><span>© {year} {SITE.name} · {dict.footerTagline}</span><p>{dict.footerMaintainer}</p><div class="footer-project-links"><a href={SITE.github} target="_blank" rel="noopener noreferrer"><Icon name="github" /> {dict.footerRepo}</a><a href="https://github.com/YupenBob" target="_blank" rel="noopener noreferrer">{dict.footerDeveloper} · YupenBob</a></div></div>
     <div class="footer-links">
       <span class="footer-updated"><Icon name="calendar-check" /> {dict.updated} {lastUpdated}</span>
       {categories.map((cat) => (
         <a href={pathForLang(`/tools/${cat.id}/`, lang)}>{cat.name}</a>
       ))}
       <a href={pathForLang('/about/', lang)}>{dict.about}</a>
-      <a href="/guides/">{dict.guides}</a>
+      <a href={pathForLang('/guides/', lang)}>{dict.guides}</a>
       <a href={pathForLang('/privacy/', lang)}>{dict.privacy}</a>
       <a href={pathForLang('/terms/', lang)}>{dict.terms}</a>
       <a href={pathForLang('/contact/', lang)}>{dict.contact}</a>
       <a href="/sitemap-index.xml">{dict.sitemap}</a>
-      <a href={SITE.github} target="_blank" rel="noopener noreferrer">
-        <Icon name="github" /> GitHub
-      </a>
     </div>
   </div>
 </footer>
+
+<style>
+  .footer-inner { align-items: start; gap: 24px; }
+  .footer-project { flex: 1 1 360px; min-width: 0; }
+  .footer-project p { max-width: 560px; margin: 10px 0; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
+  .footer-project-links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .footer-project-links a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 12px; }
+  .footer-links { flex: 1 1 280px; justify-content: flex-end; }
+  .footer-links a { display: inline-flex; align-items: center; min-height: 44px; }
+  @media (max-width: 640px) {
+    .footer-project, .footer-links { flex-basis: auto; }
+    .footer-project-links, .footer-links { justify-content: center; }
+  }
+</style>
