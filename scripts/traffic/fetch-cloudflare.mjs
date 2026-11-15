@@ -107,6 +107,48 @@ async function api(path, { method = 'GET', body, retries = 3 } = {}) {
   throw new Error(lastError || 'Cloudflare API request failed');
 }
 
+async function graphql(query, variables, { retries = 3 } = {}) {
+  let lastError = '';
+  for (let attempt = 1; attempt <= retries; attempt += 1) {
+    try {
+      const response = await fetch(`${API_BASE}/graphql`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const text = await response.text();
+      let payload;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        throw new Error(`Cloudflare GraphQL returned non-JSON response (HTTP ${response.status}): ${text.slice(0, 160)}`);
+      }
+      const errors = Array.isArray(payload.errors) ? payload.errors : [];
+      if (errors.length > 0 || !payload.data) {
+        const message = errors.map((error) => `${error.message ?? 'GraphQL error'}${error.extensions?.code ? ` (${error.extensions.code})` : ''}`).join('; ') || 'empty GraphQL response';
+        if ((response.status === 429 || response.status >= 500) && attempt < retries) {
+          await sleep(attempt * 2_000);
+          continue;
+        }
+        throw new Error(
+          `Cloudflare GraphQL rejected the analytics query (HTTP ${response.status}): ${message}. ` +
+            'The token needs Zone → Analytics: Read for this zone.',
+        );
+      }
+      return payload.data;
+    } catch (error) {
+      lastError = error.message;
+      if (attempt < retries && /fetch failed|network|timeout|aborted/i.test(error.message)) {
+        await sleep(attempt * 2_000);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error(lastError || 'Cloudflare GraphQL request failed');
+}
+
 async function resolveZoneId() {
   const explicit = process.env.CLOUDFLARE_ZONE_ID;
   if (explicit) return explicit;
@@ -139,7 +181,7 @@ async function fetchDaily(zoneId) {
       }
     }
   }`;
-  const result = await api('/graphql', { method: 'POST', body: { query, variables: { zoneTag: zoneId, since, until } } });
+  const result = await graphql(query, { zoneTag: zoneId, since, until });
   const groups = result?.viewer?.zones?.[0]?.httpRequests1dGroups;
   if (!Array.isArray(groups)) {
     throw new Error('Cloudflare GraphQL did not return httpRequests1dGroups; the token may lack Zone Analytics:Read.');
