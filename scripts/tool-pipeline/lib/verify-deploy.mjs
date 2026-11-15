@@ -76,27 +76,100 @@ async function checkPage(url, expectedLang) {
   }
 }
 
-async function checkApi(url) {
+async function readJson(url, init = {}) {
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(20000),
+    headers: { accept: 'application/json', 'cache-control': 'no-cache' },
+    ...init,
+  });
+  const text = await response.text();
+  let json = null;
   try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(20000),
-      headers: { accept: 'application/json', 'cache-control': 'no-cache' },
-    });
-    const text = await response.text();
-    let json = null;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = null;
+    json = JSON.parse(text);
+  } catch {
+    json = null;
+  }
+  return {
+    status: response.status,
+    contentType: response.headers.get('content-type') ?? '',
+    cacheControl: response.headers.get('cache-control') ?? '',
+    bytes: text.length,
+    json,
+  };
+}
+
+// Deep production check for a tool API. The generic gate only tells whether the
+// endpoint answers; an API that freezes, caches or drifts would still read as
+// "ok", so a configured schema verifies the field set, the no-store contract and
+// that the reported clock keeps moving between two samples.
+export async function checkApi(url, spec = {}) {
+  const startedAt = performance.now();
+  try {
+    const first = await readJson(url);
+    const failures = [];
+    if (first.status !== 200) failures.push(`status ${first.status}`);
+    if (first.json === null) failures.push('response is not JSON');
+    const body = first.json ?? {};
+    if (spec.noStore && !/no-store/i.test(first.cacheControl))
+      failures.push(`cache-control ${first.cacheControl || '(missing)'}`);
+    if (spec.fields) {
+      const actual = Object.keys(body).sort();
+      const expected = [...spec.fields].sort();
+      if (JSON.stringify(actual) !== JSON.stringify(expected))
+        failures.push(`fields ${actual.join(',')}`);
+      for (const field of expected) {
+        const value = body[field];
+        if (typeof value === 'number' && !(Number.isFinite(value) && value >= 0))
+          failures.push(`${field} must be a finite non-negative number`);
+      }
+      if (spec.source && body.source !== spec.source)
+        failures.push(`source ${body.source} !== ${spec.source}`);
+      if (spec.sourceUrl && body.sourceUrl !== spec.sourceUrl)
+        failures.push(`sourceUrl ${body.sourceUrl} !== ${spec.sourceUrl}`);
+    }
+    if (spec.advanceField) {
+      const before = performance.now();
+      await sleep(2100);
+      const second = await readJson(url);
+      const elapsed = performance.now() - before;
+      const from = body[spec.advanceField];
+      const to = second.json?.[spec.advanceField];
+      if (!Number.isFinite(from) || !Number.isFinite(to))
+        failures.push(`second sample missing ${spec.advanceField}`);
+      else if (Math.abs(to - from - elapsed) > 1000)
+        failures.push(
+          `${spec.advanceField} advanced ${Math.round(to - from)}ms in ${Math.round(elapsed)}ms`,
+        );
+    }
+    if (spec.methodGuards) {
+      const query = await fetch(`${url}?probe=1`, {
+        signal: AbortSignal.timeout(20000),
+      });
+      await query.body?.cancel();
+      if (query.status !== 400) failures.push(`query parameter status ${query.status}`);
+      const post = await fetch(url, {
+        method: 'POST',
+        signal: AbortSignal.timeout(20000),
+      });
+      await post.body?.cancel();
+      if (post.status !== 405) failures.push(`POST status ${post.status}`);
     }
     return {
-      ok: response.status === 200 && json !== null,
-      status: response.status,
-      contentType: response.headers.get('content-type') ?? '',
-      bytes: text.length,
+      ok: failures.length === 0,
+      status: first.status,
+      contentType: first.contentType,
+      bytes: first.bytes,
+      failures,
+      elapsedMs: Math.round(performance.now() - startedAt),
     };
   } catch (error) {
-    return { ok: false, status: 0, error: error.message };
+    return {
+      ok: false,
+      status: 0,
+      error: error.message,
+      failures: [error.message],
+      elapsedMs: Math.round(performance.now() - startedAt),
+    };
   }
 }
 
@@ -160,7 +233,11 @@ export async function verifyDeploy({ run, config, mainRepo, autoRevert = true })
     }
     if (run.apiPath) {
       const url = `${base}${run.apiPath}`;
-      checks.push({ kind: 'api', url, result: await checkApi(url) });
+      checks.push({
+        kind: 'api',
+        url,
+        result: await checkApi(url, config.verify.apiChecks?.[run.apiPath] ?? {}),
+      });
     }
     if (checks.every((check) => check.result.ok)) break;
     if (attempt < 3) await sleep(15000);

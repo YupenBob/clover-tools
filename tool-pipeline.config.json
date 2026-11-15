@@ -71,7 +71,6 @@
       "scripts/tests/{slug}.test.mjs",
       "scripts/lib/tool-cases/{slug}.mjs",
       "scripts/gen-search-index.mjs",
-      "scripts/verify-production.mjs",
       "tsconfig.tools.json",
       "README.md",
       "docs/*.md",
@@ -164,6 +163,26 @@
       "en",
       "ko",
       "ja"
-    ]
+    ],
+    "apiChecks": {
+      "/api/time": {
+        "fields": [
+          "ok",
+          "serverNowMs",
+          "source",
+          "sourceUrl",
+          "sourceSampleMs",
+          "sampleAgeMs",
+          "upstreamRttMs",
+          "uncertaintyMs",
+          "cached"
+        ],
+        "source": "cloudflare-trace",
+        "sourceUrl": "https://www.cloudflare.com/cdn-cgi/trace",
+        "advanceField": "serverNowMs",
+        "noStore": true,
+        "methodGuards": true
+      }
+    }
   }
 }
