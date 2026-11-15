@@ -33,6 +33,20 @@
 
 {{NETWORK_RULES}}
 
+## 允许改动的路径（spec 的文件清单只能包含这些；不得规划共享文件）
+
+```
+{{ALLOWED_PATHS}}
+```
+
+以下路径禁止出现在文件清单里（Builder 会被 diff guard 拒绝）：
+
+```
+{{FORBIDDEN_PATHS}}
+```
+
+特别说明：浏览器用例由 `scripts/lib/tool-cases/<slug>.mjs` 自动发现，**不要**规划修改 `scripts/smoke-growth.mjs`；**不要**规划修改 `src/lib/tool-presentation.ts`、`docs/TOOL-DESIGN.md`、`docs/QUALITY.md`、`scripts/verify-production.mjs`。页面直接传 `workspace`/`layout`。
+
 ## 必须输出的 spec 结构（中文标题，逐节写具体内容）
 
 ```md

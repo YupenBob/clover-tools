@@ -80,7 +80,8 @@
       "public/en/search-index.json",
       "public/ja/search-index.json",
       "public/ko/search-index.json",
-      "public/zh-hant/search-index.json"
+      "public/zh-hant/search-index.json",
+      "scripts/tests/{slug}-*.test.mjs"
     ],
     "allowedNewOnly": [
       "src/components/*.astro",
@@ -92,7 +93,8 @@
       "scripts/tests/{slug}.test.mjs",
       "scripts/lib/tool-cases/{slug}.mjs",
       "docs/*.md",
-      "functions/api/*.ts"
+      "functions/api/*.ts",
+      "scripts/tests/{slug}-*.test.mjs"
     ],
     "forbidden": [
       "package.json",
@@ -128,15 +130,25 @@
   },
   "gates": {
     "test": {
-      "command": ["npm", "test"],
+      "command": [
+        "npm",
+        "test"
+      ],
       "timeoutMinutes": 30
     },
     "build": {
-      "command": ["npm", "run", "build"],
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
       "timeoutMinutes": 75
     },
     "browser": {
-      "command": ["node", "scripts/smoke-tool.mjs"],
+      "command": [
+        "node",
+        "scripts/smoke-tool.mjs"
+      ],
       "timeoutMinutes": 60
     }
   },
@@ -144,6 +156,12 @@
     "productionBase": "https://clovertools.cn",
     "qualityWorkflow": "Quality checks",
     "autoRevertOnQualityFailure": true,
-    "productionLanguages": ["zh", "tw", "en", "ko", "ja"]
+    "productionLanguages": [
+      "zh",
+      "tw",
+      "en",
+      "ko",
+      "ja"
+    ]
   }
 }
