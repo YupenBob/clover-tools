@@ -50,6 +50,7 @@ const languageOptions = languageLinks ?? LANGS.map((l) => ({ locale: l, href: sw
 </header>
 
 <style>
+  .header-inner { gap: 16px; }
   .header-nav { display: flex; align-items: center; gap: 20px; margin-left: auto; }
   .header-nav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--text-secondary); }
   .header-nav a:hover { color: var(--link); }
@@ -58,6 +59,8 @@ const languageOptions = languageLinks ?? LANGS.map((l) => ({ locale: l, href: sw
     .header-nav a { font-size: 12px; }
     .header-nav a:first-child, .header-nav a:last-child { display: none; }
   }
+
+  @media (max-width: 360px) { .brand-name { display: none; } }
 
   .lang-select {
     display: inline-flex;

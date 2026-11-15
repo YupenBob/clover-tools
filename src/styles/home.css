@@ -39,7 +39,7 @@
 .home-side-list strong { display: block; font-size: 13px; line-height: 1.7; }
 .home-side-list span { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
 .home-fortune time { display: block; min-height: 20px; margin-top: 12px; color: var(--text-tertiary); font: 11px/20px var(--font-mono); }
-.home-fortune-message { min-height: 6em; margin: 8px 0 12px; color: var(--text); font-size: 14px; line-height: 2; }
+.home-fortune-message { min-height: 8em; margin: 8px 0 12px; color: var(--text); font-size: 14px; line-height: 2; }
 .home-directory { scroll-margin-top: calc(var(--header-h) + 16px); }
 .home-directory > .category-section:first-of-type { margin-top: 24px; }
 .home-directory .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -82,3 +82,16 @@
 }
 .home-discovery.is-filtering { display: block; }
 .home-discovery.is-filtering > :not(.home-directory) { display: none; }
+
+/* Keep search and a complete task card within a phone's first screen. */
+.home-container .hero { padding: 24px 0 20px; }
+.home-container .hero-logo { width: 64px; height: 64px; }
+.home-container .hero-title { font-size: clamp(34px, 5vw, 48px); }
+.home-container .hero-sub { margin-bottom: 20px; }
+.home-container .hero-caption { margin-top: 12px; }
+.home-container .home-discovery { margin-top: 28px; }
+.home-container .home-pick > span { color: var(--primary-dark); }
+@media (max-width: 640px) {
+  .home-container .hero { padding-top: 12px; }
+  .home-container .hero-logo { width: 56px; height: 56px; }
+}
