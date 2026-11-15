@@ -41,6 +41,16 @@ try {
       assert.equal(await page.locator('.home-guide-card img').count(), 3);
       assert.equal(await page.locator('.home-art-hero').count(), 1);
       assert.equal(await page.locator('.home-art-seal').count(), 1);
+      const footerContrast = await page.locator('.home-footer').evaluate(footer => {
+        const luminance = color => {
+          const rgb = color.match(/[\d.]+/g).slice(0, 3).map(Number).map(c => { c /= 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; });
+          return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+        };
+        const text = luminance(getComputedStyle(footer.querySelector('.footer-project-links a')).color);
+        const background = luminance(getComputedStyle(footer).backgroundColor);
+        return (Math.max(text, background) + .05) / (Math.min(text, background) + .05);
+      });
+      assert.ok(footerContrast >= 4.5, `${theme}: footer project links need readable contrast`);
       assert.equal(await page.locator('ins.adsbygoogle, .ad-slot, [data-grid-filler], script[src*="adsbygoogle"]').count(), 0);
       for (const testWidth of [320, 390, 768, 1280]) {
         await page.setViewportSize({ width: testWidth, height });
@@ -86,7 +96,7 @@ try {
       const path = `${name}-directory-viewport.png`;
       await page.screenshot({ path, animations: 'disabled' }); screenshots.push(path);
       assert.deepEqual(errors, []);
-      records.push({ theme, device, widths: [320, 390, 768, 1280], images: 'loaded', layout: 'no overflow or overlap', directoryAfterScroll: 'visible', pageErrors: errors });
+      records.push({ theme, device, footerContrast, widths: [320, 390, 768, 1280], images: 'loaded', layout: 'no overflow or overlap', directoryAfterScroll: 'visible', pageErrors: errors });
       await context.close();
       console.log(`PASS design ${theme}/${device}: assets, 4 widths, screenshots, no ads/errors`);
     }
