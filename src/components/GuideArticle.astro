@@ -53,6 +53,10 @@ const content = guide.content.replace(/<h2>([\s\S]*?)<\/h2>/g, (_match, label: s
   const id = `section-${headings.length + 1}`;
   headings.push({ id, label });
   return `<h2 id="${id}">${label}</h2>`;
+}).replace(/(<div\b[^>]*class=["'][^"']*\barticle-table\b[^"']*["'][^>]*>\s*)?(<table\b[\s\S]*?<\/table>)/g, (match, wrapper, table) => {
+  // Older guides contain bare tables. Keep their native table semantics while
+  // giving wide columns the same local scroll container as newer guides.
+  return wrapper ? match : `<div class="article-table" tabindex="0">${table}</div>`;
 });
 
 const jsonLd = [
