@@ -50,10 +50,11 @@ try {
     assert.equal(await page.locator('.home-guides:visible').count(), 1);
     for (const width of [320, 390, 768, 1280]) {
       await page.setViewportSize({ width, height: width < 500 ? 844 : 900 });
-      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${lang}: overflow at ${width}`);
     }
     if (lang === 'zh') {
+      await page.goto(`${base}/`, { waitUntil: 'networkidle' });
       // Date overrides are confined to this test context; no screenshot is edited.
       await page.clock.install({ time: new Date(2026, 10, 15, 12) });
       await page.reload({ waitUntil: 'networkidle' });
@@ -63,9 +64,11 @@ try {
       assert.notEqual(await page.locator('[data-fortune-message]').textContent(), today);
       await page.clock.setSystemTime(new Date());
       await page.reload({ waitUntil: 'networkidle' });
+      assert.equal(await page.locator('#toolSearch').inputValue(), '');
+      assert.equal(await page.locator('.home-featured:visible').count(), 1);
       for (const [name, width, height] of [['desktop', 1280, 900], ['mobile', 390, 844]]) {
         await page.setViewportSize({ width, height });
-        await page.evaluate(async () => { await document.fonts.ready; for (let y = 0; y < document.body.scrollHeight; y += 600) { window.scrollTo(0, y); await new Promise(resolve => setTimeout(resolve, 30)); } window.scrollTo(0, 0); });
+        await page.evaluate(async () => { await document.fonts.ready; for (let y = 0; y < document.body.scrollHeight; y += 600) { window.scrollTo({ top: y, behavior: 'instant' }); await new Promise(resolve => setTimeout(resolve, 30)); } window.scrollTo({ top: 0, behavior: 'instant' }); });
         await page.locator('.tool-card').last().evaluate(el => el.classList.add('revealed'));
         await page.screenshot({ path: `${output}/homepage-after-${name}.png`, fullPage: true, animations: 'disabled' });
       }
