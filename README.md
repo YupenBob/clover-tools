@@ -5,7 +5,7 @@
 <h1 align="center">CloverTools</h1>
 
 <p align="center">
-  精选在线工具箱 · 79 个手写工具 · 即开即用 · 无需注册
+  精选在线工具箱 · 78 个手写工具 · 即开即用 · 无需注册
 </p>
 
 <p align="center">
@@ -19,10 +19,10 @@
   <a href="https://github.com/YupenBob/clover-tools"><img src="https://img.shields.io/github/last-commit/YupenBob/clover-tools?label=last%20commit&color=gold&style=flat-square" alt="Last commit"></a>
   <a href="https://astro.build"><img src="https://img.shields.io/badge/Astro-5-gold?style=flat-square&logo=astro&logoColor=white" alt="Astro 5"></a>
   <a href="https://pages.cloudflare.com"><img src="https://img.shields.io/badge/Cloudflare%20Pages-deployed-gold?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages"></a>
-  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-79-gold?style=flat-square" alt="79 tools"></a>
+  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-78-gold?style=flat-square" alt="78 tools"></a>
 </p>
 
-CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 79 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 78 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
 
 新增「背单词速刷」：中考、高考、四级、六级、托福、雅思六本核心词书，共 360 个精选词。翻卡速刷，空格看释义、方向键快速判断，自动回收错词并保存本机进度；界面提供暖白与深色两套克制的阅读表面。词库整理方式、交互与边界见 [背单词速刷说明](docs/VOCAB-FLASH.md)。
 
@@ -38,9 +38,9 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 
 | 指标 | 数值 |
 | --- | --- |
-| 工具总数 | 79（开发实用 37 · 日常实用 24 · 趣味工具 18） |
+| 工具总数 | 78（开发实用 37 · 日常实用 23 · 趣味工具 18） |
 | 工具 API | 2 个 Pages Function（IP 查询、网络校时） |
-| 内容生态 | 36 篇站内指南、79 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
+| 内容生态 | 36 篇站内指南、78 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
 | 数据处理 | 多数工具本地处理；网络工具明确说明请求边界 |
 | 使用门槛 | 零注册、零安装、即开即用 |
 
@@ -60,7 +60,7 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 flowchart LR
   U[用户浏览器] --> CF[Cloudflare 全球 CDN]
   CF --> P[Cloudflare Pages 静态站点]
-  P --> T[79 个手写工具页]
+  P --> T[78 个手写工具页]
   T --> F[Pages Functions 工具 API]
   F --> R2[(Cloudflare R2 媒体存储)]
 ```
@@ -139,8 +139,6 @@ npm run check:browser # 临时预览与真实浏览器回归
 | 趣味工具（18） | 减压、娱乐与创意小玩意，给忙碌的日常加点乐趣 | 专注航班、拼豆图纸、人格风格测试、创意头像、FPS练枪、ASCII 艺术字、点击速度测试、反应力测试、舒尔特训练、目标球追踪、抽奖、摩斯密码 |
 
 ## 添加工具（精品制作规范）
-
-专注时间支持任务关联的番茄循环、短长休息、提前结束保存、今日与本周统计，以及本地合成环境声、浏览器通知和屏幕常亮。刷新只恢复最近检查点并暂停；五语言共用本机记录，其他标签页只读。与通用倒计时和专注航班的差异、数据口径及验证记录见 [FOCUS-TIMER.md](docs/FOCUS-TIMER.md)。
 
 FPS练枪为 CS2 与瓦洛兰特玩家提供第一人称靶场、四把步枪、六项专项训练、环形 Bot 靶场和小球点击，支持可调浏览器转向倍率、灵敏度校准与本地成绩。急停采用左右交替的横移、停稳、首发回合；预瞄要求探头首发后回到中央安全区再换边，配有步骤指引、方向标线、失败原因和回合复盘。回掩体提示显示剩余距离及当前视角下的按键方向；慢走和蹲伏保持各自速度上限，CS2 蹲行可以实际完成返回。靶场使用分区 HUD、独立步枪造型与击发/换弹动作；小球也保留步枪与枪声。CC0 实录枪声和机械音在进入训练或试听时加载，主音量、枪声、命中音可分别调节；音效失败仍可训练。五语薄路由共用界面与训练模块，Three.js 仅在启动训练时加载。画面准备完成后需点击开始才锁定鼠标；Esc 或切出页面会释放，返回后需主动恢复。配置、参数和素材来源、近似模型边界与验证记录见 [FPS-AIM-TRAINER.md](docs/FPS-AIM-TRAINER.md)。
 
