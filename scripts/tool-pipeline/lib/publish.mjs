@@ -2,6 +2,8 @@ import {
   commitPaths,
   currentBranch,
   fetchOrigin,
+  git,
+  gitOut,
   headSha,
   isClean,
   mergeFfOnly,
@@ -9,6 +11,7 @@ import {
   remoteHead,
   resetHard,
   revertCommit,
+  statusPorcelain,
 } from './git.mjs';
 
 export function commitTool({ worktree, paths, item, author }) {
@@ -59,6 +62,58 @@ export function publishToMain({ mainRepo, base, sha }) {
     return { ok: false, reason: 'push-failed', detail: error.message };
   }
   return { ok: true, reason: 'pushed', commit: sha, mainHead: headSha(mainRepo) };
+}
+
+function changedPathList(from, to, cwd) {
+  return gitOut(['diff', '--name-only', `${from}..${to}`], { cwd })
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Publish, tolerating a main checkout that moved while the tool was building.
+ * The reviewed commit is rebased onto the new main only when the moved commits
+ * and the tool commit touch completely disjoint paths — otherwise the publish is
+ * refused so that no concurrent content change can be silently reverted.
+ */
+export function publishWithRebase({ mainRepo, base, sha, worktree }) {
+  const first = publishToMain({ mainRepo, base, sha });
+  if (first.ok || !['main-moved', 'origin-moved'].includes(first.reason)) return first;
+  const fail = (reason, detail) => ({ ok: false, reason, detail });
+  try {
+    fetchOrigin(mainRepo);
+    const newBase = remoteHead(mainRepo);
+    if (!newBase || newBase === base) return first;
+    // The worktree clone may predate the concurrent commits; fetch them so the
+    // path comparison and the rebase can see the new base.
+    git(['fetch', '--quiet', 'origin', 'main'], { cwd: worktree, allowFailure: true });
+    const mine = changedPathList(base, sha, worktree);
+    const theirs = changedPathList(base, newBase, worktree);
+    const overlap = mine.filter((path) => theirs.includes(path));
+    if (overlap.length) {
+      return fail(
+        'main-moved-conflict',
+        `并发提交与本次工具改动重叠：${overlap.slice(0, 8).join(', ')}`,
+      );
+    }
+    if (currentBranch(mainRepo) !== 'main') return fail('main-not-checked-out', currentBranch(mainRepo));
+    if (!isClean(mainRepo)) return fail('main-dirty', statusPorcelain(mainRepo).slice(0, 200).join('\n'));
+    if (headSha(mainRepo) !== newBase && git(['merge', '--ff-only', newBase], { cwd: mainRepo, allowFailure: true }).code !== 0) {
+      return fail('main-not-fast-forwardable', `main ${headSha(mainRepo).slice(0, 8)} / origin ${newBase.slice(0, 8)}`);
+    }
+    const rebase = git(['rebase', '--onto', newBase, base, sha], { cwd: worktree, allowFailure: true });
+    if (rebase.code !== 0) {
+      git(['rebase', '--abort'], { cwd: worktree, allowFailure: true });
+      return fail('rebase-conflict', (rebase.stderr || '').trim().slice(0, 300));
+    }
+    const rebased = headSha(worktree);
+    const published = publishToMain({ mainRepo, base: newBase, sha: rebased });
+    if (!published.ok) return published;
+    return { ...published, rebased: true, previousBase: base, base: newBase, sha: rebased };
+  } catch (error) {
+    return fail('rebase-error', String(error.message ?? error).slice(0, 300));
+  }
 }
 
 export function revertPublished({ mainRepo, sha, reason }) {

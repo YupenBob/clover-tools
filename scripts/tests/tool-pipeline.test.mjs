@@ -17,6 +17,7 @@ import { selectNext } from '../tool-pipeline/lib/select.mjs';
 import { lintSpec, parseVerifierJson, VERIFIER_SCHEMA } from '../tool-pipeline/lib/prompt.mjs';
 import { auditDiff } from '../tool-pipeline/lib/diff-guard.mjs';
 import { checkApi } from '../tool-pipeline/lib/verify-deploy.mjs';
+import { publishWithRebase } from '../tool-pipeline/lib/publish.mjs';
 
 const repo = join(import.meta.dirname, '../..');
 
@@ -336,4 +337,67 @@ test('deploy verification only trusts runs of the configured quality workflow', 
     if (savedJson === undefined) delete process.env.GH_STUB_JSON;
     else process.env.GH_STUB_JSON = savedJson;
   }
+});
+
+const gitIn = (cwd, ...args) =>
+  execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
+const writeFile = (dir, rel, text) => {
+  mkdirSync(join(dir, rel, '..'), { recursive: true });
+  writeFileSync(join(dir, rel), text);
+};
+
+function rebaseFixture({ overlapping }) {
+  const root = mkdtempSync(join(tmpdir(), 'clover-publish-'));
+  const bare = join(root, 'remote.git');
+  execFileSync('git', ['init', '--bare', '-q', '-b', 'main', bare], { cwd: root });
+  const main = join(root, 'main');
+  execFileSync('git', ['clone', '-q', bare, main], { cwd: root });
+  gitIn(main, 'config', 'user.email', 'main@example.com');
+  gitIn(main, 'config', 'user.name', 'Main');
+  writeFile(main, 'README.md', 'base\n');
+  writeFile(main, 'src/tool.ts', 'old\n');
+  gitIn(main, 'add', '.');
+  gitIn(main, 'commit', '-qm', 'base');
+  gitIn(main, 'push', '-q', 'origin', 'main');
+  const base = gitIn(main, 'rev-parse', 'HEAD');
+
+  const worktree = join(root, 'wt');
+  gitIn(main, 'worktree', 'add', '-q', '--detach', worktree, base);
+  gitIn(worktree, 'config', 'user.email', 'bot@example.com');
+  gitIn(worktree, 'config', 'user.name', 'Bot');
+  writeFile(worktree, 'src/focus.ts', 'new tool\n');
+  writeFile(worktree, 'docs/FOCUS.md', 'doc\n');
+  gitIn(worktree, 'add', '.');
+  gitIn(worktree, 'commit', '-qm', 'feat(tool): add focus');
+  const sha = gitIn(worktree, 'rev-parse', 'HEAD');
+
+  writeFile(main, overlapping ? 'src/focus.ts' : 'content/guide.json', 'moved\n');
+  gitIn(main, 'add', '.');
+  gitIn(main, 'commit', '-qm', 'content: concurrent change');
+  gitIn(main, 'push', '-q', 'origin', 'main');
+  return { main, worktree, base, sha };
+}
+
+test('publish rebases onto a concurrently advanced main when paths do not overlap', () => {
+  const { main, worktree, base, sha } = rebaseFixture({ overlapping: false });
+  const result = publishWithRebase({ mainRepo: main, base, sha, worktree });
+  assert.equal(result.ok, true);
+  assert.equal(result.rebased, true);
+  const files = gitIn(main, 'ls-tree', '-r', '--name-only', 'origin/main').split('\n');
+  for (const file of ['content/guide.json', 'docs/FOCUS.md', 'src/focus.ts']) {
+    assert.equal(files.includes(file), true, `${file} should be on origin/main`);
+  }
+});
+
+test('publish refuses to rebase when the concurrent commit overlaps tool paths', () => {
+  const { main, worktree, base, sha } = rebaseFixture({ overlapping: true });
+  const result = publishWithRebase({ mainRepo: main, base, sha, worktree });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'main-moved-conflict');
+  assert.match(result.detail, /src\/focus\.ts/);
+  // 未发布：远端仍只有并发提交，工具提交留在 worktree 里。
+  assert.equal(gitIn(main, 'rev-parse', 'origin/main'), gitIn(main, 'rev-parse', 'HEAD'));
+  const files = gitIn(main, 'ls-tree', '-r', '--name-only', 'origin/main').split('\n');
+  assert.equal(files.includes('docs/FOCUS.md'), false);
+  assert.equal(gitIn(worktree, 'rev-parse', 'HEAD'), sha);
 });

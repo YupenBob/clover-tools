@@ -97,7 +97,7 @@ import {
 import { runCodex } from './lib/codex.mjs';
 import { auditDiff } from './lib/diff-guard.mjs';
 import { failedGateText, runGates, screenshotFiles, summarizeGates } from './lib/gates.mjs';
-import { commitTool, publishToMain } from './lib/publish.mjs';
+import { commitTool, publishWithRebase } from './lib/publish.mjs';
 import { verifyDeploy } from './lib/verify-deploy.mjs';
 import { readRunReport, summarizeRun, writeRun } from './lib/report.mjs';
 
@@ -620,7 +620,12 @@ async function publishStep({ run, item, config, worktree, noPush }) {
   });
   run.publish = { status: 'committing', commit: commit.sha, message: commit.message, files: paths.length };
   writeRun(run);
-  const published = publishToMain({ mainRepo: REPO, base: run.baseSha, sha: commit.sha });
+  const published = publishWithRebase({
+    mainRepo: REPO,
+    base: run.baseSha,
+    sha: commit.sha,
+    worktree,
+  });
   if (!published.ok) {
     run.publish = {
       status: 'failed',
@@ -632,15 +637,24 @@ async function publishStep({ run, item, config, worktree, noPush }) {
     setPhase(run, 'publish', 'failed', published.reason);
     throw new Error(`发布失败：${published.reason} ${published.detail ?? ''}`);
   }
+  const publishedSha = published.sha ?? commit.sha;
+  if (published.rebased) {
+    run.notes = [
+      ...(run.notes ?? []),
+      `main 在构建期间被并发提交推进（${String(run.baseSha).slice(0, 8)} → ${String(published.base).slice(0, 8)}），改动路径不重叠，已自动 rebase 后发布。`,
+    ];
+    run.baseSha = published.base;
+  }
   run.publish = {
     status: 'pushed',
-    commit: commit.sha,
+    commit: publishedSha,
     message: commit.message,
     mainHead: published.mainHead,
     files: paths.length,
+    rebased: Boolean(published.rebased),
   };
   run.apiPath = item.apiPath ?? (item.network ? `/api/${item.slug}` : null);
-  setPhase(run, 'publish', 'done', commit.sha.slice(0, 8));
+  setPhase(run, 'publish', 'done', publishedSha.slice(0, 8));
 }
 
 function cleanupWorktree(runKey) {

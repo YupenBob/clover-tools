@@ -177,7 +177,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | --- | --- |
 | `PAUSED` 存在 | 直接退出 0，报告原因 |
 | 主 checkout 脏 / 有未推送内容提交 | 跳过，不写任何文件 |
-| 主 checkout / origin 移动 | 不合并、不推送，保留 worktree |
+| 主 checkout / origin 移动 | 若并发提交与工具改动路径完全不重叠：在 worktree 里 `rebase --onto` 新 main 后发布（自动记录 `publish.rebased`）；路径重叠→`main-moved-conflict`，不合并、不推送，保留 worktree |
 | codex 未登录 / 额度耗尽 | 写 `PAUSED` 并保留 worktree/spec；额度重置后 `--resume <runKey>` 继续，不重跑 Builder |
 | Architect spec lint 失败 | 重试 1 次；仍失败→`stalled` |
 | Builder 超时 | `stalled`，保留 worktree |
@@ -189,6 +189,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | deploy job 失败 | 不 revert；报告；允许重试 |
 | 生产页面/API 失败 | 自动 revert + `PAUSED` |
 | 推送后 CI/部署 25 分钟内未落定 | `verify-later` 退出 2 并保留 pending，08:00 早报复检 |
+| 浏览器用例对异步 UI 直接断言 | 用 `poll` 等到状态/存储落定再断言；`<dialog>` 关闭后应用才落盘，`confirm()` 返回不代表动作完成 |
 | 连续 2 次失败/停滞 | 写 `PAUSED`，早报提示人工处理 |
 | 补跑窗口已过（≥06:00） | 跳过，避免与内容线冲突 |
 
