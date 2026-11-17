@@ -1,0 +1,62 @@
+{
+  "slug": "text-diff-review",
+  "title": "文本差異對比怎麼審：行級、字符級差異與誤讀",
+  "description": "從行級與字符級的粒度差別講起，拆解換行、行尾空白與 BOM 造成的假差異，再說明統一 diff 的讀法、移動與改寫的區分、相似度百分比的誤導，以及一套可復跑的審校流程。",
+  "category": "开发实用",
+  "toolSlug": "diff",
+  "published": "2026-09-30",
+  "updated": "2026-11-17",
+  "readingMinutes": 7,
+  "content": "<p>文本對比只回答「哪些行不同」，不回答「行為是否改變」。審校時先用行級 diff 定位到塊，再確認塊裏真正變的字符；把換行、行尾空白、BOM 和移動當成獨立的噪音層處理，才不會把格式差異讀成語義修改。</p>\n      <h2>行級與字符級：粒度決定你看到什麼</h2>\n      <p>行級 diff 把文本切成行，只判斷整行是否相等；字符級 diff 在同一對行內部再對齊字符。粒度不同，分辨率就不同：一行裏改一個數字，行級標出整行，字符級只標那幾個字符。</p>\n      <p>用本倉庫兩個真實的 package.json 版本對照（提交 be6d4a6 與 393afae）：80 行對 82 行，行級新增 4 行、刪除 2 行、2 個變化區；行級標出的字符合計 1303 個，逐字符對齊後真正不同的只有 157 個，約佔 12%。差異塊數量也不是唯一答案：按連續同號行算 4 塊，按變化區算 2 塊，報數前要說清數的是哪種。</p>\n      <h2>四類噪音：換行、行尾空白、BOM、編碼</h2>\n      <p>行級比較要求整行字符串相等，任何不可見字符都會讓整行判為不同：</p>\n      <table>\n        <thead><tr><th>噪音</th><th>行級表現</th><th>處理方式</th></tr></thead>\n        <tbody>\n          <tr><td>CRLF 與 LF 混用</td><td>每一行都變成一對刪除與新增</td><td>統一換行；倉庫側用 core.autocrlf 或 .gitattributes</td></tr>\n          <tr><td>行尾多一個空格</td><td>整行標為改動，肉眼幾乎看不出</td><td>先運行去尾空白，或開啟忽略行尾空白</td></tr>\n          <tr><td>文件開頭 BOM</td><td>首行整行不同，BOM 只佔 1 個字符 3 個字節</td><td>比較前剝離 BOM</td></tr>\n          <tr><td>編碼不一致</td><td>解碼後大段文字都不同</td><td>先按同一編碼解碼，再比較</td></tr>\n        </tbody>\n      </table>\n      <p>用 6 行配置做樣本：同一內容分別存成 CRLF 版與 LF 版，行級給出 +6 / -6、13 行輸出（輸入以換行結尾時會多算一個末尾空行），按「2×相同行數 ÷ 總行數」折算的相似度只有 14.3%；統一成 LF 後歸零。行尾多一個空格時，行級標出 27 個字符，字符級只有 1 個字符不同，而這個 2 行樣本的相似度已掉到 50%。</p>\n      <p>BOM 更隱蔽：UTF-8 的 BOM 是 U+FEFF，佔 3 個字節，多數編輯器不顯示。Unicode 的 BOM 問答提醒，UTF-8 開頭的 BOM 會干擾要求文件以特定 ASCII 字符開頭的格式，例如腳本的 #! 行。站內工具把它當普通字符比較，結果是首行 +1 / -1，去掉 BOM 後兩行文字完全相同。</p>\n      <p>全角與半角混用同樣算噪音：一個全角空格就夠讓整行判為不同。可以先用<a href=\"/zh-hant/tools/dev/text-transform/\">文本轉換</a>的「轉半角」統一寬度，再回對比頁復查。</p>\n      <figure><a href=\"/article-images/2026-11/text-diff-review-diff-trailing-space.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：文本對比工具工作區：兩個輸入面板各顯示兩行配置文本（樣本構造為 A 第一行末尾多一個空格）；結果框共三行——兩行前綴不同但文字相同，另一行是上下文「  version = 1.0」，框下統計為「3 行 · +1 / -1」。\"><img src=\"/article-images/2026-11/text-diff-review-diff-trailing-space.jpg\" alt=\"文本對比工具工作區：兩個輸入面板各顯示兩行配置文本（樣本構造為 A 第一行末尾多一個空格）；結果框共三行——兩行前綴不同但文字相同，另一行是上下文「  version = 1.0」，框下統計為「3 行 · +1 / -1」。\" width=\"1232\" height=\"874\" loading=\"lazy\" decoding=\"async\"></a><figcaption>原始文本一側的行尾多一個空格時，結果框裏兩行前綴不同、文字看起來相同，另有一行上下文「  version = 1.0」，底部統計為「3 行 · +1 / -1」 點擊圖片可查看原圖。</figcaption></figure>\n      <h2>統一 diff 的讀法：@@ -1,4 +1,4 @@</h2>\n      <p>Git 與 GNU diff 的統一格式由兩行文件頭加若干 hunk 組成。每個 hunk 以 @@ 開頭，裏面是舊文件與新文件的行號，寫法為「起始行,行數」，只有一個數字時表示該塊只有 1 行。GNU diffutils 手冊寫得很直白：共有行以空格開頭，只在舊文件裏的行以 - 開頭，只在新文件裏的行以 + 開頭。</p>\n      <pre><code>--- a/config.txt\n+++ b/config.txt\n@@ -1,4 +1,4 @@\n [server]\n host = localhost\n-port = 80\n+port = 81\n retries = 3</code></pre>\n      <p>讀法分三步：先看 @@ 的行號確認改動落在哪段；再讀空格開頭的上下文行；最後成對讀 - 與 +，把它當成一次替換。git diff 默認帶 3 行上下文（-U 可改），上下文越多越容易判斷歸屬，但塊也越大。</p>\n      <h2>站內結果區沒有 hunk 頭，讀法要換</h2>\n      <p>CloverTools 的<a href=\"/zh-hant/tools/dev/diff/\">文本對比</a>頁只寫三種前綴：兩個空格表示兩邊都有，+ 表示只在對比文本（B）裏，- 表示只在原始文本（A）裏；沒有 @@ 行號頭，也沒有 ---/+++ 文件頭，所以它不能被 patch 直接應用，只能當閱讀視圖。</p>\n      <p>還有一個易錯點：同一次改動裏 + 行排在 - 行前面。分別點兩個「範例」再點「對比」，得到 7 行：1 行上下文 + 3 行 + + 3 行 -，底部顯示「7 行 · +3 / -3」。這個「N 行」是輸出總行數：7 行 = 1 行上下文 + 3 行 + + 3 行 -，輸入以換行結尾時才會再算一個空行；判斷規模要看 +3 / -3。</p>\n      <figure><a href=\"/article-images/2026-11/text-diff-review-diff-sample.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大圖：文本對比工具工作區：標題為「原始文本（A）」與「對比文本（B）」的兩個輸入面板各顯示 4 行 JavaScript 代碼，A 第二行是「const b = 2;」，B 第二行是「const b = 3;」；結果框第一行是「  const a = 1;」，隨後三行以「+ 」開頭、三行以「- 」開頭，框下統計為「7 行 · +3 / -3」。\"><img src=\"/article-images/2026-11/text-diff-review-diff-sample.jpg\" alt=\"文本對比工具工作區：標題為「原始文本（A）」與「對比文本（B）」的兩個輸入面板各顯示 4 行 JavaScript 代碼，A 第二行是「const b = 2;」，B 第二行是「const b = 3;」；結果框第一行是「  const a = 1;」，隨後三行以「+ 」開頭、三行以「- 」開頭，框下統計為「7 行 · +3 / -3」。\" width=\"1232\" height=\"874\" loading=\"lazy\" decoding=\"async\"></a><figcaption>在兩個輸入框裏分別點「範例」後點「對比」，結果區第一行為兩邊相同的上下文，隨後三行以「+ 」開頭、三行以「- 」開頭，底部統計顯示「7 行 · +3 / -3」 點擊圖片可查看原圖。</figcaption></figure>\n      <p>複製按鈕把結果區寫進剪貼板。但頁面上沒有任何復選框，也沒有忽略空白開關：行尾空格與 BOM 都照實報出——這正是審校要的原始視圖，前提是你會解釋它。</p>\n      <h2>移動和改寫：都顯示成刪除加新增</h2>\n      <p>行級 LCS 只認順序相同的相同行，沒有「移動」操作。把 8 行裏的 3 行整段搬到末尾，內容沒變，結果是 +3 / -3、2 個變化塊、5 行相同，相似度 62.5%。同一段文字，在行級視圖裏和「刪掉 3 行再寫 3 行新內容」完全同形。</p>\n      <p>分移動與改寫要回到塊內容：刪除塊與新增塊逐行對照，文字幾乎一致只是位置變了就是移動；文字變了才是改寫。Git 側有移動檢測與 --word-diff 的詞級視圖，站內工具沒有這兩層，給出的是最原始的編輯腳本。</p>\n      <h2>相似度百分比為什麼容易誤導</h2>\n      <p>按「2×相同行數 ÷ （A 行數 + B 行數）」折算時，樣本的數字和語義變化量並不單調：內容完全相同的 CRLF 與 LF 兩版只有 14.3%；只差一個行尾空格的 2 行文本是 50%；整段移動 3 行的 8 行文本是 62.5%；而真正改了 4 處命令的 package.json 反而有 96.3%。站內工具只給 +a / -b，不輸出相似度，這個折算只為橫向對比樣本。原因很直接：分母是行數，長行與短行同權，行內改動被抹平；空白又直接決定“是否相同”。</p>\n      <p>算法還會改變編輯腳本。git diff 的 --diff-algorithm 列出 myers（默認）、minimal、patience、histogram 四種，並說明 minimal 會花更多時間求最小 diff；同一對文件換算法，塊的數量與位置都可能變。所以相似度只能當定位線索，不能當改動大小的度量。</p>\n      <h2>審校流程：先摘要，再逐塊</h2>\n      <ol>\n        <li>固定比較對象：寫清 A、B 各自來自哪份文件、哪個提交。</li>\n        <li>先去噪：統一換行與編碼、去 BOM、去行尾空白。</li>\n        <li>看摘要：行數、增加與刪除行數、變化區數，判斷規模是否符合預期。</li>\n        <li>逐塊讀上下文：先讀空格開頭的行，確認這段在做什麼，再讀刪除與新增。</li>\n        <li>給每塊打標簽：格式、順序、語義；標不出來的單獨列出，別默認它是格式。</li>\n        <li>把語義塊放回調用方：配置項的去處、函數的使用點、測試是否覆蓋。</li>\n        <li>對權限、遷移、加密參數等高風險改動獨立複核；「沒有差異」不能當安全證明。</li>\n        <li>記錄比較對象、版本、時間和是否開過忽略空白，方便別人復跑。</li>\n      </ol>\n      <p>去尾空白與去空行可以在比較之前完成，站內的<a href=\"/zh-hant/tools/dev/text-toolbox/\">文本處理</a>提供「去除首尾空格」與「去除空行」，處理完再粘回對比頁，比事後猜哪幾行是空白差異更穩。</p>\n      <h2>什麼時候可以讓「忽略空白」接管</h2>\n      <p>忽略空白是降噪開關，不是默認項。GNU diff 的 -b（--ignore-space-change）忽略行尾空白並把行內連續空白視為等價，-w（--ignore-all-space）連「一邊有空白、另一邊沒有」也忽略，且明確把回車計入空白字符；Git 的 --ignore-blank-lines 則跳過整塊空行改動。</p>\n      <p>可以開：跨平台換行造成的整文件重排、編排工具重新縮進、模板渲染後的空白差異。不要開：空白參與語法的文件、用空格對齊表達含義的表格，以及想確認「是否只動了空白」的場合——這時先不忽略，逐處看清改動。</p>\n      <p>Git 側還有個細節：core.whitespace 的 blank-at-eol 默認開啟，cr-at-eol 默認關閉，意味著行尾的 CR 默認會被當成空白問題報出來。跨平台倉庫更穩的做法是在 .gitattributes 裏寫 text=auto 與 eol=crlf，讓 Git 在提交時歸一化。</p>\n      <h2>邊界與限制</h2>\n      <ul>\n        <li>粒度：站內工具只有行級比較，沒有字符級或詞級視圖。</li>\n        <li>無忽略空白：頁面沒有該開關，行尾空格、BOM 都會照實報出，降噪要在輸入前完成。</li>\n        <li>規模上限：A 行數乘 B 行數超過 4,000,000 時退化為逐行比較，輸出變成「L行號: - / +」兩行一組，且底部統計不刷新；2000 乘 2000 恰好是 4,000,000，仍走完整比較，2001 乘 2001（4,004,001 格）才觸發。</li>\n        <li>CRLF 的真實邊界：網頁文本框會把 CRLF 歸一成 LF（本機復跑時粘貼 CRLF 後，框內 CR 計數為 0），頁面內粘貼不會誤報；但 git diff、命令行工具等按字節比較的入口沒有這層歸一化，仍會「每行都不同」。</li>\n        <li>不識別編碼：按 Unicode 文本比較，編碼不一致時解碼結果整段不同。</li>\n        <li>不做移動檢測：重排顯示為刪除加新增，需要人工判斷。</li>\n        <li>只適合文本：圖片、二進制、壓縮包不適合用文本 diff 判斷變化。</li>\n        <li>非法律意見：合同、條款類文本的審校只提供閱讀方法，不構成法律建議。</li>\n      </ul>\n      <p>結構化格式還有一層限制：XML、JSON 的元素間縮進與屬性順序通常不承載語義（mixed content 的空白、業務依賴的字段順序例外），行級 diff 卻全算成改動。先用<a href=\"/zh-hant/tools/dev/xml-formatter/\">XML 格式化</a>把兩邊整理成同一種縮進再比較，判斷會穩定得多。</p>\n      <h2>常見誤讀速查</h2>\n      <ul>\n        <li>把「7 行」當變化行數：它是輸出行數，含 1 行上下文與 6 行變化；只有輸入以換行結尾時才多一個空行。</li>\n        <li>把 + 在前、- 在後讀成「先加後刪」：順序由回溯的平局規則決定，不代表時間。</li>\n        <li>用相似度排優先級：14.3% 的樣本可能零語義變化，96.3% 的樣本可能改了 4 處命令。</li>\n        <li>把 BOM 造成的首行差異當內容改動：先看首行第一個字符是不是 U+FEFF。</li>\n        <li>把「沒有差異」當「沒有風險」：diff 只覆蓋文本，權限與運行時行為在它之外。</li>\n      </ul>\n      <h2>一句話收束</h2>\n      <p>先用行級定位塊，再確認塊內真正改動的字符；換行、行尾空白、BOM、移動都當獨立噪音層；相似度與塊數只用來定位。做完這三步，差異報告才可被複核。</p>",
+  "faqs": [
+    {
+      "q": "行級 diff 和字符級 diff 應該先用哪個？",
+      "a": "先用行級定位到變化塊，再用字符級看塊內到底改了哪幾個字符。行級擅長告訴你「哪裏變了」，字符級擅長回答「變了多少」，兩者順序反過來會先陷進細節。"
+    },
+    {
+      "q": "兩份文本只有換行符不同，為什麼每一行都顯示改動？",
+      "a": "行級比較要求整行字符串相等，CRLF 的行尾多一個回車字符，所以每一行都不相等。先把換行統一成 LF 再比，變化會歸零；網頁文本框會自己把 CRLF 歸一成 LF，磁盤文件不會。"
+    },
+    {
+      "q": "相似度 96% 是不是說明改動很小？",
+      "a": "不一定。相似度按相同行數折算，對長行與行內改動不敏感。上面的樣本裏 96.3% 的一份文件改了 4 處命令，而內容完全相同的 CRLF 與 LF 兩版只有 14.3%。它適合定位，不適合當改動大小的度量。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Git：git diff 文檔（上下文行數、忽略空白選項、word-diff 與 diff 算法）",
+      "url": "https://git-scm.com/docs/git-diff"
+    },
+    {
+      "title": "Git：git config 文檔（core.whitespace 的 blank-at-eol 與 cr-at-eol）",
+      "url": "https://git-scm.com/docs/git-config"
+    },
+    {
+      "title": "GitHub Docs：Configuring Git to handle line endings",
+      "url": "https://docs.github.com/en/get-started/git-basics/configuring-git-to-handle-line-endings"
+    },
+    {
+      "title": "GNU diffutils 手冊：Detailed Description of Unified Format",
+      "url": "https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html"
+    },
+    {
+      "title": "GNU diffutils 手冊：White Space（-b 與 -w 的語義）",
+      "url": "https://www.gnu.org/software/diffutils/manual/html_node/White-Space.html"
+    },
+    {
+      "title": "Unicode FAQ：UTF-8, UTF-16, UTF-32 & BOM",
+      "url": "https://www.unicode.org/faq/utf_bom.html"
+    }
+  ],
+  "_meta": {
+    "translation": {
+      "of": "text-diff-review",
+      "lang": "tw",
+      "translatedFrom": "cf149a3ce766c81c9ae66251ef4052763e57985b5c5eb02fea9eec65630721fe",
+      "translatedAt": "2026-11-17T04:22:28.017Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.85
+    }
+  },
+  "image": "/article-images/2026-11/text-diff-review-diff-sample.jpg"
+}
