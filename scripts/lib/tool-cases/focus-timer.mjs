@@ -422,6 +422,9 @@ export async function run({ run, remember, base, artifacts }) {
     await status(page, "finished");
     await confirm(page, "#ftClearRecords");
     await status(page, "finished");
+    // 对话框关闭后应用才异步清空记录并重绘，等空态出现再断言。
+    await poll(page, () => !document.querySelector("#ftEmptyRecords")?.hidden);
+    await poll(page, () => !document.querySelector("#ftEmptyStart")?.hidden);
     assert.equal(await page.locator("#ftEmptyRecords").isVisible(), true);
     assert.equal(await page.locator("#ftEmptyStart").isVisible(), true);
     assert.equal(await page.locator("#ftEmptyStart").textContent(), "开始专注");
