@@ -1,0 +1,67 @@
+---
+import { pathForLang, type Lang } from '../lib/i18n';
+import { focusText } from '../lib/focus-timer-i18n';
+import '../styles/focus-timer.css';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = focusText(lang);
+---
+<div id="focusTimer" class="focus-timer" data-lang={lang} data-ready="false" data-status="idle" tabindex="-1" aria-busy="true">
+  <script id="ftText" type="application/json" set:html={JSON.stringify(t).replaceAll('<', '\\u003c')} />
+  <div class="ft-storage"><p id="ftStorage" role="status">{t.loading}</p><button id="ftTakeover" class="btn btn-secondary" type="button" hidden>{t.takeover}</button></div>
+  <section class="ft-overview" aria-labelledby="ftOverviewHeading">
+    <div><h2 id="ftOverviewHeading">{t.overview}</h2><p id="ftWeekRange"></p></div>
+    <div><strong id="ftWeekMinutes">0</strong><span>{t.minutes}</span></div><div><strong id="ftWeekRounds">0</strong><span>{t.rounds}</span></div>
+  </section>
+  <div class="ft-desk">
+    <section class="ft-clock" aria-labelledby="ftWorkbench">
+      <h2 id="ftWorkbench">{t.workbench}</h2>
+      <div class="ft-stage-line"><strong id="ftPhase">{t.focus}</strong><span id="ftStatus">{t.idle}</span></div>
+      <div id="ftTime" class="ft-time" role="timer" aria-live="off">25:00</div>
+      <progress id="ftProgress" max="1" value="0" aria-label={t.progress}></progress>
+      <p id="ftCurrentTask" class="ft-current-task">{t.noTask}</p><p id="ftCycle"></p>
+      <p id="ftNext" hidden></p><p id="ftUnsubmitted" hidden>{t.unsubmitted}</p>
+      <div class="ft-actions"><button class="btn btn-primary" id="ftPrimary" data-write type="button" disabled>{t.start}</button><button class="btn btn-secondary" id="ftEarly" data-write type="button" disabled>{t.early}</button></div>
+      <div class="ft-actions"><button class="btn btn-ghost" id="ftSkip" data-write type="button" disabled>{t.skip}</button><button class="btn btn-ghost" id="ftReset" data-write type="button" disabled>{t.reset}</button></div>
+      <p class="ft-note">{t.shortcuts}</p><p id="ftCapacity" role="status"></p>
+      <p id="ftAnnounce" role="status" aria-live="polite"></p><p id="ftJump" role="status"></p>
+    </section>
+    <section class="ft-tasks" aria-labelledby="ftTasksHeading">
+      <h2 id="ftTasksHeading">{t.tasks}</h2>
+      <form id="ftTaskForm" novalidate><label for="ftTaskName">{t.taskName}</label><input id="ftTaskName" class="input" data-write disabled type="text" autocomplete="off" aria-describedby="ftTaskError" /><p id="ftTaskError" class="ft-error"></p><button class="btn btn-secondary" id="ftAdd" data-write disabled type="submit">{t.add}</button></form>
+      <button class="btn btn-ghost" type="button" id="ftNoTask" data-write disabled>{t.noTask}</button>
+      <p id="ftEmptyTasks">{t.emptyTasks}</p><p id="ftTaskLocked" class="ft-note" hidden>{t.taskLocked}</p>
+      <h3>{t.unfinished}</h3><ul id="ftOpenTasks" class="ft-task-list"></ul><h3>{t.completed}</h3><ul id="ftDoneTasks" class="ft-task-list"></ul>
+    </section>
+  </div>
+  <section class="ft-stats" aria-labelledby="ftStatsHeading">
+    <div class="ft-section-head"><h2 id="ftStatsHeading">{t.stats}</h2><label for="ftRange">{t.date}<select class="input" id="ftRange" disabled><option value="week">{t.week}</option><option value="today">{t.today}</option></select></label></div>
+    <p>{t.dateRule}</p><p id="ftStatsRange"></p>
+    <div class="ft-totals"><p>{t.minutes} <strong id="ftTotalMinutes">0</strong></p><p>{t.rounds} <strong id="ftTotalRounds">0</strong></p></div>
+    <p id="ftEmptyRecords" hidden>{t.emptyRecords}</p><button class="btn btn-secondary" id="ftEmptyStart" data-write disabled hidden type="button">{t.start}</button>
+    <figure><figcaption>{t.chart}</figcaption><svg id="ftChart" viewBox="0 0 700 200" role="img" aria-labelledby="ftChartTitle"><title id="ftChartTitle">{t.chart}</title><g id="ftBars"></g></svg></figure>
+    <div class="ft-table-wrap"><table><caption>{t.chart}</caption><thead><tr><th scope="col">{t.date}</th><th scope="col">{t.duration}</th><th scope="col">{t.rounds}</th></tr></thead><tbody id="ftDays"></tbody></table></div>
+    <h3>{t.byTask}</h3><ul id="ftTaskTotals" class="ft-summary-list"></ul>
+    <h3>{t.recent}</h3><ul id="ftRecent" class="ft-summary-list"></ul>
+    <div class="ft-actions"><button class="btn btn-secondary" id="ftCopy" type="button" disabled>{t.copy}</button><button class="btn btn-ghost" id="ftClearRecords" data-write type="button" disabled>{t.clearRecords}</button></div>
+    <div id="ftManualCopy" hidden><label for="ftCopyText">{t.manualCopy}</label><textarea id="ftCopyText" class="input" readonly rows="8"></textarea></div>
+  </section>
+  <section class="ft-settings" aria-labelledby="ftSettingsHeading">
+    <h2 id="ftSettingsHeading">{t.settings}</h2>
+    <fieldset id="ftDurationFields" disabled><legend>{t.settings}</legend><div class="ft-fields">
+      {[['focus', t.focusMinutes, 1, 180, 25], ['short', t.shortMinutes, 1, 30, 5], ['long', t.longMinutes, 1, 60, 15], ['interval', t.interval, 2, 8, 4]].map(([key, label, min, max, value]) => <div><label for={`ft-${key}`}>{label}</label><input class="input" id={`ft-${key}`} data-setting={key} type="number" min={min} max={max} step="1" value={value} aria-describedby={`ft-error-${key}`} /><p class="ft-error" id={`ft-error-${key}`}></p></div>)}
+    </div><div class="ft-actions">{[25, 45, 60].map(n => <button class="btn btn-secondary" type="button" data-preset={n}>{n}</button>)}<button class="btn btn-ghost" id="ftExample" type="button">{t.example}</button></div></fieldset>
+    <p id="ftLocked" hidden>{t.locked}</p><label class="ft-check"><input id="ftAuto" data-write type="checkbox" disabled /> {t.auto}</label><p class="ft-note">{t.autoHint}</p>
+    <div class="ft-settings-grid"><fieldset id="ftSoundFields" disabled><legend>{t.sound}</legend>
+      <label for="ftEnvironment">{t.sound}</label><select class="input" id="ftEnvironment"><option value="white">{t.white}</option><option value="rain">{t.rain}</option><option value="cafe">{t.cafe}</option></select>
+      <label class="ft-check"><input type="checkbox" id="ftSound" /> {t.soundEnable}</label><label for="ftVolume">{t.volume} <output id="ftVolumeValue">30</output></label><input type="range" id="ftVolume" min="0" max="100" value="30" /><label class="ft-check"><input type="checkbox" id="ftMute" /> {t.mute}</label>
+      <div class="ft-actions"><button class="btn btn-secondary" type="button" id="ftPreview">{t.preview}</button><button class="btn btn-ghost" type="button" id="ftStopSound">{t.stopSound}</button><button class="btn btn-ghost" type="button" id="ftRetrySound">{t.retrySound}</button></div><p id="ftSoundStatus" role="status">{t.soundOff}</p>
+    </fieldset><fieldset id="ftPlatformFields" disabled><legend>{t.platform}</legend><label class="ft-check"><input id="ftNotifications" type="checkbox" /> {t.notification}</label><p id="ftNotificationStatus" role="status">{t.notificationOff}</p><label class="ft-check"><input id="ftWake" type="checkbox" /> {t.wake}</label><p id="ftWakeStatus" role="status">{t.wakeOff}</p><button class="btn btn-secondary" type="button" id="ftRetryWake">{t.retryWake}</button></fieldset></div>
+    <button class="btn btn-ghost" id="ftClearAll" data-write type="button" disabled>{t.clearAll}</button>
+  </section>
+  <p class="ft-note">{t.restoreHint}</p><p class="ft-note">{t.limits}</p><p class="ft-note">{t.privacy}</p>
+  <nav class="ft-links" aria-label={t.title}><a href={pathForLang('/tools/daily/timer/', lang)}>{t.timerLink}</a><a href={pathForLang('/tools/fun/focus-flight/', lang)}>{t.flightLink}</a><a href={pathForLang('/tools/daily/workday/', lang)}>{t.workdayLink}</a></nav>
+  <dialog id="ftDialog" aria-labelledby="ftDialogMessage"><form method="dialog"><p id="ftDialogMessage"></p><div class="ft-actions"><button class="btn btn-secondary" value="cancel" autofocus>{t.cancel}</button><button class="btn btn-primary" value="confirm">{t.confirm}</button></div></form></dialog>
+</div>
+<noscript><p>{t.noScript}</p></noscript>
+<script>import '../scripts/focus-timer';</script>
