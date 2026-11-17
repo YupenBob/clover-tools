@@ -570,5 +570,31 @@
     "alt": "BMI 计算器页面，左栏「输入参数」下计量单位为「公制 · cm / kg」，身高 168 cm、体重 70 kg，成人参考标准已切到「WHO 标准 · 18.5 / 25 / 30」，左下有「计算」按钮；右栏标题「BODY MASS INDEX」，大号读数 24.8，旁边标签仍为「参考区间」，下方刻度为 12、18.5、25、30、40，再下方是「BMI 18.5–<25 对应体重」与「52.2–<70.6 kg」，底部「复制结果」按钮。",
     "caption": "切到 WHO 标准、输入 168 cm / 70 kg：右栏大号数字 24.8，旁边标签仍是「参考区间」，刻度变为 18.5、25、30，下方「BMI 18.5–<25 对应体重」显示「52.2–<70.6 kg」。",
     "slug": "bmi-reference-not-diagnosis"
+  },
+  {
+    "file": "json-formatting-validation-error-locate.jpg",
+    "width": 1232,
+    "height": 688,
+    "bytes": 44676,
+    "sha256": "371354a331bd9d44b425fa44d638fdb647100d55094f0c12498b46aa65ea0735",
+    "capturedAt": "2026-11-17T22:09:58.830Z",
+    "source": "/tools/dev/json-formatter/",
+    "purpose": "展示报错状态栏同时给出中文行列与英文原文，且格式化失败时输出框被清空",
+    "alt": "JSON 格式化工具工作区：输入框第一行是「{\"name\":\"clover\",\"free\":true,}」，下方状态栏一段红色文字以「第 1 行，第 30 列：」开头，后面接「Expected double-quoted property name in JSON at position 29」，输出框为空，框下统计为「0 字符」。",
+    "caption": "粘贴末尾多一个逗号的对象后点「格式化」：状态栏显示「第 1 行，第 30 列：Expected double-quoted property name in JSON at position 29 (line 1 column 30)」，下方输出框被清空、统计回到「0 字符」，错误位置指向右花括号。",
+    "slug": "json-formatting-validation"
+  },
+  {
+    "file": "json-formatting-validation-format-result.jpg",
+    "width": 1232,
+    "height": 667,
+    "bytes": 53362,
+    "sha256": "4bd3c0c560a8c20b94c0d71ec107ac909c5f2a72cb274427620c2e71b6cfed37",
+    "capturedAt": "2026-11-17T22:09:59.144Z",
+    "source": "/tools/dev/json-formatter/",
+    "purpose": "展示 2 空格缩进下的多行输出与字符数统计，供读者对照自己的格式化结果",
+    "alt": "JSON 格式化工具工作区：输入框是 115 字符的紧凑 JSON，缩进下拉框显示「2 空格」；输出区第一行是「{」，第二行是「  \"name\": \"CloverTools\",」，数组元素与嵌套对象逐层缩进，状态栏显示「格式化完成」，输出框下统计为「169 字符」。",
+    "caption": "把同一份示例数据按 2 空格缩进格式化：输出区第一行是「{」，第二行缩进两个空格显示「\"name\": \"CloverTools\",」，features 数组每个元素一行、stats 对象再缩进一层；状态栏显示「格式化完成」，底部统计为「169 字符」。",
+    "slug": "json-formatting-validation"
   }
 ]

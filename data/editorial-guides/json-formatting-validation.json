@@ -1,34 +1,76 @@
 {
   "slug": "json-formatting-validation",
   "title": "JSON 格式化与校验：从报错定位到可读输出",
-  "description": "了解 JSON 格式化、语法校验和压缩的区别，用一套稳定流程定位逗号、引号和数据类型问题。",
-  "seoDescription": "JSON 报错怎么定位？按一套稳定流程走：先把响应粘进工具记录错误行号，再检查报错位置前后的引号闭合与多余逗号，格式化成功后对照接口文档核对必填字段与类型；文中还说明格式化只改空格与换行，数字、字符串与布尔值在 JSON 里不会互相转换。字符串必须使用双引号，也不能直接粘贴带注释的 JavaScript 对象。",
+  "description": "JSON 报错怎么定位：用 position 与行列号找到出错字符，对照尾逗号、单引号、注释、NaN、BOM 等常见成因修正，再区分格式化、压缩与仅校验的用途。",
+  "seoDescription": "JSON 报错怎么定位？先看 position 与行列号落在哪个字符，再对照尾逗号、单引号、注释、NaN、BOM 等常见成因逐项修正；文中区分格式化、压缩与仅校验的用途，说明 V8、jq 与 Python 报错文案为何不同，并给出完整的格式化后再 diff 的审校流程、格式化字符数与大文件处理边界。",
   "category": "开发实用",
   "toolSlug": "json-formatter",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>JSON 适合在接口和配置文件中传递结构化数据，但它对语法非常严格。一个多余的逗号、漏掉的双引号，都会让整个响应无法解析。排查时不要先手动缩进，应该先确认文本是标准 JSON，再用格式化结果观察层级。</p>\n      <h2>格式化、校验和压缩分别做什么</h2>\n      <p>格式化只改变空格和换行，让嵌套关系可读；校验检查括号、引号、逗号和数据类型是否符合语法；压缩则移除不必要的空白，适合传输。格式化成功只代表语法成立，不代表接口字段符合业务契约。</p>\n      <h2>推荐的排查顺序</h2>\n      <ol><li>先把响应复制到工具中，记录错误行号和附近的字符。</li><li>检查报错位置前一个字段，尤其是字符串是否闭合、数组是否多了逗号。</li><li>格式化成功后，再对照接口文档检查必填字段、数值类型和空值。</li><li>确认数据结构后再压缩或下载，保留一份格式化版本供审查。</li></ol>\n      <h2>三个容易忽略的边界</h2>\n      <ul><li>JSON 字符串必须使用双引号，不能直接粘贴带有注释的 JavaScript 对象。</li><li><code>1</code>、<code>\"1\"</code> 和 <code>true</code> 是不同类型，格式化器不会替你猜测含义。</li><li>包含令牌或个人信息的响应应在本地或脱敏环境中处理。</li></ul>",
+  "updated": "2026-11-18",
+  "readingMinutes": 7,
+  "content": "<p>JSON 报错难读，通常不是语法太怪，而是没先定位。把原文原样粘进工具，看 position 与行列号落在哪个字符上，再按尾逗号、引号、注释、NaN、BOM 逐项对照，多数情况能较快改对；格式化只负责把已经合法的文本排成可读层级。</p>\n\n<h2>格式化基本只改空白，校验只回答能不能解析</h2>\n<p>三个动作的产物不同。格式化先解析再重新序列化，输出的字符数通常变多：本次样例 115 字符的紧凑 JSON，按 2 空格缩进变成 169 字符、14 行，按 4 空格是 203 字符，用 Tab 是 152 字符。压缩方向相反，输出与输入逐字节相同，都是 115 字符，因为原文本本来就没有多余空白。仅校验则只解析，不写输出框。</p>\n<p>「格式化完成」只说明文本能被解析器接受，不代表字段齐全或类型正确；「仅校验」成功也不产出可复制文本，适合改动前确认一次。</p>\n\n<h2>报错里的 position 与行列号怎么读</h2>\n<p>Node 22 的 V8 在多数错误上给出三段信息：原因、position，以及括号里的行列号。例如对象末尾多逗号时是 <code>Expected double-quoted property name in JSON at position 29 (line 1 column 30)</code>。position 从 0 开始数，列号从 1 开始数；第 1 行时两者相差 1，多行时 position = 该行之前的字符数 + 列 − 1。页面会把 position 换算成「第 1 行，第 30 列」再拼上原始英文，于是同一条信息里同时出现 29 与 30，不必当成矛盾。</p>\n<p>但 V8 并非每条都给位置。数组尾逗号 <code>[1,2,3,]</code> 只回 <code>Unexpected token ']', \"[1,2,3,]\" is not valid JSON</code>，没有 position；页面里负责换算的正则只匹配 <code>position 数字</code>，匹配不到就原样显示，所以状态栏不会有「第几行」。这是页面实现决定的，不是 JSON 的问题。看到没有行号时，回到原文按消息里引号中的片段自己找。</p>\n\n<h2>常见错误逐条对照：报错原文与改法</h2>\n<p>下面这些样本都在 Node 22 里真实跑过，报错文本照抄。注意「V8 报错要点」列里有没有 position：有位置时页面会补中文行列，没有时只显示英文原文。</p>\n<table>\n<thead><tr><th>坏在哪</th><th>输入片段</th><th>V8 报错要点</th><th>怎么改</th></tr></thead>\n<tbody>\n<tr><td>对象尾逗号</td><td><code>{\"name\":\"clover\",\"free\":true,}</code></td><td>position 29，第 30 列</td><td>删最后一个逗号</td></tr>\n<tr><td>数组尾逗号</td><td><code>[1,2,3,]</code></td><td>无 position，Unexpected token ']'</td><td>删逗号</td></tr>\n<tr><td>缺逗号</td><td><code>{\"name\":\"clover\" \"free\":true}</code></td><td>position 17，第 18 列</td><td>补逗号</td></tr>\n<tr><td>单引号键</td><td><code>{'name':'clover'}</code></td><td>position 1，第 2 列</td><td>改双引号</td></tr>\n<tr><td>单引号值</td><td><code>{\"name\":'clover'}</code></td><td>无 position，Unexpected token '''</td><td>改双引号</td></tr>\n<tr><td>注释</td><td><code>{\"name\":\"clover\" // 名称}</code></td><td>position 21，第 2 行 20 列（三行样本）</td><td>删注释</td></tr>\n<tr><td>NaN</td><td><code>{\"ratio\":NaN}</code></td><td>无 position，Unexpected token 'N'</td><td>改 null 或字符串</td></tr>\n<tr><td>未转义换行</td><td><code>\"第一行（真实换行）第二行\"</code></td><td>position 12，第 13 列</td><td>写成 <code>\\n</code></td></tr>\n<tr><td>BOM 开头</td><td><code>\\uFEFF{\"name\":\"clover\"}</code></td><td>无 position，Unexpected token '\\uFEFF'</td><td>去掉 BOM</td></tr>\n<tr><td>全角字符</td><td><code>｛\"name\"：\"clover\"｝</code></td><td>无 position，Unexpected token '｛'</td><td>换半角</td></tr>\n</tbody>\n</table>\n\n<figure><a href=\"/article-images/2026-11/json-formatting-validation-error-locate.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：JSON 格式化工具工作区：输入框第一行是「{&quot;name&quot;:&quot;clover&quot;,&quot;free&quot;:true,}」，下方状态栏一段红色文字以「第 1 行，第 30 列：」开头，后面接「Expected double-quoted property name in JSON at position 29」，输出框为空，框下统计为「0 字符」。\"><img src=\"/article-images/2026-11/json-formatting-validation-error-locate.jpg\" alt=\"JSON 格式化工具工作区：输入框第一行是「{&quot;name&quot;:&quot;clover&quot;,&quot;free&quot;:true,}」，下方状态栏一段红色文字以「第 1 行，第 30 列：」开头，后面接「Expected double-quoted property name in JSON at position 29」，输出框为空，框下统计为「0 字符」。\" width=\"1232\" height=\"688\" loading=\"lazy\" decoding=\"async\"></a><figcaption>状态栏显示「第 1 行，第 30 列」并把 V8 的英文原文接在后面，下方输出框为空、统计为 0 字符 点击图片可查看原图。</figcaption></figure>\n\n<h2>尾逗号与缺逗号：位置指向哪一侧</h2>\n<p>两种逗号错误的方向相反，读法也不同。末尾多一个逗号时，解析器已经读完最后一个成员，期待的是下一个键或右花括号，于是报错位置落在 <code>}</code> 上（30 列），消息说的是期待双引号键名。缺逗号时，解析器读完一个值、期待逗号或右花括号，位置落在下一个键的左引号上（29 字符的样本里是 18 列），消息是 <code>Expected ',' or '}' after property value</code>。</p>\n<p>所以不要盯着报错字符本身改，要看它的前一个非空白字符：前一个是逗号且后面直接是右括号，就删逗号；前一个是值（字符串、数字、右括号）且后面还有键，就补逗号。数组同理，<code>[1,2,3,]</code> 的报错字符是 <code>]</code>，改法是删掉它前面的逗号。</p>\n\n<h2>引号、全角字符与未转义换行</h2>\n<p>JSON 的字符串只能用双引号，键和值都一样，没有例外。单引号键 <code>{'name':'clover'}</code> 在第 2 列就失败，单引号值则被当成 <code>Unexpected token '''</code>。从聊天工具、文档或中文输入法里复制时，还可能带入全角引号与全角冒号：<code>｛\"name\"：\"clover\"｝</code> 报 <code>Unexpected token '｛'</code>；只把冒号打成全角时，位置会精确到冒号（第 8 列），消息是 <code>Expected ':' after property name</code>。这类字符在编辑器里几乎看不出差别，换成等宽字体或查看十六进制更容易确认。</p>\n<p>字符串内部的换行必须写成两个字符的转义。真实换行会触发 <code>Bad control character in string literal</code>，位置指向换行符本身（第 13 列）；制表符同理（第 11 列）。</p>\n\n<h2>注释、NaN、undefined 与 BOM：不是方言，是别的格式</h2>\n<p>带 <code>//</code> 或块注释的文本常被叫作“JSON 配置”，但 RFC 8259 的语法里没有注释；<code>NaN</code>、<code>Infinity</code>、<code>undefined</code> 也不是 JSON 值，规范只允许三个字面量：false、null、true。报错信息会直接暴露这一点：<code>Unexpected token 'N'</code>、<code>Unexpected token 'I'</code>、<code>Unexpected token 'u'</code>，且都没有 position。</p>\n<p>BOM 更隐蔽。RFC 8259 规定生成方不应添加 BOM，但允许解析器忽略它；V8 选择不忽略，于是文件开头那三个字节会让整段解析失败，消息里的 <code>Unexpected token '\\uFEFF'</code> 看起来像一个空引号。本轮实测：Node 直接解析带 BOM 的字符串会失败，而把同样内容粘进工具页却能格式化成功，因为页面在解析前调用了 trim()，U+FEFF 属于会被 trim 去掉的空白。这条差异说明“网页上能过”不等于“脚本里能过”。</p>\n\n<h2>三个按钮：格式化、压缩、仅校验</h2>\n<p>工具页的按钮是「格式化」「压缩」「仅校验」，缩进下拉框有 2 空格、4 空格、Tab 三档，默认 4 空格；另有「按键排序」复选框与「示例」「清空」「复制」三个辅助按钮。实测同一份紧凑 115 字符的示例数据：4 空格输出 203 字符、14 行，2 空格 169 字符、14 行，Tab 152 字符；压缩得到 115 字符、0 个换行，与紧凑输入逐字节相同。</p>\n<p>格式化与压缩都会先解析，失败时清空输出框并把错误写进状态栏；「仅校验」成功只显示「JSON 合法，数据完整」，失败只改状态栏，输出框保持上一次的内容。只想确认一段响应合法，用「仅校验」；要把结果贴进评审或 diff，用「格式化」；要放进请求体或配置文件，用「压缩」，并在提交前再校验一次。</p>\n<pre><code>{\"orderId\":1024,\"items\":[{\"sku\":\"A-1\",\"qty\":2}]}\n\n{\n  \"orderId\": 1024,\n  \"items\": [\n    {\n      \"sku\": \"A-1\",\n      \"qty\": 2\n    }\n  ]\n}</code></pre>\n\n<figure><a href=\"/article-images/2026-11/json-formatting-validation-format-result.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：JSON 格式化工具工作区：输入框是 115 字符的紧凑 JSON，缩进下拉框显示「2 空格」；输出区第一行是「{」，第二行是「  &quot;name&quot;: &quot;CloverTools&quot;,」，数组元素与嵌套对象逐层缩进，状态栏显示「格式化完成」，输出框下统计为「169 字符」。\"><img src=\"/article-images/2026-11/json-formatting-validation-format-result.jpg\" alt=\"JSON 格式化工具工作区：输入框是 115 字符的紧凑 JSON，缩进下拉框显示「2 空格」；输出区第一行是「{」，第二行是「  &quot;name&quot;: &quot;CloverTools&quot;,」，数组元素与嵌套对象逐层缩进，状态栏显示「格式化完成」，输出框下统计为「169 字符」。\" width=\"1232\" height=\"667\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输出区按每个键一行展开，数组里的对象各自缩进，底部统计显示格式化后的字符数 点击图片可查看原图。</figcaption></figure>\n\n<h2>同一份输入，为什么文案不一样</h2>\n<p>规范只要求解析失败时抛 SyntaxError，没有规定消息文本。本轮把同一份尾逗号输入交给三个解析器：V8 说 <code>Expected double-quoted property name in JSON at position 29 (line 1 column 30)</code>，jq 说 <code>parse error: Expected another key-value pair at line 1, column 30</code>，Python 的 json 说 <code>Expecting property name enclosed in double quotes: line 1 column 30 (char 29)</code>。三者都指到第 30 列，措辞完全不同。</p>\n<p>更麻烦的是宽容度也不同：<code>{\"ratio\":NaN}</code> 在 V8 里失败，jq 与 Python 的 json 却接受它。所以「我本地能解析」不能证明对方能解析。排查时以目标运行环境的解析器为准，别把某个工具的报错文案当成标准；把行列号当成主要线索，文案只用来判断大类。</p>\n\n<h2>大文件：没有行数上限，但有代价</h2>\n<p>页面没有对输入长度设限，代码里也没有行数或字节数检查，所有处理都在浏览器内存里完成。本轮 4000 条记录、244447 字符（约 238.7 KB）的数组，在 Node 里解析加格式化合计不到 10 毫秒；浏览器里 90281 字符的数组，从点击「格式化」到状态栏更新约 0.4 秒，输出 144282 字符、10502 行。</p>\n<p>几 MB 的日志型 JSON 建议先在命令行用 jq 或 Node 切片，只把出问题的那一段粘进页面；需要整份格式化时，用本地脚本写文件比在文本框里滚动更稳。压缩不会让文件小到可以忽略，它只是去掉空白，数据量不变。</p>\n\n<h2>格式化后再 diff：把审校变成可复核的流程</h2>\n<p>接口改版或配置迁移时，直接对比压缩前后的两段文本几乎看不出差异。可行的做法是：两边都先格式化，再逐行 diff。格式化把每个键放在独立一行，新增字段、类型变化（<code>1</code> 变 <code>\"1\"</code>）、顺序调整都会变成可见的行级变化。</p>\n<ul>\n<li>先对旧版本格式化并保存，作为基线；</li>\n<li>对新响应做「仅校验」，确认它至少是合法 JSON；</li>\n<li>再格式化，与基线 diff，逐条确认新增、删除与类型变化；</li>\n<li>最后压缩回单行，粘回请求体或配置文件，并再校验一次。</li>\n</ul>\n<p>注意格式化会重排键（勾选「按键排序」时按字典序），也会统一缩进，所以 diff 里纯空白与顺序的行应当先排除，剩下的才是语义变化。数字精度这类问题不会出现在 diff 里：<code>1234567890123456789</code> 解析后是 <code>1234567890123456800</code>，两边格式化结果一样，只能靠字段类型与来源核对。</p>\n\n<h2>边界与限制</h2>\n<p>工具只做语法层面的解析与重排，不做 schema 校验：字段缺失、类型不符、枚举越界都能格式化成功。它也不检查重复键，<code>{\"a\":1,\"a\":2}</code> 解析成 <code>{\"a\":2}</code>，前面的值被覆盖，格式化输出里看不出曾经有两个 a。数字超出双精度范围时同样静默：<code>1e400</code> 变成 <code>null</code>，大整数被四舍五入。</p>\n<p>页面在解析前会 trim 输入，这会带来两个副作用：前导空行被去掉后，报错行号相对原文会变小（本轮 35 字符的样本在原文里是第 3 行，页面显示第 1 行第 18 列）；BOM 被当成空白删除，于是带 BOM 的内容在页面里能过、在脚本里失败。需要严格复现线上行为时，用与线上相同的解析器和未处理的原始字节。</p>\n<p>所有输入都留在浏览器本地，页面不上传内容，但刷新即丢失，工作副本要自己保存。工具不提供 schema 校验、JSONPath 查询或格式互转，这些需求应换相邻工具。</p>\n\n<h2>相邻工具怎么选</h2>\n<p>确认结构合法之后，如果还要在 JSON 与 YAML、XML 之间转换，用 <a href=\"/tools/dev/json-xml-yaml/\">JSON 与 YAML/XML 互转</a>，它处理的是格式间的类型边界；要把对象数组摊平成表格，用 <a href=\"/tools/dev/json-convert/\">JSON 转 CSV/TSV</a>；只取其中几个字段，用 <a href=\"/tools/dev/jsonpath/\">JSONPath 查询</a>。本文讨论的定位与排错流程仍然适用：先让文本通过 <a href=\"/tools/dev/json-formatter/\">JSON 格式化与校验</a>，再做后续转换，能少走一段弯路。</p>\n<p>最后一条经验：把报错当作坐标而不是判决。先看它指到第几个字符，再看那个字符前一个非空白字符是什么，最后才决定删逗号、换引号还是去掉 BOM。</p>",
   "faqs": [
     {
-      "q": "为什么接口返回能看懂，但 JSON.parse 失败？",
-      "a": "接口可能返回了 HTML 错误页、尾部逗号、单引号对象或带 BOM 的文本。先确认响应头和原始字节，再检查 JSON 语法。"
+      "q": "为什么报错写 position 29，页面却显示第 30 列？",
+      "a": "position 从 0 开始数，列号从 1 开始，同一条消息里两个数字指的是同一个字符。页面把 position 换成中文行列后接上英文原文，所以会出现 29 与 30 并列；按第 30 列去找即可。"
     },
     {
-      "q": "压缩后的 JSON 更安全吗？",
-      "a": "不会。压缩只移除空白，不提供加密或访问控制。"
+      "q": "带 BOM 的 JSON 在网页里能格式化，脚本里却失败？",
+      "a": "页面在解析前调用 trim()，U+FEFF 属于会被去掉的空白，所以页面看到的是去掉 BOM 后的文本；Node 的 JSON.parse 不会自动去 BOM。要复现线上失败，直接用原始字节，或先检查文件头三个字节。"
+    },
+    {
+      "q": "格式化成功就能说明数据正确吗？",
+      "a": "不能。它只证明文本符合 JSON 语法，不做 schema 校验、不查重复键，也不阻止大整数丢精度：重复键只留最后一个，1e400 会变成 null。"
+    },
+    {
+      "q": "压缩能减小传输体积吗？",
+      "a": "只去掉空白与换行，数据量不变；本次样例压缩输出与紧凑输入逐字节相同——本来就是紧凑写法，压缩不会再降；先把 115 字符格式化到 169，再压缩才会回到 115。真正减小体积要靠 gzip、brotli 或精简字段。"
+    },
+    {
+      "q": "页面有行数或大小上限吗？",
+      "a": "代码里没有长度检查，处理都在浏览器内存里完成；本次 90281 字符的数组格式化用了 438 ms，输出 10502 行。更大文件建议先在命令行切片。"
     }
   ],
   "sources": [
     {
-      "title": "RFC 8259：JSON 数据交换格式",
+      "title": "MDN：JSON.parse()（语法、SyntaxError、尾逗号与双引号限制）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse"
+    },
+    {
+      "title": "MDN：JSON.stringify()（space 缩进参数、NaN 与 Infinity 序列化为 null）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify"
+    },
+    {
+      "title": "MDN：JSON 对象（JavaScript 与 JSON 的差异、数字精度说明）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON"
+    },
+    {
+      "title": "RFC 8259：JSON 数据交换格式（数字、字符串与 BOM 规则）",
       "url": "https://www.rfc-editor.org/rfc/rfc8259"
+    },
+    {
+      "title": "ECMA-262：JSON.parse 与 JSON.stringify（ParseJSON 抛 SyntaxError、space 上限 10）",
+      "url": "https://tc39.es/ecma262/multipage/structured-data.html#sec-json.parse"
+    },
+    {
+      "title": "json.org：JSON 语法简介（对象、数组、值只用双引号字符串）",
+      "url": "https://www.json.org/json-en.html"
     }
   ],
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
-    "originalPublished": "2026-09-30"
-  }
+    "auto": true,
+    "mode": "upgrade-guide",
+    "type": "upgrade-guide",
+    "runId": "2026-11-18T06",
+    "runKey": "2026-11-18T06",
+    "upgradedFrom": "legacy-migration",
+    "originalPublished": "2026-09-30",
+    "note": "upgrade-guide：保留 slug 与 published，正文全篇重写，updated 改为 2026-11-18",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.8,
+    "reviewRound": 2,
+    "verifiedAt": "2026-11-17T22:18:55.041Z",
+    "primaryQuery": null
+  },
+  "image": "/article-images/2026-11/json-formatting-validation-error-locate.jpg"
 }
