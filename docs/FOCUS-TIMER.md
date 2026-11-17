@@ -79,7 +79,7 @@ npm run build
 node scripts/smoke-tool.mjs --slug focus-timer --category daily
 ```
 
-实际结果：`update-tool-counts.mjs --write` 将 README 工具计数更新为 79（日常 24），不手写数字；`npm test` 与 `npm run build` 通过，构建输出记录 593 个页面且图标规范无 emoji、README 计数一致；`node scripts/smoke-tool.mjs --slug focus-timer --category daily` 的 35 个浏览器场景全部通过，覆盖五语核心流程与生产 CSP、非法输入、恢复与时间跳变、前后台衔接、双标签、存储读/写失败、损坏与未知版本、缺失 Web Locks、音频失败与切换、常亮拒绝/缺失/延迟、360px 深浅主题与键盘、对比度检查及清空数据；截图由真实用例写入运行目录。复核阶段独立检查发现的标题对比度、读失败时清空数据、未启用声音时重试自行播放、空态入口与阶段不符等问题已逐项修复并纳入上述用例；生产环境验收在发布后由流水线自动执行。
+实际结果：`update-tool-counts.mjs --write` 将 README 工具计数更新为 79（日常 24），不手写数字；`npm test` 与 `npm run build` 通过，构建输出记录 593 个页面且图标规范无 emoji、README 计数一致；`node scripts/smoke-tool.mjs --slug focus-timer --category daily` 的 36 个浏览器场景全部通过，覆盖五语核心流程与生产 CSP、非法输入、恢复与时间跳变、前后台衔接、双标签、存储读/写失败、损坏与未知版本、缺失 Web Locks、音频失败与切换、常亮拒绝/缺失/延迟、360px 深浅主题与键盘、对比度检查及清空数据；截图由真实用例写入运行目录。复核阶段独立检查发现的标题对比度、读失败时清空数据、未启用声音时重试自行播放、空态入口与阶段不符等问题已逐项修复并纳入上述用例；生产环境验收在发布后由流水线自动执行。
 
 ## 文件清单
 
