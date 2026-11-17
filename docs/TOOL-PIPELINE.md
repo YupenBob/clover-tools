@@ -181,7 +181,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | codex 未登录 / 额度耗尽 | 写 `PAUSED` 并保留 worktree/spec；额度重置后 `--resume <runKey>` 继续，不重跑 Builder |
 | Architect spec lint 失败 | 重试 1 次；仍失败→`stalled` |
 | Builder 超时 | `stalled`，保留 worktree |
-| Diff 违规 | 不发布；报告违规路径；`failed` |
+| Diff 违规 | 不发布；报告违规路径；`failed`。常见原因：队列把 `apiFile` 指向已上线的 API（只允许新增 `functions/api/*.ts`）——应为每个网络工具新建独立端点 |
 | Gates 失败 | 修复轮 1 次；仍失败→`failed` |
 | Verifier fail | 修复轮 1 次 + 复审；仍失败→`failed` |
 | push 失败 | 主 checkout reset 回 base；worktree 保留；`failed` |
