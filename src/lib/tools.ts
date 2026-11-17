@@ -547,6 +547,16 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       legacyPath: '/tools/time/countdown.html',
     },
     {
+      slug: 'focus-timer',
+      name: '专注时间',
+      oneLiner: '关联任务的番茄循环，记录今天与本周的专注投入。',
+      description: '为学习、写作与工作安排任务番茄钟，支持短长休息、提前结束记录、今日与本周统计、本地合成环境声、通知及屏幕常亮，任务与记录保存在当前浏览器。',
+      icon: 'stopwatch',
+      keywords: ['专注计时', '番茄钟', '专注统计', '学习计时', '任务计时', '环境声'],
+      tier: 'P0',
+      badge: 'new',
+    },
+    {
       slug: 'exam-clock',
       name: '考场大屏时钟',
       oneLiner: '全屏大字时钟，校准北京时间并倒计时考试阶段。',

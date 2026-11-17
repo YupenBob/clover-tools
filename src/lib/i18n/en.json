@@ -879,6 +879,17 @@
         "beijing time clock",
         "fullscreen clock"
       ]
+    },
+    "focus-timer": {
+      "name": "Focus Timer",
+      "oneLiner": "Task-based Pomodoro cycles with daily and weekly focus records.",
+      "description": "Plan task-based focus sessions, short and long breaks, and review daily or weekly records. Includes local ambient sound, notifications and screen wake lock.",
+      "keywords": [
+        "focus timer",
+        "Pomodoro timer",
+        "task timer",
+        "weekly focus report"
+      ]
     }
   },
   "content": {
@@ -2676,6 +2687,79 @@
           }
         ],
         "privacy": "Exam names, start and end times, display preferences and sound settings stay in this browser. The page requests only the same-origin /api/time endpoint; our server requests the Cloudflare time reference without sending exam settings. This tool’s application code does not read, store or output visitor IP addresses, and does not forward visitor IP addresses or account information upstream. The hosting platform still processes connection information to provide network services."
+      }
+    },
+    "focus-timer": {
+      "usage": "Add and select a task, or start without one. Choose 25, 45 or 60 minutes, or an integer from 1 to 180. Start, pause and resume. A natural finish counts as a completed session. End early to save actual running time, or skip to discard unsaved progress. Start the next stage manually by default. A long break follows four completed sessions by default. Auto-start works only while the page is visible; a background finish requires manual action. Review today or this week, including task totals, seven daily bars and recent sessions. Copy a report or clear records while keeping tasks and settings.",
+      "features": [
+        {
+          "icon": "stopwatch",
+          "text": "Task-linked Pomodoro cycles with short and long breaks"
+        },
+        {
+          "icon": "check-circle-fill",
+          "text": "Completed and early-end session records"
+        },
+        {
+          "icon": "bar-chart",
+          "text": "Seven-day charts and task-based reviews"
+        },
+        {
+          "icon": "volume-up",
+          "text": "Local ambient audio, notifications and screen wake lock"
+        }
+      ],
+      "detail": {
+        "intro": "Turn one task into a focused session with a clear start and finish, then review your daily and weekly effort. This Pomodoro timer adds task snapshots, short and long breaks, and saved records to a countdown. It measures timer activity rather than attention.",
+        "steps": [
+          "Add and select a task, or start without one. Choose 25, 45 or 60 minutes, or an integer from 1 to 180.",
+          "Start, pause and resume. A natural finish counts as a completed session. End early to save actual running time, or skip to discard unsaved progress.",
+          "Start the next stage manually by default. A long break follows four completed sessions by default. Auto-start works only while the page is visible; a background finish requires manual action.",
+          "Review today or this week, including task totals, seven daily bars and recent sessions. Copy a report or clear records while keeping tasks and settings."
+        ],
+        "examples": [
+          {
+            "label": "Complete and early sessions",
+            "input": "Complete a 25-minute session, then run another for 10 minutes and save an early end.",
+            "output": "Saved totals show 35 minutes and one completed session. Pauses and breaks are excluded."
+          },
+          {
+            "label": "Midnight and reload",
+            "input": "Focus from 23:50 to 00:15. Reload during a different running session.",
+            "output": "Ten minutes belong to the first date and fifteen to the next; the completion belongs to the next date. Reload restores the latest checkpoint paused, excluding time away."
+          }
+        ],
+        "principles": [
+          "A monotonic performance clock drives elapsed time within the page lifecycle. Wall clock changes do not change the countdown, and one delayed callback finishes at most the current stage.",
+          "Each start or resume captures a UTC time anchor and time zone. Running segments split at actual local date boundaries, including daylight saving changes. Saved date allocations never move when your device zone changes.",
+          "Weeks run Monday through Sunday using the local dates saved with each record. Only submitted complete or early sessions add time; only natural finishes add completions. Active sessions are shown separately.",
+          "Five languages share one local data set. Web Locks allows one controlling tab; other tabs are read-only and can request control once the lock is free. Without Web Locks, use is temporary with no persistent writes."
+        ],
+        "pitfalls": [
+          "Reload restores a paused checkpoint and excludes time away. Checkpoints save every five seconds and on key actions, but freezes, crashes or storage failures can lose recent progress.",
+          "Notifications, ambient sound and wake lock depend on browser and system capabilities. Background and sleep alerts may be late; monotonic clock behavior during sleep varies by browser.",
+          "Limits are 100 tasks and 2,000 records, with no silent eviction. Copy a report or clear records before starting more sessions at capacity. Deleted tasks keep their historical names.",
+          "First offline visits and offline reloads are not guaranteed. Clearing site data, changing browsers or ending private sessions may lose records. There is no cross-device recovery, payroll or attendance calculation."
+        ],
+        "faqs": [
+          {
+            "q": "How do end early, skip and reset differ?",
+            "a": "End early saves actual running time without a completion and schedules focus next. Skipping focus discards unsaved time and schedules a short break. Reset discards unsaved progress and resets the cycle while keeping saved records."
+          },
+          {
+            "q": "Does it keep counting after a reload or closing the page?",
+            "a": "Time away is not added. Reopening restores the latest saved checkpoint paused; resume manually. A freeze or failed save can lose the most recent progress."
+          },
+          {
+            "q": "Are the ambient sounds recordings?",
+            "a": "No. White noise, rain and synthesized café ambience use local Web Audio nodes without external audio downloads. Enable sound with a click; continuous audio stops on pause, break or finish."
+          },
+          {
+            "q": "Does the report prove productivity?",
+            "a": "No. Statistics record timer activity, not actual attention. They make no promises about productivity, grades or health. Reminders and wake lock cannot guarantee that a browser keeps running."
+          }
+        ],
+        "privacy": "No account, key or paid API is needed, and this tool adds no business network requests. Tasks, settings, checkpoints and up to 2,000 records stay in this browser under clover-focus-timer:v1, without uploads or server logging. Ambient audio is synthesized locally; notifications and wake lock use browser APIs. Titles and notifications omit task names. Clear-all removes only this tool’s key. Static assets and existing site infrastructure may still communicate normally."
       }
     }
   }
