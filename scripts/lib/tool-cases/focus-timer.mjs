@@ -389,8 +389,6 @@ export async function run({ run, remember, base, artifacts }) {
       await status(page, "idle");
       assert.equal(await page.locator("#ftOpenTasks li").count(), 0);
       if (["corrupt", "version"].includes(problem)) {
-        // 对话框关闭后应用才异步删除，等删除落盘再断言。
-        await poll(page, (key) => localStorage.getItem(key) === null, KEY);
         assert.equal(
           await page.evaluate((key) => localStorage.getItem(key), KEY),
           null,
@@ -404,16 +402,6 @@ export async function run({ run, remember, base, artifacts }) {
       }
       if (problem === "read") {
         // 读取权限失败时，“清空全部数据”也必须真正删除旧值，而不是只报成功。
-        await poll(
-          page,
-          (key) => {
-            if (!window.__ftOriginalGetItem) return false;
-            Storage.prototype.getItem = window.__ftOriginalGetItem;
-            const gone = localStorage.getItem(key) === null;
-            return gone;
-          },
-          KEY,
-        );
         const removed = await page.evaluate((key) => {
           Storage.prototype.getItem = window.__ftOriginalGetItem;
           return localStorage.getItem(key);
@@ -434,6 +422,9 @@ export async function run({ run, remember, base, artifacts }) {
     await status(page, "finished");
     await confirm(page, "#ftClearRecords");
     await status(page, "finished");
+    // 对话框关闭后应用才异步清空记录并重绘，等空态出现再断言。
+    await poll(page, () => !document.querySelector("#ftEmptyRecords")?.hidden);
+    await poll(page, () => !document.querySelector("#ftEmptyStart")?.hidden);
     assert.equal(await page.locator("#ftEmptyRecords").isVisible(), true);
     assert.equal(await page.locator("#ftEmptyStart").isVisible(), true);
     assert.equal(await page.locator("#ftEmptyStart").textContent(), "开始专注");
@@ -747,19 +738,10 @@ export async function run({ run, remember, base, artifacts }) {
     await poll(page, () => window.__ftCopied.length > 0);
     assert.equal(await page.locator("#ftManualCopy").isVisible(), false);
     await confirm(page, "#ftClearRecords");
-    // 清空记录在对话框关闭后异步落盘，等记录数归零再断言。
-    await poll(
-      page,
-      (key) =>
-        (JSON.parse(localStorage.getItem(key) || "null")?.records?.length ??
-          0) === 0,
-      KEY,
-    );
     assert.equal((await stored(page)).records.length, 0);
     assert.equal(await page.locator("#ftOpenTasks li").count(), 1);
     assert.equal(await page.locator("#ftCopy").isDisabled(), true);
     await confirm(page, "#ftClearAll");
-    await poll(page, (key) => localStorage.getItem(key) === null, KEY);
     assert.equal(
       await page.evaluate((key) => localStorage.getItem(key), KEY),
       null,
