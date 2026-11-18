@@ -596,5 +596,31 @@
     "alt": "JSON 格式化工具工作区：输入框是 115 字符的紧凑 JSON，缩进下拉框显示「2 空格」；输出区第一行是「{」，第二行是「  \"name\": \"CloverTools\",」，数组元素与嵌套对象逐层缩进，状态栏显示「格式化完成」，输出框下统计为「169 字符」。",
     "caption": "把同一份示例数据按 2 空格缩进格式化：输出区第一行是「{」，第二行缩进两个空格显示「\"name\": \"CloverTools\",」，features 数组每个元素一行、stats 对象再缩进一层；状态栏显示「格式化完成」，底部统计为「169 字符」。",
     "slug": "json-formatting-validation"
+  },
+  {
+    "file": "json-to-csv-excel-convert-result.jpg",
+    "width": 1232,
+    "height": 843,
+    "bytes": 100335,
+    "sha256": "bda6a25008133e9ea7807cc2609a8ca5ae52f37bc86b42e8dc93852180423064",
+    "capturedAt": "2026-11-18T04:09:06.903Z",
+    "source": "/tools/dev/json-convert/",
+    "purpose": "展示对象数组导出后的表头、嵌套字段的整段 JSON 文本、含换行单元格与统计行",
+    "alt": "JSON 转 CSV 工具页：上方输入框里是一段单行紧凑的 JSON 数组（首行以「[{\"id\":1」开头），共 5 条记录、397 字符；下方输出框第一行是「id,name,profile,tags,code,big,note,raw」，第二行以「1,杭州仓,」开头，profile 列是一整段带双引号的 JSON 文本，note 列的值换行占了两行；状态栏是绿色「转换完成：5 行 × 8 列」，输出框下方统计为「261 字符 · 5 行数据 · 8 列」。",
+    "caption": "五条记录导出后：profile 与 tags 仍是整段 JSON 文本，带换行的备注让表格含表头共七行（截图可见前六行）",
+    "slug": "json-to-csv-excel"
+  },
+  {
+    "file": "json-to-csv-excel-error-state.jpg",
+    "width": 1232,
+    "height": 823,
+    "bytes": 45329,
+    "sha256": "ef4c995153eaa9d3787de4aafafb00501dea3572dd5c5be9585f96c80ce6d660",
+    "capturedAt": "2026-11-18T04:09:07.208Z",
+    "source": "/tools/dev/json-convert/",
+    "purpose": "展示只接受对象数组这一门槛：错误文案、空输出框与空统计行",
+    "alt": "同一工具页：输入框只有一行「[1,2]」，下方状态栏是一段红色文字「请输入非空的对象数组，如 [{ \"a\": 1 }]」，输出框为空，输出框下的统计行也是空的，右侧「生成表格」「下载文件」按钮保持可点状态。",
+    "caption": "输入不是对象数组时，状态栏给出中文提示，输出框保持为空",
+    "slug": "json-to-csv-excel"
   }
 ]

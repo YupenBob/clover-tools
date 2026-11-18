@@ -1,34 +1,72 @@
 {
   "slug": "json-to-csv-excel",
-  "title": "JSON 转 CSV：嵌套字段、缺失值与 Excel 导入的实作检查",
-  "description": "核对 JSON 对象数组导出 CSV 时的嵌套字段、空单元格、逗号转义与 Excel 前导零，明确当前工具的实际行为。",
-  "seoDescription": "JSON 转 CSV 时，表头、空值与嵌套字段怎么处理：只接收非空对象数组，表头按字段首次出现顺序合并，缺失字段留空，嵌套对象不会被拆成新列而是序列化为 JSON 文本；输出是文本表格而非原生 XLSX，带逗号内容与前导零都要在导入 Excel 前核对。每条记录按同一组表头填值，嵌套数组同样会保留为序列化文本。",
+  "title": "JSON 转 CSV 实作：嵌套字段、空值与 Excel 前导零",
+  "description": "对象数组导出 CSV 前，核对表头顺序、嵌套字段落点、空值表达、逗号引号换行转义，以及前导零在 Excel 里的变化与超长数字在浏览器解析时的精度损失。",
+  "seoDescription": "JSON 转 CSV 前先核对表头顺序、嵌套对象与数组的落点、缺失键与 null 的空单元格、逗号引号换行的 CSV 转义，以及前导零、18 位编号在浏览器与 Excel 里的变化；工具只接收非空对象数组，再确认 BOM 编码、导入列类型、公式前缀与表头是否重排，最后按文中六项清单逐条核对，避免读回时错位。",
   "category": "开发实用",
   "toolSlug": "json-convert",
   "published": "2026-09-30",
-  "updated": "2026-10-16",
-  "readingMinutes": 3,
-  "content": "<p>这篇说明针对 CloverTools 当前的 CSV/TSV 导出器。它接收非空对象数组，不接收单个对象、空数组或混入 null 的数组；输出是文本表格，不是原生 XLSX 文件。</p>\n      <p>下面以两条演示记录说明：第一条包含嵌套城市信息，第二条包含带逗号的备注。可在工具中输入自己的对象数组，按相同口径核对导出。</p>\n      <h2>一条记录如何变成一行</h2>\n      <p>第一条记录有 order、item、quantity、profile；第二条有 order、item、quantity、note。工具按字段第一次出现的顺序合并表头，因此得到五列。每条记录按同一组表头填值，缺失的字段留空。</p>\n      <h2>嵌套对象保留在单元格里</h2>\n      <p>本工具不会把 profile.city 自动拆成新列。<code>{\"city\":\"杭州\"}</code> 会序列化为 JSON 文本，并依据 CSV 规则转义双引号，放在 profile 对应的单元格中。嵌套数组也会保留为序列化文本；需要分析数组明细时，请先在源数据中整理成独立记录。</p>\n      <h2>含逗号和换行的值</h2>\n      <p>演示记录中的 note 为“请勿折叠, 谢谢”。它应被双引号包裹，不能因为其中一个逗号多出一列。单元格中的双引号会写成两个双引号，换行仍属于同一个单元格；不要用简单的按逗号切分来读取 CSV。</p>\n      <h2>在 Excel 中导入时保住编号</h2>\n      <p>导出的文件带 UTF-8 BOM，帮助表格软件识别中文，但 BOM 不会强制列类型。使用“从文本/CSV”导入，确认 UTF-8 编码，并把 order 列设成文本，再核对 000123 的前导零。CSV 不是 Excel 工作簿，不能携带完整的单元格格式和类型约束。</p>\n      <h2>交付前的核对清单</h2>\n      <ol><li>确认两条数据记录、五列表头，且字段顺序与源数据一致。</li><li>第一行 note 应为空；第二行 profile 应为空。</li><li>profile 中的城市信息应保留，没有被静默展开或丢弃。</li><li>note 内的逗号不能分裂成新列，中文与订单编号显示应正确。</li><li>遇到不可信来源的数据，检查以 =、+、-、@ 等开头的文本；CSV 转义不能替代表格软件的公式防护。</li></ol>",
+  "updated": "2026-11-18",
+  "readingMinutes": 7,
+  "content": "<p>JSON 转 CSV 的难点几乎都不在转换，而在「表格软件会怎么读这一格」。下面用工具页的真实输出，把表头顺序、嵌套字段、空值、转义、前导零、超长数字与公式前缀逐项对照，最后给出导入 Excel 前的核对顺序。</p>\n\n<h2>先看结论：能导出的是非空对象数组</h2>\n<p>在 <a href=\"/tools/dev/json-convert/\">JSON 转 CSV 工具</a> 里，输入必须是非空的对象数组，这是唯一的硬门槛。单个对象、空数组、混入 null 的数组都会在检查处退回，状态栏给出「请输入非空的对象数组，如 [{ \"a\": 1 }]」；空输入是另一句「请输入 JSON 数组」；JSON 本身不合法时显示「JSON 解析失败：」加解析器原文，例如输入 <code>[{a:1}]</code> 得到 <code>Expected property name or '}' in JSON at position 2 (line 1 column 3)</code>。报错定位与格式化另文讨论。</p>\n<p>页面上有五个按钮：示例、清空、生成表格、下载文件、复制，另有分隔符下拉框与「首行输出表头」勾选框。点「示例」填入三条演示数据，输入框统计为 268 字符；点「生成表格」得到 3 行 × 4 列、83 字符的文本；取消表头后同一份数据是 58 字符，首行直接变成 <code>CloverTools,工具站,69,true</code>。</p>\n\n<h2>表头顺序由字段第一次出现决定</h2>\n<p>表头先按第一条记录的键序打底，后续记录的新键按出现顺序追加。两条记录 <code>{\"b\":1,\"a\":2}</code> 与 <code>{\"a\":3,\"c\":4}</code> 实际得到 <code>b,a,c</code> 三列，第一行缺 c、第二行缺 b，都留空。字段顺序不一致时列序看着「乱」，原因就在扫描顺序。</p>\n<p>列数由所有键的并集决定：五条记录里第一条已含全部 8 个键，后续记录缺键时这些列仍然保留，最终是 8 列 <code>id,name,profile,tags,code,big,note,raw</code>；行数按记录数算，状态栏说「5 行 × 8 列」。</p>\n\n<h2>缺失键、null 与空数组：三种空不是一回事</h2>\n<p>缺失键与显式 null 走同一个分支，都写成空字符串。两条记录 <code>{\"a\":1,\"b\":null}</code> 与 <code>{\"a\":2}</code> 输出 <code>1,</code> 和 <code>2,</code>，b 列都是空，从 CSV 里分不出哪一行原本是 null。空数组则完全不同：<code>tags: []</code> 会被序列化成 <code>[]</code>，落进单元格是两个方括号，空对象写成 <code>{}</code>，都不是留空。</p>\n<p>要区分这三种空，只能在导出前加状态列，例如 null 写 NULL、缺失写 N/A；CSV 没有类型位。</p>\n<table>\n<thead><tr><th>源数据</th><th>导出的单元格</th><th>读回来是什么</th></tr></thead>\n<tbody>\n<tr><td>键不存在</td><td>空</td><td>空字符串，与 null 无法区分</td></tr>\n<tr><td><code>null</code></td><td>空</td><td>同上</td></tr>\n<tr><td><code>[]</code></td><td><code>[]</code></td><td>两个字符，不是空值</td></tr>\n<tr><td><code>{}</code></td><td><code>{}</code></td><td>两个字符，不是空值</td></tr>\n</tbody>\n</table>\n\n<h2>嵌套对象与数组：整段 JSON 文本，不自动拆列</h2>\n<p>嵌套对象和数组都按对象处理，先 JSON.stringify 再整段塞进一个单元格，然后按 CSV 规则转义。实测第一条记录的 profile 输出为 <code>\"{\"\"city\"\":\"\"杭州\"\",\"\"zip\"\":\"\"310000\"\"}\"</code>：外层引号是 CSV 转义，成对的双引号是 JSON 文本自带的引号。tags 同理，输出 <code>\"[\"\"加急\"\",\"\"易碎\"\"]\"</code>。</p>\n<p>工具不会生成 <code>profile.city</code> 这样的点号列，也不会生成 <code>tags[0]</code> 这样的下标列。要拆列只有两条路：在源数据里先摊平，把 city 提成顶层键；或先用 <a href=\"/tools/dev/jsonpath/\">JSONPath 查询</a> 取出子字段，重新组装成对象数组。数组元素个数不一致时，摊平会让列数随最长数组膨胀，这一步要自己权衡。</p>\n\n<h2>逗号、引号、换行：转义只有三条规则</h2>\n<p>RFC 4180 对字段转义的规定很短：字段里出现逗号、双引号或换行时，整个字段用双引号包住；字段内的双引号写成两个双引号；记录之间用 CRLF 分隔。工具的判断是 <code>/[\",\\r\\n]/</code>，命中就加引号并把内部引号翻倍。</p>\n<p>实测：备注为「请勿折叠, 谢谢」时输出 <code>\"请勿折叠, 谢谢\"</code>；值为 <code>他说\"好\", 然后走了</code> 时输出 <code>\"他说\"\"好\"\", 然后走了\"</code>；带换行的备注会把引号带到下一行。引号成对翻倍，用 <code>split(',')</code> 读回必然错位。</p>\n<table>\n<thead><tr><th>原始值</th><th>CSV 输出</th><th>触发规则</th></tr></thead>\n<tbody>\n<tr><td>请勿折叠, 谢谢</td><td><code>\"请勿折叠, 谢谢\"</code></td><td>含逗号</td></tr>\n<tr><td>他说\"好\", 然后走了</td><td><code>\"他说\"\"好\"\", 然后走了\"</code></td><td>含逗号与引号，引号翻倍</td></tr>\n<tr><td>第一行 / 第二行</td><td><code>\"第一行</code> 换行 <code>第二行\"</code></td><td>含换行，跨物理行</td></tr>\n</tbody>\n</table>\n\n<h2>换行让物理行数变多，统计行仍按记录算</h2>\n<p>含换行的单元格在文本里占两个物理行，统计行仍说「5 行数据」，输出文本的物理行则是 7 行。按行数核对会多出两行，用表格软件打开才是对的：RFC 4180 允许引号内出现换行，导入方会留在同一格。</p>\n<p>还有一个容易忽略的细节：浏览器给 textarea 赋值时会把 CRLF 归一化成 LF，所以页面统计的字符数是 261，而转换中间态是 266 字符；下载得到的文件同样是 LF。严格按 RFC 4180 校验 CRLF 的下游会看到差异，需要导出后再转一次换行，界面文案看不出这一点。</p>\n\n<h2>前导零：JSON 数字写不出 000123，字符串能保住</h2>\n<p>JSON 数字不允许前导零，输入 <code>[{\"code\":000123}]</code> 在解析阶段就失败，报 <code>Unexpected number in JSON at position 10 (line 1 column 11)</code>。带前导零的编号必须以字符串写入：<code>code: \"000123\"</code> 输出 000123，六位字符一个不少，<code>\"000045\"</code> 同样完整保留。</p>\n<p>保住文本不等于保住 Excel 里的显示：把列当数字还是文本，取决于导入时是否指定列类型。Power Query 的 Text/CSV 连接器默认按前 200 行或整个数据集推断类型，也可以关掉推断让所有列默认为文本。双击打开 CSV 不经过这个选择，没机会把列钉成文本；要保留 000123，就走「数据 → 从文本/CSV」并把该列设为文本。</p>\n\n<h2>超长数字：在浏览器里就已经变了</h2>\n<p>18 位身份证 110101199003072316 写进 JSON 数组后，导出的是 110101199003072320；9007199254740993 变成 9007199254740992。变化发生在 JSON.parse，不在 CSV 写入：JavaScript 只有双精度浮点，MDN 给出的安全整数上限是 9007199254740991，RFC 8259 也说明整数只在 ±(2^53-1) 范围内可以精确互操作。</p>\n<p>手机号 13800138000 在安全范围内，按数字存也不会变；身份证、订单号、银行卡号一旦过线就无法还原。做法与上节一致：源数据里就写成字符串，导入时按文本列处理。若数字已经写进 JSON，工具无法回滚精度，只能回到上游重新生成。</p>\n\n<h2>Excel 打开：BOM 解决编码，列类型要自己指定</h2>\n<p>「下载文件」不是把文本框原样存盘：它先跑一次转换，再在内容前加一个 U+FEFF，文件名固定为 json-to-csv.csv（选 TSV 时是 json-to-tsv.tsv），MIME 为 text/csv;charset=utf-8。实测这份 5 行数据下载下来是 330 字节，前三字节为 EF BB BF，比不加 BOM 的 LF 文本多 3 字节（另存的副本经解码后剥离 BOM，是 327 字节）。</p>\n<p>BOM 只解决编码识别，不解决列类型。Power Query 文档写明：文件源不会自动推断字符集，只有开头带 UTF-8 BOM 时才按 UTF-8 处理，否则要在 File Origin 手动指定编码（UTF-8 即 65001）。中文列名或值双击打开乱码时，先确认文件是否带 BOM，或改走「从文本/CSV」并选 UTF-8。</p>\n<p>双击打开还有两个默认动作：按逗号切列、按内容猜类型。含分号或制表符的文件会被读成一列，000123 这类值会被当数字；列名与列类型都要稳定时，走导入向导比事后改格式可靠。</p>\n\n<h2>公式前缀：引号不改变开头的那个字符</h2>\n<p>Excel 会把以 =、+、- 开头的单元格内容当作公式入口。官方 API 文档的原话是：返回的值以加号、减号或等号开头时，Excel 会把它解释为公式。CSV 的引号只处理分隔符与引号本身，不改变首字符，所以 <code>\"=1+1\"</code> 加不加引号都还是公式的开头。</p>\n<p>本工具对 <code>=1+1</code>、<code>+86 13800138000</code>、<code>-2+3</code> 都原样输出，不加前缀也不改写；常见清单还会把 @ 列入前缀，本文只按能核到的 =、+、- 说明。CSV 没有「这一格是文本」的标记，能否挡住公式取决于表格软件的导入选项，本工具不做这层保证。</p>\n\n<h2>分隔符与区域设置：逗号、制表符怎么选</h2>\n<p>分隔符只有逗号与制表符两个选项，输出用 CRLF 拼接，赋给文本框后为 LF。选 TSV 后，值里的制表符会被引号包住；但含逗号的值同样会被引号包住，因为转义判断固定包含逗号。实测 1 行 3 列的输出是 <code>1</code>、<code>\"甲,乙\"</code>、<code>12×8</code>，以制表符分隔，共 25 字符。</p>\n<p>区域设置会影响「逗号」的含义：有的环境用分号作分隔符、逗号作小数点，逗号 CSV 容易被读成一列；下游只认逗号 CSV 时，要在导入端显式指定分隔符，别靠自动识别。</p>\n\n<h2>边界与限制</h2>\n<p>这个工具只做文本转换：不生成 xlsx，不写单元格格式、不设列类型、不处理合并单元格，也不做数据校验。它不做嵌套展开、键名重命名与缺失值填补；超长数字的精度损失发生在浏览器解析 JSON 那一步，工具无法回滚。</p>\n<p>页面没有写输入上限，但转换在主线程完成，超大数组会让页面卡顿；语法确认这一步可以交给 <a href=\"/tools/dev/json-formatter/\">JSON 格式化与校验</a>。含换行的单元格会让「按行核对」失效；BOM 只帮编码识别。「清空」只清输入输出并隐藏状态栏，统计行仍留着上一次的数字，核对时别被它误导。</p>\n<p>文中行为来自当前构建的页面；改版后按钮、文案或转义细节可能变化，以页面实际输出为准。</p>\n\n<h2>交付前核对清单</h2>\n<ul>\n<li>输入是非空对象数组，没有 null 成员；表头行与 5 行数据对得上 8 列。</li>\n<li>缺失键、null、空数组已决定怎么表达，必要时加状态列。</li>\n<li>嵌套字段确认是保留整段 JSON 文本，还是先摊平再导出。</li>\n<li>含逗号、引号、换行的值用真正的 CSV 解析器回读一遍，不要按逗号切分。</li>\n<li>前导零与 18 位编号在源数据里是字符串，导入时按文本列处理。</li>\n<li>以 =、+、- 开头的值已按业务需要处理，并且清楚引号不改变这一点。</li>\n</ul>\n<p>这六项对完，再考虑表头是否要翻译、列序是否重排；真正花时间的是这些读回来的假设。</p>\n\n<p><figure><a href=\"/article-images/2026-11/json-to-csv-excel-convert-result.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：JSON 转 CSV 工具页：上方输入框里是一段单行紧凑的 JSON 数组（首行以「[{&quot;id&quot;:1」开头），共 5 条记录、397 字符；下方输出框第一行是「id,name,profile,tags,code,big,note,raw」，第二行以「1,杭州仓,」开头，profile 列是一整段带双引号的 JSON 文本，note 列的值换行占了两行；状态栏是绿色「转换完成：5 行 × 8 列」，输出框下方统计为「261 字符 · 5 行数据 · 8 列」。\"><img src=\"/article-images/2026-11/json-to-csv-excel-convert-result.jpg\" alt=\"JSON 转 CSV 工具页：上方输入框里是一段单行紧凑的 JSON 数组（首行以「[{&quot;id&quot;:1」开头），共 5 条记录、397 字符；下方输出框第一行是「id,name,profile,tags,code,big,note,raw」，第二行以「1,杭州仓,」开头，profile 列是一整段带双引号的 JSON 文本，note 列的值换行占了两行；状态栏是绿色「转换完成：5 行 × 8 列」，输出框下方统计为「261 字符 · 5 行数据 · 8 列」。\" width=\"1232\" height=\"843\" loading=\"lazy\" decoding=\"async\"></a><figcaption>五条记录导出后：profile 与 tags 仍是整段 JSON 文本，带换行的备注让表格含表头共七行（截图可见前六行） 点击图片可查看原图。</figcaption></figure></p>\n<p><figure><a href=\"/article-images/2026-11/json-to-csv-excel-error-state.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：同一工具页：输入框只有一行「[1,2]」，下方状态栏是一段红色文字「请输入非空的对象数组，如 [{ &quot;a&quot;: 1 }]」，输出框为空，输出框下的统计行也是空的，右侧「生成表格」「下载文件」按钮保持可点状态。\"><img src=\"/article-images/2026-11/json-to-csv-excel-error-state.jpg\" alt=\"同一工具页：输入框只有一行「[1,2]」，下方状态栏是一段红色文字「请输入非空的对象数组，如 [{ &quot;a&quot;: 1 }]」，输出框为空，输出框下的统计行也是空的，右侧「生成表格」「下载文件」按钮保持可点状态。\" width=\"1232\" height=\"823\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入不是对象数组时，状态栏给出中文提示，输出框保持为空 点击图片可查看原图。</figcaption></figure></p>",
   "faqs": [
     {
-      "q": "为什么没有 profile.city 这一列？",
-      "a": "当前工具不自动展开嵌套对象。需要拆列时，先将源数据整理为平面字段，再重新导出。"
+      "q": "为什么导出后没有 profile.city 这样的列？",
+      "a": "工具不展开嵌套对象，profile 会整段序列化成 JSON 文本放进一个单元格。需要点号列时，先在源数据里把子字段提成顶层键，或先用 JSONPath 取出子字段再组装成对象数组。"
     },
     {
-      "q": "下载后能直接当作 XLSX 吗？",
-      "a": "不能。文件是 CSV 或 TSV，可由 Excel 导入，但不包含工作簿、样式与固定列类型。"
+      "q": "缺失键和 null 在 CSV 里能区分吗？",
+      "a": "不能。两者都输出空单元格，读回来都是空字符串；空数组与空对象则会写成 [] 和 {}。需要保留这三种差别，就在导出前加一个状态列。"
+    },
+    {
+      "q": "000123 导出后在 Excel 里变成 123 怎么办？",
+      "a": "CSV 只保证文本内容，列类型由导入方式决定。用「数据 → 从文本/CSV」导入并把该列设为文本，000123 才能保住；双击打开不经过列类型选择。"
+    },
+    {
+      "q": "18 位身份证号为什么末几位变了？",
+      "a": "数字超过 JavaScript 安全整数上限 9007199254740991 后，JSON.parse 阶段就已经四舍五入，导出的 CSV 只是把这个结果写出来。源数据里应把这类编号写成字符串。"
+    },
+    {
+      "q": "下载的文件是 UTF-8 吗？Excel 打开中文乱码怎么办？",
+      "a": "下载内容前加了 U+FEFF，编码为 UTF-8，文件名是 json-to-csv.csv。仍然乱码时，改用「从文本/CSV」导入并选择 65001 编码。"
     }
   ],
   "sources": [
     {
-      "title": "RFC 4180：CSV 文件格式",
+      "title": "RFC 4180：CSV 格式（记录分隔、引号包裹与双引号翻倍）",
       "url": "https://www.rfc-editor.org/rfc/rfc4180"
+    },
+    {
+      "title": "RFC 8259：JSON 数据交换格式（数字前导零、精度范围与 BOM）",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259"
+    },
+    {
+      "title": "MDN：Number.MAX_SAFE_INTEGER（9007199254740991 与双精度上限）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER"
+    },
+    {
+      "title": "Microsoft Learn：Power Query Text/CSV 连接器（BOM 推断、类型检测与分隔符）",
+      "url": "https://learn.microsoft.com/en-us/power-query/connectors/text-csv"
+    },
+    {
+      "title": "Microsoft Learn：Excel.Range（以 +、-、= 开头的值被解释为公式）",
+      "url": "https://learn.microsoft.com/en-us/javascript/api/excel/excel.range?view=excel-js-1.1"
     }
   ],
+  "image": "/article-images/2026-11/json-to-csv-excel-convert-result.jpg",
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
-    "originalPublished": "2026-09-30"
+    "auto": true,
+    "mode": "upgrade-guide",
+    "type": "upgrade-guide",
+    "runId": "2026-11-18T12",
+    "runKey": "2026-11-18T12",
+    "upgradedFrom": "legacy-migration",
+    "originalPublished": "2026-09-30",
+    "note": "upgrade-guide：保留 slug 与 published，正文全篇重写，updated 改为 2026-11-18",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "reviewRound": 3,
+    "verifiedAt": "2026-11-18T04:19:22.420Z",
+    "primaryQuery": null
   }
 }
