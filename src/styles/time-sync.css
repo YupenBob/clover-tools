@@ -1,0 +1,320 @@
+.time-sync {
+  min-width: 0;
+  color: var(--text);
+  display: grid;
+  gap: 1.25rem;
+}
+.time-sync [hidden] {
+  display: none !important;
+}
+.time-sync p {
+  line-height: 1.75;
+}
+.ts-disclaimer {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-left: 3px solid var(--primary);
+  padding-left: 1rem;
+}
+.ts-clocks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.ts-clock {
+  min-width: 0;
+  padding: 1.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--bg-secondary);
+}
+.ts-clock h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: var(--text-secondary);
+}
+.ts-clock time {
+  font: 600 clamp(1.8rem, 4vw, 3.6rem)/1.2 var(--font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.ts-clock p {
+  margin: 0.7rem 0 0.2rem;
+  font-variant-numeric: tabular-nums;
+}
+.ts-clock small,
+.ts-note,
+.ts-explain,
+.ts-runtime {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+.ts-network {
+  border-top: 3px solid var(--primary);
+}
+.ts-report {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.ts-eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+#tsOffset {
+  display: block;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+#tsStatus {
+  margin: 0.6rem 0 1.3rem;
+  color: var(--text-secondary);
+}
+.time-sync[data-state="unavailable"] #tsStatus,
+.time-sync[data-state="conflict"] #tsStatus {
+  color: var(--error);
+}
+.ts-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+.ts-metrics dt {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+.ts-metrics dd {
+  margin: 0.4rem 0 0;
+  overflow-wrap: anywhere;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+.ts-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+.ts-note {
+  margin: 0;
+}
+.ts-table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 0.78rem;
+}
+.ts-table caption {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+.ts-table th,
+.ts-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.8rem 0.45rem;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.ts-table th {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.ts-runtime {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  margin-bottom: 0;
+}
+.ts-explain {
+  display: grid;
+  gap: 1rem;
+}
+.time-sync summary {
+  cursor: pointer;
+  padding: 0.55rem 0;
+  line-height: 1.6;
+}
+.time-sync summary:focus-visible,
+.time-sync button:focus-visible,
+.time-sync textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+.ts-explain pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bg-secondary);
+  padding: 1rem;
+  font-size: 0.8rem;
+}
+.ts-notice {
+  padding: 1rem;
+  border: 1px solid var(--border-strong, var(--border));
+  border-radius: 0.5rem;
+  background: var(--bg-secondary);
+  font-size: 0.9rem;
+}
+.ts-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ts-history > li {
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 0;
+}
+.ts-history summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+.ts-history summary::before {
+  content: "+";
+  color: var(--text-secondary);
+}
+.ts-history details[open] > summary::before {
+  content: "−";
+}
+.ts-history .ts-table {
+  margin: 0.8rem 0;
+}
+.ts-history .btn {
+  margin-top: 0.5rem;
+}
+.time-sync figure {
+  margin: 1rem 0;
+}
+.time-sync figcaption {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.time-sync svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  color: var(--text-secondary);
+}
+.ts-zero {
+  stroke: currentColor;
+  stroke-dasharray: 4 4;
+  opacity: 0.6;
+}
+.ts-point {
+  fill: var(--text);
+}
+.ts-line {
+  stroke: var(--text);
+  stroke-width: 2;
+  fill: none;
+}
+.ts-chart-label {
+  fill: currentColor;
+  font-size: 11px;
+}
+.time-sync textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 12rem;
+  margin-top: 0.6rem;
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  padding: 1rem;
+  font-size: 0.85rem;
+}
+.ts-privacy {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+#tsClipboardStatus:empty {
+  display: none;
+}
+@media (max-width: 900px) {
+  .ts-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ts-table,
+  .ts-table tbody,
+  .ts-table tr,
+  .ts-table td {
+    display: block;
+    width: auto;
+  }
+  .ts-table thead {
+    display: none;
+  }
+  .ts-table caption {
+    display: block;
+  }
+  .ts-table tr {
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+  .ts-table td {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 0.6rem;
+    border: 0;
+    padding: 0.4rem;
+  }
+  .ts-table td::before {
+    content: attr(data-label);
+    color: var(--text-secondary);
+  }
+  .ts-table td:first-child {
+    font-weight: 600;
+  }
+}
+@media (max-width: 480px) {
+  .ts-clocks {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+  .ts-clock {
+    padding: 1.2rem;
+  }
+  .ts-clock h2 {
+    margin-bottom: 0.6rem;
+  }
+  .ts-clock time {
+    font-size: 2.6rem;
+  }
+  .ts-report {
+    padding: 1.2rem 0;
+  }
+  .ts-metrics {
+    gap: 1rem 0.65rem;
+  }
+  .ts-toolbar .btn {
+    white-space: normal;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+  .ts-history summary {
+    display: block;
+  }
+  .ts-history summary span {
+    display: block;
+    margin-top: 0.3rem;
+  }
+}
+
+.ts-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+}
+.ts-related span {
+  color: var(--text-secondary);
+}
