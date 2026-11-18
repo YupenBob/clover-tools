@@ -890,18 +890,6 @@
         "task timer",
         "weekly focus report"
       ]
-    },
-    "time-sync": {
-      "name": "Beijing Time Check",
-      "oneLiner": "Compare two HTTP time sources and inspect your device clock offset.",
-      "description": "Compare your device clock with two HTTP network references. Inspect clock offset, round-trip delays, sample age and uncertainty, and keep ten local records.",
-      "keywords": [
-        "Beijing time check",
-        "network time",
-        "clock offset",
-        "HTTP time",
-        "time check history"
-      ]
     }
   },
   "content": {
@@ -2772,70 +2760,6 @@
           }
         ],
         "privacy": "No account, key or paid API is needed, and this tool adds no business network requests. Tasks, settings, checkpoints and up to 2,000 records stay in this browser under clover-focus-timer:v1, without uploads or server logging. Ambient audio is synthesized locally; notifications and wake lock use browser APIs. Titles and notifications omit task names. Clear-all removes only this tool’s key. Static assets and existing site infrastructure may still communicate normally."
-      }
-    },
-    "time-sync": {
-      "usage": "Choose Check time to compare device time with HTTP network references in Beijing time (UTC+8). Inspect delays, source quality and the last ten measurements. This tool cannot change your system clock.",
-      "features": [
-        {
-          "icon": "clock",
-          "text": "Device and network clocks with plain-language offset directions"
-        },
-        {
-          "icon": "activity",
-          "text": "Two HTTP sources, separate round-trip delays and estimated uncertainty"
-        },
-        {
-          "icon": "clock-history",
-          "text": "Ten local records, offset trend, summary copying and confirmed deletion"
-        }
-      ],
-      "detail": {
-        "intro": "Check a computer, phone or tablet before a meeting or after automatic time synchronization appears to fail. This dashboard explains measurement quality and recent changes. The exam clock organizes exam stages, the world clock compares time zones, and the timestamp tool converts date representations. This tool provides no countdown or reminders.",
-        "steps": [
-          "Opening the page shows device time only. Choose Check time or use Ctrl/Cmd + Enter within the tool. No measurement runs automatically. Both clocks use fixed UTC+8.",
-          "Compare source offsets, upstream RTT, cache age and uncertainty. Browser-to-site RTT is displayed separately. Positive offset means your device is behind; negative means it is ahead.",
-          "Two agreeing sources produce a recommended offset. A single source cannot be cross-checked. Disagreeing sources produce no recommended clock. References expire after 60 seconds, a device clock change, or hiding the page.",
-          "Expand recent records to inspect their sources and copy a summary. Clear history asks for confirmation and deletes only this tool’s browser storage key. Refresh restores history but requires a new measurement."
-        ],
-        "examples": [
-          {
-            "label": "Device 1.2 seconds behind",
-            "input": "Illustration: R = 100 ms and source nowMs = w0 + 1250 ms.",
-            "output": "The offset is +1200 ms: your device is about 1.2 seconds behind. This is an example, not a real measurement."
-          },
-          {
-            "label": "Device 0.8 seconds ahead",
-            "input": "Illustration: R = 100 ms and source nowMs = w0 − 750 ms.",
-            "output": "The offset is −800 ms: your device is about 0.8 seconds ahead. The system clock is not changed."
-          }
-        ],
-        "principles": [
-          "The site requests fixed Cloudflare trace and TimeAPI.io endpoints in parallel. Trace is a diagnostic endpoint, not an official time service. The site runtime clock is diagnostic only and never joins consensus.",
-          "Each upstream timestamp is advanced by half its monotonic RTT, then advanced to a common response assembly time. Successful sampling anchors are cached for 15 seconds; the final API response is never cached.",
-          "Client offset d = nowMs + R/2 − (w0 + R). Uncertainty includes a resolution budget of at least 1000 ms, half of each RTT and a 100 ppm cached-sample drift budget.",
-          "Overlapping source intervals use an equal-weight median. Recommended uncertainty covers every participating interval. RTT above 2000 ms excludes a sample. The live reference advances from a monotonic anchor."
-        ],
-        "pitfalls": [
-          "HTTP measurements assume symmetric delays. Estimated uncertainty is neither a confidence interval nor an accuracy guarantee; it cannot cover incorrect sources, asymmetric paths or unknown drift.",
-          "Disagreement does not identify a faulty source. Failed requests, offline operation and missing JavaScript never create a substitute network time from the device or runtime clock.",
-          "Five languages share ten browser-local records in commit order, independent of device timestamps. Unavailable storage falls back to memory for this visit. Concurrent writes across tabs can lose records."
-        ],
-        "faqs": [
-          {
-            "q": "Is this NTP or a national time service?",
-            "a": "No. It is an HTTP time diagnostic dashboard, without NTP, national time-service or atomic-clock accuracy guarantees. Live upstream availability and precision have not been verified."
-          },
-          {
-            "q": "Can it change my system time?",
-            "a": "No. It displays the measured difference. Use your operating system’s date and time settings to adjust the clock."
-          },
-          {
-            "q": "Why do both clocks use Beijing time?",
-            "a": "Fixed UTC+8 prevents a time-zone difference from being mistaken for a clock error. Use the world clock to convert other time zones."
-          }
-        ],
-        "privacy": "After your action, the browser requests only this site’s /api/time-sync endpoint. The site contacts two fixed HTTPS sources. Device time, offsets, history and settings are not uploaded. This tool’s code does not read, log or forward visitor IP addresses, cookies, authorization headers or raw upstream responses. Hosting infrastructure still handles connection information; upstream services see the site’s outgoing connection. No key or account is needed. Only ten local records use clover-time-sync:v1; clipboard contents are not stored."
       }
     }
   }
