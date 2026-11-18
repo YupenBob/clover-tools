@@ -622,5 +622,31 @@
     "alt": "同一工具页：输入框只有一行「[1,2]」，下方状态栏是一段红色文字「请输入非空的对象数组，如 [{ \"a\": 1 }]」，输出框为空，输出框下的统计行也是空的，右侧「生成表格」「下载文件」按钮保持可点状态。",
     "caption": "输入不是对象数组时，状态栏给出中文提示，输出框保持为空",
     "slug": "json-to-csv-excel"
+  },
+  {
+    "file": "url-encoding-guide-url-encode-component-result.jpg",
+    "width": 1232,
+    "height": 430,
+    "bytes": 31754,
+    "sha256": "715b326c70e4ebec379bd9a9ad72f1bbdd0a3ad71d42a184ae500fe9f853862c",
+    "capturedAt": "2026-11-18T10:08:06.139Z",
+    "source": "/tools/dev/url-encode/",
+    "purpose": "支撑正文“encodeURIComponent 把 & = 空格与中文分别变成 %26 %3D %20 与 9 组 %XX”的断言。",
+    "alt": "URL 编码工具两个面板并排：左侧输入框是 a&b=c 杭州市，下方模式下拉框显示「编码（encodeURIComponent）」，再下方是深色「转换」按钮与浅绿色状态条「转换完成」；右侧「转换结果」输出框里是 a%26b%3Dc%20%E6%9D%AD%E5%B7%9E%E5%B8%82，右上角有「复制」按钮。",
+    "caption": "选「编码（encodeURIComponent）」后输入 a&b=c 杭州市 点「转换」：右侧输出框得到 a%26b%3Dc%20%E6%9D%AD%E5%B7%9E%E5%B8%82，& 和 = 变成 %26 与 %3D、空格是 %20、中文是 9 组 %XX；左侧面板下方是绿色状态条「转换完成」。",
+    "slug": "url-encoding-guide"
+  },
+  {
+    "file": "url-encoding-guide-url-encode-decode-error.jpg",
+    "width": 1232,
+    "height": 430,
+    "bytes": 30616,
+    "sha256": "83403496c7d6b853983010125dcdcce0929a45f87bfb681a7cdf4368d675a1c3",
+    "capturedAt": "2026-11-18T10:08:06.442Z",
+    "source": "/tools/dev/url-encode/",
+    "purpose": "支撑正文“序列被截断时状态条出现红色「转换失败：URI malformed」、输出框被清空”的断言。",
+    "alt": "URL 编码工具两个面板并排：左侧输入框是 %E4，模式下拉框显示「解码（decodeURIComponent）」，面板下方是红色状态条，文字以「转换失败：URI malformed」开头；右侧输出框回到空状态，只显示「结果将显示在这里」。",
+    "caption": "把模式换成「解码（decodeURIComponent）」并输入不完整的 %E4 后点「转换」：左侧面板下方出现红色状态条，开头是「转换失败：URI malformed」；右侧输出框被清空，只剩空状态文案「结果将显示在这里」。",
+    "slug": "url-encoding-guide"
   }
 ]

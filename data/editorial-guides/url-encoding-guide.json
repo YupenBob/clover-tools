@@ -1,34 +1,72 @@
 {
   "slug": "url-encoding-guide",
-  "title": "URL 编码详解：路径、查询参数与双重编码",
-  "description": "区分 URL、路径片段和查询参数的编码边界，解决中文乱码、参数截断和重复编码问题。",
-  "seoDescription": "URL 编码要先分清编码的是哪一部分：路径段、查询参数与完整地址要分别处理，中文乱码、参数截断与双重编码往往来自选错模式；空格在不同位置可能写成加号或百分号编码，看到 %25 开头的片段通常说明百分号被再编码了一次，前后端要约定由哪一层负责编码。完整地址不应把协议和斜杠全部编码，日志里也不要留带令牌的地址。",
+  "title": "URL 编码规则详解：保留字符、空格与双重编码",
+  "description": "从 RFC 3986 的字符集合讲起，实测 encodeURI、encodeURIComponent 与 URLSearchParams 的保留字符差异，说明空格、# 与双重编码的识别与还原，并给出常见误用清单。",
+  "seoDescription": "URL 编码先分清编码哪一部分：unreserved 不必编码，reserved 只在作为数据时写 %XX；encodeURI 保留 :/?#，encodeURIComponent 连 & = 也转义，URLSearchParams 把空格写成加号。看到 %25E6 说明百分号被二次编码，先判层级再还原。",
   "category": "开发实用",
   "toolSlug": "url-encode",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>URL 并不是一整段普通文本。协议、域名、路径、查询参数和片段各自有语法，空格、问号、井号和与号在不同位置的含义也不同。正确编码的第一步，是明确你正在编码哪一部分。</p>\n      <h2>三个常见编码边界</h2>\n      <p>路径段中的中文和空格应作为路径组件编码；查询参数值中的与号和等号如果属于数据本身，也需要编码；完整 URL 则不应把协议和分隔斜杠全部编码。使用工具时先选择对应模式，避免把已编码的 URL 再处理一次。</p>\n      <h2>如何识别双重编码</h2>\n      <p>如果看到 <code>%25</code> 开头的片段，往往说明原本的百分号又被编码了一次。例如 <code>%E4%B8%AD</code> 再编码会出现 <code>%25E4...</code>。前端和后端应约定由哪一层负责编码，另一层只做解析。</p>\n      <h2>编码不是安全防护</h2>\n      <p>URL 编码只解决传输歧义，不能替代输入验证、输出转义、权限控制或签名校验。日志中也不要直接记录带有访问令牌和个人信息的完整 URL。</p>",
+  "updated": "2026-11-18",
+  "readingMinutes": 7,
+  "content": "<p>URL 编码（percent-encoding）把目标位置不允许直接出现的字节写成 <code>%</code> 加两位十六进制。要写对，先确定编码的是路径段还是查询参数，再确认其中哪些字符属于保留集合，最后选对应函数；顺序颠倒就会得到双重编码或参数被截断的结果。</p>\n\n<h2>编码单位是字节，不是字符</h2>\n<p>百分号后面是字节而不是字符。UTF-8 下一个常用汉字占 3 个字节，单个补充平面码点（如 U+1F600）占 4 个字节，带变体选择符或肤色修饰的会更多，全角字符同样占 3 个字节，所以「杭州市」三个字会变成 9 组 <code>%XX</code>。</p>\n<pre><code>encodeURIComponent('杭州市')\n// %E6%9D%AD%E5%B7%9E%E5%B8%82   3 个字 → 9 个字节\nencodeURIComponent('\\u{1F600}')\n// %F0%9F%98%80                 1 个码点 → 4 个字节</code></pre>\n<table>\n<thead><tr><th>字符</th><th>码点</th><th>UTF-8 字节</th><th>编码结果</th></tr></thead>\n<tbody>\n<tr><td>杭</td><td>U+676D</td><td>E6 9D AD</td><td>%E6%9D%AD</td></tr>\n<tr><td>州</td><td>U+5DDE</td><td>E5 B7 9E</td><td>%E5%B7%9E</td></tr>\n<tr><td>Ａ（全角）</td><td>U+FF21</td><td>EF BC A1</td><td>%EF%BC%A1</td></tr>\n<tr><td><code>\\u{1F600}</code></td><td>U+1F600</td><td>F0 9F 98 80</td><td>%F0%9F%98%80</td></tr>\n</tbody>\n</table>\n<p>解码器同样按字节读。若一段中文被截断成半个字符，例如只剩 <code>%E6%9D</code>，<code>decodeURIComponent</code> 会抛出 <code>URIError: URI malformed</code>，这就是分页截断 URL 后出现乱码的直接原因。</p>\n\n<h2>RFC 3986 划出的三类字符</h2>\n<p>RFC 3986 第 2 节把字符分成三组：unreserved（<code>ALPHA / DIGIT / \"-\" / \".\" / \"_\" / \"~\"</code>）、reserved（gen-delims 为 <code>: / ? # [ ] @</code>，sub-delims 为 <code>! $ &amp; ' ( ) * + , ; =</code>），以及其余必须百分号编码的字符。unreserved 永远不需要编码；reserved 是否编码取决于它当前是分隔符还是数据。</p>\n<p>标准的判据很直接：数据里的 <code>&amp;</code> 会与分隔参数用的 <code>&amp;</code> 冲突时必须先编码；反过来，把用作分隔的 <code>&amp;</code> 编码掉，整条 URL 的含义就变了。RFC 3986 还提醒，替换 reserved 字符前后两个 URI 并不等价，替换 unreserved 则等价。</p>\n\n<h2>百分号三元组：大小写与 %25</h2>\n<p>语法是 <code>pct-encoded = \"%\" HEXDIG HEXDIG</code>，两位十六进制不区分大小写，<code>%e6</code> 与 <code>%E6</code> 解码结果相同，但 RFC 3986 建议生产者统一用大写。百分号自身是编码引导符，作为数据出现时必须写成 <code>%25</code>，这是理解双重编码的起点。</p>\n<p>还有一个容易忽略的等价关系：<code>%7E</code> 与 <code>~</code> 指向同一资源，RFC 3986 建议规范化时把 unreserved 的编码还原成字面字符。但实现不一定做规范化，两端最好约定统一的输出形式。</p>\n\n<h2>四种写法与三种保留集合</h2>\n<table>\n<thead><tr><th>写法</th><th>不编码的字符</th><th>空格</th><th>适合</th></tr></thead>\n<tbody>\n<tr><td>encodeURIComponent</td><td>A-Z a-z 0-9 - _ . ! ~ * ' ( )</td><td>%20</td><td>单个路径段、参数值</td></tr>\n<tr><td>encodeURI</td><td>上面全部，再加 ; / ? : @ &amp; = + $ , #</td><td>%20</td><td>已带分隔符的整条地址</td></tr>\n<tr><td>URLSearchParams().toString()</td><td>A-Z a-z 0-9 * - . _</td><td>+</td><td>构造查询串</td></tr>\n<tr><td>new URL(...).searchParams.set()</td><td>同上（序列化时）</td><td>+</td><td>在既有地址上改参数</td></tr>\n</tbody>\n</table>\n<p>把同一段「杭州市 &amp; q=1」分别交给四种写法，结果差别很直观：</p>\n<pre><code>// 输出：四种写法返回值，不可执行\nencodeURIComponent 拼串\n  ...search?q=%E6%9D%AD%E5%B7%9E%E5%B8%82%20%26%20q%3D1\nencodeURI 整条\n  ...search?q=%E6%9D%AD%E5%B7%9E%E5%B8%82%20&amp;%20q=1      读出的 q 只剩「杭州市 」\nnew URLSearchParams().toString()\n  ...search?q=%E6%9D%AD%E5%B7%9E%E5%B8%82+%26+q%3D1\nnew URL + searchParams.set\n  ...search?q=%E6%9D%AD%E5%B7%9E%E5%B8%82+%26+q%3D1</code></pre>\n<p><code>encodeURI</code> 只适合处理已经带好分隔符的整条地址，它不会碰 <code>: / ? # &amp; =</code>；一旦把用户数据塞进去，这些分隔符就会把数据切开。MDN 对两者的差别写得很清楚：<code>encodeURIComponent</code> 转义更多字符，包括属于 URI 语法的字符。</p>\n\n<h2>路径段与查询串的保留集合不同</h2>\n<p>同一个字符在路径和查询里命运不同。WHATWG URL 标准的 path percent-encode set 在 query 集合之外还包含 <code>? ^ ` { }</code>，query 集合只额外包含空格、双引号、<code># &lt; &gt;</code>。用 URL 解析器可以验证这个差异：</p>\n<pre><code>new URL('https://example.com/p{}/q?x={}').href\n// https://example.com/p%7B%7D/q?x={}</code></pre>\n<p>路径里的花括号被编码，查询里的原样保留。路径用 <code>/</code> 分段，所以值里出现斜杠必须写成 <code>%2F</code>，否则会多出一层目录；查询串用 <code>&amp;</code> 与 <code>=</code> 分段，规则见下一节。片段（<code>#</code> 之后）不会随请求发给服务器，把参数放进片段是另一类常见错误。</p>\n<p>路径还有两个专属陷阱。其一是点段：<code>..</code> 会被解析器按目录跳转处理，且 WHATWG 把 <code>%2E%2E</code>、<code>.%2E</code>、<code>%2E.</code> 都同样当作双点段移除——<code>new URL('https://example.com/a/%2E%2E/b').pathname</code> 得到 <code>/b</code>，所以点段不能靠百分号编码保留，只能改路径结构或拒绝这类值。其二是空段，<code>/a//b</code> 与 <code>/a/b</code> 在多数路由里是两个地址。</p>\n\n<h2>空格：%20 与加号的来历</h2>\n<p>百分号编码里空格是 <code>%20</code>，而表单序列化 <code>application/x-www-form-urlencoded</code> 把空格写成 <code>+</code>。WHATWG 标准中只有该集合启用 spaceAsPlus，MDN 也写明 URLSearchParams 会把 U+0020 SPACE 编码为 <code>+</code>。</p>\n<pre><code>encodeURIComponent('a b')                    // a%20b\nnew URLSearchParams({q:'a b'}).toString()    // q=a+b\nnew URL('https://e.com/s?q=a b').href        // ...?q=a%20b\nnew URL('https://e.com/s?q=a+b').searchParams.get('q')  // 'a b'</code></pre>\n<p>坑在混用：把一个本来就含 <code>+</code> 的字符串交给 URLSearchParams，<code>+</code> 会被当成空格；反过来把 form-urlencoded 的 <code>+</code> 交给只认 <code>%20</code> 的解码器，会得到一个字面加号。值里确实需要加号时，URLSearchParams 会输出 <code>%2B</code>。若接口同时接收表单与 JSON，最省事的约定是全程只用 <code>%20</code>，并在文档里写明 <code>+</code> 按字面加号处理。</p>\n<p>表单与 <code>fetch</code> 的行为也不一致：普通表单按默认 enctype 提交时用 form-urlencoded，页面里含文件控件且显式设置 enctype=multipart/form-data 时才改走 multipart 的边界格式；<code>URLSearchParams</code> 作为 body 会带上 <code>application/x-www-form-urlencoded;charset=UTF-8</code>，而自己拼的字符串不会自动获得这个头。头与编码方式不一致，是服务端收到乱码的另一条路径。</p>\n\n<h2>参数值里的 &amp; = ? # 必须先编码</h2>\n<p>手工拼串最常见的错误是只拼不编码。输入 <code>a&amp;b=c</code> 直接接到 <code>?q=</code> 后面，解析出来是两个参数 <code>q=a</code> 与 <code>b=c</code>；输入 <code>x?y#z</code> 更糟，<code>#</code> 之后全部变成片段，查询里只剩 <code>q=x?y</code>。</p>\n<pre><code>`https://example.com/s?q=${'a&amp;b=c'}`                  // 键变成 q 和 b\n`https://example.com/s?q=${encodeURIComponent('a&amp;b=c')}` // q → a&amp;b=c</code></pre>\n<p>编码之后 <code>&amp;</code> 是 <code>%26</code>、<code>=</code> 是 <code>%3D</code>、<code>?</code> 是 <code>%3F</code>、<code>#</code> 是 <code>%23</code>，四个字符都不再具备分隔作用。注意 <code>?</code> 在查询串内部本来是合法数据（RFC 3986 的 query 规则允许 pchar、<code>/</code> 与 <code>?</code>），但放进参数值仍建议编码，因为不少实现会在第一个 <code>?</code> 或 <code>#</code> 处切分。</p>\n\n<h2>双重编码：%25E6 是怎么来的</h2>\n<p>对已经编码过的字符串再编码一次，<code>%</code> 先变成 <code>%25</code>，于是 <code>%E6%9D%AD</code> 变成 <code>%25E6%259D%25AD</code>。识别方法很简单：看到 <code>%25</code> 紧跟两位十六进制、且整段能拼出合法 UTF-8，基本可以判定是二次编码。</p>\n<pre><code>const once = encodeURIComponent('杭州市');        // %E6%9D%AD%E5%B7%9E%E5%B8%82\nconst twice = encodeURIComponent(once);           // %25E6%259D%25AD...\ndecodeURIComponent(twice);                        // 仍是 %E6%9D%AD...，没还原\ndecodeURIComponent(decodeURIComponent(twice));    // 杭州市</code></pre>\n<p>还原必须先判断层级：只解一次后若结果仍匹配 <code>/%[0-9A-Fa-f]{2}/</code>，说明还有一层。生产上更稳的做法是约定责任：前端拼地址时编码一次，后端框架自动解码一次，业务代码不再碰编码。RFC 3986 第 2.4 节明确要求实现不得对同一字符串重复编码或解码。</p>\n\n<h2>从日志与抓包里判断编码层级</h2>\n<p>线上排查时，先看请求行里的查询串有没有被整段编码。<code>https%3A%2F%2F</code> 出现在参数值里，往往说明某一层把整条地址当了数据；查询串里出现裸中文而不是 <code>%E6</code>，说明这层日志或框架把值解码后打印了出来（浏览器发出前会做百分号编码），要回到原始请求行看 <code>%XX</code>。原始查询串与解码结果比对。</p>\n<p>另一个信号是 <code>%25</code> 的密度：连续出现基本说明编码了两遍。日志里同时记下原始查询串与解码后的值，既便于定位也便于复现；但不要记录带令牌的完整地址。</p>\n\n<h2>键也要编码，别手工拼查询串</h2>\n<p>只编码值、不编码键同样会出错。键里有空格时，URLSearchParams 输出 <code>k+y=a%26b</code>，而手工拼出的 <code>?k y=...</code> 在解析器眼里键就是带空格的 <code>k y</code>，部分服务端会直接丢弃或报错。更隐蔽的是键本身带百分号：URLSearchParams 把传入的键当作未编码文本，<code>%24</code> 会被再编码成 <code>%2524</code>。</p>\n<pre><code>new URLSearchParams({'k y':'a&amp;b'}).toString()   // k+y=a%26b\nnew URLSearchParams({'%24':'value'}).toString() // %2524=value</code></pre>\n<p>所以不要用字符串加法拼查询串：用 URLSearchParams 或 URL 对象，或者至少封一个 buildQuery 函数，让键和值都走同一个编码函数。</p>\n\n<h2>常见误用清单</h2>\n<ul>\n<li>把整条 URL 扔进 encodeURIComponent：<code>https://</code> 变成 <code>https%3A%2F%2F</code>，服务端拿到后无法路由，只能把整串当作路径。</li>\n<li>用 encodeURI 编码参数值：<code>&amp;</code> 与 <code>=</code> 不被转义，值里的分隔符会把参数切开。</li>\n<li>对已编码的值再编码一次：出现 <code>%25E6</code>，同一参数被解成乱码或字面百分号。</li>\n<li>只编码值不编码键：键里的空格、<code>&amp;</code>、<code>=</code> 会破坏参数结构。</li>\n<li>把 JSON 直接塞进查询串：花括号在路径里要编码、在查询串里不会，双引号两边都编码，不如先转 base64url 或改用请求体。</li>\n<li>以为编码能防注入：编码只消除语法歧义，不能替代参数化查询、输入校验与权限检查。</li>\n</ul>\n\n<h2>该改用请求体的场景</h2>\n<p>URL 只适合少量短参数，不适合放正文。编码会膨胀长度：一段 200 字的中文占 600 字节，编码后是 1800 个字符，正好是原字符数的 9 倍；再加参数名与签名，很容易顶到代理或服务器的请求行上限，而各家上限并不一致。接近上限时优先改请求体，而不是压缩参数名。</p>\n<p>以下情况应直接用请求体：含换行或富文本的内容、需要保持顺序的数组、二进制数据、参与签名的大段字段。查询串只保留分页、排序、筛选这类短键值；需要签名的接口要先按约定顺序规范化再编码，避免一端按原始值签、另一端按编码后的值签。</p>\n\n<h2>边界与限制</h2>\n<p>百分号编码只负责让字节安全通过语法层，不负责语义与安全。服务端框架通常会自动解码一次，若业务代码再手工解码一次，含 <code>%</code> 的正常数据会被破坏；反过来，某些网关会把 <code>+</code> 解释成空格，纯 <code>%20</code> 更保险。长度上，中文编码后是原字符数的 9 倍，长参数很容易顶到 URL 长度上限，此时应改用请求体。</p>\n<p>解码失败不是静默的：Node 对不完整序列抛 <code>URIError: URI malformed</code>，孤立代理项（例如单独的 <code>\\uD800</code>）在编码时也会抛同样的错。浏览器地址栏会自动编码并隐藏部分差异，所以「地址栏里看着对」不能当作接口正确的证据。日志与监控里也不要记录带令牌或个人信息的完整 URL。</p>\n\n<h2>在工具里核对每一步</h2>\n<p>把待编码文本粘进 <a href=\"/tools/dev/url-encode/\">URL 编码/解码工具</a>，先选「编码（encodeURIComponent）」看单个值的结果，再切到「编码（encodeURI，保留 :/?#）」对比整条地址；解码时若状态条出现红色「转换失败：URI malformed」，说明百分号后缺两位十六进制或序列被截断。要拆开一条完整地址，用 <a href=\"/tools/dev/url-parse/\">URL 参数解析工具</a> 看协议、主机、路径、查询与锚点分别落在哪一段；中文与码点的对应关系可以用 <a href=\"/tools/dev/unicode-converter/\">Unicode 转换工具</a> 对照。</p>\n\n<figure><a href=\"/article-images/2026-11/url-encoding-guide-url-encode-component-result.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：URL 编码工具两个面板并排：左侧输入框是 a&amp;b=c 杭州市，下方模式下拉框显示「编码（encodeURIComponent）」，再下方是深色「转换」按钮与浅绿色状态条「转换完成」；右侧「转换结果」输出框里是 a%26b%3Dc%20%E6%9D%AD%E5%B7%9E%E5%B8%82，右上角有「复制」按钮。\"><img src=\"/article-images/2026-11/url-encoding-guide-url-encode-component-result.jpg\" alt=\"URL 编码工具两个面板并排：左侧输入框是 a&amp;b=c 杭州市，下方模式下拉框显示「编码（encodeURIComponent）」，再下方是深色「转换」按钮与浅绿色状态条「转换完成」；右侧「转换结果」输出框里是 a%26b%3Dc%20%E6%9D%AD%E5%B7%9E%E5%B8%82，右上角有「复制」按钮。\" width=\"1232\" height=\"430\" loading=\"lazy\" decoding=\"async\"></a><figcaption>在编码工具里选「编码（encodeURIComponent）」，输入 a&amp;b=c 杭州市 后点「转换」：输出框为 a%26b%3Dc%20%E6%9D%AD%E5%B7%9E%E5%B8%82，下方状态条显示「转换完成」。 点击图片可查看原图。</figcaption></figure>\n\n<figure><a href=\"/article-images/2026-11/url-encoding-guide-url-encode-decode-error.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：URL 编码工具两个面板并排：左侧输入框是 %E4，模式下拉框显示「解码（decodeURIComponent）」，面板下方是红色状态条，文字以「转换失败：URI malformed」开头；右侧输出框回到空状态，只显示「结果将显示在这里」。\"><img src=\"/article-images/2026-11/url-encoding-guide-url-encode-decode-error.jpg\" alt=\"URL 编码工具两个面板并排：左侧输入框是 %E4，模式下拉框显示「解码（decodeURIComponent）」，面板下方是红色状态条，文字以「转换失败：URI malformed」开头；右侧输出框回到空状态，只显示「结果将显示在这里」。\" width=\"1232\" height=\"430\" loading=\"lazy\" decoding=\"async\"></a><figcaption>切换为「解码（decodeURIComponent）」并输入不完整的 %E4 后点「转换」：输出框回到空状态，面板下方出现红色状态条「转换失败：URI malformed」。 点击图片可查看原图。</figcaption></figure>",
   "faqs": [
     {
-      "q": "空格为什么有时是加号？",
-      "a": "表单编码常用加号表示空格，而路径和通用组件编码通常使用百分号形式。以服务端解析规则为准。"
+      "q": "同一个空格，为什么有时是 %20 有时是加号？",
+      "a": "百分号编码里空格固定是 %20；application/x-www-form-urlencoded 序列化才把空格写成加号。URLSearchParams 和表单提交走后者，encodeURIComponent 走前者。混用时先把加号还原成空格或统一用 %20。"
     },
     {
-      "q": "浏览器地址栏能自动编码，为什么代码还要处理？",
-      "a": "浏览器只会在特定场景帮你处理，程序构建请求时必须明确编码边界，否则容易出现双重编码或参数截断。"
+      "q": "encodeURIComponent 能直接编码一整条 URL 吗？",
+      "a": "不能。它会把 : / ? # & = 一并转义，地址变成一串 https%3A%2F%2F，服务端无法路由。整条地址用 encodeURI，或者用 new URL 后在 searchParams 上设参数。"
+    },
+    {
+      "q": "看到 %25E6 开头的片段该怎么还原？",
+      "a": "%25 是百分号被再编码的结果，说明值被编码了两次。先解一次，若结果仍匹配 /%[0-9A-Fa-f]{2}/ 就再解一次；更稳的是在链路上约定只由一层负责编码。"
+    },
+    {
+      "q": "为什么解码时会报 URI malformed？",
+      "a": "百分号后必须跟两位十六进制，序列被截断（例如只剩 %E4）或出现 %ZZ 时 decodeURIComponent 会抛 URIError: URI malformed。这是输入不合法，不是函数坏了。"
+    },
+    {
+      "q": "URL 编码能防止注入吗？",
+      "a": "不能。编码只消除分隔符引起的语法歧义，不改变数据的语义。防注入仍要靠参数化查询、输入校验、输出转义与权限控制，编码最多是其中一层。"
     }
   ],
   "sources": [
     {
-      "title": "WHATWG URL 标准",
+      "title": "RFC 3986：URI 通用语法（保留字符、unreserved 与百分号编码规则）",
+      "url": "https://www.rfc-editor.org/rfc/rfc3986"
+    },
+    {
+      "title": "WHATWG URL 标准：percent-encode set 与 path、query 编码集合",
       "url": "https://url.spec.whatwg.org/"
+    },
+    {
+      "title": "MDN：encodeURIComponent（转义集合、UTF-8 与 URIError）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent"
+    },
+    {
+      "title": "MDN：encodeURI（保留 :/?# 等 URI 语法字符）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI"
+    },
+    {
+      "title": "MDN：URLSearchParams（把空格编码为加号、键值再编码）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams"
     }
   ],
+  "image": "/article-images/2026-11/url-encoding-guide-url-encode-component-result.jpg",
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
-    "originalPublished": "2026-09-30"
+    "auto": true,
+    "mode": "upgrade-guide",
+    "type": "upgrade-guide",
+    "runId": "2026-11-18T18",
+    "runKey": "2026-11-18T18",
+    "upgradedFrom": "legacy-migration",
+    "originalPublished": "2026-09-30",
+    "note": "upgrade-guide：保留 slug 与 published，正文全篇重写，updated 改为 2026-11-18",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.88,
+    "reviewRound": 2,
+    "verifiedAt": "2026-11-18T10:15:47.160Z",
+    "primaryQuery": null
   }
 }
