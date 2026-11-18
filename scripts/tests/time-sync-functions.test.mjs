@@ -7,7 +7,7 @@ import {
   exactTarget,
   URLS,
   cacheKey,
-  ISOLATE,
+  isolate,
 } from "../../functions/lib/time-sync.ts";
 import { onRequest } from "../../functions/api/time-sync.ts";
 import { validateTimeResponse, SOURCES } from "../../src/lib/time-sync.ts";
@@ -330,7 +330,7 @@ test("early-cache-anchor-advances-to-common-assembly-and-cannot-survive-expiry",
           upstreamRttMs: 0,
           receivedAtMs: epoch - age,
           monoAtMs: -age,
-          isolate: ISOLATE,
+          isolate: isolate(),
           timestampResolutionMs: 1000,
         }),
       ),

@@ -18,8 +18,10 @@ export type SampleCache = {
   match(key: string): Promise<Response | undefined>;
   put(key: string, value: Response): Promise<unknown>;
 };
-/** 每个 isolate 只计算一次，用于证明缓存样本横跨请求期间没有换过时钟源。 */
-export const ISOLATE = crypto.randomUUID();
+/** 每个 isolate 只计算一次，用于证明缓存样本横跨请求期间没有换过时钟源。
+ * Workers 不允许在全局作用域生成随机值，因此推迟到首次处理请求时创建。 */
+let isolateId: string | null = null;
+export const isolate = (): string => (isolateId ??= crypto.randomUUID());
 type Anchor = {
   version: 1;
   source: Source;
@@ -107,7 +109,7 @@ function clean(
     monoAge = mono - s.monoAtMs;
   // 缓存只在本 isolate 内、且墙上时钟与单调时钟增量一致时复用：
   // 换 isolate 或期间发生过墙钟跳变，就无法证明样本年龄，直接当未命中。
-  if (s.isolate !== ISOLATE || !num(monoAge) || monoAge < 0 || Math.abs(wallAge - monoAge) > 100)
+  if (s.isolate !== isolate() || !num(monoAge) || monoAge < 0 || Math.abs(wallAge - monoAge) > 100)
     return null;
   if (
     s.version !== 1 ||
@@ -130,7 +132,7 @@ function clean(
     upstreamRttMs: s.upstreamRttMs,
     receivedAtMs: s.receivedAtMs,
     monoAtMs: s.monoAtMs,
-    isolate: ISOLATE,
+    isolate: isolate(),
     timestampResolutionMs: 1000,
   };
 }
@@ -238,7 +240,7 @@ async function sample(
       upstreamRttMs: u,
       receivedAtMs: w1,
       monoAtMs: p1,
-      isolate: ISOLATE,
+      isolate: isolate(),
       timestampResolutionMs: 1000,
     };
     // 缓存写入由整轮装配完成、确认没有服务端时钟跳变后再统一提交，
