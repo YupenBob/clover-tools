@@ -557,6 +557,16 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
       badge: 'new',
     },
     {
+      slug: 'time-sync',
+      name: '标准北京时间校时',
+      oneLiner: '对照两个 HTTP 时间来源，检查设备偏差与测量质量。',
+      description: '对照多个 HTTP 网络时间来源，查看设备时间偏差、两段往返延迟、缓存样本年龄与估计误差，保存最近十次校时历史；不能修改系统时间。',
+      icon: 'clock-history',
+      keywords: ['北京时间校准', '标准北京时间', '网络时间', '设备时间偏差', 'HTTP 校时', '校时历史'],
+      tier: 'P1',
+      badge: 'new',
+    },
+    {
       slug: 'exam-clock',
       name: '考场大屏时钟',
       oneLiner: '全屏大字时钟，校准北京时间并倒计时考试阶段。',

@@ -1,0 +1,54 @@
+---
+import ToolPanel from './ToolPanel.astro';
+import {pathForLang} from '../lib/i18n';
+import type {ToolMeta} from '../lib/tools';
+import {timeSyncCopy} from '../lib/time-sync-i18n';
+import type {Language} from '../lib/time-sync';
+import '../styles/time-sync.css';
+interface Props {lang:Language;related:ToolMeta[]}
+const {lang,related}=Astro.props;
+const t=timeSyncCopy(lang);
+---
+<div id="timeSync" class="time-sync" data-lang={lang} data-state="idle">
+  <script type="application/json" id="tsCopy" set:html={JSON.stringify(t).replaceAll('<','\\u003c')} />
+  <p class="ts-disclaimer">{t.disclaimer}</p>
+  <div id="tsResults" aria-busy="false">
+    <div class="ts-clocks">
+      <section class="ts-clock" aria-labelledby="tsDeviceLabel"><h2 id="tsDeviceLabel">{t.device}</h2><time id="tsDeviceTime" aria-live="off">—</time><p id="tsDeviceDate">—</p><small>{t.local}</small></section>
+      <section class="ts-clock ts-network" aria-labelledby="tsNetworkLabel"><h2 id="tsNetworkLabel">{t.network}</h2><time id="tsNetworkTime" aria-live="off">—</time><p id="tsNetworkDate">{t.idle}</p><small>{t.zone}</small></section>
+    </div>
+    <div class="ts-report">
+      <p class="ts-eyebrow">{t.offset}</p><output id="tsOffset">—</output>
+      <p id="tsStatus" role="status" aria-live="polite">{t.idle}</p>
+      <dl class="ts-metrics"><div><dt>{t.uncertainty}</dt><dd id="tsUncertainty">—</dd></div><div><dt>{t.rtt}</dt><dd id="tsRtt">—</dd></div><div><dt>{t.measured}</dt><dd id="tsMeasured">—</dd></div><div><dt>{t.validity}</dt><dd id="tsValidity">{t.idle}</dd></div></dl>
+    </div>
+  </div>
+  <div class="ts-toolbar"><button id="tsStart" type="button" class="btn btn-primary" aria-keyshortcuts="Control+Enter Meta+Enter">{t.start}</button><button id="tsCancel" type="button" class="btn btn-secondary" hidden>{t.cancel}</button><button id="tsCopyCurrent" type="button" class="btn btn-secondary" disabled>{t.copy}</button></div>
+  <p class="ts-note">{t.keyboard}</p><p id="tsOffline" class="ts-note" hidden>{t.offline}</p>
+  <p id="tsClipboardStatus" role="status" aria-live="polite"></p>
+  <label id="tsManualArea" hidden>{t.manual}<textarea id="tsManual" readonly rows="10"></textarea></label>
+  <ToolPanel title={t.sources} icon="clock" className="ts-source-panel">
+    <p id="tsSourceEmpty" class="ts-note">{t.idle}</p>
+    <table class="ts-table" id="tsSourceTable" hidden><caption class="ts-note">{t.count}: <span id="tsCount">0</span></caption><thead><tr>{[t.source,t.offset,t.upstream,t.cache,t.age,t.uncertainty,t.participates,t.reason].map(label=><th scope="col">{label}</th>)}</tr></thead><tbody id="tsSourceRows"></tbody></table>
+    <p class="ts-runtime">{t.runtime}: <span id="tsRuntime">—</span></p>
+  </ToolPanel>
+  <div class="ts-explain">
+    <details><summary>{t.method}</summary><p>{t.methodText}</p><pre>R = p1 − p0
+nowMs = T + U/2 + (E − S)
+d = nowMs + R/2 − (w0 + R)
+u = max(q, 1000 ms) + U/2 + R/2 + sampleAge × 0.0001</pre><p>{t.limits}</p></details>
+    <details id="tsExamples"><summary>{t.examples}</summary><p>{t.exampleLabel}</p><ul><li data-example="behind"></li><li data-example="ahead"></li></ul></details>
+  </div>
+  <ToolPanel title={t.history} icon="clock-history">
+    <button slot="actions" id="tsClear" type="button" class="btn btn-secondary btn-sm">{t.clear}</button>
+    <p id="tsStorageNotice" class="ts-notice" role="status" hidden></p>
+    <div id="tsClearConfirm" class="ts-notice" hidden><p>{t.confirmText}</p><div class="ts-toolbar"><button id="tsConfirmClear" type="button" class="btn btn-primary">{t.confirm}</button><button id="tsKeepHistory" type="button" class="btn btn-secondary">{t.cancel}</button></div></div>
+    <p id="tsHistoryEmpty" class="ts-note">{t.empty}</p>
+    <figure id="tsTrend" hidden><figcaption>{t.trend}</figcaption><svg id="tsChart" viewBox="0 0 640 140" role="img" aria-label={t.trend}></svg></figure>
+    <ol id="tsHistory" class="ts-history"></ol>
+  </ToolPanel>
+  <p class="ts-note ts-privacy">{t.privacy}</p>
+  <nav class="ts-related" aria-label={t.related}><span>{t.related}</span>{related.map(tool=><a href={pathForLang(`/tools/daily/${tool.slug}/`,lang)}>{tool.name}</a>)}</nav>
+  <noscript><p class="ts-notice">{t.noscript}</p></noscript>
+</div>
+<script>import '../scripts/time-sync';</script>
