@@ -648,5 +648,31 @@
     "alt": "URL 编码工具两个面板并排：左侧输入框是 %E4，模式下拉框显示「解码（decodeURIComponent）」，面板下方是红色状态条，文字以「转换失败：URI malformed」开头；右侧输出框回到空状态，只显示「结果将显示在这里」。",
     "caption": "把模式换成「解码（decodeURIComponent）」并输入不完整的 %E4 后点「转换」：左侧面板下方出现红色状态条，开头是「转换失败：URI malformed」；右侧输出框被清空，只剩空状态文案「结果将显示在这里」。",
     "slug": "url-encoding-guide"
+  },
+  {
+    "file": "regex-debugging-method-regex-sample.jpg",
+    "width": 1232,
+    "height": 584,
+    "bytes": 57303,
+    "sha256": "c59e07ed2224cf8ae8bf76a593706f706091b24d81261b0728f48da06f52aba3",
+    "capturedAt": "2026-11-18T22:10:34.573Z",
+    "source": "/tools/dev/regex-tester/",
+    "purpose": "展示示例输入下的高亮与逐行匹配结果，以及五个 flag 中默认只勾选 g",
+    "alt": "正则表达式工具工作区：顶部输入框显示邮箱模式，下方五个胶囊「g 全局」「i 忽略大小写」「m 多行」「s 点匹配换行」「u Unicode」只有 g 勾选；测试文本为「联系 york@example.com 或 admin@tools.cn 获取支持，备用邮箱 dev@clover.io」，测试文本里的邮箱不直接标亮，下方「匹配高亮」面板里同一段文本以高亮底色标出三个邮箱，「匹配结果」框三行，第一行是「[1] 位置 3：york@example.com」，状态条显示「找到 3 处匹配」。",
+    "caption": "点「示例」后，匹配高亮面板里三个邮箱以高亮底色标出，匹配结果区按位置逐行列出匹配文本",
+    "slug": "regex-debugging-method"
+  },
+  {
+    "file": "regex-debugging-method-regex-error.jpg",
+    "width": 1232,
+    "height": 584,
+    "bytes": 42519,
+    "sha256": "beba7678e619a8e0669cff5455937d6d32a48f10c95fcd3c23572fee90a825f9",
+    "capturedAt": "2026-11-18T22:10:34.889Z",
+    "source": "/tools/dev/regex-tester/",
+    "purpose": "展示编译失败的红色错误态：状态条带 V8 具体原因，高亮与结果区清空",
+    "alt": "正则表达式工具工作区：模式输入框显示一个左括号，测试文本为 abc；下方状态条红色文字以「正则语法错误：」开头，后接 Invalid regular expression 与 Unterminated group；「匹配高亮」面板为空，「匹配结果」框只显示提示「匹配项与捕获组将显示在这里」。",
+    "caption": "未闭合括号触发错误态：状态条以「正则语法错误：」开头，高亮面板为空，结果框只显示提示",
+    "slug": "regex-debugging-method"
   }
 ]
