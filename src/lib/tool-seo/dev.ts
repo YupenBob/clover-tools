@@ -6,6 +6,10 @@ import type { ToolSeoZh } from './types.ts';
  * 由 `scripts/check-seo-metadata.mjs` 校验。
  */
 export const DEV_TOOL_SEO: Record<string, ToolSeoZh> = {
+  'ip-reputation': {
+    title: 'IP 风险与纯净度查询 - 机房、VPN、代理与 Tor 信号多源对照分析 - CloverTools',
+    description: '查询 IPv4、IPv6 或域名解析后的公网 IP，对照国家、城市、ASN、组织与机房、VPN、代理、Tor、爬虫及滥用标记，逐项展示来源、查询时间和缺失原因。增强信号取决于服务端可选密钥，无密钥或上游失败时明确降级；支持复制 JSON、分享查询条件与清空最近十条历史。结果仅供技术排查，不代表安全评级或平台处置结论。',
+  },
   'json-formatter': {
     title: 'JSON 格式化与校验 - 粘贴美化/压缩输出/缩进宽度/语法错误行号定位 - CloverTools',
     description: '在线 JSON 格式化与校验工具：粘贴内容后自动美化排版，也可压缩输出，缩进宽度可自定义，结果可复制；出现语法错误时会定位到具体行号，便于排查接口返回与配置文件问题。格式化只改变空白，不会修正字段名与数值类型，所有处理都在浏览器本地完成，数据不会上传。标准 JSON 只接受双引号，不接受注释、单引号与尾随逗号。',

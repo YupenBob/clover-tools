@@ -1,0 +1,13 @@
+---
+// @shared-tool-ui: five routes share the source comparison workspace.
+import ToolLayout from '../../../layouts/ToolLayout.astro';
+import IpReputation from '../../../components/IpReputation.astro';
+import {getToolMeta} from '../../../lib/i18n';
+const lang = 'zh' as const;
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'ip-reputation', lang);
+const related = ['ip-lookup', 'http-tester', 'ua-parser'].map(slug => getToolMeta(category, slug, lang));
+---
+<ToolLayout category={category} tool={tool} related={related} layout="wide" workspace="dashboard">
+  <IpReputation lang={lang} />
+</ToolLayout>
