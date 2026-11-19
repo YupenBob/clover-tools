@@ -674,5 +674,31 @@
     "alt": "正则表达式工具工作区：模式输入框显示一个左括号，测试文本为 abc；下方状态条红色文字以「正则语法错误：」开头，后接 Invalid regular expression 与 Unterminated group；「匹配高亮」面板为空，「匹配结果」框只显示提示「匹配项与捕获组将显示在这里」。",
     "caption": "未闭合括号触发错误态：状态条以「正则语法错误：」开头，高亮面板为空，结果框只显示提示",
     "slug": "regex-debugging-method"
+  },
+  {
+    "file": "cron-expression-basics-cron-result.jpg",
+    "width": 1232,
+    "height": 653,
+    "bytes": 61697,
+    "sha256": "99e404e7fc337ce1e46404a4ca89e9314195b019649cf2947977eb5bfb83e3f7",
+    "capturedAt": "2026-11-19T04:10:55.632Z",
+    "source": "/tools/dev/cron/",
+    "purpose": "说明结果区每行的写法：上海钟面时间在前，括号内是同一时刻的 UTC ISO",
+    "alt": "Cron 表达式工具页上下两块面板：上面一块标题是「Cron 表达式」，标题右侧按钮写「示例」；「表达式」输入框里是 0 9 * * 1-5，「预演次数」下拉显示「10 次」，再往下是「预览执行时间」按钮和一行状态文字「表达式合法，已生成 10 次执行时间」；下面一块标题是「未来执行时间」，标题右侧按钮写「复制」，只读文本框里是多行时间，第一行先是「2026/11/19 17:00:00」，紧接着全角括号里是「2026-11-19T09:00:00.000Z」",
+    "caption": "结果区首行把上海钟面时间写在前面，括号里是同一时刻的 UTC 时间；截图里可见的多行显示的是同一时刻（当前版本的结果区行为）",
+    "slug": "cron-expression-basics"
+  },
+  {
+    "file": "cron-expression-basics-cron-error.jpg",
+    "width": 1232,
+    "height": 653,
+    "bytes": 48003,
+    "sha256": "1b72bc64efbea21217100eb548b74384b500f69b6a53db59e5a8923ecaebd7b7",
+    "capturedAt": "2026-11-19T04:10:55.979Z",
+    "source": "/tools/dev/cron/",
+    "purpose": "展示报错文案的位置与格式，便于把英文关键词对应回段位",
+    "alt": "Cron 表达式工具页的两块面板，表达式换成段数不足的写法：上面「表达式」输入框里是「* * * *」，「预演次数」仍是「10 次」；「预览执行时间」按钮下面的一行状态文字以「表达式无效：」开头，后面跟着英文原文「CronPattern: invalid configuration format ('* * * *'), exactly five, six, or seven space separated parts are required.」；下面「未来执行时间」的只读文本框是空的，只显示提示文字「点击预览后显示执行时间」",
+    "caption": "段数不足时状态栏给出的英文原文，结果区同时被清空",
+    "slug": "cron-expression-basics"
   }
 ]

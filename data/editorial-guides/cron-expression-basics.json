@@ -1,34 +1,68 @@
 {
   "slug": "cron-expression-basics",
   "title": "Cron 表达式入门：字段、时区与下一次执行时间",
-  "description": "读懂 5 段、6 段 Cron 表达式，排查时区、日期/星期和任务重叠问题。结合当前工具解析器确认定时计划的实际行为。",
-  "seoDescription": "5 段与 6 段 Cron 表达式怎么读：讲清分钟、小时、日期、月份、星期的字段含义以及星号、斜杠、连字符、逗号的用法，并说明时区错位、日期与星期同时限定、任务重叠这些常见坑；工具显示的下一次执行时间只能辅助验证，部署前还要确认服务器时区。部分系统还会增加秒或年份字段，容器与云函数则常使用 UTC。",
+  "description": "五段 Cron 的字段顺序、四种符号的叠加读法、6 段与 7 段多出的秒位和年份位，以及日期与星期同时限定时的「或」语义。文中用工具页的实跑结果核对 31 号跨 2 月、夏令时跳变与时区错位。",
+  "seoDescription": "读懂 5 段与 6 段 Cron：分、时、日、月、周的取值范围，星号、步长、区间、列表怎么叠加，日期与星期同时限定为什么是「或」，L、W、#、? 哪些实现才认；再用实测结果核对 31 号跨 2 月、2 月 30 日零结果、上海与纽约的时区错位和夏令时跳变，并说明零结果的含义，附报错文案对照表与上线检查清单。",
   "category": "开发实用",
   "toolSlug": "cron",
   "published": "2026-09-30",
-  "updated": "2026-09-30",
-  "readingMinutes": 2,
-  "content": "<p>Cron 表达式只描述触发时间，真正的任务命令、运行用户、环境变量和重试逻辑由调度器负责。排查定时任务时，不能只看表达式是否“像对的”，还要确认目标调度器的字段规则和服务器时区。</p>\n      <h2>常见字段</h2>\n      <p>传统 5 段格式依次是分钟、小时、日期、月份和星期；部分系统增加秒或年份字段。星号表示该字段所有值，斜杠表示步长，连字符表示范围，逗号表示多个离散值。</p>\n      <h2>时区是最常见的错位来源</h2>\n      <p>容器、云函数和托管平台经常使用 UTC，而产品需求使用本地时间。工具显示的下一次时间只能帮助验证表达式，部署前还要查看调度器配置和夏令时行为。</p>\n      <h2>上线前检查清单</h2>\n      <ol><li>确认字段数量和星期日表示法符合目标调度器。</li><li>在测试环境手动触发任务，验证命令和权限。</li><li>为短间隔任务增加锁或幂等设计，避免上一次未结束就重复启动。</li><li>记录表达式、时区和任务版本，方便日后复核。</li></ol>",
+  "updated": "2026-11-19",
+  "readingMinutes": 7,
+  "content": "<p>「<code>*/5 * * * *</code>」读作每 5 分钟一次：五个字段依次是分、时、日、月、周。表达式本身不含时区、也不含命令，真正的执行时刻由调度器的时区决定。</p>\n\n<h2>一、五个字段各管一段，顺序不能换</h2>\n<p>标准 5 段写法的字段顺序固定：分钟、小时、日期、月份、星期。crontab(5) 给出的允许值是：分钟 0-59，小时 0-23，日期 1-31，月份 1-12，星期 0-7，其中 0 和 7 都表示周日。日期从 1 起算，所以写 0 会被判为越界。</p>\n<table>\n<thead><tr><th>段位</th><th>含义</th><th>允许值</th><th>本工具实测的一次读法</th></tr></thead>\n<tbody>\n<tr><td>第 1 段</td><td>分钟</td><td>0-59</td><td><code>*/5</code> 是每 5 分钟</td></tr>\n<tr><td>第 2 段</td><td>小时</td><td>0-23</td><td><code>9</code> 是 9 点这一小时</td></tr>\n<tr><td>第 3 段</td><td>日期</td><td>1-31</td><td><code>1</code> 是每月 1 号</td></tr>\n<tr><td>第 4 段</td><td>月份</td><td>1-12</td><td><code>*</code> 是每个月</td></tr>\n<tr><td>第 5 段</td><td>星期</td><td>0-7</td><td><code>1-5</code> 是周一到周五</td></tr>\n</tbody>\n</table>\n<p>读表达式的习惯是先从右边确认「哪一天」，再往左确认「哪一刻」。因为月份与星期决定触发日，分钟与小时只决定那一天的哪个时刻。</p>\n\n<h2>二、星号、斜杠、连字符、逗号可以叠加</h2>\n<p>星号表示该字段取全部值；斜杠表示步长，从该字段的最小值起步；连字符是闭区间；逗号是并集。四种写法能组合，比如 <code>0-30/10</code> 表示 0、10、20、30 四个分钟值。</p>\n<p>最常见的误写是把「每 5 分钟」写成 <code>5 * * * *</code>。<code>*/5</code> 的分钟字段是步长，<code>5</code> 的分钟字段是一个常量：实测前三次，前者是 04:05、04:10、04:15，后者是 04:05、05:05、06:05。两者第一次碰巧相同，第二次就分开了，这也是这类错误常被忽略的原因。</p>\n<p>步长只在自己那一段内生效。crontab(5) 的 NOTES 专门提醒：<code>*/35</code> 在分钟段不是每 35 分钟一次，而是每小时的第 0 和第 35 分钟各一次。</p>\n\n<h2>三、5 段、6 段、7 段是三套字段</h2>\n<p>本站工具页的提示写明支持 5 段（分 时 日 月 周）、6 段（秒 分 时 日 月 周）与 7 段（秒 分 时 日 月 周 年）。6 段在最前面多一个秒位，7 段再在最后加年份位。秒位缺省为 0，所以 6 段的 <code>0 0 9 * * 1-5</code> 与 5 段的 <code>0 9 * * 1-5</code> 得到同一串结果；但把 6 段的前两段当成分与时来读，整行就移位了一列。实测 <code>30 * * * * *</code> 的第一次是 04:00:30，秒位确实是 30。</p>\n<p>判断段数最快的办法是按空格切分再数：切出几个非空片段就是几段。工具页对段数做的是硬校验，5、6、7 以外的数量不会被猜成别的格式。</p>\n<p>年份位可以用来钉住某一年：<code>0 0 0 1 1 * 2028</code> 只给出一个结果 2028-01-01，之后没有下一次。段数不足或超出的写法不会被猜成别的格式，<code>* * * *</code> 直接报字段数错误。</p>\n\n<h2>四、月份与星期可以写名字，但编号要看实现</h2>\n<p>月份与星期支持英文名前三个字母，大小写不敏感，也能写成区间与列表：<code>MON-FRI</code>、<code>JAN</code>、<code>mon,wed,fri</code> 都成立。星期里 0 和 7 都是周日，<code>0,7</code> 这种写法会被合并，实测它给出的是连续四个周日，而不是每周两次。</p>\n<p>编号规则有一处真实的跨系统差异：标准 Vixie cron 与本站工具都是 0 或 7 为周日、1 为周一；Quartz 风格则把 1 设为周日、7 设为周六。同一个数字 1，在两边指向不同的日子。本站工具的解析库提供 Quartz 编号开关，但工具页没有开放这个选项，页面上的默认含义仍是标准编号。</p>\n\n<h2>五、日期与星期同时限定：crontab(5) 的「或」</h2>\n<p>crontab(5) 明确写道：如果日期与星期两个字段都被限定（都不含星号），只要其中一个匹配当前时间，命令就会执行。它给的例子是 <code>30 4 1,15 * 5</code>，含义是每月 1 号、15 号，再加上每个周五。</p>\n<p>本站工具实测一致：<code>0 9 1 * MON</code> 的接下来四次要落在 11-23、11-30、12-01、12-07，前两个是周一，第三个是 1 号，说明「周一」与「1 号」是并集。想要两者同时满足，本工具支持在星期段前加一个加号：<code>0 9 1 * +MON</code> 的接下来三次是 2027-02-01、2027-03-01、2027-11-01，也就是「1 号恰好是周一」的那些日子。这个加号是本工具所用模式规范的扩展；Quartz 侧不支持日与星期同时限定，两段都写会被拒绝，迁移时要把其中一段改成 ?，所以换系统前必须先确认这一条。</p>\n\n<h2>六、<code>?</code>、<code>L</code>、<code>W</code>、<code>#</code> 不是通用语法</h2>\n<p>这些增强字符在部分实现里可用。本站工具实测：<code>0 0 L * *</code> 给出 11-30、12-31、01-31，即当月最后一天；<code>0 12 * * 5#2</code> 给出 12-11、01-08，即每月第二个周五；<code>0 12 * * FRI#L</code> 给出 11-27、12-25，即每月最后一个周五；<code>0 0 1W * *</code> 在 2027 年 5 月 1 日是周六时给出 2027-05-03；<code>0 9 ? * ?</code> 与 <code>0 9 * * *</code> 完全一致，问号等同星号。</p>\n<p>但 crontab(5) 的字段表只列了星号、逗号、连字符、斜杠四种，没有 <code>L</code>、<code>W</code>、<code>#</code>、<code>?</code>。这些是 Quartz 与解析库的扩展，Linux 的 crontab 不认。表达式要跨系统复用，就把增强字符删掉，或用多条普通表达式凑出同样的日期。</p>\n\n<h2>七、31 号不会自动挪到 2 月 28 号</h2>\n<p>日期字段写 31 时，没有 31 号的月份会整天缺席，不会退到月末。实测 <code>0 0 31 * *</code> 的接下来五次是 12-31、01-31、03-31、05-31、07-31：2 月、4 月、6 月、9 月、11 月都没有触发。全年只有 7 个月会跑。</p>\n<p>「每月最后一天」需要 <code>L</code> 或拆成多条表达式。<code>0 0 30 2 *</code> 是另一种极端：语法完全合法，但 2 月没有 30 号，因此永远不会触发。实测它没有返回任何执行时间，工具页此时结果区为空、状态写「表达式合法，已生成 0 次执行时间」——零结果不等于写错，要分开排查。闰日则要写 <code>0 0 29 2 *</code>，实测接下来三次是 2028-02-29、2032-02-29、2036-02-29。</p>\n\n<h2>八、下一次执行时间后面为什么有个括号</h2>\n<p>本站工具页没有时区选择器，页面上也没有任何「时区」说明：它把每个结果按 Asia/Shanghai 格式化，再在括号里补一个 UTC 的 ISO 时间。ISO 串末尾的 Z 表示偏移 0，这是 RFC 3339 定义的写法，所以括号里那一段是唯一不随显示时区变化的绝对值。</p>\n<p>表达式本身则按运行环境的本地时区解释：页面构造解析器时没有传时区参数。实测同一个 <code>0 9 * * *</code>，运行环境为 UTC 时落在 09:00Z，为 America/New_York 时落在 14:00Z，为 Asia/Shanghai 时落在 01:00Z（已经是次日）；三种情况在屏幕上分别显示成上海钟面的 17:00、22:00、次日 09:00。也就是说，只有浏览器或服务器的时区恰好等于你心里的那个时区时，「9 点」才是你要的 9 点。</p>\n<p>结果区右侧的「复制」按钮复制的是整块文本，包含括号里的 ISO 时间；拿去核对时，别把前面那段上海钟面时间当成本地时间。</p>\n<p>要对照某个城市此刻的偏移，可以在<a href=\"/tools/daily/world-clock/\">世界时钟</a>里添加该时区并排看；要把括号里的 ISO 串与秒级时间戳互转，用<a href=\"/tools/daily/timestamp/\">时间戳转换</a>更直接。</p>\n<figure><a href=\"/article-images/2026-11/cron-expression-basics-cron-result.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Cron 表达式工具页上下两块面板：上面一块标题是「Cron 表达式」，标题右侧按钮写「示例」；「表达式」输入框里是 0 9 * * 1-5，「预演次数」下拉显示「10 次」，再往下是「预览执行时间」按钮和一行状态文字「表达式合法，已生成 10 次执行时间」；下面一块标题是「未来执行时间」，标题右侧按钮写「复制」，只读文本框里是多行时间，第一行先是「2026/11/19 17:00:00」，紧接着全角括号里是「2026-11-19T09:00:00.000Z」\"><img src=\"/article-images/2026-11/cron-expression-basics-cron-result.jpg\" alt=\"Cron 表达式工具页上下两块面板：上面一块标题是「Cron 表达式」，标题右侧按钮写「示例」；「表达式」输入框里是 0 9 * * 1-5，「预演次数」下拉显示「10 次」，再往下是「预览执行时间」按钮和一行状态文字「表达式合法，已生成 10 次执行时间」；下面一块标题是「未来执行时间」，标题右侧按钮写「复制」，只读文本框里是多行时间，第一行先是「2026/11/19 17:00:00」，紧接着全角括号里是「2026-11-19T09:00:00.000Z」\" width=\"1232\" height=\"653\" loading=\"lazy\" decoding=\"async\"></a><figcaption>结果区首行把上海钟面时间写在前面，括号里是同一时刻的 UTC 时间；截图里可见的多行显示的是同一时刻（当前版本的结果区行为） 点击图片可查看原图。</figcaption></figure>\n\n<h2>九、跨夏令时：缺失的小时与重复的小时</h2>\n<p>crontab(5) 对夏令时的描述很直接：转换时不存在的时间永远不会匹配，落在其中的任务不会运行；同一钟面时间出现两次时，匹配的任务会跑两次。</p>\n<p>实测本工具的处理并不相同。America/New_York 的 <code>0 2 * * *</code> 在 2027-03-14 这天，本地 02:00 并不存在，解析结果落在 07:00Z，按纽约钟面是 03:00：任务没有消失，而是撞在跳变那一刻。<code>*/30 * * * *</code> 在同一天的本地钟面是 01:00、01:30、03:00、03:30，02:00 与 02:30 两个槽直接不存在。回拨日 2026-11-01 的 <code>0 1 * * *</code> 只给出 05:00Z，也就是第一次 01:00，重复出现的那次 01:00 不再跑。</p>\n<p>所以「每天跑一次」在跳变日不一定落在你写的小时上——缺口日的槽位直接消失；回拨日也可能只跑第一次，而不是两次。重要任务避开本地 00:00 到 03:00 这个窗口，或在任务内部记录实际执行时刻。</p>\n\n<h2>十、<code>@daily</code> 这类宏只省打字，不省时区</h2>\n<p>宏是整行替换：<code>@daily</code> 与 <code>@midnight</code> 等于 <code>0 0 * * *</code>，<code>@hourly</code> 等于 <code>0 * * * *</code>，<code>@weekly</code> 等于 <code>0 0 * * 0</code>，<code>@monthly</code> 等于 <code>0 0 1 * *</code>，<code>@yearly</code> 与 <code>@annually</code> 等于 <code>0 0 1 1 *</code>。逐条实测，每组的两串结果完全一致。</p>\n<p><code>@reboot</code> 则是例外：本站工具直接报「@reboot is not supported in this environment」，因为浏览器里无法感知系统重启。宏也不会带来时区信息，它替换出来的仍是那五个按本地时区解释的字段。</p>\n\n<h2>十一、报错文案对着哪一处错</h2>\n<p>工具页把错误显示为「表达式无效：」加上解析库的原文。原文是英文，但关键词能定位到段位。</p>\n<table>\n<thead><tr><th>输入</th><th>状态栏原文关键词</th><th>问题所在</th></tr></thead>\n<tbody>\n<tr><td><code>* * * *</code></td><td>exactly five, six, or seven space separated parts</td><td>段数不对</td></tr>\n<tr><td><code>60 * * * *</code></td><td>Invalid value for minute: 60</td><td>分钟越界</td></tr>\n<tr><td><code>0 0 0 0 0</code></td><td>Invalid value for day: -1</td><td>日期写成 0</td></tr>\n<tr><td><code>*/0 * * * *</code></td><td>illegal stepping: 0</td><td>步长为 0</td></tr>\n<tr><td><code>5/10 * * * *</code></td><td>stepping with numeric prefix</td><td>步长前缀只能是星号或区间</td></tr>\n</tbody>\n</table>\n<p>空输入单独提示「请输入 Cron 表达式」，不会走到解析库。合法的表达式跑成功时，状态栏写「表达式合法，已生成 N 次执行时间」，N 是当前选择的预演次数，可选 5、10、20 三档。</p>\n<figure><a href=\"/article-images/2026-11/cron-expression-basics-cron-error.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Cron 表达式工具页的两块面板，表达式换成段数不足的写法：上面「表达式」输入框里是「* * * *」，「预演次数」仍是「10 次」；「预览执行时间」按钮下面的一行状态文字以「表达式无效：」开头，后面跟着英文原文「CronPattern: invalid configuration format ('* * * *'), exactly five, six, or seven space separated parts are required.」；下面「未来执行时间」的只读文本框是空的，只显示提示文字「点击预览后显示执行时间」\"><img src=\"/article-images/2026-11/cron-expression-basics-cron-error.jpg\" alt=\"Cron 表达式工具页的两块面板，表达式换成段数不足的写法：上面「表达式」输入框里是「* * * *」，「预演次数」仍是「10 次」；「预览执行时间」按钮下面的一行状态文字以「表达式无效：」开头，后面跟着英文原文「CronPattern: invalid configuration format ('* * * *'), exactly five, six, or seven space separated parts are required.」；下面「未来执行时间」的只读文本框是空的，只显示提示文字「点击预览后显示执行时间」\" width=\"1232\" height=\"653\" loading=\"lazy\" decoding=\"async\"></a><figcaption>段数不足时状态栏给出的英文原文，结果区同时被清空 点击图片可查看原图。</figcaption></figure>\n\n<h2>十二、上线前检查清单</h2>\n<ol>\n<li>数段数：5 段、6 段还是 7 段，秒位与年份位有没有。</li>\n<li>确认日与星期是「或」还是「且」，以及目标系统认哪种编号。</li>\n<li>把增强字符（<code>L</code>、<code>W</code>、<code>#</code>、<code>?</code>）找出来，确认目标调度器支持。</li>\n<li>把表达式里的时区写进配置或文档，不要依赖运行环境默认值。</li>\n<li>用括号里的 UTC 时间与目标时区换算一次，核对跳变日与月末。</li>\n<li>为短间隔任务加锁或幂等设计，避免上一次没跑完就重入。</li>\n</ol>\n\n<h2>十三、边界与限制</h2>\n<p>本文的语义数值多来自工具页所用解析库 croner 10.0.1 的实测，页面显示与浏览器行为来自 Chromium 实测，换版本或换调度器可能不同。<a href=\"/tools/dev/cron/\">Cron 表达式预览</a>只做预演：它不执行命令，也不校验命令、运行用户与权限。结果区时区写死为 Asia/Shanghai，不读 CRON_TZ 之类的环境变量。夏令时部分只覆盖 America/New_York 与文中列出的日期，南半球与半小时偏移时区未测。Quartz 的完整语法、systemd timer、容器编排里的时区字段都不在本文范围内。</p>",
   "faqs": [
     {
-      "q": "为什么每天 9 点任务在 17 点执行？",
-      "a": "优先检查调度器时区、容器时区和夏令时设置；表达式本身没有携带时区。"
+      "q": "「每 5 分钟」为什么不能写 5 * * * *？",
+      "a": "5 * * * * 的分钟段是常量 5，效果是每小时的第 5 分钟跑一次；每 5 分钟要写 */5 * * * *，让分钟段按步长取值。两者第一次都在 04:05，第二次分别是 04:10 与 05:05。"
     },
     {
-      "q": "5 段和 6 段格式能互换吗？",
-      "a": "不能直接互换。6 段通常增加秒字段，但不同实现的字段顺序也可能不同。"
+      "q": "日期写 1，星期也写 MON，是「且」还是「或」？",
+      "a": "标准 Vixie cron 与本站工具默认是「或」：每月 1 号跑一次，每个周一再跑一次。要改成「且」，本工具在星期段前加加号写成 +MON；Quartz 不支持日与星期同时限定——要把其中一段写成 ?，两段都限定会被解析拒绝；「且」是本工具用 + 修饰符扩展出来的写法，换系统前要确认。"
+    },
+    {
+      "q": "工具显示的下一次执行时间为什么和我预期差好几个小时？",
+      "a": "界面上那一段是写死的 Asia/Shanghai 显示，而表达式按浏览器或运行环境的本地时区解释。以括号里的 UTC 时间（末尾 Z）为准，再换算到目标时区。"
     }
   ],
   "sources": [
     {
-      "title": "Croner：表达式语法",
+      "title": "crontab(5) 手册页：Vixie cron 的字段与「或」语义",
+      "url": "https://man7.org/linux/man-pages/man5/crontab.5.html"
+    },
+    {
+      "title": "MDN：Intl.DateTimeFormat() 构造函数（timeZone 选项）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat"
+    },
+    {
+      "title": "MDN：Date.prototype.toLocaleString()",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString"
+    },
+    {
+      "title": "RFC 3339：Date and Time on the Internet: Timestamps",
+      "url": "https://www.rfc-editor.org/rfc/rfc3339.html"
+    },
+    {
+      "title": "ECMAScript 语言规范：Date Time String Format",
+      "url": "https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format"
+    },
+    {
+      "title": "Croner：Pattern 语法（6/7 段、L/W/#/?、DST 处理）",
       "url": "https://croner.56k.guru/usage/pattern/"
     }
   ],
   "_meta": {
-    "auto": false,
-    "source": "legacy-migration",
-    "migratedAt": "2026-11-01",
+    "auto": true,
+    "mode": "upgrade-guide",
+    "type": "upgrade-guide",
+    "runId": "2026-11-19T12",
+    "editorialDate": "2026-11-19",
+    "upgradedFrom": "legacy-migration",
+    "previousPublished": "2026-09-30",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.9,
+    "reviewRound": 3,
+    "verifiedAt": "2026-11-19T04:17:49.280Z",
+    "primaryQuery": null,
     "originalPublished": "2026-09-30"
-  }
+  },
+  "image": "/article-images/2026-11/cron-expression-basics-cron-result.jpg"
 }
