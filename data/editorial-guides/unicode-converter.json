@@ -1,0 +1,75 @@
+{
+  "slug": "unicode-converter",
+  "title": "Unicode 转中文：码点、\\u 转义与代理对",
+  "description": "从 \\u4e2d 怎样还原成「中」讲起：码点与转义序列的对应关系、代理对与 \\u{} 的写法差异、JSON 与 JavaScript 的转义边界，以及站内转换工具实际支持的输入格式与失败原因。",
+  "seoDescription": "「unicode转换中文」先分清码点与字节：\\u4E2D 是 U+4E2D 的转义，\\uD83D\\uDE00 是 U+1F600 的代理对。本文讲清中文、emoji 与控制字符的写法差异，以及 JSON、JavaScript、HTML、URL 各自的转义规则和站内工具支持的输入格式，还有「粘进去没反应」的排查顺序。",
+  "category": "开发实用",
+  "toolSlug": "unicode-converter",
+  "published": "2026-11-20",
+  "updated": "2026-11-20",
+  "readingMinutes": 7,
+  "content": "<p>要把 <code>\\u4e2d\\u6587</code> 还原成汉字，用站内 <a href=\"/tools/dev/unicode-converter/\">Unicode/ASCII 转换</a> 的「还原文本」：<code>\\u</code> 后面那四位十六进制是一个 UTF-16 编码单元：BMP 内字符一组还原成一个字，补充平面字符要两个代理项才合成一个字。</p>\n\n<h2>解码与编码：先确认按哪个按钮</h2>\n<p>输入框里的提示文案写着「输入文本或 \\uXXXX 转义内容」，说明它同时接受两种内容，方向由按钮决定，而不是自动识别。「转 Unicode」把每个字符换成 <code>\\uXXXX</code>，「还原文本」把 <code>\\uXXXX</code> 换回字符，「逐字分析」列出每个字符的码点、十进制值与转义；三者的状态条分别是「编码完成」「解码完成」「分析完成」。</p>\n<p>方向按反的结果很好认：把 <code>\\u4e2d</code> 粘进去点「转 Unicode」，得到的是 <code>\\u005C\\u0075\\u0034\\u0065\\u0032\\u0064</code>。反斜杠、字母 u 和四个十六进制位各自都是普通字符，工具会把它们逐个转义。这不是工具坏了，而是它把整段输入当成文本来处理。</p>\n<figure><a href=\"/article-images/2026-11/unicode-converter-decode-zh-text.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Unicode 转换工具两个面板并排：左侧输入框里是 \\u4e2d\\u6587，下方一排三个按钮「转 Unicode」「还原文本」「逐字分析」，再下方是浅绿色状态条「解码完成」；右侧「结果」输出框里显示「中文」，右上角有「复制」按钮。\"><img src=\"/article-images/2026-11/unicode-converter-decode-zh-text.jpg\" alt=\"Unicode 转换工具两个面板并排：左侧输入框里是 \\u4e2d\\u6587，下方一排三个按钮「转 Unicode」「还原文本」「逐字分析」，再下方是浅绿色状态条「解码完成」；右侧「结果」输出框里显示「中文」，右上角有「复制」按钮。\" width=\"1232\" height=\"357\" loading=\"lazy\" decoding=\"async\"></a><figcaption>把 \\u4e2d\\u6587 粘进输入框点「还原文本」，右侧结果框显示「中文」，左侧面板下方是绿色状态条「解码完成」。 点击图片可查看原图。</figcaption></figure>\n\n<h2>\\u 后面装的是码点，不是字节</h2>\n<p>Unicode 给每个字符一个编号，标准写法是 U+XXXX。「中」是 U+4E2D，十进制 20013，转义写作 <code>\\u4E2D</code>，正好 6 个字符；「杭州市」是 U+676D、U+5DDE、U+5E02 三个码点，转义后是 3 组、18 个字符。</p>\n<p>最常见的失败是把 UTF-8 字节当成码点。「中文」在 UTF-8 里是 6 个字节，逐字节读就成了 U+00E4、U+00B8、U+00AD、U+00E6、U+0096、U+0087 六个码点，屏幕上显示成「ä¸­æ–‡」一类的乱码。字符数从 2 变成 6 就是这个症状：先按 UTF-8 把字节拼回码点，再按码点取字符，顺序反了就会得到这种结果。</p>\n<figure><a href=\"/article-images/2026-11/unicode-converter-encode-zh-escape.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：Unicode 转换工具两个面板并排：左侧输入框里是一个汉字「中」，下方一排三个按钮「转 Unicode」「还原文本」「逐字分析」，再下方是浅绿色状态条「编码完成」；右侧「结果」输出框里显示 \\u4E2D，右上角有「复制」按钮。\"><img src=\"/article-images/2026-11/unicode-converter-encode-zh-escape.jpg\" alt=\"Unicode 转换工具两个面板并排：左侧输入框里是一个汉字「中」，下方一排三个按钮「转 Unicode」「还原文本」「逐字分析」，再下方是浅绿色状态条「编码完成」；右侧「结果」输出框里显示 \\u4E2D，右上角有「复制」按钮。\" width=\"1232\" height=\"357\" loading=\"lazy\" decoding=\"async\"></a><figcaption>输入汉字「中」点「转 Unicode」，右侧结果框得到 \\u4E2D，左侧面板下方是绿色状态条「编码完成」。 点击图片可查看原图。</figcaption></figure>\n\n<h2>中文转 Unicode 的三种写法</h2>\n<p>同一个「中」，在不同位置要求不同写法，混用是另一种常见失败。</p>\n<table>\n<thead><tr><th>写法</th><th>典型语境</th><th>要点</th></tr></thead>\n<tbody>\n<tr><td><code>\\u4E2D</code></td><td>JSON 字符串、JavaScript 字面量</td><td>6 个字符，四位十六进制</td></tr>\n<tr><td>U+4E2D</td><td>Unicode 标准、文档与码表</td><td>是码点记法而非转义，直接粘进 JSON 或 JavaScript 字符串不生效</td></tr>\n<tr><td><code>&amp;#x4E2D;</code> 或 <code>&amp;#20013;</code></td><td>HTML 字符引用</td><td>由 HTML 解析器在渲染前替换</td></tr>\n<tr><td><code>%E4%B8%AD</code></td><td>URL 百分号编码</td><td>UTF-8 字节逐个写，一个汉字 3 组</td></tr>\n</tbody>\n</table>\n<p>前三种是码点写法，最后一种是字节写法，不能互相替代：把 <code>%E4%B8%AD</code> 粘进「还原文本」，只会原样返回。中文出现在地址里时的百分号规则属于字节层，见 <a href=\"/tools/dev/url-encode/\">URL 编解码</a> 工具，本文只讨论码点与转义序列。</p>\n\n<h2>代理对：补充平面为什么写成两个 \\u</h2>\n<p>U+FFFF 及以下在 UTF-16 里占一个单元，四位十六进制刚好够写。U+10000 及以上，例如笑脸 U+1F600，一个单元放不下，UTF-16 用两个代理项拼起来：<code>\\uD83D\\uDE00</code>，共 12 个字符。ES6 起可以用码点写法 <code>\\u{1F600}</code>，只要 9 个字符，但 JSON 规范只认四位写法（RFC 8259 的 \\u 转义后必须正好四位十六进制），不支持 <code>\\u{...}</code>。</p>\n<p>站内工具两种都接受：编码时 U+FFFF 以上字符统一输出 <code>\\u{...}</code> 形式（如 <code>\\u{1F600}</code>），解码时把 <code>\\ud83d\\ude00</code> 合成一个码点；还原后字符串长度是 2 个 UTF-16 单元、1 个码点，用 <code>Array.from</code> 数才是 1。</p>\n<p>手写代码时别用 <code>String.fromCharCode(0x1F600)</code>，它只取低 16 位，得到 U+F600（十进制 62976），字符就错了。补充平面要用 <code>String.fromCodePoint</code> 或 <code>\\u{...}</code>。</p>\n\n<h2>三个按钮的真实输出</h2>\n<p>三段转换都是逐字符处理，没有隐藏选项。以下是页面上实际点出来的结果：</p>\n<table>\n<thead><tr><th>按钮</th><th>输入</th><th>结果</th><th>状态条</th></tr></thead>\n<tbody>\n<tr><td>转 Unicode</td><td>中</td><td><code>\\u4E2D</code></td><td>编码完成</td></tr>\n<tr><td>还原文本</td><td><code>\\u4e2d\\u6587</code></td><td>中文</td><td>解码完成</td></tr>\n<tr><td>逐字分析</td><td>中、A 与一个 U+1F600 字符</td><td>四列文本</td><td>分析完成</td></tr>\n</tbody>\n</table>\n<p>编码是逐字符而不是逐字节，也不判断「这个字符要不要转义」：ASCII 字母、空格同样会被换掉。示例文本「开发者工具箱 Clover Tools」共 19 个字符，编码后是 114 个字符，空格变成 <code>\\u0020</code>。输出里不残留任何字面字符，适合塞进只允许 ASCII 的配置项。</p>\n\n<h2>逐字分析的四列怎么读</h2>\n<p>第一行是表头「字符、码点、十进制、转义」，列之间是制表符，粘进表格软件即可分列。以「中」、「A」和一个 U+1F600 字符为例：</p>\n<table>\n<thead><tr><th>字符</th><th>码点</th><th>十进制</th><th>转义</th></tr></thead>\n<tbody>\n<tr><td>中</td><td>U+4E2D</td><td>20013</td><td><code>\\u4E2D</code></td></tr>\n<tr><td>A</td><td>U+0041</td><td>65</td><td><code>\\u0041</code></td></tr>\n<tr><td>U+1F600</td><td>U+1F600</td><td>128512</td><td><code>\\u{1F600}</code></td></tr>\n</tbody>\n</table>\n<p>这张表把码点、十进制、转义并排摆开，正好覆盖 HTML 十进制实体（<code>&amp;#20013;</code>）与十六进制实体（<code>&amp;#x4E2D;</code>）需要的数字。第二列的 U+ 形式是 Unicode 的标准写法，不是任何语言的转义，不能直接粘进 JSON 或 JavaScript 字符串。</p>\n\n<h2>还原文本只认两种写法</h2>\n<p>解码逻辑是一个正则字面量（源码里反斜杠写两次）：<code>\\\\u\\{([0-9a-fA-F]+)\\}|\\\\u([0-9a-fA-F]{4})</code>，只匹配 <code>\\uXXXX</code> 与 <code>\\u{...}</code>。十六进制不分大小写，<code>\\u4E2D</code> 与 <code>\\u{4e2d}</code> 都能还原成「中」。下面这些写法会原样留在结果里：U+4E2D、<code>&amp;#x4E2D;</code>、<code>&amp;#20013;</code>、<code>%E4%B8%AD</code>。</p>\n<p>位数不足的 <code>\\u12</code>、含非法字符的 <code>\\uZZZZ</code> 同样原样保留，不报错。混排时只还原匹配到的段：「<code>\\uZZZZ and \\u12 and \\u4e2d</code>」的结果仍是前两段原文，只有最后一段变成「中」。这种部分成功比整体报错更容易被忽略。</p>\n\n<h2>唯一会报错的情况：码点越界</h2>\n<p>越界是实测里唯一抛异常的分支。码点上限是 U+10FFFF（十进制 1114111），把 <code>\\u{110000}</code> 粘进去点「还原文本」，状态条变红并显示 <code>Invalid code point 1114112</code>，输出框被清空。这是 <code>String.fromCodePoint</code> 在拒绝非法码点，不是工具自身的缺陷。</p>\n<p>另一种看着像错误的现象是孤立代理项：单个 <code>\\ud83d</code> 会被解码成一个 U+D83D 的字符，但它不是合法文本，多数界面显示成替换字符；再点「转 Unicode」又能拿回 <code>\\uD83D</code>。工具不校验代理项是否成对，配对由使用方负责。</p>\n\n<h2>输入里已经有反斜杠时</h2>\n<p>输入框可能装着两种东西：还没编码的原文，和已经解码过、含转义序列的文本。工具不猜，一律按当前按钮处理，于是 <code>\\u4e2d</code> 会被再转义一次，得到 36 个字符。判断被当成文本的方法是看长度：6 个字符的输入变成 36 个字符，正好每个字符 6 个。</p>\n<p>需要确认转义是否合法时，把结果粘进 JSON 字符串，或交给 <a href=\"/tools/dev/json-formatter/\">JSON 格式化与校验</a> 工具更快：JSON 会把 <code>\\u{1F600}</code> 判成非法转义，而四位写法可以通过。</p>\n\n<h2>JSON、JavaScript、HTML、URL 各写各的</h2>\n<table>\n<thead><tr><th>语境</th><th>写法</th><th>要点</th></tr></thead>\n<tbody>\n<tr><td>JSON 字符串</td><td><code>\\u4e2d</code></td><td>只允许四位；中文也可以直接写字面字符</td></tr>\n<tr><td>JavaScript 字面量</td><td><code>\\u{1F600}</code></td><td>ES6 起支持码点写法，不必手写代理对</td></tr>\n<tr><td>HTML</td><td><code>&amp;#x4E2D;</code> 或 <code>&amp;#20013;</code></td><td>字符引用，由解析器在渲染前替换</td></tr>\n<tr><td>URL</td><td><code>%E4%B8%AD</code></td><td>UTF-8 字节的百分号编码，属于另一层</td></tr>\n</tbody>\n</table>\n<p>JSON 的规则最容易被记错：把 <code>\"\\u{1F600}\"</code> 交给 <code>JSON.parse</code> 会得到 <code>Bad Unicode escape in JSON</code>；中文直接写字面字符是合法的，<code>JSON.stringify('中文')</code> 的输出就是「\"中文\"」，转义只是可选的兼容手段。只有双引号、反斜杠和控制字符必须转义，<code>JSON.stringify('\\u0000')</code> 才会输出 <code>\"\\u0000\"</code>。</p>\n<pre><code>JSON.parse('\"\\\\u4e2d\"')       // 中\nJSON.parse('\"\\\\u{1F600}\"')   // SyntaxError: Bad Unicode escape in JSON\nJSON.stringify('中文')       // \"中文\"\nJSON.stringify('\\u0000')     // \"\\u0000\"</code></pre>\n<p>注意第一行写的是双反斜杠：JavaScript 先把它变成一个反斜杠交给 JSON，JSON 才去解析 <code>\\u4e2d</code>。如果只写一个反斜杠，转义在 JavaScript 这一层就被吃掉了，<code>JSON.parse</code> 收到的已经是汉字，看不出是哪一层在解码。</p>\n<p>HTML 的字符引用与 <code>\\u</code> 转义没有关系，它由 HTML 解析器负责；URL 的 <code>%XX</code> 是 UTF-8 字节，属于编码层而不是码点层。两层混用时，先确认手里拿到的是码点还是字节，再决定用哪个工具。</p>\n\n<h2>不可打印字符与组合 emoji</h2>\n<p>控制字符在结果里只有转义形态：空字符 U+0000 是 <code>\\u0000</code>，换行 U+000A、制表 U+0009、转义符 U+001B 分别是 <code>\\u000A</code>、<code>\\u0009</code>、<code>\\u001B</code>。它们在文本域里看不见，只能靠逐字分析列出来；写进 JSON 时必须转义，否则原文不合法。</p>\n<p>组合 emoji 会被拆成多个码点：一家四口的组合是 7 个码点（含 3 个 U+200D 连接符），UTF-16 长度 11；肤色修饰、旗帜、带变体选择符的心形各 2 个码点。逐字分析会一行一个码点地列出来，编码结果里两种写法混排：补充平面用 <code>\\u{...}</code>，U+200D 这类 BMP 字符仍是 <code>\\u200D</code>。</p>\n\n<h2>全角与半角：字形一样，码点不同</h2>\n<p>「Ａ」是全角 U+FF21，「A」是半角 U+0041，转义分别是 <code>\\uFF21</code> 与 <code>\\u0041</code>，长度都是 6 个字符。肉眼几乎分不出，但字符串比较、唯一键、地址匹配都会把它们当成两个字符；「１」与「1」、「，」与「,」同理。遇到「看起来一样却匹配不上」，先用逐字分析确认码点，再用 <a href=\"/tools/dev/text-transform/\">文本转换工具</a> 统一全半角。</p>\n\n<h2>复制、示例与清空怎么配合</h2>\n<p>「复制」把结果框的内容写入剪贴板，成功时页面弹出「已复制到剪贴板」。「示例」填入「开发者工具箱 Clover Tools」；「清空」同时清掉输入、输出，并收起状态条。</p>\n<p>两步就能自检往返是否无损：先输入「中」点「转 Unicode」并复制结果，再点「清空」、把结果粘回输入框点「还原文本」，应当重新得到「中」。往返后多出替换字符，说明文本里混进了孤立代理项；往返后长度暴增，说明输入本身已经是转义文本，被又转义了一次。</p>\n\n<h2>边界与限制</h2>\n<ul>\n<li>只认 <code>\\uXXXX</code> 与 <code>\\u{...}</code>：U+、HTML 实体、百分号编码、Base64 都不是它的输入，需要先用对应工具换成其中一种。</li>\n<li>编码统一输出大写十六进制：BMP 字符固定四位（如 <code>\\u0041</code>），补充平面用花括号（如 <code>\\u{1F600}</code>），长度分别是 6 与 9 个字符。</li>\n<li>还原是逐序列替换，不是语法校验：非法转义原样保留，只有越界码点会抛错。</li>\n<li>只改变写法，不改变字符本身：不做大小写、全半角或简繁转换，也不会把组合 emoji 合并。</li>\n<li>不提供文件导入与批量编码，输入与输出都是单个文本域，粘多长的文本就整段算多长。</li>\n<li>工具解决的是写法问题，不是乱码问题：拿到的是 UTF-8 字节被误读的乱码时，改用编码解码类工具，别继续在 <code>\\u</code> 上找原因。</li>\n</ul>\n\n<h2>自检清单</h2>\n<ol>\n<li>先决定方向：要还原就点「还原文本」，要生成转义才点「转 Unicode」。</li>\n<li>用长度初判：一个汉字编码后是 6 个字符，长度对不上说明方向或输入有问题。</li>\n<li>位数补齐：BMP 字符固定四位十六进制，不足四位在前面补零，例如 U+0041。</li>\n<li>补充平面用 <code>\\u{...}</code> 或成对代理项，别用截断低位的旧接口。</li>\n<li>非法写法与越界分开处理：前者原样保留，后者状态条报 <code>Invalid code point</code>。</li>\n</ol>",
+  "faqs": [
+    {
+      "q": "把 \\u4e2d\\u6587 粘进去点按钮，为什么没有变成中文？",
+      "a": "最可能点的是「转 Unicode」而不是「还原文本」。方向按反时，反斜杠和字母会被逐个转义，结果反而更长。另一种情况是输入里写的不是 \\uXXXX：U+4E2D、&#x4E2D;、%E4%B8%AD 这几种写法工具都不识别，会原样返回。"
+    },
+    {
+      "q": "U+4E2D 和 \\u4E2D 有什么区别？",
+      "a": "U+4E2D 是 Unicode 标准里表示码点的记法，出现在文档和码表中，不能被程序当转义解析；\\u4E2D 是字符串字面量里的转义序列，会变成一个字符。前者是「编号的写法」，后者是「生成字符的语法」。"
+    },
+    {
+      "q": "为什么一个 emoji 编码出来是 \\u{1F600} 而不是四位？",
+      "a": "U+FFFF 以上的字符在 UTF-16 里占两个单元，四位十六进制放不下。工具对这部分统一输出 \\u{...} 的码点写法；需要四位形式时改写成两个代理项，各四位，共 12 个字符。"
+    },
+    {
+      "q": "工具能还原 HTML 实体或百分号编码吗？",
+      "a": "不能。还原逻辑只匹配 \\uXXXX 与 \\u{...}，HTML 的 &#x4E2D;、百分号编码 %E4%B8%AD 都会原样留在结果里。前者要先换成字面字符，后者属于 URL 编码层，需要另一个工具。"
+    },
+    {
+      "q": "单个 \\ud83d 为什么会显示成方块？",
+      "a": "它是孤立代理项，UTF-16 规定代理项必须成对出现，单独一个不构成合法文本，界面通常渲染成替换字符。工具会照原样往返，不校验配对；需要完整字符时补上另一半，或用 \\u{...} 的码点写法。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Unicode 官方 FAQ：UTF-8、UTF-16、UTF-32 与 BOM（码点、代理对与编码单元）",
+      "url": "https://www.unicode.org/faq/utf_bom.html"
+    },
+    {
+      "title": "MDN：String.fromCodePoint（按码点创建字符，补充平面不再截断）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint"
+    },
+    {
+      "title": "MDN：JavaScript 词法文法（Unicode 转义序列 \\uXXXX 与 \\u{...}）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar"
+    },
+    {
+      "title": "ECMA-262：字符串字面量与 Unicode 转义序列（TC39 标准）",
+      "url": "https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-literals-string-literals"
+    },
+    {
+      "title": "RFC 8259：JSON 字符串的 \\u 四位转义规则",
+      "url": "https://www.rfc-editor.org/rfc/rfc8259"
+    },
+    {
+      "title": "W3C i18n：在标记与 CSS 中使用字符转义（HTML 字符引用 &#x4E2D; 与 &#20013;）",
+      "url": "https://www.w3.org/International/questions/qa-escapes"
+    }
+  ],
+  "image": "/article-images/2026-11/unicode-converter-decode-zh-text.jpg",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-20T06",
+    "runKey": "2026-11-20T06",
+    "primaryQuery": "unicode转换中文",
+    "angle": "覆盖零内容工具的查询缺口",
+    "note": "new-guide：为已有工具页 /tools/dev/unicode-converter/ 新建指南，正文与证据全部按实测重写。",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.82,
+    "reviewRound": 2,
+    "verifiedAt": "2026-11-19T22:16:27.034Z"
+  }
+}
