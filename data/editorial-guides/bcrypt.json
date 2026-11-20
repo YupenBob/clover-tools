@@ -1,0 +1,70 @@
+{
+  "slug": "bcrypt",
+  "title": "bcrypt python 怎么用：生成、校验与 $2b$ 结构",
+  "description": "从一条 60 字符的 $2b$12$ 哈希串拆到每一段，给出 Python 里 hashpw、gensalt、checkpw 的完整流程与本机 cost 耗时，再按格式、版本、cost、密码与 72 字节截断五类原因排查校验失败。",
+  "seoDescription": "bcrypt python 实战：拆解 $2b$12$ 哈希串的版本、cost、16 字节盐与 23 字节摘要，给出 hashpw、gensalt、checkpw 的 bytes 口径与本机 cost 8/10/12 耗时，并按五类原因排查校验失败与 72 字节截断，顺带说明同一密码两次哈希不同的原因。",
+  "category": "开发实用",
+  "toolSlug": "bcrypt",
+  "published": "2026-11-20",
+  "updated": "2026-11-20",
+  "readingMinutes": 7,
+  "content": "<p>Python 里用 bcrypt 只有三步：<code>pip install bcrypt==3.2.0</code>（本文实测版本；5.x 行为有变），用 <code>bcrypt.hashpw(密码, bcrypt.gensalt(rounds=12))</code> 生成，用 <code>bcrypt.checkpw(密码, 已存哈希)</code> 校验。密码和哈希都必须是 bytes；整串 <code>$2b$12$...</code> 自带版本、cost、盐与摘要。想先看一条真实哈希长什么样，可以打开站内 <a href=\"/tools/dev/bcrypt/\">bcrypt 工具</a> 现场生成一段对照。</p>\n\n<h2>一、Python 侧最短的可用流程</h2>\n<pre><code># 安装（本文按 3.2.0 实测；5.x 行为见 §边界与限制）\npip install bcrypt==3.2.0\n\nimport bcrypt\n\npassword = \"CloverTools#2026\".encode(\"utf-8\")\nhashed = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12))  # b'$2b$12$...'\nbcrypt.checkpw(password, hashed)                             # True\nbcrypt.checkpw(\"cloverTools#2026\".encode(\"utf-8\"), hashed)   # False\n</code></pre>\n<p><code>gensalt</code> 只生成盐（29 个字符），<code>hashpw</code> 才把密码与盐算成 60 个字符的哈希，<code>checkpw</code> 用哈希串里的盐重算一遍并返回布尔值。三个函数名是 Python 包特有的，Node 里对应的是 <code>hash</code> 与 <code>compare</code>，搜示例代码时不要混着抄。</p>\n\n<h2>二、一条 <code>$2b$12$</code> 哈希串的 60 个字符</h2>\n<p>把串按 <code>$</code> 切开只是第一步，真正要记的是分段长度：</p>\n<table>\n<thead><tr><th>位置</th><th>内容</th><th>长度</th></tr></thead>\n<tbody>\n<tr><td>第 1–4 字符</td><td>版本标识 <code>$2b$</code></td><td>4 字符</td></tr>\n<tr><td>第 5–6 字符</td><td>cost，两位十进制</td><td>2 字符</td></tr>\n<tr><td>第 7 字符</td><td>分隔符 <code>$</code></td><td>1 字符</td></tr>\n<tr><td>第 8–29 字符</td><td>16 字节随机盐的 bcrypt-base64</td><td>22 字符</td></tr>\n<tr><td>第 30–60 字符</td><td>23 字节摘要的 bcrypt-base64</td><td>31 字符</td></tr>\n</tbody>\n</table>\n<p>4 + 2 + 1 + 22 + 31 = 60，这就是为什么校验代码里总在检查长度。盐 16 字节、摘要 23 字节是实测得到的：把两段分别用 bcrypt 自己的 base64 解码，长度正好是 16 与 23。cost 不足两位会补零，选 8 生成的是 <code>$2b$08$</code>，所以按字符位置取 cost 时永远取两位。盐与摘要用的是 <code>./A-Za-z0-9</code> 这套变体字母表，不带 <code>=</code> 填充，这也是它不能用标准 base64 直接解码的原因：站内 <a href=\"/tools/dev/base64/\">Base64 工具</a> 用的是 RFC 4648 的标准字母表，两套编码不能直接互换。</p>\n\n<h2>三、cost 是 2 的指数，不是轮数的字面值</h2>\n<p>cost 记作 c，实际迭代次数是 2^c：10 是 1024 轮，12 是 4096 轮，加 1 就翻倍。下面是在同一台机器上用同一段密码连测三次取的中间值：</p>\n<table>\n<thead><tr><th>cost</th><th>迭代次数</th><th>bcryptjs 单次</th><th>python bcrypt 单次</th></tr></thead>\n<tbody>\n<tr><td>8</td><td>256</td><td>22.9 毫秒</td><td>17 毫秒</td></tr>\n<tr><td>10</td><td>1024</td><td>90.6 毫秒</td><td>67.6 毫秒</td></tr>\n<tr><td>12</td><td>4096</td><td>361.6 毫秒</td><td>271.3 毫秒</td></tr>\n</tbody>\n</table>\n<p>机器是 linux arm64、Neoverse-N1、2 核，Node v22.23.4 与 Python 3.10.12 + bcrypt 3.2.0。两种实现差出一截，因为一边是纯 JavaScript、一边是 C 扩展；换机器、换实现，数字都会变，这里给的是量级而不是承诺。取舍只看两件事：单次校验的 CPU 成本，和你能接受的最慢一次登录延迟。cost 12 在这台机器上约 361.6 毫秒，是 cost 10 的 4 倍；登录峰值越高，这个倍数越该先拿真实流量乘一遍再定。如果只是想给文件或文本算一条定长摘要，用 <a href=\"/tools/dev/hash/\">哈希计算工具</a> 更直接，bcrypt 的慢是专门为口令设计的。</p>\n\n<h2>四、hashpw、gensalt、checkpw 的参数口径</h2>\n<ul>\n<li><code>gensalt(rounds=12)</code>：只产盐，返回 29 个字符 bytes；rounds 合法区间是 4–31，传 3 或 99 都会抛 <code>ValueError: Invalid rounds</code>。</li>\n<li><code>hashpw(password, salt)</code>：两个参数都是 bytes，返回 60 个字符 bytes；每次调用都应该配一次新的 <code>gensalt</code>。</li>\n<li><code>checkpw(password, hashed)</code>：两个参数都是 bytes，返回 True 或 False；密码错不抛异常，只有哈希串本身不合法才抛 <code>ValueError</code>。</li>\n<li><code>gensalt(prefix=b\"2a\")</code>：生成侧只接受 2a 与 2b，传 2y 会抛 <code>ValueError: Supported prefixes are b'2a' or b'2b'</code>，但校验侧能读 <code>$2y$</code> 哈希。</li>\n<li>密码是字符串时先 <code>encode(\"utf-8\")</code>：直接传 str 会得到 <code>TypeError: Unicode-objects must be encoded before checking</code>，这是 Python 侧最常见的第一个报错。</li>\n</ul>\n\n<h2>五、同一密码两次哈希不同，是盐在工作</h2>\n<p>盐是 16 字节随机值，同一段密码连续生成两次，盐不同、摘要不同、整串也不同，但两串都能各自校验通过。由此有两个实操结论：比较密码只能用 <code>checkpw</code>，不能用字符串相等；盐不需要单独存一列，它就在哈希串的第 8–29 字符里。NIST 要求盐与哈希都要为每条密码保存，bcrypt 把两者固化进同一个字符串，正好满足这条，多存一份盐只会多一个可能对不上的副本。盐本身要来自密码学安全的随机源，Python 里用 <code>secrets.token_bytes</code> 取随机字节，<code>random</code> 模块的伪随机序列不适合拿来做盐。</p>\n\n<h2>六、和 passlib 的差别在哪</h2>\n<p>passlib 是封装层，<code>passlib.hash.bcrypt</code> 会优先调用 pip 装的 bcrypt 后端，所以算法结果一致，差别在接口与默认行为。第一，密码类型：passlib 的 <code>verify</code> 接受 str，bcrypt 包的 <code>checkpw</code> 只接受 bytes。第二，截断策略：passlib 提供 <code>truncate_error=True</code>，把超过 72 字节的静默截断变成 <code>PasswordTruncateError</code>，而 bcrypt 3.2.0 没有这个开关，实测是静默接受。第三，超长输入的解法：passlib 提供 <code>bcrypt_sha256</code>，先做 SHA-256 再走 bcrypt；用裸 bcrypt 包就得自己补这一层，并且要在所有语言端保持一致。第四，前缀默认值：passlib 1.7 起默认生成 <code>$2b$</code>，与 bcrypt 包一致，但老项目里仍会见到它生成 <code>$2a$</code>。</p>\n\n<h2>七、72 字节上限：按字节算，不按字符算</h2>\n<p>bcrypt 只把前 72 字节纳入计算。纯 ASCII 就是 72 个字符；中文在 UTF-8 里占 3 字节，24 个汉字正好 72 字节，第 25 个汉字会被丢掉。实测 24 个汉字的密码能验过用 25 个汉字生成的哈希，ASCII 的 80 字节输入也能验过 72 字节的哈希。Python 的 bcrypt 3.2.0 与 Node 的 bcryptjs 3.0.3 都是静默截断，只有 passlib 的开关会让它报错。</p>\n<p>NUL 字节的处理两边不同：python bcrypt 直接抛 <code>ValueError: password may not contain NUL bytes</code>，bcryptjs 则把 NUL 当普通字节，<code>abc\\0def</code> 与 <code>abc</code> 是两段不同输入。跨语言迁移时这类差异不会出现在文档首页，只能自己拿样本各跑一遍。机制上要记住的是：两段只在第 73 字节之后不同的密码，会被判成同一个；要不要接受这种等价，是产品与实现层要明确写下来的约定。</p>\n\n<h2>八、<code>$2a$</code>、<code>$2b$</code>、<code>$2y$</code> 混用会怎样</h2>\n<p>三者算法相同，只差标识。把一条 <code>$2b$</code> 哈希的版本段改成 <code>$2a$</code> 或 <code>$2y$</code>，同一段密码仍能验过；改成 <code>$2x$</code> 会被拒，报 <code>Invalid salt revision: x$</code>；把版本写成大写的 <code>$2B$</code> 同样被拒。<code>$2x$</code> 是当年标记 crypt_blowfish 缺陷哈希的历史写法，<code>$2y$</code> 是它的修正版写法，含义与 <code>$2b$</code> 相同。</p>\n<p>混用的真实代价有两处：老系统只认 <code>$2a$</code> 时，收到 <code>$2b$</code> 会当成非法盐，Python 侧报 <code>ValueError: Invalid salt</code>；反过来，把 <code>$2b$</code> 批量改写成 <code>$2a$</code> 虽然校验照样通过，却把「哪一代实现生成的」这条信息抹掉了。迁移时保留原前缀、让新旧并存，比统一改写更稳。</p>\n\n<h2>九、校验失败的五个来源，以及工具的状态文案</h2>\n<table>\n<thead><tr><th>输入情况</th><th>底层反应</th><th>工具状态条</th></tr></thead>\n<tbody>\n<tr><td>空串、缺 <code>$</code> 的字符串</td><td>比较返回 false，读 cost 得到 NaN</td><td>密码不匹配（哈希 cost NaN）</td></tr>\n<tr><td>版本不符，如 <code>$3a$</code>、<code>$2x$</code></td><td>抛 Invalid salt version / revision</td><td>哈希格式无效，请检查是否以 $2a$ / $2b$ / $2y$ 开头</td></tr>\n<tr><td>cost 越界，如 <code>$2b$99$</code>（4–31 合法，但 31 是 2³¹ 轮、跑不完）</td><td>抛 Illegal number of rounds (4-31): 99</td><td>哈希格式无效，请检查是否以 $2a$ / $2b$ / $2y$ 开头</td></tr>\n<tr><td>密码错，哈希本身合法</td><td>比较返回 false，cost 正常</td><td>密码不匹配（哈希 cost 10）</td></tr>\n<tr><td>只在第 73 字节之后不同</td><td>比较返回 true</td><td>密码匹配（cost 10）</td></tr>\n</tbody>\n</table>\n<p>第一行最容易被误读：<code>NaN</code> 不是「密码错了」，而是这段字符串根本不是 bcrypt，读不出 cost。看到 <code>cost NaN</code> 先数长度是不是 60、有没有两个 <code>$</code> 分隔，别急着重置密码。空哈希框点校验则会被前端拦下，提示「请填写密码与哈希」，与格式错误是两条不同的路径。</p>\n<figure><a href=\"/article-images/2026-11/bcrypt-bcrypt-verify-nan.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：「校验密码」面板：顶部「待校验密码」框里是圆点；「已知哈希」多行框里是普通文本 CloverTools-plain-text；下方是「校验」按钮，按钮下方状态条为红色文字「密码不匹配（哈希 cost NaN）」。\"><img src=\"/article-images/2026-11/bcrypt-bcrypt-verify-nan.jpg\" alt=\"「校验密码」面板：顶部「待校验密码」框里是圆点；「已知哈希」多行框里是普通文本 CloverTools-plain-text；下方是「校验」按钮，按钮下方状态条为红色文字「密码不匹配（哈希 cost NaN）」。\" width=\"1232\" height=\"506\" loading=\"lazy\" decoding=\"async\"></a><figcaption>把一段不是 bcrypt 的字符串粘进「已知哈希」再点「校验」，状态条显示「密码不匹配（哈希 cost NaN）」，而不是格式错误。 点击图片可查看原图。</figcaption></figure>\n\n<h2>十、常见误用清单</h2>\n<ul>\n<li>把 bcrypt 当加密：它单向、没有密钥，算出摘要后无法还原，只能重算比对。</li>\n<li>把盐另存到别的列或配置文件：盐已经在哈希串里，多存一份只增加对不上的机会。</li>\n<li>把 cost 当成字符长度或轮数：cost 10 是 1024 轮，按 10 轮估算会把成本低估两个数量级。</li>\n<li>用同一个盐批量生成：所有用户共享盐，等于放弃了盐的隔离作用，也失去「同一密码不同哈希」的性质。</li>\n<li>手工混用 <code>$2a$</code>、<code>$2b$</code>、<code>$2y$</code>：单条校验可能碰巧通过，跨系统迁移时会暴露成批量报错。</li>\n<li>用 <code>==</code> 比较哈希串：编码、空白都会影响结果，正确做法是 <code>checkpw</code> 或对应的 compare。</li>\n<li>不检查字节长度：超过 72 字节的部分被静默丢弃，用户以为改了密码，其实后几位从来没参与。</li>\n</ul>\n\n<h2>十一、工具面板实测与读数</h2>\n<p>生成面板从上到下是：密码输入框、成本因子下拉（8（快）、10（推荐）、12（慢））、生成哈希按钮、状态条、只读输出框、复制哈希按钮。空密码点生成提示「请输入密码」，计算中提示「正在计算（成本越高耗时越长）……」，完成后写「生成完成（cost 12）」，输出框里就是 <code>$2b$12$</code> 开头的 60 字符哈希。校验面板是待校验密码框、已知哈希框、校验按钮与状态条，提示文案里明确写了接受 <code>$2a$</code>、<code>$2b$</code>、<code>$2y$</code> 三种开头。</p>\n<figure><a href=\"/article-images/2026-11/bcrypt-bcrypt-generate-cost12.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：「生成 Bcrypt 哈希」面板：顶部密码框里是圆点；「成本因子（cost）」下拉显示 12（慢）；下方是「生成哈希」按钮，按钮下方状态条为绿色文字「生成完成（cost 12）」；再往下是只读文本框，内容以 $2b$12$ 开头、共 60 个字符；面板底部是「复制哈希」按钮。\"><img src=\"/article-images/2026-11/bcrypt-bcrypt-generate-cost12.jpg\" alt=\"「生成 Bcrypt 哈希」面板：顶部密码框里是圆点；「成本因子（cost）」下拉显示 12（慢）；下方是「生成哈希」按钮，按钮下方状态条为绿色文字「生成完成（cost 12）」；再往下是只读文本框，内容以 $2b$12$ 开头、共 60 个字符；面板底部是「复制哈希」按钮。\" width=\"1232\" height=\"565\" loading=\"lazy\" decoding=\"async\"></a><figcaption>成本因子下拉选 12（慢）并点「生成哈希」，状态条显示「生成完成（cost 12）」，下方只读框里是 $2b$12$ 开头的 60 字符哈希，底部是「复制哈希」按钮。 点击图片可查看原图。</figcaption></figure>\n<p>浏览器里实测一遍：cost 10 点一次生成，从点击到状态条出现约 193 毫秒（含按钮等待与状态轮询），输出 60 字符、前缀 <code>$2b$10$</code>、盐 22 字符、摘要 31 字符，与 Node 侧结果同构；同一密码再生成一次整串不同；点复制哈希后剪贴板内容与输出框一致。面板说明里的「推荐 10-12」是页面文案，不是本文给出的规则，选哪一档仍按上一节的耗时与峰值自己算。</p>\n\n<h2>十二、边界与限制</h2>\n<ul>\n<li>72 字节截断与 NUL 字节处理因库而异，本文的数字来自 bcrypt 3.2.0 与 bcryptjs 3.0.3，换版本要重测。</li>\n<li>耗时是单机测量（三次取中位数），受 CPU、实现语言、并发影响，不能当作性能承诺。</li>\n<li>本文只讲结构与参数，不判断某套配置是否足够安全；强度还取决于限流、传输保护与账号恢复流程。</li>\n<li>哈希串可以入库，但不应写进日志、URL 或错误上报，它等价于一条可离线尝试的口令凭据。</li>\n<li>工具在浏览器本地计算，适合核对格式与验证流程，不能替代服务端的校验、限流与审计。</li>\n<li>要造测试口令时，用随机口令生成器比手拍一段更省事：<a href=\"/tools/dev/password-generator/\">随机口令生成器</a>。</li>\n</ul>\n\n<h2>十三、三分钟核对清单</h2>\n<ol>\n<li>确认 <code>bcrypt.__version__</code> 再开始，不同大版本的异常文案与截断行为可能不同。</li>\n<li>密码先 <code>encode(\"utf-8\")</code>，<code>checkpw</code> 的两个参数都传 bytes。</li>\n<li>入库只存 60 字符整串，不再单独存盐。</li>\n<li>按 <code>$2b$</code> + 两位 cost + <code>$</code> + 22 字符盐 + 31 字符摘要 数一遍长度。</li>\n<li>迁移前把 2a、2b、2y 三种前缀各验一遍，遇到 2x 单独处理。</li>\n<li>超过 72 字节的输入先定策略：截断还是先做摘要预处理。</li>\n<li>比较只用 <code>checkpw</code>，不要用字符串相等，也不要在日志里打印哈希。</li>\n</ol>",
+  "faqs": [
+    {
+      "q": "bcrypt 哈希为什么每次生成都不一样？",
+      "a": "因为盐是 16 字节随机值：同一密码两次生成，盐不同、摘要不同、60 字符整串也不同，但两串各自都能校验通过。所以比较密码只能用 checkpw，不能用字符串相等。"
+    },
+    {
+      "q": "Python 报 Unicode-objects must be encoded before checking 怎么办？",
+      "a": "bcrypt 的 checkpw 与 hashpw 只接受 bytes。把密码先 encode(\"utf-8\") 再传，哈希也用库里拿到的 bytes，不要解码成 str 再传回去。"
+    },
+    {
+      "q": "$2a$、$2b$、$2y$ 的哈希能互相校验吗？",
+      "a": "能。三者算法相同，只差标识；实测把 $2b$ 改成 $2a$ 或 $2y$ 仍能验过，$2x$ 与大写的 $2B$ 会被拒绝。但生成侧 Python 只支持 2a 与 2b。"
+    },
+    {
+      "q": "cost 12 一定比 cost 10 好吗？",
+      "a": "cost 每加 1 迭代次数翻倍。实测本机 cost 12 约 361.6 毫秒、cost 10 约 90.6 毫秒，慢 4 倍。选哪档要看单机耗时与你接受的登录延迟，没有通用答案。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "Provos & Mazières：A Future-Adaptable Password Scheme（USENIX 1999，bcrypt 原始论文）",
+      "url": "https://www.usenix.org/legacy/events/usenix99/provos/provos_html/node5.html"
+    },
+    {
+      "title": "NIST SP 800-63B-4：Digital Identity Guidelines — Authentication and Authenticator Management",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63b-4.pdf"
+    },
+    {
+      "title": "Node.js 文档：Buffer.byteLength() 与字符编码",
+      "url": "https://nodejs.org/api/buffer.html"
+    },
+    {
+      "title": "RFC 4648：The Base16, Base32, and Base64 Data Encodings",
+      "url": "https://www.rfc-editor.org/rfc/rfc4648.html"
+    },
+    {
+      "title": "Python 文档：secrets — 生成适合管理密码的强随机数",
+      "url": "https://docs.python.org/3/library/secrets.html"
+    },
+    {
+      "title": "passlib 文档：passlib.hash.bcrypt（格式、版本标识与 72 字节截断）",
+      "url": "https://passlib.readthedocs.io/en/stable/lib/passlib.hash.bcrypt.html"
+    }
+  ],
+  "image": "/article-images/2026-11/bcrypt-bcrypt-generate-cost12.jpg",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-20T18",
+    "runKey": "2026-11-20T18",
+    "angle": "覆盖零内容工具的查询缺口：bcrypt 的结构、参数与 Python 用法",
+    "primaryQuery": "bcrypt python",
+    "reviewerVerdict": "pass",
+    "verifiedAt": "2026-11-20T10:20:04.941Z",
+    "reviewerConfidence": 0.85,
+    "reviewRound": 2
+  }
+}

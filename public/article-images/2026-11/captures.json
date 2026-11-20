@@ -778,5 +778,31 @@
     "alt": "文本处理工具工作区：上方输入框显示 3 行（「 apple」带行首空格、「apple 」带行尾空格、almond），「操作」下拉框显示「去除首尾空格」；下方结果框显示 3 行，第一行「apple」、第二行「apple」、第三行「almond」；结果框下方统计为「3 行（原 3 行）」。",
     "caption": "把去重结果复制回输入框再点「去除首尾空格」，两行只差首尾空白的 apple 变成一样的文本，统计仍是「3 行（原 3 行）」",
     "slug": "text-toolbox"
+  },
+  {
+    "file": "bcrypt-bcrypt-generate-cost12.jpg",
+    "width": 1232,
+    "height": 565,
+    "bytes": 36719,
+    "sha256": "e068ca4c01980833a6ee13aaa96e4c7c53e1c2f5a43ea78e4e651c9d6d3f1990",
+    "capturedAt": "2026-11-20T10:11:51.908Z",
+    "source": "/tools/dev/bcrypt/",
+    "purpose": "展示成本因子下拉、生成后的 60 字符哈希与「生成完成（cost 12）」状态条",
+    "alt": "「生成 Bcrypt 哈希」面板：顶部密码框里是圆点；「成本因子（cost）」下拉显示 12（慢）；下方是「生成哈希」按钮，按钮下方状态条为绿色文字「生成完成（cost 12）」；再往下是只读文本框，内容以 $2b$12$ 开头、共 60 个字符；面板底部是「复制哈希」按钮。",
+    "caption": "成本因子下拉选 12（慢）并点「生成哈希」，状态条显示「生成完成（cost 12）」，下方只读框里是 $2b$12$ 开头的 60 字符哈希，底部是「复制哈希」按钮。",
+    "slug": "bcrypt"
+  },
+  {
+    "file": "bcrypt-bcrypt-verify-nan.jpg",
+    "width": 1232,
+    "height": 506,
+    "bytes": 28178,
+    "sha256": "2b174172b0b31baf721fd6835b8c96d90dc1de75a877403df9641c714b5dd723",
+    "capturedAt": "2026-11-20T10:11:53.469Z",
+    "source": "/tools/dev/bcrypt/",
+    "purpose": "展示非 bcrypt 字符串校验时的 cost NaN 状态文案，与格式错误提示区分",
+    "alt": "「校验密码」面板：顶部「待校验密码」框里是圆点；「已知哈希」多行框里是普通文本 CloverTools-plain-text；下方是「校验」按钮，按钮下方状态条为红色文字「密码不匹配（哈希 cost NaN）」。",
+    "caption": "把一段不是 bcrypt 的字符串粘进「已知哈希」再点「校验」，状态条显示「密码不匹配（哈希 cost NaN）」，而不是格式错误。",
+    "slug": "bcrypt"
   }
 ]
