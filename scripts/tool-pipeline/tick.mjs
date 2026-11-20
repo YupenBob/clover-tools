@@ -63,6 +63,7 @@ import {
 import {
   acquireGlobalLock,
   acquireRunLock,
+  clearPause,
   ensureStateDirs,
   loadBacklog,
   loadQueue,
@@ -1370,6 +1371,15 @@ async function handleRepairIncident(options) {
   const status =
     finished?.status ?? incidentOptions.lastSummary?.status ?? (code === 0 ? 'skipped' : 'failed');
   const ok = code === 0 && status === 'published';
+  if (ok) {
+    // verify 失败会自动写 PAUSED；修复已重新发布并通过全部门禁，这里只解除
+    // 因自动 revert 造成的暂停，其它原因的 PAUSED 保持不动。
+    const current = readPause();
+    if (current.paused && /已自动 revert/.test(String(current.reason ?? ''))) {
+      clearPause();
+      pipelineLog('[incident] 异常修复已发布，清除自动 revert 留下的 PAUSED');
+    }
+  }
   emit({
     ok,
     runKey: incidentRunKey,
