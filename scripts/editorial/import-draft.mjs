@@ -218,13 +218,30 @@ function main() {
   };
 
   try {
-    // 草稿目录：整目录原子替换
+    // 草稿目录：逐文件合并（不能整目录替换——那会把没进本次 changed 的产物，比如 guide.json/截图，抹掉）
     const stagedDraft = join(staging, '.editorial', 'drafts', options.slug);
     if (existsSync(stagedDraft)) {
       backupPath(draftTarget);
-      rmSync(draftTarget, { recursive: true, force: true });
-      mkdirSync(dirname(draftTarget), { recursive: true });
-      renameSync(stagedDraft, draftTarget);
+      mkdirSync(draftTarget, { recursive: true });
+      const walkStaged = (current) => {
+        for (const entry of readdirSync(current, { withFileTypes: true })) {
+          const source = join(current, entry.name);
+          const target = join(draftTarget, relative(stagedDraft, source));
+          if (entry.isDirectory()) {
+            mkdirSync(target, { recursive: true });
+            walkStaged(source);
+          } else if (entry.isFile()) {
+            mkdirSync(dirname(target), { recursive: true });
+            copyFileSync(source, target);
+          }
+        }
+      };
+      walkStaged(stagedDraft);
+    }
+    // 工作区里被删掉的草稿文件：同步删除
+    for (const entry of staged) {
+      if (entry.change !== 'deleted') continue;
+      if (entry.path.startsWith(`.editorial/drafts/${options.slug}/`)) rmSync(join(ROOT, entry.path), { force: true });
     }
     // case 脚本：同目录临时文件 + rename
     const stagedCase = join(staging, 'scripts', 'editorial', 'cases', `${options.slug}.mjs`);
