@@ -290,6 +290,9 @@ function recordOutcome({ run, queue, status, config, error = '' }) {
   if (status === 'published') {
     markPublished(queue, item, { runId: run.runKey, commit: run.publish?.commit });
     state.consecutiveFailures = 0;
+    // 成功发布说明额度/资源已恢复：解除 quota-reset 造成的暂停。
+    const pauseInfo = readPause();
+    if (pauseInfo.paused && pauseInfo.resumeCheck === 'quota-reset') clearPause();
     state.daily = state.daily ?? {};
     state.daily[run.date] = Number(state.daily[run.date] ?? 0) + 1;
   } else if (status === 'failed') {
@@ -1505,11 +1508,9 @@ async function main() {
     options.slug = existing.item.slug;
     options.force = true;
     options.slot = 'manual';
-    if (existing.incidentOf) {
-      options.incidentOf = existing.incidentOf;
-      // 异常修复伴随 verify 失败留下的 PAUSED，resume 时同样需要放行。
-      options.ignorePause = true;
-    }
+    // --resume 是显式继续动作：无论是额度暂停还是异常修复，都放行 PAUSED。
+    options.ignorePause = true;
+    if (existing.incidentOf) options.incidentOf = existing.incidentOf;
     return runPipeline(options, existing);
   }
   if (options.report) return handleReport(options);

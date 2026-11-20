@@ -195,7 +195,7 @@ node scripts/tool-pipeline/tick.mjs --repair-incident --json            # 修复
 | `PAUSED` 存在 | 直接退出 0，报告原因 |
 | 主 checkout 脏 / 有未推送内容提交 | 跳过，不写任何文件 |
 | 主 checkout / origin 移动 | 若并发提交与工具改动路径完全不重叠：在 worktree 里 `rebase --onto` 新 main 后发布（自动记录 `publish.rebased`）；路径重叠→`main-moved-conflict`，不合并、不推送，保留 worktree |
-| codex 未登录 / 额度耗尽 | 写 `PAUSED` 并保留 worktree/spec；额度耗尽时带 `resumeCheck=quota-reset` + `budget.quotaResetHours`（默认 5h）自动解除，避免永久阻塞后续 nightly；额度恢复后 `--resume <runKey>` 继续，不重跑 Builder |
+| codex 未登录 / 额度耗尽 | 写 `PAUSED` 并保留 worktree/spec；额度耗尽时带 `resumeCheck=quota-reset` + `budget.quotaResetHours`（默认 5h）自动解除，避免永久阻塞后续 nightly；额度恢复后 `--resume <runKey>` 继续（显式 resume 放行 PAUSED），不重跑 Builder；发布成功后自动清除 quota-reset 暂停 |
 | 异常修复期间额度再次耗尽 | 修复 run 同样 `stalled` + `PAUSED`（quota-reset），worktree 保留，可 `--resume <incidentRunKey>` |
 | Architect spec lint 失败 | 重试 1 次；仍失败→`stalled` |
 | Builder 超时 | `stalled`，保留 worktree |
