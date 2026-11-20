@@ -52,15 +52,6 @@ export const CATEGORIES: CategoryMeta[] = [
 export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   dev: [
     {
-      slug: 'ip-reputation',
-      name: 'IP 风险与纯净度查询',
-      oneLiner: '逐项对照公网 IP 的来源记录与检测标记',
-      description: '对照 IPv4、IPv6 与域名所选地址的国家、ASN 和检测标记；展示来源、时间与缺失原因，无密钥时保留基础信息。',
-      keywords: ['IP 纯净度查询', 'IP 风险查询', 'VPN 检测', '代理 IP 查询', '机房 IP 检测', 'IP reputation'],
-      icon: 'shield-exclamation',
-      tier: 'P0',
-    },
-    {
       slug: 'json-formatter',
       legacyAliases: ['/tools/json/formatter.html'],
       name: 'JSON 格式化与校验',

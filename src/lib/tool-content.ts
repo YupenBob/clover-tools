@@ -29,27 +29,6 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
-  "ip-reputation": {
-  "usage": "输入单个严格格式的公网 IPv4、IPv6 或域名，点击查询；示例只填入，不自动联网。特殊用途地址会在浏览器与服务器分别拒绝。 域名先经 Cloudflare DNS 并行解析 A 与 AAAA；选择最多八个候选地址中的一个，再点击查询所选 IP。分享链接中的地址提示必须仍在重新解析的候选集中。",
-  "features": [
-    {
-      "icon": "table",
-      "text": "逐字段保留来源值、获取时间和差异"
-    },
-    {
-      "icon": "globe",
-      "text": "域名两步解析、选择与公网地址保护"
-    },
-    {
-      "icon": "shield-exclamation",
-      "text": "六项增强标记与真实缺失原因"
-    },
-    {
-      "icon": "clock-history",
-      "text": "JSON、条件分享与最近十条快照"
-    }
-  ]
-},
   'time-sync': {
     "usage": "点击开始校时，对照设备时间与 HTTP 网络参考北京时间，检查偏移、两段 RTT、来源质量与最近十次历史。本工具只展示测量事实，不能修改系统时间。",
     "features": [
