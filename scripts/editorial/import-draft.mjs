@@ -112,6 +112,12 @@ function main() {
       violations.push(`${entry.rel}：符号链接不允许导入`);
       continue;
     }
+    // 运行目录里除 source-manifest.json 外的产物（codex 自己跑的 digest 等）由宿主维护：忽略，不算越界
+    const runDirPrefix = `.editorial/runs/${options.run}/`;
+    if (entry.rel.startsWith(runDirPrefix) && entry.rel !== `${runDirPrefix}source-manifest.json`) {
+      ignored.push({ path: entry.rel, reason: '运行目录产物由宿主维护（不导入）' });
+      continue;
+    }
     if (!isAllowedPath(entry.rel, options.slug, options.run)) {
       violations.push(`${entry.rel}：不在允许导入范围（仅 .editorial/drafts/${options.slug}/、scripts/editorial/cases/${options.slug}.mjs 与 .editorial/runs/${options.run}/source-manifest.json）`);
       continue;
