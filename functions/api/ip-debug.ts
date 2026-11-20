@@ -1,5 +1,4 @@
-// TEMPORARY diagnostic endpoint: run the real lookup handler in production and
-// report the thrown error instead of the platform 502 page.
+// TEMPORARY diagnostic endpoint.
 import { onRequest as reputation } from "./ip-reputation.ts";
 
 export const onRequest = async (context: {
@@ -9,24 +8,36 @@ export const onRequest = async (context: {
   const url = new URL(context.request.url);
   const ip = url.searchParams.get("ip") || "8.8.8.8";
   const report: Record<string, unknown> = { ip };
+  const body = JSON.stringify({ action: "lookup", query: ip });
   try {
-    const target = new URL("/api/ip-reputation", url);
-    const response = await reputation({
-      request: new Request(target, {
+    const internal = await reputation({
+      request: new Request(new URL("/api/ip-reputation", url), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "lookup", query: ip }),
+        body,
       }),
       env: context.env ?? {},
     });
-    report.status = response.status;
-    report.body = (await response.text()).slice(0, 800);
+    const text = await internal.text();
+    report.internal = { status: internal.status, length: text.length, head: text.slice(0, 200) };
   } catch (error) {
-    report.error = {
-      name: (error as Error)?.name,
-      message: String((error as Error)?.message ?? error),
-      stack: String((error as Error)?.stack ?? "").slice(0, 1200),
+    report.internalError = String((error as Error)?.stack ?? error).slice(0, 600);
+  }
+  try {
+    const external = await fetch(new URL("/api/ip-reputation", url), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    });
+    const text = await external.text();
+    report.external = {
+      status: external.status,
+      contentType: external.headers.get("content-type"),
+      length: text.length,
+      head: text.slice(0, 120),
     };
+  } catch (error) {
+    report.externalError = String((error as Error)?.message ?? error).slice(0, 300);
   }
   return new Response(JSON.stringify(report), {
     headers: { "Content-Type": "application/json; charset=utf-8" },
