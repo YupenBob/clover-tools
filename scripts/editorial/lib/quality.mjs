@@ -171,7 +171,8 @@ export function validateAiIllustrations(html, { fileExists, fileSize, maxCount =
     if (!AI_ILLUSTRATION_SRC.test(src)) {
       errors.push(`AI 示意图路径必须形如 /article-assets/<YYYY-MM>/<slug>.jpg：${src}`);
     }
-    const repoPath = src.replace(/^\//, '');
+    // src 是站点绝对路径（/article-assets/...），换算成仓库相对路径（public/...）
+    const repoPath = src.startsWith('/') ? `public${src}` : src;
     if (fileExists && src && !fileExists(repoPath)) errors.push(`AI 示意图文件不存在：${src}`);
     if (fileSize && src) {
       const size = fileSize(repoPath);
@@ -460,7 +461,8 @@ export function validateGuideStatic(guide, ctx) {
         }
       }
     } else if (image.src?.startsWith('/article-assets/')) {
-      const repoPath = image.src.replace(/^\//, '');
+      // 站点绝对路径 → 仓库相对路径（public/...）
+      const repoPath = image.src.startsWith('/') ? `public${image.src}` : image.src;
       if (typeof ctx.fileExists === 'function' && !ctx.fileExists(repoPath)) push(`文章素材文件不存在：${image.src}`);
     }
   }

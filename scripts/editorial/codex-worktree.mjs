@@ -112,6 +112,21 @@ function prepare(options) {
   if (existsSync(join(ROOT, 'node_modules')) && !existsSync(join(dir, 'node_modules'))) {
     symlinkSync(join(ROOT, 'node_modules'), join(dir, 'node_modules'), 'dir');
   }
+  // 已有草稿（zh 定稿/证据）复制进工作区：translate / polish / altVerify 阶段需要读
+  const existingDraft = join(STATE_PATHS.drafts, options.slug);
+  if (existsSync(existingDraft)) {
+    for (const name of ['guide.json', 'evidence.json', 'captures.json', 'illustrations.json']) {
+      const from = join(existingDraft, name);
+      if (existsSync(from)) {
+        cpSync(from, join(dir, '.editorial', 'drafts', options.slug, name));
+        inputs.push(`.editorial/drafts/${options.slug}/${name}`);
+      }
+    }
+    if (existsSync(join(existingDraft, 'images'))) {
+      cpSync(join(existingDraft, 'images'), join(dir, '.editorial', 'drafts', options.slug, 'images'), { recursive: true });
+      inputs.push(`.editorial/drafts/${options.slug}/images`);
+    }
+  }
   mkdirSync(join(dir, '.editorial', 'drafts', options.slug), { recursive: true });
   mkdirSync(join(dir, 'scripts', 'editorial', 'cases'), { recursive: true });
   writeFileSync(

@@ -66,7 +66,7 @@ function walk(dir) {
 }
 
 const DRAFT_FILE_PATTERN =
-  /^\.editorial\/drafts\/[a-z0-9][a-z0-9-]*\/(guide\.json|evidence\.json|reproduce\.md|fix-notes\.md|captures\.json|capture-log\.json|illustrations\.json|style\.json|precheck-zh\.json|numbers-allow\.json|[A-Za-z0-9._-]+\.mjs|outputs\/[A-Za-z0-9._-]+\.(json|txt|log)|images\/[A-Za-z0-9._-]+\.(png|jpe?g|webp)|[A-Za-z0-9._-]+\.md)$/;
+  /^\.editorial\/drafts\/[a-z0-9][a-z0-9-]*\/(guide\.json|evidence\.json|reproduce\.md|fix-notes\.md|captures\.json|capture-log\.json|illustrations\.json|style\.json|precheck-zh\.json|numbers-allow\.json|[A-Za-z0-9._-]+\.mjs|outputs\/[A-Za-z0-9._-]+\.(json|txt|log)|images\/[A-Za-z0-9._-]+\.(png|jpe?g|webp)|translations\/(tw|en|ko|ja)\.json|[A-Za-z0-9._-]+\.md)$/;
 
 function isAllowedPath(rel, slug) {
   if (rel.startsWith(`.editorial/drafts/${slug}/`)) return true;

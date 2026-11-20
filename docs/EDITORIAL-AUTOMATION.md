@@ -79,7 +79,7 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 | 去重 | 与站内语料 8-gram Jaccard <0.20、与 CSDN 语料 <0.25；标题相似度 <0.6；slug 唯一；`_meta.primaryQuery` 不得与已发布自动文章重复；同一工具 30 天内最多 1 篇（队列层面控制） |
 | 元信息 | title ≤40 汉字且总长 ≤80；description 40–120 汉字（界面摘要）；**seoDescription 150–160 字符**（简体中文 `<meta name="description">`，Bing 建议区间，见 [Bing 整改记录](SEO-BING-REMEDIATION.md)）；category 属于既有分类；slug 为 ASCII kebab-case；日期真实（published ≤ updated ≤ 今天）；不伪造作者/实测经历；禁止 emoji、占位文本、夸大用语 |
 | 图片·真实截图 | 描述工具界面必须有真实浏览器截图：`<figure>` + `img[width][height][alt]`；登记 `public/article-images/<YYYY-MM>/captures.json`（宽高/字节/SHA-256），CI 逐字节复核；浏览器不可用时降级为"验证表格 + 仓库内 SVG 流程图"，并记录降级原因 |
-| 图片·AI 示意图 | 可选，每篇 ≤1 张：路径必须 `/article-assets/<YYYY-MM>/<slug>.jpg`（JPEG、宽 ≤1600、≤400KB）；`alt` 以「AI 生成示意图：」开头、`figcaption` 以「（AI 生成示意图，非界面截图）」结尾；**不得冒充界面截图、不得出现可被当作真实数据的数字/哈希/报错、不得作为任何断言的证据**（`verify-article` 会拒绝引用它的 evidence claim） |
+| 图片·AI 示意图 | 可选，每篇 ≤1 张：路径必须 `/article-assets/<YYYY-MM>/<slug>.jpg`（JPEG、宽 ≤1600、≤400KB）；`alt` 以「AI 生成示意图：」开头、`figcaption` 以「（AI 生成示意图，非界面截图）」结尾；**不得冒充界面截图、不得出现可被当作真实数据的数字/哈希/报错/界面控件、不得作为任何断言的证据**（`verify-article` 会拒绝引用它的 evidence claim）；只允许 ≤6 字的概念标签 |
 | 文风 | `scripts/editorial/tools/precheck-style.mjs --strict` 全过：禁用词 0（值得注意的是/总而言之/赋能/本文将…）、段落起头禁用词 0、句长 CV ≥0.35、>60 字长句 ≤3、连续同构 ≤2；段落比与每节段数只报告不阻断。标准见 `.editorial/prompts/style-zh.md`，阈值见 `scripts/editorial/tools/style-rules.json` |
 | 复核 | 独立 Reviewer 子代理 `verdict=pass` 且 `confidence ≥0.7`；阻塞问题清零；Lead 不采信 Writer 自评 |
 
