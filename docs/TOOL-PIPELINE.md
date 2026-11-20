@@ -57,7 +57,7 @@ scripts/tool-pipeline/
   backlog.json             # 选题源（committed）
   specs/<slug>.md          # 选题卡（committed）
   templates/{architect,builder,repair,verifier}.md
-  lib/{state,select,prompt,codex,diff-guard,gates,publish,verify-deploy,report,git}.mjs
+  lib/{state,select,prompt,codex,diff-guard,gates,publish,verify-deploy,incident,report,git}.mjs
   update-tool-counts.mjs   # README 计数确定性更新/检查
 deploy/systemd/            # service + timer + install.sh
 scripts/smoke-tool.mjs     # 单工具 5 语言浏览器回归
@@ -71,7 +71,7 @@ docs/TOOL-PIPELINE.md      # 本文
 
 .editorial/tool-pipeline/  # gitignored：queue.json/state.json/PAUSED/locks
 .editorial/tool-runs/<runKey>/
-  run.json report.md spec.md gates.json review.json
+  run.json report.md spec.md gates.json review.json incident.md
   logs/ screenshots/ schemas/
 .editorial/tool-worktrees/<runKey>/  # 独立 worktree（失败时保留 7 天）
 ```
@@ -171,6 +171,23 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 - 08:00 DSH 早报仍会 `--report --verify`，作为夜间轮询超时（pending/机器关机）后的兜底。
 - 不 force-push；revert 是普通提交。
 
+### 异常修复（`--repair-incident`）
+
+推送后 `--verify` 判定为 `ci-failed`/`production-failed`/`reverted` 时，`verify-later.sh` 默认会自动尝试一次异常修复（`AUTO_INCIDENT_REPAIR=0` 关闭）：
+
+```bash
+node scripts/tool-pipeline/tick.mjs --repair-incident --dry-run --json  # 只打印计划，不调 codex
+node scripts/tool-pipeline/tick.mjs --repair-incident --json            # 修复并重新走门禁/复核/发布
+```
+
+- 仅这三个状态可修；`deploy-failed` 属基础设施问题，跳过并交给人工。
+- 前置：main 干净且与 origin 同步、磁盘 ≥5G、同一被修 run 的修复次数 < `caps.maxIncidentRepairs`（默认 1）、queue 中 item 存在。verify 失败留下的 `PAUSED` 对异常修复放行。
+- 证据写入新 run 的 `incident.md`：失败检查/原因/CI 链接、被回滚提交的 `git show` stat+patch、spec 路径。
+- 复用被修 run 的 `plan.md`（历史 run 回退 `spec.md`）跳过 Architect；Builder 使用 `timeoutsMinutes.repairIncident` 并附带「上一次发布失败（必须修复）」章节；门禁、独立 verifier、发布与 revert 流程不变。
+- 发布成功后 `verify-later.sh` 继续轮询新结果；修复未发布则按原逻辑退出 1。
+- 同一 run 内既往失败修复轮 ≥2 次时，后续 repair 轮升级到 `models.repairEscalation` / `reasoning.repairEscalation`（未配置则回退 `repair`），记录在 `run.repairRounds` 与报告。
+- 常规 run 的 Builder prompt 也会自动附上 `item.lastFailure` 摘要；`verified`/`skipped` 后清除。
+
 ## 六、失败矩阵
 
 | 场景 | 处理 |
@@ -186,9 +203,11 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | Verifier fail | 修复轮 1 次 + 复审；仍失败→`failed` |
 | 主视图契约失败 | guard 阶段契约非法 → 不启动；build 后补验产物与页面各状态；缺配置（无 legacy 豁免）→ `failed`，见 `docs/PRESENTATION.md` |
 | push 失败 | 主 checkout reset 回 base；worktree 保留；`failed` |
-| CI quality 失败 | 自动 revert + `PAUSED` |
-| deploy job 失败 | 不 revert；报告；允许重试 |
-| 生产页面/API 失败 | 自动 revert + `PAUSED` |
+| CI quality 失败 | 自动 revert + `PAUSED`；`verify-later` 默认再尝试 1 次 `--repair-incident`（`AUTO_INCIDENT_REPAIR=0` 关闭） |
+| deploy job 失败 | 不 revert；报告；允许重试；**不**触发异常修复 |
+| 生产页面/API 失败 | 自动 revert + `PAUSED`；随后默认尝试 1 次 `--repair-incident` |
+| 异常修复未发布 / 前置检查不通过 | 不污染 main（沿用原失败/revert 路径），`verify-later` 退出 1 |
+| 同一被修 run 超过 `caps.maxIncidentRepairs` | 跳过自动修复，交人工处理 |
 | Functions 返回 502/504 | 该 zone 的边缘会把 502/504 换成通用错误页（正文 `error code: 502`），客户端拿不到结构化 JSON。网络工具的“上游不可用/超时”统一用 **503**；新增 API 不要用 502/504 表示业务失败 |
 | 推送后 CI/部署 25 分钟内未落定 | `verify-later` 退出 2 并保留 pending，08:00 早报复检 |
 | 浏览器用例对异步 UI 直接断言 | 用 `poll` 等到状态/存储落定再断言；`<dialog>` 关闭后应用才落盘，`confirm()` 返回不代表动作完成 |
@@ -226,6 +245,8 @@ npm run tool:run -- --slot manual --slug exam-clock
 npm run tool:run -- --slot manual --slug exam-clock --no-push
 npm run tool:verify                          # 检查最近一次发布的 CI/生产
 npm run tool:report                          # 打印最近报告
+node scripts/tool-pipeline/tick.mjs --repair-incident --dry-run --json  # 异常修复计划
+node scripts/tool-pipeline/tick.mjs --repair-incident --json            # 异常修复
 node scripts/tool-pipeline/tick.mjs --resume <runKey>
 npm run tool:counts -- --check
 node scripts/smoke-tool.mjs --slug <slug> --category <cat>

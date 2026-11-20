@@ -7,6 +7,7 @@
  *   node scripts/tool-pipeline/tick.mjs --slot nightly [--no-push]
  *   node scripts/tool-pipeline/tick.mjs --report [--verify] [--json]
  *   node scripts/tool-pipeline/tick.mjs --verify
+ *   node scripts/tool-pipeline/tick.mjs --repair-incident [--dry-run] [--json]
  *   node scripts/tool-pipeline/tick.mjs --resume <runKey>
  */
 import os from 'node:os';
@@ -52,6 +53,7 @@ import {
   commitsAhead,
   currentBranch,
   fetchOrigin,
+  git,
   headSha,
   isClean,
   resetSoft,
@@ -103,6 +105,14 @@ import { failedGateText, runGates, screenshotFiles, summarizeGates } from './lib
 import { commitTool, publishWithRebase } from './lib/publish.mjs';
 import { verifyDeploy } from './lib/verify-deploy.mjs';
 import { readRunReport, summarizeRun, writeRun } from './lib/report.mjs';
+import {
+  buildIncidentEvidence,
+  escalatedRepair,
+  formatLastFailure,
+  incidentCommit,
+  incidentEligibility,
+  verifyFailureReason,
+} from './lib/incident.mjs';
 
 function parseArgs(argv) {
   const options = {
@@ -116,6 +126,7 @@ function parseArgs(argv) {
     resume: '',
     verify: false,
     report: false,
+    repairIncident: false,
     json: false,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -125,6 +136,7 @@ function parseArgs(argv) {
     else if (arg === '--force') options.force = true;
     else if (arg === '--verify') options.verify = true;
     else if (arg === '--report') options.report = true;
+    else if (arg === '--repair-incident') options.repairIncident = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--slot') options.slot = argv[++index] ?? '';
     else if (arg === '--slug') options.slug = argv[++index] ?? '';
@@ -142,6 +154,18 @@ function parseArgs(argv) {
 
 function emit(value) {
   console.log(JSON.stringify(value, null, 2));
+}
+
+/** runPipeline 的 JSON 输出；silent 时交给调用方统一输出（异常修复 CLI）。 */
+function emitRunJson(options, value) {
+  options.lastSummary = value;
+  if (!options.silent) console.log(JSON.stringify(value, null, 2));
+}
+
+// 异常修复 CLI 只允许 stdout 出现一条 JSON；期间的过程日志改由调用方决定。
+let quietOutput = false;
+function pipelineLog(...args) {
+  if (!quietOutput) console.log(...args);
 }
 
 function freeDiskGb() {
@@ -184,7 +208,7 @@ async function waitForLoad(config) {
   );
   const deadline = Date.now() + waitMinutes * 60 * 1000;
   while (os.loadavg()[0] > max && Date.now() < deadline) {
-    console.log(
+    pipelineLog(
       `[guard] load ${os.loadavg()[0].toFixed(1)} > ${max}; waiting 30s…`,
     );
     await sleep(30000);
@@ -350,33 +374,72 @@ function maybeAutoResume(pauseInfo) {
   return { paused: false };
 }
 
-function assertGuard(config, options, runKey, zoned) {
-  const pauseInfo = maybeAutoResume(readPause());
-  if (pauseInfo.paused) {
-    const detail = pauseInfo.blocked?.length ? `；仍未满足：${pauseInfo.blocked.join('；')}` : '';
-    return { ok: false, status: 'paused', reason: `PAUSED: ${pauseInfo.reason}${detail}` };
-  }
+/**
+ * 主 checkout 的前置检查：干净、在 main、与 origin 同步、磁盘充足。
+ * 正常 tick 与异常修复共用同一套逻辑。
+ */
+function mainGuard(config) {
   if (!isClean(REPO)) {
-    return { ok: false, status: 'skipped', reason: '主 checkout 不干净' };
+    return { ok: false, status: 'skipped', reason: '主 checkout 不干净', clean: false };
   }
-  if (currentBranch(REPO) !== 'main') {
-    return { ok: false, status: 'skipped', reason: `主 checkout 不在 main（${currentBranch(REPO)}）` };
-  }
-  fetchOrigin(REPO);
-  if (commitsAhead(REPO) !== 0) {
-    return { ok: false, status: 'skipped', reason: 'main 有未推送提交，先处理内容流水线' };
-  }
-  if (remoteHead(REPO) !== headSha(REPO)) {
+  const branch = currentBranch(REPO);
+  if (branch !== 'main') {
     return {
       ok: false,
       status: 'skipped',
-      reason: `本地 main 与 origin/main 不一致（${headSha(REPO).slice(0, 8)} vs ${remoteHead(REPO).slice(0, 8)}）`,
+      reason: `主 checkout 不在 main（${branch}）`,
+      clean: true,
+      branch,
+    };
+  }
+  fetchOrigin(REPO);
+  if (commitsAhead(REPO) !== 0) {
+    return {
+      ok: false,
+      status: 'skipped',
+      reason: 'main 有未推送提交，先处理内容流水线',
+      clean: true,
+      branch,
+      synced: false,
+    };
+  }
+  const local = headSha(REPO);
+  const remote = remoteHead(REPO);
+  if (remote !== local) {
+    return {
+      ok: false,
+      status: 'skipped',
+      reason: `本地 main 与 origin/main 不一致（${local.slice(0, 8)} vs ${remote.slice(0, 8)}）`,
+      clean: true,
+      branch,
+      synced: false,
     };
   }
   const free = freeDiskGb();
   if (free < Number(config.guard.minFreeDiskGb ?? 5)) {
-    return { ok: false, status: 'skipped', reason: `磁盘仅剩 ${free.toFixed(1)}G` };
+    return {
+      ok: false,
+      status: 'skipped',
+      reason: `磁盘仅剩 ${free.toFixed(1)}G`,
+      clean: true,
+      branch,
+      synced: true,
+      freeDiskGb: free,
+    };
   }
+  return { ok: true, status: 'ok', reason: '', clean: true, branch, synced: true, freeDiskGb: free };
+}
+
+function assertGuard(config, options, runKey, zoned) {
+  const pauseInfo = maybeAutoResume(readPause());
+  // 异常修复本身就是失败后的恢复动作：verify 失败会自动写 PAUSED，
+  // 这里只对 --repair-incident 放行，其余路径保持原语义。
+  if (pauseInfo.paused && !options.ignorePause) {
+    const detail = pauseInfo.blocked?.length ? `；仍未满足：${pauseInfo.blocked.join('；')}` : '';
+    return { ok: false, status: 'paused', reason: `PAUSED: ${pauseInfo.reason}${detail}` };
+  }
+  const repo = mainGuard(config);
+  if (!repo.ok) return { ok: false, status: repo.status, reason: repo.reason };
   const codexAuth = join(process.env.HOME || '/home/ubuntu', '.codex', 'auth.json');
   if (!existsSync(codexAuth)) {
     return { ok: false, status: 'skipped', reason: `codex 未登录：缺少 ${codexAuth}` };
@@ -489,10 +552,21 @@ async function architectStep({ run, item, config, worktree, runKey, logDir }) {
   return spec;
 }
 
-async function builderStep({ run, item, config, worktree, spec, logDir, name = 'builder' }) {
-  ensureBudget(run, config, 165);
+async function builderStep({
+  run,
+  item,
+  config,
+  worktree,
+  spec,
+  logDir,
+  name = 'builder',
+  incident = false,
+  failure = '',
+}) {
+  const timeoutRole = incident ? 'repairIncident' : 'builder';
+  ensureBudget(run, config, Number(config.timeoutsMinutes?.[timeoutRole] ?? 165));
   setPhase(run, 'builder', 'running');
-  const prompt = builderPrompt({ item, config, base: run.baseSha, spec });
+  const prompt = builderPrompt({ item, config, base: run.baseSha, spec, failure });
   const result = await runCodex({
     prompt,
     cwd: worktree,
@@ -501,7 +575,7 @@ async function builderStep({ run, item, config, worktree, spec, logDir, name = '
     model: name === 'builder' ? config.models.builder : config.models.repair,
     reasoning: config.reasoning.builder,
     sandbox: 'workspace-write',
-    timeoutMs: timeoutMs(config, name === 'builder' ? 'builder' : 'repair'),
+    timeoutMs: timeoutMs(config, timeoutRole),
     config,
   });
   run.codex[name] = codexSummary(result);
@@ -516,21 +590,40 @@ async function builderStep({ run, item, config, worktree, spec, logDir, name = '
 
 async function repairStep({ run, item, config, worktree, spec, failure, kind, logDir, name }) {
   ensureBudget(run, config, 45);
-  setPhase(run, 'repair', 'running', kind);
+  const escalation = escalatedRepair(config, run.repairRounds ?? []);
+  const detail = escalation.escalated ? `${kind} · escalation` : kind;
+  if (escalation.escalated) {
+    pipelineLog(
+      `[repair] 既往失败修复轮 ${escalation.failedRounds} 次，升级模型 ${escalation.model}（reasoning=${escalation.reasoning}）`,
+    );
+  }
+  setPhase(run, 'repair', 'running', detail);
   const prompt = repairPrompt({ item, config, base: run.baseSha, spec, failure, kind });
   const result = await runCodex({
     prompt,
     cwd: worktree,
     logDir,
     name,
-    model: config.models.repair,
-    reasoning: config.reasoning.repair,
+    model: escalation.model,
+    reasoning: escalation.reasoning,
     sandbox: 'workspace-write',
     timeoutMs: timeoutMs(config, 'repair'),
     config,
   });
   run.codex[name] = codexSummary(result);
-  setPhase(run, 'repair', result.ok ? 'done' : 'failed', kind);
+  run.repairRounds = [
+    ...(run.repairRounds ?? []),
+    {
+      ok: result.ok,
+      model: escalation.model,
+      kind,
+      name,
+      reasoning: escalation.reasoning,
+      escalated: escalation.escalated,
+      at: nowIso(),
+    },
+  ];
+  setPhase(run, 'repair', result.ok ? 'done' : 'failed', detail);
   return result;
 }
 
@@ -725,32 +818,52 @@ function cleanupWorktree(runKey) {
   rmSync(worktree, { recursive: true, force: true });
 }
 
+/** 异常修复复用旧 run 的 plan.md（兼容只有 spec.md 的历史 run）。 */
+function incidentPlanText(priorRunKey) {
+  if (!priorRunKey) return '';
+  const priorDir = runDir(priorRunKey);
+  for (const name of ['plan.md', 'spec.md']) {
+    const text = readText(join(priorDir, name));
+    if (text.trim()) return text;
+  }
+  return '';
+}
+
 async function runPipeline(options, existingRun = null) {
   const config = loadConfig();
   const computed = runKeyFor(options, config);
-  const runKey = existingRun?.runKey ?? computed.runKey;
+  const incidentOf = options.incidentOf ?? existingRun?.incidentOf ?? '';
+  const runKey = existingRun?.runKey ?? options.incidentRunKey ?? computed.runKey;
   const date = existingRun?.date ?? computed.date;
   const slot = existingRun?.slot ?? computed.slot;
   const zoned = computed.zoned;
   options.slot = slot;
   const guard = assertGuard(config, options, runKey, zoned);
   if (!guard.ok) {
-    console.log(
-      JSON.stringify({ ok: guard.status === 'skipped', status: guard.status, reason: guard.reason, runKey }, null, 2),
-    );
+    emitRunJson(options, {
+      ok: guard.status === 'skipped',
+      status: guard.status,
+      reason: guard.reason,
+      runKey,
+    });
     return 0;
   }
 
   await waitForLoad(config);
   const globalLock = acquireGlobalLock();
   if (!globalLock.ok) {
-    console.log(JSON.stringify({ ok: false, status: 'locked', runKey, reason: 'another pipeline run holds global.lock' }, null, 2));
+    emitRunJson(options, {
+      ok: false,
+      status: 'locked',
+      runKey,
+      reason: 'another pipeline run holds global.lock',
+    });
     return 0;
   }
   const lock = acquireRunLock(runKey);
   if (!lock.ok) {
     globalLock.stop();
-    console.log(JSON.stringify({ ok: false, status: 'locked', runKey, reason: lock.reason }, null, 2));
+    emitRunJson(options, { ok: false, status: 'locked', runKey, reason: lock.reason });
     return 0;
   }
 
@@ -764,7 +877,7 @@ async function runPipeline(options, existingRun = null) {
     item = findItem(queue, { slug: existingRun.item.slug });
     if (!item) {
       lock.stop();
-      console.log(JSON.stringify({ ok: false, status: 'resume-item-missing' }, null, 2));
+      emitRunJson(options, { ok: false, status: 'resume-item-missing' });
       return 1;
     }
   } else if (options.slug) {
@@ -774,7 +887,7 @@ async function runPipeline(options, existingRun = null) {
       const candidate = backlog.items?.find((entry) => entry.slug === options.slug);
       if (!candidate) {
         lock.stop();
-        console.log(JSON.stringify({ ok: false, status: 'unknown-slug', slug: options.slug }, null, 2));
+        emitRunJson(options, { ok: false, status: 'unknown-slug', slug: options.slug });
         return 1;
       }
       item = { ...candidate, status: 'ready', attempts: 0, createdAt: nowIso() };
@@ -785,13 +898,14 @@ async function runPipeline(options, existingRun = null) {
     item = selection.item;
     if (!item) {
       lock.stop();
-      console.log(JSON.stringify({ ok: false, status: 'queue-empty', skipped: selection.skipped }, null, 2));
+      emitRunJson(options, { ok: false, status: 'queue-empty', skipped: selection.skipped });
       return 0;
     }
   }
-  if (registry.has(item.slug)) {
+  // 异常修复针对的走查失败可能仍留在 registry（revert 失败）：允许就地修复。
+  if (registry.has(item.slug) && !incidentOf) {
     lock.stop();
-    console.log(JSON.stringify({ ok: false, status: 'already-in-registry', slug: item.slug }, null, 2));
+    emitRunJson(options, { ok: false, status: 'already-in-registry', slug: item.slug });
     return 0;
   }
 
@@ -810,12 +924,16 @@ async function runPipeline(options, existingRun = null) {
     version: 1,
     runKey,
     date,
-    slot,
+    slot: incidentOf ? 'incident' : slot,
     timezone: config.timezone,
     status: 'in_progress',
     startedAt: nowIso(),
     finishedAt: null,
     baseSha: base,
+    incidentOf: incidentOf || null,
+    incident: incidentOf
+      ? { of: incidentOf, evidence: options.incidentEvidencePath ?? join(runDirPath, 'incident.md') }
+      : null,
     item: {
       id: item.id,
       slug: item.slug,
@@ -835,6 +953,8 @@ async function runPipeline(options, existingRun = null) {
     review: null,
     publish: null,
     verify: null,
+    repairRounds: [],
+    lastFailure: item.lastFailure ?? null,
     queue: queueSummary(queue),
     error: null,
     notes: [],
@@ -871,9 +991,20 @@ async function runPipeline(options, existingRun = null) {
     run.worktree = worktree;
     setPhase(run, 'worktree', 'done', worktree);
 
-    const spec = existsSync(join(runDirPath, 'spec.md'))
+    let spec = existsSync(join(runDirPath, 'spec.md'))
       ? readText(join(runDirPath, 'spec.md'))
-      : await architectStep({ run, item, config, worktree, runKey, logDir });
+      : '';
+    if (!spec.trim() && incidentOf) {
+      // 异常修复沿用被修 run 的架构产物，避免重新 architect 改变方案。
+      const plan = incidentPlanText(incidentOf);
+      if (plan) {
+        writeTextAtomic(join(runDirPath, 'plan.md'), plan);
+        writeTextAtomic(join(runDirPath, 'spec.md'), plan);
+        spec = plan;
+        setPhase(run, 'architect', 'skipped', `incident: 复用 ${incidentOf}/plan.md`);
+      }
+    }
+    if (!spec.trim()) spec = await architectStep({ run, item, config, worktree, runKey, logDir });
     run.specFile = join(runDirPath, 'spec.md');
     if (!spec.trim()) throw new Error('spec 为空');
 
@@ -883,7 +1014,20 @@ async function runPipeline(options, existingRun = null) {
     if (hasChanges) {
       setPhase(run, 'builder', 'done', 'resume: existing changes');
     } else {
-      await builderStep({ run, item, config, worktree, spec, logDir });
+      const priorFailure =
+        options.priorFailure ??
+        (incidentOf ? readText(join(runDirPath, 'incident.md')) : '');
+      const failure = priorFailure || formatLastFailure(item.lastFailure);
+      await builderStep({
+        run,
+        item,
+        config,
+        worktree,
+        spec,
+        logDir,
+        incident: Boolean(incidentOf),
+        failure,
+      });
     }
 
     const diff = audit(run, item, config, worktree, 'post-build');
@@ -979,21 +1123,16 @@ async function runPipeline(options, existingRun = null) {
     }
     writeRun(run);
     if (!options.noPush) cleanupWorktree(runKey);
-    console.log(
-      JSON.stringify(
-        {
-          ok: true,
-          status: run.status,
-          runKey,
-          slug: item.slug,
-          commit: run.publish?.commit ?? null,
-          report: join(runDirPath, 'report.md'),
-          duration: formatDuration(Date.now() - new Date(run.startedAt).getTime()),
-        },
-        null,
-        2,
-      ),
-    );
+    emitRunJson(options, {
+      ok: true,
+      status: run.status,
+      runKey,
+      slug: item.slug,
+      incidentOf: run.incidentOf ?? null,
+      commit: run.publish?.commit ?? null,
+      report: join(runDirPath, 'report.md'),
+      duration: formatDuration(Date.now() - new Date(run.startedAt).getTime()),
+    });
     return 0;
   } catch (error) {
     const usageLimited =
@@ -1015,6 +1154,7 @@ async function runPipeline(options, existingRun = null) {
     run.finishedAt = nowIso();
     recordOutcome({ run, queue, status: run.status, config, error: run.error });
     writeRun(run);
+    emitRunJson(options, { ok: false, status: run.status, runKey, reason: error.message });
     console.error(`[tool-pipeline] ${run.status}: ${error.message}`);
     console.error(`[tool-pipeline] report: ${join(runDirPath, 'report.md')}`);
     if (worktree) console.error(`[tool-pipeline] worktree kept: ${worktree}`);
@@ -1027,18 +1167,220 @@ async function runPipeline(options, existingRun = null) {
 }
 
 function recordVerifyOutcome(run, result, config) {
-  if (result?.status !== 'reverted') return;
+  const status = String(result?.status ?? '');
+  if (!status) return;
   const queue = loadQueue();
   const item = findItem(queue, { slug: run.item.slug });
   if (!item) return;
-  markFailed(queue, item, {
-    runId: run.runKey,
-    error: `生产/CI 校验失败，已 revert：${result.reason ?? result.status}`,
-  });
+  if (!['reverted', 'ci-failed', 'deploy-failed', 'production-failed'].includes(status)) {
+    if (status === 'verified' || status === 'skipped') {
+      if (item.lastFailure) {
+        delete item.lastFailure;
+        saveQueue(queue);
+      }
+    }
+    return;
+  }
+  // 把失败摘要留在队列条目上，下一晚常规 builder prompt 会自动附带，
+  // 避免在完全没有上下文的情况下盲修。
+  if (status === 'reverted') {
+    markFailed(queue, item, {
+      runId: run.runKey,
+      error: `生产/CI 校验失败，已 revert：${result.reason ?? result.status}`,
+    });
+  }
+  item.lastFailure = {
+    runKey: run.runKey,
+    status,
+    reason: verifyFailureReason(result),
+    evidencePath: join(runDir(run.runKey), 'report.md'),
+    at: nowIso(),
+  };
   saveQueue(queue);
+  if (status !== 'reverted') return;
   const state = loadState();
   state.consecutiveFailures = Number(state.consecutiveFailures ?? 0) + 1;
   saveState(state);
+}
+
+function countIncidentRepairs(targetRunKey) {
+  let count = 0;
+  try {
+    for (const entry of readdirSync(RUNS_DIR)) {
+      const candidate = readRun(entry);
+      if (candidate?.incidentOf === targetRunKey) count += 1;
+    }
+  } catch {
+    /* RUNS_DIR 尚未创建时视为 0 次 */
+  }
+  return count;
+}
+
+function incidentRunKeyFor(config) {
+  const zoned = zonedNow(config.timezone);
+  const base = `${zoned.date}Tincident-${zoned.time.slice(0, 5).replace(':', '')}`;
+  let key = base;
+  let suffix = 2;
+  while (existsSync(runDir(key))) {
+    key = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return key;
+}
+
+function gitShowCommit(sha) {
+  if (!sha) return '';
+  const result = git(['show', '--stat', '--patch', '--no-color', sha], {
+    cwd: REPO,
+    allowFailure: true,
+    timeoutMs: 60000,
+  });
+  if (result.code !== 0) {
+    return `（git show ${sha} 失败：${String(result.stderr || '').trim().slice(0, 500)}）`;
+  }
+  const text = result.stdout;
+  return text.length <= 30000 ? text : `${text.slice(0, 30000)}\n…(truncated)`;
+}
+
+async function handleRepairIncident(options) {
+  const config = loadConfig();
+  const latest = readLatest();
+  if (!latest?.runKey) {
+    emit({ ok: false, runKey: null, status: 'no-run' });
+    return 1;
+  }
+  const targetRunKey = latest.runKey;
+  const target = readRun(targetRunKey);
+  if (!target) {
+    emit({ ok: false, runKey: targetRunKey, status: 'run-missing' });
+    return 1;
+  }
+  const queue = seedQueue(loadQueue());
+  const item = target.item?.slug ? findItem(queue, { slug: target.item.slug }) : null;
+  const incidentRepairs = countIncidentRepairs(targetRunKey);
+  let repo;
+  try {
+    repo = mainGuard(config);
+  } catch (error) {
+    repo = {
+      ok: false,
+      status: 'skipped',
+      reason: `主 checkout 检查失败：${error.message}`,
+      clean: false,
+      synced: false,
+    };
+  }
+  const eligibility = incidentEligibility({
+    verifyStatus: target.verify?.status,
+    item,
+    incidentRepairs,
+    maxIncidentRepairs: Number(config.caps?.maxIncidentRepairs ?? 1),
+    clean: repo.clean !== false,
+    branch: repo.branch ?? 'unknown',
+    synced: repo.synced !== false,
+    freeDiskGb: repo.freeDiskGb ?? 0,
+    minFreeDiskGb: Number(config.guard?.minFreeDiskGb ?? 5),
+  });
+  if (!eligibility.ok) {
+    emit({
+      ok: false,
+      runKey: targetRunKey,
+      status: eligibility.status,
+      reason: eligibility.reason,
+    });
+    return 0;
+  }
+
+  const commit = incidentCommit(target);
+  const specPath = target.item?.specPath
+    ? `scripts/tool-pipeline/${target.item.specPath}`
+    : '';
+  const commitShow = gitShowCommit(commit);
+  const evidence = buildIncidentEvidence({
+    run: target,
+    commitShow,
+    specPath,
+    previousIncidentRepairs: incidentRepairs,
+  });
+
+  if (options.dryRun) {
+    emit({
+      ok: true,
+      dryRun: true,
+      runKey: incidentRunKeyFor(config),
+      incidentOf: targetRunKey,
+      item: target.item,
+      verify: {
+        status: target.verify?.status,
+        reason: verifyFailureReason(target.verify ?? {}),
+      },
+      commit,
+      specPath,
+      evidence: evidence.slice(0, 1500),
+      models: {
+        builder: config.models.builder,
+        repair: config.models.repair,
+        repairEscalation: config.models.repairEscalation ?? config.models.repair,
+      },
+      budget: {
+        maxTotalMinutes: config.budget.maxTotalMinutes,
+        repairIncidentMinutes: config.timeoutsMinutes?.repairIncident ?? 165,
+        timeoutsMinutes: config.timeoutsMinutes,
+      },
+    });
+    return 0;
+  }
+
+  const incidentRunKey = incidentRunKeyFor(config);
+  const incidentDir = runDir(incidentRunKey);
+  ensureDir(incidentDir);
+  const evidencePath = join(incidentDir, 'incident.md');
+  writeTextAtomic(evidencePath, evidence);
+  const incidentOptions = {
+    action: 'run',
+    slot: 'manual',
+    slug: target.item.slug,
+    runKey: '',
+    dryRun: false,
+    noPush: false,
+    force: true,
+    resume: '',
+    verify: false,
+    report: false,
+    json: options.json,
+    // 由本函数统一输出一条 JSON，避免 verify-later 解析到多段 JSON。
+    silent: true,
+    ignorePause: true,
+    incidentOf: targetRunKey,
+    priorFailure: evidence,
+    incidentRunKey,
+    incidentEvidencePath: evidencePath,
+  };
+  let code = 1;
+  let runError = '';
+  quietOutput = true;
+  try {
+    code = await runPipeline(incidentOptions);
+  } catch (error) {
+    runError = String(error.message ?? error);
+  } finally {
+    quietOutput = false;
+  }
+  const finished = readRun(incidentRunKey);
+  const status =
+    finished?.status ?? incidentOptions.lastSummary?.status ?? (code === 0 ? 'skipped' : 'failed');
+  const ok = code === 0 && status === 'published';
+  emit({
+    ok,
+    runKey: incidentRunKey,
+    status,
+    incidentOf: targetRunKey,
+    evidence: evidencePath,
+    ...(ok
+      ? {}
+      : { reason: incidentOptions.lastSummary?.reason ?? finished?.error ?? runError ?? '' }),
+  });
+  return ok ? 0 : 1;
 }
 
 async function handleReport(options) {
@@ -1129,6 +1471,7 @@ async function handleDryRun(options) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) return 0;
+  if (options.repairIncident) return handleRepairIncident(options);
   if (options.runKey && !options.resume) options.resume = options.runKey;
   if (options.resume) {
     const existing = readRun(options.resume);
@@ -1139,6 +1482,11 @@ async function main() {
     options.slug = existing.item.slug;
     options.force = true;
     options.slot = 'manual';
+    if (existing.incidentOf) {
+      options.incidentOf = existing.incidentOf;
+      // 异常修复伴随 verify 失败留下的 PAUSED，resume 时同样需要放行。
+      options.ignorePause = true;
+    }
     return runPipeline(options, existing);
   }
   if (options.report) return handleReport(options);

@@ -52,10 +52,12 @@ export function architectPrompt({ item, config, base }) {
   });
 }
 
-export function builderPrompt({ item, config, base, spec }) {
+export function builderPrompt({ item, config, base, spec, failure = '' }) {
+  const material = String(failure ?? '').trim();
   return render('builder', {
     ...commonVars({ item, config, base }),
     SPEC: spec,
+    FAILURE_SECTION: material ? `## 上一次发布失败（必须修复）\n\n${material}` : '',
     NETWORK_RULES: item.network ? networkRules(item) : '本工具不新增网络请求。',
   });
 }

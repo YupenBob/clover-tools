@@ -10,6 +10,8 @@
 
 {{SPEC}}
 
+{{FAILURE_SECTION}}
+
 ## 仓库与工作区
 
 - 你已经在 `/home/ubuntu/Clovertools` 的独立 worktree 中；只改这个 worktree。
@@ -74,6 +76,7 @@
 
 ## 运行限制
 
+- 若本次 prompt 含“上一次发布失败”材料，必须在最小 diff 内修掉对应问题，并在回复中说明修了哪一条。
 - 不要 `git commit`、`git push`、`git add`；不要改 `.github/`、`package.json`、`package-lock.json`、`public/_headers`、`wrangler.toml`。
 - 不要 `npm install`、不要新增运行时依赖（除非 spec 已批准并明确写出）。
 - 不要运行 `npm run build` 或 `npm run check:browser`（Lead 会跑）；可运行：

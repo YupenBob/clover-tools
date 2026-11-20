@@ -27,6 +27,7 @@ export function reportMarkdown(run) {
   }
   lines.push(`- 开始/结束：${run.startedAt} → ${run.finishedAt ?? '—'}`);
   if (run.baseSha) lines.push(`- base：${run.baseSha.slice(0, 12)}`);
+  if (run.incidentOf) lines.push(`- 异常修复：被修 run ${run.incidentOf}`);
   lines.push('');
   lines.push('## 阶段');
   for (const [name, phase] of Object.entries(run.phases ?? {})) {
@@ -64,6 +65,15 @@ export function reportMarkdown(run) {
         .map(([key, value]) => `${key}=${value}`)
         .join(' ');
       lines.push(`- rubric: ${rubric}`);
+    }
+  }
+  if (run.repairRounds?.length) {
+    lines.push('');
+    lines.push('## 修复轮');
+    for (const round of run.repairRounds) {
+      const flags = [round.ok ? 'ok' : 'failed', `model=${round.model ?? '—'}`];
+      if (round.escalated) flags.push('升级 repairEscalation');
+      lines.push(`- ${round.kind ?? 'repair'} (${round.name ?? '—'}) · ${flags.join(' · ')}`);
     }
   }
   if (run.publish) {

@@ -18,6 +18,15 @@ import { lintSpec, parseVerifierJson, VERIFIER_SCHEMA } from '../tool-pipeline/l
 import { auditDiff } from '../tool-pipeline/lib/diff-guard.mjs';
 import { checkApi } from '../tool-pipeline/lib/verify-deploy.mjs';
 import { publishWithRebase } from '../tool-pipeline/lib/publish.mjs';
+import {
+  buildIncidentEvidence,
+  escalatedRepair,
+  formatLastFailure,
+  incidentCommit,
+  incidentEligibility,
+  repairableStatus,
+  verifyFailureReason,
+} from '../tool-pipeline/lib/incident.mjs';
 
 const repo = join(import.meta.dirname, '../..');
 
@@ -136,6 +145,108 @@ test('verifier JSON parsing enforces pass/confidence/blocking rules', () => {
   assert.equal(blocking.verdict, 'fail');
   assert.equal(parseVerifierJson('not json').verdict, 'fail');
   assert.equal(VERIFIER_SCHEMA.required.includes('verdict'), true);
+});
+
+test('incident repair only accepts post-publish failures it can fix', () => {
+  for (const status of ['ci-failed', 'production-failed', 'reverted']) {
+    assert.equal(repairableStatus(status), true, `${status} should be repairable`);
+  }
+  for (const status of ['deploy-failed', 'verified', 'skipped', 'pending', '']) {
+    assert.equal(repairableStatus(status), false, `${status} should not be repairable`);
+  }
+});
+
+test('incident eligibility enforces cap, clean main, sync and disk', () => {
+  const item = { slug: 'demo', category: 'daily' };
+  const base = { verifyStatus: 'reverted', item, incidentRepairs: 0, maxIncidentRepairs: 1 };
+  assert.deepEqual(incidentEligibility(base), { ok: true, status: 'eligible', reason: '' });
+  assert.equal(incidentEligibility({ ...base, verifyStatus: 'deploy-failed' }).ok, false);
+  assert.match(incidentEligibility({ ...base, verifyStatus: 'deploy-failed' }).reason, /deploy-failed/);
+  assert.match(incidentEligibility({ ...base, item: null }).reason, /queue/);
+  assert.match(incidentEligibility({ ...base, incidentRepairs: 1 }).reason, /上限 1/);
+  assert.equal(incidentEligibility({ ...base, clean: false }).ok, false);
+  assert.equal(incidentEligibility({ ...base, synced: false }).ok, false);
+  assert.equal(incidentEligibility({ ...base, branch: 'feature' }).ok, false);
+  assert.equal(incidentEligibility({ ...base, freeDiskGb: 1, minFreeDiskGb: 5 }).ok, false);
+});
+
+test('repair escalation kicks in after two failed repair rounds', () => {
+  const config = {
+    models: { repair: 'gpt-6.1-sol', repairEscalation: 'gpt-6-astra' },
+    reasoning: { repair: 'high', repairEscalation: 'xhigh' },
+  };
+  const one = escalatedRepair(config, [{ ok: false }, { ok: true }]);
+  assert.equal(one.escalated, false);
+  assert.equal(one.model, 'gpt-6.1-sol');
+  assert.equal(one.reasoning, 'high');
+  const two = escalatedRepair(config, [{ ok: false }, { ok: false }]);
+  assert.equal(two.escalated, true);
+  assert.equal(two.failedRounds, 2);
+  assert.equal(two.model, 'gpt-6-astra');
+  assert.equal(two.reasoning, 'xhigh');
+  const fallback = escalatedRepair(
+    { models: { repair: 'gpt-6.1-sol' }, reasoning: { repair: 'medium' } },
+    [{ ok: false }, { ok: false }],
+  );
+  assert.equal(fallback.model, 'gpt-6.1-sol');
+  assert.equal(fallback.reasoning, 'medium');
+});
+
+test('incident evidence carries failure checks, rolled-back commit and spec path', () => {
+  const run = {
+    runKey: '2026-11-21T00',
+    status: 'reverted',
+    item: { slug: 'demo', title: 'Demo', category: 'dev', specPath: 'specs/demo.md' },
+    publish: { commit: 'abc1234' },
+    verify: {
+      status: 'reverted',
+      reason: 'production-verification-failed',
+      workflow: { url: 'https://github.com/x/actions/runs/1' },
+      failed: [
+        {
+          kind: 'api',
+          url: 'https://clovertools.cn/api/demo',
+          result: { failures: ['fields ok'] },
+        },
+      ],
+      revert: { ok: true, commit: 'def5678' },
+    },
+  };
+  const text = buildIncidentEvidence({
+    run,
+    commitShow: ' src/lib/demo.ts | 2 +-\n+ export const x = 1;',
+    specPath: 'scripts/tool-pipeline/specs/demo.md',
+  });
+  assert.match(text, /2026-11-21T00/);
+  assert.match(text, /production-verification-failed/);
+  assert.match(text, /api https:\/\/clovertools\.cn\/api\/demo: fields ok/);
+  assert.match(text, /abc1234/);
+  assert.match(text, /src\/lib\/demo\.ts/);
+  assert.match(text, /scripts\/tool-pipeline\/specs\/demo\.md/);
+  assert.match(text, /失败材料/);
+  assert.equal(incidentCommit(run), 'abc1234');
+  assert.equal(incidentCommit({ verify: { revert: { commit: 'def5678' } } }), 'def5678');
+});
+
+test('last failure summary is compact and cleared when absent', () => {
+  const summary = formatLastFailure({
+    runKey: '2026-11-21T00',
+    status: 'reverted',
+    reason: 'CI 质量检查失败',
+    evidencePath: '.editorial/tool-runs/2026-11-21T00/report.md',
+  });
+  assert.match(summary, /2026-11-21T00/);
+  assert.match(summary, /CI 质量检查失败/);
+  assert.match(summary, /最小 diff/);
+  assert.equal(formatLastFailure(null), '');
+  const reason = verifyFailureReason({
+    status: 'ci-failed',
+    conclusion: 'failure',
+    workflow: { url: 'https://github.com/x/y' },
+    failed: [{ kind: 'page', locale: 'en', url: 'https://x/en', result: { status: 500 } }],
+  });
+  assert.match(reason, /conclusion=failure/);
+  assert.match(reason, /https:\/\/x\/en: 500/);
 });
 
 function makeRepo() {
