@@ -4,7 +4,7 @@
  * 用法：node scripts/editorial/tick-prepare.mjs [--slot auto|manual|06|12|18] [--dry-run]
  * 输出 JSON（proceed true/false）；任何"跳过"都以退出码 0 返回，便于上层判断。
  */
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { STATE_PATHS } from './lib/paths.mjs';
 import {
@@ -26,6 +26,14 @@ import {
 import { ensureDefaultConfig, loadConfig } from './lib/config.mjs';
 import { fetchOrigin, pendingCommitsSafe, readToken } from './lib/git.mjs';
 import { statusPorcelain } from './lib/git.mjs';
+
+function readJson(file, fallback) {
+  try {
+    return JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
 
 function parseArgs(argv) {
   const options = { slot: 'auto', dryRun: false };
@@ -75,7 +83,12 @@ function main() {
     skip('safety-blocked', { safety });
   }
 
-  const dirty = statusPorcelain();
+  // 同一工作区可能有别的任务（如 tool-pipeline）在改文件：允许按 `.editorial/foreign-paths.json`
+  // 声明的前缀豁免那些与本流水线无关的改动，避免把正常 tick 误判为 worktree-dirty。
+  const foreignPrefixes = readJson(join(STATE_PATHS.dir, 'foreign-paths.json'), { paths: [] })?.paths ?? [];
+  const pathOf = (line) => String(line).slice(3).trim().replace(/^"|"$/g, '').replace(/\\/g, '/');
+  const dirtyAll = statusPorcelain();
+  const dirty = dirtyAll.filter((line) => !foreignPrefixes.some((prefix) => pathOf(line).startsWith(prefix)));
   if (dirty.length > 0) skip('worktree-dirty', { dirty: dirty.slice(0, 10) });
 
   fetchOrigin(config.git.remote);
