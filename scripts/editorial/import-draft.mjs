@@ -68,9 +68,12 @@ function walk(dir) {
 const DRAFT_FILE_PATTERN =
   /^\.editorial\/drafts\/[a-z0-9][a-z0-9-]*\/(guide\.json|evidence\.json|reproduce\.md|fix-notes\.md|captures\.json|capture-log\.json|illustrations\.json|style\.json|precheck-zh\.json|numbers-allow\.json|[A-Za-z0-9._-]+\.mjs|outputs\/[A-Za-z0-9._-]+\.(json|txt|log)|images\/[A-Za-z0-9._-]+\.(png|jpe?g|webp)|translations\/(tw|en|ko|ja)\.json|[A-Za-z0-9._-]+\.md)$/;
 
-function isAllowedPath(rel, slug) {
+function isAllowedPath(rel, slug, runKey) {
   if (rel.startsWith(`.editorial/drafts/${slug}/`)) return true;
-  return rel === `scripts/editorial/cases/${slug}.mjs`;
+  if (rel === `scripts/editorial/cases/${slug}.mjs`) return true;
+  // Codex 整趟 tick 自己选源：manifest 允许回传；摘录由宿主重抓，不导入 codex 写的 digest
+  if (rel === `.editorial/runs/${runKey}/source-manifest.json`) return true;
+  return false;
 }
 
 function main() {
@@ -109,8 +112,8 @@ function main() {
       violations.push(`${entry.rel}：符号链接不允许导入`);
       continue;
     }
-    if (!isAllowedPath(entry.rel, options.slug)) {
-      violations.push(`${entry.rel}：不在允许导入范围（仅 .editorial/drafts/${options.slug}/ 与 scripts/editorial/cases/${options.slug}.mjs）`);
+    if (!isAllowedPath(entry.rel, options.slug, options.run)) {
+      violations.push(`${entry.rel}：不在允许导入范围（仅 .editorial/drafts/${options.slug}/、scripts/editorial/cases/${options.slug}.mjs 与 .editorial/runs/${options.run}/source-manifest.json）`);
       continue;
     }
     if (entry.change !== 'deleted') {

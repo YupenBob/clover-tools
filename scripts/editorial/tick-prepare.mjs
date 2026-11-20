@@ -96,7 +96,7 @@ function main() {
   const canPush = config.publishMode === 'push-main' && Boolean(readToken());
   if (canPush && !pending.safe) skip('unsafe-pending-commits', { pending });
 
-  const lock = acquireSlotLock(runKey);
+  const lock = options.dryRun ? { ok: true, path: null } : acquireSlotLock(runKey);
   if (!lock.ok) skip(lock.reason, { runKey, lockPath: lock.path });
 
   const queue = loadQueue();
@@ -122,14 +122,14 @@ function main() {
     caps: config.caps,
   });
 
-  markQueueItem(queue, item.id, {
+  if (!options.dryRun) markQueueItem(queue, item.id, {
     status: 'in_progress',
     runId: runKey,
     attempts: (item.attempts ?? 0) + 1,
     startedAt: new Date().toISOString(),
   });
 
-  writeLockMeta(lock.path, { runKey, item, startedAt: new Date().toISOString(), dryRun: options.dryRun });
+  if (!options.dryRun) writeLockMeta(lock.path, { runKey, item, startedAt: new Date().toISOString(), dryRun: options.dryRun });
   writeFileSync(
     join(STATE_PATHS.dir, 'last-prepare.json'),
     `${JSON.stringify({ runKey, date: slotInfo.date, slot: slotInfo.slot, dryRun: options.dryRun, item }, null, 2)}\n`,

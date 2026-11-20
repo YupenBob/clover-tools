@@ -47,6 +47,8 @@ function parseArgs(argv) {
     else if (arg === '--cwd') options.cwd = argv[++index];
     else if (arg === '--out-last') options.outLast = argv[++index];
     else if (arg === '--expect') options.expect.push(argv[++index]);
+    else if (arg === '--resume') options.resume = argv[++index];
+    else if (arg === '--thread-file') options.threadFile = argv[++index];
     else if (arg === '--schema') options.schema = argv[++index];
     else if (arg === '--timeout-min') options.timeoutMin = Number(argv[++index]);
     else if (arg === '--attempt') options.attempt = Number(argv[++index]);
@@ -234,16 +236,9 @@ async function main() {
     return fail(EXIT.preflight, `预检失败：${failedChecks.map((entry) => `${entry.name}: ${entry.detail}`).join(' | ')}`);
   }
 
-  const baseArgv = [
-    'exec',
-    '-C',
-    cwd,
+  const commonFlags = [
     '-m',
     config.model,
-    '-s',
-    config.sandbox,
-    '-c',
-    `sandbox_workspace_write.network_access=${config.networkAccess ? 'true' : 'false'}`,
     '-c',
     'approval_policy=never',
     '--skip-git-repo-check',
@@ -251,6 +246,28 @@ async function main() {
     '-o',
     outLast,
   ];
+  // resume 子命令没有 -C/-s：cwd 用 spawn 的 cwd，sandbox 走 config 覆盖
+  const baseArgv = options.resume
+    ? [
+        'exec',
+        'resume',
+        options.resume,
+        ...commonFlags,
+        '-c',
+        `sandbox_mode=${config.sandbox}`,
+        '-c',
+        `sandbox_workspace_write.network_access=${config.networkAccess ? 'true' : 'false'}`,
+      ]
+    : [
+        'exec',
+        '-C',
+        cwd,
+        ...commonFlags,
+        '-s',
+        config.sandbox,
+        '-c',
+        `sandbox_workspace_write.network_access=${config.networkAccess ? 'true' : 'false'}`,
+      ];
   let schemaPath = null;
   if (options.schema) {
     schemaPath = join(USAGE_DIR, `${options.run}.codex-${options.stage}-${attempt}.schema.json`);
@@ -403,6 +420,18 @@ async function main() {
     finishedAt: new Date().toISOString(),
     jsonlPath,
   };
+
+  const threadFile = options.threadFile ?? join(STATE_PATHS.runs, options.run, 'codex-session.json');
+  if (events.threadId) {
+    mkdirSync(dirname(threadFile), { recursive: true });
+    const previous = readJson(threadFile, { stages: {} });
+    writeJson(threadFile, {
+      run: options.run,
+      threadId: events.threadId,
+      updatedAt: new Date().toISOString(),
+      stages: { ...(previous.stages ?? {}), [options.stage]: { threadId: events.threadId, at: new Date().toISOString(), attempt } },
+    });
+  }
 
   const { record: usageRecord, attempts } = pruneOldAttempts(usageFile, options.stage, attempt);
   const nextAttempts = [...attempts, record].sort((a, b) => (a.finishedAt ?? '').localeCompare(b.finishedAt ?? ''));
