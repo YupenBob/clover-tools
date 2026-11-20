@@ -674,7 +674,7 @@ function translationPrompt(lang, runKey, slug) {
     '',
     `- 站内工具链接必须带语言前缀：\`/${lang}/tools/...\`（例如 \`/tools/dev/hash/\` → \`/${lang}/tools/dev/hash/\`）。`,
     '- 标题长度 ≤66 字符（英文按字符计，中日韩按字符计），不要为了塞关键词而超长。',
-    '- description 长度 40–160 字符；seoDescription 150–160 字符（英文按字符、中日韩按字符）。',
+    '- description 长度：tw 40–120 字符，其它语言 40–160 字符；译文**不要写 seoDescription**（译文用 description 当 meta description）。',
     '- 正文不得残留任何成段中文（连续 11 个汉字就会被判未翻译）；代码块/命令/URL 原样保留。',
     '- 引用界面报错时，用目标语言站点上的实际文案（见 `src/pages/<lang>/tools/dev/...`），不要保留中文原文后再加括号翻译。',
     '- 不要写 `_meta`（由宿主与复核员填），只输出 title/description/seoDescription/content/faqs 等正文字段。',
@@ -793,6 +793,7 @@ function normalizeTranslations(slug, langs) {
     const file = join(draftDir, 'translations', `${lang}.json`);
     const translation = readJson(file, null);
     if (!translation) continue;
+    delete translation.seoDescription; // 译文由 description 承担 meta description
     for (const field of TRANSLATION_COPY_FIELDS) {
       if (zh[field] !== undefined) translation[field] = zh[field];
     }
