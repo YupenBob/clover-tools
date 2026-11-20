@@ -17,6 +17,7 @@
  * 退出码：0 = 完成/已到人该接的节点；2 = 本趟跳过（暂停/限额/脏工作区/队列空）；3 = 失败并已升级。
  */
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { ROOT, STATE_PATHS } from './lib/paths.mjs';
@@ -675,6 +676,7 @@ function translationPrompt(lang, runKey, slug) {
     '- 标题长度 ≤66 字符（英文按字符计，中日韩按字符计），不要为了塞关键词而超长。',
     '- description 长度 40–160 字符；seoDescription 150–160 字符（英文按字符、中日韩按字符）。',
     '- 正文不得残留任何成段中文（连续 11 个汉字就会被判未翻译）；代码块/命令/URL 原样保留。',
+    '- 引用界面报错时，用目标语言站点上的实际文案（见 `src/pages/<lang>/tools/dev/...`），不要保留中文原文后再加括号翻译。',
     '- 不要写 `_meta`（由宿主与复核员填），只输出 title/description/seoDescription/content/faqs 等正文字段。',
     '',
   ].join('\n');
@@ -743,6 +745,7 @@ function i18n(options) {
     if (imported.code !== 0) fail(`import-${lang}`, `${imported.out}\n${imported.err}`);
   }
 
+  normalizeTranslations(slug, langs);
   // 机械预检里的「_meta.translation / reviewerVerdict」由复核员填，这里只报格式类问题供复核与修复参考
   const precheck = sh('.editorial/tools/precheck-i18n.mjs', ['--slug', slug], { timeoutMs: 5 * 60_000 });
   log(runKey, `i18n precheck-i18n code=${precheck.code}`);
@@ -773,6 +776,43 @@ function i18n(options) {
 // finalize：提交 + 推送 + 部署校验 + 收尾
 // ---------------------------------------------------------------------------
 
+/**
+ * 译文的「不可翻译字段」由宿主从简体源稿原样补齐（模型只负责 title/description/content/faqs 等），
+ * 并统一写 `_meta.translation`（translatedFrom 用源稿 sha256）。幂等。
+ */
+const TRANSLATION_COPY_FIELDS = ['slug', 'category', 'toolSlug', 'published', 'updated', 'readingMinutes', 'sources', 'image', 'focus'];
+
+function normalizeTranslations(slug, langs) {
+  const draftDir = join(ROOT, '.editorial', 'drafts', slug);
+  const zhFile = join(draftDir, 'guide.json');
+  const zh = readJson(zhFile, null);
+  if (!zh) return { ok: false, reason: `缺少简体源稿 ${zhFile}` };
+  const translatedFrom = createHash('sha256').update(readFileSync(zhFile)).digest('hex');
+  const changed = [];
+  for (const lang of langs) {
+    const file = join(draftDir, 'translations', `${lang}.json`);
+    const translation = readJson(file, null);
+    if (!translation) continue;
+    for (const field of TRANSLATION_COPY_FIELDS) {
+      if (zh[field] !== undefined) translation[field] = zh[field];
+    }
+    const previous = translation._meta?.translation ?? {};
+    translation._meta = {
+      ...(translation._meta ?? {}),
+      translation: {
+        ...previous,
+        of: slug,
+        lang,
+        translatedFrom,
+        translatedAt: previous.translatedAt && /^\d{4}-\d{2}-\d{2}T/.test(previous.translatedAt) ? previous.translatedAt : new Date().toISOString(),
+      },
+    };
+    writeJson(file, translation);
+    changed.push(lang);
+  }
+  return { ok: true, changed };
+}
+
 /** 多语复核写回 _meta.translation 之后：落盘译文 + 机械预检 + 强校验。 */
 function i18nApply(options) {
   const config = loadConfig();
@@ -787,9 +827,18 @@ function i18nApply(options) {
     emit({ ok: false, phase: 'i18n-apply', title: `tick-driver: i18n-apply ${name} 失败`, detail: tail(detail), runKey }, EXIT.failed, options);
   };
 
+  const normalized = normalizeTranslations(slug, langs);
+  log(runKey, `i18n-apply normalize ${JSON.stringify(normalized).slice(0, 200)}`);
+  if (!normalized.ok) fail('normalize', normalized.reason);
+
   const applied = sh('scripts/editorial/apply-translations.mjs', ['--slug', slug, '--run', runKey, '--langs', langs.join(',')], { timeoutMs: 5 * 60_000 });
   log(runKey, `i18n-apply apply-translations code=${applied.code}`);
   if (applied.code !== 0) fail('apply-translations', `${applied.out}\n${applied.err}`);
+
+  // assert-applied 读的是 verify.json，必须先重新 verify 才能看到译文
+  const verify = sh('scripts/editorial/verify-article.mjs', ['--slug', slug, '--run', runKey], { timeoutMs: 5 * 60_000 });
+  log(runKey, `i18n-apply verify-article code=${verify.code}`);
+  if (verify.code !== 0) fail('verify-article', `${verify.out}\n${verify.err}`);
 
   const precheck = sh('.editorial/tools/precheck-i18n.mjs', ['--slug', slug], { timeoutMs: 5 * 60_000 });
   log(runKey, `i18n-apply precheck-i18n code=${precheck.code}`);
