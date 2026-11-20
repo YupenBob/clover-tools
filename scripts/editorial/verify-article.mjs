@@ -4,7 +4,7 @@
  * 用法：node scripts/editorial/verify-article.mjs --slug <slug> --run <runKey>
  * 退出码 0 通过；1 校验失败；2 运行错误。
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT, REPO_PATHS, STATE_PATHS } from './lib/paths.mjs';
 import { ensureDefaultConfig, loadConfig } from './lib/config.mjs';
@@ -67,11 +67,22 @@ async function main() {
   if (!review) errors.push('缺少独立复核结果 review.json');
   else {
     if (review.verdict !== 'pass') errors.push(`独立复核未通过：${review.verdict}`);
-    if (!(Number(review.confidence) >= config.quality.minReviewerConfidence)) {
-      errors.push(`复核信心 ${review.confidence} 低于 ${config.quality.minReviewerConfidence}`);
+    // 严格校验：缺字段 / 类型错误 / NaN 一律失败，不能靠「字段缺失」静默通过
+    const confidence = typeof review.confidence === 'number' ? review.confidence : Number.NaN;
+    if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
+      errors.push(`复核 confidence 必须是 0–1 的有限数字，实际为 ${JSON.stringify(review.confidence)}`);
+    } else if (confidence < config.quality.minReviewerConfidence) {
+      errors.push(`复核信心 ${confidence} 低于 ${config.quality.minReviewerConfidence}`);
     }
-    if (Array.isArray(review.blockingIssues) && review.blockingIssues.length > 0) {
-      errors.push(`复核仍有阻塞问题：${review.blockingIssues.slice(0, 3).join('；')}`);
+    if (!Array.isArray(review.blockingIssues)) {
+      errors.push('复核结果缺少 blockingIssues 数组（必须显式给出，哪怕是空数组）');
+    } else {
+      const malformed = review.blockingIssues.filter((entry) => typeof entry !== 'string' || !entry.trim());
+      if (malformed.length > 0) errors.push(`blockingIssues 含非字符串或空项：${JSON.stringify(malformed.slice(0, 3))}`);
+      if (review.blockingIssues.length > 0) errors.push(`复核仍有阻塞问题：${review.blockingIssues.slice(0, 3).join('；')}`);
+    }
+    if (review.nonBlockingIssues !== undefined && !Array.isArray(review.nonBlockingIssues)) {
+      errors.push('复核结果 nonBlockingIssues 必须是数组');
     }
   }
 
@@ -91,6 +102,13 @@ async function main() {
     csdnCorpus,
     imageRegistry,
     fileExists: (repoPath) => existsSync(join(ROOT, repoPath)),
+    fileSize: (repoPath) => {
+      try {
+        return statSync(join(ROOT, repoPath)).size;
+      } catch {
+        return null;
+      }
+    },
   });
   errors.push(...staticResult.errors);
   warnings.push(...staticResult.warnings);
@@ -140,6 +158,11 @@ async function main() {
       readLineCount,
     });
     errors.push(...evidenceResult.errors);
+    // 示意图只是配图，不得作为任何断言的证据
+    for (const claim of evidence.claims ?? []) {
+      const ref = String(claim?.ref ?? claim?.source ?? '');
+      if (ref.includes('/article-assets/')) errors.push(`证据 ${claim?.id ?? '(无 id)'} 引用了 AI 示意图素材（不得作为证据）：${ref}`);
+    }
     for (const run of evidence.runs ?? []) {
       if (run.exitCode !== 0) errors.push(`运行证据 exitCode 非 0：${run.id}`);
     }
@@ -226,8 +249,12 @@ async function main() {
     },
   };
 
-  // 只允许改允许路径
-  const unexpected = unexpectedChanges(config.git.allowedPaths);
+  // 只允许改允许路径（tick 开始时已存在的无关改动记录在 pre-existing.json，不算本趟越权）
+  const preExistingFile = join(STATE_PATHS.runs, options.run, 'pre-existing.json');
+  const preExisting = new Set(
+    (readJson(preExistingFile, null)?.paths ?? []).map((path) => String(path).replace(/\\/g, '/')),
+  );
+  const unexpected = unexpectedChanges(config.git.allowedPaths).filter((path) => !preExisting.has(String(path).replace(/\\/g, '/')));
   if (unexpected.length > 0) errors.push(`出现允许路径之外的改动：${unexpected.slice(0, 8).join('；')}`);
 
   const structure = analyzeStructure(guide.content);

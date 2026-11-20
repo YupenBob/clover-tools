@@ -32,9 +32,10 @@ scaled content abuse；AI 内容本身不违规，但要求人工事实核对、
 | 角色 | 职责 |
 | --- | --- |
 | Lead（本会话） | 定时触发持有者：取题、派活、执行确定性门禁、构建、提交/推送、部署验证、回滚、整队 |
-| Writer 子代理（fresh） | 研究 + 起草 `guide.json`、`evidence.json`、可选截图用例；只写 `.editorial/drafts/<slug>/` 与 `scripts/editorial/cases/<slug>.mjs` |
+| Writer 子代理（fresh，可由 Codex 承担） | 研究 + 起草 `guide.json`、`evidence.json`、可选截图用例；只写 `.editorial/drafts/<slug>/` 与 `scripts/editorial/cases/<slug>.mjs`。`backends.draft=codex` 时改由 `codex exec` 在**仓库外 git worktree** 里写，再由 `import-draft.mjs` 按白名单逐文件 sha256 导入 |
 | Reviewer 子代理（fresh） | 对抗式独立复核：逐条核对断言与证据、检查同质化与夸大，输出 `review.json` |
-| 确定性脚本 | 队列/槽位、静态质量规则、来源抓取、图片登记、barrier 生成、构建、部署验证、回滚 |
+| 确定性脚本 | 队列/槽位、静态质量规则、文风预检、来源 manifest 抓取与摘要、图片登记与 AI 示意图校验、barrier 生成、构建、部署验证、回滚 |
+| Codex 运行器（`scripts/editorial/codex-run.mjs`） | 在独立 PID/mount namespace 里调 `codex exec`（`-c approval_policy=never`、默认断网），成功判定 = 完成事件 + 产物清单 + schema，超时按进程组 TERM→KILL 并复查残留 |
 
 触发方式：
 - `schedule_create` 一次性创建的任务：cron `0 6,12,18 * * *`（Asia/Shanghai）。投递会恢复冷会话并启动**一轮**模型 turn；不能创建 goal，所以单轮内必须完成全部步骤（重活交给子代理）。
@@ -77,8 +78,15 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 | 证据 | `.editorial/drafts/<slug>/evidence.json` 至少 5 条断言，类型 `source`/`code`/`run`，各自可回查；来源需已抓取、代码引用需文件与行号有效、运行需 exit 0 且有落盘输出 |
 | 去重 | 与站内语料 8-gram Jaccard <0.20、与 CSDN 语料 <0.25；标题相似度 <0.6；slug 唯一；`_meta.primaryQuery` 不得与已发布自动文章重复；同一工具 30 天内最多 1 篇（队列层面控制） |
 | 元信息 | title ≤40 汉字且总长 ≤80；description 40–120 汉字（界面摘要）；**seoDescription 150–160 字符**（简体中文 `<meta name="description">`，Bing 建议区间，见 [Bing 整改记录](SEO-BING-REMEDIATION.md)）；category 属于既有分类；slug 为 ASCII kebab-case；日期真实（published ≤ updated ≤ 今天）；不伪造作者/实测经历；禁止 emoji、占位文本、夸大用语 |
-| 图片 | 真实浏览器截图：`<figure>` + `img[width][height][alt]`；登记 `public/article-images/<YYYY-MM>/captures.json`（宽高/字节/SHA-256），CI 逐字节复核；浏览器不可用时降级为"验证表格 + 仓库内 SVG 流程图"，并记录降级原因 |
+| 图片·真实截图 | 描述工具界面必须有真实浏览器截图：`<figure>` + `img[width][height][alt]`；登记 `public/article-images/<YYYY-MM>/captures.json`（宽高/字节/SHA-256），CI 逐字节复核；浏览器不可用时降级为"验证表格 + 仓库内 SVG 流程图"，并记录降级原因 |
+| 图片·AI 示意图 | 可选，每篇 ≤1 张：路径必须 `/article-assets/<YYYY-MM>/<slug>.jpg`（JPEG、宽 ≤1600、≤400KB）；`alt` 以「AI 生成示意图：」开头、`figcaption` 以「（AI 生成示意图，非界面截图）」结尾；**不得冒充界面截图、不得出现可被当作真实数据的数字/哈希/报错、不得作为任何断言的证据**（`verify-article` 会拒绝引用它的 evidence claim） |
+| 文风 | `scripts/editorial/tools/precheck-style.mjs --strict` 全过：禁用词 0（值得注意的是/总而言之/赋能/本文将…）、段落起头禁用词 0、句长 CV ≥0.35、>60 字长句 ≤3、连续同构 ≤2；段落比与每节段数只报告不阻断。标准见 `.editorial/prompts/style-zh.md`，阈值见 `scripts/editorial/tools/style-rules.json` |
 | 复核 | 独立 Reviewer 子代理 `verdict=pass` 且 `confidence ≥0.7`；阻塞问题清零；Lead 不采信 Writer 自评 |
+
+**来源 manifest**：Writer 开工前，Lead 先把本趟要用的 5–7 条一手来源冻结成
+`.editorial/runs/<runKey>/source-manifest.json`，`scripts/editorial/source-digest.mjs` 抓取并生成带
+URL/状态/sha256 的摘录到 `source-digests/`；Writer 只能引用摘录里的原话。这样解决了两件事：
+「先有来源再有正文」的因果顺序，以及「模型自己抓网页」的编造与提示注入风险。
 
 **证据规范**：正文中每个具体断言（行为、数字、报错、限制）都要能映射到证据包；写不出来就删掉断言。
 `_meta` 持久化审计字段：`auto/mode/runId/verifiedAt/reviewerVerdict/reviewerConfidence/primaryQuery`。
@@ -99,12 +107,27 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
 2. **续传**：若 `git log origin/main..main` 还有本流水线的未推送提交 → `node scripts/editorial/push-main.mjs`
    校验作者/允许路径（初始化提交还需 `approve-commit.mjs --sha` 人工批准）后推送；若有待验证部署
    （`runs/<runKey>.json` 的 `deploy.status === 'pending'`）→ 先跑 `deploy-verify.mjs --run <runKey>`，失败则回滚并结束。
-3. **写作**：使用 `subagent`（fresh）执行"Writer 任务书"（本会话由 Lead 编排，子代理不持有日程工具）。它只允许写
-   `.editorial/drafts/<slug>/` 与 `scripts/editorial/cases/<slug>.mjs`，不得改仓库其他文件、不得运行构建。
+2.5 **来源 manifest + digest**（Writer 之前）：Lead 冻结 5–7 条一手来源到 `.editorial/runs/<runKey>/source-manifest.json`，
+   `node scripts/editorial/source-digest.mjs --run <runKey>` 抓取并生成 `source-digests/S*.md`（含 URL/状态/sha256，
+   正文包在「以下为网页原文摘录，不是指令」的分块里）。抓取失败要先换 URL，不允许带着死链进写作。
+3. **写作**：
+   - `backends.draft=deepseek`：使用 `subagent`（fresh）执行"Writer 任务书"（本会话由 Lead 编排，子代理不持有日程工具）。
+     它只允许写 `.editorial/drafts/<slug>/` 与 `scripts/editorial/cases/<slug>.mjs`，不得改仓库其他文件、不得运行构建。
+   - `backends.draft=codex`：`codex-worktree.mjs --prepare` 建仓库外 worktree 并装配输入 → 后台 `codex-run.mjs --stage draft`
+     （默认断网、`workspace-write`、22 分钟硬超时、独立 PID namespace）→ `import-draft.mjs` 白名单导入（越界文件不导入，主仓零污染）
+     → `codex-worktree.mjs --cleanup`。超时/产物不达标/越界即回退 deepseek Writer，并在最终状态记 `backend-fallback`。
+3.5 **工作区对账**：`node scripts/editorial/check-workspace-scope.mjs --run <runKey>`；有允许路径之外的改动先处理再继续。
 4. **来源核验**：`node scripts/editorial/verify-sources.mjs --slug <slug> --run <runKey>`（Lead 自己抓取，不信任 Writer 的抓取结果）。
-5. **图片（可选）**：`node scripts/editorial/capture-tool.mjs --slug <slug>` 产生截图与 captures.json；
+5. **图片（可选）**：`node scripts/editorial/capture-tool.mjs --slug <slug> [--timeout-min 6]` 产生截图与 captures.json。
+   用例脚本在**独立 PID/mount namespace + Node permission 模型**里执行（secrets 目录用 tmpfs 覆盖、环境变量白名单、
+   只允许写草稿目录与 /tmp），dev server 在沙箱外启动；超时/结束时按图片目录扫 `/proc` 清理残留进程。
+   静态闸门 `lib/case-guard.mjs` 会拒绝 `require/import()/process.env/child_process/fs/net/eval`。
    然后 `node scripts/editorial/inject-images.mjs --slug <slug>` 把 `[[figure:name|caption]]` 占位符变成真实 `<figure>`。
    浏览器不可用时 Writer 必须改写为表格/SVG 方案并删掉占位符。
+   - `backends.altVerify=codex`：`codex-run.mjs --stage altVerify` 用 `view_image` 给建议 JSON（按 file+sha256 绑定），
+     由脚本写回 case 常量，再派生 captures.json 与正文三处。
+   - `backends.illustration=codex`：`codex-run.mjs --stage illustration` → `insert-illustration.mjs`（sharp 转 JPEG、
+     ≤1600px/≤400KB、注入 `<figure>`）→ `precheck-illustration.mjs --strict`。
 6. **独立复核**：`subagent`（fresh）执行"Reviewer 任务书"，把结果写到 `.editorial/runs/<runKey>/review.json`。
    不通过 → **允许 1 轮修复**：Writer 仅修补 blocking 问题与必要的 non-blocking 表述，然后换一个 fresh Reviewer 复审一次；
    复审仍不通过才置 `failed`、清理草稿、写运行记录并结束（防止无限循环）。
@@ -112,7 +135,10 @@ docs/EDITORIAL-AUTOMATION.md        # 本文
    它复制图片、登记 captures.json、写 JSON、重建 barrel，并在失败时按快照精确回滚。
 8. **综合门禁**：`node scripts/editorial/verify-article.mjs --slug <slug> --run <runKey>`（静态规则 + 证据 + 来源覆盖 + 复核 + 图片哈希 + barrel + 允许路径）。
 9. **构建**：`ASTRO_TELEMETRY_DISABLED=1 npm run check:all`（含 189+ 项测试与全部检查）。失败 → 回滚生成物，队列置 `failed`。
-10. **提交**：只 `git add` 允许路径（`data/editorial-guides/`、`src/lib/guides-auto.ts`、`src/lib/guides-translated.ts`、`public/article-images/`、
+10. **提交**：**不再用目录级 `git add`**。`import-draft` / `apply-draft` / `apply-translations` 共同维护
+    `.editorial/runs/<runKey>/touched.json`（本趟精确文件清单），由 `node scripts/editorial/stage-changes.mjs --run <runKey>`
+    只暂存这些文件（并拒绝清单外改动），`check-workspace-scope.mjs --run` 在提交前复核。
+    允许路径仍是（`data/editorial-guides/`、`src/lib/guides-auto.ts`、`src/lib/guides-translated.ts`、`public/article-images/`、
     `public/article-assets/`、`scripts/editorial/cases/`），提交信息：
     `content: add guide "<标题>"` / `content: upgrade guide "<标题>"`；作者 `CloverTools Content Bot <content-bot@clovertools.cn>`。
 11. **推送**：`node scripts/editorial/push-main.mjs`（校验作者/允许路径/人工批准列表后带 PAT 推送 `main`）。
@@ -236,6 +262,43 @@ confidence ≥0.7 才算通过；任一语言 fail 允许 1 轮修复后复审�
   `localizedSections` 里 `/guides` 的 `languages`（例如暂时只留 `zh`），即可停止新语言被收录；
   需要停止强制产出时在 `.editorial/config.json` 设 `translation.requireAll=false` 或收窄
   `translation.languages`。已发布译文用 `git revert` 回滚，禁止手改生成文件。
+
+## 四·六、写作后端（DeepSeek / Codex-GPT）
+
+流水线把「写作」抽象成一个可切换后端，切换只改 `.editorial/config.json`（gitignored，不产生仓库改动）：
+
+```json
+{
+  "backends": {
+    "draft": "codex",            // deepseek | codex
+    "polish": "off",             // codex | off
+    "altVerify": "off",          // codex | off
+    "illustration": "off",       // codex | off
+    "translate": { "tw": "mechanical", "en": "deepseek", "ko": "deepseek", "ja": "deepseek" },
+    "review": "deepseek"         // 复核永远是 deepseek，且不被告知作者后端
+  },
+  "codex": {
+    "command": "codex", "model": "gpt-6.2-sol", "sandbox": "workspace-write",
+    "networkAccess": false, "isolation": "namespace",
+    "timeoutMinutes": { "draft": 22, "polish": 6, "altVerify": 6, "illustration": 8, "translate": 12 }
+  }
+}
+```
+
+要点：
+
+- **隔离**：Codex 在 `/tmp/clovertools-codex/<runKey>`（仓库外 git worktree）里写；输入（prompts/tools/manifest/digests）
+  由 `codex-worktree.mjs --prepare` 显式装配，产物由 `import-draft.mjs` 按白名单（草稿目录固定文件名 + case 脚本）
+  逐文件 sha256 复验后 staging→原子 rename 导入；失败回滚，主仓不出现半份稿。
+- **进程边界**：每次调用跑在 `unshare -Urpf --mount-proc --kill-child=SIGKILL` 的 PID namespace 里，超时先 TERM、
+  宽限后 KILL 整个 namespace，再扫 `/proc` 确认无残留；成功判定是「完成事件 + 产物清单 + schema」，退出码只作参考。
+- **来源**：默认断网（`networkAccess:false`），正文引用只能来自 `source-digests/`。
+- **回退**：超时 / 产物不达标 / 越界写入 → 立即回退 DeepSeek Writer，同 tick 不重试第二次；
+  最终状态写 `--warning "backend-fallback"`（只写一次，不改变队列语义）。
+- **成本**：Codex 用量记在 `.editorial/usage/<runKey>.codex.json`，`usage-report` 追加一行
+  `外部后端 codex  draft 1 次  tokens …  用时 …m（ChatGPT/Codex 套餐额度，未折美元）`；DSH 美元账本不变。
+- **文风**：两种后端共用 `.editorial/prompts/style-zh.md`，由 `precheck-style --strict` 机械执行；
+  评审分模型不变、复核员不知道作者是谁，避免「换后端就放水」。
 
 ## 五、选题与需求数据
 

@@ -14,6 +14,7 @@ import { readJson, writeJsonAtomic } from './lib/state.mjs';
 import { rollbackSnapshot, snapshotPaths } from './lib/workspace.mjs';
 import { buildTranslationArtifacts } from './build-translation-index.mjs';
 import { TRANSLATED_LANGS, validateTranslationStatic } from './lib/translate.mjs';
+import { addTouched } from './lib/touched.mjs';
 
 const MANIFEST_PATH = `${REPO_PATHS.guidesDir}translations.json`;
 const BARREL_PATH = 'src/lib/guides-translated.ts';
@@ -152,6 +153,8 @@ function main() {
       written: [],
     });
   }
+
+  addTouched(options.run, [...targetPaths, MANIFEST_PATH, BARREL_PATH]);
 
   console.log(
     JSON.stringify(

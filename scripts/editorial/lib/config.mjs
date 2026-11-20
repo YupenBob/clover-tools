@@ -79,6 +79,32 @@ export const DEFAULT_CONFIG = {
     viewport: { width: 1280, height: 1000 },
   },
 
+  /**
+   * 后端路由：每个生产阶段由谁承担。
+   * - draft/polish/altVerify/illustration：deepseek | codex | off
+   * - translate：按语言分别路由（tw 走机械转换，其余默认 deepseek）
+   * - review：保持 deepseek，且评审员不被告知作者后端
+   * 切换只改 .editorial/config.json（gitignored），不产生仓库改动。
+   */
+  backends: {
+    draft: 'deepseek',
+    polish: 'off',
+    altVerify: 'off',
+    illustration: 'off',
+    translate: { tw: 'mechanical', en: 'deepseek', ko: 'deepseek', ja: 'deepseek' },
+    review: 'deepseek',
+  },
+
+  /** Codex CLI 运行参数（scripts/editorial/codex-run.mjs 读取） */
+  codex: {
+    command: 'codex',
+    model: 'gpt-6.2-sol',
+    sandbox: 'workspace-write',
+    networkAccess: false,
+    isolation: 'namespace',
+    timeoutMinutes: { draft: 22, polish: 6, altVerify: 6, illustration: 8, translate: 12 },
+  },
+
   /** 任务配比：每 3 篇≈2 新 + 1 升级 */
   taskMix: { 'new-guide': 2, 'upgrade-guide': 1 },
 

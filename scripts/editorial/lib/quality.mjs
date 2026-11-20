@@ -125,6 +125,69 @@ export function extractLinks(html) {
   return links;
 }
 
+
+/** AI 生成示意图的硬规则（P4 启用；默认对全部文章生效，普通截图不受影响）。 */
+export const AI_ILLUSTRATION_PREFIX = 'AI 生成示意图';
+export const AI_ILLUSTRATION_ALT_PREFIX = 'AI 生成示意图：';
+export const AI_ILLUSTRATION_CAPTION_SUFFIX = '（AI 生成示意图，非界面截图）';
+export const AI_ILLUSTRATION_SRC = /^\/article-assets\/\d{4}-\d{2}\/[a-z0-9][a-z0-9-]*\.(jpg|jpeg)$/;
+export const AI_ILLUSTRATION_MAX_BYTES = 400 * 1024;
+export const AI_ILLUSTRATION_MAX_COUNT = 1;
+
+export function extractFigures(html) {
+  const figures = [];
+  const pattern = /<figure\b[\s\S]*?<\/figure>/gi;
+  let match;
+  while ((match = pattern.exec(String(html ?? ''))) !== null) {
+    const block = match[0];
+    const imgTag = (block.match(/<img\b[^>]*>/i) ?? [])[0] ?? '';
+    const attr = (name) => (imgTag.match(new RegExp(`${name}=["']([^"']*)["']`, 'i')) ?? [])[1] ?? null;
+    const captionHtml = (block.match(/<figcaption\b[\s\S]*?<\/figcaption>/i) ?? [])[0] ?? '';
+    figures.push({ block, imgTag, src: attr('src'), alt: attr('alt'), caption: stripHtml(captionHtml).trim() });
+  }
+  return figures;
+}
+
+/**
+ * 校验 AI 示意图：数量、路径形态、alt/caption 声明、文件存在与体积。
+ * @returns {string[]} 错误列表
+ */
+export function validateAiIllustrations(html, { fileExists, fileSize, maxCount = AI_ILLUSTRATION_MAX_COUNT, maxBytes = AI_ILLUSTRATION_MAX_BYTES } = {}) {
+  const errors = [];
+  const figures = extractFigures(html);
+  const aiFigures = [];
+  for (const figure of figures) {
+    const declared =
+      String(figure.alt ?? '').startsWith(AI_ILLUSTRATION_PREFIX) || String(figure.caption ?? '').includes(AI_ILLUSTRATION_PREFIX);
+    if (!declared) continue;
+    aiFigures.push(figure);
+    const src = figure.src ?? '';
+    if (!String(figure.alt ?? '').startsWith(AI_ILLUSTRATION_ALT_PREFIX)) {
+      errors.push(`AI 示意图 alt 必须以「${AI_ILLUSTRATION_ALT_PREFIX}」开头：${src}`);
+    }
+    if (!String(figure.caption ?? '').endsWith(AI_ILLUSTRATION_CAPTION_SUFFIX)) {
+      errors.push(`AI 示意图 figcaption 必须以「${AI_ILLUSTRATION_CAPTION_SUFFIX}」结尾：${src}`);
+    }
+    if (!AI_ILLUSTRATION_SRC.test(src)) {
+      errors.push(`AI 示意图路径必须形如 /article-assets/<YYYY-MM>/<slug>.jpg：${src}`);
+    }
+    const repoPath = src.replace(/^\//, '');
+    if (fileExists && src && !fileExists(repoPath)) errors.push(`AI 示意图文件不存在：${src}`);
+    if (fileSize && src) {
+      const size = fileSize(repoPath);
+      if (size !== null && size > maxBytes) errors.push(`AI 示意图 ${src} 体积 ${size} 超过 ${maxBytes} 字节`);
+    }
+  }
+  if (aiFigures.length > maxCount) errors.push(`AI 示意图数量 ${aiFigures.length} 超过上限 ${maxCount}`);
+  const figureSrcs = new Set(aiFigures.map((figure) => figure.src));
+  for (const image of extractImages(html)) {
+    if (String(image.alt ?? '').startsWith(AI_ILLUSTRATION_PREFIX) && !figureSrcs.has(image.src)) {
+      errors.push(`AI 示意图必须包在 <figure> 内并提供 figcaption：${image.src}`);
+    }
+  }
+  return errors;
+}
+
 export function extractImages(html) {
   const images = [];
   const pattern = /<img\b[^>]*>/gi;
@@ -401,6 +464,16 @@ export function validateGuideStatic(guide, ctx) {
       if (typeof ctx.fileExists === 'function' && !ctx.fileExists(repoPath)) push(`文章素材文件不存在：${image.src}`);
     }
   }
+
+  // AI 生成示意图（/article-assets/）的声明、数量与体积硬规则
+  errors.push(
+    ...validateAiIllustrations(html, {
+      fileExists: ctx.fileExists,
+      fileSize: ctx.fileSize,
+      maxCount: ctx.aiIllustrationMaxCount ?? AI_ILLUSTRATION_MAX_COUNT,
+      maxBytes: ctx.aiIllustrationMaxBytes ?? AI_ILLUSTRATION_MAX_BYTES,
+    }),
+  );
 
   // 相似度
   const corpus = (ctx.corpus ?? []).filter((entry) => entry.slug !== slug);

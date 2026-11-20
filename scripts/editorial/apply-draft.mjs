@@ -14,6 +14,7 @@ import { validateGuideStatic } from './lib/quality.mjs';
 import { readImageInfo } from './lib/images.mjs';
 import { siteToday } from '../lib/site-date.mjs';
 import { snapshotPaths, rollbackSnapshot } from './lib/workspace.mjs';
+import { addTouched, readTouched } from './lib/touched.mjs';
 import { buildAutoIndex } from './build-auto-index.mjs';
 
 function parseArgs(argv) {
@@ -57,7 +58,6 @@ async function main() {
   // 1. 先复制图片并登记，得到最新 registry 供静态校验
   const capturesSource = join(draftDir, 'captures.json');
   const draftCaptures = existsSync(capturesSource) ? readJson(capturesSource, []) : [];
-  const touchedPaths = ['data/editorial-guides/', 'src/lib/guides-auto.ts', 'public/article-images/', 'scripts/editorial/cases/'];
   const snapshot = snapshotPaths([
     `data/editorial-guides/${options.slug}.json`,
     'src/lib/guides-auto.ts',
@@ -138,6 +138,14 @@ async function main() {
       if (!/^[a-z0-9-]+\.(jpe?g|png|webp|gif)$/i.test(entry.file)) throw new Error(`截图文件名不合法：${entry.file}`);
     }
 
+    // 精确改动清单：截图 + captures.json + 指南 JSON + barrel，外加 import-draft 已登记的草稿/case 文件
+    const applied = [
+      ...draftCaptures.map((entry) => `public/article-images/${month}/${entry.file}`),
+      `public/article-images/${month}/captures.json`,
+      `data/editorial-guides/${options.slug}.json`,
+      'src/lib/guides-auto.ts',
+    ];
+    const touchedPaths = addTouched(options.run, applied).files;
     const plan = {
       run: options.run,
       slug: options.slug,
