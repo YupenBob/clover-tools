@@ -669,6 +669,14 @@ function translationPrompt(lang, runKey, slug) {
     `- 输出文件：\`.editorial/drafts/${slug}/translations/${lang}.json\``,
     '- 本文的「英文」示例仅作口径参考；请按目标语言的母语技术文档习惯写，不逐字直译。',
     '',
+    '## 本语言额外硬约束（机器预检会逐条判，不过就整篇不发）',
+    '',
+    `- 站内工具链接必须带语言前缀：\`/${lang}/tools/...\`（例如 \`/tools/dev/hash/\` → \`/${lang}/tools/dev/hash/\`）。`,
+    '- 标题长度 ≤66 字符（英文按字符计，中日韩按字符计），不要为了塞关键词而超长。',
+    '- description 长度 40–160 字符；seoDescription 150–160 字符（英文按字符、中日韩按字符）。',
+    '- 正文不得残留任何成段中文（连续 11 个汉字就会被判未翻译）；代码块/命令/URL 原样保留。',
+    '- 不要写 `_meta`（由宿主与复核员填），只输出 title/description/seoDescription/content/faqs 等正文字段。',
+    '',
   ].join('\n');
   return `${head}\n${base}`;
 }
@@ -735,22 +743,67 @@ function i18n(options) {
     if (imported.code !== 0) fail(`import-${lang}`, `${imported.out}\n${imported.err}`);
   }
 
-  const applied = sh('scripts/editorial/apply-translations.mjs', ['--slug', slug, '--run', runKey, '--langs', langs.join(',')], { timeoutMs: 5 * 60_000 });
-  log(runKey, `i18n apply-translations code=${applied.code}`);
-  if (applied.code !== 0) fail('apply-translations', `${applied.out}\n${applied.err}`);
-
+  // 机械预检里的「_meta.translation / reviewerVerdict」由复核员填，这里只报格式类问题供复核与修复参考
   const precheck = sh('.editorial/tools/precheck-i18n.mjs', ['--slug', slug], { timeoutMs: 5 * 60_000 });
   log(runKey, `i18n precheck-i18n code=${precheck.code}`);
-  if (precheck.code !== 0) fail('precheck-i18n', `${precheck.out}\n${precheck.err}`);
+  const formatIssues = String(precheck.out)
+    .split('\n')
+    .filter((line) => line.includes('✗') || line.includes('缺少目标语言前缀') || line.includes('长度') || line.includes('连续汉字'))
+    .slice(0, 20);
 
   state.phase = 'needs-i18n-review';
   saveState(state);
-  emit({ ok: true, phase: 'i18n', runKey, slug, langs, title: `tick-driver: 译文已落盘（${langs.join('/')}）→ 待多语复核，然后 finalize` }, EXIT.ok, options);
+  emit(
+    {
+      ok: true,
+      phase: 'i18n',
+      runKey,
+      slug,
+      langs,
+      formatIssues,
+      next: 'needs-i18n-review',
+      title: `tick-driver: 译文已生成（${langs.join('/')}）→ 待多语复核后跑 i18n-apply`,
+    },
+    EXIT.ok,
+    options,
+  );
 }
 
 // ---------------------------------------------------------------------------
 // finalize：提交 + 推送 + 部署校验 + 收尾
 // ---------------------------------------------------------------------------
+
+/** 多语复核写回 _meta.translation 之后：落盘译文 + 机械预检 + 强校验。 */
+function i18nApply(options) {
+  const config = loadConfig();
+  const state = requireRun(options, ['needs-i18n-review', 'i18n-apply', 'failed']);
+  const { runKey, slug } = state;
+  const langs = config.translation?.languages ?? ['tw', 'en', 'ko', 'ja'];
+  const fail = (name, detail) => {
+    state.failures.push({ step: name, detail, at: new Date().toISOString() });
+    state.phase = 'failed';
+    saveState(state);
+    writeJson(join(runDir(runKey), 'escalate.json'), { runKey, slug, reason: `i18n-apply-${name}-failed`, detail: tail(detail), at: new Date().toISOString() });
+    emit({ ok: false, phase: 'i18n-apply', title: `tick-driver: i18n-apply ${name} 失败`, detail: tail(detail), runKey }, EXIT.failed, options);
+  };
+
+  const applied = sh('scripts/editorial/apply-translations.mjs', ['--slug', slug, '--run', runKey, '--langs', langs.join(',')], { timeoutMs: 5 * 60_000 });
+  log(runKey, `i18n-apply apply-translations code=${applied.code}`);
+  if (applied.code !== 0) fail('apply-translations', `${applied.out}\n${applied.err}`);
+
+  const precheck = sh('.editorial/tools/precheck-i18n.mjs', ['--slug', slug], { timeoutMs: 5 * 60_000 });
+  log(runKey, `i18n-apply precheck-i18n code=${precheck.code}`);
+  if (precheck.code !== 0) fail('precheck-i18n', `${precheck.out}\n${precheck.err}`);
+
+  const asserted = sh('.editorial/tools/decide-translate.mjs', ['--run', runKey, '--assert-applied'], { timeoutMs: 3 * 60_000 });
+  log(runKey, `i18n-apply assert-applied code=${asserted.code}`);
+  if (asserted.code !== 0) fail('assert-applied', `${asserted.out}\n${asserted.err}`);
+
+  state.phase = 'finalizing';
+  state.steps['i18n-applied'] = 'ok';
+  saveState(state);
+  emit({ ok: true, phase: 'i18n-apply', runKey, slug, langs, title: `tick-driver: 译文已落盘（${langs.join('/')}）→ 下一步 finalize` }, EXIT.ok, options);
+}
 
 function finalize(options) {
   const config = loadConfig();
@@ -875,10 +928,10 @@ function status(options) {
 const options = parseArgs(process.argv.slice(2));
 try {
   if (options.help || !options.phase) {
-    console.log('用法：node scripts/editorial/tick-driver.mjs <prepare|repair|gates|land|i18n|finalize|status> [--run <runKey>] [--json]');
+    console.log('用法：node scripts/editorial/tick-driver.mjs <prepare|repair|gates|land|i18n|i18n-apply|finalize|status> [--run <runKey>] [--json]');
     process.exit(0);
   }
-  const phases = { prepare, repair: repairPhase, gates: gatesPhase, land, i18n, finalize, status };
+  const phases = { prepare, repair: repairPhase, gates: gatesPhase, land, i18n, 'i18n-apply': i18nApply, finalize, status };
   const handler = phases[options.phase];
   if (!handler) throw new Error(`未知阶段：${options.phase}`);
   handler(options);
