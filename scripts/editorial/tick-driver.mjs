@@ -608,9 +608,12 @@ function land(options) {
 
   const steps = [
     ['apply-draft', 'scripts/editorial/apply-draft.mjs', ['--slug', slug, '--run', runKey]],
+    ['build-translation-index', 'scripts/editorial/build-translation-index.mjs', []],
+    ['build-auto-index', 'scripts/editorial/build-auto-index.mjs', []],
     ['verify-article', 'scripts/editorial/verify-article.mjs', ['--slug', slug, '--run', runKey]],
   ];
   for (const [name, scriptPath, args] of steps) {
+    if (state.steps[name] === 'ok') continue; // 可重入：apply-draft 只跑一次
     const result = sh(scriptPath, args, { timeoutMs: 10 * 60_000 });
     log(runKey, `land ${name} code=${result.code}`);
     if (result.code !== 0) {
