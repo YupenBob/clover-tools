@@ -576,7 +576,37 @@ export async function handleIpReputation(
     count ? 200 : allTimeout ? 504 : 502,
   );
 }
-export const onRequest = (context: {
+export const onRequest = async (context: {
   request: Request;
   env: { IPAPI_IS_KEY?: string };
-}) => handleIpReputation(context.request, context.env);
+}) => {
+  try {
+    return await handleIpReputation(context.request, context.env);
+  } catch (error) {
+    // 任何未预期的异常都不应让整个 Function 变成平台 502 页面；
+    // 返回结构化错误，同时把细节写进 Worker 日志便于排查。
+    console.error("ip-reputation:unhandled", error);
+    return new Response(
+      JSON.stringify({
+        version: 1,
+        kind: "error",
+        ok: false,
+        status: "unavailable",
+        responseAt: new Date().toISOString(),
+        data: null,
+        error: {
+          code: "internal",
+          retryable: true,
+          debug: String((error as Error)?.stack ?? error).slice(0, 1200),
+        },
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  }
+};
