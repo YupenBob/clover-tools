@@ -45,6 +45,14 @@
 {{FORBIDDEN_PATHS}}
 ```
 
+## 主视图契约（强制，缺失即门禁失败）
+
+- 必须规划 `data/tool-presentation/<slug>.json`，结构遵循 `config/schemas/tool-presentation.schema.json`（严格模式，未知键会被拒绝）。
+- `profile`：大屏/单任务类选 `projector`，输入→结果类选 `workspace`；投影类 primary 只允许声明的文本槽位与唯一无文字图标退出控件。
+- 必须声明：`primary.root`、`slots`（时间/日期/主输入/主结果等白名单文本，含格式与时区）、`controls`（常驻控件；projector 只允许 1 个退出图标）、`states`（firstLoad/primary/reveal/settingsOpen/degraded/fullscreen 全要）、`renderSurfaces`（每个能绘制文字的载体）、`i18n`（文案 key 及所在模块）。
+- 规格里先写「3 分钟现场脚本」：用户打开页面看到什么、按什么、什么时候收起；说明/示例/设置只允许出现在 reveal/settingsOpen。
+- 反例必须写进规格：首屏出现标题/说明/页脚/除声明退出图标外的按钮、空白画面、跨午夜/时区错位、异常弹层，都算失败。
+
 特别说明：浏览器用例由 `scripts/lib/tool-cases/<slug>.mjs` 自动发现，**不要**规划修改 `scripts/smoke-growth.mjs`；**不要**规划修改 `src/lib/tool-presentation.ts`、`docs/TOOL-DESIGN.md`、`docs/QUALITY.md`、`scripts/verify-production.mjs`。页面直接传 `workspace`/`layout`。
 
 ## 必须输出的 spec 结构（中文标题，逐节写具体内容）

@@ -52,6 +52,14 @@
 9. **搜索/SEO**：标题含 “ - CloverTools” 且总长 50–60 字符；meta description 150–160 字符；关键词自然，不堆砌。
 10. **文档**：`docs/<TOOL>.md` 必须说明与现有工具的差异、数据边界、测试命令。
 
+## 主视图实现（强制）
+
+- 首屏（无 JS/禁用 JS 的 SSR 快照）就必须是 primary：`data-presentation-state` 标记、只含声明槽位与声明控件；站点外壳（面包屑/标题/说明/页脚）用内联 critical CSS 在首帧隐藏，不得依赖 hydration 才隐藏。
+- 运行期状态机与标记：`data-presentation-state`（primary/reveal/settingsOpen/degraded/fullscreen）+ `data-presentation-mode`（inline/fullscreen/fallback）；reveal 由 pointer/focus/keyboard 唤出并在 `autoHideMs` 后回到 primary；设置面板默认收起。
+- 数值全部来自 `data/tool-presentation/<slug>.json`（import JSON）：字号下限、背景/前景、autoHideMs、时区/小时制、快捷键；代码里不得重复这些字面量。
+- 异常（上游失败、权限拒绝、Wake Lock 被拒）不得弹层/打断/常驻状态点：只写 `data-presentation-degraded` + aria-live 公告，内容留在隐藏面板。
+- 浏览器用例只需覆盖业务行为；共享 `presentation-*` 门禁会自动跑状态矩阵，但页面必须提供上述标记与 SSR 首帧。
+
 ## UI 质量底线
 
 - 空态/错误态/加载态/成功态齐全；非法输入给具体原因并禁用结果/复制。
