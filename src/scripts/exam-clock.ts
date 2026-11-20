@@ -21,6 +21,26 @@ import {
   type TimeResponse,
 } from "../lib/exam-clock";
 import type { ExamText } from "../lib/exam-clock-i18n";
+import presentation from "../../data/tool-presentation/exam-clock.json";
+
+// Every projector threshold is declared in data/tool-presentation/exam-clock.json;
+// this module only reads it, so the page and the provider can never disagree.
+const TIME_SLOT =
+  presentation.primary.slots.find((slot) => slot.kind === "time") ??
+  presentation.primary.slots[0];
+const TIME_FORMAT = TIME_SLOT.format;
+const TIME_ZONE = TIME_FORMAT.timeZone;
+const PROJECTED_HOUR12 = TIME_FORMAT.hourCycle !== "h23";
+const PROJECTED_SECONDS = TIME_FORMAT.showSeconds;
+const AUTO_HIDE_MS = presentation.interaction.autoHideMs;
+const SETTINGS_INITIALLY_OPEN = presentation.interaction.settingsInitiallyOpen;
+const REVEAL_TRIGGERS = presentation.interaction.revealTriggers;
+const SHORTCUTS = presentation.interaction.shortcuts;
+const EXIT_CONTROL =
+  presentation.controls.find((control) => control.role === "exit") ??
+  presentation.controls[0];
+const EXIT_ID = EXIT_CONTROL.selector.replace(/^#/, "");
+
 // This module has one root, one refresh loop, and one in-flight sampling round.
 const root = document.getElementById("examClock");
 if (root) boot(root);
@@ -83,11 +103,47 @@ function boot(root: HTMLElement) {
     wake: WakeLockSentinel | null = null;
   let immersive = false,
     fullscreenPending = false,
-    settingsOpen = true,
+    settingsOpen = SETTINGS_INITIALLY_OPEN,
     idleTimer: ReturnType<typeof setTimeout> | undefined;
   let settingsTrigger: HTMLElement | null = null,
     bigTrigger: HTMLElement | null = null;
   const inertNodes = new Map<HTMLElement, boolean>();
+  type PresentationState =
+    | "firstLoad"
+    | "primary"
+    | "reveal"
+    | "settingsOpen"
+    | "degraded"
+    | "fullscreen";
+  type PresentationMode = "inline" | "fullscreen" | "fallback";
+  let presentationState: PresentationState = "firstLoad";
+  let presentationMode: PresentationMode = "inline";
+  const degraded = new Set<"time" | "wake">();
+  const shortcutByKey = Object.fromEntries(
+    Object.entries(SHORTCUTS).map(([key, action]) => [key.toLowerCase(), action]),
+  ) as Record<string, string>;
+  function projected() {
+    return presentationState !== "settingsOpen";
+  }
+  function setPresentationState(next: PresentationState) {
+    if (presentationState === next) return;
+    presentationState = next;
+    root.setAttribute("data-presentation-state", next);
+  }
+  function setPresentationMode(next: PresentationMode) {
+    if (presentationMode === next) return;
+    presentationMode = next;
+    root.setAttribute("data-presentation-mode", next);
+  }
+  function markDegraded(kind: "time" | "wake") {
+    degraded.add(kind);
+    root.setAttribute("data-presentation-degraded", [...degraded].join(" "));
+  }
+  function clearDegraded(kind: "time" | "wake") {
+    if (!degraded.delete(kind)) return;
+    if (degraded.size) root.setAttribute("data-presentation-degraded", [...degraded].join(" "));
+    else root.removeAttribute("data-presentation-degraded");
+  }
   let selectedId: number | null = null,
     renderedStage = "";
   let unsavedInvalid = false;
@@ -143,12 +199,12 @@ function boot(root: HTMLElement) {
       minutes: t.minutes,
     });
   }
-  const clock = (ms: number) =>
+  const clock = (ms: number, projectedView = false) =>
     formatClock(ms, {
-      timeZone: "Asia/Shanghai",
+      timeZone: TIME_ZONE,
       locale,
-      hour12: state.settings.hour12,
-      showSeconds: state.settings.showSeconds,
+      hour12: projectedView ? PROJECTED_HOUR12 : state.settings.hour12,
+      showSeconds: projectedView ? PROJECTED_SECONDS : state.settings.showSeconds,
       fixedOffsetFallback: true,
     });
   const shortTime = (ms: number) => {
@@ -174,7 +230,7 @@ function boot(root: HTMLElement) {
   }
   function render(suppress = false) {
     const current = now();
-    const c = clock(current);
+    const c = clock(current, projected());
     text("ecTime", c.time);
     text("ecPeriod", c.period);
     text("ecDate", `${c.date} · ${c.weekday}`);
@@ -351,9 +407,11 @@ function boot(root: HTMLElement) {
         ),
       };
       setSource({ referenceMs: best.offset.referenceMs, monoMs: best.mono });
+      clearDegraded("time");
       persist();
     } else {
       setSource(null, reason);
+      markDegraded("time");
       notice(reason);
     }
     renderSource();
@@ -824,6 +882,8 @@ function boot(root: HTMLElement) {
     if (!wakeWanted || document.hidden || wake || wakePending) return;
     if (!navigator.wakeLock?.request) {
       text("ecWakeStatus", t.wakeUnsupported);
+      markDegraded("wake");
+      notice(t.wakeUnsupported);
       return;
     }
     const sequence = ++wakeSequence,
@@ -843,6 +903,7 @@ function boot(root: HTMLElement) {
         return;
       }
       wake = lock;
+      clearDegraded("wake");
       text("ecWakeStatus", lock.released ? t.wakeReleased : t.wakeOn);
       lock.addEventListener("release", () => {
         if (wake !== lock) return;
@@ -851,8 +912,11 @@ function boot(root: HTMLElement) {
       });
       if (lock.released) wake = null;
     } catch {
-      if (sequence === wakeSequence && generation === life && wakeWanted)
+      if (sequence === wakeSequence && generation === life && wakeWanted) {
         text("ecWakeStatus", t.wakeFailed);
+        markDegraded("wake");
+        notice(t.wakeFailed);
+      }
     } finally {
       if (sequence === wakeSequence) {
         wakePending = false;
@@ -894,27 +958,53 @@ function boot(root: HTMLElement) {
       inertNodes.clear();
     }
   }
-  function reveal() {
-    root.classList.remove("ec-controls-hidden");
-    el("ecControls").inert = false;
-    button("ecSync").inert = false;
+  function armIdle() {
     clearTimeout(idleTimer);
-    if (immersive)
-      idleTimer = setTimeout(() => {
+    idleTimer = undefined;
+    if (settingsOpen) return;
+    if (
+      presentationState !== "primary" &&
+      presentationState !== "reveal" &&
+      presentationState !== "fullscreen"
+    )
+      return;
+    idleTimer = setTimeout(() => {
+      idleTimer = undefined;
+      if (settingsOpen) return;
+      if (presentationState === "reveal") {
+        setPresentationState("primary");
+        return;
+      }
+      if (presentationState === "fullscreen") {
         if (
-          settingsOpen ||
           el("ecControls").contains(document.activeElement) ||
-          el("ecControls").matches(":hover") ||
-          button("ecSync") === document.activeElement ||
-          button("ecSync").matches(":hover")
+          el("ecControls").matches(":hover")
         ) {
-          reveal();
+          armIdle();
           return;
         }
         root.classList.add("ec-controls-hidden");
         el("ecControls").inert = true;
         button("ecSync").inert = true;
-      }, 5000);
+      }
+    }, AUTO_HIDE_MS);
+  }
+  function reveal() {
+    if (settingsOpen) return;
+    if (presentationState === "firstLoad" || presentationState === "degraded")
+      return;
+    if (presentationState === "fullscreen") {
+      root.classList.remove("ec-controls-hidden");
+      el("ecControls").inert = false;
+      button("ecSync").inert = false;
+      armIdle();
+      return;
+    }
+    if (presentationState !== "reveal") setPresentationState("reveal");
+    root.classList.remove("ec-controls-hidden");
+    el("ecControls").inert = false;
+    button("ecSync").inert = false;
+    armIdle();
   }
   function setSettings(open: boolean, restore = true) {
     settingsOpen = open;
@@ -930,77 +1020,129 @@ function boot(root: HTMLElement) {
     }
     if (open) {
       settingsTrigger = button("ecSettingsToggle");
-      button("ecCloseSettings").focus();
-    } else if (restore)
-      (settingsTrigger?.isConnected
-        ? settingsTrigger
-        : button("ecSettingsToggle")
-      ).focus();
-    reveal();
-  }
-  function setImmersive(on: boolean) {
-    if (immersive === on) return;
-    immersive = on;
-    root.classList.toggle("ec-immersive", on);
-    isolate(on);
-    text("ecFullscreen", on ? t.exitFullscreen : t.fullscreen);
-    if (on) {
-      bigTrigger = button("ecFullscreen");
-      setSettings(false, false);
-      button("ecFullscreen").focus();
+      setPresentationState("settingsOpen");
+      clearTimeout(idleTimer);
+      idleTimer = undefined;
+      button("ecCloseSettings").focus({ preventScroll: true });
     } else {
-      setSettings(true, false);
-      el("ecSettings").removeAttribute("role");
-      el("ecSettings").removeAttribute("aria-modal");
-      (bigTrigger?.isConnected ? bigTrigger : button("ecFullscreen")).focus();
+      if (presentationState === "settingsOpen")
+        setPresentationState(immersive ? "fullscreen" : "primary");
+      if (restore) {
+        const target =
+          presentationState === "fullscreen"
+            ? button("ecFullscreen")
+            : presentationState === "settingsOpen"
+              ? button("ecSettingsToggle")
+              : el(EXIT_ID);
+        target.focus({ preventScroll: true });
+      }
+      armIdle();
     }
-    reveal();
+  }
+  function activateExitControl() {
+    if (settingsOpen) {
+      setSettings(false);
+      return;
+    }
+    if (immersive) {
+      void exitFullscreen();
+      return;
+    }
+    setSettings(true, false);
+  }
+  function enterFullscreen(fallback: boolean) {
+    if (settingsOpen) setSettings(false, false);
+    immersive = true;
+    root.classList.add("ec-immersive");
+    isolate(true);
+    setPresentationMode(fallback ? "fallback" : "fullscreen");
+    setPresentationState("fullscreen");
+    el("ecControls").inert = false;
+    button("ecSync").inert = false;
+    root.classList.remove("ec-controls-hidden");
+    bigTrigger = button("ecFullscreen");
+    el(EXIT_ID).focus({ preventScroll: true });
+    armIdle();
+  }
+  function leaveFullscreen() {
+    immersive = false;
+    root.classList.remove("ec-immersive");
+    isolate(false);
+    setPresentationMode("inline");
+    clearTimeout(idleTimer);
+    idleTimer = undefined;
+    el("ecControls").inert = false;
+    button("ecSync").inert = false;
+    root.classList.remove("ec-controls-hidden");
+    setPresentationState("primary");
+    // Leaving the immersive view opens the workspace panel, so the same status
+    // rows and controls are reachable without a second gesture.
+    setSettings(true, false);
+    const target = bigTrigger?.isConnected ? bigTrigger : el(EXIT_ID);
+    target.focus({ preventScroll: true });
+  }
+  async function exitFullscreen() {
+    if (document.fullscreenElement === root) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        /* native state remains authoritative */
+      }
+    }
+    if (immersive) leaveFullscreen();
   }
   async function toggleFullscreen() {
     if (fullscreenPending) return;
     if (immersive) {
-      if (document.fullscreenElement === root) {
-        try {
-          await document.exitFullscreen();
-        } catch {
-          /* native state remains authoritative */
-        }
-      } else setImmersive(false);
+      await exitFullscreen();
       return;
     }
     const generation = life;
     fullscreenPending = true;
+    const fallbackView = () => {
+      enterFullscreen(true);
+      text("ecFullscreenNote", t.fullscreenFallback);
+      notice(t.fullscreenFallback);
+    };
     try {
       if (!root.requestFullscreen) throw new Error("fullscreen");
       await root.requestFullscreen();
       if (generation !== life) {
-        if (document.fullscreenElement === root)
-          await document.exitFullscreen();
+        if (document.fullscreenElement === root) await document.exitFullscreen();
         return;
       }
-      setImmersive(document.fullscreenElement === root);
+      if (document.fullscreenElement === root) enterFullscreen(false);
+      else fallbackView();
     } catch {
       if (generation !== life) return;
-      setImmersive(true);
-      text("ecFullscreenNote", t.fullscreenFallback);
-      notice(t.fullscreenFallback);
+      fallbackView();
     } finally {
       fullscreenPending = false;
     }
   }
   document.addEventListener("fullscreenchange", () => {
-    setImmersive(document.fullscreenElement === root);
+    const native = document.fullscreenElement === root;
+    if (native && !immersive) enterFullscreen(false);
+    else if (!native && immersive) leaveFullscreen();
   });
-  button("ecFullscreen").addEventListener(
-    "click",
-    () => void toggleFullscreen(),
-  );
+  button("ecFullscreen").addEventListener("click", () => void toggleFullscreen());
   button("ecSettingsToggle").addEventListener("click", () =>
     setSettings(!settingsOpen),
   );
   button("ecCloseSettings").addEventListener("click", () => setSettings(false));
-  for (const name of ["pointermove", "pointerdown", "focusin"] as const)
-    root.addEventListener(name, reveal);
+  el(EXIT_ID).addEventListener("click", activateExitControl);
+  el("ecTime").addEventListener("click", () => {
+    if (settingsOpen) return;
+    if (!immersive) void toggleFullscreen();
+  });
+  el("ecTime").addEventListener("dblclick", () => {
+    if (immersive) void exitFullscreen();
+  });
+  if (REVEAL_TRIGGERS.includes("pointer")) {
+    root.addEventListener("pointermove", reveal);
+    root.addEventListener("pointerdown", reveal);
+  }
+  if (REVEAL_TRIGGERS.includes("focus")) root.addEventListener("focusin", reveal);
   document.addEventListener("keydown", (event) => {
     if (event.repeat || event.isComposing) return;
     const target = event.target as HTMLElement;
@@ -1015,6 +1157,7 @@ function boot(root: HTMLElement) {
       return;
     }
     if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (presentationState !== "settingsOpen") reveal();
     if (immersive && settingsOpen && event.key === "Tab") {
       const focusable = [
         ...el("ecSettings").querySelectorAll<HTMLElement>(
@@ -1039,11 +1182,17 @@ function boot(root: HTMLElement) {
       if (settingsOpen) {
         event.preventDefault();
         setSettings(false);
-      } else if (immersive && document.fullscreenElement !== root) {
-        event.preventDefault();
-        setImmersive(false);
+        return;
       }
-      reveal();
+      if (immersive && document.fullscreenElement !== root) {
+        event.preventDefault();
+        void exitFullscreen();
+        return;
+      }
+      if (!immersive && presentationState !== "firstLoad") {
+        event.preventDefault();
+        setSettings(true, false);
+      }
       return;
     }
     if (
@@ -1054,14 +1203,22 @@ function boot(root: HTMLElement) {
     // Space and Enter on buttons keep native button activation.
     if (event.key === " " && target.closest("button,summary,a")) return;
     const key = event.key.toLowerCase();
-    if (["f", "s", "r", " "].includes(key)) {
-      event.preventDefault();
-      reveal();
-      if (key === "f") void toggleFullscreen();
-      if (key === "s") setSettings(!settingsOpen);
-      if (key === "r") void sync();
-      if (key === " ") pauseSounds();
-    } else if (immersive) reveal();
+    const action =
+      shortcutByKey[key] ??
+      (key === "s"
+        ? "settings"
+        : key === "r"
+          ? "sync"
+          : key === " "
+            ? "pause-sound"
+            : "");
+    if (!action) return;
+    event.preventDefault();
+    if (action === "fullscreen") void toggleFullscreen();
+    else if (action === "settings") setSettings(!settingsOpen);
+    else if (action === "sync") void sync();
+    else if (action === "pause-sound") pauseSounds();
+    else if (action === "exit") activateExitControl();
   });
   function clearData(remove: boolean) {
     life++;
@@ -1175,6 +1332,18 @@ function boot(root: HTMLElement) {
   renderPresets();
   render(true);
   renderSource();
+  if (!SETTINGS_INITIALLY_OPEN) {
+    el("ecSettings").hidden = true;
+    button("ecSettingsToggle").setAttribute("aria-expanded", "false");
+  } else setSettings(true, false);
+  // Projector hosts should stay awake without asking; a refusal is announced
+  // and marked degraded instead of interrupting the clock.
+  wakeWanted = true;
+  input("ecWake").checked = true;
+  setPresentationMode("inline");
+  setPresentationState("primary");
+  armIdle();
   window.setInterval(tick, 250);
+  if (wakeWanted) void requestWake();
   void sync();
 }

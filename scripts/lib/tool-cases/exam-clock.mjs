@@ -4,8 +4,23 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { setTimeout as delay } from "node:timers/promises";
 import { validateTimeResponse } from "../../../src/lib/exam-clock.ts";
+import { snapshotInPage } from "../presentation-check.mjs";
 import { LOCALES, localizedPath } from "../../../config/routes.mjs";
 const KEY = "clover-exam-clock:v1";
+const presentation = JSON.parse(
+  readFileSync(
+    new URL("../../../data/tool-presentation/exam-clock.json", import.meta.url),
+    "utf8",
+  ),
+);
+const TIME_SLOT = presentation.primary.slots.find((slot) => slot.kind === "time");
+const TIME_FORMAT = TIME_SLOT.format;
+const EXIT_SELECTOR = presentation.controls.find((control) => control.role === "exit").selector;
+const AUTO_HIDE_MS = presentation.interaction.autoHideMs;
+const shortcutFor = (action) =>
+  Object.entries(presentation.interaction.shortcuts).find(([, value]) => value === action)[0];
+const SETTINGS_SHORTCUT = shortcutFor("settings");
+const FULLSCREEN_SHORTCUT = shortcutFor("fullscreen");
 const fixed = Date.UTC(2026, 10, 15, 1);
 const inputTime = (ms) => new Date(ms + 28800000).toISOString().slice(0, 16);
 const path = (lang = "zh") => localizedPath("/tools/daily/exam-clock/", lang);
@@ -112,6 +127,7 @@ async function ready(page, base, lang = "zh", mode = "ok") {
     /^\d\d:\d\d/.test(document.querySelector("#ecTime")?.textContent || ""),
   );
   if (mode === "ok") await source(page, synced[lang]);
+  await workspace(page);
 }
 async function source(page, value) {
   await poll(
@@ -119,6 +135,32 @@ async function source(page, value) {
     (v) => document.querySelector("#ecSource")?.textContent === v,
     value,
   );
+}
+async function presentationState(page) {
+  return page.evaluate(() =>
+    document.querySelector("#examClock")?.getAttribute("data-presentation-state") ?? null,
+  );
+}
+/**
+ * The projector opens on the clock itself, so every legacy assertion enters the
+ * workspace first: Escape (or C) opens the hidden settings panel as deployed.
+ */
+async function workspace(page) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if ((await presentationState(page)) === "settingsOpen") break;
+    await page.keyboard.press("Escape");
+  }
+  await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "settingsOpen");
+  await poll(page, () => document.querySelector("#ecSettings")?.hidden === false);
+}
+function luminance(color) {
+  const channels = String(color).match(/[\d.]+/g);
+  if (!channels || channels.length < 3) return null;
+  const [r, g, b] = channels.slice(0, 3).map((value) => {
+    const channel = Number(value) / 255;
+    return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 async function attr(page, key, value) {
   await poll(
@@ -134,6 +176,7 @@ async function fill(
   end = fixed + 180000,
   name = "Exam <script> plain text",
 ) {
+  await workspace(page);
   // The component attaches form listeners after its initial storage read; give
   // the fake clock a real tick to finish hydration before submitting.
   await page.waitForTimeout(250);
@@ -142,6 +185,7 @@ async function fill(
   await page.locator("#ecEnd").fill(inputTime(end));
 }
 async function clear(page) {
+  await workspace(page);
   page.once("dialog", (d) => d.accept());
   await page.locator("#ecClear").click();
 }
@@ -367,6 +411,7 @@ export async function run({ run, remember, base, artifacts }) {
     await poll(page, () =>
       /^\d/.test(document.querySelector("#ecTime").textContent),
     );
+    await workspace(page);
     await page.locator("#ecExample").click();
     await clear(page);
     if (pending)
@@ -416,6 +461,7 @@ export async function run({ run, remember, base, artifacts }) {
       await remember(context, "en");
       await page.goto(base + path("en"));
       await source(page, synced.en);
+      await workspace(page);
       await attr(page, "data-exam-state", "waiting");
       assert.equal(await page.locator("#ecPresets option").count(), 3);
       await page.locator("#ecReset").click();
@@ -544,6 +590,7 @@ export async function run({ run, remember, base, artifacts }) {
     assert.equal(stored.draft.name, draftName);
     await page.reload();
     await poll(page, () => /^\d\d:\d\d/.test(document.querySelector("#ecTime")?.textContent || ""));
+    await workspace(page);
     assert.equal(await page.locator("#ecTheme").inputValue(), "dark");
     assert.equal(await page.locator("#ecScale").inputValue(), "120");
     // Clearing everything must not let the kept draft come back through a later
@@ -905,6 +952,190 @@ export async function run({ run, remember, base, artifacts }) {
         });
       },
     );
+  // ---- Projector presentation contract ----------------------------------
+  const slotEntries = (runtime) =>
+    runtime.texts.filter((entry) => entry.selector.includes(TIME_SLOT.selector));
+  const allowedSlotText = (runtime) => new Set(slotEntries(runtime).map((entry) => entry.text));
+  const extraVisibleText = (runtime) => {
+    const allowed = allowedSlotText(runtime);
+    return runtime.texts.filter((entry) => !allowed.has(entry.text)).map((entry) => entry.text);
+  };
+  const visibleInteractives = (runtime) => runtime.interactives.map((entry) => entry.selector);
+  const onlyExitControl = (runtime) => {
+    assert.equal(runtime.interactives.length, 1, `expected one persistent control, got ${visibleInteractives(runtime).join(", ")}`);
+    assert.ok(runtime.interactives[0].selector.includes(EXIT_SELECTOR), `persistent control must be ${EXIT_SELECTOR}`);
+  };
+  const withinProjectedMinute = async (page, displayed) => {
+    const nowMs = await page.evaluate(() => Date.now());
+    const expected = new Intl.DateTimeFormat("en-GB", {
+      timeZone: TIME_FORMAT.timeZone,
+      hourCycle: "h23",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(nowMs));
+    const toMinutes = (value) => Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5));
+    const raw = Math.abs(toMinutes(displayed) - toMinutes(expected));
+    return Math.min(raw, 1440 - raw) * 60000 <= TIME_FORMAT.withinMs + 60000;
+  };
+
+  await run("exam-clock-presentation-first-load", {}, async (page, context) => {
+    await remember(context, "zh");
+    const blocked = [];
+    await page.route("**/*", (route) => {
+      if (route.request().resourceType() === "script") {
+        blocked.push(route.request().url());
+        return route.abort();
+      }
+      return route.continue();
+    });
+    const response = await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    assert.equal(response.status(), 200);
+    assert.ok(blocked.length > 0, "the first-load probe must block scripts");
+    const runtime = await page.evaluate(snapshotInPage);
+    assert.ok(
+      runtime.state === "firstLoad" || runtime.state === "primary",
+      `SSR state must be firstLoad/primary, got "${runtime.state}"`,
+    );
+    const slots = slotEntries(runtime);
+    assert.equal(slots.length, 1, "the server-rendered first paint must show the time slot");
+    assert.match(slots[0].text, new RegExp(TIME_FORMAT.pattern));
+    assert.deepEqual(extraVisibleText(runtime), [], "first paint may not show any copy besides the time");
+    onlyExitControl(runtime);
+    assert.ok(
+      luminance(runtime.background) <= presentation.appearance.maxBackgroundLuminance,
+      `first paint background ${runtime.background} is too bright`,
+    );
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-first-load.png") });
+  });
+
+  await run("exam-clock-presentation-primary-static", {}, async (page, context) => {
+    await remember(context, "zh");
+    await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    const runtime = await page.evaluate(snapshotInPage);
+    assert.equal(runtime.state, "primary");
+    const slots = slotEntries(runtime);
+    assert.equal(slots.length, 1);
+    assert.match(slots[0].text, new RegExp(TIME_FORMAT.pattern));
+    assert.equal(slots[0].text.length, TIME_FORMAT.showSeconds ? 8 : 5, "primary view hides seconds");
+    assert.deepEqual(extraVisibleText(runtime), [], "primary view may not show extra copy");
+    onlyExitControl(runtime);
+    const viewport = page.viewportSize() ?? { width: 1280, height: 720 };
+    const fontVh = (slots[0].rect.h / viewport.height) * 100;
+    assert.ok(fontVh + 0.5 >= presentation.appearance.minPrimaryFontVh, `primary time is ${fontVh.toFixed(1)}vh`);
+    assert.ok(luminance(runtime.background) <= presentation.appearance.maxBackgroundLuminance);
+    assert.ok(
+      runtime.scroll.width <= runtime.scroll.viewportWidth && runtime.scroll.height <= runtime.scroll.viewportHeight,
+      "primary view must not scroll",
+    );
+    assert.ok(await withinProjectedMinute(page, slots[0].text), "primary time must track the declared time zone");
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-primary.png") });
+  });
+
+  await run("exam-clock-presentation-reveal-auto-hide", {}, async (page, context) => {
+    await remember(context, "zh");
+    await page.clock.install();
+    await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    await page.mouse.move(20, 20);
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "reveal");
+    const revealed = await page.evaluate(snapshotInPage);
+    assert.deepEqual(extraVisibleText(revealed), [], "the reveal layer may not add visible copy");
+    const controls = visibleInteractives(revealed).join(" ");
+    for (const selector of [EXIT_SELECTOR, "#ecFullscreen", "#ecSettingsToggle", "#ecSync"])
+      assert.ok(controls.includes(selector), `reveal must expose ${selector}`);
+    await page.clock.fastForward(AUTO_HIDE_MS + 100);
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    const hidden = await page.evaluate(snapshotInPage);
+    onlyExitControl(hidden);
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-reveal.png") });
+  });
+
+  await run("exam-clock-presentation-degraded", {}, async (page, context) => {
+    await remember(context, "zh");
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, "wakeLock", {
+        value: { request: () => Promise.reject(new Error("denied")) },
+        configurable: true,
+      });
+    });
+    await page.route("**/api/**", (route) => route.abort());
+    await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    const before = await page.evaluate(snapshotInPage);
+    await page.waitForTimeout(400);
+    const runtime = await page.evaluate(snapshotInPage);
+    assert.equal(runtime.state, "primary", "degradation must not leave the primary view");
+    assert.deepEqual(extraVisibleText(runtime), [], "degradation may not draw an error overlay on the clock");
+    assert.ok(runtime.texts.length <= before.texts.length + 1, "degradation may not add visible copy");
+    const announcements = await page.evaluate(() =>
+      [...document.querySelectorAll("[aria-live]")].map((el) => el.textContent.trim()).filter(Boolean),
+    );
+    assert.ok(announcements.length > 0, "degradation must be announced through aria-live");
+    const degraded = await page.evaluate(() =>
+      document.querySelector("#examClock")?.getAttribute("data-presentation-degraded") ?? "",
+    );
+    assert.ok(degraded.length > 0, "degraded capabilities must be recorded on the root");
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-degraded.png") });
+  });
+
+  await run("exam-clock-presentation-fullscreen-fallback", {}, async (page) => {
+    await page.addInitScript(() => {
+      HTMLElement.prototype.requestFullscreen = undefined;
+    });
+    await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    await page.keyboard.press(FULLSCREEN_SHORTCUT);
+    await poll(
+      page,
+      () => document.querySelector("#examClock")?.getAttribute("data-presentation-mode") === "fallback",
+    );
+    assert.match(await page.locator("#examClock").getAttribute("class"), /ec-immersive/);
+    const runtime = await page.evaluate(snapshotInPage);
+    assert.ok(["fullscreen", "primary"].includes(runtime.state), `fallback state is ${runtime.state}`);
+    assert.deepEqual(extraVisibleText(runtime), [], "the fallback view may not add visible copy");
+    onlyExitControl(runtime);
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-fullscreen-fallback.png") });
+    await page.keyboard.press("Escape");
+    await poll(
+      page,
+      () => document.querySelector("#examClock")?.getAttribute("data-presentation-mode") === "inline",
+    );
+  });
+
+  await run("exam-clock-presentation-exit-control", {}, async (page, context) => {
+    await remember(context, "zh");
+    await page.goto(base + path(), { waitUntil: "domcontentloaded" });
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    const exit = page.locator(EXIT_SELECTOR);
+    const box = await exit.boundingBox();
+    assert.ok(box, "the persistent exit control must be rendered");
+    assert.ok(
+      box.width >= presentation.controls[0].minHitTargetPx && box.height >= presentation.controls[0].minHitTargetPx,
+      `exit control is ${box.width}x${box.height}`,
+    );
+    assert.equal(await exit.evaluate((el) => el.tagName), "BUTTON");
+    assert.equal(
+      await exit.evaluate((el) => [...el.childNodes].some((node) => node.nodeType === 3 && node.textContent.trim())),
+      false,
+      "the persistent control must be icon only",
+    );
+    const text = JSON.parse(await page.locator("#examClockText").textContent());
+    assert.equal(await exit.getAttribute("aria-label"), text.exitProjection);
+    await page.keyboard.press("Tab");
+    assert.equal(
+      await page.evaluate((selector) => document.activeElement?.matches(selector), EXIT_SELECTOR),
+      true,
+      "the exit control must take keyboard focus",
+    );
+    assert.notEqual(await exit.evaluate((el) => getComputedStyle(el).outlineStyle), "none");
+    await exit.click();
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "settingsOpen");
+    await page.keyboard.press(SETTINGS_SHORTCUT);
+    await poll(page, () => document.querySelector("#examClock")?.getAttribute("data-presentation-state") === "primary");
+    await page.screenshot({ path: join(artifacts, "exam-clock-presentation-exit.png") });
+  });
+
 }
 
 /** Read-only post-deployment probe; unlike preview cases this uses the real API. */

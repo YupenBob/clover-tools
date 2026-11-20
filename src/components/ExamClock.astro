@@ -1,24 +1,76 @@
 ---
+// Projector presentation shell: the primary view is the clock and one exit icon.
+// Every threshold (font size, background, hit target, shortcut keys) comes from
+// data/tool-presentation/exam-clock.json; nothing is repeated in this file.
 import { pathForLang, type Lang } from '../lib/i18n';
 import { examText } from '../lib/exam-clock-i18n';
+import presentation from '../../data/tool-presentation/exam-clock.json';
 import '../styles/exam-clock.css';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = examText(lang);
+const timeSlot = presentation.primary.slots.find((slot) => slot.kind === 'time') ?? presentation.primary.slots[0];
+const timeFormat = timeSlot.format;
+const exitControl = presentation.controls.find((control) => control.role === 'exit') ?? presentation.controls[0];
+const shortcuts = presentation.interaction.shortcuts;
+const appearance = presentation.appearance;
+// The first paint is the projection itself: a server-rendered HH:MM that the
+// script re-anchors to the calibrated clock as soon as it hydrates.
+const initialTime = new Intl.DateTimeFormat('en-GB', {
+  timeZone: timeFormat.timeZone,
+  hourCycle: timeFormat.hourCycle === 'h23' ? 'h23' : 'h12',
+  hour: '2-digit',
+  minute: '2-digit',
+  ...(timeFormat.showSeconds ? { second: '2-digit' as const } : {}),
+}).format(new Date());
+// Every contract state replaces the site shell with the projector surface.
+const contractStates = ['firstLoad', 'primary', 'reveal', 'settingsOpen', 'fullscreen', 'degraded']
+  .map((state) => `[data-presentation-state="${state}"]`)
+  .join(',');
+const rootVars = [
+  `--ec-presentation-bg:${appearance.background}`,
+  `--ec-presentation-fg:${appearance.foreground}`,
+  `--ec-min-font-vh:${appearance.minPrimaryFontVh}`,
+  `--ec-hit-target:${exitControl.minHitTargetPx}px`,
+].join(';');
+// Inlined so the no-JS first paint already hides the whole site shell; the
+// larger stylesheet below polishes the same states once it has loaded.
+const criticalCss = `
+html:has(#examClock:is(${contractStates})) body { margin: 0 !important; background: ${appearance.background} !important; background-image: none !important; }
+html:has(#examClock:is(${contractStates})) body *:not(#examClock):not(#examClock *):not(:has(#examClock)) { display: none !important; }
+html:has(#examClock:is(${contractStates})) body *:has(#examClock):not(#examClock) { background: transparent !important; background-image: none !important; border: 0 !important; box-shadow: none !important; }
+html:has(#examClock:is(${contractStates})) body *:has(#examClock):not(#examClock)::before,
+html:has(#examClock:is(${contractStates})) body *:has(#examClock):not(#examClock)::after { content: none !important; }
+#examClock:is(${contractStates}) { position: fixed; inset: 0; z-index: 10000; display: block; min-width: 0; margin: 0; padding: 0; overflow: hidden; border-radius: 0; background: ${appearance.background}; color: ${appearance.foreground}; }
+#examClock:is(${contractStates}) :is(.ec-name,.ec-date,.ec-exam-status,.ec-schedule,.ec-period,.ec-footer,#ecCountdownArea) { display: none !important; }
+#examClock:is(${contractStates}):not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"]) #ecControls { display: none !important; }
+#examClock:is(${contractStates}):not([data-presentation-state="settingsOpen"]) #ecSettings { display: none !important; }
+#ecExitProjection { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); z-index: 10001; display: inline-flex; align-items: center; justify-content: center; width: ${exitControl.minHitTargetPx}px; height: ${exitControl.minHitTargetPx}px; min-width: ${exitControl.minHitTargetPx}px; min-height: ${exitControl.minHitTargetPx}px; margin: 0; padding: 0; border: 0; background: transparent; color: ${appearance.foreground}; }
+`;
 ---
-<div class="exam-clock" id="examClock" data-lang={lang} data-phase="normal" data-theme="site">
+<div class="exam-clock" id="examClock" data-lang={lang} data-phase="normal" data-theme="site" data-presentation-state="firstLoad" data-presentation-mode="inline" style={rootVars}>
+  <style is:inline set:html={criticalCss}></style>
   <script type="application/json" id="examClockText" set:html={JSON.stringify(t).replaceAll('<', '\\u003c')} />
+  <button type="button" class="ec-exit" id="ecExitProjection" aria-label={t.exitProjection} aria-keyshortcuts={shortcuts.Escape} title={t.exitProjection}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" /><path d="M10 12H3" /><path d="m6 9-3 3 3 3" /></svg>
+  </button>
   <section class="ec-stage" aria-label={t.title}>
     <div class="ec-controls" id="ecControls">
-      <span class="ec-zone">{t.zone}</span>
       <div class="ec-actions">
-        <button type="button" class="btn btn-secondary" id="ecFullscreen" aria-keyshortcuts="F">{t.fullscreen}</button>
-        <button type="button" class="btn btn-secondary" id="ecSettingsToggle" aria-controls="ecSettings" aria-expanded="true" aria-keyshortcuts="S">{t.settings}</button>
+        <button type="button" class="ec-icon-button" id="ecFullscreen" aria-label={t.fullscreen} title={t.fullscreen} aria-keyshortcuts={shortcuts.F}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M16 3h3a2 2 0 0 1 2 2v3" /><path d="M8 21H5a2 2 0 0 1-2-2v-3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></svg>
+        </button>
+        <button type="button" class="ec-icon-button" id="ecSettingsToggle" aria-label={t.settings} title={t.settings} aria-controls="ecSettings" aria-expanded="false" aria-keyshortcuts={shortcuts.C}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+        </button>
+        <button type="button" class="ec-icon-button" id="ecSync" aria-label={t.sync} title={t.sync} aria-keyshortcuts="R">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.36-2.64L3 20" /><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.36 2.64L21 4" /></svg>
+        </button>
       </div>
     </div>
     <div class="ec-readout">
       <p class="ec-name" id="ecName">{t.title}</p>
-      <div class="ec-clock" role="timer" aria-live="off"><time id="ecTime">—</time><span id="ecPeriod" class="ec-period"></span></div>
+      <div class="ec-clock" role="timer" aria-live="off"><time id="ecTime">{initialTime}</time><span id="ecPeriod" class="ec-period"></span></div>
       <p class="ec-date" id="ecDate"></p>
       <p class="ec-exam-status" id="ecExamStatus">{t.empty}</p>
       <div id="ecCountdownArea" hidden>
@@ -29,15 +81,18 @@ const t = examText(lang);
       </div>
     </div>
     <footer class="ec-footer">
-      <div><strong id="ecSource">{t.local}</strong> <button type="button" class="btn btn-ghost" id="ecSync" aria-keyshortcuts="R">{t.sync}</button></div>
-      <p id="ecSourceDetail">{t.localHint}</p>
-      <p id="ecAdjustment"></p><p id="ecCompatibility"></p>
-      <p id="ecWakeStatus">{t.wakeOff}</p>
       <p id="ecFullscreenNote"></p>
     </footer>
   </section>
-  <aside class="ec-settings" id="ecSettings" aria-labelledby="ecSettingsHeading">
+  <aside class="ec-settings" id="ecSettings" aria-labelledby="ecSettingsHeading" hidden>
     <div class="ec-settings-head"><h2 id="ecSettingsHeading">{t.settings}</h2><button class="btn btn-ghost" type="button" id="ecCloseSettings">{t.close}</button></div>
+    <div class="ec-projection-status" id="ecRevealStatus">
+      <p id="ecSource"><strong>{t.local}</strong></p>
+      <p id="ecSourceDetail">{t.localHint}</p>
+      <p id="ecAdjustment"></p>
+      <p id="ecCompatibility"></p>
+      <p id="ecWakeStatus">{t.wakeOff}</p>
+    </div>
     <form id="ecForm" novalidate>
       <p class="ec-note">{t.timeHint}</p>
       <div id="ecErrorSummary" role="alert" tabindex="-1" hidden></div>

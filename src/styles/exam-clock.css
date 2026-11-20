@@ -429,3 +429,206 @@
 .tool-page[data-tool="exam-clock"] .tool-workspace > noscript {
   grid-column: 1 / -1;
 }
+
+/* ==========================================================================
+   Projector presentation (projector profile)
+   The six declared states render a black canvas with the time slot and the
+   single persistent exit control. All numeric thresholds arrive as custom
+   properties set by the component from data/tool-presentation/exam-clock.json.
+   ========================================================================== */
+.exam-clock > .ec-exit {
+  cursor: pointer;
+  opacity: 0.72;
+  border-radius: 999px;
+  transition: opacity 0.15s;
+}
+.exam-clock > .ec-exit:hover,
+.exam-clock > .ec-exit:focus-visible,
+.exam-clock[data-presentation-state="reveal"] > .ec-exit {
+  opacity: 1;
+}
+.exam-clock > .ec-exit:focus-visible {
+  outline: 3px solid var(--ec-presentation-fg, #fff);
+  outline-offset: 3px;
+}
+.exam-clock > .ec-exit svg {
+  width: 62%;
+  height: 62%;
+}
+
+.exam-clock[data-presentation-state] {
+  color-scheme: dark;
+}
+
+.exam-clock[data-presentation-state] .ec-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.exam-clock[data-presentation-state] .ec-readout {
+  width: 100%;
+  min-width: 0;
+  container-type: normal;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.exam-clock[data-presentation-state] .ec-clock {
+  font-size: inherit;
+}
+
+.exam-clock[data-presentation-state] #ecTime {
+  display: inline-block;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: min(calc(var(--ec-min-font-vh, 20) * 1.3vh), 30vw);
+  line-height: 1.12;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  color: var(--ec-presentation-fg, #fff);
+}
+
+/* The workspace view keeps the clock readable behind the settings panel. */
+.exam-clock[data-presentation-state="settingsOpen"] #ecTime {
+  font-size: min(calc(var(--ec-min-font-vh, 20) * 0.5vh), 18vw);
+}
+
+/* Reveal control layer: presented after pointer/focus/keyboard interaction and
+   hidden again after interaction.autoHideMs (the script owns the timer). */
+.exam-clock[data-presentation-state="reveal"] #ecControls,
+.exam-clock[data-presentation-state="settingsOpen"] #ecControls {
+  display: flex;
+}
+
+.exam-clock[data-presentation-state] #ecControls {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: max(0.75rem, env(safe-area-inset-left));
+  z-index: 3;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: calc(100vw - 5rem);
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  color: var(--ec-presentation-fg, #fff);
+}
+.exam-clock[data-presentation-state] #ecControls .ec-actions {
+  margin: 0;
+  gap: 0.4rem;
+}
+.exam-clock[data-presentation-state] #ecControls .ec-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ec-hit-target, 44px);
+  height: var(--ec-hit-target, 44px);
+  min-width: var(--ec-hit-target, 44px);
+  min-height: var(--ec-hit-target, 44px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.78;
+  transition: opacity 0.15s;
+}
+.exam-clock[data-presentation-state] #ecControls .ec-icon-button:hover,
+.exam-clock[data-presentation-state] #ecControls .ec-icon-button:focus-visible {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--ec-presentation-fg, #fff) 45%, transparent);
+}
+.exam-clock[data-presentation-state] #ecControls .ec-icon-button:focus-visible {
+  outline: 3px solid var(--ec-presentation-fg, #fff);
+  outline-offset: 3px;
+}
+.exam-clock[data-presentation-state] #ecControls .ec-icon-button svg {
+  width: 62%;
+  height: 62%;
+}
+
+/* Settings panel: the existing workspace, opened on the projector surface. */
+.exam-clock[data-presentation-state] .ec-settings {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 4;
+  width: min(26rem, 100%);
+  max-height: 100%;
+  max-width: 100%;
+  overflow: auto;
+  margin: 0;
+  padding: calc(var(--ec-hit-target, 44px) + 0.75rem) 1rem 1rem;
+  box-sizing: border-box;
+  border: 0;
+  border-left: 1px solid color-mix(in srgb, var(--ec-presentation-fg, #fff) 30%, var(--ec-presentation-bg, #000));
+  background: var(--ec-presentation-bg, #000);
+  color: var(--ec-presentation-fg, #fff);
+  scrollbar-gutter: stable;
+}
+.exam-clock[data-presentation-state] .ec-settings .input,
+.exam-clock[data-presentation-state] .ec-settings textarea {
+  background: color-mix(in srgb, var(--ec-presentation-fg, #fff) 10%, var(--ec-presentation-bg, #000));
+  color: var(--ec-presentation-fg, #fff);
+  border-color: color-mix(in srgb, var(--ec-presentation-fg, #fff) 40%, var(--ec-presentation-bg, #000));
+}
+.exam-clock[data-presentation-state] .ec-settings .btn {
+  color: var(--ec-presentation-fg, #fff);
+  border-color: color-mix(in srgb, var(--ec-presentation-fg, #fff) 40%, var(--ec-presentation-bg, #000));
+  background: color-mix(in srgb, var(--ec-presentation-fg, #fff) 8%, var(--ec-presentation-bg, #000));
+}
+.exam-clock[data-presentation-state] .ec-settings :focus-visible {
+  outline: 3px solid var(--ec-presentation-fg, #fff);
+  outline-offset: 2px;
+}
+.exam-clock[data-presentation-state] .ec-settings .ec-error,
+.exam-clock[data-presentation-state] .ec-settings #ecErrorSummary {
+  color: #ffb4b4;
+}
+.exam-clock[data-presentation-state] .ec-settings .ec-projection-status {
+  margin: 0 0 0.75rem;
+  padding: 0 0 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ec-presentation-fg, #fff) 25%, var(--ec-presentation-bg, #000));
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+.exam-clock[data-presentation-state] .ec-settings .ec-projection-status p {
+  margin: 0.2rem 0;
+  overflow-wrap: anywhere;
+}
+.exam-clock[data-presentation-state] .ec-settings .ec-projection-status strong {
+  color: var(--ec-presentation-fg, #fff);
+}
+
+/* Live announcements stay in the accessibility tree but out of the projection. */
+.exam-clock[data-presentation-state] .ec-messages,
+.exam-clock[data-presentation-state] .ec-storage {
+  position: absolute;
+  top: 0;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.exam-clock[data-presentation-state] #ecFullscreenNote {
+  margin: 0;
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .exam-clock[data-presentation-state] .ec-stage {
+    min-height: 0;
+  }
+}
