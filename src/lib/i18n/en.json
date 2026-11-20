@@ -902,6 +902,18 @@
         "HTTP time",
         "time check history"
       ]
+    },
+    "ip-reputation": {
+      "name": "IP Reputation Lookup",
+      "oneLiner": "Compare public IP records and detection flags by source",
+      "description": "Compare country, ASN, organization and detection flags for a public IP. Includes source times, missing-data reasons, JSON and saved snapshots.",
+      "keywords": [
+        "IP reputation",
+        "VPN detection",
+        "proxy IP lookup",
+        "hosting flag",
+        "Tor node lookup"
+      ]
     }
   },
   "content": {
@@ -2836,6 +2848,74 @@
           }
         ],
         "privacy": "After your action, the browser requests only this site’s /api/time-sync endpoint. The site contacts two fixed HTTPS sources. Device time, offsets, history and settings are not uploaded. This tool’s code does not read, log or forward visitor IP addresses, cookies, authorization headers or raw upstream responses. Hosting infrastructure still handles connection information; upstream services see the site’s outgoing connection. No key or account is needed. Only ten local records use clover-time-sync:v1; clipboard contents are not stored."
+      }
+    },
+    "ip-reputation": {
+      "usage": "Enter one public IPv4, IPv6 or domain and submit. Example buttons only fill the input. The browser and server independently reject special-purpose addresses. For a domain, resolve A and AAAA records first, select one of up to eight public candidates, then submit the selected IP. A shared address hint is used only if it remains in the new candidate set.",
+      "features": [
+        {
+          "icon": "table",
+          "text": "Separate source values, retrieval times and differences"
+        },
+        {
+          "icon": "globe",
+          "text": "Two-step domain resolution and public-address validation"
+        },
+        {
+          "icon": "shield-exclamation",
+          "text": "Six enhanced signals with explicit missing-data reasons"
+        },
+        {
+          "icon": "clock-history",
+          "text": "JSON, query links and the last ten snapshots"
+        }
+      ],
+      "detail": {
+        "intro": "A diagnostic workspace for comparing public IP database records, source evidence and missing detection signals. It does not produce a risk score. Use IP Lookup for subnets and address conversions, HTTP Tester for request debugging, and User-Agent Parser for client declarations.",
+        "steps": [
+          "Enter one public IPv4, IPv6 or domain and submit. Example buttons only fill the input. The browser and server independently reject special-purpose addresses.",
+          "For a domain, resolve A and AAAA records first, select one of up to eight public candidates, then submit the selected IP. A shared address hint is used only if it remains in the new candidate set.",
+          "Compare countries, cities, ASNs and organizations. Expand a field to inspect its upstream name, meaning and retrieval time. Display filters do not make requests.",
+          "Review the six enhanced signals and individual failures. Copy JSON or a query link. Viewing a saved snapshot is offline; querying again makes a new request. Confirm inside the tool to clear history."
+        ],
+        "examples": [
+          {
+            "label": "Illustrative example: names differ",
+            "input": "Two sources return City A and City B for the same address.",
+            "output": "Both values remain visible with a names-differ label. The tool does not vote on the correct city or locate a person."
+          },
+          {
+            "label": "Illustrative example: no site key",
+            "input": "Both basic sources succeed, but this site has no IPAPI_IS_KEY configured.",
+            "output": "Basic records can be complete. All enhanced flags require site configuration, rather than being shown as not flagged. This is not a live database result."
+          }
+        ],
+        "principles": [
+          "Shared pure parsers normalize IPv4-mapped IPv6 before numerical CIDR classification. Only ordinary global unicast IPv6 addresses pass the conservative special-purpose filter.",
+          "The server uses only fixed HTTPS endpoints: ipwho.is, ipapi.co, optional ipapi.is, and Cloudflare DNS for resolution. It never visits the entered host or returned links. Source documentation: https://ipwhois.io/documentation , https://ipapi.co/api/ , https://ipapi.is/developers.html .",
+          "Values stay separate. Agreement needs at least two provided values. Text comparison only collapses whitespace and ignores case; organization aliases are not inferred. Flags accept actual booleans; the crawler field accepts false or a nonempty name.",
+          "Successful source records are cached for 60 seconds with original retrieval times. DNS caching respects the minimum relevant TTL and 60 seconds, with no caching below 15 seconds. Requests run in parallel with bounded time and response size. Final API responses are not cached."
+        ],
+        "pitfalls": [
+          "Not flagged does not rule out activity; flagged does not establish abuse by the current user. Tor records may describe exits or other relays. Enhanced flags come from one source, not multiple independent checks.",
+          "Missing keys, authentication failures, rate limits, timeouts and absent fields have separate states. Raw company or ASN abuser_score indicators are not an abuse probability for this IP and are not converted into a score.",
+          "The last ten snapshots stay in this browser and are shared across languages, in insertion order. Invalid or unknown storage is rejected. If storage is unavailable, history lasts only in memory. Viewing a snapshot preserves its source times."
+        ],
+        "faqs": [
+          {
+            "q": "Why is location available but VPN or Tor data missing?",
+            "a": "The two basic sources provide ownership and location comparison. Enhanced signals need an optional key configured by this site. A configured but failing source shows the actual failure. Visitors do not need to obtain or enter a key."
+          },
+          {
+            "q": "Do different values prove a database is wrong?",
+            "a": "No. Coverage, naming and updates may differ. Each original value and retrieval time remains visible. Different place names are labeled as names differing."
+          },
+          {
+            "q": "Does a shared link contain results or history?",
+            "a": "No. Its fragment contains only normalized q and optional ip. Opening it fills the input; submitting is required before any query. Keys, records, times and history are excluded."
+          }
+        ],
+        "privacy": "After submission the browser contacts only /api/ip-reputation. The server sends the selected public IP to fixed databases; a domain first goes only to Cloudflare DNS. Application code does not log visitor IPs or forward visitor headers. Hosting infrastructure still processes connection data, and providers may process queries under their policies. Server caching is brief. clover-ip-reputation:v1 stores only the last ten allowlisted snapshots in this browser and can be cleared. No keys, raw responses or clipboard contents are stored."
       }
     }
   }

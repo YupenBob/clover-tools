@@ -12,6 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = readFileSync(join(root, 'src', 'lib', 'tools.ts'), 'utf8');
 
 const ALIASES = {
+  'ip-reputation': ['IP 纯洁度', 'IP 信誉', 'IP 滥用标记', 'Tor 节点查询', 'IP reputation lookup', 'IP 純淨度查詢'],
   'time-sync': ['北京时间校时', '电脑时间准不准', '手机时间偏差', '在线对时', '时钟偏移', 'Beijing time check'],
   'focus-timer': ['专注时间', '番茄计时器', '番茄工作法计时', '学习番茄钟', '本周专注', 'Pomodoro', 'focus timer'],
   'vocab-flash': ['背单词', '背单词速刷', '单词速刷', '单词', '词汇', '中考单词', '高考单词', '四级', '六级', '四六级', '46级', '托福', '雅思', 'vocabulary'],
