@@ -24,6 +24,7 @@ import { ROOT, STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
 import { statusPorcelain } from './lib/git.mjs';
 import { loadQueue, markQueueItem } from './lib/state.mjs';
+import { addTouched } from './lib/touched.mjs';
 
 const EXIT = { ok: 0, skip: 2, failed: 3 };
 const NODE = process.execPath;
@@ -887,6 +888,22 @@ function finalize(options) {
   });
   log(runKey, `finalize check:all code=${check.status}`);
   if (check.status !== 0) fail('check:all', `${check.stdout ?? ''}\n${check.stderr ?? ''}`);
+
+  // 补齐「本趟内容清单」：截图/zh 稿/barrel 由 capture-tool、apply-draft、build-*-index 写出，
+  // 但它们不写 touched.json；这里按 slug 精确补登记，避免 stage-changes 把正常改动判成越权。
+  const contentPaths = statusPorcelain()
+    .map((line) => String(line).slice(3).trim().replace(/^"|"$/g, '').replace(/\\/g, '/'))
+    .filter((path) => {
+      if (path === `data/editorial-guides/${slug}.json`) return true;
+      if (new RegExp(`^data/editorial-guides/${slug}\\.(tw|en|ko|ja)\\.json$`).test(path)) return true;
+      if (path === 'data/editorial-guides/translations.json') return true;
+      if (path === 'src/lib/guides-auto.ts' || path === 'src/lib/guides-translated.ts') return true;
+      if (path === `scripts/editorial/cases/${slug}.mjs`) return true;
+      if (path.startsWith('public/article-images/') && path.includes(slug)) return true;
+      if (path === `public/article-images/${runKey.slice(0, 7)}/captures.json`) return true;
+      return false;
+    });
+  if (contentPaths.length > 0) addTouched(runKey, contentPaths);
 
   const stage = sh('scripts/editorial/stage-changes.mjs', ['--run', runKey], { timeoutMs: 5 * 60_000 });
   if (stage.code !== 0) fail('stage-changes', `${stage.out}\n${stage.err}`);
