@@ -367,6 +367,12 @@ function maybeAutoResume(pauseInfo) {
   if (!pauseInfo.paused) return pauseInfo;
   const until = pauseInfo.until ? Date.parse(pauseInfo.until) : NaN;
   if (!Number.isFinite(until) || Date.now() < until) return pauseInfo;
+  // Codex 额度耗尽只是临时资源问题：到预计重置时间后自动解除，不阻塞下一晚。
+  if (pauseInfo.resumeCheck === 'quota-reset') {
+    rmSync(join(PIPELINE_DIR, 'PAUSED'), { force: true });
+    appendFileSync(join(RUNS_DIR, 'nightly.log'), `\n=== ${nowIso()} PAUSED 自动解除：Codex 额度窗口预计已重置 ===\n`);
+    return { paused: false };
+  }
   if (pauseInfo.resumeCheck !== 'presentation-ready') return pauseInfo;
   const issues = presentationAcceptanceIssues();
   if (issues.length) return { ...pauseInfo, blocked: issues };
@@ -1150,7 +1156,14 @@ async function runPipeline(options, existingRun = null) {
         ...(run.notes ?? []),
         'Codex 账号额度耗尽；等待额度重置后使用 --resume <runKey> 继续，无需重跑 Builder。',
       ];
-      pause('Codex usage limit 已耗尽，等待额度重置后 --resume', { runKey: run.runKey });
+      pause('Codex usage limit 已耗尽，等待额度重置后 --resume', {
+        runKey: run.runKey,
+        resumeCheck: 'quota-reset',
+        // Codex 额度窗口（默认 5 小时）：留出余量后自动解除暂停，避免永久阻塞后续 nightly。
+        until: new Date(
+          Date.now() + Number(config.budget?.quotaResetHours ?? 5) * 60 * 60 * 1000,
+        ).toISOString(),
+      });
     }
     run.finishedAt = nowIso();
     recordOutcome({ run, queue, status: run.status, config, error: run.error });
