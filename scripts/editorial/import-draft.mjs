@@ -228,6 +228,20 @@ function main() {
       copyFileSync(stagedCase, temp);
       renameSync(temp, caseTarget);
     }
+    // run 目录内产物（如 source-manifest.json）：原子 copy，不进草稿目录
+    const runFiles = [];
+    for (const entry of staged) {
+      if (entry.change === 'deleted' || !entry.path.startsWith('.editorial/runs/')) continue;
+      const source = join(staging, entry.path);
+      if (!existsSync(source)) continue;
+      const target = join(ROOT, entry.path);
+      mkdirSync(dirname(target), { recursive: true });
+      const temp = `${target}.importing-${options.attempt}`;
+      copyFileSync(source, temp);
+      renameSync(temp, target);
+      runFiles.push(target);
+    }
+    summary.runFiles = runFiles.map((file) => relative(ROOT, file));
     // 应用后复验
     for (const entry of staged) {
       if (entry.change === 'deleted') continue;
@@ -239,6 +253,7 @@ function main() {
     }
   } catch (error) {
     // 回滚
+    for (const file of summary.runFiles ?? []) rmSync(join(ROOT, file), { force: true });
     rmSync(draftTarget, { recursive: true, force: true });
     for (const entry of backups) {
       const target = join(ROOT, entry.path);

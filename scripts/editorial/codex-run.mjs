@@ -24,7 +24,8 @@ const USAGE_DIR = join(STATE_PATHS.dir, 'usage');
 import { loadConfig } from './lib/config.mjs';
 import { killEverything, readStartTicks } from './lib/proc-tree.mjs';
 
-const EXIT = { ok: 0, preflight: 2, timeout: 3, nonzero: 4, invalidArtifact: 5, usage: 6 };
+const EXIT = { ok: 0, preflight: 2, timeout: 3, nonzero: 4, invalidArtifact: 5, usage: 6, quota: 7 };
+const QUOTA_PATTERN = /usage limit|quota|insufficient_quota|try again at|rate limit/i;
 
 const DEFAULTS = {
   command: 'codex',
@@ -381,6 +382,11 @@ async function main() {
     status = 'invalid-artifact';
     reason = `schema 校验失败：${schemaErrors.slice(0, 4).join('；')}`;
     exitCode = EXIT.invalidArtifact;
+  } else if (events.errors.some((message) => QUOTA_PATTERN.test(String(message)))) {
+    // 套餐额度用尽：不是代码/内容问题，别浪费修复预算，交给上层「延后到下一趟」
+    status = 'usage-limit';
+    reason = events.errors.find((message) => QUOTA_PATTERN.test(String(message))) ?? 'codex 套餐额度用尽';
+    exitCode = EXIT.quota;
   } else if (events.errors.length > 0) {
     status = 'reported-error';
     reason = events.errors.slice(0, 3).join(' | ').slice(0, 500);

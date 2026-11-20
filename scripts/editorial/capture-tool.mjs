@@ -163,8 +163,14 @@ async function capture(slug, timeoutMinutes) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   try {
-    if (options.probe) await probe();
-    else if (options.slug) await capture(options.slug, options.timeoutMinutes);
+    if (options.probe) {
+      await probe();
+      process.exit(0);
+    } else if (options.slug) {
+      await capture(options.slug, options.timeoutMinutes);
+      // dev server 子进程可能仍持有句柄：显式退出，避免把调用方（tick-driver）挂到超时
+      process.exit(0);
+    }
     else throw new Error('用法：capture-tool.mjs --probe | --slug <slug> [--timeout-min 6]');
   } catch (error) {
     console.error(String(error.message ?? error));

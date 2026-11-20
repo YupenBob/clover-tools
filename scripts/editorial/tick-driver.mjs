@@ -22,6 +22,7 @@ import { dirname, join, resolve } from 'node:path';
 import { ROOT, STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
 import { statusPorcelain } from './lib/git.mjs';
+import { loadQueue, markQueueItem } from './lib/state.mjs';
 
 const EXIT = { ok: 0, skip: 2, failed: 3 };
 const NODE = process.execPath;
@@ -86,6 +87,31 @@ function emit(payload, code = EXIT.ok, options = {}) {
   else if (payload.title) console.log(`${payload.title}${payload.detail ? ` — ${payload.detail}` : ''}`);
   else console.log(JSON.stringify(payload));
   process.exit(code);
+}
+
+/**
+ * 跑一个会派生常驻子进程的脚本（如 capture-tool 的 dev server 监督进程）：
+ * 输出重定向到文件，避免 spawnSync 等不到被继承的管道而误判超时。
+ */
+function shToFile(scriptPath, args, { cwd = ROOT, timeoutMs = 30 * 60_000, logFile, env = {} } = {}) {
+  const startedAt = Date.now();
+  mkdirSync(dirname(logFile), { recursive: true });
+  const quote = (value) => `'${String(value).replaceAll("'", "'\\''")}'`;
+  const command = `"${NODE}" ${[scriptPath, ...args].map(quote).join(' ')} > ${quote(logFile)} 2>&1`;
+  const result = spawnSync('bash', ['-c', command], {
+    cwd,
+    encoding: 'utf8',
+    timeout: timeoutMs,
+    maxBuffer: 8 * 1024 * 1024,
+    env: { ...process.env, ...env },
+  });
+  let out = '';
+  try {
+    out = readFileSync(logFile, 'utf8');
+  } catch {
+    out = '';
+  }
+  return { code: result.status ?? 127, out, err: result.stderr ?? '', timedOut: result.signal === 'SIGTERM', ms: Date.now() - startedAt };
 }
 
 /** 跑一个 node 脚本，返回 {code, out, err, ms}。永不抛出（失败由调用方判定）。 */
@@ -163,7 +189,7 @@ function composeRepairPrompt(runKey, slug, state, options) {
   }
   lines.push('## 硬约束');
   lines.push('');
-  lines.push('- 不要重写整篇；不要改白名单、门禁、配置、`.editorial/tools/`。');
+  lines.push('- 不要重写整篇；不要改白名单、门禁、配置、`.editorial/tools/`；不要删除 `guide.json` / `evidence.json`（缺文件会被判产物缺失）。');
   lines.push('- 改正文后必须重跑 `precheck-zh --strict` 与 `precheck-style --strict`，全过再汇报。');
   lines.push('- 不要执行 git 写操作，不要跑 `capture-tool.mjs`。');
   lines.push('- 最后 ≤6 行汇报：改了什么 / 为什么不会复发 / 还需要宿主做什么。');
@@ -188,9 +214,24 @@ function runGates(runKey, slug, config) {
 
   gate('import', 'scripts/editorial/import-draft.mjs', ['--run', runKey, '--slug', slug]);
   gate('source-digest', 'scripts/editorial/source-digest.mjs', ['--run', runKey], 5 * 60_000);
-  const capture = gate('capture', 'scripts/editorial/capture-tool.mjs', ['--slug', slug, '--timeout-min', '8'], 12 * 60_000, {
+  const captureStarted = Date.now();
+  const captureResult = shToFile('scripts/editorial/capture-tool.mjs', ['--slug', slug, '--timeout-min', '6'], {
+    timeoutMs: 8 * 60_000,
+    logFile: join(runDir(runKey), 'capture.log'),
     env: { ASTRO_TELEMETRY_DISABLED: '1' },
   });
+  const captureOk = captureResult.code === 0;
+  results.push({
+    name: 'capture',
+    ok: captureOk,
+    detail: captureOk ? `ok ${Math.round((Date.now() - captureStarted) / 1000)}s` : `${captureResult.code}: ${tail(captureResult.out, 1200)}`,
+  });
+  log(runKey, `gate capture code=${captureResult.code} ms=${captureResult.ms}`);
+  if (!captureOk) {
+    state.failures.push({ step: 'capture', detail: captureResult.out, at: new Date().toISOString() });
+    saveState(state);
+  }
+  const capture = captureResult;
   if (capture.code !== 0) {
     // 截图失败不阻断后续核验，但必须记入失败清单交给 Codex 修
     log(runKey, 'capture failed; continuing to verify/precheck');
@@ -209,6 +250,35 @@ function ensureWorktree(runKey, slug, { force = false } = {}) {
   const prepared = sh('scripts/editorial/codex-worktree.mjs', ['--prepare', '--run', runKey, '--slug', slug, ...(force ? ['--force'] : [])]);
   if (prepared.code !== 0) throw new Error(`codex-worktree 准备失败：${tail(prepared.err || prepared.out)}`);
   return worktree;
+}
+
+/**
+ * 延后本趟：释放槽位锁、把队列项放回 ready、清工作区。
+ * 用于 codex 套餐额度用尽这类「不是内容问题」的失败——下一趟（12:00/18:00）再自然重试。
+ */
+function deferRun(state, reason, hint) {
+  try {
+    rmSync(join(STATE_PATHS.locks, state.runKey), { recursive: true, force: true });
+  } catch {
+    // 忽略
+  }
+  try {
+    const queue = loadQueue();
+    const item = queue.items.find((entry) => entry.runId === state.runKey);
+    if (item) markQueueItem(queue, item.id, { status: 'ready', runId: null, deferredAt: new Date().toISOString() });
+  } catch {
+    // 忽略
+  }
+  try {
+    sh('scripts/editorial/codex-worktree.mjs', ['--cleanup', '--run', state.runKey], { timeoutMs: 2 * 60_000 });
+  } catch {
+    // 忽略
+  }
+  state.phase = 'deferred';
+  state.deferredReason = reason;
+  saveState(state);
+  writeJson(join(runDir(state.runKey), 'escalate.json'), { runKey: state.runKey, slug: state.slug, reason, hint, at: new Date().toISOString() });
+  log(state.runKey, `deferred ${reason}`);
 }
 
 function codexSession(runKey) {
@@ -234,11 +304,13 @@ function repair(runKey, slug, state, options) {
     '--cwd', worktree,
     '--network',
     '--expect', `.editorial/drafts/${slug}/guide.json`,
+    '--expect', `.editorial/drafts/${slug}/evidence.json`,
     '--timeout-min', String(timeoutMinutes),
     '--attempt', String(state.repairs + 1),
   ];
   const result = sh('scripts/editorial/codex-run.mjs', args, { timeoutMs: (timeoutMinutes + 3) * 60_000 });
   log(runKey, `repair #${state.repairs + 1} code=${result.code} ms=${result.ms}`);
+  if (result.code === 7) return { ok: false, quota: true, detail: 'codex 套餐额度用尽（下一趟再试）' };
   if (result.code !== 0) {
     return { ok: false, detail: `codex 修复失败（codex-run 退出码 ${result.code}）：${tail(result.err || result.out)}` };
   }
@@ -305,6 +377,10 @@ function prepare(options) {
     { timeoutMs: (draftMinutes + 4) * 60_000 },
   );
   log(runKey, `codex draft code=${draft.code} ms=${draft.ms}`);
+  if (draft.code === 7) {
+    deferRun(state, 'codex-usage-limit', tail(draft.out || draft.err, 400));
+    emit({ ok: true, skipped: true, phase: 'prepare', reason: 'codex-usage-limit', runKey, title: 'tick-driver: skip codex-usage-limit（下一趟再试）' }, EXIT.skip, options);
+  }
   if (draft.code !== 0) {
     state.failures.push({ step: 'codex-draft', detail: `${draft.out}\n${draft.err}`, at: new Date().toISOString() });
     saveState(state);
@@ -312,6 +388,10 @@ function prepare(options) {
     const fixed = repair(runKey, slug, state, options);
     state.repairs += 1;
     saveState(state);
+    if (fixed.quota) {
+      deferRun(state, 'codex-usage-limit', fixed.detail);
+      emit({ ok: true, skipped: true, phase: 'prepare', reason: 'codex-usage-limit', runKey, title: 'tick-driver: skip codex-usage-limit（下一趟再试）' }, EXIT.skip, options);
+    }
     if (!fixed.ok) {
       saveState(state);
       emit({ ok: false, phase: 'prepare', title: 'tick-driver: Codex 首轮失败且修复失败', detail: fixed.detail, runKey }, EXIT.failed, options);
@@ -329,6 +409,10 @@ function prepare(options) {
     const fixed = repair(runKey, slug, state, options);
     state.repairs += 1;
     saveState(state);
+    if (fixed.quota) {
+      deferRun(state, 'codex-usage-limit', fixed.detail);
+      emit({ ok: true, skipped: true, phase: 'prepare', reason: 'codex-usage-limit', runKey, title: 'tick-driver: skip codex-usage-limit（下一趟再试）' }, EXIT.skip, options);
+    }
     if (!fixed.ok) {
       state.failures.push({ step: 'repair', detail: fixed.detail, at: new Date().toISOString() });
       saveState(state);
@@ -399,6 +483,10 @@ function repairPhase(options) {
     writeJson(join(runDir(options.run), 'escalate.json'), { runKey: options.run, slug: state.slug, reason: 'gates-failed-after-repair', gates: failing, at: new Date().toISOString() });
     emit({ ok: false, phase: 'repair', title: 'tick-driver: 修复后仍有门禁失败', detail: failing.map((gate) => gate.name).join('、'), runKey: options.run }, EXIT.failed, options);
   }
+  if (result.quota) {
+    deferRun(state, 'codex-usage-limit', result.detail);
+    emit({ ok: true, skipped: true, phase: 'repair', reason: 'codex-usage-limit', runKey: options.run, title: 'tick-driver: skip codex-usage-limit（下一趟再试）' }, EXIT.skip, options);
+  }
   state.failures.push({ step: options.reason ?? 'manual', detail: result.detail, at: new Date().toISOString() });
   state.phase = 'failed';
   saveState(state);
@@ -419,10 +507,36 @@ function requireRun(options, allowedPhases) {
   return state;
 }
 
+/** 把复核结论写进草稿 guide.json 的 _meta（apply-draft 会原样带进正式稿）。 */
+function injectReviewMeta(runKey, slug) {
+  const review = readJson(join(runDir(runKey), 'review.json'), null);
+  if (!review?.verdict) return { ok: false, reason: '缺少 review.json（先做 zh 独立复核）' };
+  if (review.verdict !== 'pass') return { ok: false, reason: `复核未通过（${review.verdict}），先 repair 再复审` };
+  const guideFile = join(STATE_PATHS.drafts, slug, 'guide.json');
+  const guide = readJson(guideFile, null);
+  if (!guide) return { ok: false, reason: `缺少草稿 ${guideFile}` };
+  guide._meta = {
+    ...(guide._meta ?? {}),
+    reviewerVerdict: review.verdict,
+    reviewerConfidence: review.confidence ?? null,
+    reviewer: review.reviewer ?? 'deepseek',
+    reviewerRunId: review.runId ?? runKey,
+    verifiedAt: new Date().toISOString(),
+  };
+  writeJson(guideFile, guide);
+  return { ok: true, verdict: review.verdict, confidence: review.confidence ?? null, blocking: review.blockingIssues?.length ?? 0 };
+}
+
 function land(options) {
   const config = loadConfig();
   const state = requireRun(options, ['awaiting-review', 'landing', 'needs-i18n', 'needs-i18n-review', 'finalizing']);
   const { runKey, slug } = state;
+  const meta = injectReviewMeta(runKey, slug);
+  log(runKey, `land review-meta ${meta.ok ? 'ok' : meta.reason}`);
+  if (!meta.ok) {
+    writeJson(join(runDir(runKey), 'escalate.json'), { runKey, slug, reason: 'review-not-pass', detail: meta.reason, at: new Date().toISOString() });
+    emit({ ok: false, phase: 'land', title: 'tick-driver: 复核未通过不能落盘', detail: meta.reason, runKey }, EXIT.failed, options);
+  }
   if (options.dryRun) emit({ ok: true, phase: 'land', dryRun: true, runKey, slug, title: `tick-driver: dry-run land ${runKey}` }, EXIT.ok, options);
 
   const steps = [
@@ -659,6 +773,23 @@ function finalize(options) {
 
 // ---------------------------------------------------------------------------
 
+function gatesPhase(options) {
+  const state = requireRun(options);
+  const gates = runGates(state.runKey, state.slug, loadConfig());
+  const failing = gates.filter((gate) => !gate.ok);
+  state.steps.gates = gates;
+  if (failing.length === 0) {
+    state.phase = 'awaiting-review';
+    state.awaitingReviewAt = new Date().toISOString();
+    saveState(state);
+    rmSync(join(runDir(state.runKey), 'escalate.json'), { force: true });
+    emit({ ok: true, phase: 'gates', runKey: state.runKey, slug: state.slug, gates, next: 'awaiting-review', title: `tick-driver: 门禁全过 ${state.runKey}` }, EXIT.ok, options);
+  }
+  state.phase = 'failed';
+  saveState(state);
+  emit({ ok: false, phase: 'gates', runKey: state.runKey, slug: state.slug, gates, title: 'tick-driver: 门禁仍未过', detail: failing.map((gate) => gate.name).join('、') }, EXIT.failed, options);
+}
+
 function status(options) {
   const state = requireRun(options);
   emit({ ok: true, phase: 'status', ...state, title: `tick-driver: ${state.runKey} ${state.phase}` }, EXIT.ok, options);
@@ -667,10 +798,10 @@ function status(options) {
 const options = parseArgs(process.argv.slice(2));
 try {
   if (options.help || !options.phase) {
-    console.log('用法：node scripts/editorial/tick-driver.mjs <prepare|repair|land|i18n|finalize|status> [--run <runKey>] [--json]');
+    console.log('用法：node scripts/editorial/tick-driver.mjs <prepare|repair|gates|land|i18n|finalize|status> [--run <runKey>] [--json]');
     process.exit(0);
   }
-  const phases = { prepare, repair: repairPhase, land, i18n, finalize, status };
+  const phases = { prepare, repair: repairPhase, gates: gatesPhase, land, i18n, finalize, status };
   const handler = phases[options.phase];
   if (!handler) throw new Error(`未知阶段：${options.phase}`);
   handler(options);
