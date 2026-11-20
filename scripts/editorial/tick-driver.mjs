@@ -299,6 +299,7 @@ function runGates(runKey, slug, config) {
     // 截图失败不阻断后续核验，但必须记入失败清单交给 Codex 修
     log(runKey, 'capture failed; continuing to verify/precheck');
   }
+  gate('inject-images', 'scripts/editorial/inject-images.mjs', ['--slug', slug], 3 * 60_000);
   gate('verify-sources', 'scripts/editorial/verify-sources.mjs', ['--slug', slug, '--run', runKey], 5 * 60_000);
   gate('precheck-zh', '.editorial/tools/precheck-zh.mjs', ['--slug', slug, '--draft-dir', `.editorial/drafts/${slug}`, '--strict'], 5 * 60_000);
   gate('precheck-style', 'scripts/editorial/tools/precheck-style.mjs', ['--slug', slug, '--draft-dir', `.editorial/drafts/${slug}`, '--strict'], 5 * 60_000);
