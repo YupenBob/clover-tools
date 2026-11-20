@@ -134,10 +134,12 @@ function prepare(options) {
     [
       '# 本次任务的硬边界（自动化流水线生成，必须遵守）',
       '',
-      `- 你只能写两个位置：\`.editorial/drafts/${options.slug}/\` 与 \`scripts/editorial/cases/${options.slug}.mjs\`。`,
+      `- 你可以写三处：\`.editorial/drafts/${options.slug}/\`、\`scripts/editorial/cases/${options.slug}.mjs\`、\`.editorial/runs/${options.run}/source-manifest.json\`（只此一个文件，用于登记你选的来源）。`,
       '- 禁止 `git add/commit/push/checkout/reset/stash` 等任何 git 写操作；禁止改 `src/`、`data/`、`public/`、`scripts/editorial/` 下其他文件。',
       '- 禁止下载、禁止安装依赖、禁止在仓库外写文件；除本目录外的一切写入都视为越界，会被导入步骤丢弃。',
+      '- 选源后先写 `.editorial/runs/' + options.run + '/source-manifest.json`，再跑 `node scripts/editorial/source-digest.mjs --run ' + options.run + '` 冻结摘录。',
       '- 引用来源只能来自 `.editorial/runs/' + options.run + '/source-digests/`；digest 里没有的原话不得引用。',
+      '- 运行目录（`.editorial/runs/' + options.run + '/`）里除 `source-manifest.json` 外的文件都由宿主维护，不要写、不要删。',
       '- 所有数字、报错、限制都要写进 `evidence.json`，并标注来源 digest 的编号（如 `[S2]`）。',
       '- 交付前自检（必须全部 exit 0）：',
       '  `node .editorial/tools/precheck-zh.mjs --slug ' + options.slug + ' --draft .editorial/drafts/' + options.slug + ' --strict`',

@@ -142,6 +142,29 @@ function tail(text, chars = 1600) {
 // prepare：准备 → Codex 整趟 → 导入 → 截图 → 核验 → 预检（失败自修）
 // ---------------------------------------------------------------------------
 
+/** 把队列项整理成 Codex 可直接读的 brief。 */
+function composeBrief(item, slug) {
+  const lines = [
+    `# 本轮选题简报：${slug}`,
+    '',
+    `- 类型：${item.type ?? 'new-guide'}`,
+    `- 工具 slug：${item.toolSlug ?? slug}`,
+    `- 主查询：${item.primaryQuery ?? '（无）'}`,
+    `- 切入角度：${item.angle ?? '（无）'}`,
+    `- 优先级/评分：${item.priority ?? item.score ?? '—'}`,
+    '',
+    '## 你要交付的',
+    '',
+    '一篇能直接回答主查询、并且能被现有工具页交叉引用的简体中文指南（结构、字数、证据、截图要求见任务书）。',
+    '',
+    '## 选题背景（来自搜索/建议数据）',
+    '',
+    item.evidence ? `\`\`\`json\n${JSON.stringify(item.evidence, null, 2).slice(0, 2000)}\n\`\`\`` : '（无附加数据）',
+    '',
+  ];
+  return lines.join('\n');
+}
+
 function composeTickPrompt(runKey, slug, item, worktree) {
   const template = readFileSync(join(ROOT, '.editorial/prompts/tick-codex.md'), 'utf8');
   const header = [
@@ -378,6 +401,10 @@ function prepare(options) {
   const slug = item.slug ?? item.toolSlug;
   const state = { runKey, slug, toolSlug: item.toolSlug ?? slug, type: item.type, phase: 'prepare', steps: {}, repairs: 0, failures: [], startedAt: new Date().toISOString() };
   saveState(state);
+
+  // 输入清单：Codex 工作区要能读到 item.json / brief.md（缺了它会卡住不知写什么）
+  writeJson(join(runDir(runKey), 'item.json'), item);
+  writeFileSync(join(runDir(runKey), 'brief.md'), composeBrief(item, slug));
 
   // 1.7 记录既有无关改动（供 stage-changes / check-workspace-scope 区分越权）
   const preExisting = statusPorcelain().map((line) => String(line).slice(3).trim().replace(/^"|"$/g, '').replace(/\\/g, '/'));
