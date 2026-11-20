@@ -36,6 +36,7 @@ function parseArgs(argv) {
     else if (arg === '--reason') options.reason = argv[++index];
     else if (arg === '--feedback') options.feedback = argv[++index];
     else if (arg === '--max-repairs') options.maxRepairs = Number(argv[++index]);
+    else if (arg === '--force') options.force = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '-h' || arg === '--help') options.help = true;
@@ -704,6 +705,11 @@ function i18n(options) {
   }
   const minutes = config.codex?.timeoutMinutes?.translate ?? 12;
   for (const lang of langs.filter((entry) => entry !== 'tw')) {
+    // 断点续跑：已有译文就跳过（省 codex 额度）；要重译加 --force
+    if (!options.force && existsSync(join(ROOT, '.editorial', 'drafts', slug, 'translations', `${lang}.json`))) {
+      log(runKey, `i18n ${lang} already present; skip`);
+      continue;
+    }
     const backend = config.backends?.translate?.[lang] ?? 'codex';
     if (backend !== 'codex') {
       fail(`translate-${lang}`, `后端 ${backend} 需要 Lead 子代理翻译：先跑 Translator 子代理写 translations/${lang}.json，再重跑 i18n`);

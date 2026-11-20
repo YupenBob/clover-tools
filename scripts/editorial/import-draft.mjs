@@ -139,7 +139,8 @@ function main() {
     }
     accepted.push(entry);
   }
-  if (!accepted.some((entry) => entry.rel === `.editorial/drafts/${options.slug}/guide.json`)) {
+  // guide.json 必须是「工作区里存在」（翻译阶段它不参与变更，不能要求它出现在 changed 里）
+  if (!existsSync(join(wt, '.editorial', 'drafts', options.slug, 'guide.json'))) {
     violations.push(`缺少必需产物 .editorial/drafts/${options.slug}/guide.json`);
   }
 
