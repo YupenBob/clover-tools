@@ -10,6 +10,7 @@
  *   node scripts/tool-pipeline/tick.mjs --resume <runKey>
  */
 import os from 'node:os';
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import {
   appendFileSync,
@@ -24,6 +25,8 @@ import {
 import { join } from 'node:path';
 
 import { loadConfig, timeoutMs } from './lib/config.mjs';
+import { validatePresentationContract } from './lib/presentation.mjs';
+import { registeredToolSlugs } from './lib/tool-registry.mjs';
 import {
   LATEST_FILE,
   PIPELINE_DIR,
@@ -292,9 +295,67 @@ function recordOutcome({ run, queue, status, config, error = '' }) {
   return state;
 }
 
+/**
+ * A scoped pause (改造窗口) must not block the pipeline forever: when `until`
+ * has passed and the reason asks for the presentation acceptance artifact, the
+ * pause only lifts if that artifact is valid and still matches the sources.
+ */
+function presentationAcceptanceIssues() {
+  const artifactPath = join(REPO, 'data/tool-presentation/acceptance.json');
+  if (!existsSync(artifactPath)) return ['缺少 data/tool-presentation/acceptance.json'];
+  let artifact;
+  try {
+    artifact = JSON.parse(readFileSync(artifactPath, 'utf8'));
+  } catch (error) {
+    return [`acceptance.json 无法解析：${error.message}`];
+  }
+  const issues = [];
+  if (artifact.valid !== true) issues.push('acceptance.json 已失效');
+  if (artifact.contractVersion !== 1) issues.push(`contractVersion ${artifact.contractVersion} 不受支持`);
+  const checks = artifact.checks ?? {};
+  for (const [name, value] of Object.entries(checks)) if (value !== true) issues.push(`acceptance 检查未通过：${name}`);
+  const sources = artifact.hashes?.sources ?? {};
+  const fileFor = {
+    policy: 'config/presentation-policy.json',
+    schema: 'config/schemas/tool-presentation.schema.json',
+    checker: 'scripts/lib/presentation-check.mjs',
+    cases: 'scripts/lib/presentation-cases.mjs',
+    validator: 'scripts/tool-pipeline/lib/presentation.mjs',
+  };
+  for (const [name, file] of Object.entries(fileFor)) {
+    if (!sources[name]) {
+      issues.push(`acceptance 未记录 ${name} 的哈希`);
+      continue;
+    }
+    const path = join(REPO, file);
+    if (!existsSync(path)) {
+      issues.push(`acceptance 依赖文件缺失：${file}`);
+      continue;
+    }
+    const hash = createHash('sha256').update(readFileSync(path)).digest('hex');
+    if (hash !== sources[name]) issues.push(`acceptance 依赖已变化：${file}`);
+  }
+  return issues;
+}
+
+function maybeAutoResume(pauseInfo) {
+  if (!pauseInfo.paused) return pauseInfo;
+  const until = pauseInfo.until ? Date.parse(pauseInfo.until) : NaN;
+  if (!Number.isFinite(until) || Date.now() < until) return pauseInfo;
+  if (pauseInfo.resumeCheck !== 'presentation-ready') return pauseInfo;
+  const issues = presentationAcceptanceIssues();
+  if (issues.length) return { ...pauseInfo, blocked: issues };
+  rmSync(join(PIPELINE_DIR, 'PAUSED'), { force: true });
+  appendFileSync(join(RUNS_DIR, 'nightly.log'), `\n=== ${nowIso()} PAUSED 自动解除：presentation 验收凭证有效 ===\n`);
+  return { paused: false };
+}
+
 function assertGuard(config, options, runKey, zoned) {
-  const pauseInfo = readPause();
-  if (pauseInfo.paused) return { ok: false, status: 'paused', reason: `PAUSED: ${pauseInfo.reason}` };
+  const pauseInfo = maybeAutoResume(readPause());
+  if (pauseInfo.paused) {
+    const detail = pauseInfo.blocked?.length ? `；仍未满足：${pauseInfo.blocked.join('；')}` : '';
+    return { ok: false, status: 'paused', reason: `PAUSED: ${pauseInfo.reason}${detail}` };
+  }
   if (!isClean(REPO)) {
     return { ok: false, status: 'skipped', reason: '主 checkout 不干净' };
   }
@@ -796,6 +857,10 @@ async function runPipeline(options, existingRun = null) {
   let worktree = '';
   try {
     setPhase(run, 'guard', 'done', `base=${base.slice(0, 8)}`);
+    // Fail closed before any Codex work: the presentation contract must load and
+    // every declared tool config must still satisfy the shared policy.
+    const contractIssues = validatePresentationContract({ toolSlugs: registeredToolSlugs() });
+    if (contractIssues.length) throw new Error(`主视图契约校验失败：${contractIssues.join('；')}`);
     setPhase(run, 'select', 'done', `${item.slug} priority=${item.priority ?? '-'}`);
 
     const resumeWorktree = join(WORKTREES_DIR, runKey);

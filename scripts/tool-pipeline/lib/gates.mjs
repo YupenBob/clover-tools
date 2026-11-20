@@ -1,4 +1,6 @@
 import { spawn } from 'node:child_process';
+import { requireManaged, validatePresentationContract } from './presentation.mjs';
+import { registeredToolSlugs } from './tool-registry.mjs';
 import { createWriteStream, existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { changedPaths } from './git.mjs';
@@ -396,6 +398,26 @@ export async function runGates({ worktree, base, item, config, runDir, env = {},
     finishedAt: nowIso(),
   });
   if (!structure.ok) return { ok: false, failed: 'structure', results, structure };
+
+  // Presentation contract: the tool this run produced must declare its primary
+  // mode, and every declared config must stay valid against the shared policy.
+  const presentationIssues = [
+    ...requireManaged({ slug: item.slug }),
+    ...validatePresentationContract({ toolSlugs: registeredToolSlugs() }),
+  ];
+  add({
+    label: 'presentation',
+    command: 'validatePresentationContract',
+    ok: presentationIssues.length === 0,
+    code: presentationIssues.length === 0 ? 0 : 1,
+    timedOut: false,
+    durationMs: 0,
+    logFile: null,
+    tail: presentationIssues.join('\n'),
+    issues: presentationIssues,
+    finishedAt: nowIso(),
+  });
+  if (presentationIssues.length) return { ok: false, failed: 'presentation', results };
 
   const countsCheck = await runCommand({
     label: 'tool-counts-check',

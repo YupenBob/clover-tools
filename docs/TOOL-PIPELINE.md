@@ -184,6 +184,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | Diff 违规 | 不发布；报告违规路径；`failed`。常见原因：队列把 `apiFile` 指向已上线的 API（只允许新增 `functions/api/*.ts`）——应为每个网络工具新建独立端点 |
 | Gates 失败 | 修复轮 1 次；仍失败→`failed` |
 | Verifier fail | 修复轮 1 次 + 复审；仍失败→`failed` |
+| 主视图契约失败 | guard 阶段契约非法 → 不启动；build 后补验产物与页面各状态；缺配置（无 legacy 豁免）→ `failed`，见 `docs/PRESENTATION.md` |
 | push 失败 | 主 checkout reset 回 base；worktree 保留；`failed` |
 | CI quality 失败 | 自动 revert + `PAUSED` |
 | deploy job 失败 | 不 revert；报告；允许重试 |

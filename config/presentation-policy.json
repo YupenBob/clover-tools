@@ -6,13 +6,18 @@
       "description": "大屏投影：屏幕上只允许声明的槽位内容，唯一常驻控件是退出图标。",
       "caps": {
         "maxSlots": 2,
-        "allowedSlotKinds": ["time", "date"],
-        "maxControls": 1,
+        "allowedSlotKinds": [
+          "time",
+          "date"
+        ],
         "maxPersistentControls": 1,
         "singlePersistentControl": true,
-        "allowedControlRoles": ["exit"],
+        "allowedControlRoles": [
+          "exit"
+        ],
         "requireIconOnlyPersistentControl": true,
-        "minHitTargetPx": 44
+        "minHitTargetPx": 44,
+        "maxDeclaredControls": 32
       },
       "appearance": {
         "maxBackgroundLuminance": 0.05,
@@ -23,34 +28,104 @@
       },
       "interaction": {
         "autoHideMs": 3000,
-        "revealTriggers": ["pointer", "focus", "keyboard"],
+        "revealTriggers": [
+          "pointer",
+          "focus",
+          "keyboard"
+        ],
         "settingsInitiallyOpen": false
       },
-      "timing": { "readyWithinMs": 3000, "requireAdvancingTime": true },
-      "errors": { "visualChannel": "hidden", "announcement": "aria-live", "interruptPrimary": false },
-      "allowedRenderSurfaces": ["text", "svgText"],
-      "forbiddenRenderSurfaces": ["img", "svgImage", "backgroundImage", "canvas", "pseudoContent", "fontIcon"],
-      "states": ["firstLoad", "primary", "reveal", "settingsOpen", "degraded", "fullscreen"]
+      "timing": {
+        "readyWithinMs": 3000,
+        "requireAdvancingTime": true
+      },
+      "errors": {
+        "visualChannel": "hidden",
+        "announcement": "aria-live",
+        "interruptPrimary": false
+      },
+      "allowedRenderSurfaces": [
+        "text",
+        "svgText"
+      ],
+      "forbiddenRenderSurfaces": [
+        "img",
+        "svgImage",
+        "backgroundImage",
+        "canvas",
+        "pseudoContent",
+        "fontIcon"
+      ],
+      "states": [
+        "firstLoad",
+        "primary",
+        "reveal",
+        "settingsOpen",
+        "degraded",
+        "fullscreen"
+      ]
     },
     "workspace": {
       "description": "工作台类工具（输入+结果）：保留输入与执行入口。",
       "caps": {
         "maxSlots": 4,
-        "allowedSlotKinds": ["time", "date", "primaryInput", "primaryResult"],
-        "maxControls": 6,
+        "allowedSlotKinds": [
+          "time",
+          "date",
+          "primaryInput",
+          "primaryResult"
+        ],
         "maxPersistentControls": 3,
         "singlePersistentControl": false,
-        "allowedControlRoles": ["exit", "submit", "settings"],
-        "minHitTargetPx": 44
+        "allowedControlRoles": [
+          "exit",
+          "submit",
+          "settings"
+        ],
+        "minHitTargetPx": 44,
+        "maxDeclaredControls": 32
       },
-      "appearance": { "forbidScroll": false, "forbidDecorativeSurfaces": true },
-      "interaction": { "settingsInitiallyOpen": false },
-      "timing": { "readyWithinMs": 3000, "requireAdvancingTime": false },
-      "errors": { "visualChannel": "hidden", "announcement": "aria-live", "interruptPrimary": false },
-      "allowedRenderSurfaces": ["text", "svgText"],
-      "forbiddenRenderSurfaces": ["img", "svgImage", "backgroundImage", "canvas", "pseudoContent", "fontIcon"],
-      "states": ["firstLoad", "primary", "reveal", "settingsOpen", "degraded", "fullscreen"]
+      "appearance": {
+        "forbidScroll": false,
+        "forbidDecorativeSurfaces": true
+      },
+      "interaction": {
+        "settingsInitiallyOpen": false
+      },
+      "timing": {
+        "readyWithinMs": 3000,
+        "requireAdvancingTime": false
+      },
+      "errors": {
+        "visualChannel": "hidden",
+        "announcement": "aria-live",
+        "interruptPrimary": false
+      },
+      "allowedRenderSurfaces": [
+        "text",
+        "svgText"
+      ],
+      "forbiddenRenderSurfaces": [
+        "img",
+        "svgImage",
+        "backgroundImage",
+        "canvas",
+        "pseudoContent",
+        "fontIcon"
+      ],
+      "states": [
+        "firstLoad",
+        "primary",
+        "reveal",
+        "settingsOpen",
+        "degraded",
+        "fullscreen"
+      ]
     }
   },
-  "legacyDryRunSlugs": ["focus-timer", "time-sync", "ip-reputation"]
+  "legacyDryRunSlugs": [
+    "focus-timer",
+    "time-sync",
+    "ip-reputation"
+  ]
 }

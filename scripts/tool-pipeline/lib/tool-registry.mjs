@@ -7,15 +7,35 @@ import { join } from 'node:path';
 
 import { REPO } from './paths.mjs';
 
-const SLUG = /^\s*slug:\s*'([a-z0-9]+(?:-[a-z0-9]+)*)'\s*,?\s*$/gm;
+const CATEGORY = /^\s{2}([a-z]+):\s*\[\s*$/;
+const SLUG = /^\s*slug:\s*'([a-z0-9]+(?:-[a-z0-9]+)*)'\s*,?\s*$/;
+
+/** Registered tools with their category, parsed from src/lib/tools.ts. */
+export function registeredTools(repo = REPO) {
+  const source = readFileSync(join(repo, 'src/lib/tools.ts'), 'utf8');
+  const tools = [];
+  let category = null;
+  for (const line of source.split('\n')) {
+    const categoryMatch = CATEGORY.exec(line);
+    if (categoryMatch) {
+      category = categoryMatch[1];
+      continue;
+    }
+    const slugMatch = SLUG.exec(line);
+    if (slugMatch && category) tools.push({ slug: slugMatch[1], category });
+  }
+  const seen = new Set();
+  return tools.filter((tool) => {
+    if (seen.has(tool.slug)) return false;
+    seen.add(tool.slug);
+    return true;
+  });
+}
 
 export function registeredToolSlugs(repo = REPO) {
-  const source = readFileSync(join(repo, 'src/lib/tools.ts'), 'utf8');
-  const slugs = [];
-  for (const match of source.matchAll(SLUG)) slugs.push(match[1]);
-  return [...new Set(slugs)];
+  return registeredTools(repo).map((tool) => tool.slug);
 }
 
 if (process.argv[1]?.endsWith('tool-registry.mjs')) {
-  process.stdout.write(JSON.stringify({ slugs: registeredToolSlugs() }));
+  process.stdout.write(JSON.stringify({ tools: registeredTools(), slugs: registeredToolSlugs() }));
 }

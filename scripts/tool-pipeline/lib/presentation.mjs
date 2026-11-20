@@ -17,6 +17,8 @@ import { REPO } from './paths.mjs';
 export const POLICY_FILE = 'config/presentation-policy.json';
 export const SCHEMA_FILE = 'config/schemas/tool-presentation.schema.json';
 export const CONFIG_DIR = 'data/tool-presentation';
+export const ACCEPTANCE_FILE = `${CONFIG_DIR}/acceptance.json`;
+const isToolConfigFile = (name) => name.endsWith('.json') && !/^_/.test(name) && !name.startsWith('acceptance');
 const policySlugLabel = POLICY_FILE;
 
 export const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
@@ -102,7 +104,7 @@ export function loadToolConfigs(repo = REPO) {
   const dir = join(repo, CONFIG_DIR);
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
-    .filter((name) => name.endsWith('.json'))
+    .filter(isToolConfigFile)
     .map((name) => ({ file: join(dir, name), slugFromFile: name.replace(/\.json$/, ''), config: readJson(join(dir, name)) }));
 }
 
@@ -131,7 +133,8 @@ export function validateAgainstPolicy(config, policy) {
     ids.add(item.id);
   }
   const controls = config.controls ?? [];
-  if (caps.maxControls !== undefined && controls.length > caps.maxControls) fail(`declares ${controls.length} controls (max ${caps.maxControls})`);
+  if (caps.maxDeclaredControls !== undefined && controls.length > caps.maxDeclaredControls)
+    fail(`declares ${controls.length} controls (max ${caps.maxDeclaredControls})`);
   const persistent = controls.filter((c) => c.persistent);
   if (caps.maxPersistentControls !== undefined && persistent.length > caps.maxPersistentControls)
     fail(`declares ${persistent.length} persistent controls (max ${caps.maxPersistentControls})`);
@@ -173,6 +176,8 @@ export function validateAgainstPolicy(config, policy) {
     if (!declaredStates.includes(required)) fail(`state "${required}" must be declared`);
   }
   for (const [state, view] of Object.entries(config.states ?? {})) {
+    if (view.allowInteractives && !['reveal', 'settingsOpen'].includes(state))
+      fail(`state "${state}" may not allow undeclared interactives`);
     for (const slotId of view.slots ?? []) if (!slots.some((slot) => slot.id === slotId)) fail(`state "${state}" references unknown slot "${slotId}"`);
     for (const controlId of view.controls ?? [])
       if (!controls.some((control) => control.id === controlId)) fail(`state "${state}" references unknown control "${controlId}"`);

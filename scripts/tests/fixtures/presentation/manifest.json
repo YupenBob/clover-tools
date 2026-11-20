@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "fixtures": [
+    { "file": "compliant.html", "expect": "pass", "note": "只声明的时间槽 + 声明的退出控件" },
+    { "file": "noisy-text.html", "expect": "fail", "note": "primary 出现未声明的说明文字" },
+    { "file": "svg-text.html", "expect": "fail", "note": "SVG text 绘制了未声明文字" },
+    { "file": "pseudo-text.html", "expect": "fail", "note": "伪元素 content 绘制了未声明文字" },
+    { "file": "background-text.html", "expect": "fail", "note": "背景图承载了未声明内容" },
+    { "file": "canvas-text.html", "expect": "fail", "note": "canvas 绘制了无法由 DOM 判定的内容" },
+    { "file": "blank.html", "expect": "fail", "note": "空白画面（时间槽缺失）" }
+  ]
+}

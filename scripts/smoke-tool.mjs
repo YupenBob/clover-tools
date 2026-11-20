@@ -15,6 +15,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright-core';
 import { root } from './lib/build-config.mjs';
 import { LOCALES, localizedPath } from '../config/routes.mjs';
+import { runPresentationChecks } from './lib/presentation-cases.mjs';
 
 function parseArgs(argv) {
   const options = { slug: '', artifacts: '', port: '', timeout: '', category: 'daily' };
@@ -196,6 +197,7 @@ try {
   });
 
   await module.run({ run, remember, base, artifacts });
+  await runPresentationChecks({ run, remember, base, artifacts, slug: options.slug, category });
   console.log(`Tool browser checks passed: ${passed} scenarios (${options.slug})`);
 } catch (error) {
   console.error(error);
