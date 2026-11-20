@@ -752,5 +752,31 @@
     "alt": "Unicode 转换工具两个面板并排：左侧输入框里是一个汉字「中」，下方一排三个按钮「转 Unicode」「还原文本」「逐字分析」，再下方是浅绿色状态条「编码完成」；右侧「结果」输出框里显示 \\u4E2D，右上角有「复制」按钮。",
     "caption": "输入一个汉字点「转 Unicode」：右侧结果框得到 \\u4E2D，一个汉字变成一个反斜杠加四个大写十六进制位，左侧面板下方是绿色状态条「编码完成」。",
     "slug": "unicode-converter"
+  },
+  {
+    "file": "text-toolbox-dedupe.jpg",
+    "width": 1232,
+    "height": 828,
+    "bytes": 42252,
+    "sha256": "528e80851327765f67bf936e163871d51b322ef790cd164510cd3ba794f9f253",
+    "capturedAt": "2026-11-20T04:08:08.209Z",
+    "source": "/tools/dev/text-toolbox/",
+    "purpose": "展示示例数据的行级去重结果：8 行输入剩 5 行，空行参与去重并与末尾空行合并",
+    "alt": "文本处理工具工作区：上方「输入文本」面板的文本框里可见 6 行内容——apple、banana、apple、一个空行、cherry、apple（原始示例数据共 8 行，超出可见区域的部分需滚动查看）；「操作」下拉框显示「去重」；下方「处理结果」面板的只读结果框显示 5 行：apple、banana、空行、cherry、date；结果框底部统计为「5 行（原 8 行）」。",
+    "caption": "点「示例」再点「处理」，结果框留下五行、底部统计写「5 行（原 8 行）」",
+    "slug": "text-toolbox"
+  },
+  {
+    "file": "text-toolbox-trim-order.jpg",
+    "width": 1232,
+    "height": 828,
+    "bytes": 41849,
+    "sha256": "a4cc0ba21ba3df1052aa5d938ec85ab2c6cedaaef8ea9835f99452daaaff1d91",
+    "capturedAt": "2026-11-20T04:08:08.552Z",
+    "source": "/tools/dev/text-toolbox/",
+    "purpose": "展示「先去重再 trim」的顺序后果：两行只差首尾空白的 apple 在 trim 后变成一样的文本，重复仍然保留",
+    "alt": "文本处理工具工作区：上方输入框显示 3 行（「 apple」带行首空格、「apple 」带行尾空格、almond），「操作」下拉框显示「去除首尾空格」；下方结果框显示 3 行，第一行「apple」、第二行「apple」、第三行「almond」；结果框下方统计为「3 行（原 3 行）」。",
+    "caption": "把去重结果复制回输入框再点「去除首尾空格」，两行只差首尾空白的 apple 变成一样的文本，统计仍是「3 行（原 3 行）」",
+    "slug": "text-toolbox"
   }
 ]

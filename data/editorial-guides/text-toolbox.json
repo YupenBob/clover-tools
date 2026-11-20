@@ -1,0 +1,77 @@
+{
+  "slug": "text-toolbox",
+  "title": "文本去重怎么做：按行去重、保序与清理顺序",
+  "description": "从工具源码讲清按行去重的三种口径：整行完全相同、忽略大小写、忽略首尾空白，说明保序与保留最后一次的差别、空行与末尾换行怎么计数、BOM 与全角空格为什么让首行去不掉，以及先 trim 再去重与反过来做为何结果不同。",
+  "seoDescription": "文本去重按行做：拆行、用 Set 保留第一次出现、按原顺序拼回。三种口径里只有整行完全相同能靠一次「去重」完成；首尾空白要先 trim 再贴回输入框，忽略大小写则需先转小写（属页面外脚本）。空行与末尾换行都算行，CRLF 会被文本框归一但脚本里不会，BOM 与全角空格让首行去不掉，组合顺序必须是先清理再去重。",
+  "category": "开发实用",
+  "toolSlug": "text-toolbox",
+  "published": "2026-11-20",
+  "updated": "2026-11-20",
+  "readingMinutes": 7,
+  "content": "<p>文本去重按行做：把文本按换行拆成行数组，用集合逐行比对，只保留第一次出现的行，再按原顺序拼回去。本站<a href=\"/tools/dev/text-toolbox/\">文本处理工具</a>选「去重」点「处理」即可。它只认完全相同的整行，大小写和首尾空白都算不同。</p>\n\n<h2>工具里的一次「去重」只有三步</h2>\n<p>页面结构很直白：输入框、「操作」下拉框（七项）、「处理」按钮、状态提示，下方是只读结果框和底部统计行；面板上另有「示例」「清空」「复制」。处理函数每次从头读输入框，按所选操作改写数组，再拼回结果框并写行数。</p>\n<pre><code>const lines = input.value.split('\\n');\nconst before = lines.length;\nlines = [...new Set(lines)];        // 去重\noutput.value = lines.join('\\n');\nstats.textContent = `${lines.length} 行（原 ${before} 行）`;</code></pre>\n<p>「去重」这一支就是 <code>new Set</code>：集合按值判等，字符串比较区分大小写、区分首尾空白，也区分行尾那个看不见的回车。下面的结论都能从这几行推出来。</p>\n<p><figure><a href=\"/article-images/2026-11/text-toolbox-dedupe.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：文本处理工具工作区：上方「输入文本」面板的文本框里可见 6 行内容——apple、banana、apple、一个空行、cherry、apple（原始示例数据共 8 行，超出可见区域的部分需滚动查看）；「操作」下拉框显示「去重」；下方「处理结果」面板的只读结果框显示 5 行：apple、banana、空行、cherry、date；结果框底部统计为「5 行（原 8 行）」。\"><img src=\"/article-images/2026-11/text-toolbox-dedupe.jpg\" alt=\"文本处理工具工作区：上方「输入文本」面板的文本框里可见 6 行内容——apple、banana、apple、一个空行、cherry、apple（原始示例数据共 8 行，超出可见区域的部分需滚动查看）；「操作」下拉框显示「去重」；下方「处理结果」面板的只读结果框显示 5 行：apple、banana、空行、cherry、date；结果框底部统计为「5 行（原 8 行）」。\" width=\"1232\" height=\"828\" loading=\"lazy\" decoding=\"async\"></a><figcaption>点「示例」再点「处理」，结果框留下五行、底部统计写「5 行（原 8 行）」 点击图片可查看原图。</figcaption></figure></p>\n\n<h2>三种口径：完全相同、忽略大小写、忽略首尾空白</h2>\n<p>页面只有一个「去重」，没有「忽略大小写」「忽略空白」开关：下拉框七项里没有，页面上也没有复选框。另外两种口径只能靠组合操作或外部脚本模拟，改动越大越容易误合并。</p>\n<table>\n<thead><tr><th>口径</th><th>页面里怎么得到</th><th>实测</th><th>风险</th></tr></thead>\n<tbody>\n<tr><td>整行完全相同</td><td>直接选「去重」</td><td>Apple、apple、APPLE 三行全部保留</td><td>只差大小写或空格就不算重复</td></tr>\n<tr><td>忽略大小写</td><td>页面无此选项；先转小写再交给脚本</td><td>三行合为一行</td><td>工号、URL 路径等大小写敏感值会被误合并</td></tr>\n<tr><td>忽略首尾空白</td><td>先「去除首尾空格」，把结果贴回输入框，再「去重」</td><td>只差首尾全角空格的四个「苹果」合为一行</td><td>行内空格与行内全角空格仍不归一</td></tr>\n</tbody>\n</table>\n<p>第一行最有迷惑性：三行看起来都是 apple，统计也写「3 行（原 3 行）」，但若目标是按产品名去重，这个结果不合格——工具不替你做业务判断。</p>\n\n<h2>保留第一次还是最后一次</h2>\n<p><code>Set</code> 天然保留第一次出现的位置：输入 b、a、b、c、a，去重后是 b、a、c 三行，统计写「3 行（原 5 行）」。若语义是「后写的值覆盖先写的」，就要反向扫描：从末尾往前走，第一次遇到的才算数，最后把顺序翻回来。同样五行得到 b、c、a：行数一样，a 被挪到最后。两种口径只在重复行分散时才有可见差异；标准不是哪个更短，而是哪次出现携带你需要的信息。</p>\n\n<h2>行数、字符数与空行怎么算</h2>\n<p>行数来自 <code>split('\\n')</code> 的长度，末尾只要有一个换行就多出一个空元素：a、空、空、b、空 这样的五行输入，去重后是 a、空、b 三行，两个连续空行合并成一个，末尾空行因与中间空行相同也被合并，结果不再以空行结尾。工具示例是八行，去重后五行，输入 38 个字符，结果框剩 25 个。</p>\n<p>空行本身算一条数据。判断依据是字符串相等，所以「空格加制表符」那一行和真正的空行不是同一行：只点「去重」时它保留；点「去除空行」时它被删掉，因为那一支用 <code>line.trim() !== ''</code>，空白字符行也算空行。这一步比去重更激进，但两步可交换；真正不能反的是 trim 必须在去重前。页面只统计行数，字符数由本地复算。</p>\n\n<h2>单步处理：每次「处理」都从输入框重新读</h2>\n<p>处理函数不把结果写回输入框，所以连点两次「处理」是把同一份输入重算一遍。带 BOM 的三行最直观：先去重得三行（首行带 BOM），再去除首尾空格得三行（BOM 去掉），再点去重又回到三行且 BOM 重现。在页面里组合操作只有一条路：把结果框内容「复制」，粘回输入框覆盖原文，再选下一个操作。</p>\n\n<h2>CRLF 与 LF：网页里进不来，文件里会作乱</h2>\n<p>网页文本框的 value 有归一化规则：CRLF 和单独的 CR 都会被替换成 LF。所以从 Windows 文件复制文本粘进页面，行尾回车已不存在，去重结果与 LF 一致；混排输入在页面上先变成 a、b、a、b 四行，去重后两行，统计写「2 行（原 4 行）」。</p>\n<p>脚本里不是这样。<code>split('\\n')</code> 只认换行符，回车留在行尾：a、b 回车、a 回车、b 四行看起来只有两种内容，实际是四个互不相等的字符串，去重后仍是四行；把 CRLF 归一后再拆只剩两行。用 Node、Python 或 shell 直接处理磁盘文件时，第一步就该统一换行。</p>\n\n<h2>BOM 与全角空格：看不见的字符</h2>\n<p>BOM 是 U+FEFF，记事本另存的 UTF-8 文件常带它。它粘在第一行开头，让「苹果」与「带 BOM 的苹果」成为两个不同字符串：三行文本直接去重仍是三行，首行去不掉，看起来像工具失灵。</p>\n<p>页面没有「去 BOM」按钮，但「去除首尾空格」能去掉它，因为 ECMAScript 的空白字符集合包含这个零宽不换行空格。同一个集合还包含 U+3000 表意空格——它属于 Unicode 的 Zs 类，所以四个只差首尾全角空格的「苹果」，trim 之后完全一样，再去重只剩一行，统计写「1 行（原 4 行）」。trim 只动首尾：「苹果　派」中间的全角空格不会被处理。</p>\n<p><figure><a href=\"/article-images/2026-11/text-toolbox-trim-order.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：文本处理工具工作区：上方输入框显示 3 行（「 apple」带行首空格、「apple 」带行尾空格、almond），「操作」下拉框显示「去除首尾空格」；下方结果框显示 3 行，第一行「apple」、第二行「apple」、第三行「almond」；结果框下方统计为「3 行（原 3 行）」。\"><img src=\"/article-images/2026-11/text-toolbox-trim-order.jpg\" alt=\"文本处理工具工作区：上方输入框显示 3 行（「 apple」带行首空格、「apple 」带行尾空格、almond），「操作」下拉框显示「去除首尾空格」；下方结果框显示 3 行，第一行「apple」、第二行「apple」、第三行「almond」；结果框下方统计为「3 行（原 3 行）」。\" width=\"1232\" height=\"828\" loading=\"lazy\" decoding=\"async\"></a><figcaption>把去重结果复制回输入框再点「去除首尾空格」，两行只差首尾空白的 apple 变成一样的文本，统计仍是「3 行（原 3 行）」 点击图片可查看原图。</figcaption></figure></p>\n\n<h2>组合顺序：先 trim 再去重，还是反过来</h2>\n<p>这是最容易踩的坑。三行输入：行首带空格的 apple、行尾带空格的 apple、almond。先去重再 trim：三个字符串互不相等，三行全留，trim 后变成两个 apple 加一个 almond，重复还在，统计「3 行（原 3 行）」。先 trim 再去重：两行 apple 变成同一行，只剩 apple 和 almond，统计「2 行（原 3 行）」。差别在于 trim 新造出的重复有没有机会被去重处理。</p>\n<p>所以清理管线要固定顺序：统一换行、去 BOM 与首尾空白、删空行、再去重，最后才排序或核对行数。每步把结果贴回输入框，或在脚本里串成流水线；顺序颠倒，后面的步骤不会替前面的补锅。</p>\n\n<h2>与排序、反向、删空行怎么配合</h2>\n<p>「排序（升序）」只排序不去重：同样五行排序后还是五行，再点去重才变成 a、b、c 三行。排序用 <code>localeCompare</code> 并指定 zh-CN，中文、符号与数字的先后由浏览器本地化规则决定，跨环境核对时别把它当唯一基准。</p>\n<p>「行反转」与「随机打乱」改变行的位置，也就改变了「保留第一次出现」究竟保留了哪一行：反转后再去重，等价于保留原文最后一次出现；打乱后再去重，保留哪次出现不确定，行数相同内容可能不同。需要可复现结果时别用「随机打乱」参与清理。</p>\n\n<h2>保序去重的等价写法</h2>\n<p><code>Set</code> 的写法等价于 awk 的经典惯用法：用 seen 记录见过的行，没见过的就打印，天然保序。排序去重是另一条路：先排序让相同行相邻，再用 uniq 或 sort -u 合并。两者集合相同、顺序不同——同一份五行输入，保序结果是 b、a、c，排序去重是 a、b、c。还要注意 uniq 只合并相邻重复行，不排序直接 uniq，b、a、b、c、a 里一个重复也去不掉。下面只作对照。</p>\n<pre><code># 保序：保留第一次出现的行\nawk '!seen[$0]++' input.txt &gt; out.txt\n# 排序去重：输出有序，但丢掉原始顺序\nsort -u input.txt &gt; out.txt</code></pre>\n\n<h2>大文本的边界</h2>\n<p>源码里没有行数上限，也没有字节上限，所有处理都在浏览器主线程同步跑完，输入框与结果框都是 textarea；按纯计算外推，几十万行大概率会卡顿。本机单次测量（Node v22.23.4，aarch64，两核 Neoverse-N1）：二十万行、五万种取值，split 加 Set（未含 join）约五十到六十毫秒，还只是纯计算，未算渲染与内存开销。超过几万行建议先本地粗筛或分批粘入。</p>\n\n<h2>常见误用</h2>\n<ul>\n<li>把「去重」当成「去重子串」：「苹果」和「苹果派」是两行，都保留；去重后「苹果」这个子串仍出现两次，一次独立成行，一次在「苹果派」里。</li>\n<li>以为全角空格会自动折叠：trim 只处理首尾，行内全角空格原样保留。</li>\n<li>BOM 导致首行去不掉：先「去除首尾空格」再「去重」，别直接去重。</li>\n<li>以为重复点「处理」会叠加：每次都按输入框原文重算，组合操作必须把结果贴回输入框。</li>\n<li>以为「清空」会重置统计：它只清空两个文本框和状态条显示，底部统计仍留着上一次的「N 行（原 M 行）」，状态文案也仍在页面结构里，只是不可见。</li>\n</ul>\n\n<h2>边界与限制</h2>\n<ul>\n<li>只做行级精确比较：不忽略大小写、不忽略空白、不做全半角归一，也不做相似度或子串判断。</li>\n<li>作用范围是整份输入：没有「只处理选中行」，也不能指定列或字段。</li>\n<li>单步执行，没有撤销与历史；结果框只读，中间态要自己复制保存。</li>\n<li>排序依赖浏览器本地化规则，跨浏览器可能不一致；随机打乱不可复现。</li>\n<li>不做编码转换：非 UTF-8 文本粘进来可能已是乱码，去重救不回来；超大文件更适合交给本地脚本。</li>\n</ul>\n\n<h2>一页速查</h2>\n<ol>\n<li>统一换行：网页里由文本框自动做，脚本里先替换 CRLF。</li>\n<li>去 BOM 与首尾空白：选「去除首尾空格」，结果贴回输入框。</li>\n<li>删空行：需要时选「去除空行」，它连空白字符行一起删。</li>\n<li>去重：选「去重」，核对统计行的「原 M 行」是否等于预期的输入行数。</li>\n<li>排序或核对：需要固定顺序时排序；要看差异就交给<a href=\"/tools/dev/diff/\">文本对比工具</a>逐行核对。</li>\n</ol>\n<p>命名与大小写归一是切词与全半角转换，交给<a href=\"/tools/dev/text-transform/\">文本转换工具</a>；码点与转义序列层面的问题用<a href=\"/tools/dev/unicode-converter/\">Unicode 转换工具</a>。行级去重只解决「整行完全相同」这类重复，别让它承担语义去重的职责。</p>\n",
+  "faqs": [
+    {
+      "q": "首行带 BOM 的「苹果」和普通「苹果」，为什么直接去重后两行还在？",
+      "a": "BOM 是 U+FEFF，粘在第一行开头，与第二行不是同一个字符串，所以 Set 认为它们不同。先选「去除首尾空格」，U+FEFF 属于 ECMAScript 空白字符集合，会被去掉；把结果复制贴回输入框，再选「去重」，三行就合并成两行。"
+    },
+    {
+      "q": "只有两行文本，统计却写「3 行（原 3 行）」，多的那一行是哪来的？",
+      "a": "末尾的换行符被 split 拆成了一个空元素：a、b 加末尾换行会得到 a、b、空三行。这个空行会参与去重，并且与其他空行合并；如果不想保留它，先选「去除空行」再去重。"
+    },
+    {
+      "q": "能忽略大小写去重吗？",
+      "a": "页面没有这个开关，下拉框里没有「忽略大小写」的选项。可以把文本转成小写后粘进来再去重，但工号、URL 路径、变量名这类大小写敏感的值可能被误合并，转换前先确认字段性质。"
+    },
+    {
+      "q": "连点两次「处理」，为什么结果没有叠加？",
+      "a": "处理函数每次都从输入框读原文，不会把上一次结果写回输入框。组合操作要把结果框内容「复制」，粘贴回输入框覆盖原文，再选下一个操作。"
+    },
+    {
+      "q": "从 Windows 文件复制的文本，需要先处理 CRLF 吗？",
+      "a": "粘进页面不需要，文本框的 value 会把 CRLF 和单独的 CR 归一成 LF。用 Node、Python 或 shell 直接读磁盘文件时才要，因为 split 只按 LF 拆，回车会留在行尾，让看起来相同的行互不相等。"
+    }
+  ],
+  "sources": [
+    {
+      "title": "MDN：String.prototype.trim()（空白字符定义与不修改原字符串）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim"
+    },
+    {
+      "title": "MDN：Set（按 SameValueZero 判等、保留插入顺序）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set"
+    },
+    {
+      "title": "MDN：String.prototype.split()（按分隔符拆分为数组）",
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split"
+    },
+    {
+      "title": "WHATWG HTML：textarea 元素的 API value 与换行归一化",
+      "url": "https://html.spec.whatwg.org/multipage/form-elements.html#the-textarea-element"
+    },
+    {
+      "title": "ECMAScript 2025：WhiteSpace 与 LineTerminator（含 ZWNBSP 与 Space_Separator）",
+      "url": "https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html#sec-white-space"
+    },
+    {
+      "title": "Unicode FAQ：UTF-8 与 BOM（U+FEFF 的用途与副作用）",
+      "url": "https://www.unicode.org/faq/utf_bom.html"
+    }
+  ],
+  "focus": "去重只按整行精确比较；保留第一次出现、保序；先清理（换行、BOM、首尾空白、空行）再去重。",
+  "notice": "所有处理在浏览器本地完成，不上传文本；去重是行级精确比较，不判断语义相似，重要数据请先备份再处理。",
+  "image": "/article-images/2026-11/text-toolbox-dedupe.jpg",
+  "_meta": {
+    "auto": true,
+    "type": "new-guide",
+    "mode": "new-guide",
+    "runId": "2026-11-20T12",
+    "runKey": "2026-11-20T12",
+    "primaryQuery": "文本去重复",
+    "editorialDate": "2026-11-20",
+    "source": "suggest",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.8,
+    "reviewRound": 3,
+    "verifiedAt": "2026-11-20T04:17:05.336Z"
+  }
+}
