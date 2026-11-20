@@ -675,7 +675,7 @@ function translationPrompt(lang, runKey, slug) {
 
 function i18n(options) {
   const config = loadConfig();
-  const state = requireRun(options, ['needs-i18n', 'i18n']);
+  const state = requireRun(options, ['needs-i18n', 'i18n', 'failed']);
   const { runKey, slug } = state;
   const langs = config.translation?.languages ?? ['tw', 'en', 'ko', 'ja'];
   state.phase = 'i18n';
