@@ -911,8 +911,15 @@ function finalize(options) {
   if (scope.code !== 0) fail('check-workspace-scope', `${scope.out}\n${scope.err}`);
 
   const title = readJson(join(ROOT, 'data/editorial-guides', `${slug}.json`), {})?.title ?? slug;
+  // 只提交本趟清单里的仓库内容路径；用 --only 防止把别处残留的已暂存文件一起卷进内容提交
+  const touched = readJson(join(runDir(runKey), 'touched.json'), { files: [] });
+  const allowed = config.git?.allowedPaths ?? [];
+  const commitPaths = (touched.files ?? []).filter(
+    (path) => !path.startsWith('.editorial/') && allowed.some((prefix) => path === prefix || path.startsWith(prefix)),
+  );
+  if (commitPaths.length === 0) fail('commit', '本趟没有可提交的仓库内容路径（touched.json 为空）');
   const message = state.translate ? `content: add guide "${title}"` : `content: add guide "${title}" (zh only)`;
-  const commit = spawnSync('git', ['commit', '-m', message], {
+  const commit = spawnSync('git', ['commit', '-m', message, '--', ...commitPaths], {
     cwd: ROOT,
     encoding: 'utf8',
     env: {
