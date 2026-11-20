@@ -196,6 +196,20 @@ function composeRepairPrompt(runKey, slug, state, options) {
   return lines.join('\n');
 }
 
+/** 从 digest 输出里解析抓取失败的来源编号，从 manifest 摘掉；返回被摘掉的编号。 */
+function pruneFailedSources(runKey, output) {
+  const manifestFile = join(runDir(runKey), 'source-manifest.json');
+  const manifest = readJson(manifestFile, null);
+  if (!manifest?.sources?.length) return [];
+  const failedIds = [...String(output).matchAll(/✗\s*(S\d+)/g)].map((match) => match[1]);
+  if (failedIds.length === 0) return [];
+  const kept = manifest.sources.filter((source) => !failedIds.includes(source.id));
+  if (kept.length < 2) return [];
+  writeJson(join(runDir(runKey), 'source-manifest.pruned.json'), { ...manifest, sources: kept, prunedAt: new Date().toISOString(), pruned: failedIds });
+  writeJson(manifestFile, { ...manifest, sources: kept, prunedAt: new Date().toISOString(), pruned: failedIds });
+  return failedIds;
+}
+
 /** 导入 + 冻结摘录 + 截图 + 来源核验 + 机械预检。返回 {name, ok, detail} 列表。 */
 function runGates(runKey, slug, config) {
   const state = loadState(runKey);
@@ -213,22 +227,48 @@ function runGates(runKey, slug, config) {
   };
 
   gate('import', 'scripts/editorial/import-draft.mjs', ['--run', runKey, '--slug', slug]);
-  gate('source-digest', 'scripts/editorial/source-digest.mjs', ['--run', runKey], 5 * 60_000);
+  const digest = gate('source-digest', 'scripts/editorial/source-digest.mjs', ['--run', runKey], 5 * 60_000);
+  if (digest.code !== 0) {
+    // 有些站点（Apple 等）会稳定 403/429：按 runbook「换 URL 或删掉该条」自动剔除后重试，
+    // 比让 Codex 续聊（一次 1M+ tokens）便宜得多；剩余来源数由 verify-sources/复核兜底。
+    const pruned = pruneFailedSources(runKey, digest.out);
+    if (pruned.length > 0) {
+      log(runKey, `digest pruned: ${pruned.join(', ')}`);
+      state.steps.prunedSources = pruned;
+      saveState(state);
+      const retry = gate('source-digest', 'scripts/editorial/source-digest.mjs', ['--run', runKey], 5 * 60_000);
+      if (retry.code === 0) {
+        results.splice(results.findIndex((entry) => entry.name === 'source-digest' && !entry.ok), 1);
+      }
+    }
+  }
   const captureStarted = Date.now();
   const captureResult = shToFile('scripts/editorial/capture-tool.mjs', ['--slug', slug, '--timeout-min', '6'], {
     timeoutMs: 8 * 60_000,
     logFile: join(runDir(runKey), 'capture.log'),
     env: { ASTRO_TELEMETRY_DISABLED: '1' },
   });
-  const captureOk = captureResult.code === 0;
+  let captureOk = captureResult.code === 0;
+  let captureFinal = captureResult;
+  if (!captureOk) {
+    log(runKey, 'capture failed; retry once');
+    const retried = shToFile('scripts/editorial/capture-tool.mjs', ['--slug', slug, '--timeout-min', '6'], {
+      timeoutMs: 8 * 60_000,
+      logFile: join(runDir(runKey), 'capture-retry.log'),
+      env: { ASTRO_TELEMETRY_DISABLED: '1' },
+    });
+    captureOk = retried.code === 0;
+    captureFinal = retried;
+    log(runKey, `capture retry code=${retried.code} ms=${retried.ms}`);
+  }
   results.push({
     name: 'capture',
     ok: captureOk,
-    detail: captureOk ? `ok ${Math.round((Date.now() - captureStarted) / 1000)}s` : `${captureResult.code}: ${tail(captureResult.out, 1200)}`,
+    detail: captureOk ? `ok ${Math.round((Date.now() - captureStarted) / 1000)}s` : `${captureFinal.code}: ${tail(captureFinal.out, 1200)}`,
   });
   log(runKey, `gate capture code=${captureResult.code} ms=${captureResult.ms}`);
   if (!captureOk) {
-    state.failures.push({ step: 'capture', detail: captureResult.out, at: new Date().toISOString() });
+    state.failures.push({ step: 'capture', detail: captureFinal.out, at: new Date().toISOString() });
     saveState(state);
   }
   const capture = captureResult;
