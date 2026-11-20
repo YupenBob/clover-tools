@@ -4,9 +4,9 @@
  * 用法：node scripts/editorial/tick-prepare.mjs [--slot auto|manual|06|12|18] [--dry-run]
  * 输出 JSON（proceed true/false）；任何"跳过"都以退出码 0 返回，便于上层判断。
  */
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { STATE_PATHS } from './lib/paths.mjs';
+import { ROOT, STATE_PATHS } from './lib/paths.mjs';
 import {
   acquireSlotLock,
   countRunsForDate,
@@ -100,7 +100,16 @@ function main() {
   if (!lock.ok) skip(lock.reason, { runKey, lockPath: lock.path });
 
   const queue = loadQueue();
-  const item = pickNextItem(queue, config);
+  // 防呆：队列建议可能来自旧抓取，同 slug 已有已发布指南时自动判重（除非明确是升级任务），
+  // 否则整趟 tick 会白跑（今天 text-transform 就是这样被浪费的）。
+  const hasPublished = (entry) => existsSync(join(ROOT, 'data/editorial-guides', `${entry.slug ?? entry.toolSlug}.json`));
+  let item = pickNextItem(queue, config);
+  const autoDuplicates = [];
+  while (item && item.type !== 'upgrade-guide' && hasPublished(item)) {
+    markQueueItem(queue, item.id, { status: 'duplicate', duplicate: true, duplicateReason: '同 slug 已有已发布指南', updatedAt: new Date().toISOString() });
+    autoDuplicates.push(item.slug ?? item.toolSlug);
+    item = pickNextItem(queue, config);
+  }
   if (!item) {
     rmSync(lock.path, { recursive: true, force: true });
     skip('queue-empty', {

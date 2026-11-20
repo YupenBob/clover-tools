@@ -569,7 +569,7 @@ function injectReviewMeta(runKey, slug) {
 
 function land(options) {
   const config = loadConfig();
-  const state = requireRun(options, ['awaiting-review', 'landing', 'needs-i18n', 'needs-i18n-review', 'finalizing']);
+  const state = requireRun(options, ['awaiting-review', 'landing', 'needs-i18n', 'needs-i18n-review', 'finalizing', 'failed']);
   const { runKey, slug } = state;
   const meta = injectReviewMeta(runKey, slug);
   log(runKey, `land review-meta ${meta.ok ? 'ok' : meta.reason}`);
