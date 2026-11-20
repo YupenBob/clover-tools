@@ -188,6 +188,7 @@ node scripts/tool-pipeline/update-tool-counts.mjs --check
 | CI quality 失败 | 自动 revert + `PAUSED` |
 | deploy job 失败 | 不 revert；报告；允许重试 |
 | 生产页面/API 失败 | 自动 revert + `PAUSED` |
+| Functions 返回 502/504 | 该 zone 的边缘会把 502/504 换成通用错误页（正文 `error code: 502`），客户端拿不到结构化 JSON。网络工具的“上游不可用/超时”统一用 **503**；新增 API 不要用 502/504 表示业务失败 |
 | 推送后 CI/部署 25 分钟内未落定 | `verify-later` 退出 2 并保留 pending，08:00 早报复检 |
 | 浏览器用例对异步 UI 直接断言 | 用 `poll` 等到状态/存储落定再断言；`<dialog>` 关闭后应用才落盘，`confirm()` 返回不代表动作完成 |
 | 连续 2 次失败/停滞 | 写 `PAUSED`，早报提示人工处理 |

@@ -37,7 +37,7 @@ class Failure extends Error {
   code: ErrorCode;
   http: number;
   retryAfterSeconds?: number;
-  constructor(code: ErrorCode, http = 502, retryAfterSeconds?: number) {
+  constructor(code: ErrorCode, http = 503, retryAfterSeconds?: number) {
     super(code);
     this.code = code;
     this.http = http;
@@ -71,14 +71,14 @@ function failure(e: unknown, signal?: AbortSignal): Failure {
   return e instanceof Failure
     ? e
     : signal?.aborted
-      ? new Failure("upstream-timeout", 504)
+      ? new Failure("upstream-timeout", 503)
       : e instanceof Error && e.message === "body-too-large"
         ? new Failure("upstream-too-large")
         : new Failure("upstream-invalid");
 }
 function bounded<T>(p: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
-    const abort = () => reject(new Failure("upstream-timeout", 504));
+    const abort = () => reject(new Failure("upstream-timeout", 503));
     if (signal.aborted) {
       abort();
       return;
@@ -115,7 +115,7 @@ function output(
       "unavailable",
       at,
       err("upstream-too-large"),
-      502,
+      503,
     );
   return new Response(text, {
     status: http,
@@ -200,7 +200,7 @@ async function upstream(
           : [401, 403].includes(response.status)
             ? "auth-failed"
             : "upstream-http",
-        502,
+        503,
         response.status === 429
           ? retryAfter(response.headers.get("Retry-After"), d.now())
           : undefined,
@@ -258,7 +258,7 @@ async function lookupSource(
     if (blocked && blocked.until > d.now())
       throw new Failure(
         "rate-limited",
-        502,
+        503,
         Math.ceil((blocked.until - d.now()) / 1000),
       );
     const encoded = encodeURIComponent(ip);
@@ -364,7 +364,7 @@ async function resolveFamily(
       if (blocked && blocked.until > d.now())
         throw new Failure(
           "rate-limited",
-          502,
+          503,
           Math.ceil((blocked.until - d.now()) / 1000),
         );
       const url = exactTarget(
@@ -479,7 +479,7 @@ export async function handleIpReputation(
       f.code === "upstream-too-large"
         ? 413
         : f.code === "upstream-timeout"
-          ? 504
+          ? 503
           : 400,
     );
   }
@@ -532,8 +532,8 @@ export async function handleIpReputation(
         code === "dns-no-address"
           ? 422
           : code === "upstream-timeout"
-            ? 504
-            : 502,
+            ? 503
+            : 503,
       );
     }
     return output(
@@ -547,7 +547,7 @@ export async function handleIpReputation(
   try {
     if (key) partition = await bounded(sha(key), total);
   } catch {
-    return fail("upstream-timeout", 504);
+    return fail("upstream-timeout", 503);
   }
   const sources = await Promise.all(
     SOURCE_IDS.map((id) =>
@@ -573,7 +573,7 @@ export async function handleIpReputation(
     count
       ? null
       : err(allTimeout ? "upstream-timeout" : "upstreams-unavailable"),
-    count ? 200 : allTimeout ? 504 : 502,
+    count ? 200 : allTimeout ? 503 : 503,
   );
 }
 export const onRequest = async (context: {
@@ -583,7 +583,7 @@ export const onRequest = async (context: {
   try {
     return await handleIpReputation(context.request, context.env);
   } catch (error) {
-    // 任何未预期的异常都不应让整个 Function 变成平台 502 页面；
+    // 任何未预期的异常都不应让整个 Function 变成平台 503 页面；
     // 返回结构化错误，同时把细节写进 Worker 日志便于排查。
     console.error("ip-reputation:unhandled", error);
     return new Response(

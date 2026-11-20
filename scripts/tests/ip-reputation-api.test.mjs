@@ -334,7 +334,7 @@ test("source-failure-is-isolated", async () => {
   }
   const h = harness({ fetch: async () => new Response("{}", { status: 500 }) });
   const { r, json } = await h.request();
-  assert.equal(r.status, 502);
+  assert.equal(r.status, 503);
   assert.equal(json.ok, false);
 });
 test("mismatched-ip-is-rejected", async () => {
@@ -384,7 +384,7 @@ test("body-and-time-are-bounded", async () => {
   const start = performance.now(),
     result = await slow.request();
   await hold;
-  assert.equal(result.r.status, 504);
+  assert.equal(result.r.status, 503);
   assert.ok(performance.now() - start < 500);
   assert.equal(cancelled, 2);
   const request = new Request(origin + "/api/ip-reputation", {
@@ -400,7 +400,7 @@ test("body-and-time-are-bounded", async () => {
   const keep = delay(200);
   const r = await handleIpReputation(request, {}, h.deps);
   await keep;
-  assert.equal(r.status, 504);
+  assert.equal(r.status, 503);
 });
 test("redirects-are-not-followed", async () => {
   for (const location of [
@@ -587,7 +587,7 @@ test("dns-api-partial-nxdomain-and-cache", async () => {
           : "complete",
     );
     if (mode === "empty") assert.equal(r.status, 422);
-    if (mode === "failure") assert.equal(r.status, 502);
+    if (mode === "failure") assert.equal(r.status, 503);
     if (mode === "short-ttl") assert.equal(x.cache.size, 0);
   }
 });

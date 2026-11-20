@@ -187,7 +187,7 @@ async function mock(page, getMode = () => "basic") {
     if (mode === "malformed")
       value = { version: 1, kind: "report", ok: true, data: {} };
     await route.fulfill({
-      status: value.ok ? 200 : 502,
+      status: value.ok ? 200 : 503,
       contentType: "application/json",
       body: JSON.stringify(value),
     });
