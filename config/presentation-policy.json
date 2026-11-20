@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "comment": "共享的可信基线：工具只能收紧，不能放宽或关闭检查。修改此文件属于共享依赖变更，会触发全部工具的验收重跑。",
+  "profiles": {
+    "projector": {
+      "description": "大屏投影：屏幕上只允许声明的槽位内容，唯一常驻控件是退出图标。",
+      "caps": {
+        "maxSlots": 2,
+        "allowedSlotKinds": ["time", "date"],
+        "maxControls": 1,
+        "maxPersistentControls": 1,
+        "singlePersistentControl": true,
+        "allowedControlRoles": ["exit"],
+        "requireIconOnlyPersistentControl": true,
+        "minHitTargetPx": 44
+      },
+      "appearance": {
+        "maxBackgroundLuminance": 0.05,
+        "minPrimaryFontVh": 18,
+        "maxPrimaryFontVh": 34,
+        "forbidScroll": true,
+        "forbidDecorativeSurfaces": true
+      },
+      "interaction": {
+        "autoHideMs": 3000,
+        "revealTriggers": ["pointer", "focus", "keyboard"],
+        "settingsInitiallyOpen": false
+      },
+      "timing": { "readyWithinMs": 3000, "requireAdvancingTime": true },
+      "errors": { "visualChannel": "hidden", "announcement": "aria-live", "interruptPrimary": false },
+      "allowedRenderSurfaces": ["text", "svgText"],
+      "forbiddenRenderSurfaces": ["img", "svgImage", "backgroundImage", "canvas", "pseudoContent", "fontIcon"],
+      "states": ["firstLoad", "primary", "reveal", "settingsOpen", "degraded", "fullscreen"]
+    },
+    "workspace": {
+      "description": "工作台类工具（输入+结果）：保留输入与执行入口。",
+      "caps": {
+        "maxSlots": 4,
+        "allowedSlotKinds": ["time", "date", "primaryInput", "primaryResult"],
+        "maxControls": 6,
+        "maxPersistentControls": 3,
+        "singlePersistentControl": false,
+        "allowedControlRoles": ["exit", "submit", "settings"],
+        "minHitTargetPx": 44
+      },
+      "appearance": { "forbidScroll": false, "forbidDecorativeSurfaces": true },
+      "interaction": { "settingsInitiallyOpen": false },
+      "timing": { "readyWithinMs": 3000, "requireAdvancingTime": false },
+      "errors": { "visualChannel": "hidden", "announcement": "aria-live", "interruptPrimary": false },
+      "allowedRenderSurfaces": ["text", "svgText"],
+      "forbiddenRenderSurfaces": ["img", "svgImage", "backgroundImage", "canvas", "pseudoContent", "fontIcon"],
+      "states": ["firstLoad", "primary", "reveal", "settingsOpen", "degraded", "fullscreen"]
+    }
+  },
+  "legacyDryRunSlugs": ["focus-timer", "time-sync", "ip-reputation"]
+}

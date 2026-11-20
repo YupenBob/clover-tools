@@ -48,6 +48,7 @@ const zh = {
   pauseSound: "暂停提醒音",
   resumeSound: "恢复提醒音",
   fullscreen: "进入全屏",
+  exitProjection: "退出大屏",
   exitFullscreen: "退出大屏",
   fullscreenFallback: "浏览器全屏不可用，已切换页面内大屏",
   wake: "保持屏幕常亮",
@@ -170,6 +171,7 @@ const en: ExamText = {
   pauseSound: "Pause alert sounds",
   resumeSound: "Resume alert sounds",
   fullscreen: "Fullscreen",
+  exitProjection: "Exit large-screen mode",
   exitFullscreen: "Exit fullscreen",
   fullscreenFallback:
     "Browser fullscreen unavailable. Using an in-page large display.",
@@ -297,6 +299,7 @@ const ja: ExamText = {
   pauseSound: "通知音を一時停止",
   resumeSound: "通知音を再開",
   fullscreen: "全画面",
+  exitProjection: "全画面表示を終了",
   exitFullscreen: "大画面を終了",
   fullscreenFallback:
     "全画面を利用できないため、ページ内の大画面に切り替えました。",
@@ -424,6 +427,7 @@ const ko: ExamText = {
   pauseSound: "알림음 일시 중지",
   resumeSound: "알림음 재개",
   fullscreen: "전체 화면",
+  exitProjection: "대형 화면 모드 종료",
   exitFullscreen: "큰 화면 종료",
   fullscreenFallback:
     "브라우저 전체 화면을 사용할 수 없어 페이지 내 큰 화면으로 전환했습니다.",

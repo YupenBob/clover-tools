@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "slug": "exam-clock",
+  "profile": "projector",
+  "i18n": {
+    "module": "src/lib/exam-clock-i18n.ts",
+    "requiredKeys": [
+      "exitProjection",
+      "zone",
+      "fullscreen"
+    ]
+  },
+  "primary": {
+    "root": "#examClock",
+    "slots": [
+      {
+        "id": "time",
+        "kind": "time",
+        "selector": "#ecTime",
+        "required": true,
+        "format": {
+          "pattern": "^\\d{2}:\\d{2}(:\\d{2})?$",
+          "hourCycle": "h23",
+          "showSeconds": false,
+          "timeZone": "Asia/Shanghai",
+          "withinMs": 60000
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "id": "exit",
+      "role": "exit",
+      "selector": "#ecExitProjection",
+      "persistent": true,
+      "iconOnly": true,
+      "i18nKey": "exitProjection",
+      "minHitTargetPx": 44,
+      "placement": "top-right"
+    }
+  ],
+  "appearance": {
+    "maxBackgroundLuminance": 0.02,
+    "minPrimaryFontVh": 20,
+    "foreground": "#ffffff",
+    "background": "#000000"
+  },
+  "interaction": {
+    "autoHideMs": 3000,
+    "revealTriggers": [
+      "pointer",
+      "focus",
+      "keyboard"
+    ],
+    "settingsInitiallyOpen": false,
+    "shortcuts": {
+      "F": "fullscreen",
+      "C": "settings",
+      "Escape": "exit"
+    }
+  },
+  "timing": {
+    "readyWithinMs": 3000,
+    "requireAdvancingTime": true
+  },
+  "errors": {
+    "visualChannel": "hidden",
+    "announcement": "aria-live",
+    "interruptPrimary": false
+  },
+  "states": {
+    "firstLoad": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ]
+    },
+    "primary": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ]
+    },
+    "reveal": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ]
+    },
+    "settingsOpen": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": true
+    },
+    "degraded": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ]
+    },
+    "fullscreen": {
+      "slots": [
+        "time"
+      ],
+      "controls": [
+        "exit"
+      ]
+    }
+  },
+  "renderSurfaces": [
+    {
+      "kind": "text",
+      "selector": "#ecTime",
+      "purpose": "content"
+    }
+  ]
+}

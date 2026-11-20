@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clovertools.cn/schemas/tool-presentation.schema.json",
+  "title": "Tool presentation contract (v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "slug",
+    "profile",
+    "primary",
+    "states",
+    "i18n"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "profile": {
+      "type": "string",
+      "enum": [
+        "projector",
+        "workspace"
+      ]
+    },
+    "i18n": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module"
+      ],
+      "properties": {
+        "module": {
+          "type": "string",
+          "pattern": "^src/[A-Za-z0-9/_.-]+\\.ts$"
+        },
+        "requiredKeys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "primary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "slots"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "pattern": "^#[A-Za-z][A-Za-z0-9_-]*$"
+        },
+        "slots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "time",
+                  "date",
+                  "primaryInput",
+                  "primaryResult"
+                ]
+              },
+              "selector": {
+                "type": "string",
+                "pattern": "^#[A-Za-z][A-Za-z0-9_-]*$"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "format": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 3
+                  },
+                  "hourCycle": {
+                    "type": "string",
+                    "enum": [
+                      "h23",
+                      "h12"
+                    ]
+                  },
+                  "showSeconds": {
+                    "type": "boolean"
+                  },
+                  "timeZone": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_+/-]*$"
+                  },
+                  "withinMs": {
+                    "type": "number",
+                    "minimum": 1000,
+                    "maximum": 600000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "controls": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "role",
+          "selector"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "exit",
+              "submit",
+              "settings"
+            ]
+          },
+          "selector": {
+            "type": "string",
+            "pattern": "^#[A-Za-z][A-Za-z0-9_-]*$"
+          },
+          "persistent": {
+            "type": "boolean"
+          },
+          "iconOnly": {
+            "type": "boolean"
+          },
+          "i18nKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+          },
+          "minHitTargetPx": {
+            "type": "number",
+            "minimum": 24,
+            "maximum": 96
+          },
+          "placement": {
+            "type": "string",
+            "enum": [
+              "top-right",
+              "top-left",
+              "bottom-right",
+              "bottom-left",
+              "inline"
+            ]
+          }
+        }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxBackgroundLuminance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minPrimaryFontVh": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "foreground": {
+          "type": "string",
+          "pattern": "^(#|rgb|hsl)"
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^(#|rgb|hsl)"
+        }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "autoHideMs": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 60000
+        },
+        "revealTriggers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "pointer",
+              "focus",
+              "keyboard"
+            ]
+          }
+        },
+        "settingsInitiallyOpen": {
+          "type": "boolean"
+        },
+        "shortcuts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9+]$"
+          }
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "readyWithinMs": {
+          "type": "number",
+          "minimum": 100,
+          "maximum": 15000
+        },
+        "requireAdvancingTime": {
+          "type": "boolean"
+        }
+      }
+    },
+    "errors": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "visualChannel": {
+          "type": "string",
+          "enum": [
+            "hidden",
+            "revealOverlay"
+          ]
+        },
+        "announcement": {
+          "type": "string",
+          "enum": [
+            "aria-live",
+            "none"
+          ]
+        },
+        "interruptPrimary": {
+          "const": false
+        }
+      }
+    },
+    "states": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary"
+      ],
+      "properties": {
+        "primary": {
+          "$ref": "#/$defs/stateView"
+        },
+        "firstLoad": {
+          "$ref": "#/$defs/stateView"
+        },
+        "reveal": {
+          "$ref": "#/$defs/stateView"
+        },
+        "settingsOpen": {
+          "$ref": "#/$defs/stateView"
+        },
+        "degraded": {
+          "$ref": "#/$defs/stateView"
+        },
+        "fullscreen": {
+          "$ref": "#/$defs/stateView"
+        }
+      }
+    },
+    "renderSurfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "selector"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "svgText",
+              "img",
+              "svgImage",
+              "backgroundImage",
+              "canvas",
+              "pseudoContent",
+              "fontIcon"
+            ]
+          },
+          "selector": {
+            "type": "string",
+            "minLength": 1
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "content",
+              "decorative"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "stateView": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "allowText": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
