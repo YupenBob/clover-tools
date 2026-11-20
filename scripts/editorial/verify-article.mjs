@@ -254,7 +254,8 @@ async function main() {
   const preExisting = new Set(
     (readJson(preExistingFile, null)?.paths ?? []).map((path) => String(path).replace(/\\/g, '/')),
   );
-  const unexpected = unexpectedChanges(config.git.allowedPaths).filter((path) => !preExisting.has(String(path).replace(/\\/g, '/')));
+  const pathOfStatusLine = (line) => String(line).slice(3).trim().replace(/^"|"$/g, '').replace(/\\/g, '/');
+  const unexpected = unexpectedChanges(config.git.allowedPaths).filter((line) => !preExisting.has(pathOfStatusLine(line)));
   if (unexpected.length > 0) errors.push(`出现允许路径之外的改动：${unexpected.slice(0, 8).join('；')}`);
 
   const structure = analyzeStructure(guide.content);

@@ -378,6 +378,7 @@ async function main() {
   const lastMessage = events.items.filter((item) => item.type === 'agent_message').map((item) => item.text ?? '').join('\n');
   const record = {
     stage: options.stage,
+    slug: options.slug ?? null,
     attempt,
     backend: 'codex',
     model: config.model,

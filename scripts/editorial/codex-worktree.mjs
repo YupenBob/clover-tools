@@ -104,7 +104,7 @@ function prepare(options) {
   if (copyIfExists(join(STATE_PATHS.dir, 'prompts'), join(dir, '.editorial', 'prompts'))) inputs.push('.editorial/prompts');
   if (copyIfExists(join(STATE_PATHS.dir, 'tools'), join(dir, '.editorial', 'tools'))) inputs.push('.editorial/tools');
   const runInputs = join(STATE_PATHS.runs, options.run);
-  for (const name of ['source-digests', 'source-manifest.json', 'brief.md']) {
+  for (const name of ['source-digests', 'source-manifest.json', 'brief.md', 'item.json', 'draft-prompt.md']) {
     if (copyIfExists(join(runInputs, name), join(dir, '.editorial', 'runs', options.run, name))) {
       inputs.push(`.editorial/runs/${options.run}/${name}`);
     }
@@ -126,7 +126,7 @@ function prepare(options) {
       '- 所有数字、报错、限制都要写进 `evidence.json`，并标注来源 digest 的编号（如 `[S2]`）。',
       '- 交付前自检（必须全部 exit 0）：',
       '  `node .editorial/tools/precheck-zh.mjs --slug ' + options.slug + ' --draft .editorial/drafts/' + options.slug + ' --strict`',
-      '  `node .editorial/tools/precheck-style.mjs --slug ' + options.slug + ' --draft-dir .editorial/drafts/' + options.slug + ' --strict`',
+      '  `node scripts/editorial/tools/precheck-style.mjs --slug ' + options.slug + ' --draft-dir .editorial/drafts/' + options.slug + ' --strict`',
       '  `node --check scripts/editorial/cases/' + options.slug + '.mjs`',
       '',
     ].join('\n'),
