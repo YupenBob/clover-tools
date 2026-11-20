@@ -300,6 +300,29 @@ confidence ≥0.7 才算通过；任一语言 fail 允许 1 轮修复后复审�
 - **文风**：两种后端共用 `.editorial/prompts/style-zh.md`，由 `precheck-style --strict` 机械执行；
   评审分模型不变、复核员不知道作者是谁，避免「换后端就放水」。
 
+## 四·七、整趟驱动（P5：Codex 干整趟，Lead 只做复核与收尾）
+
+`scripts/editorial/tick-driver.mjs` 把原来人工串接的 ~35 步收进一个确定性脚本，Codex 负责「选源 + 冻结摘录 + 写作 + 自检 + 异常自修」，Lead 只在「独立复核 / 多语复核 / 收尾」上场。
+
+| 相位 | 谁执行 | 产物 / 退出条件 |
+| --- | --- | --- |
+| `prepare` | 宿主 + Codex | `tick-prepare` → 写 `item.json`/`brief.md` → 隔离工作区 → Codex 选源（`web_search`）→ `source-digest` → 写稿 → 自检；宿主跑 import/digest/截图/inject-images/核验/预检，失败把原文回传给同一 Codex 会话修复（默认 1 次） |
+| `gates` | 宿主 | 只重跑确定性门禁（人工恢复用） |
+| `repair` | Codex | 续聊修复门禁失败或复核 blocking |
+| `land` | 宿主 | `apply-draft` → 重建索引 → `verify-article` → 翻译门槛决策 |
+| `i18n` | 宿主 + Codex | tw 机械 + en/ko/ja Codex → 结构字段由宿主补齐（`normalizeTranslations`）→ 待多语复核 |
+| `i18n-apply` | 宿主 | `apply-translations` → 重新 verify → `precheck-i18n` → `--assert-applied` |
+| `finalize` | 宿主 | `check:all` → `stage-changes` → 提交（只提交本趟清单路径）→ 推送 → 部署校验 → `finish-run` |
+
+运行约束（都是踩过的坑）：
+
+- **Codex 额度**：整趟一次约 40–80 万 input（续聊修复一次 100 万+），额度用尽必须「延后本趟」而不是反复重试（`codex-run` 退出码 7 → `deferRun` 释放槽位、队列项回 `ready`）。
+- **队列判重**：`tick-prepare` 会自动跳过「同 slug 已有已发布指南」的选题，避免整趟白跑。
+- **导入语义**：`import-draft` 只做**逐文件合并**（不能整目录替换，否则会抹掉 `guide.json`/截图）；运行目录里除 `source-manifest.json` 外的产物由宿主维护，不导入。
+- **图注入**：`capture` 之后必须跑 `inject-images`，否则正文残留 `[[figure:...]]`，`translate-tw` 会整篇拒绝。
+- **译文结构**：译文只保留 title/description/content/faqs 等可翻译字段，`slug/sources/published/updated/readingMinutes/category/toolSlug` 由宿主从简体稿复制；译文**不写 `seoDescription`**（meta description 用 `description`，tw 40–120 字符、其它 40–160）。
+- **部署跳过陷阱**：`deploy` job 会对比 `git ls-remote refs/heads/main` 与 `GITHUB_SHA`，**推送后 20 分钟内再往 main 推任何提交，会让这一趟部署被 `skipped`**。内容推送后等 CI 走完再推维护提交，或推一个空的 `chore: trigger production deploy` 补部署。
+
 ## 五、选题与需求数据
 
 **GSC 导入**：把 Search Console「效果 → 查询」和「网页」两个 CSV 导出放到 `.editorial/gsc/`（中英文表头均可），
