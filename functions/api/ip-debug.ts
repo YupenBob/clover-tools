@@ -1,37 +1,34 @@
-// TEMPORARY diagnostic endpoint: reproduce the lookup path in production and
-// report each step. Removed immediately after the root cause is found.
-const target = (ip: string) => ({
-  name: "ipwho.is",
-  url: `https://ipwho.is/${encodeURIComponent(ip)}`,
-});
+// TEMPORARY diagnostic endpoint: run the real lookup handler in production and
+// report the thrown error instead of the platform 502 page.
+import { onRequest as reputation } from "./ip-reputation.ts";
 
-export const onRequest = async (context: { request: Request }) => {
-  const steps: unknown[] = [];
-  const ip = new URL(context.request.url).searchParams.get("ip") || "8.8.8.8";
+export const onRequest = async (context: {
+  request: Request;
+  env: { IPAPI_IS_KEY?: string };
+}) => {
+  const url = new URL(context.request.url);
+  const ip = url.searchParams.get("ip") || "8.8.8.8";
+  const report: Record<string, unknown> = { ip };
   try {
-    steps.push({ step: "start", ip });
-    const t = target(ip);
-    steps.push({ step: "url", url: t.url });
-    const started = Date.now();
-    const response = await fetch(t.url, {
-      headers: { Accept: "application/json" },
-      redirect: "manual",
+    const target = new URL("/api/ip-reputation", url);
+    const response = await reputation({
+      request: new Request(target, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "lookup", query: ip }),
+      }),
+      env: context.env ?? {},
     });
-    steps.push({
-      step: "fetch",
-      status: response.status,
-      ms: Date.now() - started,
-    });
-    const text = await response.text();
-    steps.push({ step: "body", length: text.length, head: text.slice(0, 120) });
+    report.status = response.status;
+    report.body = (await response.text()).slice(0, 800);
   } catch (error) {
-    steps.push({
-      step: "error",
+    report.error = {
+      name: (error as Error)?.name,
       message: String((error as Error)?.message ?? error),
-      stack: String((error as Error)?.stack ?? "").slice(0, 800),
-    });
+      stack: String((error as Error)?.stack ?? "").slice(0, 1200),
+    };
   }
-  return new Response(JSON.stringify({ ip, steps }), {
+  return new Response(JSON.stringify(report), {
     headers: { "Content-Type": "application/json; charset=utf-8" },
   });
 };
