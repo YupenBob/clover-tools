@@ -74,7 +74,12 @@ function main() {
   if (!options.run) throw new Error('缺少 --run');
   const manifest = readJson(MANIFEST_FILE(options.run), null);
   if (!manifest) throw new Error(`缺少改动清单：${MANIFEST_FILE(options.run)}（先跑 import-draft/apply-draft）`);
-  const listed = new Set((manifest.files ?? []).map(normalizePath));
+  const config = readJson(join(STATE_PATHS.dir, 'config.json'), {});
+  const allowedPrefixes = config.git?.allowedPaths ?? [];
+  // 清单里可能含 .editorial/ 草稿产物（gitignored）：只暂存仓库内容路径
+  const isRepoPath = (path) =>
+    !path.startsWith('.editorial/') && allowedPrefixes.some((prefix) => path === prefix || path.startsWith(prefix.endsWith('/') ? prefix : `${prefix}`));
+  const listed = new Set((manifest.files ?? []).map(normalizePath).filter(isRepoPath));
   const preExisting = new Set(((readJson(PRE_EXISTING_FILE(options.run), {})?.paths ?? [])).map(normalizePath));
 
   const present = [...listed].filter((path) => existsSync(join(ROOT, path)));

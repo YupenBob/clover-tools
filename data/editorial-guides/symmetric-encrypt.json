@@ -1,0 +1,61 @@
+{
+  "slug": "symmetric-encrypt",
+  "title": "AES 加密原理：从分组变换到 GCM 认证",
+  "description": "从一个明文块说起，区分密钥长度、工作模式和认证标签，再用对称加解密工具复现加密、解密和缺少初始化向量时的提示。",
+  "seoDescription": "AES 加密原理从固定分组和密钥扩展讲起。看明文块如何经过字节替换、行移位、列混合和轮密钥加，了解 ECB 的重复块、CBC 的初始化向量与填充，以及 GCM 的认证标签。用浏览器里的 AES-CBC 样例对照输入、密文和解密结果，再核对 Web Crypto 与 Node.js 之间的标签拼接和认证失败。",
+  "category": "开发实用",
+  "toolSlug": "symmetric-encrypt",
+  "published": "2026-11-20",
+  "updated": "2026-11-20",
+  "readingMinutes": 7,
+  "content": "<p>AES 是对称分组密码。它把固定大小的明文块和密钥送入多轮可逆变换，得到同样大小的密文块，解密使用同一把密钥。实际消息怎么跨块处理、是否验证密文被改过，由工作模式决定。[S1][S2][S3][S4]</p>\n\n<h2>密钥长度和分组长度各管什么</h2>\n<p>AES 每次变换 128 位，也就是 16 字节的数据。AES-128、AES-192、AES-256 的后缀指密钥位数，分别对应 16、24、32 字节。换更长的密钥时，算法处理的每块数据仍是 16 字节。看到配置项写着 AES-256，可以据此检查原始密钥的长度，再单独去查模式要求的参数。[S1]</p>\n<p>区分字节和字符。把密钥写成 Hex 时，同一段字节会变成更长的文本。程序若把 Hex 字符串直接当文本编码，就会得到另一组字节。排查对接问题时，先比较双方解码后的字节数，再确认密钥来源是原始随机字节、编码后的密钥，还是等待派生的口令。</p>\n\n<h2>一个明文块在 AES 内部怎么变化</h2>\n<p>AES 读入一块字节作为状态。进入轮函数前，先用轮密钥与状态逐位异或。轮密钥由原始密钥扩展而来。同一把原始密钥可以产生相同的轮密钥序列，双方因此可以按各自的加解密流程处理同一块数据。[S3]</p>\n<p>普通轮先做字节替换，再移动各行的位置，让原来同一列中的字节有机会进入不同列。接着做列混合，让同列字节共同影响输出，随后将这一轮的轮密钥异或进状态。末轮略过列混合。三个密钥规格对应的轮数依次为 10、12、14，可把它们与固定的分组长度放在一起看。[S1][S3]</p>\n<p>解密按逆向流程恢复数据。这里的可逆性只描述分组变换本身。消息能不能完整还原，还要看接收端怎样取出密文、如何处理参数，以及采用的模式是否要求先通过认证。</p>\n<p>可以用不带填充的单块测试把这层单独拿出来。给三个变体相同的明文块，并分别提供长度匹配的测试密钥，记录加密输出长度，再用各自的密钥解密。长度相同和能够还原是两项独立的检查。前者对应算法的分组规格，后者能发现给错密钥或对错样本的情况。若要确认实现与规范一致，还应把密文结果同已知向量比较。[S1][S3]</p>\n\n<h2>工作模式怎么把单块变换接到消息上</h2>\n<p>ECB 独立处理每个分组。同一把密钥遇到相同的明文块，就会得到相同的密文块。检查时可以把一段由完整重复块组成的测试文本交给 ECB，再按块比较输出。密文即使看着杂乱，重复结构依然能从块间的相等关系看出来。[S2]</p>\n<p>CBC 加密前会把当前明文块与上一密文块异或，首块使用初始化向量 IV。CTR 则用 AES 加密计数器块，再把结果与消息字节异或。看接口时，应确认它要的是 CBC 的 IV，还是 CTR 的计数器参数。相同长度的输入也可能具有不同含义。[S2]</p>\n<p>有了这组对照，再用相同明文与密钥试 CBC。只换 IV，比较首块密文是否变化，然后用新的 IV 解密。两次加密时的差别从首块就能观察到。比较密文时应切成分组后逐段看，只看字符串开头的几个字符容易把编码差异也算进去。这个实验解释的是模式如何准备 AES 的输入。[S1][S2]</p>\n\n<table><thead><tr><th>模式</th><th>复核时看什么</th><th>输出如何比较</th></tr></thead><tbody>\n<tr><td>ECB</td><td>选择内容相同的完整明文块</td><td>比较对应的密文块是否相同</td></tr>\n<tr><td>CBC</td><td>保持明文和密钥，只更改 IV</td><td>观察首个密文块是否变化</td></tr>\n<tr><td>CTR</td><td>取首个计数器块的加密结果</td><td>与明文字节异或后比较输出</td></tr>\n</tbody></table>\n\n<h2>填充和密文编码在哪一步发生</h2>\n<p>用带填充的 CBC 接口时，加密前会把消息补成整块，解密后按相同规则去掉填充。用默认填充做对照，一段正好占满 16 字节的明文会额外增加一个填充块，得到 32 字节密文。跨库时要对齐填充规则，也要对齐参与计算的字节。[S1][S5]</p>\n<p>Hex 和 Base64 出现在加密之后。同一份密文字节可以写成两种字符串，比较前先还原成字节。可以在<a href=\"/tools/dev/base64/\">Base64 编解码</a>工具中用公开样例熟悉编码，再看加解密接口究竟收文本还是字节。若需求是计算摘要，可以试<a href=\"/tools/dev/hash/\">哈希计算</a>，它的输出用于比对，AES 则有使用密钥恢复原文的流程。</p>\n<p>用中文文本做接口测试时，填充依据的是编码后的字节数。可以在加密前打印字节长度，再用内容不同、字节长度相同的样本对照输出长度。排查时把明文编码、填充与密文编码写成独立字段，就能避免把输出格式的选择误当成输入字符集的选择。</p>\n\n<h2>GCM 为什么同时输出密文和认证标签</h2>\n<p>GCM 用 AES 处理计数器以加密消息，同时生成认证标签。双方还可约定附加认证数据 AAD，例如需要明文传输的记录类型。它参与认证，仍由协议单独传递。接收端传入的 AAD 字节一旦不同，正常密文也过不了验证。[S4][S6]</p>\n<p>使用所引 RFC 的 AES-GCM 配置时，nonce 是 12 字节，标签是 16 字节。同一把密钥下，每次加密必须使用不同的 nonce。解密时则要取回该条消息原先使用的值。记录格式里应有明确的存放位置，让接收方可以逐条取回。[S6]</p>\n<p>设计消息格式时，写清楚哪些字段属于 AAD，以及序列化的顺序与编码。发送端若认证的是原始字段字节，接收端就要用同样的表示。即便两端解析出同样的对象，重新排版或改变字段顺序也会改变送入认证的字节。把这类差异放进对接测试，比只测明文能否往返更容易发现问题。[S4][S6]</p>\n\n<h2>跨接口传输时，标签放在哪里</h2>\n<p>同一条 GCM 消息传到另一套库，先核对两边怎样表示密文和标签。Web Crypto 把标签接在密文末尾，Node.js 的 <code>node:crypto</code> 则可通过 <code>getAuthTag()</code> 单独取出标签，解密时用 <code>setAuthTag()</code> 交回。[S4][S5]</p>\n<p>如果手上是拼接后的字节，拆分点取决于约定的标签长度。把两段传入 Node.js 后，以 <code>final()</code> 是否成功作为认证结果。标签缺失或密文被修改时，最终调用会抛错，应丢弃已经读到的解密字节。Web Crypto 遇到认证失败会拒绝并给出 <code>OperationError</code>。[S4][S5]</p>\n<p>可以先让发送端保存密文和标签的字节长度，再让接收端记录实际收到的长度。这样能找出重复拼接、少传标签或截错边界等问题。改动标签的测试应保留原密文、密钥、IV 以及 AAD，便于把失败定位到标签校验这一步。[S4][S5]</p>\n\n<h2>在工具页复现一次 CBC 加解密</h2>\n<p>打开<a href=\"/tools/dev/symmetric-encrypt/\">对称加解密</a>，选 AES、CBC 和 Hex，密钥栏填公开测试口令，明文填 <code>AES demo</code>。IV 使用任意一段长 32 个字符的测试用 Hex，例如用字母 <code>a</code> 填满。点「加密」，输出框会出现 Hex 密文，状态显示「加密完成」。固定参数只用于复跑样例。[S1][S2]</p>\n<figure><a href=\"/article-images/2026-11/symmetric-encrypt-cbc-encrypt.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：加解密配置面板的明文框显示 AES demo，按钮下方显示加密完成，输出结果面板内有一行十六进制密文。\"><img src=\"/article-images/2026-11/symmetric-encrypt-cbc-encrypt.jpg\" alt=\"加解密配置面板的明文框显示 AES demo，按钮下方显示加密完成，输出结果面板内有一行十六进制密文。\" width=\"1232\" height=\"1001\" loading=\"lazy\" decoding=\"async\"></a><figcaption>配置面板选中 AES、CBC 和 Hex，状态显示「加密完成」，输出框显示十六进制密文。 点击图片可查看原图。</figcaption></figure>\n<p>把密文贴回输入框，保持口令、模式和 IV 一致，再点「解密」。输出框会回到 <code>AES demo</code>。工具会把口令派生成 256 位密钥，派生使用固定盐，哈希函数为 MD5，迭代参数为 1。拿同一串口令直接作为别的库的原始 AES 密钥，无法复现这条链路。[S1]</p>\n<figure><a href=\"/article-images/2026-11/symmetric-encrypt-cbc-decrypt.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"查看大图：加解密配置面板的输入框显示一行十六进制密文，按钮下方显示解密完成，输出结果面板内写着 AES demo。\"><img src=\"/article-images/2026-11/symmetric-encrypt-cbc-decrypt.jpg\" alt=\"加解密配置面板的输入框显示一行十六进制密文，按钮下方显示解密完成，输出结果面板内写着 AES demo。\" width=\"1232\" height=\"1001\" loading=\"lazy\" decoding=\"async\"></a><figcaption>配置面板的输入框显示十六进制密文，状态显示「解密完成」，输出框显示 AES demo。 点击图片可查看原图。</figcaption></figure>\n\n<h2>边界与限制</h2>\n<p>这个工具的模式菜单没有 GCM，CBC 输出也只有密文字节。页面适合用公开数据观察分组模式与输入输出。需要带认证的交付格式时，在使用方的接口中对齐 GCM 及标签传输方式。CBC 页面显示「解密完成」，只能说明页面拿到了可输出的文本。[S2][S4]</p>\n<p>清空 CBC 的 IV 后再点「加密」，页面报「加密失败：该模式需要填写十六进制 IV（偏移量）」。输入框的提示写着「留空则自动生成」，实际走的是必填检查。之前成功生成的结果仍可能留在输出框，应同时核对本次操作的状态。</p>\n<p>页面解密时按文本外观判断编码。全由十六进制字符组成的输入会走 Hex 解析，其余走 Base64。对接已有密文时可在发送端明确转出 Hex，保留参数与编码记录，避免一段 Base64 恰好只用了 Hex 字符而被误读。</p>\n\n<h2>对接时按哪一层排查</h2>\n<p>先用公开样本跑通加解密，再逐项替换真实接口中的参数。每次只换一项，并保存输入的字节表示与返回状态。这样能看出问题出在编码、密码参数还是认证。</p>\n<ul>\n<li>密钥长度对不上时，检查十六进制有没有解码，或两端是否都做了口令派生。</li>\n<li>还原文本不一致时，对齐模式、IV、填充和明文字节编码，再对照密文字节。</li>\n<li>GCM 认证失败时，检查该条消息原有的 nonce、AAD 与标签是否完整传入。[S4][S5][S6]</li>\n</ul>\n<p>记录成功样本时，把参数和输出字段一起写进测试。再准备一个只修改标签的样本，确认接收端在认证失败时确实拒绝输出明文。[S4][S5]</p>",
+  "faqs": [
+    {
+      "q": "AES 密钥更长，分组也更长吗？",
+      "a": "AES 的分组长度固定为 128 位，变体名称中的后缀表示密钥位数。[S1]"
+    },
+    {
+      "q": "CBC 解密有输出就能确认密文未经修改吗？",
+      "a": "CBC 提供保密性。要验证内容完整性，应使用协议约定的认证机制，例如 GCM 的认证标签。[S2][S4]"
+    }
+  ],
+  "sources": [
+    {
+      "title": "NIST FIPS 197 — Advanced Encryption Standard",
+      "url": "https://csrc.nist.gov/pubs/fips/197/final"
+    },
+    {
+      "title": "NIST SP 800-38A — Block Cipher Modes",
+      "url": "https://csrc.nist.gov/pubs/sp/800/38/a/final"
+    },
+    {
+      "title": "OpenSSL — AES round and key expansion implementation",
+      "url": "https://github.com/openssl/openssl/blob/master/crypto/aes/aes_core.c"
+    },
+    {
+      "title": "W3C Web Cryptography API — AES-GCM",
+      "url": "https://w3c.github.io/webcrypto/#aes-gcm"
+    },
+    {
+      "title": "Node.js Crypto — Authentication Tag",
+      "url": "https://nodejs.org/api/crypto.html#deciphersetauthtagbuffer-encoding"
+    },
+    {
+      "title": "RFC 5116 — Authenticated Encryption",
+      "url": "https://www.rfc-editor.org/rfc/rfc5116.html"
+    }
+  ],
+  "image": "/article-images/2026-11/symmetric-encrypt-cbc-encrypt.jpg",
+  "_meta": {
+    "auto": true,
+    "mode": "new-guide",
+    "type": "new-guide",
+    "runId": "2026-11-21Tmanual-2218",
+    "primaryQuery": "aes加密原理",
+    "reviewerVerdict": "pass",
+    "reviewerConfidence": 0.87,
+    "reviewer": "deepseek-subagent",
+    "reviewerRunId": "2026-11-21Tmanual-2218",
+    "verifiedAt": "2026-11-20T22:38:09.796Z"
+  }
+}
