@@ -840,7 +840,7 @@ function normalizeTranslations(slug, langs) {
 /** 多语复核写回 _meta.translation 之后：落盘译文 + 机械预检 + 强校验。 */
 function i18nApply(options) {
   const config = loadConfig();
-  const state = requireRun(options, ['needs-i18n-review', 'i18n-apply', 'failed']);
+  const state = requireRun(options, ['needs-i18n-review', 'needs-i18n', 'i18n-apply', 'failed']);
   const { runKey, slug } = state;
   const langs = config.translation?.languages ?? ['tw', 'en', 'ko', 'ja'];
   const fail = (name, detail) => {
