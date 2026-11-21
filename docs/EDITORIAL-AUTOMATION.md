@@ -306,7 +306,7 @@ confidence ≥0.7 才算通过；任一语言 fail 允许 1 轮修复后复审�
 
 | 相位 | 谁执行 | 产物 / 退出条件 |
 | --- | --- | --- |
-| `prepare` | 宿主 + Codex | `tick-prepare` → 写 `item.json`/`brief.md` → 隔离工作区 → Codex 选源（`web_search`）→ `source-digest` → 写稿 → 自检；宿主跑 import/digest/截图/inject-images/核验/预检，失败把原文回传给同一 Codex 会话修复（默认 1 次） |
+| `prepare` | 宿主 + Codex | `tick-prepare` → 写 `item.json`/`brief.md` → 隔离工作区 → Codex 选源（`web_search`）→ `source-digest` → 写稿 → 自检；宿主跑 import/digest/截图/inject-images/核验/预检，失败则开**新 Codex 会话 + 最小上下文**修复（只给失败文件与报错，默认 1 次；`--repair-resume` 才续聊旧会话） |
 | `gates` | 宿主 | 只重跑确定性门禁（人工恢复用） |
 | `repair` | Codex | 续聊修复门禁失败或复核 blocking |
 | `land` | 宿主 | `apply-draft` → 重建索引 → `verify-article` → 翻译门槛决策 |

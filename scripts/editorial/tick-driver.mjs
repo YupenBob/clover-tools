@@ -39,6 +39,7 @@ function parseArgs(argv) {
     else if (arg === '--feedback') options.feedback = argv[++index];
     else if (arg === '--max-repairs') options.maxRepairs = Number(argv[++index]);
     else if (arg === '--force') options.force = true;
+    else if (arg === '--repair-resume') options.repairResume = true;
     else if (arg === '--json') options.json = true;
     else if (arg === '--dry-run') options.dryRun = true;
     else if (arg === '-h' || arg === '--help') options.help = true;
@@ -213,6 +214,14 @@ function composeRepairPrompt(runKey, slug, state, options) {
       lines.push('');
     }
   }
+  lines.push('## 你可以改的文件（工作区内的相对路径）');
+  lines.push('');
+  lines.push(`- \`.editorial/drafts/${slug}/guide.json\`、\`.editorial/drafts/${slug}/evidence.json\``);
+  lines.push(`- \`.editorial/drafts/${slug}/outputs/*\`、\`reproduce.md\`、\`node-evidence.mjs\`、\`browser-evidence.mjs\``);
+  lines.push(`- \`.editorial/runs/${runKey}/source-manifest.json\``);
+  lines.push('');
+  lines.push('先用 shell 读你需要的片段（不要整篇打印），确认问题所在再改；改完重跑对应的自检命令。');
+  lines.push('');
   lines.push('## 硬约束');
   lines.push('');
   lines.push('- 不要重写整篇；不要改白名单、门禁、配置、`.editorial/tools/`；不要删除 `guide.json` / `evidence.json`（缺文件会被判产物缺失）。');
@@ -360,13 +369,14 @@ function repair(runKey, slug, state, options) {
   writeFileSync(promptFile, composeRepairPrompt(runKey, slug, state, options));
   const session = codexSession(runKey);
   const threadId = session.stages?.draft?.threadId ?? session.threadId;
-  if (!threadId) throw new Error('缺少 codex thread id，无法续聊修复（先跑 prepare）');
+  const resumeMode = options.repairResume === true;
+  if (resumeMode && !threadId) throw new Error('缺少 codex thread id，无法续聊修复（先跑 prepare）');
   const timeoutMinutes = config.codex?.timeoutMinutes?.repair ?? 12;
   const args = [
     '--stage', 'repair',
     '--run', runKey,
     '--slug', slug,
-    '--resume', threadId,
+    ...(resumeMode ? ['--resume', threadId] : []),
     '--prompt-file', promptFile,
     '--cwd', worktree,
     '--network',
