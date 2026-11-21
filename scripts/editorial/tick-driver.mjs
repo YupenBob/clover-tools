@@ -612,6 +612,18 @@ function land(options) {
   const config = loadConfig();
   const state = requireRun(options, ['awaiting-review', 'landing', 'needs-i18n', 'needs-i18n-review', 'finalizing', 'failed']);
   const { runKey, slug } = state;
+  // 草稿可能来自更早的排练：把 _meta.runId 归一到本趟，translate-tw / apply-translations 会校验它
+  try {
+    const guideFile = join(STATE_PATHS.drafts, slug, 'guide.json');
+    const guide = readJson(guideFile, null);
+    if (guide?._meta && guide._meta.runId !== runKey) {
+      guide._meta.runId = runKey;
+      writeJson(guideFile, guide);
+      log(runKey, `normalized draft _meta.runId ${guide._meta.runId ?? '(none)'} -> ${runKey}`);
+    }
+  } catch {
+    // 忽略
+  }
   const meta = injectReviewMeta(runKey, slug);
   log(runKey, `land review-meta ${meta.ok ? 'ok' : meta.reason}`);
   if (!meta.ok) {
