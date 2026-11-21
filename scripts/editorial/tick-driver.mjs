@@ -22,7 +22,8 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileS
 import { dirname, join, resolve } from 'node:path';
 import { ROOT, STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
-import { statusPorcelain } from './lib/git.mjs';
+import { pushMain, readToken, statusPorcelain } from './lib/git.mjs';
+import * as gitLib from './lib/git.mjs';
 import { loadQueue, markQueueItem } from './lib/state.mjs';
 import { addTouched } from './lib/touched.mjs';
 
@@ -878,6 +879,34 @@ function i18nApply(options) {
   emit({ ok: true, phase: 'i18n-apply', runKey, slug, langs, title: `tick-driver: 译文已落盘（${langs.join('/')}）→ 下一步 finalize` }, EXIT.ok, options);
 }
 
+/** 把「工具/文档类维护提交」先推掉（否则 push-main 会把它们当成越权改动而拒绝整个内容推送）。 */
+function pushMaintenanceCommits(runKey, config) {
+  const { commitsAhead } = gitLib;
+  let ahead = [];
+  try {
+    ahead = commitsAhead();
+  } catch {
+    return { pushed: 0, skipped: 'no-git' };
+  }
+  const MAINTENANCE_PREFIXES = ['scripts/editorial/', 'docs/', '.github/', '.editorial/'];
+  const maintenance = ahead.filter((commit) => {
+    if (commit.authorEmail !== config.git.authorEmail) return false;
+    return commit.paths.length > 0 && commit.paths.every((path) => MAINTENANCE_PREFIXES.some((prefix) => path.startsWith(prefix)));
+  });
+  if (maintenance.length === 0 || maintenance.length !== ahead.length) {
+    log(runKey, `maintenance push skipped (ahead=${ahead.length}, maintenance=${maintenance.length})`);
+    return { pushed: 0 };
+  }
+  try {
+    pushMain(readToken(), config);
+    log(runKey, `pushed ${maintenance.length} maintenance commit(s)`);
+    return { pushed: maintenance.length };
+  } catch (error) {
+    log(runKey, `maintenance push failed: ${error.message}`);
+    return { pushed: 0, error: error.message };
+  }
+}
+
 function finalize(options) {
   const config = loadConfig();
   const state = requireRun(options, ['finalizing', 'finalize', 'landing']);
@@ -959,6 +988,9 @@ function finalize(options) {
   state.steps.commit = sha;
   saveState(state);
 
+  // 维护提交（scripts/、docs/ 等非内容路径）由本次运行自己产生，不属于「越权内容」：
+  // 先单独把它们推上去，内容提交才能通过 push-main 的路径校验。
+  const maintenance = pushMaintenanceCommits(runKey, config);
   const push = sh('scripts/editorial/push-main.mjs', [], { timeoutMs: 5 * 60_000 });
   log(runKey, `finalize push code=${push.code}`);
   if (push.code !== 0) {
