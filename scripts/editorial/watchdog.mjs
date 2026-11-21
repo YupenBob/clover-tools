@@ -68,6 +68,18 @@ function pendingDeployRuns(today, maxAgeDays = 2) {
   return { recent: recent.sort(), stale: stale.sort() };
 }
 
+/** 统计当天真正发布成功的 run 数（读 run 记录里的 status）。 */
+function countPublishedForDate(date) {
+  if (!existsSync(STATE_PATHS.runs)) return 0;
+  let count = 0;
+  for (const name of readdirSync(STATE_PATHS.runs)) {
+    if (!name.endsWith('.json') || !name.startsWith(`${date}T`)) continue;
+    const record = readJson(join(STATE_PATHS.runs, name), null);
+    if (record?.status === 'published') count += 1;
+  }
+  return count;
+}
+
 function promoteTopCandidate(queue) {
   const candidates = queue.items.filter((item) => item.status === 'candidate');
   if (candidates.length === 0) return null;
@@ -134,6 +146,8 @@ function main() {
   // 4. 当天配额
   const runsToday = countRunsForDate(slotInfo.date);
   details.runsToday = runsToday;
+  // 已发篇数单独暴露：失败/延后的尝试会占用当日趟数，需要能一眼看出「跑了几趟、发了几篇」
+  details.publishedToday = countPublishedForDate(slotInfo.date);
   if (runsToday >= config.maxArticlesPerDay) return finish(false, 'daily-limit-reached', { runsToday, max: config.maxArticlesPerDay });
 
   // 5. 工作区脏（只记录，不唤醒：多半是同一仓库里别的任务在写，模型也无法安全处理）
