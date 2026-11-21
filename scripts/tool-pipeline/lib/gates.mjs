@@ -401,9 +401,14 @@ export async function runGates({ worktree, base, item, config, runDir, env = {},
 
   // Presentation contract: the tool this run produced must declare its primary
   // mode, and every declared config must stay valid against the shared policy.
+  // 管线在独立 worktree 里产出工具，必须读 worktree 的配置与注册表；
+  // 用主 checkout（REPO）会把"本轮新工具尚未合入"误判成缺配置。
   const presentationIssues = [
-    ...requireManaged({ slug: item.slug }),
-    ...validatePresentationContract({ toolSlugs: registeredToolSlugs() }),
+    ...requireManaged({ repo: worktree, slug: item.slug }),
+    ...validatePresentationContract({
+      repo: worktree,
+      toolSlugs: registeredToolSlugs(worktree),
+    }),
   ];
   add({
     label: 'presentation',
