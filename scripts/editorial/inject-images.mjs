@@ -40,9 +40,34 @@ function main() {
     byName.set(stem.replace(`${options.slug}-`, ''), entry);
   }
 
+  // 兜底：作者可能直接写了 <figure><img src="/article-images/...">（没有占位符）——
+  // 这里按 captures.json 补齐 width/height/alt，否则 apply-draft 的静态校验会拒绝。
+  const normalizeExistingFigures = () => {
+    const byFile = new Map(captures.map((entry) => [`/article-images/${month}/${entry.file}`, entry]));
+    const content = String(guide.content ?? '');
+    let patched = 0;
+    const next = content.replace(/<img\b[^>]*src="(\/article-images\/[^"]+)"[^>]*>/g, (tag, src) => {
+      const entry = byFile.get(src);
+      if (!entry) return tag;
+      let out = tag;
+      if (!/\bwidth="\d+"/.test(out)) out = out.replace(/<img\b/, `<img width="${entry.width}"`);
+      if (!/\bheight="\d+"/.test(out)) out = out.replace(/<img\b/, `<img height="${entry.height}"`);
+      if (!/\balt="/.test(out) && entry.alt) out = out.replace(/<img\b/, `<img alt="${escapeHtml(entry.alt)}"`);
+      if (out !== tag) patched += 1;
+      return out;
+    });
+    if (patched > 0) {
+      guide.content = next;
+      writeJsonAtomic(guideFile, guide);
+    }
+    return patched;
+  };
+
   const placeholders = [...String(guide.content ?? '').matchAll(/\[\[figure:([a-z0-9-]+)\|([^\]]*)\]\]/gi)];
   if (placeholders.length === 0) {
-    if (captures.length > 0) console.error(`提醒：草稿有 ${captures.length} 张截图，但正文没有 [[figure:...]] 占位符`);
+    const repaired = normalizeExistingFigures();
+    if (captures.length > 0) console.error(`提醒：草稿有 ${captures.length} 张截图，但正文没有 [[figure:...]] 占位符；已按 captures.json 补齐 ${repaired} 张图的宽高`);
+    else console.error('提醒：草稿没有截图，正文也没有占位符');
     return;
   }
   if (captures.length === 0) throw new Error('正文包含 [[figure:...]]，但没有 captures.json（截图未捕获）');
