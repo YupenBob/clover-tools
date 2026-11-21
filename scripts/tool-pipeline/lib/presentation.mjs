@@ -69,8 +69,20 @@ export function validateSchema(value, schema, root = schema, path = '$') {
   if (isObject(value)) {
     for (const key of schema.required ?? []) if (!(key in value)) fail(`missing required key "${key}"`);
     const props = schema.properties ?? {};
+    if (schema.propertyNames) {
+      for (const key of Object.keys(value)) {
+        if (schema.propertyNames.pattern && !new RegExp(schema.propertyNames.pattern, 'u').test(key))
+          fail(`key "${key}" does not match ${schema.propertyNames.pattern}`);
+      }
+    }
     if (schema.additionalProperties === false) {
       for (const key of Object.keys(value)) if (!(key in props)) fail(`unexpected key "${key}"`);
+    } else if (schema.additionalProperties && typeof schema.additionalProperties === 'object') {
+      // 值也要按声明校验：否则 {按键: 动作} 这类映射的取值可以随意写宽。
+      for (const [key, item] of Object.entries(value)) {
+        if (key in props) continue;
+        issues.push(...validateSchema(item, schema.additionalProperties, root, `${path}.${key}`));
+      }
     }
     for (const [key, childSchema] of Object.entries(props)) {
       if (key in value) issues.push(...validateSchema(value[key], childSchema, root, `${path}.${key}`));

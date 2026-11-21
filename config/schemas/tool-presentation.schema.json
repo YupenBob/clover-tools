@@ -233,9 +233,12 @@
         },
         "shortcuts": {
           "type": "object",
+          "propertyNames": {
+            "pattern": "^[A-Za-z0-9+]{1,16}$"
+          },
           "additionalProperties": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9+]$"
+            "pattern": "^[a-z][a-z0-9-]{0,31}$"
           }
         }
       }

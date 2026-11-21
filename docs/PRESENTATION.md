@@ -2,6 +2,9 @@
 
 工具必须声明一个 **primary mode**：用户打开页面后最快完成核心任务的画面。契约保证"投影/大屏场景下屏幕上只有声明过的东西"。
 
+
+`interaction.shortcuts` 一律是「按键 → 动作」（如 `"S": "settings"`、`"F": "fullscreen"`、`"Escape": "exit"`），值必须是动作名；schema 用 `propertyNames` 校验按键名、`additionalProperties` 校验动作名，校验器两者都检查。共享 runner 的 `shortcutFor(config, action)` 按值反查键位。
+
 ## 文件与单一来源
 
 | 文件 | 作用 |
