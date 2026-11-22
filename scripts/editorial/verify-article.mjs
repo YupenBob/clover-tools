@@ -134,6 +134,11 @@ async function main() {
   // 来源覆盖（Lead 实际抓取）
   const sourceResults = readJson(join(runDir, 'sources.json'), []) ?? [];
   const verifiedSources = new Map(sourceResults.map((result) => [result.url, result]));
+  // 摘要编号 → URL（写作后端可能用 `[S1]` 而非 URL 作为 ref）
+  const digestRecord = readJson(join(runDir, 'source-digest.json'), null);
+  const digestIdToUrl = new Map(
+    (digestRecord?.sources ?? []).filter((entry) => entry?.id && entry?.url).map((entry) => [String(entry.id).toUpperCase(), entry.url]),
+  );
   errors.push(...validateSourceCoverage(guide, verifiedSources).errors);
 
   // 证据包
@@ -153,6 +158,7 @@ async function main() {
     const evidenceResult = validateEvidence(evidence, {
       config,
       verifiedSources,
+      digestIdToUrl,
       verifiedRuns,
       fileExists: (repoPath) => existsSync(join(ROOT, repoPath)),
       readLineCount,

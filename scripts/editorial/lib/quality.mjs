@@ -535,9 +535,16 @@ export function validateEvidence(evidence, ctx) {
       continue;
     }
     if (claim.type === 'source') {
-      const verified = ctx.verifiedSources?.get(claim.ref);
-      if (!verified) errors.push(`证据 ${claim.id} 的来源未实际抓取：${claim.ref}`);
-      else if (verified.status !== 200) errors.push(`证据 ${claim.id} 的来源返回 ${verified.status}：${claim.ref}`);
+      // ref 允许三种写法：URL、`[S1]` 摘要编号（配 url 或 digest 表）、裸 `S1`。
+      // 写作后端的实现不同（Codex 习惯写编号），这里统一解析，避免「明明抓过却判未抓取」。
+      const refText = String(claim.ref ?? '').trim();
+      const digestId = refText.match(/^\[?(S\d+)\]?$/i)?.[1]?.toUpperCase();
+      const resolvedRef = digestId
+        ? ctx.digestIdToUrl?.get(digestId) ?? (typeof claim.url === 'string' && claim.url ? claim.url : refText)
+        : refText;
+      const verified = ctx.verifiedSources?.get(resolvedRef);
+      if (!verified) errors.push(`证据 ${claim.id} 的来源未实际抓取：${claim.ref}${resolvedRef !== refText ? `（解析为 ${resolvedRef}）` : ''}`);
+      else if (verified.status !== 200) errors.push(`证据 ${claim.id} 的来源返回 ${verified.status}：${resolvedRef}`);
     }
     if (claim.type === 'code') {
       const match = String(claim.ref ?? '').match(/^(.+?):(\d+)$/);
