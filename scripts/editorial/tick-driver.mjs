@@ -961,6 +961,10 @@ function finalize(options) {
   const scope = sh('scripts/editorial/check-workspace-scope.mjs', ['--run', runKey], { timeoutMs: 5 * 60_000 });
   if (scope.code !== 0) fail('check-workspace-scope', `${scope.out}\n${scope.err}`);
 
+  // 顺序很关键：维护提交（本次运行对 scripts/ 的改动）必须在创建内容提交之前推掉，
+  // 否则内容提交一产生，push-main 就会把维护提交判成「越权内容」而拒绝整条推送。
+  pushMaintenanceCommits(runKey, config);
+
   const title = readJson(join(ROOT, 'data/editorial-guides', `${slug}.json`), {})?.title ?? slug;
   // 只提交本趟清单里的仓库内容路径；用 --only 防止把别处残留的已暂存文件一起卷进内容提交
   const touched = readJson(join(runDir(runKey), 'touched.json'), { files: [] });
@@ -988,9 +992,6 @@ function finalize(options) {
   state.steps.commit = sha;
   saveState(state);
 
-  // 维护提交（scripts/、docs/ 等非内容路径）由本次运行自己产生，不属于「越权内容」：
-  // 先单独把它们推上去，内容提交才能通过 push-main 的路径校验。
-  const maintenance = pushMaintenanceCommits(runKey, config);
   const push = sh('scripts/editorial/push-main.mjs', [], { timeoutMs: 5 * 60_000 });
   log(runKey, `finalize push code=${push.code}`);
   if (push.code !== 0) {
