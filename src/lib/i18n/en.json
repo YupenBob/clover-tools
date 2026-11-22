@@ -914,6 +914,18 @@
         "hosting flag",
         "Tor node lookup"
       ]
+    },
+    "json-to-sql": {
+      "name": "JSON to SQL",
+      "oneLiner": "Generate INSERT, UPDATE and DDL with exact numbers and validated primary keys.",
+      "description": "Convert JSON to MySQL, PostgreSQL or SQLite scripts with batching, primary-key UPDATE, DDL and source errors. Runs locally without a database connection.",
+      "keywords": [
+        "JSON to SQL",
+        "JSON to INSERT",
+        "JSON to UPDATE",
+        "JSON to CREATE TABLE",
+        "json2sql"
+      ]
     }
   },
   "content": {
@@ -2916,6 +2928,77 @@
           }
         ],
         "privacy": "After submission the browser contacts only /api/ip-reputation. The server sends the selected public IP to fixed databases; a domain first goes only to Cloudflare DNS. Application code does not log visitor IPs or forward visitor headers. Hosting infrastructure still processes connection data, and providers may process queries under their policies. Server caching is brief. clover-ip-reputation:v1 stores only the last ten allowlisted snapshots in this browser and can be cleared. No keys, raw responses or clipboard contents are stored."
+      }
+    },
+    "json-to-sql": {
+      "usage": "Paste an object or a nonempty object array and inspect fields across every record. Select a dialect, mode and nesting policy, then click Generate SQL or press Ctrl/Cmd + Enter. Review column types, missing fields, nulls and WHERE conditions before copying or downloading. Samples only fill the input.",
+      "features": [
+        {
+          "icon": "database",
+          "text": "Identifier quoting and string escaping for three SQL dialects"
+        },
+        {
+          "icon": "braces",
+          "text": "Exact number tokens, complete primary-key validation and source locations"
+        },
+        {
+          "icon": "shield-check",
+          "text": "Batched INSERT, per-record UPDATE and schema inference across all records"
+        }
+      ],
+      "detail": {
+        "intro": "Map API responses and test fixtures to one relational table and generate scripts for manual review. Use json-codegen for program types, json-convert for spreadsheet text, sql-formatter for existing SQL and json-formatter for JSON validation. This tool adds SQL statements, primary-key conditions and database types.",
+        "steps": [
+          "Paste a JSON object or nonempty object array. After analysis, inspect source paths, inferred types, SQL types, missing counts and explicit null counts.",
+          "Choose PostgreSQL, MySQL or SQLite, a table name, batch size and nesting policy. UPDATE requires one explicitly selected, complete and unique string or integer key.",
+          "Generate SQL. Input errors include source line, column and path; Locate input selects the original range. Setting errors focus the corresponding control.",
+          "Review the target schema, collation and WHERE conditions, then copy or download UTF-8 SQL without a BOM. Editing input or settings immediately clears the old result."
+        ],
+        "principles": [
+          "The parser preserves key order, numeric tokens and UTF-16 source ranges without converting numbers to Number. Columns follow first occurrence; integers and decimals can merge, other conflicts require rejection or explicit text conversion.",
+          "INSERT uses NULL for both missing and null values. UPDATE skips missing fields and clears explicit nulls. The primary key appears only in WHERE; integer duplicate checks compare exact values.",
+          "Containers default to compact JSON text. Flattening expands nonempty objects while arrays remain text. Dotted column names are quoted as a whole. Path collisions and object/scalar conflicts fail.",
+          "DDL uses all records, without auto-increment, indexes, foreign keys or defaults. Keys are independently validated. MySQL string keys use VARCHAR(255) and tables declare utf8mb4."
+        ],
+        "pitfalls": [
+          "Limited to one table, one primary key and three modes. Generated DDL is a sample-based draft, without checking existing constraints, permissions, capacity or collation. SQL is never executed.",
+          "Limits: 1,048,576 UTF-8 input bytes, 5,000 rows, 200 columns, 100,000 cells, depth 32 and 200,000 nodes. Output limit: 8,388,608 UTF-8 bytes. Exceeding a limit fails the whole task.",
+          "Precision is at most 38 and scale at most 18. SQLite rejects integers outside signed 64-bit range; REAL uses floating point. Identifiers are at most 63 UTF-8 bytes, without padding, controls or unpaired surrogates.",
+          "Date recognition is off by default. When enabled it recognizes valid YYYY-MM-DD and UTC timestamps ending in Z using fixed UTC rules. MySQL DATETIME text means UTC. Local and offset timestamps remain strings."
+        ],
+        "privacy": "Input, analysis and generation stay in this browser; the local Worker is a same-origin static module. Tool operations make no business network requests, log no input or SQL and use no persistent storage. Copy and Blob downloads require user action. Refresh resets data and settings. Site assets and language/theme preferences are outside this tool data boundary.",
+        "faqs": [
+          {
+            "q": "Why do missing fields and null behave differently in UPDATE?",
+            "a": "A missing field supplies no replacement, so it is skipped. Explicit null requests clearing. Keys appear only in WHERE; a missing, null or duplicate key fails the whole task."
+          },
+          {
+            "q": "Why not parse long integers as JavaScript Number?",
+            "a": "Number cannot represent every integer outside the safe integer range exactly. Tokens, string operations and BigInt preserve values such as 9007199254740993."
+          },
+          {
+            "q": "Is generated CREATE TABLE a production database design?",
+            "a": "No. Types and nullability describe the current sample only. Business constraints, access patterns, indexes and migration strategy require a separate review."
+          },
+          {
+            "q": "Does the tool connect to a database or execute SQL?",
+            "a": "No. Generation, copying and downloading happen in the browser. The tool does not connect to databases or validate execution against a target database."
+          }
+        ],
+        "examples": [
+          {
+            "label": "Synthetic: one-row INSERT (defaults)",
+            "input": "{\"id\":1,\"active\":true}",
+            "output": "-- SQL\nINSERT INTO \"records\" (\"id\", \"active\") VALUES\n  (1, TRUE);",
+            "outputFormat": "code"
+          },
+          {
+            "label": "Synthetic: UPDATE explicit null (key id)",
+            "input": "{\"id\":1,\"name\":null}",
+            "output": "-- SQL\nUPDATE \"records\" SET \"name\" = NULL WHERE \"id\" = 1;",
+            "outputFormat": "code"
+          }
+        ]
       }
     }
   }

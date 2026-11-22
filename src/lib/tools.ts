@@ -52,6 +52,16 @@ export const CATEGORIES: CategoryMeta[] = [
 export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   dev: [
     {
+      slug: 'json-to-sql',
+      name: 'JSON 转 SQL',
+      oneLiner: '对象数组生成 INSERT、UPDATE 与建表语句，核对精确数字和主键条件。',
+      description: '将 JSON 对象或对象数组转为 MySQL、PostgreSQL、SQLite 脚本，支持分批 INSERT、主键 UPDATE、建表、嵌套处理与错误定位。所有转换在当前浏览器内完成，不连接数据库。',
+      keywords: ['JSON 转 SQL', 'JSON 生成 INSERT', 'JSON 转 UPDATE', 'JSON 转建表语句', 'JSON to SQL', '对象数组转 SQL'],
+      icon: 'database',
+      tier: 'P1',
+      worker: true,
+    },
+    {
       slug: 'ip-reputation',
       name: 'IP 风险与纯净度查询',
       oneLiner: '逐项对照公网 IP 的来源记录与检测标记',

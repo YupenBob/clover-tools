@@ -29,6 +29,23 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  "json-to-sql": {
+  "usage": "粘贴 JSON 对象或非空对象数组，查看全部样本的字段分析；展开设置选择方言、模式与嵌套策略。点击生成 SQL 或按 Ctrl/Cmd + Enter，检查列类型、缺失字段、显式空值及 WHERE 条件后复制或下载。示例只填入，不自动生成。",
+  "features": [
+    {
+      "icon": "database",
+      "text": "三种方言的标识符引用与字符串转义"
+    },
+    {
+      "icon": "braces",
+      "text": "精确数字词元、完整主键校验和错误定位"
+    },
+    {
+      "icon": "shield-check",
+      "text": "批量 INSERT、逐行 UPDATE 与全样本建表推断"
+    }
+  ]
+},
   "ip-reputation": {
   "usage": "输入单个严格格式的公网 IPv4、IPv6 或域名，点击查询；示例只填入，不自动联网。特殊用途地址会在浏览器与服务器分别拒绝。 域名先经 Cloudflare DNS 并行解析 A 与 AAAA；选择最多八个候选地址中的一个，再点击查询所选 IP。分享链接中的地址提示必须仍在重新解析的候选集中。",
   "features": [

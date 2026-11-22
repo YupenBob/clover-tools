@@ -6,6 +6,10 @@ import type { ToolSeoZh } from './types.ts';
  * 由 `scripts/check-seo-metadata.mjs` 校验。
  */
 export const DEV_TOOL_SEO: Record<string, ToolSeoZh> = {
+  'json-to-sql': {
+    title: 'JSON 转 SQL - 批量生成 INSERT、UPDATE 与建表语句，支持三种方言 - CloverTools',
+    description: '将 JSON 对象或对象数组转换为 INSERT、UPDATE 与 CREATE TABLE，支持 MySQL、PostgreSQL、SQLite 方言、类型推断、主键选择、分批输出及嵌套处理。检查引号转义、空值、缺失字段与错误行列，复制或下载 SQL 文件；在浏览器本地完成，不连接数据库、不执行语句，使用前请复核。',
+  },
   'ip-reputation': {
     title: 'IP 风险与纯净度查询 - 机房、VPN、代理与 Tor 信号多源对照分析 - CloverTools',
     description: '查询 IPv4、IPv6 或域名解析后的公网 IP，对照国家、城市、ASN、组织与机房、VPN、代理、Tor、爬虫及滥用标记，逐项展示来源、查询时间和缺失原因。增强信号取决于服务端可选密钥，无密钥或上游失败时明确降级；支持复制 JSON、分享查询条件与清空最近十条历史。结果仅供技术排查，不代表安全评级或平台处置结论。',

@@ -1,0 +1,72 @@
+---
+import { jsonToSqlCopy, type Language } from '../lib/json-to-sql-i18n';
+import { pathForLang } from '../lib/i18n';
+import presentation from '../../data/tool-presentation/json-to-sql.json';
+import '../styles/json-to-sql.css';
+interface Props { lang: Language }
+const {lang} = Astro.props;
+const t = jsonToSqlCopy(lang);
+const a = presentation.appearance;
+---
+<!-- Critical CSS applies to the SSR frame, including when JavaScript is disabled. -->
+<style is:inline>
+body:has(#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) > :is(header,footer,#toast),
+body:has(#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-page > :not(.tool-layout),
+body:has(#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-layout > :not(.tool-workspace),
+body:has(#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-workspace > :not(#jsonToSql) {display:none!important}
+#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"]) {position:fixed;inset:0;z-index:90;overflow:auto;border-radius:0}
+#jsonToSql [hidden] {display:none!important}
+</style>
+<div id="jsonToSql" data-lang={lang} data-presentation-state="firstLoad" data-presentation-mode="inline" data-process="empty" style={`--jts-font:${a.minPrimaryFontVh}vh;--jts-foreground:${a.foreground};--jts-background:${a.background};--jts-hit:${presentation.controls[0].minHitTargetPx}px`}>
+  <script type="application/json" id="jtsCopyData" set:html={JSON.stringify(t).replaceAll('<','\\u003c')} />
+  <a id="jtsExit" href="#jtsReveal" aria-label={t.exitWorkspace} title={t.exitWorkspace}><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16" /></svg></a>
+    <div class="jts-actions">
+      <button type="button" id="jtsGenerate" class="btn btn-primary" aria-keyshortcuts={Object.entries(presentation.interaction.shortcuts).filter(([, action]) => action === 'generate').map(([key]) => key).join(' ')}>{t.generate}</button>
+      <button type="button" id="jtsClear" class="btn btn-secondary">{t.clear}</button>
+      <button type="button" id="jtsCopy" class="btn btn-secondary" disabled>{t.copy}</button>
+      <button type="button" id="jtsDownload" class="btn btn-secondary" disabled>{t.download}</button>
+      <button type="button" id="jtsSettingsToggle" class="btn btn-secondary" aria-controls="jtsSettings" aria-expanded="false">{t.settings}</button>
+      <button type="button" id="jtsFullscreen" class="btn btn-secondary">{t.fullscreen}</button>
+      <button type="button" id="jtsCancel" class="btn btn-secondary" hidden>{t.cancel}</button>
+    </div>
+  <div class="jts-editors">
+    <label id="jtsSource" for="jtsInput">JSON<textarea id="jtsInput" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label={t.inputLabel}></textarea></label>
+    <pre id="jtsOutput" aria-label={t.outputLabel} aria-busy="false">{'-- SQL\n-- ' + t.emptyResult}</pre>
+  </div>
+  <div id="jtsReveal" hidden>
+  <section id="jtsSettings" hidden inert aria-label={t.settings}>
+    <h2>{t.settings}</h2>
+    <div class="jts-options">
+      <label>{t.dialect}<select id="jtsDialect"><option value="postgresql">PostgreSQL</option><option value="mysql">MySQL</option><option value="sqlite">SQLite</option></select></label>
+      <label>{t.mode}<select id="jtsMode"><option value="insert">INSERT</option><option value="update">UPDATE</option><option value="create">CREATE TABLE</option></select></label>
+      <label>{t.table}<input id="jtsTable" value="records" type="text" spellcheck="false" /></label>
+      <label id="jtsBatchArea">{t.batch}<input id="jtsBatch" type="number" value="100" min="1" max="1000" step="1" /></label>
+      <label>{t.nested}<select id="jtsNested"><option value="json">{t.json}</option><option value="flatten">{t.flatten}</option><option value="reject">{t.reject}</option></select></label>
+      <label>{t.mixed}<select id="jtsMixed"><option value="error">{t.mixedError}</option><option value="text">{t.mixedText}</option></select></label>
+      <label>{t.primaryKey}<select id="jtsPrimaryKey"><option value="">{t.noPrimaryKey}</option></select></label>
+      <label class="jts-check"><input id="jtsDates" type="checkbox" />{t.dates}</label>
+      <label class="jts-check" id="jtsCreateArea"><input id="jtsIncludeCreate" type="checkbox" />{t.includeCreate}</label>
+    </div>
+    <p>{t.utc}</p><p>{t.review}</p>
+    <button type="button" id="jtsSettingsClose" class="btn btn-secondary">{t.closeSettings}</button>
+  </section>
+    <div class="jts-details">
+    <p id="jtsStatus"></p><p id="jtsDegraded" hidden></p>
+    <div class="jts-samples">{[['users',t.sampleUsers],['nested',t.sampleNested],['special',t.sampleSpecial]].map(([id,label])=><button type="button" class="btn btn-ghost" data-sample={id}>{label}</button>)}</div>
+    <div id="jtsError" hidden><p id="jtsErrorText"></p><button type="button" id="jtsLocate" class="btn btn-secondary">{t.locate}</button></div>
+    <label id="jtsManualArea" hidden>{t.manual}<textarea id="jtsManual" readonly rows="8" spellcheck="false"></textarea></label>
+    <section class="jts-inspect" aria-labelledby="jtsFieldsHeading"><h2 id="jtsFieldsHeading">{t.fields}</h2><div class="jts-table-scroll"><table><thead><tr>{[t.sourcePath,t.column,t.inferred,t.sqlType,t.missing,t.nulls,t.strategy,t.warnings].map(label=><th scope="col">{label}</th>)}</tr></thead><tbody id="jtsFields"></tbody></table></div></section>
+    <p>{t.shortcuts}</p><p>{t.review}</p><p>{t.privacy}</p>
+    <nav aria-label={t.related}>{[['json-codegen',t.codegen],['json-convert',t.convert],['sql-formatter',t.formatter],['json-formatter',t.jsonFormatter]].map(([slug,label])=><a href={pathForLang(`/tools/dev/${slug}/`,lang)}>{label}</a>)}</nav>
+    <noscript><p>{t.noscript}</p></noscript>
+    </div>
+  </div>
+  <p id="jtsLive" class="jts-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+</div>
+<noscript><style is:inline>
+body:has(#jtsReveal:target) > :is(header,footer),body:has(#jtsReveal:target) .tool-page > :not(.tool-layout) {display:revert!important}
+#jsonToSql:has(#jtsReveal:target) {position:relative;inset:auto;overflow:visible}
+#jsonToSql #jtsReveal:target {display:block!important}
+#jtsReveal:target .jts-actions,#jtsReveal:target .jts-samples,#jtsReveal:target .jts-inspect {display:none}
+</style></noscript>
+<script>import '../scripts/json-to-sql';</script>

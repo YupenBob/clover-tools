@@ -1,0 +1,13 @@
+---
+// @shared-tool-ui: five thin routes share one lossless JSON to SQL workspace.
+import ToolLayout from '../../../../layouts/ToolLayout.astro';
+import JsonToSql from '../../../../components/JsonToSql.astro';
+import { getToolMeta } from '../../../../lib/i18n';
+const lang = 'tw' as const;
+const category = 'dev' as const;
+const tool = getToolMeta(category, 'json-to-sql', lang);
+const related = ['json-codegen','json-convert','sql-formatter','json-formatter'].map(slug => getToolMeta(category, slug, lang));
+---
+<ToolLayout category={category} tool={tool} related={related} layout="wide" workspace="split">
+  <JsonToSql lang={lang} />
+</ToolLayout>

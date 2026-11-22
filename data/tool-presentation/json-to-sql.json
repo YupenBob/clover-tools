@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "slug": "json-to-sql",
+  "profile": "workspace",
+  "i18n": {
+    "module": "src/lib/json-to-sql-i18n.ts",
+    "requiredKeys": [
+      "inputLabel",
+      "outputLabel",
+      "exitWorkspace",
+      "generate",
+      "settings",
+      "emptyResult",
+      "loading",
+      "copy",
+      "download",
+      "errorSyntax",
+      "errorLocation",
+      "privacy",
+      "fullscreenFallback",
+      "workerFallback"
+    ]
+  },
+  "primary": {
+    "root": "#jsonToSql",
+    "slots": [
+      {
+        "id": "source",
+        "kind": "primaryInput",
+        "selector": "#jtsSource",
+        "required": true,
+        "format": {
+          "pattern": "^JSON$"
+        }
+      },
+      {
+        "id": "sql",
+        "kind": "primaryResult",
+        "selector": "#jtsOutput",
+        "required": true,
+        "format": {
+          "pattern": "^-- SQL[\\s\\S]*$"
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "id": "editor",
+      "selector": "#jtsInput",
+      "role": "submit",
+      "persistent": true,
+      "iconOnly": false,
+      "i18nKey": "inputLabel",
+      "minHitTargetPx": 44,
+      "placement": "inline"
+    },
+    {
+      "id": "exit",
+      "selector": "#jtsExit",
+      "role": "exit",
+      "persistent": true,
+      "iconOnly": true,
+      "i18nKey": "exitWorkspace",
+      "minHitTargetPx": 44,
+      "placement": "top-right"
+    },
+    {
+      "id": "generate",
+      "selector": "#jtsGenerate",
+      "role": "submit",
+      "persistent": false,
+      "iconOnly": false,
+      "i18nKey": "generate",
+      "minHitTargetPx": 44,
+      "placement": "inline"
+    },
+    {
+      "id": "settings",
+      "selector": "#jtsSettingsToggle",
+      "role": "settings",
+      "persistent": false,
+      "iconOnly": false,
+      "i18nKey": "settings",
+      "minHitTargetPx": 44,
+      "placement": "inline"
+    }
+  ],
+  "appearance": {
+    "minPrimaryFontVh": 2,
+    "foreground": "#222222",
+    "background": "#faf9f6"
+  },
+  "interaction": {
+    "autoHideMs": 8000,
+    "revealTriggers": [
+      "pointer",
+      "focus",
+      "keyboard"
+    ],
+    "settingsInitiallyOpen": false,
+    "shortcuts": {
+      "Control+Enter": "generate",
+      "Meta+Enter": "generate",
+      "F2": "settings",
+      "F10": "fullscreen",
+      "Escape": "exit"
+    }
+  },
+  "timing": {
+    "readyWithinMs": 3000,
+    "requireAdvancingTime": false
+  },
+  "errors": {
+    "visualChannel": "hidden",
+    "announcement": "aria-live",
+    "interruptPrimary": false
+  },
+  "states": {
+    "firstLoad": {
+      "slots": [
+        "source",
+        "sql"
+      ],
+      "controls": [
+        "editor",
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "primary": {
+      "slots": [
+        "source",
+        "sql"
+      ],
+      "controls": [
+        "editor",
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "reveal": {
+      "slots": [
+        "source",
+        "sql"
+      ],
+      "controls": [
+        "editor",
+        "exit",
+        "generate",
+        "settings"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "settingsOpen": {
+      "slots": [],
+      "controls": [
+        "exit"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "degraded": {
+      "slots": [
+        "source",
+        "sql"
+      ],
+      "controls": [
+        "editor",
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "fullscreen": {
+      "slots": [
+        "source",
+        "sql"
+      ],
+      "controls": [
+        "editor",
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    }
+  },
+  "renderSurfaces": [
+    {
+      "kind": "text",
+      "selector": "#jtsSource",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "#jtsInput",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "#jtsOutput",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "#jtsReveal, #jtsReveal *",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "#jtsSettings, #jtsSettings *",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "#jtsLive",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": ".tool-page[data-tool=\"json-to-sql\"] *",
+      "purpose": "content"
+    },
+    {
+      "kind": "text",
+      "selector": "body:has(#jsonToSql) header *, body:has(#jsonToSql) footer *",
+      "purpose": "content"
+    }
+  ]
+}

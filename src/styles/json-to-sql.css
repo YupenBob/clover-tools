@@ -1,0 +1,259 @@
+#jsonToSql {
+  grid-column: 1 / -1;
+  color: var(--jts-foreground);
+  background: var(--jts-background);
+  padding: clamp(12px, 2.3vw, 28px);
+  padding-top: 64px;
+  min-width: 0;
+  position: relative;
+  border-radius: 16px;
+  font-size: max(1rem, var(--jts-font));
+  line-height: 1.65;
+  color-scheme: light;
+}
+:root[data-theme="dark"] #jsonToSql {
+  --jts-foreground: var(--text) !important;
+  --jts-background: var(--bg) !important;
+  color-scheme: dark;
+}
+#jsonToSql * {
+  box-sizing: border-box;
+  min-width: 0;
+}
+#jsonToSql [hidden] {
+  display: none !important;
+}
+#jtsExit {
+  position: fixed;
+  z-index: 120;
+  right: 12px;
+  top: 10px;
+  width: var(--jts-hit);
+  height: var(--jts-hit);
+  display: grid;
+  place-items: center;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+#jsonToSql :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #b08024;
+  outline-offset: 3px;
+}
+.jts-editors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  height: calc(100dvh - 100px);
+  min-height: 350px;
+}
+#jtsSource {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+#jtsSource {
+  font-weight: 650;
+  letter-spacing: 0.04em;
+}
+#jtsInput {
+  font-weight: 400;
+  letter-spacing: normal;
+}
+#jtsInput,
+#jtsOutput,
+#jtsManual {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: max(1rem, var(--jts-font));
+  line-height: 1.7;
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  tab-size: 2;
+  width: 100%;
+  min-height: var(--jts-hit);
+}
+#jtsInput {
+  resize: none;
+  flex: 1;
+  outline-offset: -4px;
+}
+#jtsOutput {
+  margin: 38px 0 0;
+  white-space: pre;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+#jtsReveal > .jts-details,
+#jtsSettings {
+  padding-top: 24px;
+  overflow-wrap: anywhere;
+}
+#jsonToSql :is(button, select, input:not([type="checkbox"])) {
+  min-height: var(--jts-hit);
+}
+#jsonToSql button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.jts-actions,
+.jts-samples {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+#jtsGenerate {
+  background: #685019;
+  color: #fff;
+  border-color: #685019;
+}
+.jts-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.jts-options label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 550;
+}
+.jts-options :is(input:not([type="checkbox"]), select) {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: var(--jts-background);
+  color: inherit;
+  font: inherit;
+}
+.jts-options .jts-check {
+  flex-direction: row;
+  align-items: center;
+  min-height: var(--jts-hit);
+}
+.jts-check input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+#jtsSettings {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+}
+#jtsSettings h2,
+.jts-inspect h2 {
+  font-size: 1.15rem;
+  margin-bottom: 16px;
+}
+.jts-table-scroll {
+  max-width: 100%;
+  overflow: auto;
+}
+.jts-inspect table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  width: 100%;
+  text-align: left;
+}
+.jts-inspect :is(th, td) {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  vertical-align: top;
+  min-width: 90px;
+  overflow-wrap: anywhere;
+}
+#jtsError {
+  border-left: 3px solid #bf6045;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+}
+#jtsReveal nav {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+}
+.jts-sr {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#jsonToSql:fullscreen {
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+@media (max-width: 700px) {
+  .jts-editors {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(180px, 1fr) minmax(160px, 1fr);
+    gap: 14px;
+    height: calc(100dvh - 90px);
+  }
+  #jtsOutput {
+    margin: 0;
+  }
+  .jts-options {
+    grid-template-columns: 1fr;
+  }
+  #jsonToSql {
+    padding-top: 60px;
+  }
+  #jtsSource {
+    gap: 6px;
+  }
+  #jtsInput,
+  #jtsOutput {
+    padding: 12px;
+  }
+  .jts-actions button {
+    flex: 1 1 120px;
+  }
+}
+
+/* Keep this workspace and its revealed shell on text and SVG paths only. */
+body:has(#jsonToSql) * {
+  background-image: none !important;
+}
+body:has(#jsonToSql) :is(img, canvas) {
+  display: none !important;
+}
+body:has(#jsonToSql) *::before,
+body:has(#jsonToSql) *::after {
+  content: none !important;
+}
+
+
+/* 窄屏不放固定操作栏：会盖住输入框；恢复文档流由布局用例检查不重叠。 */
+@media (max-width: 640px) {
+  #jsonToSql[data-presentation-state='reveal'] .jts-actions,
+  #jsonToSql[data-presentation-state='settingsOpen'] .jts-actions {
+    position: static;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    margin: 18px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    z-index: auto;
+  }
+}
+
+/* 操作栏移到工具顶部，保证展开态首屏可见；静默态仍隐藏。 */
+#jsonToSql:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"]) .jts-actions {
+  display: none !important;
+}

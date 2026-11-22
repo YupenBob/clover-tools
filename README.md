@@ -5,7 +5,7 @@
 <h1 align="center">CloverTools</h1>
 
 <p align="center">
-  精选在线工具箱 · 81 个手写工具 · 即开即用 · 无需注册
+  精选在线工具箱 · 82 个手写工具 · 即开即用 · 无需注册
 </p>
 
 <p align="center">
@@ -19,10 +19,10 @@
   <a href="https://github.com/YupenBob/clover-tools"><img src="https://img.shields.io/github/last-commit/YupenBob/clover-tools?label=last%20commit&color=gold&style=flat-square" alt="Last commit"></a>
   <a href="https://astro.build"><img src="https://img.shields.io/badge/Astro-5-gold?style=flat-square&logo=astro&logoColor=white" alt="Astro 5"></a>
   <a href="https://pages.cloudflare.com"><img src="https://img.shields.io/badge/Cloudflare%20Pages-deployed-gold?style=flat-square&logo=cloudflare&logoColor=white" alt="Cloudflare Pages"></a>
-  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-81-gold?style=flat-square" alt="81 tools"></a>
+  <a href="https://clovertools.cn"><img src="https://img.shields.io/badge/tools-82-gold?style=flat-square" alt="82 tools"></a>
 </p>
 
-CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 81 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
+CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实用 / 趣味工具」三大类共 82 个逐一手写的工具页面。多数工具在浏览器本地处理；IP 查询、HTTP 测试等联网工具会发送网络请求，处理边界见对应页面与隐私说明。打开即用，无需下载、无需注册。
 
 新增「背单词速刷」：中考、高考、四级、六级、托福、雅思六本核心词书，共 360 个精选词。翻卡速刷，空格看释义、方向键快速判断，自动回收错词并保存本机进度；界面提供暖白与深色两套克制的阅读表面。词库整理方式、交互与边界见 [背单词速刷说明](docs/VOCAB-FLASH.md)。
 
@@ -41,9 +41,9 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 
 | 指标 | 数值 |
 | --- | --- |
-| 工具总数 | 81（开发实用 38 · 日常实用 25 · 趣味工具 18） |
+| 工具总数 | 82（开发实用 39 · 日常实用 25 · 趣味工具 18） |
 | 工具 API | 2 个 Pages Function（IP 查询、网络校时） |
-| 内容生态 | 36 篇站内指南、81 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
+| 内容生态 | 36 篇站内指南、82 份工具深度说明；137 篇独立 CSDN 文章 + 品牌文 + 发布排期 |
 | 数据处理 | 多数工具本地处理；网络工具明确说明请求边界 |
 | 使用门槛 | 零注册、零安装、即开即用 |
 
@@ -63,7 +63,7 @@ CloverTools 是一个精品在线工具箱，覆盖「开发实用 / 日常实�
 flowchart LR
   U[用户浏览器] --> CF[Cloudflare 全球 CDN]
   CF --> P[Cloudflare Pages 静态站点]
-  P --> T[81 个手写工具页]
+  P --> T[82 个手写工具页]
   T --> F[Pages Functions 工具 API]
   F --> R2[(Cloudflare R2 媒体存储)]
 ```
@@ -142,6 +142,8 @@ npm run check:browser # 临时预览与真实浏览器回归
 | 趣味工具（18） | 减压、娱乐与创意小玩意，给忙碌的日常加点乐趣 | 专注航班、拼豆图纸、人格风格测试、创意头像、FPS练枪、ASCII 艺术字、点击速度测试、反应力测试、舒尔特训练、目标球追踪、抽奖、摩斯密码 |
 
 ## 添加工具（精品制作规范）
+
+[JSON 转 SQL](/tools/dev/json-to-sql/) 将对象或对象数组生成三种方言的 INSERT、UPDATE 和 CREATE TABLE，提供精确数字、主键校验、嵌套策略与源位置检查。处理边界及验证记录见 [JSON-TO-SQL.md](docs/JSON-TO-SQL.md)。
 
 [标准北京时间校时](/tools/daily/time-sync/) 是多源 HTTP 校时诊断台，提供设备偏差、两段 RTT、估计误差和最近十次历史，不能修改系统时间。算法、隐私与验证记录见 [TIME-SYNC.md](docs/TIME-SYNC.md)。
 
