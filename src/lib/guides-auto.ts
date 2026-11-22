@@ -44,8 +44,9 @@ import guide35 from '../../data/editorial-guides/unix-timestamp-seconds-millisec
 import guide36 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
 import guide37 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
 import guide38 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
-import guide39 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
-import guide40 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
+import guide39 from '../../data/editorial-guides/vocab-flash.json' with { type: 'json' };
+import guide40 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
+import guide41 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -89,4 +90,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide38 as unknown as Guide,
   guide39 as unknown as Guide,
   guide40 as unknown as Guide,
+  guide41 as unknown as Guide,
 ];
