@@ -86,12 +86,22 @@ function writeJson(file, value) {
   writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+/** 模型名归一：6.1-sol 已由 6.2-sol 取代（6.2-terra 尚不存在，6.1-terra 仍然可用）。 */
+export const MODEL_ALIASES = { 'gpt-6.1-sol': 'gpt-6.2-sol' };
+
+export function normalizeModel(model) {
+  const name = String(model ?? '').trim();
+  return MODEL_ALIASES[name] ?? name;
+}
+
 export function codexConfig(overrides = {}) {
   const config = readJson(STATE_PATHS.config, {});
   const codex = { ...DEFAULTS, ...(config.codex || {}) };
   codex.timeoutMinutes = { ...DEFAULTS.timeoutMinutes, ...(codex.timeoutMinutes || {}) };
   const defined = Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== undefined));
-  return { ...codex, ...defined };
+  const merged = { ...codex, ...defined };
+  merged.model = normalizeModel(merged.model);
+  return merged;
 }
 
 /** 解析 JSONL：容错，未知事件忽略。 */
