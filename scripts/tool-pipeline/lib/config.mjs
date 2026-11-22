@@ -36,7 +36,7 @@ export function itemVars(item) {
 }
 
 export function codexModel(config, role) {
-  return config.models?.[role] ?? config.models?.builder ?? 'gpt-6.1-sol';
+  return config.models?.[role] ?? config.models?.builder ?? 'gpt-6.2-sol';
 }
 
 export function codexReasoning(config, role) {

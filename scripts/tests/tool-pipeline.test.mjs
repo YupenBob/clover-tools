@@ -172,12 +172,12 @@ test('incident eligibility enforces cap, clean main, sync and disk', () => {
 
 test('repair escalation kicks in after two failed repair rounds', () => {
   const config = {
-    models: { repair: 'gpt-6.1-sol', repairEscalation: 'gpt-6-astra' },
+    models: { repair: 'gpt-6.2-sol', repairEscalation: 'gpt-6-astra' },
     reasoning: { repair: 'high', repairEscalation: 'xhigh' },
   };
   const one = escalatedRepair(config, [{ ok: false }, { ok: true }]);
   assert.equal(one.escalated, false);
-  assert.equal(one.model, 'gpt-6.1-sol');
+  assert.equal(one.model, 'gpt-6.2-sol');
   assert.equal(one.reasoning, 'high');
   const two = escalatedRepair(config, [{ ok: false }, { ok: false }]);
   assert.equal(two.escalated, true);
@@ -185,10 +185,10 @@ test('repair escalation kicks in after two failed repair rounds', () => {
   assert.equal(two.model, 'gpt-6-astra');
   assert.equal(two.reasoning, 'xhigh');
   const fallback = escalatedRepair(
-    { models: { repair: 'gpt-6.1-sol' }, reasoning: { repair: 'medium' } },
+    { models: { repair: 'gpt-6.2-sol' }, reasoning: { repair: 'medium' } },
     [{ ok: false }, { ok: false }],
   );
-  assert.equal(fallback.model, 'gpt-6.1-sol');
+  assert.equal(fallback.model, 'gpt-6.2-sol');
   assert.equal(fallback.reasoning, 'medium');
 });
 
