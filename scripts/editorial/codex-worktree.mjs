@@ -134,7 +134,7 @@ function prepare(options) {
     [
       '# 本次任务的硬边界（自动化流水线生成，必须遵守）',
       '',
-      `- 你可以写三处：\`.editorial/drafts/${options.slug}/\`、\`scripts/editorial/cases/${options.slug}.mjs\`、\`.editorial/runs/${options.run}/source-manifest.json\`（只此一个文件，用于登记你选的来源）。`,
+      `- 你可以写四处：\`.editorial/drafts/${options.slug}/\`、\`scripts/editorial/cases/${options.slug}.mjs\`、\`.editorial/runs/${options.run}/source-manifest.json\`（登记你选的来源）、\`.editorial/runs/${options.run}/source-digests/\` 与 \`source-digest.json\`（source-digest.mjs 的产出，宿主之后会用同样的 URL 重新生成一份权威摘录）。`,
       '- 禁止 `git add/commit/push/checkout/reset/stash` 等任何 git 写操作；禁止改 `src/`、`data/`、`public/`、`scripts/editorial/` 下其他文件。',
       '- 禁止下载、禁止安装依赖、禁止在仓库外写文件；除本目录外的一切写入都视为越界，会被导入步骤丢弃。',
       '- 选源后先写 `.editorial/runs/' + options.run + '/source-manifest.json`，再跑 `node scripts/editorial/source-digest.mjs --run ' + options.run + '` 冻结摘录。',
