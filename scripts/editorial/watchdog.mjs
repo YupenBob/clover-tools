@@ -14,6 +14,7 @@
  */
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { ROOT } from './lib/paths.mjs';
 import { STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
 import { currentSlot, countRunsForDate, evaluateSafety, loadQueue, loadState, readPause, saveQueue } from './lib/state.mjs';
@@ -81,6 +82,14 @@ function countPublishedForDate(date) {
 }
 
 function promoteTopCandidate(queue) {
+  // 同 slug 已有已发布指南的候选是旧抓取留下的，直接判重，别让它占走下一趟
+  const publishedSlug = (item) => existsSync(join(ROOT, 'data/editorial-guides', `${item.slug ?? item.toolSlug}.json`));
+  for (const item of queue.items.filter((entry) => entry.status === 'candidate' && publishedSlug(entry))) {
+    item.status = 'duplicate';
+    item.duplicate = true;
+    item.duplicateReason = '同 slug 已有已发布指南';
+    item.updatedAt = new Date().toISOString();
+  }
   const candidates = queue.items.filter((item) => item.status === 'candidate');
   if (candidates.length === 0) return null;
   const top = [...candidates].sort(
