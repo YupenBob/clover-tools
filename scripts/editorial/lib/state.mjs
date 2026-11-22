@@ -166,7 +166,8 @@ export function countRunsForDate(date) {
 }
 
 export function recordOutcome(state, outcome) {
-  const runs = Array.isArray(state.runs) ? state.runs : [];
+  // 同一 runKey 只保留最新一条（finalize 先记 local-commit、再记 published 时不该产生两条）
+  const runs = (Array.isArray(state.runs) ? state.runs : []).filter((run) => run?.runKey !== outcome.runKey);
   runs.unshift({
     runKey: outcome.runKey,
     slug: outcome.slug ?? null,
@@ -185,7 +186,16 @@ export function recordOutcome(state, outcome) {
 
 /** 近 N 次运行的复核通过率；无数据时返回 1。 */
 export function reviewPassRate(state, window) {
-  const runs = (state.runs ?? []).slice(0, window);
+  // 同一 runKey 可能被记多次（finalize 失败先记 local-commit，人工补记 published）：
+  // 按 runKey 去重、只取最新一条，否则通过率会被自己算低、误触发暂停。
+  const seen = new Set();
+  const unique = [];
+  for (const run of state.runs ?? []) {
+    if (!run?.runKey || seen.has(run.runKey)) continue;
+    seen.add(run.runKey);
+    unique.push(run);
+  }
+  const runs = unique.slice(0, window);
   if (runs.length === 0) return 1;
   return runs.filter((run) => run.status === 'published').length / runs.length;
 }
