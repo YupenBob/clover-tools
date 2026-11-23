@@ -103,8 +103,33 @@ function main() {
   // 防呆：队列建议可能来自旧抓取，同 slug 已有已发布指南时自动判重（除非明确是升级任务），
   // 否则整趟 tick 会白跑（今天 text-transform 就是这样被浪费的）。
   const hasPublished = (entry) => existsSync(join(ROOT, 'data/editorial-guides', `${entry.slug ?? entry.toolSlug}.json`));
+  // 定义在 src/lib/editorial-guides.ts / guides.ts 里的内联指南不能直接升级：
+  // 升级会同时生成 data/ 文件，与内联定义重复，构建会出现重复路由。必须先做迁移。
+  const inlineSources = ['src/lib/editorial-guides.ts', 'src/lib/guides.ts']
+    .map((file) => {
+      try {
+        return readFileSync(join(ROOT, file), 'utf8');
+      } catch {
+        return '';
+      }
+    })
+    .join('\n');
+  const isInlineGuide = (entry) => {
+    const slug = entry.slug ?? entry.toolSlug;
+    return new RegExp(`slug:\\s*['\"]${String(slug).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['\"]`).test(inlineSources);
+  };
   let item = pickNextItem(queue, config);
   const autoDuplicates = [];
+  while (item && item.type === 'upgrade-guide' && isInlineGuide(item)) {
+    markQueueItem(queue, item.id, {
+      status: 'blocked',
+      runId: null,
+      blockedReason: '指南内联定义在 src/lib/*.ts，需先迁移到 data/editorial-guides/ 才能升级',
+      updatedAt: new Date().toISOString(),
+    });
+    autoDuplicates.push(`${item.slug ?? item.toolSlug}(inline)`);
+    item = pickNextItem(queue, config);
+  }
   while (item && item.type !== 'upgrade-guide' && hasPublished(item)) {
     markQueueItem(queue, item.id, { status: 'duplicate', duplicate: true, duplicateReason: '同 slug 已有已发布指南', updatedAt: new Date().toISOString() });
     autoDuplicates.push(item.slug ?? item.toolSlug);
