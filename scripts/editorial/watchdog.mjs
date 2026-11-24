@@ -18,7 +18,7 @@ import { ROOT } from './lib/paths.mjs';
 import { STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
 import { currentSlot, countRunsForDate, evaluateSafety, loadQueue, loadState, readPause, saveQueue } from './lib/state.mjs';
-import { commitsAhead, pendingCommitsSafe, readToken, statusPorcelain } from './lib/git.mjs';
+import { commitsAhead, fetchOrigin, pendingCommitsSafe, readToken, statusPorcelain } from './lib/git.mjs';
 
 const LOG_FILE = join(STATE_PATHS.dir, 'watchdog.log');
 
@@ -134,6 +134,12 @@ function main() {
   if (safety?.blocked) return finish(false, 'safety-blocked', { safety });
 
   // 3. 待办：未推送提交 / 待验证部署（这两件事优先于配额，属于「重要」）
+  // 先 fetch，否则本地 origin/main 引用过期，会把「刚推过的提交」误判成待推送/越权
+  try {
+    fetchOrigin(config.git.remote);
+  } catch {
+    // 网络失败就按本地引用判断
+  }
   // commitsAhead() 返回的是提交数组（不是数量）：这里要比较 length，否则「有未推送提交」永远判不出来
   let aheadList = [];
   try {
