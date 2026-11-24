@@ -134,13 +134,15 @@ function main() {
   if (safety?.blocked) return finish(false, 'safety-blocked', { safety });
 
   // 3. 待办：未推送提交 / 待验证部署（这两件事优先于配额，属于「重要」）
-  let ahead = 0;
+  // commitsAhead() 返回的是提交数组（不是数量）：这里要比较 length，否则「有未推送提交」永远判不出来
+  let aheadList = [];
   try {
-    ahead = commitsAhead();
+    aheadList = commitsAhead();
   } catch {
-    ahead = 0;
+    aheadList = [];
   }
-  details.commitsAhead = ahead;
+  const ahead = Array.isArray(aheadList) ? aheadList.length : 0;
+  details.commitsAhead = aheadList;
   if (ahead > 0) {
     const pending = pendingCommitsSafe(config);
     details.pending = pending;
