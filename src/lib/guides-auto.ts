@@ -52,6 +52,7 @@ import guide43 from '../../data/editorial-guides/vocab-flash.json' with { type: 
 import guide44 from '../../data/editorial-guides/workday.json' with { type: 'json' };
 import guide45 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
 import guide46 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
+import guide47 from '../../data/editorial-guides/zodiac.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -101,4 +102,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide44 as unknown as Guide,
   guide45 as unknown as Guide,
   guide46 as unknown as Guide,
+  guide47 as unknown as Guide,
 ];
