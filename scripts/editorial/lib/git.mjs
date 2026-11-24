@@ -102,9 +102,18 @@ export function pendingCommitsSafe(config, cwd) {
   return { safe: offenders.length === 0, total: commits.length, offenders, commits };
 }
 
+/** 错误信息里可能带 URL 中的 token：统一脱敏后再抛/记录。 */
+function redact(message) {
+  return String(message ?? '').replace(/https:\/\/[a-z0-9_-]+:[^@\s]+@/gi, 'https://***@').replace(/gh[pousr]_[A-Za-z0-9]{20,}/g, '***TOKEN***');
+}
+
 export function pushMain(token, config, cwd) {
+  try {
   const url = tokenUrl(token, cwd);
   return git(['push', url, `HEAD:${config.git.branch}`], { cwd, env: { GIT_TERMINAL_PROMPT: '0' } });
+  } catch (error) {
+    throw new Error(redact(error.message ?? error));
+  }
 }
 
 export function pushBranch(token, branchName, cwd) {
