@@ -45,18 +45,19 @@ import guide36 from '../../data/editorial-guides/symmetric-encrypt-params.json' 
 import guide37 from '../../data/editorial-guides/text-diff-review.json' with { type: 'json' };
 import guide38 from '../../data/editorial-guides/text-toolbox.json' with { type: 'json' };
 import guide39 from '../../data/editorial-guides/text-transform.json' with { type: 'json' };
-import guide40 from '../../data/editorial-guides/timer.json' with { type: 'json' };
-import guide41 from '../../data/editorial-guides/unicode-converter.json' with { type: 'json' };
-import guide42 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
-import guide43 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
-import guide44 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
-import guide45 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
-import guide46 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
-import guide47 from '../../data/editorial-guides/vocab-flash.json' with { type: 'json' };
-import guide48 from '../../data/editorial-guides/workday.json' with { type: 'json' };
-import guide49 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
-import guide50 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
-import guide51 from '../../data/editorial-guides/zodiac.json' with { type: 'json' };
+import guide40 from '../../data/editorial-guides/time-sync.json' with { type: 'json' };
+import guide41 from '../../data/editorial-guides/timer.json' with { type: 'json' };
+import guide42 from '../../data/editorial-guides/unicode-converter.json' with { type: 'json' };
+import guide43 from '../../data/editorial-guides/unit-conversion-precision.json' with { type: 'json' };
+import guide44 from '../../data/editorial-guides/unix-timestamp-seconds-milliseconds.json' with { type: 'json' };
+import guide45 from '../../data/editorial-guides/url-encoding-guide.json' with { type: 'json' };
+import guide46 from '../../data/editorial-guides/url-parse.json' with { type: 'json' };
+import guide47 from '../../data/editorial-guides/uuid-generator.json' with { type: 'json' };
+import guide48 from '../../data/editorial-guides/vocab-flash.json' with { type: 'json' };
+import guide49 from '../../data/editorial-guides/workday.json' with { type: 'json' };
+import guide50 from '../../data/editorial-guides/world-clock.json' with { type: 'json' };
+import guide51 from '../../data/editorial-guides/xml-formatter.json' with { type: 'json' };
+import guide52 from '../../data/editorial-guides/zodiac.json' with { type: 'json' };
 
 export const AUTO_GUIDES: Guide[] = [
   guide0 as unknown as Guide,
@@ -111,4 +112,5 @@ export const AUTO_GUIDES: Guide[] = [
   guide49 as unknown as Guide,
   guide50 as unknown as Guide,
   guide51 as unknown as Guide,
+  guide52 as unknown as Guide,
 ];
