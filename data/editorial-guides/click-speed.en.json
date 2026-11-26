@@ -1,0 +1,70 @@
+{
+  "title": "How to Use the Click Speed Test and Read Your Score",
+  "description": "Start the click speed test, wait for the countdown, then click repeatedly. Read your total clicks and clicks per second, and retest with the same input method.",
+  "content": "<p>Open the <a href=\"/en/tools/fun/click-speed/\">Click Speed Test</a> and select “Click to start”. Wait for the 3, 2, 1 countdown. When the button says “Click like crazy!”, press the same button repeatedly. The test lasts 10 seconds. When it ends, read “Total clicks” and “clicks/s”. Select “Try again” when it appears to run another test.</p>\n\n<h2>Follow the button prompts</h2>\n<p>Move the mouse pointer over the large button, or position your finger over it on a phone. After you select “Click to start”, the countdown appears in the center of the button. That first press starts the countdown. The button is disabled during the countdown and the test starts counting when the countdown ends.</p>\n<p>Start pressing when you see “Click like crazy!”. The large number above the button increases each time the test registers a press. On your first run, watch whether the number increases with each press. Once you see that the test is registering your input, you can decide whether to speed up.</p>\n<figure><a href=\"/article-images/2026-11/click-speed-ready.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"View full-size image of the 10-Second Click Speed Challenge. The large counter shows 0, the current speed shows 0.0 clicks/s, and 10.0 seconds remain. The button below says Click to start.\"><img src=\"/article-images/2026-11/click-speed-ready.jpg\" alt=\"The 10-Second Click Speed Challenge shows a large counter at 0, a current speed of 0.0 clicks/s, and 10.0 seconds remaining. The button below says Click to start.\" width=\"1232\" height=\"445\" loading=\"lazy\" decoding=\"async\"></a><figcaption>The top of the test panel shows the total, current speed, and remaining time. The button below says “Click to start”. Select the image to view it at full size.</figcaption></figure>\n\n<h2>Troubleshoot clicks that do not register</h2>\n<p>Before refreshing, read the button label and look at the large number above it. The number stays the same when you first select “Click to start”. If the test is running and the number still stays the same, move the pointer back to the center of the button, press and release, and see whether the number increases.</p>\n<table><thead><tr><th>On-screen prompt</th><th>What to do</th></tr></thead><tbody><tr><td>Click to start</td><td>Select the button and wait for the countdown.</td></tr><tr><td>Countdown number</td><td>Keep the pointer over the button and wait for the test to start.</td></tr><tr><td>Click like crazy!</td><td>Press and release repeatedly. Watch for the large number to increase.</td></tr><tr><td>Time's up!</td><td>Stop pressing, read the score, and wait for the retry button.</td></tr></tbody></table>\n<p>The page listens for pointer-down events within the button. Mouse and touch input can use the same type of pointer event [S1]. Holding down the mouse button registers a single press. If you move the pointer outside the button before pressing, the button does not receive the event. If the page scrolls, locate the button again before pressing.</p>\n\n<h2>Read the two numbers on the results card</h2>\n<p>When the test ends, look for “Time's up! Your score is ready”. The results card below puts the total and speed side by side. “Total clicks” is the number of presses registered during the run. The value labeled “clicks/s” is the total divided by the test duration. It reports your average speed in clicks per second, or CPS.</p>\n<p>For a total of 60 clicks, the calculation is 60 ÷ 10, and the card shows 6.0 clicks/s. The card displays one decimal place. Record both values on the same line. If you later have only one value, you can use the same duration to recover the other. Ranking runs by total clicks gives the same order as ranking them by final speed. If the counts and speeds in two screenshots do not line up, verify whether you recorded “Current” at the top or “clicks/s” on the results card. Both use the same unit and measure speed over different intervals.</p>\n<figure><a href=\"/article-images/2026-11/click-speed-scored.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"View full-size image of the 10-Second Click Speed Challenge. The button says Try again. Below it are 60 total clicks, 6.0 clicks/s, a Quick reflexes rating, and New record!\"><img src=\"/article-images/2026-11/click-speed-scored.jpg\" alt=\"The 10-Second Click Speed Challenge shows a Try again button, 60 total clicks, 6.0 clicks/s, a Quick reflexes rating, and New record!\" width=\"1232\" height=\"651\" loading=\"lazy\" decoding=\"async\"></a><figcaption>The button says “Try again”. The results card below shows 60 clicks, 6.0 clicks/s, and “Quick reflexes”. Select the image to view it at full size.</figcaption></figure>\n\n<h2>Why the current speed changes</h2>\n<p>The “Current” value at the top divides the number of presses so far by the elapsed time. Early in the run, little time has elapsed, so a few presses can produce a high reading. If you pause, the count stays the same while time keeps passing, so the speed falls. To spot a pause during the run, watch whether the large counter and “Current” change together.</p>\n<p>The final score uses the fixed test duration as the denominator. To compare today's run with yesterday's, wait for the results card before recording the score. A high reading during the run shows your pace at that moment. Recording that value alone leaves out the rest of the run. If you save a screenshot, include both the total clicks and the speed.</p>\n\n<h2>Test the timer and results without clicking</h2>\n<p>If you have just switched browsers, or the button responds but the results area does not appear, try a run with no clicks. Start as usual, then move your hand away once the test begins. The total should stay at 0 while the progress bar continues to move. When “Time's up!” appears, the results card should show 0 clicks and 0.0 clicks/s.</p>\n<p>A run with no clicks lets you test the timer independently of click input. If the progress bar advances and the results appear, press the button once after the next run starts and see whether the large counter goes from 0 to 1. If the run with no clicks also produces no results, see whether the page went into the background during the test. When you retry with the page in the foreground, wait for the status message before verifying the results.</p>\n\n<h2>Verify keyboard focus before using Space</h2>\n<p>The page also accepts the Space key. To test with the keyboard, move focus away from the button and any text fields, then briefly press Space. The page's global key handler skips the event when an input field, text area, or button has focus. If pressing Space has no effect, see whether one of those controls still has focus.</p>\n<p>Holding Space can trigger key repeat at a rate set by the system [S2]. This page also handles repeated Space events. To measure how quickly you press the key manually, press and release it each time. Record the input method so you can keep keyboard and mouse results separate.</p>\n\n<h2>Retry and review your personal best</h2>\n<p>When the score appears, the button first says “Time's up!”. If you select it too soon, it shakes and the current score remains visible. Wait until it says “Try again”, then select it. The results area closes and the countdown starts again. The previous values may remain visible at the top during the countdown. They reset to zero when the run starts.</p>\n<p>When the page opens, it reads the personal best saved in the browser. If a new score exceeds that baseline, the page displays “New record!” and saves the score to local storage. Repeated runs on the same page still use the value read when the page loaded. To verify the value currently saved in the browser, refresh after the run and look at the personal best.</p>\n\n<h2>Verify the saved score after two “New record!” messages</h2>\n<p>Suppose no score is saved when you open the page. You get 60 clicks, retry immediately, and get 50 clicks. The second run also shows “New record!”. The page still uses the baseline from when it opened, so the lower score can overwrite the value saved by the first run.</p>\n<p>In this example, if you refresh after the second run, the personal best shows 5.0 clicks/s. To keep the higher score, write it down when its results card appears. The personal best is saved in local storage for the current site [S3]. If you retest on another device, use the recorded score for comparison.</p>\n\n<h2>What the rating means</h2>\n<p>Identical final speeds get identical ratings. For example, 6.0 clicks/s earns “Quick reflexes”. The same speed earns the same rating on a different input device. The page applies fixed rules to the final speed and does not use other players' scores.</p>\n<p>Use the total and speed to track your progress. Different scores can earn the same rating. If you record only “Quick reflexes”, you will not know how many clicks separated the runs. Record both values and the input method so you can compare future runs under the same conditions.</p>\n\n<h2>Limits of the test</h2>\n<p>Keep the page in the foreground during the test. The tool uses animation frames to update the remaining time and trigger the results [S5]. Hidden documents are excluded from rendering updates. If you switch away and return, the remaining time may jump. The countdown and retry button use page timers, and the standard allows their callbacks to be delayed [S4].</p>\n<p>The page calculates elapsed time from the difference between clock readings [S6]. Changing the system time during the test can affect the measurement. Browser policy can block access to local storage and cause a read to throw <code>SecurityError</code> [S3]. The page reads local storage on load, so a failed read can leave the start button unresponsive.</p>\n\n<h2>Choose between reaction time and repeated clicks</h2>\n<p>To measure how long it takes you to click after a signal, open the <a href=\"/en/tools/fun/reaction-test/\">Reaction Time Test</a>, wait for the test area to turn green, then click once. That result gives your reaction time in milliseconds. The click speed results card gives your average click rate over a run. The two measurements use different units.</p>\n<p>To follow a moving target, try <a href=\"/en/tools/fun/ball-tracker/\">Target Ball Tracking</a> and follow the target on the screen. The click speed test uses a fixed target, so you can focus on your clicking rhythm. Choose the tool that measures the action you want to observe and compare results from the same task.</p>\n\n<h2>Record the conditions before retesting</h2>\n<p>To compare runs from two days, keep the conditions as similar as possible. Choose a grip and posture you can reproduce. After each run, take your hand off the button and wait for the results before recording them. Review this list before the next run.</p>\n<ul><li>Record the device and input method. Start a separate set of records when you switch mouse, touchscreen, or keyboard input.</li><li>Record the total clicks and the clicks/s shown on the results card.</li><li>If you switched tabs during the test, note it and run the test again after returning before comparing scores.</li></ul>\n<p>To compare input methods, run separate mouse and keyboard tests in the same browser and record them separately. Wait for the results before switching devices so each run uses a single input source. Note any missed or accidental presses so you can remember why you repeated a run. During practice, pay attention to whether you miss presses at the start or in the second half. Record any pauses as soon as the run ends, then see whether they recur on the next run with the same grip. Clicks per second is an average for the full run. The results card alone cannot tell you when you paused.</p>",
+  "faqs": [
+    {
+      "q": "Does pressing start count toward my score?",
+      "a": "That press starts the countdown. The test starts counting when the button says “Click like crazy!”."
+    },
+    {
+      "q": "How do I convert total clicks to clicks per second?",
+      "a": "Divide the total clicks by 10. For example, 60 clicks gives 6.0 clicks/s."
+    },
+    {
+      "q": "When can I retry after a run ends?",
+      "a": "Wait for the button to say “Try again”, then select the same button."
+    }
+  ],
+  "slug": "click-speed",
+  "category": "趣味工具",
+  "toolSlug": "click-speed",
+  "published": "2026-11-26",
+  "updated": "2026-11-26",
+  "readingMinutes": 7,
+  "sources": [
+    {
+      "id": "S1",
+      "title": "W3C Pointer Events",
+      "url": "https://www.w3.org/TR/pointerevents/"
+    },
+    {
+      "id": "S2",
+      "title": "W3C UI Events",
+      "url": "https://www.w3.org/TR/uievents/"
+    },
+    {
+      "id": "S3",
+      "title": "WHATWG HTML · Web storage",
+      "url": "https://html.spec.whatwg.org/multipage/webstorage.html"
+    },
+    {
+      "id": "S4",
+      "title": "WHATWG HTML · Timers",
+      "url": "https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html"
+    },
+    {
+      "id": "S5",
+      "title": "WHATWG HTML · Event loops",
+      "url": "https://html.spec.whatwg.org/multipage/webappapis.html"
+    },
+    {
+      "id": "S6",
+      "title": "ECMAScript · Numbers and Dates",
+      "url": "https://tc39.es/ecma262/multipage/numbers-and-dates.html"
+    }
+  ],
+  "image": "/article-images/2026-11/click-speed-ready.jpg",
+  "_meta": {
+    "translation": {
+      "of": "click-speed",
+      "lang": "en",
+      "translatedFrom": "20166e8baff9bdf085e726cbed5b8b7afc713f7e8263c72a557986fdb6eac7b4",
+      "translatedAt": "2026-11-26T10:16:14.284Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.88,
+      "reviewedAt": "2026-11-26T10:22:46Z",
+      "reviewer": "deepseek-i18n-subagent"
+    }
+  }
+}
