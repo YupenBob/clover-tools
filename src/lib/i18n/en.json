@@ -18,6 +18,17 @@
     }
   },
   "tools": {
+    "image-convert": {
+      "name": "Image Converter",
+      "oneLiner": "Convert and resize still images with a JPG background and before-and-after file sizes.",
+      "description": "Convert still JPG, PNG, WebP and AVIF images in your browser. Resize, set quality or a JPG background, and preview and compare files before downloading.",
+      "keywords": [
+        "image converter",
+        "PNG to JPG",
+        "WebP converter",
+        "AVIF to JPG"
+      ]
+    },
     "focus-flight": {
       "name": "Focus Flight",
       "oneLiner": "Get a boarding pass. Turn one focus session into a little journey.",
@@ -929,6 +940,68 @@
     }
   },
   "content": {
+    "image-convert": {
+      "usage": "Choose or drop a still image. Check its size and format, select an output format, and set limits, quality or a JPG background before converting. Compare and preview the result before downloading.",
+      "features": [
+        {
+          "icon": "image",
+          "text": "Detects JPG, PNG, WebP and AVIF from file contents"
+        },
+        {
+          "icon": "rulers",
+          "text": "Resizes within both limits and follows the decoded orientation"
+        },
+        {
+          "icon": "stack",
+          "text": "Fills JPG backgrounds and checks transparency support for other outputs"
+        },
+        {
+          "icon": "shield-check",
+          "text": "Compares actual file sizes locally in your browser"
+        }
+      ],
+      "detail": {
+        "intro": "Convert screenshots, transparent graphics and web images to one file you can submit or share. Image to Base64 creates embeddable text, while the grid splitter exports tiles.",
+        "steps": [
+          "Show the controls. Choose or drop one still image, or try the bundled transparent PNG. The source preview opens in a new tab.",
+          "Choose an available output format. Open Settings to set width and height limits, adjust quality or set a white or custom JPG background.",
+          "Click Convert or press Ctrl/Cmd + Enter. Compare the verified sizes and percentage change, then preview, download or copy the comparison."
+        ],
+        "principles": [
+          "The browser applies orientation it recognizes. The tighter dimension limit sets the scale. Each side is rounded down to at least one pixel.",
+          "JPG uses an opaque background. PNG, WebP and AVIF use a transparent canvas and are available after their transparency check passes.",
+          "The tool checks the MIME type and file structure, then decodes the output again to verify its dimensions. Size change is relative to the source byte count."
+        ],
+        "pitfalls": [
+          "Still JPG, PNG, WebP and AVIF only. Limits are 16 MiB input, 64 MiB output, 8192 px per side and 16 million pixels total.",
+          "Images within the limits retain their dimensions. The output may be larger depending on format and quality.",
+          "The source EXIF is omitted. Your browser may add new format metadata, and colors or lossy encoding can affect appearance."
+        ],
+        "privacy": "Images, pixels, filenames and settings stay in this browser session. Conversion never uploads them. Refreshing clears the workspace. You start every preview, download and copy. The pixels themselves may still show personal information.",
+        "faqs": [
+          {
+            "q": "Why can I open AVIF but not export it?",
+            "a": "Decoding and encoding have separate browser support. Choose an output format that passed the encoding check."
+          },
+          {
+            "q": "Which format keeps transparent areas?",
+            "a": "Use PNG or a WebP or AVIF encoder that passed the transparency check. JPG fills transparent areas with white or your chosen color."
+          }
+        ],
+        "examples": [
+          {
+            "label": "Transparent graphic to JPG with a light background",
+            "input": "PNG · 320 × 200 px · #E8EEF5",
+            "output": "Set maximum width to 160 and leave height blank. The result is a 160 × 100 px JPG with a light background. Its size depends on the encoding."
+          },
+          {
+            "label": "Still WebP to full-size PNG",
+            "input": "WebP · 640 × 400 px",
+            "output": "Leave both limits blank for a 640 × 400 px PNG. Any transparent pixels in the source stay transparent."
+          }
+        ]
+      }
+    },
     "focus-flight": {
       "usage": "Choose departure and arrival from 38 airports, one task and 1–180 minutes. Choose sound or quiet boarding, get your boarding pass and tear the stub. Watch layered SVG clouds drift past your window. The real geographic map offers route, follow and heading-up views. Tap to reveal controls, adjust light and cabin sound, pause or resume. Reload recovers your timer. Save your stamped PNG boarding pass on arrival. The last 20 completed flights stay in your browser.",
       "features": [

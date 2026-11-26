@@ -29,6 +29,27 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  "image-convert": {
+    "usage": "选择或拖入一张静态图片，核对原图格式与尺寸。选输出格式并按需设置质量、最大宽高和 JPG 底色，转换后比较实际体积，再预览或下载。",
+    "features": [
+      {
+        "icon": "image",
+        "text": "按文件内容识别 JPG、PNG、WebP 和 AVIF"
+      },
+      {
+        "icon": "rulers",
+        "text": "按最大宽高等比缩小，保留原图方向"
+      },
+      {
+        "icon": "stack",
+        "text": "为 JPG 填白或自定义底色，实测其他输出格式的透明支持"
+      },
+      {
+        "icon": "shield-check",
+        "text": "比较实际文件体积，处理过程仅在浏览器内"
+      }
+    ]
+  },
   "json-to-sql": {
   "usage": "粘贴 JSON 对象或非空对象数组，查看全部样本的字段分析；展开设置选择方言、模式与嵌套策略。点击生成 SQL 或按 Ctrl/Cmd + Enter，检查列类型、缺失字段、显式空值及 WHERE 条件后复制或下载。示例只填入，不自动生成。",
   "features": [

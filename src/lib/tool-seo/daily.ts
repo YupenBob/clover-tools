@@ -6,6 +6,10 @@ import type { ToolSeoZh } from './types.ts';
  * 由 `scripts/check-seo-metadata.mjs` 校验。
  */
 export const DAILY_TOOL_SEO: Record<string, ToolSeoZh> = {
+  'image-convert': {
+    title: '图片格式转换：JPG、PNG、WebP 与 AVIF 互转，等比缩小与透明背景处理 - CloverTools',
+    description: '在浏览器中转换 JPG、PNG、WebP 与 AVIF 静态图片，选取文件后查看原图格式、像素尺寸和体积。可设定最大宽高等比缩小，调整适用格式的编码质量，或为转成 JPG 的透明区域填白及自定义颜色。转换后预览并比较两个文件的体积，再下载实际输出的图片。处理过程不上传图片，导出不带原图 EXIF，可用格式取决于浏览器。',
+  },
   'time-sync': {
     "title": "标准北京时间校时：多源网络时间对照、设备偏差、往返延迟与估计误差，保存校时历史 - CloverTools",
     "description": "想知道电脑或手机时间是否准确，可一键对照多个网络时间来源，查看设备时钟偏差、请求往返延迟、缓存样本年龄与估计误差，并比较本地时间和北京时间。最近十次校时记录保存在当前浏览器，可查看偏差趋势、复制测量摘要或清空历史。工具采用 HTTP 时间参考，不能修改系统时间，也不提供 NTP 精度保证；来源失败或离线时会明确提示。"

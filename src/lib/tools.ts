@@ -462,6 +462,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   ],
   daily: [
     {
+      slug: 'image-convert',
+      name: '图片格式转换',
+      oneLiner: '静态图片互转、等比缩小、预览与下载。',
+      description: '在浏览器中转换 JPG、PNG、WebP 与 AVIF 静态图片，设置最大宽高、编码质量和 JPG 底色，比较实际体积并下载图片。处理过程不上传文件。',
+      icon: 'image',
+      keywords: ['图片格式转换', 'PNG 转 JPG', 'JPG 转 PNG', 'WebP 转换', 'AVIF 转换', '在线图片转换'],
+      tier: 'P1',
+    },
+    {
       slug: 'vocab-flash',
       name: '背单词速刷',
       oneLiner: '六本核心词书，翻卡速刷，错词自动收好。',

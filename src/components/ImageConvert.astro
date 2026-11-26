@@ -1,0 +1,169 @@
+---
+import Icon from './Icon.astro';
+import { getToolMeta, pathForLang, type Lang } from '../lib/i18n';
+import { imageConvertCopy } from '../lib/image-convert-i18n';
+import { DEFAULT_OPTIONS, FORMATS, FORMAT_ORDER } from '../lib/image-convert';
+import presentation from '../../data/tool-presentation/image-convert.json';
+import '../styles/image-convert.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = imageConvertCopy(lang);
+const { appearance, controls, interaction } = presentation;
+const hit = Object.fromEntries(controls.map(control => [control.id, control.minHitTargetPx]));
+const style = [
+  `--ic-primary-font:${appearance.minPrimaryFontVh}vh`,
+  `--ic-foreground:${appearance.foreground}`,
+  `--ic-background:${appearance.background}`,
+  ...Object.entries(hit).map(([id, px]) => `--ic-hit-${id}:${px}px`),
+].join(';');
+const shortcuts = (action: string) => Object.entries(interaction.shortcuts)
+  .filter(([, value]) => value === action)
+  .map(([key]) => key)
+  .join(' ');
+const related = [
+  { category: 'dev', slug: 'image-to-base64' },
+  { category: 'daily', slug: 'grid-splitter' },
+] as const;
+---
+
+<style is:inline>
+  body:has(#imageConvert:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) > :is(header, footer, #toast),
+  body:has(#imageConvert:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-page[data-tool="image-convert"] > :not(.tool-layout),
+  body:has(#imageConvert:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-layout > :not(.tool-workspace),
+  body:has(#imageConvert:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"])) .tool-workspace > :not(#imageConvert),
+  body:has(#imageConvert) .brand-logo,
+  body:has(#imageConvert) .tool-page[data-tool="image-convert"] :is(.ad-slot, .adsbygoogle),
+  #imageConvert:not([data-presentation-state="reveal"]) .ic-expanded,
+  #imageConvert[data-presentation-state="firstLoad"] .ic-interactive,
+  #imageConvert[data-presentation-state="settingsOpen"] #icReveal,
+  #imageConvert [hidden] { display: none !important; }
+  body:has(#imageConvert) :is(.brand-name, .tool-emblem, .tool-guide) { background-image: none !important; }
+  body:has(#imageConvert) .brand-name { color: var(--text); }
+  #imageConvert:not([data-presentation-state="reveal"]):not([data-presentation-state="settingsOpen"]) {
+    position: fixed; inset: 0; z-index: 90; overflow: auto; border-radius: 0;
+  }
+</style>
+
+<div id="imageConvert" lang={lang === 'tw' ? 'zh-Hant' : lang === 'zh' ? 'zh-CN' : lang} data-lang={lang}
+     data-presentation-state="firstLoad" data-presentation-mode="inline" data-process="empty" style={style}>
+  <script is:inline id="icCopyData" type="application/json" set:html={JSON.stringify(t).replaceAll('<', '\\u003c')} />
+  <a id="icExit" href="#icReveal" aria-label={t.exitWorkspace} aria-controls="icReveal" aria-keyshortcuts={shortcuts('exit')} data-astro-prefetch="false">
+    <Icon name="list-ul" />
+  </a>
+
+  <div id="icReveal">
+    <div class="ic-grid">
+      <section class="ic-card" aria-labelledby="icSource">
+        <p id="icSource" class="ic-slot" aria-busy="false">{`${t.sourceLabel} · ${t.sourceEmpty}`}</p>
+        <div class="ic-expanded ic-interactive" id="icSourceDetail" hidden>
+          <p id="icSourceName" dir="auto"></p>
+          <p id="icSourceSize" class="ic-meta"></p>
+          <a id="icSourcePreview" target="_blank" rel="noopener noreferrer" data-astro-prefetch="false">{t.previewSource}</a>
+        </div>
+      </section>
+
+      <section class="ic-expanded ic-interactive ic-actions" aria-label={t.target}>
+        <div class="ic-buttons">
+          <button id="icPick" type="button" class="btn btn-secondary">{t.pickImage}</button>
+          <button id="icSample" type="button" class="btn btn-secondary">{t.sampleImage}</button>
+          <input id="icFile" type="file" accept={FORMAT_ORDER.map(format => FORMATS[format].mime).join(',') + ',.jpg,.jpeg,.png,.webp,.avif'} aria-label={t.pickImage} hidden />
+        </div>
+        <label class="ic-field" for="icFormat">
+          {t.target}
+          <select id="icFormat" disabled aria-describedby="icCapability">
+            {FORMAT_ORDER.map(format => <option value={format} disabled>{FORMATS[format].label}</option>)}
+          </select>
+        </label>
+        <p id="icCapability" class="ic-meta">{t.probing}</p>
+        <div class="ic-buttons">
+          <button id="icConvert" type="button" class="btn btn-primary" aria-keyshortcuts={shortcuts('convert')} disabled>{t.convertImage}</button>
+          <button id="icSettingsToggle" type="button" class="btn btn-secondary" aria-controls="icSettings" aria-expanded="false" aria-keyshortcuts={shortcuts('settings')}>{t.settings}</button>
+          <button id="icFullscreen" type="button" class="btn btn-secondary" aria-keyshortcuts={shortcuts('fullscreen')}>{t.fullscreen}</button>
+          <button id="icClear" type="button" class="btn btn-secondary">{t.clear}</button>
+        </div>
+        <p id="icStatus" class="ic-meta" hidden></p>
+      </section>
+
+      <section class="ic-card" aria-labelledby="icResult">
+        <p id="icResult" class="ic-slot" aria-busy="false">{`${t.resultLabel} · ${t.resultEmpty}`}</p>
+        <div class="ic-expanded ic-interactive" id="icResultDetail" hidden>
+          <p id="icResultSize" class="ic-meta"></p>
+          <p id="icDifference" class="ic-difference"></p>
+          <a id="icResultPreview" target="_blank" rel="noopener noreferrer" data-astro-prefetch="false">{t.previewResult}</a>
+          <div class="ic-buttons ic-result-actions">
+            <a id="icDownload" class="btn btn-primary" aria-disabled="true" data-astro-prefetch="false" hidden>{t.downloadImage}</a>
+            <button id="icCopy" type="button" class="btn btn-secondary" disabled>{t.copySummary}</button>
+          </div>
+          <label class="ic-field" id="icManualField" for="icManual" hidden>
+            {t.copySummary}
+            <textarea id="icManual" rows="3" readonly></textarea>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <section class="ic-expanded ic-notes" aria-labelledby="icHelp">
+      <h2 id="icHelp">{t.help}</h2>
+      <p>{t.drop} {t.instructions}</p>
+      <p>{t.limits}</p>
+      <p>{t.exifNote}</p>
+      <p>{t.privacy}</p>
+      <nav aria-label={t.related}>
+        {related.map(({ category, slug }) => (
+          <a href={pathForLang(`/tools/${category}/${slug}/`, lang)} data-astro-prefetch="false">{getToolMeta(category, slug, lang).name}</a>
+        ))}
+      </nav>
+      <noscript><p>{t.noScript}</p><a href="#imageConvert">{t.collapseWorkspace}</a></noscript>
+    </section>
+  </div>
+
+  <section id="icSettings" aria-labelledby="icSettingsTitle" hidden>
+    <h2 id="icSettingsTitle">{t.settings}</h2>
+    <div class="ic-settings-grid">
+      <div class="ic-field" id="icQualityField">
+        <label for="icQuality">{t.quality}</label>
+        <input id="icQuality" type="text" inputmode="numeric" value={DEFAULT_OPTIONS.quality} aria-describedby="icQualityError" autocomplete="off" />
+        <span id="icQualityError" class="ic-field-error" hidden>{t.invalidQuality}</span>
+      </div>
+      <div class="ic-field">
+        <label for="icMaxWidth">{t.maxWidth}</label>
+        <input id="icMaxWidth" type="text" inputmode="numeric" aria-describedby="icSizeHint icMaxWidthError" autocomplete="off" />
+        <span id="icMaxWidthError" class="ic-field-error" hidden>{t.invalidWidth}</span>
+      </div>
+      <div class="ic-field">
+        <label for="icMaxHeight">{t.maxHeight}</label>
+        <input id="icMaxHeight" type="text" inputmode="numeric" aria-describedby="icSizeHint icMaxHeightError" autocomplete="off" />
+        <span id="icMaxHeightError" class="ic-field-error" hidden>{t.invalidHeight}</span>
+      </div>
+      <label class="ic-field" id="icBackgroundField" for="icBackground">
+        {t.background}
+        <select id="icBackground">
+          <option value="white">{t.white}</option>
+          <option value="custom">{t.custom}</option>
+        </select>
+      </label>
+      <div class="ic-field" id="icColorField" hidden>
+        <label for="icColor">{t.color}</label>
+        <input id="icColor" type="text" value={DEFAULT_OPTIONS.color} spellcheck="false" aria-describedby="icColorError" autocomplete="off" />
+        <span id="icColorError" class="ic-field-error" hidden>{t.invalidColor}</span>
+      </div>
+    </div>
+    <p id="icSizeHint" class="ic-meta">{t.limitHint}</p>
+    <p id="icTransparency" class="ic-meta" hidden>{t.transparent}</p>
+    <p id="icEstimate">{t.estimateEmpty}</p>
+    <p id="icSettingsStatus" class="ic-meta" hidden></p>
+    <button id="icSettingsClose" type="button" class="btn btn-secondary">{t.closeSettings}</button>
+  </section>
+
+  <p id="icLive" class="ic-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+</div>
+<noscript>
+  <style is:inline>
+    #imageConvert:has(#icReveal:target) { position: relative; inset: auto; overflow: visible; }
+    #imageConvert:has(#icReveal:target) .ic-notes { display: block !important; }
+  </style>
+</noscript>
+<script>
+  import '../scripts/image-convert';
+</script>

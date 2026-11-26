@@ -12,6 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = readFileSync(join(root, 'src', 'lib', 'tools.ts'), 'utf8');
 
 const ALIASES = {
+  'image-convert': ['png转jpg', 'jpeg转png', 'webp转jpg', 'avif转jpg', '图片转格式'],
   'json-to-sql': ['json2sql', 'json转insert', 'json生成sql', 'JSON to INSERT', 'JSON to CREATE TABLE', 'JSON 轉 SQL'],
   'ip-reputation': ['IP 纯洁度', 'IP 信誉', 'IP 滥用标记', 'Tor 节点查询', 'IP reputation lookup', 'IP 純淨度查詢'],
   'time-sync': ['北京时间校时', '电脑时间准不准', '手机时间偏差', '在线对时', '时钟偏移', 'Beijing time check'],

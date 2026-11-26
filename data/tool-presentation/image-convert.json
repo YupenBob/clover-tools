@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "slug": "image-convert",
+  "profile": "workspace",
+  "i18n": {
+    "module": "src/lib/image-convert-i18n.ts",
+    "requiredKeys": [
+      "sourceLabel",
+      "sourceEmpty",
+      "resultLabel",
+      "resultEmpty",
+      "exitWorkspace",
+      "collapseWorkspace",
+      "pickImage",
+      "convertImage",
+      "settings",
+      "fullscreen",
+      "fullscreenFallback",
+      "downloadImage",
+      "previewSource",
+      "previewResult",
+      "sampleImage",
+      "clear",
+      "copySummary",
+      "decoding",
+      "converting",
+      "errorInput",
+      "errorCanvas",
+      "errorEncode",
+      "errorDownload",
+      "exifNote",
+      "privacy",
+      "noScript"
+    ]
+  },
+  "primary": {
+    "root": "#imageConvert",
+    "slots": [
+      {
+        "id": "source",
+        "kind": "primaryInput",
+        "selector": "#icSource",
+        "required": true,
+        "format": {
+          "pattern": "^(?:原图|原圖|Source|원본|元画像) · (?:未选择|未選擇|No file|선택 안 함|未選択|(?:JPG|PNG|WebP|AVIF) · [0-9]+ × [0-9]+ px)$"
+        }
+      },
+      {
+        "id": "result",
+        "kind": "primaryResult",
+        "selector": "#icResult",
+        "required": true,
+        "format": {
+          "pattern": "^(?:结果|結果|Result|결과|変換後) · (?:尚未转换|尚未轉換|Not converted|변환 전|未変換|(?:JPG|PNG|WebP|AVIF) · [0-9]+ × [0-9]+ px)$"
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "id": "exit",
+      "selector": "#icExit",
+      "role": "exit",
+      "i18nKey": "exitWorkspace",
+      "persistent": true,
+      "iconOnly": true,
+      "placement": "top-right",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "pick",
+      "selector": "#icPick",
+      "role": "submit",
+      "i18nKey": "pickImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "convert",
+      "selector": "#icConvert",
+      "role": "submit",
+      "i18nKey": "convertImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "settings",
+      "selector": "#icSettingsToggle",
+      "role": "settings",
+      "i18nKey": "settings",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "fullscreen",
+      "selector": "#icFullscreen",
+      "role": "settings",
+      "i18nKey": "fullscreen",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "download",
+      "selector": "#icDownload",
+      "role": "submit",
+      "i18nKey": "downloadImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    }
+  ],
+  "appearance": {
+    "minPrimaryFontVh": 2,
+    "foreground": "#222222",
+    "background": "#faf9f6"
+  },
+  "timing": {
+    "readyWithinMs": 3000,
+    "requireAdvancingTime": false
+  },
+  "interaction": {
+    "autoHideMs": 0,
+    "settingsInitiallyOpen": false,
+    "revealTriggers": [
+      "pointer",
+      "keyboard"
+    ],
+    "shortcuts": {
+      "Control+Enter": "convert",
+      "Meta+Enter": "convert",
+      "F2": "settings",
+      "F10": "fullscreen",
+      "Escape": "exit"
+    }
+  },
+  "errors": {
+    "visualChannel": "hidden",
+    "announcement": "aria-live",
+    "interruptPrimary": false
+  },
+  "renderSurfaces": [
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icSource"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icResult"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icExit"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icReveal, #icReveal *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icSettings, #icSettings *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#icLive"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": ".tool-page[data-tool=\"image-convert\"] *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "body:has(#imageConvert) > :is(header, footer) *"
+    }
+  ],
+  "states": {
+    "firstLoad": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "primary": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "reveal": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit",
+        "pick",
+        "convert",
+        "settings",
+        "fullscreen"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "settingsOpen": {
+      "slots": [],
+      "controls": [
+        "exit"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "degraded": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "fullscreen": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    }
+  }
+}
