@@ -12,6 +12,7 @@
  * 设计目标：让「无事可做」的那一轮只花几十个 token —— 模型只需回一行 `watchdog: skip <reason>`。
  * 本脚本不调用任何模型，不读大文件，不写仓库内容；只在 `.editorial/` 下写一行日志。
  */
+import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './lib/paths.mjs';
@@ -79,6 +80,34 @@ function countPublishedForDate(date) {
     if (record?.status === 'published') count += 1;
   }
   return count;
+}
+
+/**
+ * 候选池低于水位时自动补题：调用 import-suggest（公开搜索建议，无凭证）。
+ * 失败不阻断判活，只记录；watchdog 仍按当前队列决定是否唤醒。
+ */
+function replenishQueue(runKey) {
+  const startedAt = Date.now();
+  const result = spawnSync(process.execPath, [join(ROOT, 'scripts/editorial/import-suggest.mjs'), '--write', '--seeds', '40'], {
+    cwd: ROOT,
+    encoding: 'utf8',
+    timeout: 8 * 60_000,
+    maxBuffer: 16 * 1024 * 1024,
+    env: { ...process.env },
+  });
+  const ok = result.status === 0;
+  const tailText = String(result.stdout ?? '')
+    .trim()
+    .slice(-400);
+  try {
+    appendFileSync(
+      LOG_FILE,
+      `${JSON.stringify({ at: new Date().toISOString(), event: 'replenish', runKey, ok, exit: result.status, ms: Date.now() - startedAt, tail: tailText })}\n`,
+    );
+  } catch {
+    // 日志失败不影响
+  }
+  return { ok, exit: result.status, ms: Date.now() - startedAt, tail: tailText };
 }
 
 function promoteTopCandidate(queue) {
@@ -175,11 +204,19 @@ function main() {
   // 6. 推送 token
   if (!readToken()) return finish(false, 'token-missing');
 
-  // 7. 队列
-  const queue = loadQueue();
+  // 7. 队列（候选不足时先补题：公开搜索建议，无需凭证）
+  let queue = loadQueue();
+  const countCandidates = (store) => store.items.filter((item) => item.status === 'candidate').length;
+  const lowWatermark = config.caps?.minCandidates ?? 10;
+  details.candidatesBefore = countCandidates(queue);
+  if (details.candidatesBefore < lowWatermark) {
+    const replenished = replenishQueue(runKey);
+    details.replenish = replenished;
+    if (replenished.ok) queue = loadQueue();
+  }
   const ready = queue.items.filter((item) => item.status === 'ready');
   details.ready = ready.length;
-  details.candidates = queue.items.filter((item) => item.status === 'candidate').length;
+  details.candidates = countCandidates(queue);
   if (ready.length === 0) {
     if (!options.autoPromote) return finish(false, 'queue-empty');
     const promoted = promoteTopCandidate(queue);
