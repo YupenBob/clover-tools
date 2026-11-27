@@ -18,6 +18,19 @@
     }
   },
   "tools": {
+    "image-compress": {
+      "name": "Image Compressor",
+      "oneLiner": "Compress to a file-size limit and compare the original and result side by side.",
+      "description": "Compress JPG, PNG and WebP in your browser. Set quality, dimensions or a target file size, then compare actual bytes and download one verified image.",
+      "keywords": [
+        "image compressor",
+        "compress image to target size",
+        "resize image",
+        "reduce JPEG size",
+        "compress PNG",
+        "compress WebP"
+      ]
+    },
     "image-convert": {
       "name": "Image Converter",
       "oneLiner": "Convert and resize still images with a JPG background and before-and-after file sizes.",
@@ -940,6 +953,68 @@
     }
   },
   "content": {
+    "image-compress": {
+      "usage": "Choose or drop an image, then set quality, maximum dimensions or a target file size. Compare both images and their actual sizes before copying the summary or downloading.",
+      "features": [
+        {
+          "icon": "image",
+          "text": "Searches actual encoded bytes and reports how far a result exceeds the target"
+        },
+        {
+          "icon": "rulers",
+          "text": "Resizes proportionally within both maximum dimensions"
+        },
+        {
+          "icon": "stack",
+          "text": "Shows the full original and result side by side"
+        },
+        {
+          "icon": "shield-check",
+          "text": "Downloads one verified image in the original format"
+        }
+      ],
+      "detail": {
+        "intro": "Fit a photo or screenshot to an attachment limit and check that it stays readable. For a format change or an opaque background, use Image Converter.",
+        "steps": [
+          "Open the controls and choose or drop a still JPG, PNG or WebP. You can also try the bundled transparent PNG.",
+          "Open Settings. Enter maximum dimensions or choose a target size in B or KiB. Turn off extra resizing to keep the first output dimensions.",
+          "Press Compress or Ctrl/Cmd + Enter. Compare both images, then download the result or copy the summary."
+        ],
+        "principles": [
+          "The tighter dimension limit sets the scale. Both sides are rounded down to at least one pixel after the browser applies the image orientation.",
+          "Target mode checks larger dimensions and higher JPEG or WebP quality first. It stops at the first verified file within the byte limit.",
+          "PNG uses lossless encoding, so the search varies its dimensions. PNG and supported WebP encoders preserve transparency."
+        ],
+        "pitfalls": [
+          "Still images only. Limits are 16 MiB input, 64 MiB output, 8192 px per side and 16 million pixels overall.",
+          "A missed target shows the smallest valid file found in that run and the extra bytes. Re-encoding can produce a file as large as or larger than the original.",
+          "Exports omit source EXIF. Your browser may add new metadata, and color or lossy encoding can change the image."
+        ],
+        "privacy": "Images, filenames and settings stay in this browser. The tool works offline once loaded. Refreshing clears the session. The image itself may still show personal information.",
+        "faqs": [
+          {
+            "q": "Why can the original fit while the result exceeds the target?",
+            "a": "Re-encoding changes the file size. Each file is measured independently. Try a smaller size or lower quality."
+          },
+          {
+            "q": "Why can I open WebP but fail to compress it?",
+            "a": "Decoding and encoding are separate browser capabilities. Try a browser with transparent WebP encoding or use Image Converter to switch to PNG."
+          }
+        ],
+        "examples": [
+          {
+            "label": "Halve the width of a transparent image",
+            "input": "Transparent PNG · 320 × 200 px",
+            "output": "Set the maximum width to 160. The result is a 160 × 100 px PNG with a transparent background."
+          },
+          {
+            "label": "Check an unusually low file limit",
+            "input": "Transparent PNG · 1 B target",
+            "output": "The result shows the 1 B limit, the smallest file found this run and the number of bytes over the limit."
+          }
+        ]
+      }
+    },
     "image-convert": {
       "usage": "Choose or drop a still image. Check its size and format, select an output format, and set limits, quality or a JPG background before converting. Compare and preview the result before downloading.",
       "features": [

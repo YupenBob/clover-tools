@@ -6,6 +6,10 @@ import type { ToolSeoZh } from './types.ts';
  * 由 `scripts/check-seo-metadata.mjs` 校验。
  */
 export const DAILY_TOOL_SEO: Record<string, ToolSeoZh> = {
+  'image-compress': {
+    title: '图片压缩：按目标体积压缩 JPG、PNG 和 WebP，等比缩小并对比下载 - CloverTools',
+    description: '在浏览器中压缩 JPG、PNG 或 WebP 图片，设置质量、最大宽高或目标体积。需要满足文件大小限制时，可允许工具按档位降低质量与缩小尺寸，并在未达目标时查看本次最小结果。原图与压缩图并排预览，用实际字节数和节省比例判断效果，确认后下载单张图片。PNG 保留透明背景，WebP 支持取决于浏览器，处理过程不上传图片。',
+  },
   'image-convert': {
     title: '图片格式转换：JPG、PNG、WebP 与 AVIF 互转，等比缩小与透明背景处理 - CloverTools',
     description: '在浏览器中转换 JPG、PNG、WebP 与 AVIF 静态图片，选取文件后查看原图格式、像素尺寸和体积。可设定最大宽高等比缩小，调整适用格式的编码质量，或为转成 JPG 的透明区域填白及自定义颜色。转换后预览并比较两个文件的体积，再下载实际输出的图片。处理过程不上传图片，导出不带原图 EXIF，可用格式取决于浏览器。',

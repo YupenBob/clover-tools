@@ -462,6 +462,15 @@ export const TOOLS: Record<ToolCategory, ToolMeta[]> = {
   ],
   daily: [
     {
+      slug: 'image-compress',
+      name: '图片压缩',
+      oneLiner: '按目标体积、质量或尺寸压缩，比较原图与结果后下载。',
+      description: '在浏览器中压缩 JPG、PNG 和 WebP。设定文件大小上限或最大宽高，同屏比较两张图的实际体积与清晰度，再下载单张图片。',
+      icon: 'image',
+      keywords: ['图片压缩', '在线压缩图片', 'JPG 压缩', 'PNG 压缩', 'WebP 压缩', '按体积压缩图片'],
+      tier: 'P1',
+    },
+    {
       slug: 'image-convert',
       name: '图片格式转换',
       oneLiner: '静态图片互转、等比缩小、预览与下载。',

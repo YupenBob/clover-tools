@@ -1,0 +1,184 @@
+---
+import Icon from './Icon.astro';
+import { getToolMeta, pathForLang, type Lang } from '../lib/i18n';
+import { imageCompressCopy } from '../lib/image-compress-i18n';
+import { DEFAULT_SETTINGS } from '../lib/image-compress';
+import presentation from '../../data/tool-presentation/image-compress.json';
+import '../styles/image-compress.css';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = imageCompressCopy(lang);
+const locale = lang === 'tw' ? 'zh-Hant' : lang === 'zh' ? 'zh-CN' : lang;
+const { appearance, controls, interaction } = presentation;
+const style = [
+  `--img-comp-primary-font:${appearance.minPrimaryFontVh}vh`,
+  `--img-comp-foreground:${appearance.foreground}`,
+  `--img-comp-background:${appearance.background}`,
+  ...controls.map(({ id, minHitTargetPx }) => `--img-comp-hit-${id}:${minHitTargetPx}px`),
+].join(';');
+const shortcuts = (action: string) => Object.entries(interaction.shortcuts)
+  .filter(([, value]) => value === action)
+  .map(([key]) => key)
+  .join(' ');
+---
+
+<style is:inline>
+  body:has(#imageCompress:not([data-presentation-state="reveal"], [data-presentation-state="settingsOpen"])) > :is(header, footer, #toast),
+  body:has(#imageCompress:not([data-presentation-state="reveal"], [data-presentation-state="settingsOpen"])) .tool-page[data-tool="image-compress"] > :not(.tool-layout),
+  body:has(#imageCompress:not([data-presentation-state="reveal"], [data-presentation-state="settingsOpen"])) .tool-page[data-tool="image-compress"] .tool-layout > :not(.tool-workspace),
+  body:has(#imageCompress:not([data-presentation-state="reveal"], [data-presentation-state="settingsOpen"])) .tool-page[data-tool="image-compress"] .tool-workspace > :not(#imageCompress),
+  body:has(#imageCompress) .brand-logo,
+  body:has(#imageCompress) .tool-page[data-tool="image-compress"] :is(.ad-slot, .adsbygoogle),
+  #imageCompress:not([data-presentation-state="reveal"]) #imgCompReveal,
+  #imageCompress:not([data-presentation-state="settingsOpen"]) #imgCompSettings,
+  #imageCompress [hidden] { display: none !important; }
+  body:has(#imageCompress) :is(.brand-name, .tool-emblem, .tool-guide) { background-image: none !important; }
+  body:has(#imageCompress) .brand-name { color: var(--text); }
+  #imageCompress:not([data-presentation-state="reveal"], [data-presentation-state="settingsOpen"]) {
+    position: fixed; inset: 0; z-index: 90; overflow: auto; border-radius: 0;
+  }
+</style>
+
+<div id="imageCompress" lang={locale} data-presentation-state="firstLoad" data-presentation-mode="inline"
+     data-process="empty" style={style}>
+  <script is:inline id="imgCompCopyData" type="application/json" set:html={JSON.stringify(t).replaceAll('<', '\\u003c')} />
+  <a id="imgCompExit" href="#imgCompStaticHelp" aria-label={t.showControls} aria-controls="imgCompStaticHelp"
+     aria-keyshortcuts={shortcuts('exit')} data-astro-prefetch="false">
+    <Icon name="list-ul" />
+  </a>
+
+  <div class="img-comp-grid img-comp-slots">
+    <p id="imgCompSource" class="img-comp-slot" aria-busy="false">{`${t.sourceLabel} · ${t.sourceEmpty}`}</p>
+    <p id="imgCompResult" class="img-comp-slot" aria-busy="false">{`${t.resultLabel} · ${t.resultEmpty}`}</p>
+  </div>
+
+  <div id="imgCompReveal" hidden>
+    <div class="img-comp-actions">
+      <div class="img-comp-buttons">
+        <button id="imgCompPick" type="button" class="btn btn-secondary">{t.pickImage}</button>
+        <button id="imgCompSample" type="button" class="btn btn-secondary">{t.sampleImage}</button>
+        <input id="imgCompFile" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" aria-label={t.pickImage} hidden />
+      </div>
+      <div class="img-comp-buttons">
+        <button id="imgCompCompress" type="button" class="btn btn-primary" aria-keyshortcuts={shortcuts('compress')} disabled>{t.compressImage}</button>
+        <button id="imgCompSettingsToggle" type="button" class="btn btn-secondary" aria-controls="imgCompSettings"
+                aria-expanded="false" aria-keyshortcuts={shortcuts('settings')}>{t.settings}</button>
+        <button id="imgCompFullscreen" type="button" class="btn btn-secondary" aria-keyshortcuts={shortcuts('fullscreen')}>{t.fullscreen}</button>
+        <button id="imgCompClear" type="button" class="btn btn-secondary">{t.clear}</button>
+      </div>
+      <p id="imgCompParameters">{t.qualityMode}</p>
+      <p id="imgCompStatus" hidden></p>
+      <p id="imgCompAttempts" hidden></p>
+    </div>
+
+    <div class="img-comp-grid" id="imgCompCompare" hidden>
+      <section class="img-comp-card" aria-labelledby="imgCompOriginalHeading">
+        <h2 id="imgCompOriginalHeading">{t.sourceLabel}</h2>
+        <div id="imgCompOriginalFrame" class="img-comp-frame"></div>
+        <p id="imgCompSourceName" dir="auto"></p>
+        <p id="imgCompSourceSize"></p>
+      </section>
+      <section class="img-comp-card" aria-labelledby="imgCompResultHeading">
+        <h2 id="imgCompResultHeading">{t.resultLabel}</h2>
+        <div id="imgCompResultFrame" class="img-comp-frame"></div>
+        <p id="imgCompResultSize">{t.resultEmpty}</p>
+        <p id="imgCompEncodedQuality" hidden></p>
+      </section>
+    </div>
+
+    <div id="imgCompResultActions" class="img-comp-card" hidden>
+      <p id="imgCompDifference"></p>
+      <p id="imgCompOriginalFits" hidden>{t.originalFits}</p>
+      <p id="imgCompTargetOutcome" hidden></p>
+      <div class="img-comp-buttons">
+        <a id="imgCompDownload" class="btn btn-primary" aria-disabled="true" data-astro-prefetch="false" hidden>{t.downloadImage}</a>
+        <button id="imgCompCopy" type="button" class="btn btn-secondary" disabled>{t.copySummary}</button>
+        <a id="imgCompOpenResult" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" data-astro-prefetch="false" hidden>{t.openResult}</a>
+      </div>
+      <label class="img-comp-field" id="imgCompManualField" hidden>
+        {t.copySummary}
+        <textarea id="imgCompManual" rows="5" readonly></textarea>
+      </label>
+    </div>
+
+    <section class="img-comp-card img-comp-help" aria-labelledby="imgCompHelp">
+      <h2 id="imgCompHelp">{t.help}</h2>
+      <p>{t.instructions}</p>
+      <p>{t.limits}</p>
+      <p>{t.privacy}</p>
+      <nav>
+        <a href={pathForLang('/tools/daily/image-convert/', lang)} data-astro-prefetch="false">{getToolMeta('daily', 'image-convert', lang).name}</a>
+        <a href={pathForLang('/tools/dev/image-to-base64/', lang)} data-astro-prefetch="false">{getToolMeta('dev', 'image-to-base64', lang).name}</a>
+      </nav>
+    </section>
+  </div>
+
+  <section id="imgCompSettings" class="img-comp-card" aria-labelledby="imgCompSettingsTitle" hidden>
+    <h2 id="imgCompSettingsTitle">{t.settings}</h2>
+    <label class="img-comp-field">
+      {t.mode}
+      <select id="imgCompMode">
+        <option value="quality" selected={DEFAULT_SETTINGS.mode === 'quality'}>{t.qualityMode}</option>
+        <option value="target" selected={DEFAULT_SETTINGS.mode === 'target'}>{t.targetMode}</option>
+      </select>
+    </label>
+    <div id="imgCompTargetFields" hidden>
+      <div class="img-comp-grid">
+        <label class="img-comp-field">
+          {t.targetMode}
+          <input id="imgCompTarget" type="text" inputmode="numeric" autocomplete="off" />
+        </label>
+        <label class="img-comp-field">
+          {t.targetUnit}
+          <select id="imgCompUnit">
+            <option value="B" selected={DEFAULT_SETTINGS.unit === 'B'}>B</option>
+            <option value="KiB" selected={DEFAULT_SETTINGS.unit === 'KiB'}>KiB</option>
+          </select>
+        </label>
+      </div>
+      <p class="img-comp-error" id="imgCompTargetError" hidden>{t.invalidTarget}</p>
+      <label class="img-comp-checkbox">
+        <input id="imgCompAllowResize" type="checkbox" checked={DEFAULT_SETTINGS.allowResize} />
+        {t.allowResize}
+      </label>
+    </div>
+    <label class="img-comp-field">
+      <span id="imgCompQualityLabel">{t.quality}</span>
+      <input id="imgCompQuality" type="range" min="0" max="100" step="1" value={DEFAULT_SETTINGS.quality} />
+      <output id="imgCompQualityValue" for="imgCompQuality">{DEFAULT_SETTINGS.quality}</output>
+    </label>
+    <p id="imgCompPngQuality" hidden>{t.pngQuality}</p>
+    <p class="img-comp-error" id="imgCompQualityError" hidden>{t.invalidQuality}</p>
+    <div class="img-comp-grid">
+      <label class="img-comp-field">
+        {t.maxWidth}
+        <input id="imgCompMaxWidth" type="text" inputmode="numeric" autocomplete="off" aria-describedby="imgCompSizeHint" />
+        <span class="img-comp-error" id="imgCompMaxWidthError" hidden>{t.invalidWidth}</span>
+      </label>
+      <label class="img-comp-field">
+        {t.maxHeight}
+        <input id="imgCompMaxHeight" type="text" inputmode="numeric" autocomplete="off" aria-describedby="imgCompSizeHint" />
+        <span class="img-comp-error" id="imgCompMaxHeightError" hidden>{t.invalidHeight}</span>
+      </label>
+    </div>
+    <p id="imgCompSizeHint">{t.sizeHint}</p>
+    <p id="imgCompEstimate">{t.estimateEmpty}</p>
+    <p id="imgCompSettingsStatus" hidden></p>
+    <button id="imgCompSettingsClose" type="button" class="btn btn-secondary">{t.closeSettings}</button>
+  </section>
+
+  <p id="imgCompLive" class="img-comp-sr" role="status" aria-live="polite" aria-atomic="true"></p>
+  <noscript>
+    <style is:inline>
+      #imageCompress #imgCompStaticHelp:not(:target) { display: none; }
+    </style>
+    <section id="imgCompStaticHelp" class="img-comp-card">
+      <p>{t.noScript}</p>
+      <a href="#imageCompress">{t.hideControls}</a>
+    </section>
+  </noscript>
+</div>
+<script>
+  import '../scripts/image-compress';
+</script>

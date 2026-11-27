@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "slug": "image-compress",
+  "profile": "workspace",
+  "i18n": {
+    "module": "src/lib/image-compress-i18n.ts",
+    "requiredKeys": [
+      "sourceLabel",
+      "sourceEmpty",
+      "resultLabel",
+      "resultEmpty",
+      "showControls",
+      "hideControls",
+      "pickImage",
+      "compressImage",
+      "settings",
+      "closeSettings",
+      "fullscreen",
+      "exitFullscreen",
+      "fullscreenFallback",
+      "downloadImage",
+      "sampleImage",
+      "clear",
+      "copySummary",
+      "originalPreviewAlt",
+      "resultPreviewAlt",
+      "decoding",
+      "encoding",
+      "targetMet",
+      "targetMissed",
+      "errorInput",
+      "errorEncode",
+      "errorDownload",
+      "privacy",
+      "noScript"
+    ]
+  },
+  "primary": {
+    "root": "#imageCompress",
+    "slots": [
+      {
+        "id": "source",
+        "kind": "primaryInput",
+        "selector": "#imgCompSource",
+        "required": true,
+        "format": {
+          "pattern": "^(?:原图|原圖|Original|원본|元画像) · (?:未选择|未選擇|No file selected|선택한 파일 없음|ファイル未選択|(?:JPG|PNG|WebP) · [1-9][0-9]* × [1-9][0-9]* px · [1-9][0-9]* B)$"
+        }
+      },
+      {
+        "id": "result",
+        "kind": "primaryResult",
+        "selector": "#imgCompResult",
+        "required": true,
+        "format": {
+          "pattern": "^(?:结果|結果|Result|결과|圧縮結果) · (?:尚未压缩|尚未壓縮|Not compressed yet|압축 전|未圧縮|(?:JPG|PNG|WebP) · [1-9][0-9]* × [1-9][0-9]* px · [1-9][0-9]* B)$"
+        }
+      }
+    ]
+  },
+  "controls": [
+    {
+      "id": "exit",
+      "selector": "#imgCompExit",
+      "role": "exit",
+      "i18nKey": "showControls",
+      "persistent": true,
+      "iconOnly": true,
+      "placement": "top-right",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "pick",
+      "selector": "#imgCompPick",
+      "role": "submit",
+      "i18nKey": "pickImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "compress",
+      "selector": "#imgCompCompress",
+      "role": "submit",
+      "i18nKey": "compressImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "settings",
+      "selector": "#imgCompSettingsToggle",
+      "role": "settings",
+      "i18nKey": "settings",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "fullscreen",
+      "selector": "#imgCompFullscreen",
+      "role": "settings",
+      "i18nKey": "fullscreen",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    },
+    {
+      "id": "download",
+      "selector": "#imgCompDownload",
+      "role": "submit",
+      "i18nKey": "downloadImage",
+      "persistent": false,
+      "iconOnly": false,
+      "placement": "inline",
+      "minHitTargetPx": 44
+    }
+  ],
+  "appearance": {
+    "minPrimaryFontVh": 2,
+    "foreground": "#222222",
+    "background": "#faf9f6"
+  },
+  "timing": {
+    "readyWithinMs": 3000,
+    "requireAdvancingTime": false
+  },
+  "interaction": {
+    "autoHideMs": 0,
+    "settingsInitiallyOpen": false,
+    "revealTriggers": [
+      "pointer",
+      "focus",
+      "keyboard"
+    ],
+    "shortcuts": {
+      "Control+Enter": "compress",
+      "Meta+Enter": "compress",
+      "F2": "settings",
+      "F10": "fullscreen",
+      "Escape": "exit"
+    }
+  },
+  "errors": {
+    "visualChannel": "hidden",
+    "announcement": "aria-live",
+    "interruptPrimary": false
+  },
+  "renderSurfaces": [
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompSource"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompResult"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompExit"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompReveal, #imgCompReveal *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompSettings, #imgCompSettings *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "#imgCompLive"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": ".tool-page[data-tool=\"image-compress\"] *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "body:has(#imageCompress) > :is(header, footer) *"
+    },
+    {
+      "kind": "text",
+      "purpose": "content",
+      "selector": "body:has(#imageCompress) > #toast, body:has(#imageCompress) > #toast *"
+    }
+  ],
+  "states": {
+    "firstLoad": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "primary": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "reveal": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit",
+        "pick",
+        "compress",
+        "settings",
+        "fullscreen"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "settingsOpen": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": true,
+      "allowInteractives": true
+    },
+    "degraded": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    },
+    "fullscreen": {
+      "slots": [
+        "source",
+        "result"
+      ],
+      "controls": [
+        "exit"
+      ],
+      "allowText": false,
+      "allowInteractives": false
+    }
+  }
+}

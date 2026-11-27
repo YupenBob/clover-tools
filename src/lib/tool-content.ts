@@ -29,6 +29,27 @@ export interface ToolContent {
  * 约定：工具 UI 定稿后，tools.ts 元数据与本文件内容必须同批更新。
  */
 export const TOOL_CONTENT: Record<string, ToolContent> = {
+  "image-compress": {
+    "usage": "选择或拖入图片，在设置中填写质量、最大尺寸或目标体积。压缩后同屏核对两张图的像素与字节数，再复制摘要或下载。",
+    "features": [
+      {
+        "icon": "image",
+        "text": "按实际字节搜索目标体积并报告超出量"
+      },
+      {
+        "icon": "rulers",
+        "text": "按最大宽高等比缩小，保留解码方向"
+      },
+      {
+        "icon": "stack",
+        "text": "同屏对比完整原图和压缩结果"
+      },
+      {
+        "icon": "shield-check",
+        "text": "在浏览器处理并下载经过核验的同格式单文件"
+      }
+    ]
+  },
   "image-convert": {
     "usage": "选择或拖入一张静态图片，核对原图格式与尺寸。选输出格式并按需设置质量、最大宽高和 JPG 底色，转换后比较实际体积，再预览或下载。",
     "features": [
