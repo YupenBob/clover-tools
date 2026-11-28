@@ -1,0 +1,84 @@
+{
+  "title": "Browser Info: How to Read Versions, Viewports, and Device Data",
+  "description": "Read browser brands, User-Agent, viewport, and device details. Interpret online status and unknown values, and report the environment and reproduction steps.",
+  "content": "<p>Open <a href=\"/en/tools/fun/browser-info/\">Browser Info</a> to see the brands, User-Agent, language, and platform reported by the current browser. You can also see the window viewport, pixel ratio, online status, and some device details. Open the tool in the browser where the problem occurs, click “Refresh,” and copy the relevant rows into your report.</p>\n\n<h2>Check the window where the problem occurs</h2>\n\n<p>The tool fills in the “Browser &amp; Device Info” table when it opens. For a layout problem, keep the original window size and copy “Window Viewport” and “Pixel Ratio” first. If the problem occurs only on a page opened within an app, open the tool within that same app. Switching browsers gives you readings from a different environment.</p>\n\n<p>You can reread the table manually. For example, after changing a system setting, return to the page, click “Refresh” in the upper right, and copy the rows you need. The button reads the current environment again and redraws the table. In your report, say whether you took the readings before or after changing the setting so the person investigating can match the screenshot to the action.</p>\n\n<figure><a href=\"/article-images/2026-11/browser-info-browser-overview.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"View full image of the Browser &amp; Device Info panel, with Refresh to the right of the heading and Browser and User-Agent as the first rows.\"><img src=\"/article-images/2026-11/browser-info-browser-overview.jpg\" alt=\"Browser &amp; Device Info panel, with Refresh to the right of the heading and Browser and User-Agent as the first rows.\" width=\"1232\" height=\"902\" loading=\"lazy\" decoding=\"async\"></a><figcaption>The “Browser &amp; Device Info” panel has a “Refresh” button at the top. The table starts with “Browser” and “User-Agent.” Click the image to view it at full size.</figcaption></figure>\n\n<h2>How to read browser brands and User-Agent</h2>\n\n<p>In the “Browser” row, a space separates each brand from its version, and slashes separate entries. The browser supplies a list of brands. An entry can represent a group of compatible browsers, and the draft specification allows arbitrary brands and a shuffled order. Copy the whole row, especially if it lists several names. Identifying the product from the first name alone loses context. [S2]</p>\n\n<p>The tool reads “User-Agent” as a separate string. Chromium’s reduced format example includes both Chrome and Safari, so the presence of Safari alone cannot identify the product. If a colleague needs to inspect the parts of a string, use the <a href=\"/en/tools/dev/ua-parser/\">User-Agent Parser</a>. To verify the full installed version, copy the version number from the browser’s About page. [S3]</p>\n\n<h2>Window viewport, screen size, and pixel ratio</h2>\n\n<p>If the layout collapses into a single column, start with “Window Viewport.” The tool reads the window’s inner width and height. CSSOM View defines these viewport dimensions to include the space occupied by rendered scrollbars. Drag the window narrower and watch the row change so you can report the width at which the issue occurs. The tool also redraws the table when the window resizes. [S4]</p>\n\n<table><thead><tr><th>Field</th><th>What the tool reads</th><th>What to record when troubleshooting</th></tr></thead><tbody><tr><td>Screen Resolution</td><td>Screen width and height</td><td>Compare readings before and after changing the display setup</td></tr><tr><td>Available Screen</td><td>Available screen width and height reported by the browser</td><td>Record separately from Screen Resolution</td></tr><tr><td>Window Viewport</td><td>Inner width and height of the page window</td><td>Record first when reproducing a layout problem</td></tr><tr><td>Pixel Ratio</td><td>Pixel ratio reported by the browser</td><td>Record with the viewport when comparing screenshots</td></tr></tbody></table>\n\n<p>Read “Screen Resolution” as the name of a field in the table. If the window does not fill the screen and you need someone to reproduce a heading wrap, give them the dimensions from “Window Viewport.” If the issue appears as you narrow the window and disappears as you widen it, record the viewport at both points to help narrow the investigation.</p>\n\n<p>If the page flickers only while you drag the window, hold the window steady until the page settles, record the viewport, and drag in the same direction again. Say whether the issue appears during the drag or persists after you stop. Each behavior calls for a different reproduction step.</p>\n\n<h2>Record language and time zone separately</h2>\n\n<p>In “Language,” the value outside the parentheses is the current language, and the values inside are the language list reported by the browser. If the same page displays different languages on two devices, copy the entire row, including the parentheses. Report the language the page actually displays separately. This helps determine whether the environment readings differ or the page’s language selection logic needs investigation.</p>\n\n<p>For a date that shifts across a day boundary, look at “Time Zone.” The browser’s date formatter supplies the resolved time zone. If the same record falls on the previous day on another device, include both time zones, the date shown on each device, and the affected page in the same report. A report that only says “the time is wrong” makes it hard to identify which record to compare.</p>\n\n<h2>How to verify online status and cookies</h2>\n\n<p>When “Online Status” shows “Online,” the HTML standard defines that to mean the browser might be online. A computer can be connected to a network and still lack internet access. If a site fails to open, visit the address in a new tab in the same window. Record what the browser does, then return to the tool and click “Refresh” to verify the online status. [S1]</p>\n\n<p>“Cookies Enabled” displays the Boolean value the browser exposes to the page as “Yes” or “No.” If the original page asks you to sign in again after you signed in and returned to it, include this row in your report. Specify where you were redirected and at which step the sign-in form reappeared. Use what happened on the page to determine whether the session persisted.</p>\n\n<p>When comparing results before and after a change, record the order in which you visited the target site and read the table. For example, record the failure first, then return to the tool to read the status. If access later resumes, put that result on a separate line so each screenshot can be matched to the right point in time.</p>\n\n<h2>How to read network type, bandwidth, and latency</h2>\n\n<p>In “Network Type,” the value outside the parentheses is the effective connection type, classified using recent latency and bandwidth. The value inside is the connection type reported by the browser. These values come from different properties. If the value in parentheses is “Unknown,” keep the value outside the parentheses. Inferring the kind of wireless network from the effective connection type can confuse a performance category with an access method. [S5]</p>\n\n<p>“Network Bandwidth” is in Mbps, and “Network Latency” is in ms. They are the browser’s estimates of effective bandwidth and round-trip time, respectively. Refreshing the table only reads browser properties. If a particular site loads slowly, record separately what happens when you visit that page. If the issue involves whether two visits used different internet exit points, use <a href=\"/en/tools/dev/ip-lookup/\">IP Address Lookup</a> to verify. [S5]</p>\n\n<h2>What device details and display preferences are available</h2>\n\n<p>“CPU Cores” comes from the browser’s concurrency property. Record the value shown in the table. “Device Memory” comes from the approximate memory value the browser provides. The API rounds and limits the value, and the tool displays GB at the end of the row. To verify the installed capacity, consult the device’s system information. [S6]</p>\n\n<p>When troubleshooting a dark color scheme or animation, change the relevant system or browser setting, then click “Refresh.” The tool uses media queries to show whether “Dark Mode” and “Reduced Motion” are enabled. Return to the affected page to observe its colors or animation. “Touch Support” only checks whether a touch event property exists on the window. If a gesture fails, record the gesture you performed.</p>\n\n<h2>Limitations</h2>\n\n<p>Fields such as User-Agent, screen dimensions, pixel ratio, time zone, and language can be combined into a browser fingerprint to identify or track a device. The tool displays the readings that the current browser provides. Websites can still read these values through page scripts, and using the tool does not block that tracking. [S6]</p>\n\n<p>When “Browser” shows “—,” you can still read the independently collected User-Agent below it. The brand data API requires a secure context. If the brand list is missing or empty, the table displays “—.” If the trailing parts of a version appear to be missing, verify the version against the browser’s About page. Chromium’s documentation describes how it reduces version detail. [S2] [S3]</p>\n\n<p>When you see “Unknown,” note which row shows it. Device memory displays “Unknown” if no reading is available. Bandwidth and latency also display “Unknown” if a value is missing or zero. Recording “Unknown” as zero can give the impression that the browser reported a numeric result. Click “Refresh” to verify, then copy what the page displays. [S5] [S6]</p>\n\n<figure><a href=\"/article-images/2026-11/browser-info-missing-fields.jpg\" target=\"_blank\" rel=\"noopener\" aria-label=\"View full image showing a dash for Browser and Unknown for Device Memory, Network Type, Network Bandwidth, and Network Latency.\"><img src=\"/article-images/2026-11/browser-info-missing-fields.jpg\" alt=\"The Browser value is a dash. Device Memory, Network Type, Network Bandwidth, and Network Latency show Unknown.\" width=\"1232\" height=\"902\" loading=\"lazy\" decoding=\"async\"></a><figcaption>“Browser” shows a dash. “Device Memory” and the network rows show “Unknown.” Click the image to view it at full size.</figcaption></figure>\n\n<p>If the readings differ from those on another device, reopen the tool the same way and verify that you copied fields with the same names. Some rows display strings as returned, while others convert properties to labels such as “Online,” “Yes,” and “Unknown.” Keep the labels when comparing readings so others can tell which value you recorded.</p>\n\n<p>The “Platform” row reads the browser’s platform string directly. When the tool sees a mobile flag, it appends “(Mobile).” If the issue occurs on a phone, say whether you opened the page in an app or a browser, and copy the platform value shown by the tool.</p>\n\n<h2>What to include in a report</h2>\n\n<p>Write the reproduction steps first, then select the rows relevant to the issue. The person investigating can follow the steps and use the readings to identify differences between environments. Use separate sentences for what you observed on the original page and what the tool reported so each can be compared in turn.</p>\n\n<ul><li>For layout issues, record the original page, the window viewport, the pixel ratio, and where the issue occurs. If dragging the window reproduces the issue, record how the readings change.</li><li>For language or date issues, record the original page, the relevant language or time zone row, and what you expected to see and actually saw.</li><li>For loading or sign-in issues, record the step at which the issue occurred and the online status or cookie row at the time. Add the browser brand and version as needed.</li></ul>\n\n<p>If you send a screenshot, crop it to the relevant rows so the fields are easy to find. For a layout issue, for example, show only the viewport and pixel ratio and describe the action that caused the text to wrap. For sign-in issues, describe the redirects in the report and keep the screenshot focused on the failure message.</p>\n\n<p>After writing the report, follow the steps in the original browser. If the issue disappeared after you changed a setting, describe what happened before and after the change. If the same issue returns after restoring the original conditions, label each set of readings with the attempt it came from so the investigator can compare them in the same order.</p>",
+  "faqs": [
+    {
+      "q": "Can I find the version if the Browser row shows a dash?",
+      "a": "Start with the separate User-Agent row. To verify the full installed version, open the current browser’s About page. [S2] [S3]"
+    },
+    {
+      "q": "Why won’t a site open when Online Status shows Online?",
+      "a": "“Online” means the browser might be online. Try opening the target address in the same window and record what happens. [S1]"
+    }
+  ],
+  "slug": "browser-info",
+  "category": "趣味工具",
+  "toolSlug": "browser-info",
+  "published": "2026-11-28",
+  "updated": "2026-11-28",
+  "readingMinutes": 7,
+  "sources": [
+    {
+      "id": "S1",
+      "url": "https://html.spec.whatwg.org/multipage/system-state.html",
+      "title": "HTML Standard: System state",
+      "publisher": "WHATWG",
+      "why": "解释在线状态的含义和局限。",
+      "accessedAt": "2026-11-28"
+    },
+    {
+      "id": "S2",
+      "url": "https://wicg.github.io/ua-client-hints/",
+      "title": "User-Agent Client Hints",
+      "publisher": "WICG",
+      "why": "定义品牌列表及安全上下文要求。",
+      "accessedAt": "2026-11-28"
+    },
+    {
+      "id": "S3",
+      "url": "https://www.chromium.org/updates/ua-reduction/",
+      "title": "Chromium User-Agent Reduction",
+      "publisher": "Chromium",
+      "why": "说明 User-Agent 缩减后的格式。",
+      "accessedAt": "2026-11-28"
+    },
+    {
+      "id": "S4",
+      "url": "https://www.w3.org/TR/cssom-view/",
+      "title": "CSSOM View Module",
+      "publisher": "W3C",
+      "why": "定义窗口内宽和内高。",
+      "accessedAt": "2026-11-28"
+    },
+    {
+      "id": "S5",
+      "url": "https://wicg.github.io/netinfo/",
+      "title": "Network Information API",
+      "publisher": "WICG",
+      "why": "区分连接类型和性能估计。",
+      "accessedAt": "2026-11-28"
+    },
+    {
+      "id": "S6",
+      "url": "https://www.w3.org/TR/device-memory/",
+      "title": "Device Memory API",
+      "publisher": "W3C",
+      "why": "说明内存读数取整与上下界。",
+      "accessedAt": "2026-11-28"
+    }
+  ],
+  "image": "/article-images/2026-11/browser-info-browser-overview.jpg",
+  "_meta": {
+    "translation": {
+      "of": "browser-info",
+      "lang": "en",
+      "translatedFrom": "7c7b823190d872e135bf1e1595a6fdd2e2815d2c83b3c401dc7a870b997b7a9c",
+      "translatedAt": "2026-11-28T04:15:15.323Z",
+      "reviewerVerdict": "pass",
+      "reviewerConfidence": 0.93,
+      "reviewedAt": "2026-11-28T04:18:03.847Z",
+      "reviewer": "deepseek-i18n-subagent"
+    }
+  }
+}
