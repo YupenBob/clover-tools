@@ -18,7 +18,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { ROOT, STATE_PATHS } from './lib/paths.mjs';
 import { loadConfig } from './lib/config.mjs';
@@ -907,6 +907,28 @@ function pushMaintenanceCommits(runKey, config) {
   }
 }
 
+/** 草稿译文比 data/ 发布稿新时，重新 apply（幂等）。返回 {stale:[lang], applied}。 */
+function resyncTranslationsIfStale(slug, runKey, config) {
+  const langs = config.translation?.languages ?? ['tw', 'en', 'ko', 'ja'];
+  const draftDir = join(ROOT, '.editorial', 'drafts', slug, 'translations');
+  const dataDir = join(ROOT, 'data', 'editorial-guides');
+  const stale = [];
+  for (const lang of langs) {
+    const draftFile = join(draftDir, `${lang}.json`);
+    const dataFile = join(dataDir, `${slug}.${lang}.json`);
+    try {
+      const draftMtime = statSync(draftFile).mtimeMs;
+      if (!existsSync(dataFile) || statSync(dataFile).mtimeMs < draftMtime) stale.push(lang);
+    } catch {
+      // 缺文件由后续门禁处理
+    }
+  }
+  if (stale.length === 0) return { stale: [], applied: false };
+  const applied = sh('scripts/editorial/apply-translations.mjs', ['--slug', slug, '--run', runKey, '--langs', stale.join(',')], { timeoutMs: 5 * 60_000 });
+  if (applied.code === 0) sh('scripts/editorial/build-translation-index.mjs', [], { timeoutMs: 3 * 60_000 });
+  return { stale, applied: applied.code === 0 };
+}
+
 function finalize(options) {
   const config = loadConfig();
   const state = requireRun(options, ['finalizing', 'finalize', 'landing']);
@@ -923,6 +945,10 @@ function finalize(options) {
   };
 
   if (state.translate) {
+    // 复核员可能在本趟落盘之后又改了译文（已发生过 3 次）：
+    // 提交前比一次 mtime，草稿更新的语言重新 apply 一遍，避免发布稿落后于终稿。
+    const resync = resyncTranslationsIfStale(slug, runKey, config);
+    log(runKey, `finalize resync ${JSON.stringify(resync)}`);
     const asserted = sh('.editorial/tools/decide-translate.mjs', ['--run', runKey, '--assert-applied'], { timeoutMs: 3 * 60_000 });
     if (asserted.code !== 0) fail('assert-applied', `${asserted.out}\n${asserted.err}`);
   }
